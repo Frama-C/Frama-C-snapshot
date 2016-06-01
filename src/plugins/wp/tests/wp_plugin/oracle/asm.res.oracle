@@ -1,0 +1,30 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/asm.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Assertion 'OK' (file tests/wp_plugin/asm.i, line 10):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'KO' (file tests/wp_plugin/asm.i, line 11):
+Assume { Type: is_sint32(dst_0). }
+Prove: 2 = dst_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main with behavior default_for_stmt_3
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/asm.i, line 5) at assembly (file tests/wp_plugin/asm.i, line 5):
+Effect at line 5
+Prove: false.
+
+------------------------------------------------------------

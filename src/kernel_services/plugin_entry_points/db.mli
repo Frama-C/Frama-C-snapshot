@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -189,11 +189,19 @@ module Value : sig
     Value_types.call_result
 
   val register_builtin: (string -> builtin_sig -> unit) ref
-    (** [!record_builtin name ?override f] registers an abstract function [f]
+    (** [!register_builtin name f] registers an abstract function [f]
         to use everytime a C function named [name] is called in the program.
         See also option [-val-builtin] *)
 
+  val registered_builtins: (unit -> (string * builtin_sig) list) ref
+  (** Returns a list of the pairs (name, builtin_sig) registered via
+      [register_builtin].
+      @since Aluminium-20160501 *)
+
   val mem_builtin: (string -> bool) ref
+  (** returns whether there is an abstract function registered by
+      {!register_builtin} with the given name. *)
+
   val use_spec_instead_of_definition: (kernel_function -> bool) ref
   (** To be called by derived analyses to determine if they must use
       the body of the function (if available), or only its spec. Used for
@@ -226,7 +234,7 @@ module Value : sig
 
   (** {4 Initial state of the analysis} *)
 
-  (** The functions below are related to the the value of the global variables
+  (** The functions below are related to the value of the global variables
       when the value analysis is started. If [globals_set_initial_state] has not
       been called, the given state is used. A default state (which depends on
       the option [-libentry]) is used when [globals_use_default_initial_state]
@@ -466,9 +474,20 @@ module Value : sig
       on [Record_Value_Callbacks] and [Record_Value_Callbacks_New]
       should not force their lazy argument *)
 
-  (** Actions to perform at each treatment of a "call" statement. *)
+  (** Actions to perform at each treatment of a "call"
+      statement. [state] is the state before the call.
+      @deprecated Use Call_Type_Value_Callbacks instead. *)
   module Call_Value_Callbacks:
     Hook.Iter_hook with type param = state * callstack
+
+  (** Actions to perform at each treatment of a "call"
+      statement. [state] is the state before the call.
+      @since Aluminium-20160501  *)
+  module Call_Type_Value_Callbacks:
+    Hook.Iter_hook with type param =
+    [`Builtin of Value_types.call_result | `Spec | `Def | `Memexec]
+    * state * callstack
+
 
   (** Actions to perform whenever a statement is handled. *)
   module Compute_Statement_Callbacks:
@@ -508,10 +527,8 @@ module Value : sig
        -> Cvalue.V_Offsetmap.t option (** returned value of [kernel_function] *) * state) ref
 *)
   val merge_initial_state : callstack -> state -> unit
-    (** Store an additional possible initial state for the given callstack as
-        well as its values for actuals. *)
-  (** @modify Neon-TIS now takes the current callstack instead of just
-      the current kernel function. *)
+  (** Store an additional possible initial state for the given callstack as
+      well as its values for actuals. *)
 
   val initial_state_changed: (unit -> unit) ref
 end
@@ -519,6 +536,12 @@ end
 (** Functional dependencies between function inputs and function outputs.
     @see <../from/index.html> internal documentation. *)
 module From : sig
+
+  (** exception raised by [find_deps_no_transitivity_*] if the given expression
+      is not an lvalue. 
+      @since Aluminium-20160501
+   *)
+  exception Not_lval
 
   val compute_all : (unit -> unit) ref
   val compute_all_calldeps : (unit -> unit) ref
@@ -533,10 +556,13 @@ module From : sig
   val get : (kernel_function -> Function_Froms.t) ref
   val access : (Locations.Zone.t -> Function_Froms.Memory.t
                 -> Locations.Zone.t) ref
+  
   val find_deps_no_transitivity : (stmt -> exp -> Locations.Zone.t) ref
+
   val find_deps_no_transitivity_state :
     (Value.state -> exp -> Locations.Zone.t) ref
 
+  (** @raise Not_lval if the given expression is not a C lvalue. *)
   val find_deps_term_no_transitivity_state :
     (Value.state -> term -> Value_types.logic_dependencies) ref
 
@@ -606,38 +632,59 @@ module Properties : sig
 
     (** {3 From logic terms to C terms} *)
 
+    (** Exception raised by the functions below when their given argument
+        cannot be interpreted in the C world. 
+        @since Aluminium-20160501
+     *)
+    exception No_conversion
+
     val term_lval_to_lval:
       (result: Cil_types.varinfo option -> term_lval -> Cil_types.lval) ref
-      (** @raise Invalid_argument if the argument is not a left value. *)
+      (** @raise No_conversion if the argument is not a left value. 
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val term_to_lval:
       (result: Cil_types.varinfo option -> term -> Cil_types.lval) ref
-      (** @raise Invalid_argument if the argument is not a left value. *)
+      (** @raise No_conversion if the argument is not a left value.
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val term_to_exp:
       (result: Cil_types.varinfo option -> term -> Cil_types.exp) ref
-      (** @raise Invalid_argument if the argument is not a valid expression. *)
+      (** @raise No_conversion if the argument is not a valid expression.
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val loc_to_exp:
       (result: Cil_types.varinfo option -> term -> Cil_types.exp list) ref
       (** @return a list of C expressions.
-          @raise Invalid_argument if the argument is not a valid set of
-          expressions. *)
+          @raise No_conversion if the argument is not a valid set of
+          expressions. 
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val loc_to_lval:
       (result: Cil_types.varinfo option -> term -> Cil_types.lval list) ref
       (** @return a list of C locations.
-          @raise Invalid_argument if the argument is not a valid set of
-          left values. *)
+          @raise No_conversion if the argument is not a valid set of
+          left values.
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val term_offset_to_offset:
       (result: Cil_types.varinfo option -> term_offset -> offset) ref
-      (** @raise Invalid_argument if the argument is not a valid offset. *)
+      (** @raise No_conversion if the argument is not a valid offset. 
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
     val loc_to_offset:
       (result: Cil_types.varinfo option -> term -> Cil_types.offset list) ref
-      (** @return a list of C offset provided the term denotes location who
-          have all the same base address.  *)
+      (** @return a list of C offset provided the term denotes locations who
+          have all the same base address.
+          @raise No_conversion if the given term does not match the precondition
+          @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
+       *)
 
 
     (** {3 From logic terms to Locations.location} *)
@@ -645,7 +692,10 @@ module Properties : sig
     val loc_to_loc:
       (result: Cil_types.varinfo option -> Value.state -> term -> 
        Locations.location) ref
-      (** @raise Invalid_argument if the translation fails. *)
+      (** @raise No_conversion if the translation fails.
+          @modify Aluminium-20160501 raises a custom exn instead of generic
+          Invalid_arg
+      *)
 
     val loc_to_loc_under_over:
       (result: Cil_types.varinfo option -> Value.state -> term -> 
@@ -657,7 +707,10 @@ module Properties : sig
           over-approximation of locations that have been read during evaluation.
           Warning: This API is not stabilized, and may change in
           the future.
-          @raise Invalid_argument in some cases. *)
+          @raise No_conversion if the translation fails.
+          @modify Aluminium-20160501 raises a custom exn instead of generic
+          Invalid_arg
+       *)
 
     (** {3 From logic terms to Zone.t} *)
 
@@ -818,10 +871,10 @@ module RteGen : sig
 				     kf? *) 
   val get_all_status : (unit -> status_accessor list) ref
   val get_precond_status : (unit -> status_accessor) ref
-  val get_signedOv_status : (unit -> status_accessor) ref
   val get_divMod_status : (unit -> status_accessor) ref
-  val get_downCast_status : (unit -> status_accessor) ref
   val get_memAccess_status : (unit -> status_accessor) ref
+  val get_signedOv_status : (unit -> status_accessor) ref
+  val get_signed_downCast_status : (unit -> status_accessor) ref
   val get_unsignedOv_status : (unit -> status_accessor) ref
   val get_unsignedDownCast_status : (unit -> status_accessor) ref
 end

@@ -1,3 +1,6 @@
+/* run.config
+   STDOPT:+"-copy"
+*/
 int main(unsigned short bit) 
 {
   asm goto ("1: jmp %l[t_no]\n"

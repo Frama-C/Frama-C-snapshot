@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/some.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {1.0000000000000000}
+   [1..25] ∈ {0}
+  y ∈ {1.0000000000000000*2^-1}
+[value] DUMPING STATE of file tests/float/some.c line 16
+        t[0] ∈ {1.0000000000000000}
+         [1] ∈ {1.5000000000000000}
+         [2] ∈ {1.7500000000000000}
+         [3] ∈ {1.8750000000000000}
+         [4] ∈ {1.9375000000000000}
+         [5] ∈ {1.9687500000000000}
+         [6] ∈ {1.9843750000000000}
+         [7] ∈ {1.9921875000000000}
+         [8] ∈ {1.9960937500000000}
+         [9] ∈ {1.9980468750000000}
+         [10] ∈ {1.9990234375000000}
+         [11] ∈ {1.9995117187500000}
+         [12] ∈ {1.9997558593750000}
+         [13] ∈ {1.9998779296875000}
+         [14] ∈ {1.9999389648437500}
+         [15] ∈ {1.9999694824218750}
+         [16] ∈ {1.9999847412109375}
+         [17] ∈ {1.9999923706054688}
+         [18] ∈ {1.9999961853027344}
+         [19] ∈ {1.9999980926513672}
+         [20] ∈ {1.9999990463256836}
+         [21] ∈ {1.9999995231628418}
+         [22] ∈ {1.9999997615814209}
+         [23] ∈ {1.9999998807907104}
+         [24..25] ∈ {2.0000000000000000}
+        y ∈ {1.0000000000000000*2^-26}
+        i ∈ {26}
+        =END OF DUMP==
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======

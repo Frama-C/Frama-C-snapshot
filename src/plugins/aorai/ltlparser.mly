@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -89,97 +89,97 @@ formula
         : LTL_TRUE
             {Ltlast.LTrue}
         | LTL_FALSE
-	    {Ltlast.LFalse}
-	| LTL_LPAREN formula LTL_RPAREN
-	    { $2 }
+            {Ltlast.LFalse}
+        | LTL_LPAREN formula LTL_RPAREN
+            { $2 }
 
-	| LTL_GLOBALLY formula
-	    { Ltlast.LGlobally($2) }
-	| LTL_FATALLY  formula
-	    { Ltlast.LFatally($2) }
-	| formula LTL_UNTIL formula
-	    { Ltlast.LUntil($1,$3) }
-	| formula LTL_RELEASE formula
-	    { Ltlast.LRelease($1,$3) }
-	| LTL_NEXT formula
-	    { Ltlast.LNext($2) }
+        | LTL_GLOBALLY formula
+            { Ltlast.LGlobally($2) }
+        | LTL_FATALLY  formula
+            { Ltlast.LFatally($2) }
+        | formula LTL_UNTIL formula
+            { Ltlast.LUntil($1,$3) }
+        | formula LTL_RELEASE formula
+            { Ltlast.LRelease($1,$3) }
+        | LTL_NEXT formula
+            { Ltlast.LNext($2) }
 
-	| formula LTL_OR formula
-	    { Ltlast.LOr($1,$3) }
-	| formula LTL_AND formula
-	    { Ltlast.LAnd($1,$3) }
-	| LTL_NOT formula
-	    { Ltlast.LNot($2) }
-	| formula LTL_IMPLIES formula
-	    { Ltlast.LImplies($1,$3) }
-	| formula LTL_LEFT_RIGHT_ARROW formula
-	    { Ltlast.LIff($1,$3) }
+        | formula LTL_OR formula
+            { Ltlast.LOr($1,$3) }
+        | formula LTL_AND formula
+            { Ltlast.LAnd($1,$3) }
+        | LTL_NOT formula
+            { Ltlast.LNot($2) }
+        | formula LTL_IMPLIES formula
+            { Ltlast.LImplies($1,$3) }
+        | formula LTL_LEFT_RIGHT_ARROW formula
+            { Ltlast.LIff($1,$3) }
 
-	| LTL_CALL LTL_LPAREN LTL_LABEL LTL_RPAREN
-	    { Ltlast.LCall($3)}
-	| LTL_RETURN LTL_LPAREN LTL_LABEL LTL_RPAREN
-	    { Ltlast.LReturn($3)}
-	| LTL_CALL_OR_RETURN LTL_LPAREN LTL_LABEL LTL_RPAREN
-	    { Ltlast.LCallOrReturn($3)}
+        | LTL_CALL LTL_LPAREN LTL_LABEL LTL_RPAREN
+            { Ltlast.LCall($3)}
+        | LTL_RETURN LTL_LPAREN LTL_LABEL LTL_RPAREN
+            { Ltlast.LReturn($3)}
+        | LTL_CALL_OR_RETURN LTL_LPAREN LTL_LABEL LTL_RPAREN
+            { Ltlast.LCallOrReturn($3)}
 
 /* returns a string identifer associated, through observed_expressions table, to the represented expression */
-	| logic_relation
-	    {
-	      let id = get_fresh_ident () in
-	        Hashtbl.add observed_expressions id $1;
-	        Ltlast.LIdent(id)
-	    }
+        | logic_relation
+            {
+              let id = get_fresh_ident () in
+                Hashtbl.add observed_expressions id $1;
+                Ltlast.LIdent(id)
+            }
   ;
 
 logic_relation
-	: arith_relation LTL_EQ  arith_relation { Eq, $1 , $3}
-	| arith_relation LTL_LT  arith_relation { Lt, $1, $3 }
-	| arith_relation LTL_GT  arith_relation { Gt, $1, $3 }
-	| arith_relation LTL_LE  arith_relation { Le, $1, $3 }
-	| arith_relation LTL_GE  arith_relation { Ge, $1, $3 }
-	| arith_relation LTL_NEQ arith_relation { Neq, $1, $3 }
-	| arith_relation { Neq, $1, PCst (IntConstant "0") }
+        : arith_relation LTL_EQ  arith_relation { Eq, $1 , $3}
+        | arith_relation LTL_LT  arith_relation { Lt, $1, $3 }
+        | arith_relation LTL_GT  arith_relation { Gt, $1, $3 }
+        | arith_relation LTL_LE  arith_relation { Le, $1, $3 }
+        | arith_relation LTL_GE  arith_relation { Ge, $1, $3 }
+        | arith_relation LTL_NEQ arith_relation { Neq, $1, $3 }
+        | arith_relation { Neq, $1, PCst (IntConstant "0") }
   ;
 
 arith_relation
         : arith_relation_mul LTL_PLUS arith_relation { PBinop(Badd,$1,$3) }
-	| arith_relation_mul LTL_MINUS arith_relation { PBinop(Bsub,$1,$3) }
-	| arith_relation_mul { $1 }
+        | arith_relation_mul LTL_MINUS arith_relation { PBinop(Bsub,$1,$3) }
+        | arith_relation_mul { $1 }
   ;
 
 
 arith_relation_mul
-	: arith_relation_mul LTL_DIV access_or_const { PBinop(Bdiv,$1,$3) }
-	| arith_relation_mul LTL_STAR access_or_const { PBinop(Bmul,$1,$3) }
-	| arith_relation_mul LTL_MODULO access_or_const { PBinop(Bmod,$1,$3)}
-	| access_or_const { $1 }
+        : arith_relation_mul LTL_DIV access_or_const { PBinop(Bdiv,$1,$3) }
+        | arith_relation_mul LTL_STAR access_or_const { PBinop(Bmul,$1,$3) }
+        | arith_relation_mul LTL_MODULO access_or_const { PBinop(Bmod,$1,$3)}
+        | access_or_const { $1 }
   ;
 
 /* returns a Lval exp or a Const exp*/
 access_or_const
         : LTL_INT { PCst (IntConstant $1) }
         | LTL_MINUS LTL_INT { PUnop (Uminus,PCst (IntConstant $2)) }
-	| access { $1 }
-	| LTL_LPAREN arith_relation LTL_RPAREN { $2 }
+        | access { $1 }
+        | LTL_LPAREN arith_relation LTL_RPAREN { $2 }
   ;
 
 
 /* returns a lval */
 access
-	: access LTL_RIGHT_ARROW LTL_LABEL { PField (PUnop(Ustar,$1),$3) }
-	| access LTL_DOT LTL_LABEL { PField($1,$3) }
-	| access_array {$1}
+        : access LTL_RIGHT_ARROW LTL_LABEL { PField (PUnop(Ustar,$1),$3) }
+        | access LTL_DOT LTL_LABEL { PField($1,$3) }
+        | access_array {$1}
 
 access_array
-	: access_array LTL_LEFT_SQUARE access_or_const LTL_RIGHT_SQUARE
-	    { PArrget($1,$3) }
-    	| access_leaf {$1}
+        : access_array LTL_LEFT_SQUARE access_or_const LTL_RIGHT_SQUARE
+            { PArrget($1,$3) }
+        | access_leaf {$1}
 
 
 access_leaf
         : LTL_ADRESSE access { PUnop (Uamp,$2) }
-	| LTL_STAR access { PUnop (Ustar, $2 ) }
-	| LTL_LABEL { PVar $1 }
-	| LTL_LPAREN access LTL_RPAREN { $2 }
+        | LTL_STAR access { PUnop (Ustar, $2 ) }
+        | LTL_LABEL { PVar $1 }
+        | LTL_LPAREN access LTL_RPAREN { $2 }
 
   ;

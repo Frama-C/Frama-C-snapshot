@@ -1,4 +1,4 @@
-/* run.config
+/* run.config*
    STDOPT: #"-slevel 10 -big-ints-hex 257"
    STDOPT: #"-slevel 10 -big-ints-hex 257 -machdep ppc_32"
 */

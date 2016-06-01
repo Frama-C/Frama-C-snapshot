@@ -1,16 +1,16 @@
 /* run.config
 OPT: -journal-disable -wp-model Hoare -wp-verbose 2
-OPT: -journal-disable -wp-model Store -wp-verbose 2 -wp-prop @assigns
+OPT: -journal-disable -wp-model Typed -wp-verbose 2 -wp-prop @assigns
 */
 
 /* run.config_qualif
-OPT: -journal-disable -rte -wp -wp-model Hoare -wp-par 1 -wp-log "no-time-info"
+OPT: -journal-disable -rte -wp -wp-model Hoare -wp-par 1 -wp-msg-key "no-time-info"
 */
 /*----------------------------------------------------------------------------*/
 
 /* This file is to test the strategy generation, so it doesn't need to be tested
  * for different models. Let's choose examples that work with Hoare,
- * except to test assign properties that need Store.
+ * except to test assign properties that need Store Memory Model (ex Typed).
  */
 
 /*----------------------------------------------------------------------------*/

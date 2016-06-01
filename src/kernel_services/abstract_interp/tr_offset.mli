@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,8 @@ type t = private
                Origin.t  (** The location covers the entire range [min..max],
                              but consecutive offsets overlap *)
 
+val pretty: t Pretty_utils.formatter
+
 (** [trim_by_validity ?origin offsets size validity] reduces [offsets] so that
     all accesses to [offsets+(0..size-1)] are valid according to [validity].
     The returned boolean indicates that at least one of the offsets does not
@@ -46,6 +48,24 @@ val trim_by_validity :
   Integer.t ->
   Base.validity ->
   bool (** alarm *) * t
+
+(** This is a more complete specification of this function, for a single offset
+    [o]. We want to write [size>0 bits], on a base possibly valid between
+    [min_valid..max_maybe_valid], and guaranteed to be valid between
+    [min_valid..max_sure_valid]. The case [max_sure_valid < min_valid] is
+    possible: in this case, no bit is guaranteed to be valid. For Valid and
+    non-Empty bases, [min_valid<max_maybe_valid] holds. We write
+    [start_to==o] and [stop_to==start_to+size-1]. Then
+
+    - If [start_to..stop_to] is not included in [min_valid..max_maybe_valid],
+      then the write completely fails: at least one bit is outside the validity.
+      This translates to [start_to<min_valid || stop_to > max_maybe_valid]
+
+    - If [start_to..stop_to] is not included in [min_valid..max_sure_valid],
+      then we must emit an alarm. This translates to
+      [start_to<min_valid || stop_to > max_sure_valid]. This convention works
+      even when [min_valid..max_sure_valid] is not a real interval.
+ *)
 
 (*
 Local Variables:

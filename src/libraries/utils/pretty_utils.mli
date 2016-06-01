@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -85,6 +85,17 @@ val pp_iter:
     is started (resp. has ended). The optional argument [sep] is output bewteen
     two calls to the ['a formatter]. Default: open a box for [pre], close
     a box for [suf], nothing for [sep]. *)
+
+val pp_iter2:
+  ?pre:sformat -> ?sep:sformat -> ?suf:sformat -> ?between:sformat ->
+  (('key -> 'v -> unit) -> 'a -> unit) ->
+  'key formatter -> 'v formatter -> 'a formatter
+(** pretty prints any map-like structure using an iterator on it. The argument
+    [pre] (resp. [suf]) is output before (resp. after) the iterator
+    is started (resp. has ended). The optional argument [sep] is output bewteen
+    two calls to the ['a formatter]. The optional argument [between] is
+    output between the key and the value. Default: open a box for [pre], close
+    a box for [suf], nothing for [sep], break-space for [between]. *)
 
 val pp_opt: ?pre:sformat -> ?suf:sformat -> 'a formatter -> 'a option formatter
 (** pretty-prints an optional value. Prefix and suffix default to "@[" and "@]"

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,16 +27,40 @@ let msg_emitter = Lattice_messages.register "Abstract_interp"
 
 open Lattice_type
 
-module Bot = struct
-  type 'a or_bottom = [ `Value of 'a | `Bottom ]
-  let non_bottom = function
-    | `Value v -> v
-    | `Bottom -> assert false
+module Comp = struct
+  type t = Lt | Gt | Le | Ge | Eq | Ne
 
-  let join_or_bottom join x y = match x, y with
-    | `Value vx, `Value vy -> `Value (join vx vy)
-    | `Bottom, (`Value _ as v) | (`Value _ as v), `Bottom
-    | (`Bottom as v), `Bottom -> v
+  type result = True | False | Unknown
+  
+  let inv = function
+    | Gt -> Le
+    | Lt -> Ge
+    | Le -> Gt
+    | Ge -> Lt
+    | Eq -> Ne
+    | Ne -> Eq
+
+  let sym = function
+    | Gt -> Lt
+    | Lt -> Gt
+    | Le -> Ge
+    | Ge -> Le
+    | Eq -> Eq
+    | Ne -> Ne
+
+  let pretty_comp fmt = function
+    | Gt -> Format.pp_print_string fmt ">"
+    | Lt -> Format.pp_print_string fmt "<"
+    | Le -> Format.pp_print_string fmt "<="
+    | Ge -> Format.pp_print_string fmt ">="
+    | Eq -> Format.pp_print_string fmt "=="
+    | Ne -> Format.pp_print_string fmt "!="
+
+  let inv_result = function
+    | Unknown -> Unknown
+    | True -> False
+    | False -> True
+
 end
 
 module Make_Lattice_Set(V:Lattice_Value): Lattice_Set with type O.elt = V.t =
@@ -600,6 +624,105 @@ module Rel = struct
   let sub_abs = sub
 end
 
+
+module Bool = struct
+  type t = Top | True | False | Bottom
+  let hash (b : t) = Hashtbl.hash b
+  let equal (b1 : t) (b2 : t) = b1 = b2
+  let compare (b1 : t) (b2 : t) = Pervasives.compare b1 b2
+  let pretty fmt = function
+    | Top -> Format.fprintf fmt "Top"
+    | True -> Format.fprintf fmt "True"
+    | False -> Format.fprintf fmt "False"
+    | Bottom -> Format.fprintf fmt "Bottom"
+  let is_included t1 t2 = match t1, t2 with
+    | Bottom, _
+    | _, Top
+    | True, True
+    | False, False -> true
+    | _ -> false
+  let bottom = Bottom
+  let top = Top
+  let join b1 b2 = match b1, b2 with
+    | Top, _
+    | _, Top
+    | True, False -> Top
+    | True, _
+    | _, True -> True
+    | False, _
+    | _, False -> False
+    | Bottom, Bottom -> Bottom
+  let narrow b1 b2 = match b1, b2 with
+    | Bottom, _
+    | _, Bottom
+    | True, False -> Bottom
+    | True, _
+    | _, True -> True
+    | False, _
+    | _, False -> False
+    | Top, Top -> Top
+  let link = join
+  let meet = narrow
+  let join_and_is_included b1 b2 = join b1 b2, is_included b1 b2
+  type widen_hint = unit
+  let widen () = join
+  let cardinal_zero_or_one b = not (equal b top)
+  let intersects b1 b2 = match b1, b2 with
+    | Bottom, _ | _, Bottom -> false
+    | _, Top | Top, _ -> true
+    | False, False | True, True -> true
+    | False, True | True, False -> false
+  let diff b1 b2 = match b1, b2 with
+    | b1, Bottom -> b1
+    | _, Top -> Bottom
+    | Bottom, _ -> Bottom
+    | Top, True -> False
+    | Top, False -> True
+    | True, True -> Bottom
+    | True, False -> True
+    | False, True -> False
+    | False, False -> Bottom
+  let diff_if_one b1 b2 = match b1, b2 with
+    | b1, Top -> b1
+    | _, _ -> diff b1 b2
+  let fold_enum f b init =
+    let elements = match b with
+      | Top -> [True; False]
+      | True -> [True]
+      | False -> [False]
+      | Bottom -> []
+    in
+    List.fold_right (fun b acc -> f b acc) elements init
+  let cardinal = function
+    | Top -> 2
+    | True | False -> 1
+    | Bottom -> 0
+  let cardinal_less_than b i =
+    let c = cardinal b in
+    if c > i then raise Not_less_than
+    else c
+
+  type blt = t
+  include (Datatype.Make_with_collections
+             (struct
+               type t = blt
+               let name = "Bool_lattice"
+               let structural_descr = Structural_descr.t_abstract
+               let reprs = [Top; True; False; Bottom]
+               let equal = equal
+               let compare = compare
+               let hash = hash
+               let rehash = Datatype.identity
+               let copy = Datatype.identity
+               let pretty = pretty
+               let internal_pretty_code = Datatype.undefined
+               let varname = Datatype.undefined
+               let mem_project = Datatype.never_any_project
+             end) :
+             Datatype.S with type t := t)
+
+  exception Error_Top (* for With_Error_Top *)
+end
 
 
 module type Collapse = sig

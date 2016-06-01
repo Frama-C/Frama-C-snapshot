@@ -1,0 +1,231 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/from_call.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t ∈ {0}
+  A1 ∈ {0}
+  A2 ∈ {0}
+  A3 ∈ {0}
+  A4 ∈ {0}
+  A5 ∈ {0}
+  A6 ∈ {0}
+  A7 ∈ {0}
+  A8 ∈ {0}
+  R1 ∈ {0}
+  R2 ∈ {0}
+  R3 ∈ {0}
+  S1 ∈ {0}
+  S2 ∈ {0}
+  S3 ∈ {0}
+  T0 ∈ {0}
+  T1 ∈ {0}
+  T2 ∈ {0}
+  tab[0..4] ∈ {0}
+  AA ∈ {0}
+  AR ∈ {0}
+  AS ∈ {0}
+  At[0] ∈ {{ (int)&AA }}
+    [1] ∈ {0}
+  Ar[0] ∈ {{ (int)&AA }}
+    [1] ∈ {0}
+  Ap ∈ {{ &At[0] }}
+  previous ∈ {{ &a }}
+[value] computing for function f <- main.
+        Called from tests/value/from_call.i:81.
+[value] computing for function h <- f <- main.
+        Called from tests/value/from_call.i:20.
+tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for function h, generating default assigns from the prototype
+[value] using specification for function h
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/value/from_call.i:20.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/value/from_call.i:82.
+[value] computing for function h <- f <- main.
+        Called from tests/value/from_call.i:20.
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/value/from_call.i:20.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/value/from_call.i:82.
+[value] computing for function h <- f <- main.
+        Called from tests/value/from_call.i:20.
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/value/from_call.i:20.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for f
+[value] Done for function f
+tests/value/from_call.i:82:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ tmp+tmp_0;
+                  (tmp from f(& c), tmp_0 from f(& d))
+tests/value/from_call.i:82:[kernel] warning: signed overflow.
+                  assert tmp+tmp_0 ≤ 2147483647;
+                  (tmp from f(& c), tmp_0 from f(& d))
+[value] computing for function dispatcher <- main.
+        Called from tests/value/from_call.i:83.
+[value] Recording results for dispatcher
+[value] Done for function dispatcher
+[value] computing for function dispatcher <- main.
+        Called from tests/value/from_call.i:84.
+[value] Recording results for dispatcher
+[value] Done for function dispatcher
+[value] computing for function dispatcher <- main.
+        Called from tests/value/from_call.i:85.
+[value] Recording results for dispatcher
+[value] Done for function dispatcher
+[value] computing for function call_dispatcher2_1 <- main.
+        Called from tests/value/from_call.i:86.
+[value] computing for function dispatcher2 <- call_dispatcher2_1 <- main.
+        Called from tests/value/from_call.i:49.
+[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2_1 <- main.
+        Called from tests/value/from_call.i:44.
+[value] Recording results for return_A1
+[value] Done for function return_A1
+[value] Recording results for dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2_1
+[value] Done for function call_dispatcher2_1
+[value] computing for function call_dispatcher2_0 <- main.
+        Called from tests/value/from_call.i:87.
+[value] computing for function dispatcher2 <- call_dispatcher2_0 <- main.
+        Called from tests/value/from_call.i:54.
+[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2_0 <- main.
+        Called from tests/value/from_call.i:44.
+[value] Recording results for return_A2
+[value] Done for function return_A2
+[value] Recording results for dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2_0
+[value] Done for function call_dispatcher2_0
+[value] computing for function call_dispatcher2 <- main.
+        Called from tests/value/from_call.i:88.
+[value] computing for function dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/value/from_call.i:59.
+[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/value/from_call.i:44.
+[value] Recording results for return_A1
+[value] Done for function return_A1
+[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/value/from_call.i:44.
+[value] Recording results for return_A2
+[value] Done for function return_A2
+[value] Recording results for dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2
+[value] Done for function call_dispatcher2
+[value] computing for function access_tab <- main.
+        Called from tests/value/from_call.i:92.
+[value] Recording results for access_tab
+[value] Done for function access_tab
+[value] computing for function access_tab <- main.
+        Called from tests/value/from_call.i:93.
+[value] Recording results for access_tab
+[value] Done for function access_tab
+[value] computing for function access_tab <- main.
+        Called from tests/value/from_call.i:94.
+[value] Recording results for access_tab
+[value] Done for function access_tab
+[value] computing for function unavailable_f <- main.
+        Called from tests/value/from_call.i:96.
+[value] using specification for function unavailable_f
+[value] Done for function unavailable_f
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function access_tab
+[from] Done for function access_tab
+[from] Computing for function dispatcher
+[from] Done for function dispatcher
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function f
+[from] Computing for function h <-f
+[from] Done for function h
+[from] Done for function f
+[from] Computing for function return_A1
+[from] Done for function return_A1
+[from] Computing for function return_A2
+[from] Done for function return_A2
+[from] Computing for function dispatcher2
+[from] Done for function dispatcher2
+[from] Computing for function call_dispatcher2
+[from] Done for function call_dispatcher2
+[from] Computing for function call_dispatcher2_0
+[from] Done for function call_dispatcher2_0
+[from] Computing for function call_dispatcher2_1
+[from] Done for function call_dispatcher2_1
+[from] Computing for function main
+[from] Computing for function unavailable_f <-main
+[from] Done for function unavailable_f
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function access_tab:
+  \result FROM indirect: ind; direct: tab[0..2]
+[from] Function dispatcher:
+  \result FROM indirect: c_0; direct: y_0; z_0
+[from] Function g:
+  \result FROM direct: t; w
+[from] Function h:
+  \result FROM \nothing
+[from] Function f:
+  b FROM indirect: p; previous; direct: a; b; c (and SELF)
+  c FROM indirect: p; previous; direct: a; b; c (and SELF)
+  d FROM indirect: p; previous; direct: a; b; c (and SELF)
+  previous FROM direct: p
+  \result FROM indirect: p; previous; direct: a; b; c; d; t
+[from] Function return_A1:
+  \result FROM direct: A1
+[from] Function return_A2:
+  \result FROM direct: A2
+[from] Function dispatcher2:
+  \result FROM indirect: c_0; direct: A1; A2
+[from] Function call_dispatcher2:
+  \result FROM indirect: r; direct: A1; A2
+[from] Function call_dispatcher2_0:
+  \result FROM direct: A1; A2
+[from] Function call_dispatcher2_1:
+  \result FROM direct: A1; A2
+[from] Function unavailable_f:
+  AR FROM direct: At[0..1]
+  AS FROM direct: Ar[0..1]
+[from] Function main:
+  b FROM indirect: previous; direct: a; b; c (and SELF)
+  c FROM indirect: previous; direct: a; b; c (and SELF)
+  d FROM indirect: previous; direct: a; b; c (and SELF)
+  y FROM indirect: previous; direct: a; b; c; d; t
+  z FROM indirect: previous; direct: a; b; c; d; t
+  R1 FROM direct: A1; A2
+  R2 FROM direct: A3; A4
+  R3 FROM indirect: r; direct: A4; A5
+  S1 FROM direct: A1; A2
+  S2 FROM direct: A1; A2
+  S3 FROM indirect: r; direct: A1; A2
+  T0 FROM direct: A1; A2; A3; A4
+  T1 FROM direct: A1; A2; A3; A4
+  T2 FROM direct: A1; A2; A3; A4
+  tab[0] FROM direct: A1
+     [1] FROM direct: A2; A3
+     [2] FROM direct: A4
+  AR FROM direct: At[0..1]
+  AS FROM direct: Ar[0..1]
+  previous FROM \nothing
+[from] ====== END OF DEPENDENCIES ======

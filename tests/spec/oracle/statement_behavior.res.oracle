@@ -8,8 +8,8 @@
 [value] computing for function pfsqopfc <- main.
         Called from tests/spec/statement_behavior.c:23.
 tests/spec/statement_behavior.c:13:[value] warning: assuming assembly code has no effects in function pfsqopfc
-tests/spec/statement_behavior.c:17:[value] Assertion got status unknown.
-tests/spec/statement_behavior.c:4:[value] Function pfsqopfc: postcondition got status unknown.
+tests/spec/statement_behavior.c:17:[value] warning: assertion got status unknown.
+tests/spec/statement_behavior.c:4:[value] warning: function pfsqopfc: postcondition got status unknown.
 [value] Recording results for pfsqopfc
 [value] Done for function pfsqopfc
 [value] Recording results for main

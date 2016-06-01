@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -69,18 +69,13 @@ endif #OCAMLWIN32
 # findstring returns an empty string if it does not match, and the value it
 # searches if it matches. Hence we compare with the empty string and negate
 # the condition
-ifneq ($(findstring 3.12,$(OCAMLVERSION)),) # 3.12
-  HAS_OCAML4 = no
-  HAS_OCAML402 = no
-else  # >=4
-  HAS_OCAML4 = yes
-  ifneq ($(findstring 4.00,$(OCAMLVERSION)),) # 4.00
-    HAS_OCAML402 = no
-  else
-    ifneq ($(findstring 4.01,$(OCAMLVERSION)),) # 4.01
-      HAS_OCAML402 = no
-    else # >= 4.02
-      HAS_OCAML402 = yes
+HAS_OCAML402=no
+HAS_OCAML403=no
+ifeq ($(findstring 4.00,$(OCAMLVERSION)),) # >=4.00
+  ifeq ($(findstring 4.01,$(OCAMLVERSION)),) # >=4.01
+    HAS_OCAML402 = yes
+    ifeq ($(findstring 4.02,$(OCAMLVERSION)),) # >=4.02
+      HAS_OCAML403 = yes
     endif
   endif
 endif
@@ -125,23 +120,6 @@ else
   MAKE := MAKEFLAGS="$(OLDFLAGS)" $(MAKE)
 endif
 
-################
-# Calling Make #
-################
-
-# Function to be called to call make on a given plugin (first argument) and
-# a given rule (second argument)
-external_make = \
-  $(MAKE) FRAMAC_INTERNAL=yes \
-	  FRAMAC_SRC=$(FRAMAC_TOP_SRCDIR) \
-          PLUGIN_LIB_DIR="\
-             $(if $(filter /%,$(PLUGIN_LIB_DIR)),$(PLUGIN_LIB_DIR),\
-                    $(FRAMAC_TOP_SRCDIR)/$(PLUGIN_LIB_DIR))" \
-          PLUGIN_GUI_LIB_DIR="\
-            $(if $(filter /%,$(PLUGIN_GUI_LIB_DIR)),$(PLUGIN_GUI_LIB_DIR),\
-                   $(FRAMAC_TOP_SRCDIR)/$(PLUGIN_GUI_LIB_DIR))" \
-          FRAMAC_LIBDIR="$(FRAMAC_TOP_SRCDIR)/lib/fc" \
-          FRAMAC_SHARE="$(FRAMAC_TOP_SRCDIR)/share" -C $(1) $(2)
 
 ##################
 # Shell commands #
@@ -157,6 +135,10 @@ CHMOD_RW= sh -c \
   if test -e $$f; then chmod u+w $$f; fi \
 done' chmod_rw
 CP      = install
+CP_IF_DIFF = sh -c \
+  'if cmp -s $$1 $$2; \
+   then touch -r $$2 $$1; \
+   else echo "Generating  $$2"; install $$1 $$2; fi' cpifdiff
 #follow symbolic link
 CP_L    = cp -fL
 ECHO	= echo
@@ -283,6 +265,36 @@ DOC_PLUGIN=$(DOC_DIR)/docgen.cmxs
 else
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmo
 endif
+
+##########################
+# Plugin File Generation #
+##########################
+
+#take the name of the plugin as argument $(1)
+define include_generic_plugin_Makefile
+$(call assert_defined,PLUGIN_DIR)
+$(PLUGIN_DIR)/Makefile.plugin.generated: $(MAKECONFIG_DIR)/Makefile.plugin.template
+	$(PRINT_MAKING)	$$@
+	$(SED) -e "s/@PLUGIN_NAME@/$(1)/g" $$< > $$@
+clean::
+	rm -rf $(PLUGIN_DIR)/Makefile.plugin.generated
+
+#We always define this variable because it can't wait the generation
+#of the Makefile.plugin.generated since the targets of rules defined in the
+#Makefile of the plugins could use this variable
+$(1)_DIR:=$(PLUGIN_DIR)
+
+sinclude $(PLUGIN_DIR)/Makefile.plugin.generated
+
+endef
+
+%.check_mli_exists: %.mli
+	touch $@
+
+.PHONY:common_force_rule
+
+%.check_mli_exists: common_force_rule
+	$(error "The file '$*.mli' must be provided. The simplest workaround is 'touch $*.mli')
 
 
 ##########################################################################

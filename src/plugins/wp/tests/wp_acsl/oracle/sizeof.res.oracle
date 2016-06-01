@@ -10,17 +10,12 @@
 ------------------------------------------------------------
 
 Goal Assertion 'A' (file tests/wp_acsl/sizeof.i, line 10):
-Assume { }
-Prove: not (P_eq 12 9).
+Prove: !P_eq(12, 9).
 
 ------------------------------------------------------------
 
 Goal Assertion 'B' (file tests/wp_acsl/sizeof.i, line 11):
-Assume {
-  (* Assertion 'A' (file tests/wp_acsl/sizeof.i, line 10) *)
-  (* tests/wp_acsl/sizeof.i:10: Assertion 'A': *)
-  Have: not (P_eq 12 9).
-}
-Prove: (P_eq 48 48).
+Assume { (* Assertion 'A' *) Have: !P_eq(12, 9). }
+Prove: P_eq(48, 48).
 
 ------------------------------------------------------------

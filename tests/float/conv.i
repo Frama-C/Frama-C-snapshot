@@ -1,4 +1,4 @@
-/* run.config
+/* run.config*
    STDOPT: #"-big-ints-hex 65536"
 */
 

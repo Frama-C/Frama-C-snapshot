@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -60,6 +60,11 @@
 #define __warndecl(name, msg) extern void name (void)
 #define __warnattr(msg)
 #define __errordecl(name, msg) extern void name (void)
+
+// Protection against pre-processor built-ins
+#if defined __nonnull
+# undef __nonnull
+#endif
 #define __nonnull(args...)
 
 #define __attribute_deprecated__ /* Ignore */

@@ -72,30 +72,30 @@ tests/idct/idct.c:88:[value] entering loop for the first time
 tests/idct/idct.c:125:[value] entering loop for the first time
 tests/idct/idct.c:126:[value] entering loop for the first time
 tests/idct/idct.c:128:[value] entering loop for the first time
-tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:131:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:141:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:143:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:145:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:147:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:131:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:141:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:143:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:145:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:147:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/idct.c:141:[value] warning: 2's complement assumed for overflow
 tests/idct/idct.c:159:[value] entering loop for the first time
 tests/idct/idct.c:160:[value] entering loop for the first time
 tests/idct/idct.c:162:[value] entering loop for the first time
-tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[k][j]);
 tests/idct/idct.c:163:[value] warning: 2's complement assumed for overflow
-tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:166:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:176:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[k][j]);
+tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:166:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/idct.c:176:[value] warning: 2's complement assumed for overflow
-tests/idct/idct.c:178:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:180:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:182:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:176:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:178:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:180:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:182:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 [value] Recording results for idct
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:189:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:190:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:191:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m2[i][j]);
+tests/idct/ieee_1180_1990.c:191:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m2[i][j]);
 [value] computing for function printf <- main.
         Called from tests/idct/ieee_1180_1990.c:195.
 [value] using specification for function printf
@@ -137,14 +137,6 @@ tests/idct/ieee_1180_1990.c:69:[value] warning: 2's complement assumed for overf
         Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
-[value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
-[value] Recording results for IEEE_1180_1990_rand
-[value] Done for function IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -158,29 +150,25 @@ tests/idct/ieee_1180_1990.c:99:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:104:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:105:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:108:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:109:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
+tests/idct/ieee_1180_1990.c:109:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/ieee_1180_1990.c:111:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:112:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:115:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][k]);
-tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:117:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:119:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:121:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] + 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert -2147483649 < tmp2[i][j]+0.5;
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] + 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert tmp2[i][j]+0.5 < 2147483648;
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] - 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert -2147483649 < tmp2[i][j]-0.5;
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] - 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert tmp2[i][j]-0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
+tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:117:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:119:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:121:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:122:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert -2147483649 < tmp2[i][j]+0.5;
+tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert tmp2[i][j]+0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:124:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert -2147483649 < tmp2[i][j]-0.5;
+tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert tmp2[i][j]-0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 [value] computing for function IEEE_1180_1990_idctf <- main.
@@ -190,47 +178,43 @@ tests/idct/ieee_1180_1990.c:139:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:145:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:146:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:149:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value: assert \initialized(&(*(m1+k))[j]);
-tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][j]);
+tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value. assert \initialized(&(*(m1+k))[j]);
+tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/ieee_1180_1990.c:152:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:153:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:156:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp1[i][k]);
-tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:158:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:160:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:162:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] + 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert -2147483649 < tmp2[i][j]+0.5;
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] + 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert tmp2[i][j]+0.5 < 2147483648;
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: accessing uninitialized left-value: assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] - 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert -2147483649 < tmp2[i][j]-0.5;
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion
-                  of tmp2[i][j] - 0.5 ([-1.9999999999999998*2^1023 .. 1.6867516709168837*2^265])
-                  from floating-point to integer. assert tmp2[i][j]-0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
+tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:158:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:160:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:162:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert -2147483649 < tmp2[i][j]+0.5;
+tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert tmp2[i][j]+0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:165:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert -2147483649 < tmp2[i][j]-0.5;
+tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion from floating-point to integer.
+                  assert tmp2[i][j]-0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 [value] computing for function idct <- main.
         Called from tests/idct/ieee_1180_1990.c:214.
-tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value: assert \initialized(&(*(m1+k))[j]);
 tests/idct/idct.c:129:[value] warning: 2's complement assumed for overflow
+tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value. assert \initialized(&(*(m1+k))[j]);
 [value] Recording results for idct
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:215:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:216:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:218:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:219:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[0].pme[j][k]);
+tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:219:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[0].pme[j][k]);
 tests/idct/ieee_1180_1990.c:220:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:230:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:231:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[0].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:231:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[0].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:219:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:231:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:233:[value] entering loop for the first time
@@ -249,37 +233,21 @@ tests/idct/ieee_1180_1990.c:234:[value] entering loop for the first time
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:239:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:240:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:242:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:243:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[3].pme[j][k]);
+tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:243:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[3].pme[j][k]);
 tests/idct/ieee_1180_1990.c:244:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:254:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:255:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[3].pmse[j][k]);
-[value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:236.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
+tests/idct/ieee_1180_1990.c:255:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[3].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:243:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:255:[value] warning: 2's complement assumed for overflow
-[value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:236.
-[value] Recording results for IEEE_1180_1990_dctf
-[value] Done for function IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
 [value] computing for function IEEE_1180_1990_mkbk <- main.
         Called from tests/idct/ieee_1180_1990.c:257.
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
         Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -293,17 +261,13 @@ tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:261:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:262:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:264:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:265:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[1].pme[j][k]);
+tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:265:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[1].pme[j][k]);
 tests/idct/ieee_1180_1990.c:266:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:276:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:277:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[1].pmse[j][k]);
-tests/idct/ieee_1180_1990.c:257:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:258:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
+tests/idct/ieee_1180_1990.c:277:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[1].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:265:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:277:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:279:[value] entering loop for the first time
@@ -313,13 +277,13 @@ tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:285:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:286:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:288:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:289:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[4].pme[j][k]);
+tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:289:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[4].pme[j][k]);
 tests/idct/ieee_1180_1990.c:290:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:300:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:301:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[4].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:301:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[4].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:289:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:301:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
@@ -334,10 +298,6 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
@@ -345,17 +305,13 @@ tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:307:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:308:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:310:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:311:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[2].pme[j][k]);
+tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:311:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[2].pme[j][k]);
 tests/idct/ieee_1180_1990.c:312:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:322:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:323:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[2].pmse[j][k]);
-tests/idct/ieee_1180_1990.c:303:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
+tests/idct/ieee_1180_1990.c:323:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[2].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:311:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:323:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:325:[value] entering loop for the first time
@@ -365,21 +321,17 @@ tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:331:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:332:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value: assert \initialized(&m3[j][k]);
 tests/idct/ieee_1180_1990.c:334:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:335:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[5].pme[j][k]);
+tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:335:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[5].pme[j][k]);
 tests/idct/ieee_1180_1990.c:336:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:346:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:347:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[5].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:347:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[5].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:335:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:347:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
         Called from tests/idct/ieee_1180_1990.c:211.
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -398,27 +350,6 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:257:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:258:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:303:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:235:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_dctf <- main.
         Called from tests/idct/ieee_1180_1990.c:236.
@@ -428,10 +359,6 @@ tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
 [value] computing for function IEEE_1180_1990_mkbk <- main.
         Called from tests/idct/ieee_1180_1990.c:257.
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -457,10 +384,6 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
@@ -479,79 +402,12 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 [value] computing for function IEEE_1180_1990_dctf <- main.
         Called from tests/idct/ieee_1180_1990.c:212.
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:257:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:258:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:303:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:257:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:258:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:303:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:257:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:258:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:259:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:303:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:304:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:305:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_1180_1990_dctf
-tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
-tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
-tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
-tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
@@ -662,15 +518,15 @@ tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:350:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:354:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:355:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:357:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[i].pmse[j][k]);
-tests/idct/ieee_1180_1990.c:368:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:357:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:368:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
 tests/idct/ieee_1180_1990.c:369:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:357:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:358:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[i].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:358:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:368:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[i].pme[j][k]);
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value: assert \initialized(&res[i].pme[j][k]);
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value:
+tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value.
                   assert \initialized(&tmp_5);
                   (tmp_5 from (((res[i]).pme)[j])[k] <
                   0?- res[i].pme[j][k]:res[i].pme[j][k])
@@ -1852,13 +1708,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 50)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 67)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 54)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 71)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 53)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 70)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1875,13 +1731,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acosf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 63)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 80)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 67)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 84)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 66)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 83)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1898,13 +1754,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acosl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 76)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 93)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 80)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 97)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 79)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 96)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1921,13 +1777,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asin'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 89)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 106)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 93)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 110)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 92)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 109)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1944,13 +1800,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asinf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 102)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 119)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 106)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 123)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 105)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 122)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1967,13 +1823,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asinl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 115)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 132)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 119)
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 136)
             ensures __FC_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 118)
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 135)
             assigns __FC_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
@@ -1993,7 +1849,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 128)
+[ Extern  ] Froms (file share/libc/math.h, line 145)
             assigns \result \from y, x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2007,7 +1863,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 133)
+[ Extern  ] Froms (file share/libc/math.h, line 150)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2021,7 +1877,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 138)
+[ Extern  ] Froms (file share/libc/math.h, line 155)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2030,38 +1886,6 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'acosh'
---------------------------------------------------------------------------------
-
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 151)
-            ensures \is_finite(\result) ∧ \result ≥ 0
-            Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 155)
-            ensures \is_plus_infinity(\result)
-            Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 159)
-            ensures __FC_errno ≡ 1
-            Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 158)
-            assigns __FC_errno;
-            Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'infinite' nothing
-            assigns \nothing;
-            Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'normal' nothing
-            assigns \nothing;
-            Unverifiable but considered Valid.
-[  Valid  ] Behavior 'edom'
-            behavior edom
-            by Frama-C kernel.
-[  Valid  ] Behavior 'infinite'
-            behavior infinite
-            by Frama-C kernel.
-[  Valid  ] Behavior 'normal'
-            behavior normal
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'acoshf'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 168)
@@ -2093,7 +1917,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'acoshl'
+--- Properties of Function 'acoshf'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 185)
@@ -2125,13 +1949,45 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
+--- Properties of Function 'acoshl'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 202)
+            ensures \is_finite(\result) ∧ \result ≥ 0
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 206)
+            ensures \is_plus_infinity(\result)
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 210)
+            ensures __FC_errno ≡ 1
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 209)
+            assigns __FC_errno;
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'infinite' nothing
+            assigns \nothing;
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'normal' nothing
+            assigns \nothing;
+            Unverifiable but considered Valid.
+[  Valid  ] Behavior 'edom'
+            behavior edom
+            by Frama-C kernel.
+[  Valid  ] Behavior 'infinite'
+            behavior infinite
+            by Frama-C kernel.
+[  Valid  ] Behavior 'normal'
+            behavior normal
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
 --- Properties of Function 'exp'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 218)
+[ Extern  ] Froms (file share/libc/math.h, line 235)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2145,7 +2001,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 221)
+[ Extern  ] Froms (file share/libc/math.h, line 238)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2159,7 +2015,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 245)
+[ Extern  ] Froms (file share/libc/math.h, line 262)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2173,7 +2029,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 248)
+[ Extern  ] Froms (file share/libc/math.h, line 265)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2187,7 +2043,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 252)
+[ Extern  ] Froms (file share/libc/math.h, line 269)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2201,7 +2057,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 255)
+[ Extern  ] Froms (file share/libc/math.h, line 272)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2215,7 +2071,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 295)
+[ Extern  ] Froms (file share/libc/math.h, line 312)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2229,7 +2085,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 298)
+[ Extern  ] Froms (file share/libc/math.h, line 315)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2243,7 +2099,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 302)
+[ Extern  ] Froms (file share/libc/math.h, line 319)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2257,7 +2113,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 305)
+[ Extern  ] Froms (file share/libc/math.h, line 322)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2271,7 +2127,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 325)
+[ Extern  ] Froms (file share/libc/math.h, line 342)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2285,7 +2141,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 328)
+[ Extern  ] Froms (file share/libc/math.h, line 345)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2299,7 +2155,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 333)
+[ Extern  ] Froms (file share/libc/math.h, line 350)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2313,7 +2169,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 336)
+[ Extern  ] Froms (file share/libc/math.h, line 353)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2327,7 +2183,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 357)
+[ Extern  ] Froms (file share/libc/math.h, line 374)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2341,7 +2197,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 360)
+[ Extern  ] Froms (file share/libc/math.h, line 377)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2355,7 +2211,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 373)
+[ Extern  ] Froms (file share/libc/math.h, line 390)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2369,7 +2225,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 376)
+[ Extern  ] Froms (file share/libc/math.h, line 393)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2383,7 +2239,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 381)
+[ Extern  ] Froms (file share/libc/math.h, line 398)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2394,7 +2250,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nan'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 401)
+[ Extern  ] Post-condition (file share/libc/math.h, line 418)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2408,7 +2264,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 408)
+[ Extern  ] Post-condition (file share/libc/math.h, line 425)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2422,7 +2278,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nanl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 415)
+[ Extern  ] Post-condition (file share/libc/math.h, line 432)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2582,10 +2438,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&m2[i][j]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 218)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 218)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 219)
             assert Value: initialisation: \initialized(&res[0].pme[j][k]);
@@ -2594,10 +2450,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[0].pmse[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 242)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 242)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 243)
             assert Value: initialisation: \initialized(&res[3].pme[j][k]);
@@ -2606,10 +2462,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[3].pmse[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 264)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 264)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 265)
             assert Value: initialisation: \initialized(&res[1].pme[j][k]);
@@ -2618,10 +2474,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[1].pmse[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 288)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 288)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 289)
             assert Value: initialisation: \initialized(&res[4].pme[j][k]);
@@ -2630,10 +2486,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[4].pmse[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 310)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 310)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 311)
             assert Value: initialisation: \initialized(&res[2].pme[j][k]);
@@ -2642,10 +2498,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[2].pmse[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 334)
-            assert Value: initialisation: \initialized(&m4[j][k]);
+            assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 334)
-            assert Value: initialisation: \initialized(&m3[j][k]);
+            assert Value: initialisation: \initialized(&m4[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 335)
             assert Value: initialisation: \initialized(&res[5].pme[j][k]);

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -33,6 +33,8 @@ export FRAMAC_LIB=$(FRAMAC_TOP_SRCDIR)/lib/fc
 export DOC_DIR=$(FRAMAC_TOP_SRCDIR)/doc/code
 
 export PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/lib/plugins
+
+export FRAMAC_COMPILED_PLUGINDIR=$(FRAMAC_TOP_SRCDIR)/lib/plugins
 
 ##########################################################################
 # Local Variables:

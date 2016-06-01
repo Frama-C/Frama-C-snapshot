@@ -10,13 +10,11 @@
 ------------------------------------------------------------
 
 Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 6):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 7):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -25,13 +23,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 13):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'KO' (file tests/wp_plugin/init_valid.i, line 14):
-Assume { }
 Prove: false.
 
 ------------------------------------------------------------

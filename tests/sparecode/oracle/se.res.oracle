@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/se.c (with preprocessing)
+[kernel] Parsing tests/sparecode/se.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function Se outputs and entry point
 [value] Analyzing an incomplete application starting at Se
@@ -7,16 +7,15 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   glob ∈ [--..--]
-tests/sparecode/se.c:8:[kernel] warning: out of bounds write. assert \valid(s1);
-tests/sparecode/se.c:12:[kernel] warning: out of bounds write. assert \valid(tab+e1);
-tests/sparecode/se.c:14:[kernel] warning: out of bounds read. assert \valid_read(es);
+tests/sparecode/se.i:8:[kernel] warning: out of bounds write. assert \valid(s1);
+tests/sparecode/se.i:12:[kernel] warning: out of bounds write. assert \valid(tab+e1);
+tests/sparecode/se.i:14:[kernel] warning: out of bounds read. assert \valid_read(es);
 [value] Recording results for Se
 [value] done for function Se
 [pdg] computing for function Se
 [pdg] done for function Se
 [sparecode] add selection in function 'Se'
-[sparecode] selecting output zones glob; S_tab[0..1]; S_s1[0];
-[sparecode] S_es[0]
+[sparecode] selecting output zones glob; S_tab[0..1]; S_s1[0]; S_es[0]
 [sparecode] add selection in function 'Se'
 [sparecode] look for annotations in function Frama_C_bzero
 [pdg] computing for function Frama_C_bzero

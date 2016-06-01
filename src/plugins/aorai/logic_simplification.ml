@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -55,23 +55,23 @@ let rec condToDNF cond =
   match cond with
     | TOr  (c1, c2) -> (condToDNF c1)@(condToDNF c2)
     | TAnd (c1, c2) -> 
-	let d1,d2=(condToDNF c1), (condToDNF c2) in
-	List.fold_left 
-	  (fun lclause clauses2 -> 
-	     (List.map (fun clauses1 -> clauses1@clauses2) d1) @ lclause
-	  )
-	  [] d2
+        let d1,d2=(condToDNF c1), (condToDNF c2) in
+        List.fold_left 
+          (fun lclause clauses2 -> 
+             (List.map (fun clauses1 -> clauses1@clauses2) d1) @ lclause
+          )
+          [] d2
     | TNot (c) -> 
-	begin
-	  match c with
-	    | TOr  (c1, c2) -> condToDNF (TAnd(TNot(c1),TNot(c2)))
-	    | TAnd (c1, c2) -> condToDNF (TOr (TNot(c1),TNot(c2)))
-	    | TNot (c1) -> condToDNF c1
+        begin
+          match c with
+            | TOr  (c1, c2) -> condToDNF (TAnd(TNot(c1),TNot(c2)))
+            | TAnd (c1, c2) -> condToDNF (TOr (TNot(c1),TNot(c2)))
+            | TNot (c1) -> condToDNF c1
             | TTrue -> condToDNF TFalse
             | TFalse -> condToDNF TTrue
             | TRel(rel,t1,t2) -> [[TRel(opposite_rel rel,t1,t2)]]
-	    | _ as t -> [[TNot(t)]]
-	end
+            | _ as t -> [[TNot(t)]]
+        end
     | TTrue -> [[TTrue]]
     | TFalse -> []
     | _ as t -> [[t]]
@@ -79,14 +79,14 @@ let rec condToDNF cond =
 let removeTerm term lterm = 
   List.fold_left
     (fun treated t -> 
-	match term,t with 
-	  | TCall (kf1,None), TCall (kf2,_) 
-	  | TReturn kf1, TReturn kf2
+        match term,t with 
+          | TCall (kf1,None), TCall (kf2,_) 
+          | TReturn kf1, TReturn kf2
             when Kernel_function.equal kf1 kf2 -> treated
           | TCall(kf1,Some b1), TCall(kf2, Some b2)
             when Kernel_function.equal kf1 kf2 && 
               Datatype.String.equal b1.b_name b2.b_name -> treated
-	  | _  -> t::treated)
+          | _  -> t::treated)
     []
     lterm
 
@@ -99,27 +99,27 @@ let positiveCallOrRet clause =
     let positive, computePositive=
       List.fold_left
         (fun (positive,treated as res) term ->
-	  match term with
-	    | TCall (kf1,None) -> 
-	      begin match positive with
-		| None -> (Some term, term::treated)
-		| Some (TCall (kf2,None)) ->
-		    if Kernel_function.equal kf1 kf2 then res else raise Exit
-		| Some (TReturn _) -> raise Exit
+          match term with
+            | TCall (kf1,None) -> 
+              begin match positive with
+                | None -> (Some term, term::treated)
+                | Some (TCall (kf2,None)) ->
+                    if Kernel_function.equal kf1 kf2 then res else raise Exit
+                | Some (TReturn _) -> raise Exit
                 | Some(TCall (kf2,Some _) as term2) ->
                   if Kernel_function.equal kf1 kf2 then
                     Some term, term :: removeTerm term2 treated
                   else raise Exit
-		| _ -> 
+                | _ -> 
                   Aorai_option.fatal
                     "inconsistent environment in positiveCallOrRet"
-	      end
+              end
             | TCall (kf1, Some b1) ->
               begin match positive with
                 | None -> (Some term, term::treated)
-		| Some (TCall (kf2,None)) ->
-		    if Kernel_function.equal kf1 kf2 then res else raise Exit
-		| Some (TReturn _) -> raise Exit
+                | Some (TCall (kf2,None)) ->
+                    if Kernel_function.equal kf1 kf2 then res else raise Exit
+                | Some (TReturn _) -> raise Exit
                 | Some(TCall (kf2,Some b2)) ->
                   if Kernel_function.equal kf1 kf2 then
                     if Datatype.String.equal b1.b_name b2.b_name then
@@ -127,21 +127,21 @@ let positiveCallOrRet clause =
                     else
                       positive, term :: treated
                   else raise Exit
-		| _ -> 
+                | _ -> 
                   Aorai_option.fatal
                     "inconsistent environment in positiveCallOrRet"
-	      end
-	    | TReturn kf1 -> 
-	      begin match positive with
-		| None -> (Some term, term::treated)
-		| Some (TReturn kf2) ->
-		  if Kernel_function.equal kf1 kf2 then res else raise Exit
-		| Some (TCall _) -> raise Exit
+              end
+            | TReturn kf1 -> 
+              begin match positive with
+                | None -> (Some term, term::treated)
+                | Some (TReturn kf2) ->
+                  if Kernel_function.equal kf1 kf2 then res else raise Exit
+                | Some (TCall _) -> raise Exit
                 | _ ->
                   Aorai_option.fatal
                     "inconsistent environment in positiveCallOrRet"
-	      end
-	    | _  -> positive, term::treated
+              end
+            | _  -> positive, term::treated
         )
         (None, [])
         clause
@@ -150,46 +150,46 @@ let positiveCallOrRet clause =
     match positive with 
       | None -> computePositive
       | Some (TCall (kf1,None)) ->
-	List.fold_left
-	  (fun treated term -> 
-	    match term with 
-	      | TNot(TCall (kf2,_)) ->
-		if Kernel_function.equal kf1 kf2 then raise Exit
-		(* Positive information more specific than negative *)
-		else treated
-	      | TNot(TReturn _) -> treated
-	      | _  -> term::treated
-	  )
-	  [] computePositive
+        List.fold_left
+          (fun treated term -> 
+            match term with 
+              | TNot(TCall (kf2,_)) ->
+                if Kernel_function.equal kf1 kf2 then raise Exit
+                (* Positive information more specific than negative *)
+                else treated
+              | TNot(TReturn _) -> treated
+              | _  -> term::treated
+          )
+          [] computePositive
       | Some (TCall (kf1, Some b1)) ->
-	List.fold_left
-	  (fun treated term -> 
-	    match term with 
-	      | TNot(TCall (kf2,None)) ->
-		if Kernel_function.equal kf1 kf2 then raise Exit
-		(* Positive information more specific than negative *)
-		else treated
+        List.fold_left
+          (fun treated term -> 
+            match term with 
+              | TNot(TCall (kf2,None)) ->
+                if Kernel_function.equal kf1 kf2 then raise Exit
+                (* Positive information more specific than negative *)
+                else treated
               | TNot(TCall(kf2, Some b2)) ->
                 if Kernel_function.equal kf1 kf2 then
                   if Datatype.String.equal b1.b_name b2.b_name then raise Exit
                   else term :: treated
                 else treated
-	      | TNot(TReturn _) -> treated
-	      | _  -> term::treated
-	  )
-	  [] computePositive
+              | TNot(TReturn _) -> treated
+              | _  -> term::treated
+          )
+          [] computePositive
         
       | Some (TReturn kf1) ->
-	List.fold_left
-	  (fun treated term -> 
-	    match term with 
-	      | TNot(TCall _) -> treated
-	      | TNot(TReturn kf2) -> 
-		(* Two opposite information *) 
-		if Kernel_function.equal kf1 kf2 then raise Exit else treated
-	      | _ -> term::treated
-	  )
-	  [] computePositive
+        List.fold_left
+          (fun treated term -> 
+            match term with 
+              | TNot(TCall _) -> treated
+              | TNot(TReturn kf2) -> 
+                (* Two opposite information *) 
+                if Kernel_function.equal kf1 kf2 then raise Exit else treated
+              | _ -> term::treated
+          )
+          [] computePositive
       | _ -> 
         Aorai_option.fatal "inconsistent environment in positiveCallOrRet"
   with Exit -> [TFalse] (* contradictory requirements for current event. *)
@@ -219,47 +219,47 @@ let simplify clause =
     List.fold_left
       (fun clause term -> 
         match term with
-	  | TTrue | TNot(TFalse) -> clause
-	  | TFalse | TNot(TTrue) -> raise Exit
+          | TTrue | TNot(TFalse) -> clause
+          | TFalse | TNot(TTrue) -> raise Exit
           | TRel(rel1,t11,t12) ->
-	    if 
-	      List.exists
-		(fun term -> 
-		  match term with
+            if 
+              List.exists
+                (fun term -> 
+                  match term with
                     | TRel(rel2,t21,t22) 
                         when contradict_rel (rel1,t11,t12) (rel2, t21,t22) ->
                       raise Exit
-		    | TRel(rel2,t21,t22) ->
+                    | TRel(rel2,t21,t22) ->
                       rel_are_equals (rel1,t11,t12) (rel2,t21,t22)
                     | TNot(TRel(rel2,t21,t22))
                         when (rel_are_equals (rel1,t11,t12) (rel2,t21,t22)) -> 
                       raise Exit
                     | TNot(TRel(rel2,t21,t22)) ->
                       contradict_rel (rel1,t11,t12) (rel2,t21,t22)
-		    | _ -> false)
-		clause
-	    then clause
+                    | _ -> false)
+                clause
+            then clause
             else term::clause
-	 | TNot(TRel(rel1,t11,t12)) ->
-	    if 
-	      List.exists
-		(fun term -> 
-		  match term with
+         | TNot(TRel(rel1,t11,t12)) ->
+            if 
+              List.exists
+                (fun term -> 
+                  match term with
                     | TNot(TRel(rel2,t21,t22))
                         when contradict_rel (rel1,t11,t12) (rel2, t21,t22) ->
                       raise Exit
-		    | TNot(TRel(rel2,t21,t22)) ->
+                    | TNot(TRel(rel2,t21,t22)) ->
                       rel_are_equals (rel1,t11,t12) (rel2,t21,t22)
-		    | TRel(rel2,t21,t22)
+                    | TRel(rel2,t21,t22)
                         when (rel_are_equals (rel1,t11,t12) (rel2,t21,t22)) -> 
                       raise Exit
                     | TRel(rel2,t21,t22) ->
                       contradict_rel (rel1,t11,t12) (rel2,t21,t22)
-		    | _ -> false)
-		clause
-	    then clause
+                    | _ -> false)
+                clause
+            then clause
             else term::clause
-	 | _ -> term :: clause)
+         | _ -> term :: clause)
       [] clause
   with Exit -> [TFalse]
 
@@ -299,12 +299,12 @@ let negativeClause clause =
   List.map
     (fun term -> 
       match term with 
-	| TNot(c) -> c
-	| TCall _ | TReturn _ | TRel _ -> TNot term
-	| TTrue -> TFalse
-	| TFalse -> TTrue
-	| TAnd (_,_)
-	| TOr (_,_) -> Aorai_option.fatal "not a DNF clause"
+        | TNot(c) -> c
+        | TCall _ | TReturn _ | TRel _ -> TNot term
+        | TTrue -> TFalse
+        | TFalse -> TTrue
+        | TAnd (_,_)
+        | TOr (_,_) -> Aorai_option.fatal "not a DNF clause"
     ) clause
 
 let simplifyClauses clauses =
@@ -401,10 +401,10 @@ let simplifyTrans transl =
        (* pcond stands for parametrized condition : 
           disjunction of conjunctions of parametrized call/return *)
       let tr'={ start = tr.start ;
-		stop  = tr.stop  ;
-		cross = crossCond ;
-		numt  = tr.numt
-	      }
+                stop  = tr.stop  ;
+                cross = crossCond ;
+                numt  = tr.numt
+              }
       in
       Aorai_option.debug "condition is %a, dnf is %a" 
         Promelaoutput.print_condition crossCond pretty_dnf pcond;

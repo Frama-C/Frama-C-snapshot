@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -165,6 +165,9 @@ val pvalid_read: ?loc:location -> logic_label * term -> predicate named
 (** \valid *)
 val pvalid: ?loc:location -> logic_label * term -> predicate named
 
+(** \valid_function *)
+val pvalid_function: ?loc:location -> term -> predicate named
+
 (** \initialized *)
 val pinitialized: ?loc:location -> logic_label * term -> predicate named
 
@@ -189,6 +192,19 @@ val pseparated: ?loc:location -> term list -> predicate named
 (* ************************************************************************** *)
 (** {2 Logic types} *)
 (* ************************************************************************** *)
+
+(** returns [true] if the type is a set<t>.
+    @since Aluminium-20160501 *)
+val is_list_type: logic_type -> bool
+
+(** [make_type_list_of t] returns the type list<[t]>.
+    @since Aluminium-20160501 *)
+val make_type_list_of: logic_type -> logic_type
+
+(** returns the type of elements of a list type.
+    @raise Failure if the input type is not a list type.
+    @since Aluminium-20160501 *)
+val type_of_list_elem: logic_type -> logic_type
 
 (** returns [true] if the type is a set<t>.
     @since Neon-20140301 *)
@@ -255,6 +271,9 @@ val treal: ?loc:Location.t -> float -> term
 
 (** real zero *)
 val treal_zero: ?loc:Location.t -> ?ltyp:logic_type -> unit -> term
+
+(** string constant *)
+val tstring: ?loc:Location.t -> string -> term
 
 (** \at *)
 val tat: ?loc:Location.t -> term * logic_label -> term

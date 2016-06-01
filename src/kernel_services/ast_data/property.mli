@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,11 +42,10 @@ open Cil_types
 
 (** assigns can belong either to a contract or a loop annotation *)
 type behavior_or_loop = (* private *)
-  | Id_behavior of funbehavior
-  | Id_code_annot of code_annotation
-
-type identified_complete = kernel_function * kinstr * string list
-type identified_disjoint = identified_complete
+  | Id_contract of Datatype.String.Set.t * funbehavior
+      (** in case of statement contract, we can have different contracts
+          based on different sets of active behaviors. *)
+  | Id_loop of code_annotation
 
 (** Only AAssert, AInvariant, or APragma. Other code annotations are
     dispatched as identified_property of their own. *)
@@ -69,7 +68,18 @@ type identified_decrease =
 (** code_annotation is None for decreases and [Some { AVariant }] for
     loop variant. *)
 
-type identified_behavior = kernel_function * kinstr * funbehavior
+type identified_behavior =
+  kernel_function * kinstr * Datatype.String.Set.t * funbehavior
+  (** for statement contract, the set of parent behavior for which the
+      contract is active is part of its identification. If the set is empty,
+      the contract is active for all parent behaviors.
+  *)
+
+type identified_complete =
+  kernel_function * kinstr * Datatype.String.Set.t * string list
+  (** Same as for {!identified_behavior}. *)
+
+type identified_disjoint = identified_complete
 
 type predicate_kind = private
   | PKRequires of funbehavior
@@ -188,10 +198,15 @@ val ip_of_allocation:
   kernel_function -> kinstr -> behavior_or_loop
   -> identified_term allocation -> identified_property option
 
-(** Builds IPAllocation for a contract.
-    @since Oxygen-20120901 *)
+(** [ip_allocation_of_behavior kf ki active bhv] builds IPAllocation for
+    behavior [bhv], in the spec in function [kf], at statement [ki], under
+    active behaviors [active]
+    @since Oxygen-20120901
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_allocation_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property option
+  kernel_function -> kinstr -> active:string list -> 
+  funbehavior -> identified_property option
 
 (** Builds the corresponding IPAssigns.
     @since Carbon-20110201 *)
@@ -199,21 +214,32 @@ val ip_of_assigns:
   kernel_function -> kinstr ->
   behavior_or_loop -> identified_term assigns -> identified_property option
 
-(** Builds IPAssigns for a contract (if not WritesAny)
-    @since Carbon-20110201 *)
+(** [ip_assigns_of_behavior kf ki active bhv]
+    builds IPAssigns for a contract (if not WritesAny).
+    See {!ip_allocation_of_behavior} for signification of [active].
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+ *)
 val ip_assigns_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property option
+  kernel_function -> kinstr -> active:string list ->
+  funbehavior -> identified_property option
 
-(** Builds the corresponding IPFrom.
-    @since Carbon-20110201 *)
+(** Builds the corresponding IPFrom (if not FromAny)
+    @since Carbon-20110201
+    @modify Aluminium-20160501 returns an option. *)
 val ip_of_from:
   kernel_function -> kinstr ->
-  behavior_or_loop -> identified_term from -> identified_property
+  behavior_or_loop -> identified_term from -> identified_property option
 
-(** Builds IPFrom for a contract (if not ReadsAny)
-    @since Carbon-20110201 *)
+(** [ip_from_of_behavior kf ki active bhv]
+    builds IPFrom for a behavior (if not ReadsAny).
+    See {!ip_from_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_from_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funbehavior -> identified_property list
 
 (** Builds IPAssigns for a loop annotation (if not WritesAny)
     @since Carbon-20110201 *)
@@ -225,41 +251,71 @@ val ip_assigns_of_code_annot:
 val ip_from_of_code_annot:
   kernel_function -> kinstr -> code_annotation -> identified_property list
 
-(** Builds all IP related to the post-conditions (including allocates, frees,
-    assigns and from)
-    @since Carbon-20110201 *)
+(** [ip_post_cond_of_behavior kf ki active bhv]
+    builds all IP related to the post-conditions (including allocates, frees,
+    assigns and from). See {!ip_allocation_of_behavior} for the signification
+    of the [active] argument.
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+ *)
 val ip_post_cond_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funbehavior -> identified_property list
 
-(** Builds the IP corresponding to the behavior itself.
-    @since Carbon-20110201 *)
+(** [ip_of_behavior kf ki activd bhv] builds the IP corresponding
+    to the behavior itself.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property
+  kernel_function -> kinstr -> active:string list ->
+  funbehavior -> identified_property
 
-(** Builds all IP related to a behavior.
-    @since Carbon-20110201 *)
+(** [ip_all_of_behavior kf ki active bhv] builds all IP related to a behavior.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_all_of_behavior:
-  kernel_function -> kinstr -> funbehavior -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funbehavior -> identified_property list
 
-(** Builds IPComplete.
-    @since Carbon-20110201 *)
+(** [ip_of_complete kf ki active complete] builds IPComplete.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_of_complete:
-  kernel_function -> kinstr -> string list -> identified_property
+  kernel_function -> kinstr -> active:string list ->
+  string list -> identified_property
 
-(** Builds IPComplete of a given spec.
-    @since Carbon-20110201 *)
+(** [ip_complete_of_spec kf ki active spec] builds IPComplete of a given spec.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_complete_of_spec:
-  kernel_function -> kinstr -> funspec -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funspec -> identified_property list
 
-(** Builds IPDisjoint.
-    @since Carbon-20110201 *)
+(** [ip_of_disjoint kf ki active disjoint] builds IPDisjoint.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_of_disjoint:
-  kernel_function -> kinstr -> string list -> identified_property
+  kernel_function -> kinstr -> active:string list ->
+  string list -> identified_property
 
-(** Builds IPDisjoint of a given spec.
-    @since Carbon-20110201 *)
+(** [ip_disjoint_of_spec kf ki active spec] builds IPDisjoint of a given spec.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_disjoint_of_spec:
-  kernel_function -> kinstr -> funspec -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funspec -> identified_property list
 
 val ip_of_terminates:
   kernel_function -> kinstr ->
@@ -280,15 +336,24 @@ val ip_of_decreases:
 val ip_decreases_of_spec:
   kernel_function -> kinstr -> funspec -> identified_property option
 
-(** Builds all IP of post-conditions related to a spec.
-    @since Carbon-20110201 *)
+(** [ip_post_cond_of_spec kf ki active spec]
+    builds all IP of post-conditions related to a spec.
+    See {!ip_post_cond_of_behavior} for more information.
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+ *)
 val ip_post_cond_of_spec:
-  kernel_function -> kinstr -> funspec -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funspec -> identified_property list
 
-(** Builds all IP related to a spec.
-    @since Carbon-20110201 *)
+(** [ip_of_spec kf ki active spec] builds all IP related to a spec.
+    See {!ip_allocation_of_behavior} for signification of [active]
+    @since Carbon-20110201
+    @modify Aluminium-20160501 added active argument
+*)
 val ip_of_spec:
-  kernel_function -> kinstr -> funspec -> identified_property list
+  kernel_function -> kinstr -> active:string list ->
+  funspec -> identified_property list
 
 (** Build a specialization of the given property at the given function and
     stmt *)

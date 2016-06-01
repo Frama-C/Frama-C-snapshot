@@ -36,6 +36,22 @@ let mach =
   __thread_is_keyword = true;
 }
 
-let () = File.new_machdep "custom" mach
+let mach2 = { mach with compiler = "baz" }
 
-let () = Kernel.Machdep.set "custom"
+(* First run : register [mach] under name [custom].
+   Second run :
+    - register [mach] under name [custom] again. This must work.
+    - then register [mach2] under name [custom]. This must result in an error.
+*)
+let () =
+  let ran = ref false in
+  Cmdline.run_after_loading_stage
+    (fun () ->
+       Kernel.result "Registering machdep 'mach' as 'custom'";
+       File.new_machdep "custom" mach;
+       if !ran then begin
+         Kernel.result "Trying to register machdep 'mach2' as 'custom'";
+         File.new_machdep "custom" mach2
+       end
+       else ran := true
+    )

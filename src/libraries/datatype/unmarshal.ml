@@ -667,6 +667,16 @@ register_custom "_n"
   )
 ;;
 
+let ge_ocaml ~major ?(minor=0) ?(rev=0) () =
+  let test x y z =
+    x > major || (x = major && (y > minor || y = minor && z >= rev))
+  in
+  Scanf.sscanf Sys.ocaml_version "%d.%d.%d" test
+
+let ge_ocaml_4 = ge_ocaml ~major:4 ()
+
+let ge_ocaml_403 = ge_ocaml ~major:4 ~minor:3 ()
+
 let t_unit = Abstract;;
 let t_int = Abstract;;
 let t_string = Abstract;;
@@ -683,7 +693,13 @@ let t_ref a = t_record [| a |];;
 let t_option = t_ref;;
 
 let t_array a = Structure (Array a)
-let t_queue a = t_record [| t_int; t_list a |]
+let t_queue a =
+  if ge_ocaml_403 then
+    (* queue cells are only a list-like structure, but there is
+       no distinguishable difference at this level. *)
+    t_record [| t_int; t_list a; t_list a |]
+  else
+    t_record [| t_int; t_list a |]
 
 (**** Hash tables ****)
 
@@ -701,11 +717,6 @@ and ('a, 'b) _caml_hashtable_4_ =
 and ('a, 'b) _bucketlist =
     Empty
   | Cons of 'a * 'b * ('a, 'b) _bucketlist
-
-let ge_ocaml_4 =
-  let major, _minor =
-    Scanf.sscanf Sys.ocaml_version "%d.%d" (fun ma mi -> ma, mi) in
-  major >= 4
 
 let t_hashtbl bucket =
   if not (ge_ocaml_4) then

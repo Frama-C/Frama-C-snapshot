@@ -1,0 +1,80 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/ergo_typecheck.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'var_divded' in 'f':
+Let a = var_0.F1_a.
+Let a_1 = var_0.F1_b.
+Let a_2 = a_1[0].
+Let a_3 = a_1[1].
+Let a_4 = 1 + a_2.
+Let a_5 = 2 + a_3.
+Let a_6 = a[0 <- 0][1 <- 1].
+Let a_7 = { F1_a = a_6 ; F1_b = a_1[0 <- a_4][1 <- a_5] ; F1_c = 5 }.
+Assume {
+  Type: IsS1(var_0) /\ IsArray1_uint32(a) /\ IsArray1_uint32(a_1) /\
+      is_uint32(a_2) /\ is_uint32(a_3) /\ is_uint32(a_4) /\ is_uint32(a_5) /\
+      IsS1(a_7).
+}
+Prove: EqS1(a_7,
+         { F1_a = a_6 ;
+           F1_b = a_1[0 <- to_uint32(a_4)][1 <- to_uint32(a_5)] ; F1_c = 5 }).
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_inline' in 'f':
+Let a = var_0.F1_a.
+Let a_1 = var_0.F1_b.
+Let a_2 = a_1[0].
+Let a_3 = a_1[1].
+Let a_4 = 1 + a_2.
+Let a_5 = 2 + a_3.
+Let a_6 = a[0 <- 0][1 <- 1].
+Let a_7 = { F1_a = a_6 ; F1_b = a_1[0 <- a_4][1 <- a_5] ; F1_c = 5 }.
+Assume {
+  Type: IsS1(var_0) /\ IsArray1_uint32(a) /\ IsArray1_uint32(a_1) /\
+      is_uint32(a_2) /\ is_uint32(a_3) /\ is_uint32(a_4) /\ is_uint32(a_5) /\
+      IsS1(a_7).
+}
+Prove: EqS1(a_7,
+         { F1_a = a_6 ;
+           F1_b = a_1[0 <- to_uint32(a_4)][1 <- to_uint32(a_5)] ; F1_c = 5 }).
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_unit0' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_unit1' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_unit2' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_unit3' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'var_unit4' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/ergo_typecheck.i, line 34) in 'f':
+Prove: true.
+
+------------------------------------------------------------

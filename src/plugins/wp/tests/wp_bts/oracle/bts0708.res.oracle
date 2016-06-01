@@ -10,27 +10,23 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'A' in 'f':
-Let x_1 = 1+x_0.
+Let x_1 = 1 + x.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
-  (* Pre-condition (file tests/wp_bts/bts0708.i, line 13) in 'f' *)
-  (* Pre-condition: *)
-  Have: (P_P x_0).
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: P_P(x).
 }
-Prove: (P_P x_1).
+Prove: P_P(x_1).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'B' in 'f':
-Let x_1 = 2+x_0.
+Let x_1 = 2 + x.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
-  (* Pre-condition (file tests/wp_bts/bts0708.i, line 13) in 'f' *)
-  (* Pre-condition: *)
-  Have: (P_P x_0).
+  Type: is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: P_P(x).
 }
-Prove: (P_P x_1).
+Prove: P_P(x_1).
 
 ------------------------------------------------------------

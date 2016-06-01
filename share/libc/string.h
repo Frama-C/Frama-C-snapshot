@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -39,12 +39,15 @@ __BEGIN_DECLS
   @*/
 extern int memcmp (const void *s1, const void *s2, size_t n);
 
-/*@ requires \valid_read(((char*)s)+(0..n - 1));
-  @ assigns \result \from s, c, ((char*)s)[0..n-1];
+/*@ requires \valid_read(((unsigned char*)s)+(0..n - 1));
+  @ assigns \result \from s, c, ((unsigned char*)s)[0..n-1];
   @ behavior found:
   @   assumes memchr((char*)s,c,n);
   @   ensures \base_addr(\result) == \base_addr(s);
   @   ensures *(char*)\result == c;
+  @   ensures \forall integer i;
+  @     0 <= i < n ==> *((unsigned char*)s+i) == c
+  @     ==> \result <= s+i;
   @ behavior not_found:
   @   assumes ! memchr((char*)s,c,n);
   @   ensures \result == \null;
@@ -213,16 +216,16 @@ extern char *strcpy(char *restrict dest, const char *restrict src);
 
 /*@ 
   @ requires valid_string_src: valid_read_string(src);
-  @ // FIXME: min(...) requires room_nstring: \valid(dest+(0 .. n)); 
+  @ requires room_nstring: \valid(dest+(0 .. n-1));
   @ assigns dest[0..n - 1] \from src[0..n-1];
   @ assigns \result \from dest;
   @ ensures \result == dest;
+  @ ensures \initialized(dest+(0 .. n-1));
   @ behavior complete:
   @   assumes strlen(src) < n;
   @   ensures strcmp(dest,src) == 0;
   @ behavior partial:
   @   assumes n <= strlen(src);
-  @   assigns dest[0..n - 1];
   @   ensures memcmp{Post,Post}(dest,src,n) == 0;
   @*/
 extern char *strncpy(char *restrict dest,

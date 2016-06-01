@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,12 +26,18 @@ open Locations
 let msg_emitter = Lattice_messages.register "Lmap";;
 
 module Make_LOffset
-  (V: module type of Offsetmap_lattice_with_isotropy)
+  (V: sig
+     include module type of Offsetmap_lattice_with_isotropy
+     include Lattice_type.With_Top with type t := t
+     include Lattice_type.With_Narrow with type t := t
+   end)
   (Offsetmap: module type of Offsetmap_sig
               with type v = V.t
-              and type widen_hint = V.widen_hint)
+              and type widen_hint = V.generic_widen_hint)
   (Default_offsetmap: sig
-    val default_offsetmap : Base.t -> [`Bottom | `Map of Offsetmap.t]
+     val name: string
+     val default_offsetmap : Base.t -> [`Bottom | `Map of Offsetmap.t]
+     val default_contents: [ `Bottom | `Top | `Constant of V.t | `Other ] 
   end)
   =
 struct
@@ -39,9 +45,24 @@ struct
   type v = V.t
   type offsetmap = Offsetmap.t
   type offsetmap_top_bottom = [ `Map of offsetmap | `Bottom | `Top ]
-  type widen_hint_base = V.widen_hint
+  type widen_hint_base = V.generic_widen_hint
 
     open Default_offsetmap
+
+    (* to be used only when we are sure that the base is not Invalid, for
+       example because it is bound in at least one map. *)
+    let default_bound_offsetmap b =
+      match Default_offsetmap.default_offsetmap b with
+      | `Bottom -> assert false
+      | `Map o -> o
+
+    let () =
+      match Default_offsetmap.default_contents with
+      | `Constant v ->
+         if not (V.is_isotropic v) then
+           Kernel.fatal "[Lmap] invalid default contents for offsetmaps %a \
+                         (datatype: %s)" V.pretty v V.name
+      | _ -> ()
 
     module LBase =  struct
 
@@ -58,15 +79,28 @@ struct
 
       include Hptmap.Make
       (Base.Base)
-      (Offsetmap)
+      (struct
+        include Offsetmap
+        let name = Offsetmap.name ^ " " ^ Default_offsetmap.name
+      end)
       (Comp)
       (Initial_Values)
       (struct let l = [ Ast.self ] end)
       let () = Ast.add_monotonic_state self
 
-
-      let add b v m =
-        add b v m
+      let add =
+        match Default_offsetmap.default_contents with
+        | `Bottom -> fun b o m -> add b o m
+        | `Top ->
+           fun b o m ->
+           if Offsetmap.is_same_value o V.top then remove b m else add b o m
+        | `Constant v ->  
+           fun b o m ->
+           if Offsetmap.is_same_value o v then remove b m else add b o m
+        | `Other ->
+            fun b o m ->
+              let o' = default_bound_offsetmap b in
+              if Offsetmap.equal o o' then remove b m else add b o m
 
       let find_or_default b map =
         try `Map (find b map)
@@ -133,12 +167,18 @@ struct
             fmt m
         | Top -> Format.fprintf fmt "@[NO INFORMATION@]"
 
+    let pretty_debug fmt m =
+      match m with
+      | Top | Bottom -> pretty fmt m
+      | Map m -> LBase.pretty_debug fmt m
+
     include Datatype.Make_with_collections
         (struct
           type t = lmap
           let structural_descr =
             Structural_descr.t_sum [| [| LBase.packed_descr |] |]
-          let name = Offsetmap.name ^ " lmap"
+          let name =
+            Printf.sprintf "(%s, %s) Lmap" Offsetmap.name Default_offsetmap.name
           let reprs = Bottom :: Top :: List.map (fun b -> Map b) LBase.reprs
           let equal = equal
           let compare = compare
@@ -281,7 +321,7 @@ struct
                 alarm := true;
                 Offsetmap.update_imprecise_everywhere ~validity orig v offm
               | Int_Base.Value size ->
-                assert (Int.gt size Int.zero);
+                assert (Int.ge size Int.zero);
                 let this_alarm, r =
                   Offsetmap.update ?origin ~validity ~exact ~offsets ~size v offm
                 in
@@ -363,41 +403,120 @@ struct
         in
         !alarm, v
 
-  let join_internal =
-    let decide _k v1 v2 = Offsetmap.join v1 v2 in
-    (* This [join] works because, currently:
-     - during the analysis, we merge maps with the same variables
-       (all locals are present)
-     - after the analysis, for synthetic results, we merge maps with different
-       sets of locals, but do not care about the values of the locals that are
-       out-of-scope.
-     - for dynamic allocation, the default value for variables is Bottom *)
-    let symmetric_merge =
-      LBase.join ~cache:(Hptmap_sig.PersistentCache "lmap.join")
-        ~symmetric:true ~idempotent:true ~decide
-    in
-    fun m1 m2 ->
-      Map (symmetric_merge m1 m2)
 
-  let join  mm1 mm2 =
-    match mm1, mm2 with
+  (* Internal function for join and widen, that handles efficiently the
+     values bound by default in maps. *)
+  let join_widen_internal_map op =
+    let cache = match op with
+      | `Join -> Hptmap_sig.PersistentCache "lmap.join"
+      | `Widen _ -> Hptmap_sig.NoCache
+    in
+    let symmetric = match op with `Join -> true | `Widen _ -> false in
+    let op = match op with
+      | `Join -> fun _b o1 o2 -> Offsetmap.join o1 o2
+      | `Widen wh -> fun b o1 o2 -> Offsetmap.widen (wh b) o1 o2
+    in 
+    let idempotent = true in
+    let default = default_bound_offsetmap in
+    let decide_both_revert default b o1 o2 =
+      let o = op b o1 o2 in
+      if Offsetmap.is_same_value o default then None else Some o
+    in
+    match Default_offsetmap.default_contents with
+    | `Bottom ->
+      (* Missing keys are neutral w.r.t. merge because they are Bottom.
+         Values cannot revert to default (bottom). *)
+      LBase.join ~cache ~symmetric ~idempotent ~decide:op
+    | `Top ->
+      (* Join with a missing key returns Top, hence the default: we can use
+         [inter]. Values can revert to the default through [op]. *)
+      let decide b o1 o2 = decide_both_revert V.top b o1 o2 in
+      LBase.inter ~cache ~symmetric ~idempotent ~decide
+    | `Constant v ->
+      (* Missing keys must be treated one by one.
+         Values can revert to default *)
+      let decide_both b o1 o2 = decide_both_revert v b o1 o2 in
+      let decide_left  b o = decide_both_revert v b o (default b) in
+      let decide_right b o = decide_both_revert v b (default b) o in
+      LBase.merge ~cache ~symmetric ~idempotent ~decide_both
+        ~decide_left:(LBase.Traversing decide_left)
+        ~decide_right:(LBase.Traversing decide_right)
+    | `Other ->
+      (* Same idea as VCst *)
+      let decide_two b default o1 o2 =
+        let o = op b o1 o2 in
+        if Offsetmap.equal o default then None else Some o
+      in
+      let decide_both b o1 o2 = decide_two b (default b) o1 o2 in
+      let decide_left b o =
+        let default = default b in decide_two b default o default
+      in
+      let decide_right b o =
+        let default = default b in decide_two b default default o
+      in
+      LBase.merge ~cache ~symmetric ~idempotent ~decide_both
+        ~decide_left:(LBase.Traversing decide_left)
+        ~decide_right:(LBase.Traversing decide_right)
+
+  let join =
+    let join = join_widen_internal_map `Join in
+    fun mm1 mm2 -> match mm1, mm2 with
       | Bottom,m | m,Bottom -> m
       | Top, _ | _, Top -> Top
       | Map m1, Map m2 ->
           if m1 == m2 then mm1
-          else
-            join_internal m1 m2
+          else Map (join m1 m2)
 
+  exception NarrowReturnsBottom
+
+  module OffsetmapNarrow = Offsetmap.Make_Narrow(struct
+      let top = V.top
+      (* Special definition of narrow that catches newly-introduced bottom *)
+      let narrow x y =
+        let r = V.narrow x y in
+        if V.(equal bottom r) then raise NarrowReturnsBottom;
+        r
+    end)
+
+  (* may raise {!NarrowReturnsBottom} *)
   let narrow_internal =
-    let _decide_none base v =
-      match default_offsetmap base with
-      | `Bottom -> assert false
-      | `Map v' -> Offsetmap.narrow v v'
-    in
-    let decide _k v1 v2 = Offsetmap.narrow v1 v2 in
-    let symmetric_merge =
-      LBase.join ~cache:(Hptmap_sig.PersistentCache "lmap.narrow")
-        ~symmetric:true ~idempotent:true ~decide
+    let cache = Hptmap_sig.PersistentCache "lmap.narrow"
+    and symmetric = true
+    and idempotent = true in
+    let symmetric_merge = match Default_offsetmap.default_contents with
+      | `Bottom ->
+        (* Bases completely mapped to Bottom disappear from the result, but we
+           do *not* raise NarrowReturnsBottom (otherwise, we would never be
+           able to call narrow with two different sets of variables).
+           For variables bound in both, there is no need to check that we
+           revert to Bottom/default, thanks to the exception. *) 
+        let decide _b o1 o2 = Some (OffsetmapNarrow.narrow o1 o2) in
+        LBase.inter ~cache~symmetric ~idempotent ~decide
+      | `Top ->
+        (* Missing keys are implicitly bound to Top, hence neutral for the
+           operation. Hence, we can use join. No need to check if a variable
+           reverts to default, because narrow only decreases *)
+        let decide _k v1 v2 = OffsetmapNarrow.narrow v1 v2 in
+        LBase.join ~cache ~symmetric ~idempotent ~decide
+      | `Constant _ | `Other ->
+        (* No special optimisation, we perform a pointwise narrow and see if we
+           revert to the default value. [`Constant] case could be improved.
+           Since [narrow] is symmetric, [decide_left == decide_right].
+           Otherwise, see [`Other] case in {!join_widen_internal_map} *)
+        let decide_two default o1 o2 =
+          let o = OffsetmapNarrow.narrow o1 o2 in
+          if Offsetmap.equal o default then None else Some o
+        in
+        let decide_one b o =
+          let default = default_bound_offsetmap b in
+          decide_two default o default
+        in
+        let decide_both b o1 o2 =
+          decide_two (default_bound_offsetmap b) o1 o2
+        in
+        let decide_left = LBase.Traversing decide_one in
+        LBase.merge ~cache ~symmetric ~idempotent
+          ~decide_both ~decide_left ~decide_right:decide_left
     in
     fun m1 m2 ->
       Map (symmetric_merge m1 m2)
@@ -409,7 +528,8 @@ struct
       | Map m1, Map m2 ->
           if m1 == m2 then mm1
           else
-            narrow_internal m1 m2
+            try narrow_internal m1 m2
+            with NarrowReturnsBottom -> Bottom
 
   let pretty_diff_aux fmt m1 m2 =
     let print base m1 m2 = match m1, m2 with
@@ -459,23 +579,27 @@ struct
   let is_included =
     let name = Pretty_utils.sfprintf "Lmap(%s).is_included" V.name in
     let decide_fst base v1 =
-      match default_offsetmap base with
-      | `Bottom -> false
-      | `Map vb -> Offsetmap.is_included v1 vb
+      Offsetmap.is_included v1 (default_bound_offsetmap base)
     in
     let decide_snd base v2 =
-      match default_offsetmap base with
-      | `Bottom -> true
-      | `Map vb -> Offsetmap.is_included vb v2
+      Offsetmap.is_included (default_bound_offsetmap base) v2
     in
     let decide_both _ m1 m2 = Offsetmap.is_included m1 m2 in
-    let decide_fast s t =
-      if s == t then LBase.PTrue (* Inclusion holds *)
-      else
-        if LBase.compositional_bool t
-        (* s is a singleton. We have s \subset t iff s == t *)
-        then LBase.PFalse
-        else LBase.PUnknown
+    let decide_fast =
+      match Default_offsetmap.default_contents with
+        | `Bottom ->
+           (fun s t ->
+            if s == t || LBase.is_empty s (*all bases present in t but not in s
+               are implicitly bound to Bottom in s, hence the inclusion holds *)
+            then LBase.PTrue
+            else LBase.PUnknown)
+        | `Top ->
+           (fun s t ->
+            if s == t || LBase.is_empty t (*all bases present in s but not in t
+               are implicitly bound to Top in t, hence the inclusion holds *)
+            then LBase.PTrue
+            else LBase.PUnknown)
+        | _ -> (fun s t -> if s == t then LBase.PTrue else LBase.PUnknown)
     in
     let generic_is_included =
       LBase.binary_predicate
@@ -489,7 +613,7 @@ struct
         | Map m1', Map m2' -> generic_is_included m1' m2'
 
 
-  type widen_hint = Base.Set.t * (Base.t -> V.widen_hint)
+  type widen_hint = Base.Set.t * (Base.t -> V.generic_widen_hint)
 
   (* Precondition : m1 <= m2 *)
   let widen (wh_key_set, wh_hints) r1 r2 =
@@ -521,9 +645,7 @@ struct
         if something_done then
           Map widened
         else
-          let decide base off1 off2 = Offsetmap.widen (wh_hints base) off1 off2 in
-          Map (LBase.join ~cache:Hptmap_sig.NoCache
-                 ~symmetric:false ~idempotent:true ~decide m1 m2)
+          Map (join_widen_internal_map (`Widen wh_hints) m1 m2)
 
   let paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m =
     match m with
@@ -533,7 +655,7 @@ struct
       (Locations.is_valid ~for_writing:true loc), m
     | Map m' ->
         let loc_dst = make_loc dst_loc (Int_Base.inject size) in
-        assert (Int.lt Int.zero size);
+        assert (Int.le Int.zero size);
         let exact = exact && cardinal_zero_or_one loc_dst in
         (* TODO: do we want to alter exact here? *)
         let had_non_bottom = ref false in
@@ -570,7 +692,7 @@ struct
               "writing somewhere in @[%a@]@[%a@]."
               Base.SetLattice.pretty top
               Origin.pretty_as_reason orig;
-          let validity = Base.Known (Int.zero, Int.pred size) in
+          let validity = Base.validity_from_size size in
           let v = Offsetmap.find_imprecise ~validity from in
           add_binding ~reducing:false ~exact:false m loc_dst v
 
@@ -621,6 +743,10 @@ struct
       | Top -> Top
       | Bottom -> Bottom
       | Map mm -> Map (cached_f mm)
+
+  let remove_variables vars state =
+    let cleanup acc v = remove_base (Base.of_varinfo v) acc in
+    List.fold_left cleanup state vars
 
 end
 

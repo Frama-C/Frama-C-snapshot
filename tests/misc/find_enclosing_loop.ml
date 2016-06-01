@@ -27,6 +27,7 @@ object(self)
 end
 
 let run () =
-  Visitor.visitFramacFileSameGlobals (new check) (Ast.get())
+  Visitor.visitFramacFileSameGlobals (new check) (Ast.get());
+  Kernel.result "Script done"
 
 let () = Db.Main.extend run

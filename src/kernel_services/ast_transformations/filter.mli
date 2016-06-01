@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ module type RemoveInfo = sig
   val fct_info : proj -> kernel_function -> fct list
 
   (** useful when we want to have several functions in the result for one
-  * source function. If if is not the case, you can return [varinfo.vname].
+  * source function. If it is not the case, you can return [varinfo.vname].
   * It is the responsibility of the user to given different names to different
   * function. *)
   val fct_name : varinfo -> fct -> string

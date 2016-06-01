@@ -2,21 +2,12 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*  All rights reserved.                                                  *)
+(*  Contact CEA LIST for licensing.                                       *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -399,8 +390,7 @@ module Memory = struct
       ~reducing:false ~exact m loc (DepsOrUnassigned.AssignedFrom v)
 
   let is_unassigned m =
-    let unassigned v = DepsOrUnassigned.(equal v Unassigned) in
-    LOffset.is_single_interval ~f:unassigned m
+    LOffset.is_same_value m DepsOrUnassigned.Unassigned
 
   (* Unassigned is a neutral value for compose, on both sides *)
   let decide_compose m1 m2 =
@@ -597,7 +587,8 @@ let pretty_with_type ~indirect typ fmt { deps_return = r; deps_table = t } =
           Format.fprintf fmt "@ "
       in
       Format.fprintf fmt "@[<v>%a%t@[\\result FROM @[%a@]@]@]"
-        map_pretty t pp_space Deps.pretty r
+        map_pretty t pp_space
+        (if indirect then Deps.pretty_precise else Deps.pretty) r
 
 let pretty_with_type_indirect = pretty_with_type ~indirect:true
 let pretty_with_type = pretty_with_type ~indirect:false

@@ -9,14 +9,14 @@
   c âˆˆ [--..--]
 [value] computing for function f <- main.
         Called from tests/spec/behavior_assert.c:90.
-tests/spec/behavior_assert.c:14:[value] Assertion got status invalid (stopping propagation).
+tests/spec/behavior_assert.c:14:[value] warning: assertion got status invalid (stopping propagation).
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/spec/behavior_assert.c:91.
 tests/spec/behavior_assert.c:28:[value] entering loop for the first time
-tests/spec/behavior_assert.c:30:[value] Assertion got status valid.
-tests/spec/behavior_assert.c:24:[value] Function g, behavior be: postcondition got status valid.
+tests/spec/behavior_assert.c:30:[value] assertion got status valid.
+tests/spec/behavior_assert.c:24:[value] function g, behavior be: postcondition got status valid.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h2 <- main.
@@ -29,17 +29,16 @@ tests/spec/behavior_assert.c:65:[kernel] warning: signed overflow. assert c+2 â‰
         Called from tests/spec/behavior_assert.c:52.
 [value] Recording results for abs
 [value] Done for function abs
-tests/spec/behavior_assert.c:55:[value] Assertion got status unknown.
-tests/spec/behavior_assert.c:45:[value] Function h1, behavior not_null: postcondition got status valid.
-tests/spec/behavior_assert.c:48:[value] Function h1, behavior null: assumes got status invalid; postcondition not evaluated.
+tests/spec/behavior_assert.c:55:[value] warning: assertion got status unknown.
+tests/spec/behavior_assert.c:45:[value] function h1, behavior not_null: postcondition got status valid.
 [value] Recording results for h1
 [value] Done for function h1
-tests/spec/behavior_assert.c:74:[value] Assertion got status valid.
+tests/spec/behavior_assert.c:74:[value] assertion got status valid.
 [value] Recording results for h2
 [value] Done for function h2
 [value] computing for function k <- main.
         Called from tests/spec/behavior_assert.c:93.
-tests/spec/behavior_assert.c:86:[value] Assertion got status invalid (stopping propagation).
+tests/spec/behavior_assert.c:86:[value] warning: assertion got status invalid (stopping propagation).
 [value] Recording results for k
 [value] Done for function k
 [value] Recording results for main

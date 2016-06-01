@@ -1,0 +1,26 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_manual/manual.i (no preprocessing)
+[kernel] Parsing tests/wp_manual/working_dir/swap.c (with preprocessing)
+[kernel] Parsing tests/wp_manual/working_dir/swap2.h (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[rte] annotating function swap
+[wp] 9 goals scheduled
+[wp] [Alt-Ergo] Goal typed_swap_post_A : Valid
+[wp] [Qed] Goal typed_swap_post_B : Valid
+[wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_swap_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_swap_assert_rte_mem_access_3 : Valid
+[wp] [Qed] Goal typed_swap_assert_rte_mem_access_4 : Valid
+[wp] [Qed] Goal typed_swap_assign_part1 : Valid
+[wp] [Qed] Goal typed_swap_assign_part2 : Valid
+[wp] [Qed] Goal typed_swap_assign_part3 : Valid
+[wp] Proved goals:    9 / 9
+     Qed:             6 
+     Alt-Ergo:        3
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+swap                 6      3 (17)     9       100%
+----------------------------------------------------------

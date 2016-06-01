@@ -1,0 +1,874 @@
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/aorai/test_acces_params2.c (with preprocessing)
+[aorai] Welcome to the Aorai plugin
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing /tmp/aorai_test_acces_params20.i (no preprocessing)
+/tmp/aorai_test_acces_params20.i:3:[wp] warning: Global invariant not handled yet ('inv' ignored)
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] [Qed] Goal typed_main_post_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_main_post_func_post_2 : Valid
+[wp] [Qed] Goal typed_main_post_func_post : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part16 : Valid
+[wp] [Qed] Goal typed_main_post_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_main_post_func_buch_state_S7_in_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_main_pre_func_post_2 : Valid
+[wp] [Qed] Goal typed_main_pre_func_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S2_in_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_main_pre_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opa_post_func_post_2 : Valid
+[wp] [Qed] Goal typed_opa_post_func_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part17 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part16 : Valid
+[wp] [Qed] Goal typed_opa_post_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S4_in_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opa_post_func_buch_state_S5_out_post : Valid
+[wp] Computing [100 goals...]
+[wp] [Qed] Goal typed_opa_pre_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_post_2 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part16 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S3_in_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opa_pre_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opb_post_func_post_2 : Valid
+[wp] [Qed] Goal typed_opb_post_func_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part16 : Valid
+[wp] [Qed] Goal typed_opb_post_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S6_in_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opb_post_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_post_2 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S5_in_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_opb_pre_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opc_post_func_post_2 : Valid
+[wp] [Qed] Goal typed_opc_post_func_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_assign_part15 : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S5_out_post : Valid
+[wp] [Qed] Goal typed_opc_post_func_buch_state_S4_out_post : Valid
+[wp] Computing [200 goals...]
+[wp] [Qed] Goal typed_opc_pre_func_assign_part02 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part01 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_post_2 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part06 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part05 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part04 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part03 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part10 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part09 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part08 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part07 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part14 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part13 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part12 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_assign_part11 : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S4_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S3_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S2_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S1_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S7_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S6_out_post : Valid
+[wp] [Qed] Goal typed_opc_pre_func_buch_state_S5_out_post : Valid
+/* Generated by Frama-C */
+enum aorai_ListOper {
+    op_main = 3,
+    op_opa = 2,
+    op_opb = 1,
+    op_opc = 0
+};
+enum aorai_OpStatusList {
+    aorai_Terminated = 1,
+    aorai_Called = 0
+};
+int rr = 1;
+/*@ global invariant inv: 0 ≤ rr ≤ 5000;
+ */
+/*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
+/*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
+/*@ ghost int S1 = 1; */
+/*@ ghost int S2 = 0; */
+/*@ ghost int S3 = 0; */
+/*@ ghost int S4 = 0; */
+/*@ ghost int S5 = 0; */
+/*@ ghost int S6 = 0; */
+/*@ ghost int S7 = 0; */
+/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
+    ensures aorai_CurOperation ≡ op_opa;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_in:
+      assumes 1 ≡ S2 ∧ r ≥ 0;
+      ensures 1 ≡ S3;
+    
+    behavior buch_state_S3_out:
+      assumes 0 ≡ S2 ∨ ¬(r ≥ 0);
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opa_pre_func(int r)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_opa;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  if (S2 == 1) 
+    if (r >= 0) S3_tmp = 1; else S3_tmp = 0;
+  else S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S3 ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S4 ∧ 0 ≡ S5 ∧
+      0 ≡ S6 ∧ 0 ≡ S7;
+    requires 1 ≡ S3 ⇒ res ≤ 5000;
+    ensures aorai_CurOpStatus ≡ aorai_Terminated;
+    ensures aorai_CurOperation ≡ op_opa;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_in:
+      assumes 1 ≡ S3 ∧ res ≤ 5000;
+      ensures 1 ≡ S4;
+    
+    behavior buch_state_S4_out:
+      assumes 0 ≡ S3 ∨ ¬(res ≤ 5000);
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opa_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_opa;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  if (S3 == 1) 
+    if (res <= 5000) S4_tmp = 1; else S4_tmp = 0;
+  else S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S2 ∧ 0 ≡ S1 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧ 0 ≡ S5 ∧
+      0 ≡ S6 ∧ 0 ≡ S7;
+    requires 1 ≡ S2 ⇒ r ≥ 0;
+    requires r < 5000;
+    
+    behavior j:
+      ensures \result ≡ \old(r)+1;
+    
+    behavior Buchi_property_behavior:
+      ensures 1 ≡ S4 ⇒ \result ≤ 5000;
+      ensures
+        0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S5 ∧ 0 ≡ S6 ∧
+        0 ≡ S7;
+      ensures 1 ≡ S4;
+ */
+int opa(int r)
+{
+  int __retres;
+  opa_pre_func(r);
+  __retres = r + 1;
+  opa_post_func(__retres);
+  return __retres;
+}
+
+/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
+    ensures aorai_CurOperation ≡ op_opb;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_in:
+      assumes 1 ≡ S4;
+      ensures 1 ≡ S5;
+    
+    behavior buch_state_S5_out:
+      assumes 0 ≡ S4;
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opb_pre_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_opb;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  if (S4 == 1) S5_tmp = 1; else S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S5 ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧
+      0 ≡ S6 ∧ 0 ≡ S7;
+    ensures aorai_CurOpStatus ≡ aorai_Terminated;
+    ensures aorai_CurOperation ≡ op_opb;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_in:
+      assumes 1 ≡ S5;
+      ensures 1 ≡ S6;
+    
+    behavior buch_state_S6_out:
+      assumes 0 ≡ S5;
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opb_post_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_opb;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  if (S5 == 1) S6_tmp = 1; else S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S4 ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S5 ∧
+      0 ≡ S6 ∧ 0 ≡ S7;
+    requires rr ≥ 1 ∧ rr ≤ 5000;
+    
+    behavior f:
+      ensures rr ≥ 3 ∧ rr ≤ 5000;
+    
+    behavior Buchi_property_behavior:
+      ensures
+        0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧ 0 ≡ S5 ∧
+        0 ≡ S7;
+      ensures 1 ≡ S6;
+ */
+void opb(void)
+{
+  opb_pre_func();
+  if (rr < 4998) rr += 2;
+  opb_post_func();
+  return;
+}
+
+/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
+    ensures aorai_CurOperation ≡ op_opc;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opc_pre_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_opc;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires \false;
+    ensures aorai_CurOpStatus ≡ aorai_Terminated;
+    ensures aorai_CurOperation ≡ op_opc;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void opc_post_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_opc;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires \false;
+    
+    behavior d:
+      ensures rr ≡ 600;
+    
+    behavior Buchi_behavior_out_0:
+      ensures 0 ≡ S1;
+    
+    behavior Buchi_behavior_out_1:
+      ensures 0 ≡ S2;
+    
+    behavior Buchi_behavior_out_2:
+      ensures 0 ≡ S3;
+    
+    behavior Buchi_behavior_out_3:
+      ensures 0 ≡ S4;
+    
+    behavior Buchi_behavior_out_4:
+      ensures 0 ≡ S5;
+    
+    behavior Buchi_behavior_out_5:
+      ensures 0 ≡ S6;
+    
+    behavior Buchi_behavior_out_6:
+      ensures 0 ≡ S7;
+ */
+void opc(void)
+{
+  opc_pre_func();
+  rr = 600;
+  opc_post_func();
+  return;
+}
+
+/*@ ensures aorai_CurOpStatus ≡ aorai_Called;
+    ensures aorai_CurOperation ≡ op_main;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_in:
+      assumes 1 ≡ S1;
+      ensures 1 ≡ S2;
+    
+    behavior buch_state_S2_out:
+      assumes 0 ≡ S1;
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_out:
+      ensures 0 ≡ S7;
+ */
+void main_pre_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  if (S1 == 1) S2_tmp = 1; else S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S6 ∧ 0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧
+      0 ≡ S5 ∧ 0 ≡ S7;
+    ensures aorai_CurOpStatus ≡ aorai_Terminated;
+    ensures aorai_CurOperation ≡ op_main;
+    assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, S5, S6,
+            S7;
+    
+    behavior buch_state_S1_out:
+      ensures 0 ≡ S1;
+    
+    behavior buch_state_S2_out:
+      ensures 0 ≡ S2;
+    
+    behavior buch_state_S3_out:
+      ensures 0 ≡ S3;
+    
+    behavior buch_state_S4_out:
+      ensures 0 ≡ S4;
+    
+    behavior buch_state_S5_out:
+      ensures 0 ≡ S5;
+    
+    behavior buch_state_S6_out:
+      ensures 0 ≡ S6;
+    
+    behavior buch_state_S7_in:
+      assumes 1 ≡ S6;
+      ensures 1 ≡ S7;
+    
+    behavior buch_state_S7_out:
+      assumes 0 ≡ S6;
+      ensures 0 ≡ S7;
+ */
+void main_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int S2_tmp; */
+  /*@ ghost int S3_tmp; */
+  /*@ ghost int S4_tmp; */
+  /*@ ghost int S5_tmp; */
+  /*@ ghost int S6_tmp; */
+  /*@ ghost int S7_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  S2_tmp = S2;
+  S3_tmp = S3;
+  S4_tmp = S4;
+  S5_tmp = S5;
+  S6_tmp = S6;
+  S7_tmp = S7;
+  if (S6 == 1) S7_tmp = 1; else S7_tmp = 0;
+  S6_tmp = 0;
+  S5_tmp = 0;
+  S4_tmp = 0;
+  S3_tmp = 0;
+  S2_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  S2 = S2_tmp;
+  S3 = S3_tmp;
+  S4 = S4_tmp;
+  S5 = S5_tmp;
+  S6 = S6_tmp;
+  S7 = S7_tmp;
+  return;
+}
+
+/*@ requires
+      1 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧ 0 ≡ S5 ∧
+      0 ≡ S6 ∧ 0 ≡ S7;
+    requires rr ≡ 1;
+    
+    behavior Buchi_property_behavior:
+      ensures
+        0 ≡ S1 ∧ 0 ≡ S2 ∧ 0 ≡ S3 ∧ 0 ≡ S4 ∧ 0 ≡ S5 ∧
+        0 ≡ S6;
+      ensures 1 ≡ S7;
+ */
+int main(void)
+{
+  int __retres;
+  main_pre_func();
+  if (rr < 5000) rr = opa(rr);
+  opb();
+  goto L6;
+  opc();
+  L6: __retres = 1;
+  main_post_func(__retres);
+  return __retres;
+}
+
+

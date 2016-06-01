@@ -21,7 +21,7 @@ let check_expr_term check fct s e =
   let p = List.hd (Logic_env.find_all_logic_functions "int_eq") in
   let app = Logic_const.papp (p,[],[term;term']) in
   let post = Logic_const.new_predicate app in
-  Annotations.add_ensures emitter fct Cil.default_behavior_name [Normal,post]
+  Annotations.add_ensures emitter fct [Normal,post]
 
 
 let treat_fct check fct =

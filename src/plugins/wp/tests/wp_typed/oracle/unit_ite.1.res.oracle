@@ -11,7 +11,6 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_typed/unit_ite.i, line 2) in 'check':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -20,12 +20,14 @@
 #                                                                        #
 ##########################################################################
 
+$(eval $(call assert_defined,PLUGIN_NAME))
+
 PLUGIN_ENABLE	?=yes
 PLUGIN_DIR	?=.
 
 FRAMAC_SRC 	?=$(PLUGIN_DIR)/../../..
 
-FRAMAC_MAKE	?=no
+FRAMAC_INTERNAL	?=no
 
 ifndef MAKECONFIG_DIR
 MAKECONFIG_DIR	:=$(FRAMAC_SHARE)
@@ -42,10 +44,14 @@ endif
 #Do not generate documentation for this.
 PLUGIN_UNDOC:=$(PLUGIN_UNDOC)
 
-ifeq ($(FRAMAC_MAKE),yes)
+ifeq ($(FRAMAC_INTERNAL),yes)
+## The plugin is not compiled from an installed frama-c, ie
+## internal plugin (in src/plugins or added during
+## ./configure with --enable-external)
 PLUGIN_RESET	:=yes
 
 else
+# The plugin is compiled from an installed frama-c
 PLUGIN_RESET	:=no
 include $(MAKECONFIG_DIR)/Makefile.common
 include $(MAKECONFIG_DIR)/Makefile.dynamic_config
@@ -68,7 +74,7 @@ install-doc-code' in Frama-C's main directory"; \
         fi
 	$(MKDIR) $($(@:plugin-doc/%=%_DOC_DIR))
 else
-ifeq ($(FRAMAC_MAKE),yes)
+ifeq ($(FRAMAC_INTERNAL),yes)
 plugin-doc/$(PLUGIN_NAME):
 	:
 else
@@ -81,7 +87,7 @@ doc:: plugin-doc/$(PLUGIN_NAME) $(PLUGIN_NAME)_DOC
 
 clean-doc:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC
 
-ifneq ($(FRAMAC_MAKE),yes)
+ifneq ($(FRAMAC_INTERNAL),yes)
 install-doc-code:: $(PLUGIN_NAME)_INSTALL_DOC
 endif
 
@@ -95,7 +101,7 @@ $(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
               $(DOC_DIR)/$(@:%_INSTALL_DOC=%)
 
 endif #PLUGIN_ENABLE
-endif #FRAMAC_MAKE
+endif #FRAMAC_INTERNAL
 
 #Must be defined before section TESTS, because function call in make
 #replace not only $(1) but all the other $(..)
@@ -154,10 +160,10 @@ $(PLUGIN_DIR)/tests/ptests_config: $(PTESTS_DEP)
 
 .PHONY: $(PLUGIN_NAME)_DEFAULT_TESTS
 
-$(PLUGIN_NAME)_DEFAULT_TESTS: $$(TARGETS) $$(TARGETS_GUI) $(PLUGIN_DIR)/tests/ptests_config
+$(PLUGIN_NAME)_DEFAULT_TESTS: $$(TARGETS) $$(TARGETS_TOP) $$(TARGETS_GUI) $(PLUGIN_DIR)/tests/ptests_config
 	$(PRINT) TESTING PLUG-IN $(PLUGIN_NAME)
 	cd $(PLUGIN_DIR) && \
-        time -p $(PTESTS) $(PTESTS_OPTS) $(PLUGIN_PTESTS_OPTS)
+        time -p $(PTESTS) $$(PTESTS_OPTS) $(PLUGIN_PTESTS_OPTS)
 
 $(PLUGIN_NAME)_TESTS: $(PLUGIN_NAME)_DEFAULT_TESTS
 
@@ -174,23 +180,24 @@ PLUGIN_BFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_BFLAGS)
 PLUGIN_OFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_OFLAGS)
 ifeq ($(FRAMAC_INTERNAL),yes)
 PLUGIN_DEPFLAGS:=$(PLUGIN_DEPFLAGS)
-ifneq ($(FRAMAC_MAKE),yes)
-PLUGIN_DOC_DIR:=$(PLUGIN_DIR)/doc/code
-endif
 else
 PLUGIN_DEPFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DEPFLAGS)
 PLUGIN_DOC_DIR:=$(PLUGIN_DIR)/doc/code
 endif
-PLUGIN_DOCFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DOCFLAGS)
+# For plugins that depends on the API of other ones, we need to add the
+# directory where the plugins' .cmi are compiled
+PLUGIN_DOCFLAGS:=\
+  $(FRAMAC_INCLUDES) -I $(FRAMAC_COMPILED_PLUGINDIR) $(PLUGIN_DOCFLAGS)
 
-include $(MAKECONFIG_DIR)/Makefile.plugin
+$(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
-TARGETS := $(TARGET_META) $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA) \
-           $(TARGET_CMXS)
-TARGETS_GUI := $(TARGET_META) $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) \
+TARGETS := $(TARGET_META) $(TARGET_CMI)
+TARGETS_TOP := $(TARGET_TOP_CMO) $(TARGET_TOP_CMX) \
+	       $(TARGET_TOP_CMA) $(TARGET_TOP_CMXS)
+TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) \
                $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
-TARGETS_BYTE:= $(TARGET_META) $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA)
-TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_CMX) $(TARGET_CMXS)
+TARGETS_BYTE:= $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMO) $(TARGET_TOP_CMA)
+TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMX) $(TARGET_TOP_CMXS)
 
 include $(MAKECONFIG_DIR)/Makefile.kernel
 
@@ -199,7 +206,7 @@ opt:: $(TARGETS_OPT)
 gui:: $(TARGETS_GUI)
 
 # do not define additional targets if you come from the Frama-C Makefile
-ifneq ($(FRAMAC_MAKE),yes)
+ifneq ($(FRAMAC_INTERNAL),yes)
 
 ##########
 # Zarith #
@@ -213,18 +220,20 @@ endif
 # Static Linking #
 ##################
 
-$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
+$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_TOP_CMO)
 	$(PRINT_LINKING) $@
 	$(OCAMLC) $(PLUGIN_LINK_BFLAGS) $(DYN_BLINKFLAGS) $(ZARITH_INCLUDES) \
 	  -o $@ $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
-	  $(patsubst %boot.cmo, $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO) %boot.cmo, \
+	  $(patsubst %boot.cmo, \
+	    $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO) %boot.cmo, \
 	    $(DYN_ALL_BATCH_CMO))
 
-$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_CMX)
+$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_TOP_CMX)
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(PLUGIN_LINK_OFLAGS) $(DYN_OLINKFLAGS) $(ZARITH_INCLUDES) \
 	  -o $@ $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
-	  $(patsubst %boot.cmx, $(PLUGIN_EXTRA_OPT) $(TARGET_CMX) %boot.cmx, \
+	  $(patsubst %boot.cmx, \
+	    $(PLUGIN_EXTRA_OPT) $(TARGET_TOP_CMX) %boot.cmx, \
             $(DYN_ALL_BATCH_CMX))
 
 static.byte:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)
@@ -245,9 +254,7 @@ $(PLUGIN_NAME)_CLEAN_DYNAMIC:
 	$(RM) frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)) \
               frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)).byte
 
-ifneq ($(FRAMAC_MAKE),yes)
 dist-clean distclean: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
-endif
 
 ifeq ($(USABLE_NATIVE_DYNLINK),no)
 STATIC=static
@@ -261,8 +268,9 @@ ifneq ($(PLUGIN_ENABLE),no)
 
 install::
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)
-	$(MKDIR) $(PLUGIN_INSTALL_DIR)
+	$(MKDIR) $(PLUGIN_INSTALL_DIR)/top
 	$(CP) $(TARGETS) $(PLUGIN_INSTALL_DIR)
+	$(CP) $(TARGETS_TOP) $(PLUGIN_INSTALL_DIR)/top
 	$(PRINT_CP) $(BINDIR)
 	if [ -f frama-c-$(PLUGIN_NAME).byte$(EXE) ]; then \
 	  $(CP) frama-c-$(PLUGIN_NAME).byte$(EXE) $(BINDIR); \
@@ -287,16 +295,32 @@ ifeq ($(HAS_GUI),yes)
 endif
 endif # PLUGIN_ENABLE <> no
 
-clean:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN;
-$(PLUGIN_DIR)/.depend: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP ;
-depend:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
+##########
+# Merlin #
+##########
 
-.PRECIOUS: $(PLUGIN_DIR)/.depend
-include $(PLUGIN_DIR)/.depend
+.PHONY: merlin_plugin
+merlin_plugin::
+	echo "B $(FRAMAC_LIBDIR)" > .merlin
+	echo "B $(FRAMAC_LIBDIR)/plugins" >> .merlin
+	echo "B $(FRAMAC_LIBDIR)/plugins/gui" >> .merlin
+	echo "PKG ocamlgraph" >> .merlin
+	echo "PKG zarith" >> .merlin
+	echo "PKG lablgtk2" >> .merlin
+
+############
+# Cleaning #
+############
+
+clean:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN;
+
+################
+# Generic part #
+################
 
 include $(MAKECONFIG_DIR)/Makefile.generic
 
-endif # FRAMAC_MAKE <> yes
+endif # FRAMAC_INTERNAL <> yes
 
 PLUGIN_PTESTS_OPTS:=
 

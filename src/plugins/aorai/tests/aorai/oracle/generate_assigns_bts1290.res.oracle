@@ -26,7 +26,16 @@ enum aorai_OpStatusList {
       assumes 0 ≡ S;
       ensures 0 ≡ S;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int S_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  S_tmp = S;
+  if (S == 1) S_tmp = 1; else S_tmp = 0;
+  S = S_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -41,7 +50,16 @@ extern void main_pre_func(void);
       assumes 0 ≡ S;
       ensures 0 ≡ S;
  */
-extern void main_post_func(void);
+void main_post_func(void)
+{
+  /*@ ghost int S_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  S_tmp = S;
+  if (S == 1) S_tmp = 1; else S_tmp = 0;
+  S = S_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S;
     

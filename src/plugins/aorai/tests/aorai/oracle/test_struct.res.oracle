@@ -37,7 +37,22 @@ int myAge = 0;
     behavior buch_state_main_0_out:
       ensures 0 ≡ main_0;
  */
-extern void increment_pre_func(void);
+void increment_pre_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int main_0_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_increment;
+  S1_tmp = S1;
+  main_0_tmp = main_0;
+  main_0_tmp = 0;
+  if (S1 == 1) 
+    if (nobody.Age == 1) S1_tmp = 1; else S1_tmp = 0;
+  else S1_tmp = 0;
+  S1 = S1_tmp;
+  main_0 = main_0_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ main_0;
     requires 1 ≡ S1 ⇒ nobody.Age ≡ 1;
@@ -56,7 +71,22 @@ extern void increment_pre_func(void);
     behavior buch_state_main_0_out:
       ensures 0 ≡ main_0;
  */
-extern void increment_post_func(void);
+void increment_post_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int main_0_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_increment;
+  S1_tmp = S1;
+  main_0_tmp = main_0;
+  main_0_tmp = 0;
+  if (S1 == 1) 
+    if (nobody.Age == 1) S1_tmp = 1; else S1_tmp = 0;
+  else S1_tmp = 0;
+  S1 = S1_tmp;
+  main_0 = main_0_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ main_0;
     requires 1 ≡ S1 ⇒ nobody.Age ≡ 1;
@@ -90,7 +120,22 @@ void increment(void)
     behavior buch_state_main_0_out:
       ensures 0 ≡ main_0;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int main_0_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  main_0_tmp = main_0;
+  main_0_tmp = 0;
+  if (main_0 == 1) 
+    if (nobody.Age == 0) S1_tmp = 1; else S1_tmp = 0;
+  else S1_tmp = 0;
+  S1 = S1_tmp;
+  main_0 = main_0_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ main_0;
     requires 1 ≡ S1 ⇒ nobody.Age ≡ 1;
@@ -109,7 +154,22 @@ extern void main_pre_func(void);
     behavior buch_state_main_0_out:
       ensures 0 ≡ main_0;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int main_0_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  main_0_tmp = main_0;
+  main_0_tmp = 0;
+  if (S1 == 1) 
+    if (nobody.Age == 1) S1_tmp = 1; else S1_tmp = 0;
+  else S1_tmp = 0;
+  S1 = S1_tmp;
+  main_0 = main_0_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ main_0 ∧ 0 ≡ S1;
     requires 1 ≡ main_0 ⇒ nobody.Age ≡ 0;

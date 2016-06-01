@@ -15,7 +15,7 @@ struct _s {
 };
 typedef struct _s ts;
 int t[10];
-int u[11];
+int u[8 + 3];
 int v[16][17];
 ts s;
 unsigned int c[10];
@@ -31,7 +31,7 @@ void main(int i, int j, unsigned int k)
   /*@ assert rte: index_bound: i < 10; */
   t[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
-  /*@ assert rte: index_bound: i < 11; */
+  /*@ assert rte: index_bound: i < (int)(8+3); */
   u[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
   /*@ assert rte: index_bound: i < 16; */
@@ -51,7 +51,7 @@ void main(int i, int j, unsigned int k)
   s.v[i].t[j] = 0;
   /*@ assert rte: index_bound: k < 10; */
   t[k] = 0;
-  /*@ assert rte: index_bound: k < 11; */
+  /*@ assert rte: index_bound: k < (int)(8+3); */
   u[k] = 0;
   /*@ assert rte: index_bound: k < 16; */
   /*@ assert rte: index_bound: c[k] < 17; */
@@ -84,7 +84,7 @@ struct _s {
 };
 typedef struct _s ts;
 int t[10];
-int u[11];
+int u[8 + 3];
 int v[16][17];
 ts s;
 unsigned int c[10];
@@ -94,7 +94,7 @@ void main(int i, int j, unsigned int k)
   /*@ assert rte: index_bound: 0 < 10; */
   t[0] = 0;
   /*@ assert rte: index_bound: 0 ≤ 1; */
-  /*@ assert rte: index_bound: 1 < 11; */
+  /*@ assert rte: index_bound: 1 < (int)(8+3); */
   u[1] = 0;
   /*@ assert rte: index_bound: 0 ≤ 2; */
   /*@ assert rte: index_bound: 2 < 16; */
@@ -116,7 +116,7 @@ void main(int i, int j, unsigned int k)
   /*@ assert rte: index_bound: i < 10; */
   t[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
-  /*@ assert rte: index_bound: i < 11; */
+  /*@ assert rte: index_bound: i < (int)(8+3); */
   u[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
   /*@ assert rte: index_bound: i < 16; */
@@ -137,7 +137,7 @@ void main(int i, int j, unsigned int k)
   /*@ assert rte: index_bound: k < 10; */
   /*@ assert rte: index_bound: 0 ≤ k; */
   t[k] = 0;
-  /*@ assert rte: index_bound: k < 11; */
+  /*@ assert rte: index_bound: k < (int)(8+3); */
   /*@ assert rte: index_bound: 0 ≤ k; */
   u[k] = 0;
   /*@ assert rte: index_bound: k < 16; */

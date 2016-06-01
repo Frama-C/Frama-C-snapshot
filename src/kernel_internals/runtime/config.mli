@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,9 +25,6 @@
 
 val version: string
   (** Frama-C Version identifier. *)
-
-val date: string
-  (** Release date. *)
 
 val is_gui: bool ref
   (** Is the Frama-C GUI running?

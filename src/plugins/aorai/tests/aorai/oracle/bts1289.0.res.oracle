@@ -19,14 +19,24 @@ enum aorai_OpStatusList {
     ensures aorai_CurOperation ≡ op_a;
     assigns aorai_CurOpStatus, aorai_CurOperation;
  */
-extern void a_pre_func(void);
+void a_pre_func(void)
+{
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_a;
+  return;
+}
 
 /*@ requires \false;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
     ensures aorai_CurOperation ≡ op_a;
     assigns aorai_CurOpStatus, aorai_CurOperation;
  */
-extern void a_post_func(void);
+void a_post_func(void)
+{
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_a;
+  return;
+}
 
 /*@ requires \false; */
 void a(void)
@@ -40,14 +50,24 @@ void a(void)
     ensures aorai_CurOperation ≡ op_main;
     assigns aorai_CurOpStatus, aorai_CurOperation;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  return;
+}
 
 /*@ requires \false;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
     ensures aorai_CurOperation ≡ op_main;
     assigns aorai_CurOpStatus, aorai_CurOperation;
  */
-extern void main_post_func(void);
+void main_post_func(void)
+{
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  return;
+}
 
 /*@ requires \false; */
 void main(void)

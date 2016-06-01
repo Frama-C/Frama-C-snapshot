@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -94,8 +94,6 @@ val add_code_transformation_before_cleanup:
       (e.g. after a [-then]) will trigger the transformation over the already
       computed AST. If several transformations are triggered by the same
       option, their relative order is preserved.
-      Note that it is the responsibility of the hook to use
-      {!Ast.mark_as_changed} or {!Ast.mark_as_grown} whenever it is the case.
 
       At this level, globals and ACSL annotations have not been registered.
      
@@ -111,6 +109,8 @@ val add_code_transformation_after_cleanup:
       At this level, globals and ACSL annotations have been registered. If
       the hook adds some new globals or annotations, it must take care of
       adding them in the appropriate tables.
+      Note that it is the responsibility of the hook to use
+      {!Ast.mark_as_changed} or {!Ast.mark_as_grown} whenever it is the case.
       @since Neon-20140301 
       @plugin development guide *)
 

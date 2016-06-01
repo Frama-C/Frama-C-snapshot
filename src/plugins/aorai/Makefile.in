@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -88,18 +88,40 @@ include $(FRAMAC_SHARE)/Makefile.dynamic
 
 ifeq ("$(FRAMAC_INTERNAL)","yes")
 CONFIG_STATUS_DIR=$(FRAMAC_SRC)
+AORAI_WP_SHARE=-aorai-test-wp-share $(FRAMAC_TOP_SRCDIR)/src/plugins/wp/share
 else
 CONFIG_STATUS_DIR=.
+AORAI_WP_SHARE=
 endif
+
+$(Aorai_DIR)/tests/ptests_config: $(Aorai_DIR)/tests/test_config_prove
+
+$(Aorai_DIR)/tests/test_config_prove: \
+  $(Aorai_DIR)/tests/test_config_prove.in $(Aorai_DIR)/Makefile
+	$(PRINT_MAKING) $@
+	$(RM) $@
+	$(SED) -e 's!@AORAI_WP_SHARE@!$(AORAI_WP_SHARE)!' $< > $@
+	$(CHMOD_RO) $@
 
 $(Aorai_DIR)/Makefile: $(Aorai_DIR)/Makefile.in \
 			$(CONFIG_STATUS_DIR)/config.status
 	cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
 
+byte:: $(Aorai_DIR)/tests/aorai/Aorai_test.cmo
+opt:: $(Aorai_DIR)/tests/aorai/Aorai_test.cmxs
+
+ifeq ("$(FRAMAC_INTERNAL)","yes")
+$(Aorai_DIR)/tests/aorai/Aorai_test.cmo: bin/toplevel.byte$(EXE)
+$(Aorai_DIR)/tests/aorai/Aorai_test.cmxs: bin/toplevel.opt$(EXE)
+else
+$(Aorai_DIR)/tests/aorai/Aorai_test.cmo: $(Aorai_TARGET_CMO)
+$(Aorai_DIR)/tests/aorai/Aorai_test.cmxs: $(Aorai_TARGET_CMXS)
+endif
+
 headers::
-	$(SED) $(FRAMAC_SRC)/headers/INSA_INRIA_LGPL \
-	       -e 's/This file is/Files in this archive are/' \
-	       > $(FRAMAC_SRC)/doc/aorai/example/LICENSE
+	$(SED) -e 's/This file is/Files in this archive are/' \
+	       $(FRAMAC_SRC)/headers/open-source/INSA_INRIA_LGPL \
+	> $(FRAMAC_SRC)/doc/aorai/example/LICENSE
 
 LOCAL_SRC_DIR=aorai
 COMMON_FILES_TO_COPY=$(PLUGIN_DISTRIB_EXTERNAL) Makefile.in YA.README INSTALL VERSIONS.txt

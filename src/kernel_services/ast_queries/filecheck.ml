@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,15 +50,6 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     Kernel.fatal ~current:true ("[AST Integrity Check]@ %s@ " ^^ fmt) what
   in
   let abort_if cond = if cond then check_abort else Log.nullprintf in
-  let check_label s =
-    let rec has_label = function
-      | Label _ :: _ -> ()
-      | [] ->
-        check_abort
-          "Statement is referenced by \\at or goto without having a label"
-      | _ :: rest -> has_label rest
-    in has_label s.labels
-  in
   object(self)
     inherit Visitor.frama_c_inplace as plain
     val known_enuminfos = Enuminfo.Hashtbl.create 7
@@ -75,7 +66,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     val switch_cases = Stmt.Hashtbl.create 7
     val unspecified_sequence_calls = Stack.create ()
     val mutable labelled_stmt = []
-
+    val mutable logic_labels = []
     val mutable globals_functions = Varinfo.Set.empty
     val mutable globals_vars = Varinfo.Set.empty
 
@@ -145,7 +136,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
 
     method! vvrbl v =
       let not_shared () =
-        check_abort "variable %s is not shared between definition and use" v.vname
+        check_abort
+          "variable %s is not shared between definition and use" v.vname
       in
       let unknown () = check_abort "variable %s is not declared" v.vname in
       if not v.vglob || not (Ast_info.is_frama_c_builtin v.vname) then
@@ -169,7 +161,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
              check_abort
                "logic variable %a is flagged as %a but declared as a %a"
                Printer.pp_logic_var lv
-               pretty_logic_var_kind lv.lv_kind pretty_logic_var_kind lv.lv_kind)
+               pretty_logic_var_kind lv.lv_kind
+               pretty_logic_var_kind orig)
         l;
       Cil.DoChildren
 
@@ -341,14 +334,19 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       in
       Cil.ChangeDoChildrenPost(f,check)
 
+    method private check_label s =
+      let ok = List.exists (function Label _ -> true | _ -> false) !s.labels in
+      if not ok then
+        check_abort
+          "Statement is referenced by \\at or goto without having a label";
+      labelled_stmt <- !s :: labelled_stmt
+
     method! vstmt_aux s =
       Stmt.Hashtbl.add known_stmts s s;
       Stmt.Hashtbl.remove switch_cases s;
       self#remove_unspecified_sequence_calls s;
       (match s.skind with
-       | Goto (s,_) ->
-         check_label !s;
-         labelled_stmt <- !s :: labelled_stmt; Cil.DoChildren
+       | Goto (s,_) -> self#check_label s; Cil.DoChildren
        | Switch(_,_,cases,loc) ->
          List.iter (fun s -> Stmt.Hashtbl.add switch_cases s loc) cases;
          Cil.DoChildren
@@ -388,6 +386,11 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
              end
            | l -> check_abort "If with %d successors" (List.length l)
          end
+       | Loop _ ->
+         let old_labels = logic_labels in
+         logic_labels <-
+           Logic_const.(loop_current_label :: loop_entry_label :: logic_labels);
+         Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
        | _ -> Cil.DoChildren);
 
     method! vblock b =
@@ -400,16 +403,45 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
              check_abort
                "In function %a, variable %a is supposed to be local to a block \
                 but not mentioned in the function's locals."
-               Printer.pp_varinfo (Kernel_function.get_vi (Extlib.the self#current_kf))
+               Printer.pp_varinfo
+               (Kernel_function.get_vi (Extlib.the self#current_kf))
                Printer.pp_varinfo v
            end)
         b.blocals;
       Cil.DoChildren
 
+    method! vbehavior b =
+      let vpred p =
+        ignore Visitor.(visitFramacIdPredicate (self:>frama_c_visitor) p)
+      in
+      let vextend b =
+        ignore Visitor.(visitFramacExtended (self:>frama_c_visitor) b)
+      in
+      List.iter vpred b.b_requires;
+      List.iter vpred b.b_assumes;
+      List.iter vextend b.b_extended;
+      let old_labels = logic_labels in
+      logic_labels <- Logic_const.post_label :: logic_labels;
+      List.iter Extlib.(vpred $ snd) b.b_post_cond;
+      ignore Visitor.(visitFramacAssigns (self:>frama_c_visitor) b.b_assigns);
+      ignore
+        Visitor.(visitFramacAllocation (self:>frama_c_visitor) b.b_allocation);
+      logic_labels <- old_labels;
+      Cil.SkipChildren
+
+    method! vspec _ =
+      let old_labels = logic_labels in
+      logic_labels <-
+        Logic_const.(here_label :: pre_label :: old_label :: logic_labels);
+      Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
+
     method! vcode_annot ca =
       if Hashtbl.mem known_code_annot_id ca.annot_id then
         (check_abort "duplicated code annotation")
-      else Hashtbl.add known_code_annot_id ca.annot_id (); Cil.DoChildren
+      else Hashtbl.add known_code_annot_id ca.annot_id ();
+      let old_labels = logic_labels in
+      logic_labels <- Logic_const.(here_label :: pre_label :: logic_labels);
+      Cil.DoChildrenPost (fun ca -> logic_labels <- old_labels; ca)
 
     method! voffs = function
       | NoOffset -> Cil.SkipChildren
@@ -472,22 +504,61 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           check_abort "enumitem %s is used but not declared"
             ei.einame
 
-    method private check_logic_app li args =
+    (* can't use vlogic_label, as it also visits the declared labels in
+       Tapp and Papp. *)
+    method private check_logic_label lab =
+      match lab with
+      | StmtLabel _ -> ()
+      | LogicLabel _ ->
+        let is_declared =
+          List.exists
+            (fun x -> Cil_datatype.Logic_label.equal x lab) logic_labels
+        in
+        if not is_declared then
+          check_abort "Logic label %a is not declared in this scope"
+            Printer.pp_logic_label lab
+
+    method private check_logic_app li labs args =
       let expect = List.length li.l_profile in
       let actual = List.length args in
+      let pred_or_func =
+        match li.l_type with
+        | None -> "Predicate"
+        | Some _ -> "Logic function"
+      in
       if not (expect = actual) then
-        check_abort "Function %a expects %d arguments but is used with %d"
-          Printer.pp_logic_var li.l_var_info expect actual;
+        check_abort "%s %a expects %d arguments but is used with %d"
+          pred_or_func Printer.pp_logic_var li.l_var_info expect actual;
       List.iter2
         (fun lv arg ->
            if not
-               (Logic_utils.is_instance_of li.l_tparams arg.term_type lv.lv_type)
+               (Logic_utils.is_instance_of
+                  li.l_tparams arg.term_type lv.lv_type)
            then
              check_abort
                "term %a has type %a, but is used as a parameter of type %a"
                Printer.pp_term arg Printer.pp_logic_type arg.term_type
                Printer.pp_logic_type lv.lv_type)
-        li.l_profile args
+        li.l_profile args;
+      let lab_declared = List.length li.l_labels in
+      let lab_provided = List.length labs in
+      if not (lab_declared = lab_provided) then
+        check_abort "%s %a expects %d logic labels, but is used with %d"
+          pred_or_func Printer.pp_logic_var li.l_var_info
+          lab_declared lab_provided;
+      List.iter
+        (fun (_,lab) -> self#check_logic_label lab) labs;
+      (* NdV: I'm not sure why the list of labels instantiations contains pairs
+         with the declared label as first component, but as long as the AST
+         stays that way, it cannot hurt to check for consistency here. *)
+      List.iter2
+        (fun lab (lab',_) ->
+           if not (Cil_datatype.Logic_label.equal lab lab') then
+             check_abort
+               "%s %a has a label declared as %a, which is instantiated as %a"
+               pred_or_func Printer.pp_logic_var li.l_var_info
+               Printer.pp_logic_label lab Printer.pp_logic_label lab')
+        li.l_labels labs
 
     method! vterm t =
       match t.term_node with
@@ -522,10 +593,10 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       | Tcomprehension _ ->
         Stack.push LVQuant quant_orig;
         Cil.DoChildrenPost (fun t -> ignore (Stack.pop quant_orig); t)
-      | Tapp(li,_,args) ->
+      | Tapp(li,labs,args) ->
         (match li.l_type with
          | Some ty when
-             Logic_utils.is_instance_of li.l_tparams ty t.term_type -> ()
+             Logic_utils.is_instance_of li.l_tparams t.term_type ty -> ()
          | Some ty ->
            check_abort
              "logic function %a has return type %a, \
@@ -537,23 +608,25 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
          | None ->
            check_abort "predicate %a is used as a logic function"
              Printer.pp_logic_var li.l_var_info);
-        self#check_logic_app li args;
+        self#check_logic_app li labs args;
         Cil.DoChildren
+      | Tat(_,l) | Tbase_addr(l,_) | Toffset(l,_) | Tblock_length(l,_) ->
+        self#check_logic_label l; Cil.DoChildren
       | _ -> Cil.DoChildren
 
     method! vinitoffs = self#voffs
 
     method! vcompinfo c =
-      Kernel.debug2
+      Kernel.debug
         ~dkey:dkey_check "Checking composite type %s(%d)" c.cname c.ckey;
       Compinfo.Hashtbl.add known_compinfos c c;
-      Kernel.debug2
+      Kernel.debug
         ~dkey:dkey_check "Adding fields for type %s(%d)" c.cname c.ckey;
       List.iter (fun x -> Fieldinfo.Hashtbl.add known_fields x x) c.cfields;
       Cil.DoChildren
 
     method! vfieldinfo f =
-      Kernel.debug2
+      Kernel.debug
         ~dkey:dkey_check "Check field %s of type %s" f.fname f.fcomp.cname;
       try
         let c = Compinfo.Hashtbl.find known_compinfos f.fcomp in
@@ -692,23 +765,24 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
              "field %s of type %a is not present in environment"
              mi.mi_name Printer.pp_typ mi.mi_base_type);
         Cil.DoChildren
+      | Dlemma(_,_,labels,_,_,_) ->
+        let old_labels = logic_labels in
+        logic_labels <- labels @ logic_labels;
+        Cil.DoChildrenPost (fun g -> logic_labels <- old_labels; g)
       | _ -> Cil.DoChildren
 
     method! vlogic_label = function
-      | StmtLabel l ->
-        check_label !l;
-        labelled_stmt <- !l::labelled_stmt;
-        Cil.SkipChildren
+      | StmtLabel l -> self#check_label l; Cil.SkipChildren
       | _ -> Cil.DoChildren
 
     method! vpredicate = function
-      | Papp(li,_,args) ->
+      | Papp(li,labs,args) ->
         (match li.l_type with
          | None -> ()
          | Some _ ->
            check_abort "Logic function %a is used as a predicate"
              Printer.pp_logic_var li.l_var_info);
-        self#check_logic_app li args;
+        self#check_logic_app li labs args;
         Cil.DoChildren
       | Plet(li,_) ->
         if li.l_var_info.lv_kind <> LVLocal then
@@ -719,7 +793,19 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       | Pforall _ | Pexists _ ->
         Stack.push LVQuant quant_orig;
         Cil.DoChildrenPost (fun p -> ignore (Stack.pop quant_orig); p)
+      | Pat(_,l) | Pvalid_read(l,_) | Pvalid(l,_) | Pinitialized(l,_)
+      | Pdangling(l,_) | Pallocable(l,_) | Pfreeable(l,_) ->
+        self#check_logic_label l; Cil.DoChildren
+      | Pfresh(l1,l2,_,_) ->
+        self#check_logic_label l1; self#check_logic_label l2; Cil.DoChildren
       | _ -> Cil.DoChildren
+
+    method private vinductive_case (_,labels,_,p) =
+      let old_labels = logic_labels in
+      logic_labels <- labels @ logic_labels;
+      ignore
+        (Visitor.visitFramacPredicateNamed (self:>Visitor.frama_c_visitor) p);
+      logic_labels <- old_labels
 
     method! vlogic_info_decl li =
       Logic_var.Hashtbl.add known_logic_info li.l_var_info li;
@@ -731,7 +817,13 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                 flagged with wrong origin"
                Printer.pp_logic_var lv Printer.pp_logic_var li.l_var_info)
         li.l_profile;
-      Cil.DoChildren
+      match li.l_body with
+      | LBinductive l ->
+        List.iter self#vinductive_case l; Cil.SkipChildren
+      | _ ->
+        let old_labels = logic_labels in
+        logic_labels <- li.l_labels @ logic_labels;
+        Cil.DoChildrenPost (fun li -> logic_labels <- old_labels; li)
 
     method! vlogic_info_use li =
       let unknown () =
@@ -835,6 +927,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         (match targs with
          | None -> Cil.DoChildren
          | Some targs -> aux targs args)
+      | Asm(_,_,Some { asm_gotos },_) ->
+        List.iter self#check_label asm_gotos; Cil.DoChildren
       | _ -> Cil.DoChildren
 
     method! vtype ty =
@@ -864,6 +958,11 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       Globals.Vars.iter add_var
 
   end
+
+let check_ast ?is_normalized what =
+  Cil.visitCilFileSameGlobals
+    (new check ?is_normalized what :> Cil.cilVisitor)
+    (Ast.get())
 
 
 (*

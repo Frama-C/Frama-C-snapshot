@@ -1,0 +1,104 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/relations.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+  p ∈ {0}
+  x ∈ {0}
+  u[0..19] ∈ {0}
+  R1 ∈ {0}
+  R2 ∈ {0}
+  R3 ∈ {0}
+  R4 ∈ {0}
+  R5 ∈ {0}
+  R6 ∈ {0}
+  R7 ∈ {0}
+  A7 ∈ {0}
+  R8 ∈ {0}
+  A8 ∈ {0}
+  S1 ∈ {0}
+  S2 ∈ {0}
+  S3 ∈ {0}
+  S4 ∈ {0}
+  S5 ∈ {0}
+  S6 ∈ {0}
+  S7 ∈ {0}
+  B7 ∈ {0}
+  S8 ∈ {0}
+  B8 ∈ {0}
+tests/value/relations.i:35:[kernel] warning: signed overflow. assert u[0]+1 ≤ 2147483647;
+tests/value/relations.i:41:[kernel] warning: signed overflow. assert -2147483648 ≤ u[5]-u[0];
+tests/value/relations.i:41:[kernel] warning: signed overflow. assert u[5]-u[0] ≤ 2147483647;
+tests/value/relations.i:46:[kernel] warning: signed overflow. assert -2147483648 ≤ u[10]-u[11];
+tests/value/relations.i:46:[kernel] warning: signed overflow. assert u[10]-u[11] ≤ 2147483647;
+tests/value/relations.i:48:[kernel] warning: signed overflow. assert -2147483648 ≤ u[1]-u[0];
+tests/value/relations.i:48:[kernel] warning: signed overflow. assert u[1]-u[0] ≤ 2147483647;
+tests/value/relations.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ u[5]-u[1];
+tests/value/relations.i:52:[kernel] warning: signed overflow. assert u[5]-u[1] ≤ 2147483647;
+tests/value/relations.i:56:[kernel] warning: out of bounds read. assert \valid_read(&pCs->L0);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0..1] ∈ {4}
+   [2] ∈ {3}
+  p ∈ {{ &t[1] }}
+  x ∈ {4}
+  u[0..1] ∈ [--..--]
+   [2..4] ∈ {0}
+   [5] ∈ [-2147483647..2147483647]
+   [6..9] ∈ {0}
+   [10..11] ∈ [--..--]
+   [12..19] ∈ {0}
+  R1 ∈ [--..--]
+  R2 ∈ [--..--]
+  R3 ∈ [--..--]
+  R4 ∈ [--..--]
+  R5 ∈ [--..--]
+  R6 ∈ [--..--]
+  R7 ∈ {0; 1}
+  A7 ∈ [--..--]
+  R8 ∈ {0; 1}
+  A8 ∈ [--..--]
+  S1 ∈ {-1; 0; 1}
+  S2 ∈ {0; 1}
+  c ∈ {0}
+  e ∈ [--..--]
+  f ∈ [--..--]
+  S_pCs[0]{.L0; .L1} ∈ [--..--]
+       [0]{.T13; .T; .L8} ∈ {0; 1}
+       [1] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[0..1] FROM \nothing
+  p FROM \nothing
+  x FROM \nothing
+  u{[0..1]; [5]} FROM g
+   [10] FROM h
+   [11] FROM i
+  R1 FROM g (and SELF)
+  R2 FROM g (and SELF)
+  R3 FROM g (and SELF)
+  R4 FROM g (and SELF)
+  R5 FROM g
+  R6 FROM h; i (and SELF)
+  R7 FROM g (and SELF)
+  A7 FROM g
+  R8 FROM g (and SELF)
+  A8 FROM g
+  S1 FROM pCs; S_pCs[0]{.L0; .L1}
+  S2 FROM pCs; S_pCs[0]{.L0; .L1} (and SELF)
+  S_pCs[0]{.T13; .T; .L8} FROM pCs; S_pCs[0]{.L0; .L1}
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; R1; R2; R3; R4; R5; R6; R7; 
+          A7; R8; A8; S1; S2; c; e; f; tmp; tmp_0; S_pCs[0]{.T13; .T; .L8}
+[inout] Inputs for function main:
+          t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; S_pCs[0]{.L0; .L1; .T13; .T}

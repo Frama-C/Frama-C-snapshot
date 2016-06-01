@@ -1,11 +1,8 @@
-# frama-c -wp -wp-model 'Typed' [...]
-[wp] user error: In model spec "Store" : unknown 'STORE' selector
+# frama-c -wp [...]
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp/wp_call_pre.c:53:[wp] warning: Deprecated 'Store' model.
-              Use 'Typed' instead.
 [wp] Collecting axiomatic usage
 tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
 tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,10 +24,11 @@ open Cil_types
 open Cil_datatype
 
 type behavior_or_loop =
-    Id_behavior of funbehavior
-  | Id_code_annot of code_annotation
+    Id_contract of Datatype.String.Set.t * funbehavior
+  | Id_loop of code_annotation
 
-type identified_complete = kernel_function * kinstr * string list
+type identified_complete =
+  kernel_function * kinstr * Datatype.String.Set.t * string list
 type identified_disjoint =  identified_complete
 type identified_code_annotation =
     kernel_function * stmt * code_annotation
@@ -52,7 +53,9 @@ type identified_from =
 
 type identified_decrease =
     kernel_function * kinstr * code_annotation option * term variant
-type identified_behavior = kernel_function * kinstr * funbehavior
+
+type identified_behavior =
+  kernel_function * kinstr * Datatype.String.Set.t * funbehavior
 
 type predicate_kind =
   | PKRequires of funbehavior
@@ -115,9 +118,9 @@ and identified_property =
 
 let get_kinstr = function
   | IPPredicate (_,_,ki,_) 
-  | IPBehavior(_, ki, _) 
-  | IPComplete (_,ki,_)
-  | IPDisjoint(_,ki,_) 
+  | IPBehavior(_, ki,_,_) 
+  | IPComplete (_,ki,_,_)
+  | IPDisjoint(_,ki,_,_) 
   | IPAllocation (_,ki,_,_) 
   | IPAssigns (_,ki,_,_) 
   | IPFrom(_,ki,_,_)
@@ -133,10 +136,10 @@ let get_kinstr = function
 
 let get_kf = function
   | IPPredicate (_,kf,_,_)
-  | IPBehavior(kf, _, _)
+  | IPBehavior(kf,_,_,_)
   | IPCodeAnnot (kf,_,_)
-  | IPComplete (kf,_,_) 
-  | IPDisjoint(kf,_,_) 
+  | IPComplete (kf,_,_,_) 
+  | IPDisjoint(kf,_,_,_) 
   | IPAllocation(kf,_,_,_)
   | IPAssigns(kf,_,_,_)
   | IPFrom(kf,_,_,_) 
@@ -155,11 +158,11 @@ let loc_of_kf_ki kf = function
 
 let rec location = function
   | IPPredicate (_,_,_,ip) -> ip.ip_loc
-  | IPBehavior(kf,ki, _) 
-  | IPComplete (kf,ki,_) 
-  | IPReachable(Some kf, ki, _) -> loc_of_kf_ki kf ki
-  | IPPropertyInstance (Some kf, ki, _)
-  | IPDisjoint(kf,ki,_) -> loc_of_kf_ki kf ki
+  | IPBehavior(kf,ki, _,_) 
+  | IPComplete (kf,ki,_,_) 
+  | IPDisjoint(kf,ki,_,_)
+  | IPReachable(Some kf, ki, _)
+  | IPPropertyInstance (Some kf, ki, _) -> loc_of_kf_ki kf ki
   | IPPropertyInstance (None, Kstmt s, _)
   | IPReachable(None, Kstmt s, _) -> Cil_datatype.Stmt.loc s
   | IPCodeAnnot (_,s,ca) -> (
@@ -212,19 +215,19 @@ let get_pk_behavior = function
 
 let get_behavior = function
   | IPPredicate (pk,_,_,_) -> get_pk_behavior pk
-  | IPBehavior(_, _, b) -> Some b
-  | IPAllocation(_,_,Id_behavior b,_)
-  | IPAssigns(_,_,Id_behavior b,_)
-  | IPFrom(_,_,Id_behavior b,_) -> Some b
-  | IPAllocation(_,_,Id_code_annot _,_)
-  | IPAssigns(_,_,Id_code_annot _,_)
-  | IPFrom(_,_,Id_code_annot _,_)
+  | IPBehavior(_, _, _, b) -> Some b
+  | IPAllocation(_,_,Id_contract (_,b),_)
+  | IPAssigns(_,_,Id_contract (_,b),_)
+  | IPFrom(_,_,Id_contract (_,b),_) -> Some b
+  | IPAllocation(_,_,Id_loop _,_)
+  | IPAssigns(_,_,Id_loop _,_)
+  | IPFrom(_,_,Id_loop _,_)
   | IPAxiom _ 
   | IPAxiomatic _
   | IPLemma _
   | IPCodeAnnot (_,_,_)
-  | IPComplete (_,_,_)
-  | IPDisjoint(_,_,_)
+  | IPComplete (_,_,_,_)
+  | IPDisjoint(_,_,_,_)
   | IPDecrease _
   | IPReachable _
   | IPPropertyInstance _
@@ -254,7 +257,15 @@ include Datatype.Make_with_collections
 	  | None,Some _ -> (-1)
 	  | Some _,None -> 1
 	  | Some x,Some y -> cmp x y
-      
+
+      let pp_active fmt active =
+        let sep = ref false in
+        let print_one a =
+          Format.fprintf fmt "%s%s" (if !sep then ", " else "") a;
+          sep:=true
+        in
+        Datatype.String.Set.iter print_one active
+
       let rec pretty fmt = function
 	| IPPredicate (kind,_,_,p) -> 
           Format.fprintf fmt "%a@ %a"
@@ -266,25 +277,28 @@ include Datatype.Make_with_collections
 	  Format.fprintf fmt "invariant@ %s for type %a" s Cil_printer.pp_typ ty
 	| IPGlobalInvariant(s,_,_) ->
 	  Format.fprintf fmt "global invariant@ %s" s
-	| IPBehavior(_kf, ki, b) -> 
+	| IPBehavior(_kf, ki, active, b) -> 
             if Cil.is_default_behavior b then
               Format.pp_print_string fmt "default behavior"
             else
 	      Format.fprintf fmt "behavior %s" b.b_name;
 	    (match ki with 
 	    | Kstmt s -> Format.fprintf fmt " for statement %d" s.sid
-	    | Kglobal -> ())
+	    | Kglobal -> ());
+            pp_active fmt active
 	| IPCodeAnnot(_, _, a) -> Cil_printer.pp_code_annotation fmt a
-	| IPComplete(_, _, l) ->
+	| IPComplete(_, _, active, l) ->
 	  Format.fprintf fmt "complete@ %a"
 	    (Pretty_utils.pp_list ~sep:","
 	       (fun fmt s ->  Format.fprintf fmt "@ %s" s))
-	    l
-	| IPDisjoint(_, _, l) ->
+	    l;
+          pp_active fmt active
+	| IPDisjoint(_, _, active, l) ->
 	  Format.fprintf fmt "disjoint@ %a"
 	    (Pretty_utils.pp_list ~sep:","
 	       (fun fmt s ->  Format.fprintf fmt " %s" s))
-	    l
+	    l;
+          pp_active fmt active
 	| IPAllocation(_, _, _, (f,a)) -> 
 	    Cil_printer.pp_allocation fmt (FreeAlloc(f,a))
 	| IPAssigns(_, _, _, l) -> Cil_printer.pp_assigns fmt (Writes l)
@@ -312,8 +326,8 @@ include Datatype.Make_with_collections
 
       let rec hash =
 	let hash_bhv_loop = function
-          | Id_behavior b -> (0, Hashtbl.hash b.b_name)
-          | Id_code_annot ca -> (1, ca.annot_id)
+          | Id_contract (a,b) -> (0, Hashtbl.hash (a,b.b_name))
+          | Id_loop ca -> (1, ca.annot_id)
 	in
 	function
 	| IPPredicate (_,_,_,x) -> Hashtbl.hash (1, x.ip_id)
@@ -321,10 +335,15 @@ include Datatype.Make_with_collections
 	| IPAxiomatic (x,_) -> Hashtbl.hash (3, (x:string))
 	| IPLemma (x,_,_,_,_) -> Hashtbl.hash (4, (x:string))
 	| IPCodeAnnot(_,_, ca) -> Hashtbl.hash (5, ca.annot_id)
-	| IPComplete(f, ki, x) ->
-	  Hashtbl.hash (6, Kf.hash f, Kinstr.hash ki, (x:string list))
-	| IPDisjoint(f, ki, x) ->
-	  Hashtbl.hash(7, Kf.hash f, Kinstr.hash ki, (x:string list))
+	| IPComplete(f, ki, x, y) ->
+          (* complete list is more likely to discriminate than active list. *)
+	  Hashtbl.hash
+            (6, Kf.hash f, Kinstr.hash ki,
+             (y:string list), (x:Datatype.String.Set.t))
+	| IPDisjoint(f, ki, x, y) ->
+	  Hashtbl.hash
+            (7, Kf.hash f, Kinstr.hash ki,
+             (y: string list), (x:Datatype.String.Set.t))
 	| IPAssigns(f, ki, b, _l) ->
 	  Hashtbl.hash (8, Kf.hash f, Kinstr.hash ki, hash_bhv_loop b)
 	| IPFrom(kf,ki,b,(t,_)) ->
@@ -335,9 +354,11 @@ include Datatype.Make_with_collections
         (* At most one loop variant per statement anyway, no
            need to discriminate against the code annotation itself *)
 	  Hashtbl.hash (10, Kf.hash kf, Kinstr.hash ki)
-	| IPBehavior(kf, s, b) -> 
-	  Hashtbl.hash (11, Kf.hash kf, Kinstr.hash s, (b.b_name:string))
-	| IPReachable(kf, ki, ba) -> 
+	| IPBehavior(kf, s, a, b) -> 
+	  Hashtbl.hash
+            (11, Kf.hash kf, Kinstr.hash s,
+             (b.b_name:string), (a:Datatype.String.Set.t)) 
+	| IPReachable(kf, ki, ba) ->
 	  Hashtbl.hash(12, Extlib.may_map Kf.hash ~dft:0 kf,
                        Kinstr.hash ki, Hashtbl.hash ba)
 	| IPAllocation(f, ki, b, _fa) ->
@@ -354,11 +375,13 @@ include Datatype.Make_with_collections
 	  Kf.equal f1 f2 && Kinstr.equal ki1 ki2
 	  && 
             (match b1, b2 with
-            | Id_code_annot ca1, Id_code_annot ca2 ->
+            | Id_loop ca1, Id_loop ca2 ->
               ca1.annot_id = ca2.annot_id
-            | Id_behavior b1, Id_behavior b2 -> b1.b_name = b2.b_name
-            | Id_code_annot _, Id_behavior _
-            | Id_behavior _, Id_code_annot _ -> false)
+            | Id_contract (a1,b1), Id_contract (a2,b2) ->
+              Datatype.String.Set.equal a1 a2 &&
+              Datatype.String.equal b1.b_name b2.b_name
+            | Id_loop _, Id_contract _
+            | Id_contract _, Id_loop _ -> false)
 	in
 	match p1, p2 with
 	| IPPredicate (_,_,_,s1), IPPredicate (_,_,_,s2) -> s1.ip_id = s2.ip_id
@@ -370,9 +393,9 @@ include Datatype.Make_with_collections
 	  Datatype.String.equal s1 s2
 	| IPCodeAnnot(_,_,ca1), IPCodeAnnot(_,_,ca2) ->
           ca1.annot_id = ca2.annot_id
-	| IPComplete(f1, ki1, x1), IPComplete(f2, ki2, x2)
-	| IPDisjoint(f1, ki1, x1), IPDisjoint(f2, ki2, x2) ->
-	  Kf.equal f1 f2 && Kinstr.equal ki1 ki2 && x1 = x2
+	| IPComplete(f1, ki1, a1, x1), IPComplete(f2, ki2, a2, x2)
+	| IPDisjoint(f1, ki1, a1, x1), IPDisjoint(f2, ki2, a2, x2) ->
+	  Kf.equal f1 f2 && Kinstr.equal ki1 ki2 && a1 = a2 && x1 = x2
 	| IPAllocation (f1, ki1, b1, _), IPAllocation (f2, ki2, b2, _) ->
           eq_bhv (f1,ki1,b1) (f2,ki2,b2)
 	| IPAssigns (f1, ki1, b1, _), IPAssigns (f2, ki2, b2, _) ->
@@ -383,9 +406,10 @@ include Datatype.Make_with_collections
 	  Kf.equal f1 f2 && Kinstr.equal ki1 ki2
 	| IPReachable(kf1, ki1, ba1), IPReachable(kf2, ki2, ba2) ->
 	  Extlib.opt_equal Kf.equal kf1 kf2 && Kinstr.equal ki1 ki2 && ba1 = ba2
-	| IPBehavior(f1, k1, b1), IPBehavior(f2, k2, b2) ->
+	| IPBehavior(f1, k1, a1, b1), IPBehavior(f2, k2, a2, b2) ->
 	  Kf.equal f1 f2
-	  && Kinstr.equal k1 k2 
+	  && Kinstr.equal k1 k2
+          && Datatype.String.Set.equal a1 a2
 	  && Datatype.String.equal b1.b_name b2.b_name
 	| IPOther(s1,kf1,ki1), IPOther(s2,kf2,ki2) -> 
 	    Datatype.String.equal s1 s2 
@@ -408,12 +432,13 @@ include Datatype.Make_with_collections
 	    let n = Kinstr.compare ki1 ki2 in
 	    if n = 0 then
 	      match b1, b2 with
-	      | Id_behavior b1, Id_behavior b2 ->
-		Datatype.String.compare b1.b_name b2.b_name
-              | Id_code_annot ca1, Id_code_annot ca2 ->
+	      | Id_contract (a1,b1), Id_contract (a2,b2) ->
+	         let n = Datatype.String.compare b1.b_name b2.b_name in
+                 if n = 0 then Datatype.String.Set.compare a1 a2 else n
+              | Id_loop ca1, Id_loop ca2 ->
 		Datatype.Int.compare ca1.annot_id ca2.annot_id
-              | Id_behavior _, Id_code_annot _ -> -1
-              | Id_code_annot _, Id_behavior _ -> 1
+              | Id_contract _, Id_loop _ -> -1
+              | Id_loop _, Id_contract _ -> 1
             else n
           else n
 	in
@@ -422,14 +447,19 @@ include Datatype.Make_with_collections
           Datatype.Int.compare s1.ip_id s2.ip_id
 	| IPCodeAnnot(_,_,ca1), IPCodeAnnot(_,_,ca2) ->
           Datatype.Int.compare ca1.annot_id ca2.annot_id
-	| IPBehavior(f1, k1, b1), IPBehavior(f2, k2, b2) -> 
-	  cmp_bhv (f1, k1, Id_behavior b1) (f2, k2, Id_behavior b2)
-	| IPComplete(f1, ki1, x1), IPComplete(f2, ki2, x2)
-	| IPDisjoint(f1, ki1, x1), IPDisjoint(f2, ki2, x2) ->
+	| IPBehavior(f1, k1, a1, b1), IPBehavior(f2, k2, a2, b2) -> 
+	  cmp_bhv (f1, k1, Id_contract (a1,b1)) (f2, k2, Id_contract (a2,b2))
+	| IPComplete(f1, ki1, a1, x1), IPComplete(f2, ki2, a2, x2)
+	| IPDisjoint(f1, ki1, a1, x1), IPDisjoint(f2, ki2, a2, x2) ->
           let n = Kf.compare f1 f2 in
           if n = 0 then
             let n = Kinstr.compare ki1 ki2 in
-            if n = 0 then Extlib.compare_basic x1 x2 else n
+            if n = 0 then
+              let n = Extlib.compare_basic x1 x2 in
+              if n = 0 then
+                Datatype.String.Set.compare a1 a2
+              else n
+            else n
           else n
 	| IPAssigns (f1, ki1, b1, _), IPAssigns (f2, ki2, b2, _) ->
           cmp_bhv (f1,ki1,b1) (f2,ki2,b2)
@@ -472,14 +502,14 @@ include Datatype.Make_with_collections
 	    IPTypeInvariant _ | IPGlobalInvariant _) as x, y ->
           let nb = function
             | IPPredicate _ -> 1
-            | IPAssigns (_, _, _, _) -> 2
+            | IPAssigns _ -> 2
             | IPDecrease _ -> 3
             | IPAxiom _ -> 4
             | IPAxiomatic _ -> 5
 	    | IPLemma _ -> 6
             | IPCodeAnnot _ -> 7
-            | IPComplete (_, _, _) -> 8
-            | IPDisjoint (_, _, _) -> 9
+            | IPComplete _ -> 8
+            | IPDisjoint _ -> 9
             | IPFrom _ -> 10
 	    | IPBehavior _ -> 11
 	    | IPReachable _ -> 12
@@ -501,13 +531,13 @@ let rec short_pretty fmt p = match p with
   | IPTypeInvariant(name,_,_,_) -> Format.pp_print_string fmt name
   | IPGlobalInvariant(name,_,_) -> Format.pp_print_string fmt name
   | IPAxiomatic (name,_) -> Format.pp_print_string fmt name
-  | IPBehavior(kf,_,{b_name = name }) ->
+  | IPBehavior(kf,_,_,{b_name = name }) ->
     Format.fprintf fmt "behavior %s in function %a"
       name Kernel_function.pretty kf
-  | IPComplete (kf,_,_) ->
+  | IPComplete (kf,_,_,_) ->
     Format.fprintf fmt "complete clause in function %a"
       Kernel_function.pretty kf
-  | IPDisjoint (kf,_,_) ->
+  | IPDisjoint (kf,_,_,_) ->
     Format.fprintf fmt "disjoint clause in function %a"
       Kernel_function.pretty kf
   | IPCodeAnnot (_,_,{ annot_content = AAssert (_, { name = name :: _ })}) ->
@@ -600,6 +630,10 @@ module Names = struct
       | PKTerminates -> "term" 
     in
       (ki_prefix ki) ^ name
+
+  let active_prefix fmt a =
+    let print_one a = Format.fprintf fmt "_%s" a in
+    Datatype.String.Set.iter print_one a
 	
   let rec id_prop_txt p = match p with
     | IPPredicate (pk,kf,ki,idp) ->
@@ -613,10 +647,12 @@ module Names = struct
           | APragma _ -> "pragma"
           | _ -> assert false
         in Pretty_utils.sfprintf "%s%s%a" (kf_prefix kf) name pp_code_annot_names ca
-    | IPComplete (kf, ki, lb) ->
-        Pretty_utils.sfprintf  "%s%scomplete%a" (kf_prefix kf) (ki_prefix ki) pp_names lb
-    | IPDisjoint (kf, ki, lb) ->
-        Pretty_utils.sfprintf  "%s%sdisjoint%a" (kf_prefix kf) (ki_prefix ki) pp_names lb
+    | IPComplete (kf, ki, a, lb) ->
+        Pretty_utils.sfprintf  "%s%s%acomplete%a"
+          (kf_prefix kf) (ki_prefix ki) active_prefix a pp_names lb
+    | IPDisjoint (kf, ki, a, lb) ->
+        Pretty_utils.sfprintf  "%s%s%adisjoint%a"
+          (kf_prefix kf) (ki_prefix ki) active_prefix a pp_names lb
     | IPDecrease (kf,_,None, variant) -> (kf_prefix kf) ^ "decr" ^ (variant_suffix variant)
     | IPDecrease (kf,_,_,variant) -> (kf_prefix kf) ^ "loop_term" ^ (variant_suffix variant)
     | IPAxiom (name,_,_,named_pred,_) ->
@@ -628,16 +664,26 @@ module Names = struct
       Pretty_utils.sfprintf "type_invariant_%s%a" name pp_names named_pred.name
     | IPGlobalInvariant (name,named_pred,_) ->
       Pretty_utils.sfprintf "global_invariant_%s%a"name pp_names named_pred.name
-    | IPAllocation (kf, ki, (Id_behavior b), _) ->  (kf_prefix kf) ^ (ki_prefix ki) ^ (behavior_prefix b) ^ "alloc" 
-    | IPAllocation (kf, Kstmt _s, (Id_code_annot ca), _) -> Pretty_utils.sfprintf "%sloop_alloc%a" (kf_prefix kf) pp_code_annot_names ca
+    | IPAllocation (kf, ki, (Id_contract (a,b)), _) ->
+      Pretty_utils.sfprintf "%s%s%a%salloc"
+        (kf_prefix kf) (ki_prefix ki) active_prefix a (behavior_prefix b) 
+    | IPAllocation (kf, Kstmt _s, (Id_loop ca), _) ->
+      Pretty_utils.sfprintf "%sloop_alloc%a"
+        (kf_prefix kf) pp_code_annot_names ca
     | IPAllocation _ -> assert false
-    | IPAssigns (kf, ki, (Id_behavior b), _) ->  (kf_prefix kf) ^ (ki_prefix ki) ^ (behavior_prefix b) ^ "assign" 
-    | IPAssigns (kf, Kstmt _s, (Id_code_annot ca), _) -> Pretty_utils.sfprintf "%sloop_assign%a" (kf_prefix kf) pp_code_annot_names ca
+    | IPAssigns (kf, ki, (Id_contract (a,b)), _) ->
+      Pretty_utils.sfprintf "%s%s%a%sassign"
+        (kf_prefix kf) (ki_prefix ki) active_prefix a (behavior_prefix b)
+    | IPAssigns (kf, Kstmt _s, (Id_loop ca), _) ->
+      Pretty_utils.sfprintf "%sloop_assign%a"
+        (kf_prefix kf) pp_code_annot_names ca
     | IPAssigns _ -> assert false
     | IPFrom (_, _, _, (out,_)) -> 
         "from_id_"^(string_of_int (out.it_id))
     | IPReachable _ -> "reachable_stmt"
-    | IPBehavior(_, _, b) -> b.b_name
+    | IPBehavior(kf, ki, a, b) ->
+      Pretty_utils.sfprintf "%s%s%a%s"
+        (kf_prefix kf) (ki_prefix ki) active_prefix a b.b_name
     | IPPropertyInstance (kfopt, ki, ip) ->
       Pretty_utils.sfprintf "specialization_%s_at_%t" (id_prop_txt ip)
         (fun fmt -> match kfopt, ki with
@@ -739,8 +785,9 @@ let ip_of_allocation kf st loc = function
   | FreeAllocAny -> None
   | FreeAlloc(f,a) -> Some (IPAllocation (kf,st,loc,(f,a)))
 
-let ip_allocation_of_behavior kf st b =
-  ip_of_allocation kf st (Id_behavior b) b.b_allocation
+let ip_allocation_of_behavior kf st ~active b =
+  let a = Datatype.String.Set.of_list active in
+  ip_of_allocation kf st (Id_contract (a,b)) b.b_allocation
 
 let ip_of_assigns kf st loc = function
   | WritesAny -> None
@@ -751,28 +798,36 @@ let ip_of_assigns kf st loc = function
     Some (IPAssigns (kf, st, loc, []))
   | Writes a -> Some (IPAssigns (kf,st,loc,a))
 
-let ip_assigns_of_behavior kf st b =
-  ip_of_assigns kf st (Id_behavior b) b.b_assigns
+let ip_assigns_of_behavior kf st ~active b =
+  let a = Datatype.String.Set.of_list active in
+  ip_of_assigns kf st (Id_contract (a,b)) b.b_assigns
 
-let ip_of_from kf st loc from = IPFrom (kf,st, loc, from)
+let ip_of_from kf st loc from = 
+  match snd from with
+    | FromAny -> None
+    | From _ -> Some (IPFrom (kf,st, loc, from))
 
-let ip_from_of_behavior kf st b = match b.b_assigns with
+let ip_from_of_behavior kf st ~active b =
+  match b.b_assigns with
   | WritesAny -> []
   | Writes l ->
     let treat_from acc (out, froms) = match froms with 
       | FromAny -> acc
       | From _ ->
-	let ip = ip_of_from kf st (Id_behavior b) (out, froms) in 
+        let a = Datatype.String.Set.of_list active in
+	let ip =
+          Extlib.the (ip_of_from kf st (Id_contract (a,b)) (out, froms))
+        in 
 	ip :: acc
     in
     List.fold_left treat_from [] l
 
 let ip_allocation_of_code_annot kf st ca = match ca.annot_content with
-  | AAllocation (_,a) -> ip_of_allocation kf st (Id_code_annot ca) a
+  | AAllocation (_,a) -> ip_of_allocation kf st (Id_loop ca) a
   | _ -> None
 
 let ip_assigns_of_code_annot kf st ca = match ca.annot_content with
-  | AAssigns (_,a) -> ip_of_assigns kf st (Id_code_annot ca) a
+  | AAssigns (_,a) -> ip_of_assigns kf st (Id_loop ca) a
   | _ -> None
 
 let ip_from_of_code_annot kf st ca = match ca.annot_content with
@@ -780,18 +835,23 @@ let ip_from_of_code_annot kf st ca = match ca.annot_content with
   | AAssigns (_,Writes l) ->
     let treat_from acc (out, froms) = match froms with FromAny -> acc
       | From _ ->
-        let ip = ip_of_from kf st (Id_code_annot ca) (out, froms) in ip::acc
+        let ip =
+          Extlib.the (ip_of_from kf st (Id_loop ca) (out, froms))
+        in
+        ip::acc
     in
     List.fold_left treat_from [] l
   | _ -> []
 
-let ip_post_cond_of_behavior kf st b =
+let ip_post_cond_of_behavior kf st ~active b =
   ip_ensures_of_behavior kf st b
-  @ (Extlib.list_of_opt (ip_assigns_of_behavior kf st b))
-  @ ip_from_of_behavior kf st b
-  @ (Extlib.list_of_opt (ip_allocation_of_behavior kf st b))
+  @ (Extlib.list_of_opt (ip_assigns_of_behavior kf st ~active b))
+  @ ip_from_of_behavior kf st active b
+  @ (Extlib.list_of_opt (ip_allocation_of_behavior kf st ~active b))
 
-let ip_of_behavior kf s b = IPBehavior(kf, s, b)
+let ip_of_behavior kf s ~active b =
+  let a = Datatype.String.Set.of_list active in
+  IPBehavior(kf, s, a, b)
 
 let ip_of_requires kf st b p = IPPredicate (PKRequires b,kf,st,p)
 
@@ -803,21 +863,23 @@ let ip_of_assumes kf st b p = IPPredicate (PKAssumes b,kf,st,p)
 let ip_assumes_of_behavior kf st b =
   List.map (ip_of_assumes kf st b) b.b_assumes
 
-let ip_all_of_behavior kf st b =
-  ip_of_behavior kf st b
+let ip_all_of_behavior kf st ~active b =
+  ip_of_behavior kf st ~active b
   :: ip_requires_of_behavior kf st b
   @ ip_assumes_of_behavior kf st b
-  @ ip_post_cond_of_behavior kf st b
+  @ ip_post_cond_of_behavior kf st ~active b
 
-let ip_of_complete kf st bhvs = IPComplete(kf,st,bhvs)
+let ip_of_complete kf st ~active bhvs =
+  let a = Datatype.String.Set.of_list active in IPComplete(kf,st,a,bhvs)
 
-let ip_complete_of_spec kf st s =
-  List.map (ip_of_complete kf st) s.spec_complete_behaviors
+let ip_complete_of_spec kf st ~active s =
+  List.map (ip_of_complete kf st ~active) s.spec_complete_behaviors
 
-let ip_of_disjoint kf st bhvs = IPDisjoint(kf,st,bhvs)
+let ip_of_disjoint kf st ~active bhvs =
+  let a = Datatype.String.Set.of_list active in IPDisjoint(kf,st,a,bhvs)
 
-let ip_disjoint_of_spec kf st s =
-  List.map (ip_of_disjoint kf st) s.spec_disjoint_behaviors
+let ip_disjoint_of_spec kf st ~active s =
+  List.map (ip_of_disjoint kf st ~active) s.spec_disjoint_behaviors
 
 let ip_of_terminates kf st p = IPPredicate(PKTerminates,kf,st,p)
 
@@ -830,13 +892,14 @@ let ip_of_decreases kf st d = IPDecrease(kf,st,None,d)
 let ip_decreases_of_spec kf st s =
   Extlib.opt_map (ip_of_decreases kf st) s.spec_variant
 
-let ip_post_cond_of_spec kf st s =
-  List.concat (List.map (ip_post_cond_of_behavior kf st) s.spec_behavior)
+let ip_post_cond_of_spec kf st ~active s =
+  List.concat
+    (List.map (ip_post_cond_of_behavior kf st ~active) s.spec_behavior)
 
-let ip_of_spec kf st s =
-  List.concat (List.map (ip_all_of_behavior kf st) s.spec_behavior)
-  @ ip_complete_of_spec kf st s
-  @ ip_disjoint_of_spec kf st s
+let ip_of_spec kf st ~active s =
+  List.concat (List.map (ip_all_of_behavior kf st ~active) s.spec_behavior)
+  @ ip_complete_of_spec kf st active s
+  @ ip_disjoint_of_spec kf st active s
   @ (Extlib.list_of_opt (ip_terminates_of_spec kf st s))
   @ (Extlib.list_of_opt (ip_decreases_of_spec kf st s))
 
@@ -851,10 +914,7 @@ let ip_of_code_annot kf ki ca =
   let st = Kstmt ki in
   match ca.annot_content with
   | AAssert _ | AInvariant _ -> [ IPCodeAnnot(kf, ki, ca) ]
-  | AStmtSpec (_bhv,s) -> 
-    (* [JS 2011/08/29] seem to be incorrect since it does not use [bhv] 
-       while [ip_of_spec] keeps all behaviors *)
-    ip_of_spec kf st s
+  | AStmtSpec (active,s) -> ip_of_spec kf st active s
   | AVariant t -> [ IPDecrease (kf,st,(Some ca),t) ]
   | AAllocation _ -> 
       Extlib.list_of_opt (ip_allocation_of_code_annot kf st ca)
@@ -867,7 +927,7 @@ let ip_of_code_annot kf ki ca =
   | APragma _ -> []
 
 let ip_of_code_annot_single kf ki ca = match ip_of_code_annot kf ki ca with
-  | [] -> 
+  | [] ->
     (* [JS 2011/06/07] using Kernel.error here seems very strange.
        Actually it is incorrect in case of pragma which is not a property (see
        function ip_of_code_annot above. *)

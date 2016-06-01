@@ -1,0 +1,151 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/attribute-aligned.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+[value] computing for function ct <- main.
+        Called from tests/value/attribute-aligned.c:94.
+[value] Recording results for ct
+[value] Done for function ct
+[value] computing for function dt <- main.
+        Called from tests/value/attribute-aligned.c:95.
+[value] Recording results for dt
+[value] Done for function dt
+[value] computing for function pt <- main.
+        Called from tests/value/attribute-aligned.c:96.
+[value] Recording results for pt
+[value] Done for function pt
+[value] computing for function qt <- main.
+        Called from tests/value/attribute-aligned.c:97.
+[value] Recording results for qt
+[value] Done for function qt
+[value] computing for function rt <- main.
+        Called from tests/value/attribute-aligned.c:98.
+[value] Recording results for rt
+[value] Done for function rt
+[value] computing for function st <- main.
+        Called from tests/value/attribute-aligned.c:99.
+[value] Recording results for st
+[value] Done for function st
+[value] computing for function tt <- main.
+        Called from tests/value/attribute-aligned.c:100.
+[value] Recording results for tt
+[value] Done for function tt
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function ct:
+  S ∈ {1}
+  A ∈ {0}
+[value] Values at end of function dt:
+  S ∈ {4}
+  A ∈ {0}
+[value] Values at end of function pt:
+  S ∈ {4}
+  A ∈ {0}
+[value] Values at end of function qt:
+  S ∈ {4}
+  A ∈ {0}
+  B ∈ {1}
+[value] Values at end of function rt:
+  S ∈ {8}
+  A ∈ {0}
+  B ∈ {4}
+[value] Values at end of function st:
+  S ∈ {8}
+  A ∈ {0}
+  B ∈ {4}
+[value] Values at end of function tt:
+  S ∈ {4}
+  A ∈ {0}
+  B ∈ {4}
+[value] Values at end of function main:
+  S ∈ {4}
+  A ∈ {0}
+  B ∈ {4}
+  __retres ∈ {0}
+[from] Computing for function ct
+[from] Done for function ct
+[from] Computing for function dt
+[from] Done for function dt
+[from] Computing for function pt
+[from] Done for function pt
+[from] Computing for function qt
+[from] Done for function qt
+[from] Computing for function rt
+[from] Done for function rt
+[from] Computing for function st
+[from] Done for function st
+[from] Computing for function tt
+[from] Done for function tt
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function ct:
+  S FROM \nothing
+  A FROM \nothing
+[from] Function dt:
+  S FROM \nothing
+  A FROM \nothing
+[from] Function pt:
+  S FROM \nothing
+  A FROM \nothing
+[from] Function qt:
+  S FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+[from] Function rt:
+  S FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+[from] Function st:
+  S FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+[from] Function tt:
+  S FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+[from] Function main:
+  S FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function ct:
+          S; A
+[inout] Inputs for function ct:
+          \nothing
+[inout] Out (internal) for function dt:
+          S; A
+[inout] Inputs for function dt:
+          \nothing
+[inout] Out (internal) for function pt:
+          S; A
+[inout] Inputs for function pt:
+          \nothing
+[inout] Out (internal) for function qt:
+          S; A; B
+[inout] Inputs for function qt:
+          \nothing
+[inout] Out (internal) for function rt:
+          S; A; B
+[inout] Inputs for function rt:
+          \nothing
+[inout] Out (internal) for function st:
+          S; A; B
+[inout] Inputs for function st:
+          \nothing
+[inout] Out (internal) for function tt:
+          S; A; B
+[inout] Inputs for function tt:
+          \nothing
+[inout] Out (internal) for function main:
+          S; A; B; __retres
+[inout] Inputs for function main:
+          \nothing

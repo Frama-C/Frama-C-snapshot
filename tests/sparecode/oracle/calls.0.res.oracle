@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/calls.c (with preprocessing)
+[kernel] Parsing tests/sparecode/calls.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main outputs and entry point
 [value] Analyzing a complete application starting at main
@@ -8,15 +8,15 @@
 [value] Values of globals at initialization
   G ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/sparecode/calls.c:16.
+        Called from tests/sparecode/calls.i:16.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/sparecode/calls.c:17.
+        Called from tests/sparecode/calls.i:17.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/sparecode/calls.c:18.
+        Called from tests/sparecode/calls.i:18.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

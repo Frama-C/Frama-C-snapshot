@@ -11,37 +11,31 @@ tests/wp_typed/unit_float.i:21:[kernel] warning: Floating-point constant 0.2 is 
 ------------------------------------------------------------
 
 Goal Post-condition 'CST_F' in 'main':
-Assume { }
-Prove: 0.5=0x1.0000000000000p-1.
+Prove: .5e0 = .1p-1.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'CST_D' in 'main':
-Assume { }
-Prove: 0.5=0x1.0000000000000p-1.
+Prove: .5e0 = .1p-1.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'CNV_F' in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'CNV_D' in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'VAR_F' in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'VAR_D' in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -2,22 +2,12 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
-(*                                                                        *)
+(*  All rights reserved.                                                  *)
+(*  Contact CEA LIST for licensing.                                       *)
 (**************************************************************************)
 
 (* -------------------------------------------------------------------------- *)
@@ -26,11 +16,65 @@
 
 open Cil_types
 open Lang
+open Lang.F
 
-(** Bundles *)
+(** Sequent *)
+
+type step = private {
+  size : int ;
+  vars : Vars.t ;
+  stmt : stmt option ;
+  descr : string option ;
+  deps : Property.t list ;
+  warn : Warning.Set.t ;
+  condition : condition ;
+}
+
+and condition =
+  | Type of pred
+  | Have of pred
+  | When of pred
+  | Core of pred
+  | Init of pred
+  | Branch of pred * sequence * sequence
+  | Either of sequence list
+
+and sequence (** List of steps *)
+  
+type sequent = sequence * F.pred
+
+val step :
+  ?descr:string ->
+  ?stmt:stmt ->
+  ?deps:Property.t list ->
+  ?warn:Warning.Set.t ->
+  condition -> step
+
+val is_empty : sequence -> bool
+val vars_hyp : sequence -> Vars.t
+val vars_seq : sequent -> Vars.t
+
+val empty : sequence
+val seq_list : step list -> sequence
+val seq_branch : ?stmt:stmt -> F.pred -> sequence -> sequence -> sequence
+
+val append : sequence -> sequence -> sequence
+val concat : sequence list -> sequence
+
+val iter : (step -> unit) -> sequence -> unit
+val iteri : ?from:int -> (int -> step -> unit) -> sequence -> unit
+
+val condition : sequence -> F.pred (** With free variables kept. *)
+val close : sequent -> F.pred (** With free variables {i quantified}. *)
+
+(** {2 Bundles}
+    
+    Bundles are {i mergeable} pre-sequences.
+    This the key structure for merging hypotheses with linerar complexity 
+    during backward weakest pre-condition calculus.
+*)
 
 type bundle
-val dump : Format.formatter -> bundle -> unit
 
 type 'a attributed =
   ( ?descr:string ->
@@ -39,7 +83,7 @@ type 'a attributed =
     ?warn:Warning.Set.t ->
     'a )
 
-val empty : bundle
+val nil : bundle
 val occurs : F.var -> bundle -> bool
 val intersect : F.pred -> bundle -> bool
 val merge : bundle list -> bundle
@@ -49,15 +93,9 @@ val assume : (?init:bool -> F.pred -> bundle -> bundle) attributed
 val branch : (F.pred -> bundle -> bundle -> bundle) attributed
 val either : (bundle list -> bundle) attributed
 val extract : bundle -> F.pred list
+val sequence : bundle -> sequence
 
-(** Hypotheses *)
-
-type hypotheses
-val hypotheses : bundle -> hypotheses
-
-type sequent = hypotheses * F.pred
-
-(** Simplifier *)
+(** {2 Simplifier} *)
 
 exception Contradiction
 
@@ -88,13 +126,3 @@ val filter : sequent -> sequent
 val letify : ?solvers:simplifier list -> sequent -> sequent
 val pruning : ?solvers:simplifier list -> sequent -> sequent
 
-val close : sequent -> F.pred
-
-(** Pretty *)
-
-type linker
-type link = Lstmt of stmt | Lprop of Property.t
-val linker : unit -> linker
-val get_link : linker -> string -> link
-
-val pretty : ?linker:linker -> Format.formatter -> sequent -> unit

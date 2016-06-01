@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,7 @@ val pretty: partition Pretty_utils.formatter
 type succ = (int -> unit) -> int -> unit
 
 val partition : size:int -> succ:succ -> root:int -> partition
-(** Returns a weak partial order with Bourdoncle's algorithm. *)
+(** @return a weak partial order with Bourdoncle's algorithm. *)
 
 val fixpoint : (level:int -> int -> bool) -> (int -> unit) -> partition -> unit
 (** Iterate over a weak partial order.

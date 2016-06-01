@@ -1,0 +1,22 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_2201.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (1/2):
+Effect at line 6
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (2/2):
+Effect at line 8
+Prove: true.
+
+------------------------------------------------------------

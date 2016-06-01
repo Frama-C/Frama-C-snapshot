@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,165 +56,114 @@ let pretty pp fmt = function
   | Failed (Failure msg) -> Format.fprintf fmt "failed (%s)" msg
   | Failed e -> Format.fprintf fmt "failed (%s)" (Printexc.to_string e)
 
-let protect f arg on_fail =
-  try f arg 
-  with e ->
-    if Kernel.debug_atleast 1 then
-      begin
-        Kernel.debug ~dkey "Current task raised an exception:@\n%s@\n%s"
-          (Printexc.to_string e) (Printexc.get_backtrace ())
-      end;
-    on_fail (Failed e)
+(* -------------------------------------------------------------------------- *)
+(* --- Monadic Engine                                                     --- *)
+(* -------------------------------------------------------------------------- *)
 
-type 'a ping = 
-  | DONE of 'a status
-  | RUN of (unit -> unit)
-  | NEXT of (unit -> unit) * (unit -> 'a ping)
+type coin = Coin | Kill
 
-type 'a pinger = unit -> 'a ping
-      
-type 'a running =
-  | Waiting
-  | Running of (unit -> unit)
-  | Finished of 'a status
+type 'a async =
+  | Yield
+  | Wait of int
+  | Return of 'a
 
 module Monad :
 sig
   type 'a t
-  val return : 'a status -> 'a t
-  val bind : 'a t -> ('a status -> 'b t) -> 'b t
-  val running : 'a pinger -> 'a t
-  val waiting : (unit -> 'b pinger) -> 'b t
-  val state   : 'a t -> 'a running
-  val execute : 'a t -> 'a status option
-  val start   : 'a t -> unit
-  val cancel  : 'a t -> unit
+  val unit : 'a -> 'a t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  val progress : 'a t -> 'a t
+  val cancel : 'a t -> 'a t
+  val yield : (coin -> 'a t) -> 'a t
+  val async : (coin -> 'a async) -> 'a t
+  val wait : 'a t -> 'a
+  val finished : 'a t -> 'a option
+  val waiting : 'a t -> bool
 end =
 struct
+  
+  type 'a t =
+    | UNIT of 'a
+    | WAIT of int * (coin -> 'a t)
+    | YIELD of (coin -> 'a t)
 
-  type 'a process =
-    | Wait of (unit -> 'a pinger)
-    | Ping of 'a pinger
-    | Done of 'a status
+  let unit a = UNIT a
+  
+  let rec bind m f = match m with
+    | UNIT a -> f a
+    | WAIT(d,m) -> WAIT (d, fun c -> bind (m c) f)
+    | YIELD m -> YIELD (fun c -> bind (m c) f)
+  
+  let put c m = match m with
+    | UNIT _ -> m
+    | WAIT(_,f) | YIELD f -> f c
+  let progress m = put Coin m
+  let cancel m = put Kill m
+  let yield f = YIELD f
+  let rec ping f coin =
+    match f coin with
+    | Wait d -> WAIT(d,ping f)
+    | Yield -> YIELD(ping f)
+    | Return a -> UNIT a
+    
+  let async f = YIELD (ping f)
 
-  type 'a t = 'a process ref
+  let rec wait = function
+    | UNIT a -> a
+    | YIELD f -> !Db.progress() ; wait (f Coin)
+    | WAIT(ms,f) -> !Db.progress() ; Extlib.usleep ms ; wait (f Coin)
 
-  let finished e = DONE e
-  let pinger e () = DONE e
-  let return r = ref (Done r)
-  let waiting starter = ref (Wait starter)
-  let running pinger = ref (Ping pinger)
+  let finished = function UNIT a -> Some a | YIELD _ | WAIT _ -> None
 
-  let run task p =
-    let ping = protect p () finished in
-    match ping with
-      | DONE r -> task := Done r ; ping
-      | NEXT(_,f) -> task := Ping f ; ping
-      | RUN _ -> ping
-
-  let state_of_ping = function DONE r -> Finished r | NEXT(k,_) | RUN k -> Running k
-  let result_of_ping = function DONE r -> Some r | NEXT _ | RUN _ -> None
-
-  let state task =
-    match !task with
-      | Wait _ -> Waiting
-      | Done r -> Finished r
-      | Ping p -> state_of_ping (run task p)
-
-  let start task =
-    match !task with
-      | Wait s -> 
-	  let f = protect s () pinger in
-	  task := Ping f ; ignore (run task f)
-      | Ping f -> ignore (run task f)
-      | Done _ -> ()
-
-  let execute task =
-    match !task with
-      | Wait s -> 
-	  let f = protect s () pinger in
-	  task := Ping f ; result_of_ping (run task f)
-      | Ping f -> result_of_ping (run task f)
-      | Done r -> Some r
-	  
-  let cancel task =
-    match state task with
-      | Waiting -> task := Done Canceled
-      | Running kill ->
-          begin
-            protect 
-              (fun () -> task := Done Canceled ; kill ()) ()
-              (fun st -> task := Done st)
-          end
-      | Finished _ -> ()
-
-  let get_pinger task =
-    match !task with
-      | Done r -> pinger r
-      | Wait s -> protect s () pinger
-      | Ping f -> f
-
-  let next_ping s k =
-    let b = protect k s return in
-    let kill = fun () -> cancel b in
-    let ping = get_pinger b in
-    NEXT(kill,ping)
-
-  let next_pinger s k () = next_ping s k
-
-  let rec bind_pinger f k () =
-    match f () with
-      | DONE s -> next_ping s k
-      | NEXT(kill,f') -> NEXT(kill,bind_pinger f' k)
-      | RUN kill -> RUN kill
-
-  let bind_waiter s k () = bind_pinger (protect s () pinger) k
-
-  let bind a k =
-    match !a with
-      | Wait s -> ref (Wait(bind_waiter s k))
-      | Ping f -> ref (Ping(bind_pinger f k))
-      | Done s -> ref (Ping(next_pinger s k))
-
+  let waiting = function UNIT _ -> false | YIELD _ | WAIT _ -> true
+  
 end
-
-type 'a task = 'a Monad.t
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Monadic Constructors                                            --- *)
 (* ------------------------------------------------------------------------ *)
 
-let status = Monad.return
-let return r = Monad.return (Result r)
-let raised e = Monad.return (Failed e)
-let canceled () = Monad.return Canceled
+type 'a task = 'a status Monad.t
+
+let wait = Monad.wait
+let status = Monad.unit
+let return r = Monad.unit (Result r)
+let raised e = Monad.unit (Failed e)
+let canceled () = Monad.unit Canceled
 let failed text =
   let buffer = Buffer.create 80 in
   Format.kfprintf
     (fun fmt ->
        Format.pp_print_flush fmt () ;
-       Monad.return (Failed(Failure (Buffer.contents buffer))))
+       Monad.unit (Failed(Failure (Buffer.contents buffer))))
     (Format.formatter_of_buffer buffer) text
 
-let bind a k =
-  Monad.bind a (function
-		  | Canceled -> Monad.return Canceled
-		  | s -> k s)
+let bind = Monad.bind
 
 let sequence a k = 
   Monad.bind a (function
-		  | Result r -> k r
-		  | Failed e -> Monad.return (Failed e)
-		  | Timeout -> Monad.return Timeout
-		  | Canceled -> Monad.return Canceled)
+      | Result r -> k r
+      | Failed e -> Monad.unit (Failed e)
+      | Timeout -> Monad.unit Timeout
+      | Canceled -> Monad.unit Canceled)
+    
+let nop = return ()
+let later f x = Monad.yield
+    begin function
+      | Coin -> (try f x with e -> raised e)
+      | Kill -> canceled ()
+    end
+let call f x = Monad.yield
+    begin function
+      | Coin -> (try return (f x) with e -> raised e)
+      | Kill -> canceled ()
+    end
 
-let nop = Monad.return (Result())
-let call f x = Monad.running (fun () -> DONE (Result(f x)))
-let todo f = sequence nop f
-let job job = sequence job (fun _ -> nop)
+let todo f = later f ()
+let job t = sequence t (fun _ -> nop)
 
 let finally t cb =
-  Monad.bind t (fun s -> cb s ; Monad.return s)
+  Monad.bind t (fun s -> cb s ; Monad.unit s)
 
 let callback t cb =
   Monad.bind t (fun s -> cb s ; nop)
@@ -229,26 +178,18 @@ let (>>!) = callback
 (* ------------------------------------------------------------------------ *)
 
 type mutex = bool ref
+
 let mutex () = ref false
-let wait = RUN (fun () -> ())
-let next = DONE (Result ())
-let lock m = Monad.running (fun () -> if !m then wait else (m:=true ; next))
-let unlock m = if not !m then Kernel.failure "Suspiscious lock" ; m := false
+let rec lock m =
+  if !m
+  then later lock m
+  else (m := true ; return ())
+let unlock m =
+  if not !m
+  then (failed "Invalid lock on mutex")
+  else (m := false ; return ())
+
 let sync m t = lock m >>= t >>? fun _ -> unlock m
-
-(* ------------------------------------------------------------------------ *)
-(* ---  Run Operations                                                  --- *)
-(* ------------------------------------------------------------------------ *)
-
-let start = Monad.start
-let ping = Monad.state
-let cancel = Monad.cancel
-
-let rec wait task =
-  (try !Db.progress () with Db.Cancel -> Monad.cancel task) ;
-  match Monad.state task with
-    | Finished r -> r
-    | _ -> Extlib.usleep 100000 (* 0.1s *) ; wait task
 
 (* ------------------------------------------------------------------------ *)
 (* ---  System Commands                                                 --- *)
@@ -260,6 +201,7 @@ type cmd = {
   timeout : int ;
   time_start : float ;
   time_stop : float ;
+  mutable time_killed : bool ;
   chrono : float ref option ;
   async : (unit -> Command.process_result) ;
 }
@@ -274,8 +216,8 @@ let start_command ~timeout ?time ?stdout ?stderr cmd args =
   begin
     Kernel.debug ~dkey "execute task '@[<hov 4>%t'@]"
       (fun fmt ->
-	 Format.pp_print_string fmt cmd ;
-	 Array.iter
+         Format.pp_print_string fmt cmd ;
+         Array.iter
            (fun c -> Format.fprintf fmt "@ %s" c) args) ;
     let timed = timeout > 0 || time <> None in
     let time_start = if timed then Unix.gettimeofday () else 0.0 in
@@ -287,115 +229,103 @@ let start_command ~timeout ?time ?stdout ?stderr cmd args =
       timeout = timeout ;
       time_start = time_start ;
       time_stop = time_stop ;
+      time_killed = false ;
       chrono = time ;
       async = async ;
     }
   end
 
-let ping_command cmd () =
+let ping_command cmd coin =
   try
     match cmd.async () with
-	
-      | Command.Not_ready kill ->
-	  let time_now = if cmd.timed then Unix.gettimeofday () else 0.0 in
+    
+    | Command.Not_ready kill ->
+        if coin = Kill then (kill () ; Wait 100)
+        else
+          let time_now = if cmd.timed then Unix.gettimeofday () else 0.0 in
           if cmd.timeout > 0 && time_now > cmd.time_stop then
             begin
-	      set_time cmd (time_now -. cmd.time_start) ;
+              set_time cmd (time_now -. cmd.time_start) ;
               Kernel.debug ~dkey "timeout '%s'" cmd.name ;
+              cmd.time_killed <- true ;
               kill () ;
-	      DONE Timeout
-            end
-          else 
-	    RUN kill
-	      
-      | Command.Result (Unix.WEXITED s) ->
-	  set_chrono cmd ;
-          Kernel.debug ~dkey "exit '%s' [%d]" cmd.name s ;
-          DONE (Result s)
+            end ;
+          Wait 100
 
-      | Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) ->
-	  set_chrono cmd ;
-          Kernel.debug ~dkey "signal '%s' [%d]" cmd.name s ;
-	  let err = Failure (Printf.sprintf "Unix.SIGNAL %d" s) in
-          DONE (Failed err)
+    | Command.Result (Unix.WEXITED s|Unix.WSIGNALED s|Unix.WSTOPPED s)
+      when cmd.time_killed ->
+        set_chrono cmd ;
+        Kernel.debug ~dkey "timeout '%s' [%d]" cmd.name s ;
+        Return Timeout
+
+    | Command.Result (Unix.WEXITED s) ->
+        set_chrono cmd ;
+        Kernel.debug ~dkey "exit '%s' [%d]" cmd.name s ;
+        Return (Result s)
+
+    | Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) ->
+        set_chrono cmd ;
+        Kernel.debug ~dkey "signal '%s' [%d]" cmd.name s ;
+        Return Canceled
 
   with e ->
     set_chrono cmd ;
     Kernel.debug ~dkey "failure '%s' [%s]" cmd.name (Printexc.to_string e) ;
-    DONE (Failed e)
+    Return (Failed e)
 
-let command ?(timeout=0) ?time ?stdout ?stderr cmd args =
-  Monad.waiting
+let command ?(timeout=0) ?time ?stdout ?stderr cmd args = todo
     begin fun () ->
-      ping_command (start_command ~timeout ?time ?stdout ?stderr cmd args)
+      let cmd = start_command ~timeout ?time ?stdout ?stderr cmd args in
+      Monad.async (ping_command cmd)
     end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Shared Tasks                                                    --- *)
 (* ------------------------------------------------------------------------ *)
 
-module Shared :
-sig
-  
-  type 'a t
-  val make : descr:string -> retry:bool -> (unit -> 'a task) -> 'a t
-  val share : 'a t -> 'a task
-
-end =
-struct
-  
-  type 'a t = {
-    descr : string ;
+type 'a shared =
+  { descr : string ;
     retry : bool ;
-    builder : unit -> 'a task ;
-    mutable running : 'a task option ;
+    mutable builder : (unit -> 'a task) ;
+    mutable shared : 'a task ;
     mutable clients : int ;
   }
 
-  let make ~descr ~retry cc = 
-    { descr=descr ; retry=retry ; builder=cc ; running=None ; clients=0 }
+let shared ~descr ~retry builder =
+  { descr ; retry ; builder ; shared = todo builder ; clients = 0 }
 
-  let kill s () =
-    Kernel.debug ~dkey "Cancel instance of task '%s' (over %d)" s.descr s.clients ;
-    if s.clients > 0 then
-      begin
-	s.clients <- pred s.clients ;
-	if s.clients = 0 then
-	  match s.running with
-	    | Some k -> 
-		Kernel.debug ~dkey "Kill shared task '%s'" s.descr ;
-		Monad.cancel k ; s.running <- None
-	    | None -> ()
+let retry_shared sh = function
+  | Failed _ -> sh.retry
+  | Timeout | Canceled -> true
+  | Result _ -> false
+
+let ping_shared sh = function
+  | Coin ->
+      begin match Monad.finished sh.shared with
+        | Some r ->
+            if retry_shared sh r then sh.shared <- todo sh.builder ;
+            Return r
+        | None -> sh.shared <- Monad.progress sh.shared ; Yield
       end
+  | Kill ->      
+      if sh.clients > 1 then
+        begin
+          sh.clients <- pred sh.clients ;
+          Return Canceled
+        end
+      else
+        ( if sh.clients = 1 then
+            begin
+              sh.clients <- 0 ;
+              sh.shared <- Monad.cancel sh.shared ;
+            end ;
+          Yield )
 
-  let ping s () =
-    let task = match s.running with
-      | None -> 
-	  let t = protect s.builder () Monad.return in 
-	  s.running <- Some t ; t
-      | Some t -> t
-    in
-    match Monad.execute task with
-      | None -> RUN (kill s)
-      | Some r ->
-	  let release = match r with
-	    | Result _ -> false
-	    | Failed _ -> s.retry
-	    | Timeout | Canceled -> true
-	  in
-	  if release then s.running <- None ;
-	  (DONE r : 'a ping)
-	  
-  let share s =
-    s.clients <- succ s.clients ; 
-    Kernel.debug ~dkey "New instance of task '%s' (%d)" s.descr s.clients ;
-    Monad.waiting (fun () -> ping s)
-
-end
-
-type 'a shared = 'a Shared.t
-let shared = Shared.make
-let share = Shared.share
+let share sh = todo
+    begin fun () ->
+      sh.clients <- succ sh.clients ;
+      Monad.async (ping_shared sh)
+    end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Server                                                          --- *)
@@ -409,35 +339,44 @@ type callbacks = (unit -> unit) list
 
 *)
 
+type thread = unit task ref
+
+let thread task = ref (task >>= fun _ -> nop)
+let cancel th = th := Monad.cancel !th
+
 type server = {
-  queue : unit task Queue.t array ;
+  queue : thread Queue.t array ;
   mutable scheduled : int ;
   mutable terminated : int ;
-  mutable running : unit task list ;
+  mutable running : thread list ;
   mutable procs : int ;
+  mutable waiting : bool ;
+  mutable wait : callbacks ;
   mutable activity : callbacks ;
   mutable start : callbacks ;
   mutable stop : callbacks ;
 }
 
 let fire callbacks =
-  List.iter (fun f -> protect f () (fun _ -> ())) callbacks
+  List.iter (fun f -> f ()) callbacks
 
 let server ?(stages=1) ?(procs=4) () = {
   queue = Array.init stages (fun _ -> Queue.create ()) ;
   running = [] ;
   procs = procs ;
   scheduled = 0 ; terminated = 0 ;
-  activity = [] ; start = [] ; stop = [] ;
+  activity = [] ; start = [] ; stop = [] ; wait = [] ;
+  waiting = false ;
 }
-
+    
 let on_idle = ref
-  (fun f -> try
-     while f () do Extlib.usleep 50000 (* wait for 50ms *) done
-   with Db.Cancel -> ())
+    (fun f -> try
+        while f () do Extlib.usleep 50000 (* wait for 50ms *) done
+      with Db.Cancel -> ())
 
 let set_procs s p = s.procs <- p
 let on_server_activity s cb  = s.activity <- s.activity @ [cb]
+let on_server_wait s cb = s.wait <- s.wait @ [cb]
 let on_server_start s cb = s.start <- s.start @ [cb]
 let on_server_stop s cb  = s.stop <- s.stop @ [cb]
 
@@ -451,21 +390,23 @@ let spawn server ?(stage=0) task =
   begin
     Queue.push task server.queue.(stage) ;      (* queue(i) ++ *)
     server.scheduled <- succ server.scheduled ; (* scheduled ++ *)
+    server.waiting <- false ;
   end (* invariant holds *)
 
 let scheduled s = s.scheduled
 let terminated s = s.terminated
+let waiting s =
+  if s.waiting || s.running = [] then None else Some (List.length s.running)
 
-let alive task =
-  match Monad.state task with
-    | Waiting -> true
-    | Running _ -> true
-    | Finished _ -> false
+let running th =
+  let t = Monad.progress !th
+  in th := t ; Monad.waiting t
 
-let running task = 
-  match Monad.execute task with
-    | Some _ -> false
-    | None -> true
+let is_empty server =
+  try Array.iter
+        (fun q -> if not (Queue.is_empty q) then raise Exit)
+        server.queue ; true
+  with Exit -> false
 
 let schedule server q =
   try
@@ -473,26 +414,35 @@ let schedule server q =
       let task = Queue.take q in (* queue ++ *)
       if running task
       then server.running <- task :: server.running
-        (* running++ => invariant holds *)
+      (* running++ => invariant holds *)
       else server.terminated <- succ server.terminated
-        (* terminated++ => invariant holds *)
+      (* terminated++ => invariant holds *)
     done
   with Queue.Empty -> ()
 
 let rec run_server server () =
   begin
     server.running <- List.filter
-      (fun task ->
-         if alive task then true
-         else
-           ( (* running -- ; terminated ++ => invariant preserved *)
-             server.terminated <- succ server.terminated ; false )
-      ) server.running ;
+        (fun task ->
+           if running task then true
+           else
+             ( (* running -- ; terminated ++ => invariant preserved *)
+               server.terminated <- succ server.terminated ; false )
+        ) server.running ;
     Array.iter (schedule server) server.queue ;
     try
       !Db.progress () ;
       fire server.activity ;
-      if server.running <> [] then true else
+      if server.running <> [] then
+        begin
+          if not server.waiting && is_empty server then
+            begin
+              fire server.wait ;
+              server.waiting <- true ;
+            end ;
+          true
+        end
+      else
         begin
           fire server.stop ;
           server.scheduled <- 0 ;
@@ -508,5 +458,4 @@ let launch server =
   if server.scheduled > server.terminated
   then ( fire server.start ; !on_idle (run_server server) )
 
-let run t = !on_idle (fun () -> running t)
-
+let run th = !on_idle (fun () -> not (running th))

@@ -11,31 +11,18 @@
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/user_swap.i, line 25):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap'' in 'main' at call 'swap' (file tests/wp_typed/user_swap.i, line 24)
 :
-Assume {
-  (* Domain *)
-  Type: (is_sint32 a_5) /\ (is_sint32 b_7).
-  (* tests/wp_typed/user_swap.i:24: Then *)
-  Have: b_7<=a_5.
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap'' in 'main' at call 'swap' (file tests/wp_typed/user_swap.i, line 24)
 :
-Assume {
-  (* Domain *)
-  Type: (is_sint32 a_5) /\ (is_sint32 b_7).
-  (* tests/wp_typed/user_swap.i:24: Then *)
-  Have: b_7<=a_5.
-}
 Prove: true.
 
 ------------------------------------------------------------
@@ -44,26 +31,22 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'A' in 'swap':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'B' in 'swap':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'E' in 'swap' (1/2):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'E' in 'swap' (2/2):
 Effect at line 15
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -123,24 +123,6 @@ type theMachine =
       mutable kindOfSizeOf: ikind;
     }
 
-type lineDirectiveStyle =
-  | LineComment                (** Before every element, print the line
-                                * number in comments. This is ignored by
-                                * processing tools (thus errors are reproted
-                                * in the CIL output), but useful for
-                                * visual inspection *)
-  | LineCommentSparse          (** Like LineComment but only print a line
-                                * directive for a new source line *)
-  | LinePreprocessorInput      (** Use #line directives *)
-  | LinePreprocessorOutput     (** Use # nnn directives (in gcc mode) *)
-
-type miscState =
-    { mutable lineDirectiveStyle: lineDirectiveStyle option;
-      mutable print_CIL_Input: bool;
-      mutable printCilAsIs: bool;
-      mutable lineLength: int;
-      mutable warnTruncate: bool }
-
 let default_machdep = Machdeps.x86_32
 
 let createMachine () = (* Contain dummy values *)
@@ -226,20 +208,6 @@ let () =
 
 let selfMachine_is_computed = TheMachine.is_computed
 
-let miscState =
-  { lineDirectiveStyle = Some LinePreprocessorInput;
-    print_CIL_Input = false;
-    printCilAsIs = false;
-    lineLength = 80;
-    warnTruncate = true }
-
-(* sm: return the string 's' if we're printing output for gcc, suppres
- * it if we're printing for CIL to parse back in.  the purpose is to
- * hide things from gcc that it complains about, but still be able
- * to do lossless transformations when CIL is the consumer *)
-let forgcc (s: string) : string = if miscState.print_CIL_Input then "" else s
-
-
 let debugConstFold = false
 
 (* TODO: migrate that to Cil_const as well *)
@@ -251,35 +219,6 @@ let new_exp ~loc e = { eloc = loc; eid = Eid.next (); enode = e }
 
 let dummy_exp e = { eid = -1; enode = e; eloc = Cil_datatype.Location.unknown }
 
-(** The Abstract Syntax of CIL *)
-
-(** To be able to add/remove features easily, each feature should be packaged
-   * as an interface with the following interface. These features should be *)
-type featureDescr = {
-    fd_enabled: bool ref;
-    (** The enable flag. Set to default value  *)
-
-    fd_name: string;
-    (** This is used to construct an option "--doxxx" and "--dontxxx" that
-     * enable and disable the feature  *)
-
-    fd_description: string;
-    (* A longer name that can be used to document the new options  *)
-
-    fd_extraopt: (string * Arg.spec * string) list;
-    (** Additional command line options.  The description strings should
-        usually start with a space for Arg.align to print the --help nicely. *)
-
-    fd_doit: (file -> unit);
-    (** This performs the transformation *)
-
-    fd_post_check: bool;
-    (* Whether to perform a CIL consistency checking after this stage, if
-     * checking is enabled (--check is passed to cilly) *)
-}
-
-(* A reference to the current global being visited *)
-let currentGlobal: global ref = ref (GText "dummy")
 
 let argsToList : (string * typ * attributes) list option
                   -> (string * typ * attributes) list
@@ -2663,6 +2602,9 @@ and visitCilLogicLabelApp vis (l1,l2 as p) =
 	 let s' = visitCilLogicLabel vis s in
 	 let t' = vTerm t in
 	 if t' != t || s != s' then Pvalid_read (s',t') else p
+     | Pvalid_function t ->
+	 let t' = vTerm t in
+	 if t' != t then Pvalid_function t' else p
      | Pinitialized (s,t) ->
 	 let s' = visitCilLogicLabel vis s in
 	 let t' = vTerm t in
@@ -3091,15 +3033,35 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
        if lv' != lv || fn' != fn || args' != args
        then Call(Some lv', fn', args', l) else i
 
-   | Asm(sl,isvol,outs,ins,clobs,labels,l) ->
-       let outs' = mapNoCopy (fun ((id,s,lv) as pair) ->
-				let lv' = fLval lv in
-				if lv' != lv then (id,s,lv') else pair) outs in
-       let ins'  = mapNoCopy (fun ((id,s,e) as pair) ->
-				let e' = fExp e in
-				if e' != e then (id,s,e') else pair) ins in
-       if outs' != outs || ins' != ins then
-	 Asm(sl,isvol,outs',ins',clobs,labels,l) else i
+   | Asm(sl,isvol,ext_asm,l) ->
+     (match ext_asm with
+      | None -> i (* only strings and location, nothing to visit. *)
+      | Some ext ->
+        let asm_outputs =
+          mapNoCopy
+            (fun ((id,s,lv) as pair) ->
+               let lv' = fLval lv in
+               if lv' != lv then (id,s,lv') else pair) ext.asm_outputs
+        in
+        let asm_inputs =
+          mapNoCopy
+            (fun ((id,s,e) as pair) ->
+               let e' = fExp e in
+               if e' != e then (id,s,e') else pair) ext.asm_inputs
+        in
+        let asm_gotos =
+          if vis#behavior.is_copy_behavior then
+            List.map (fun s -> ref (vis#behavior.memo_stmt !s)) ext.asm_gotos
+          else ext.asm_gotos
+        in
+        if asm_outputs != ext.asm_outputs
+        || asm_inputs != ext.asm_inputs
+        || asm_gotos != ext.asm_gotos
+        then
+          begin
+            let ext = { ext with asm_outputs; asm_inputs; asm_gotos } in
+            Asm(sl,isvol,Some ext,l)
+          end else i)
    | Code_annot (a,l) ->
        let a' = visitCilCodeAnnotation vis a in 
 	 if a != a' then Code_annot(a',l) else i
@@ -3547,7 +3509,6 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
  let rec visitCilGlobal (vis: cilVisitor) (g: global) : global list =
    let oldloc = CurrentLoc.get () in
    CurrentLoc.set (Global.loc g) ;
-   currentGlobal := g;
    let res =
      doVisitListCil vis id vis#vglob childrenGlobal g in
    CurrentLoc.set oldloc;
@@ -3932,20 +3893,16 @@ let parseIntLogic ~loc str =
     term_name = []; term_type = Linteger;}
   
 let parseIntExp ~loc repr =
-  try
-    let i,kinds = parseIntAux repr in
-    let rec loop = function
-      | k::rest ->
+  let i,kinds = parseIntAux repr in
+  let rec loop = function
+    | k::rest ->
         if fitsInInt k i then (* i fits in the current type. *)
           kinteger64 ~loc ~repr ~kind:k i
         else loop rest
-      | [] ->
+    | [] ->
         Kernel.fatal ~source:(fst loc) "Cannot represent the integer %s" repr
-    in
-    loop kinds
-  with Failure "" as e ->
-    Kernel.warning "int_of_string %s (%s)\n" repr (Printexc.to_string e);
-    zero ~loc
+  in
+  loop kinds
 
  let mkStmtCfg ~before ~(new_stmtkind:stmtkind) ~(ref_stmt:stmt) : stmt =
    let new_ = { skind = new_stmtkind;
@@ -4006,7 +3963,7 @@ let parseIntExp ~loc repr =
 
  let mkStmtOneInstr ?ghost ?valid_sid i = mkStmt ?ghost ?valid_sid (Instr i)
 
- let dummyInstr = Asm([], ["dummy statement!!"], [], [], [], [], Location.unknown)
+ let dummyInstr = Asm([], ["dummy statement!!"], None, Location.unknown)
  let dummyStmt = mkStmt (Instr dummyInstr)
 
  let rec unrollTypeDeep (t: typ) : typ =
@@ -4833,9 +4790,9 @@ and offsetOfFieldAcc_GCC last (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
   | TArray (_, Some e, _, _) -> begin
     match constFoldToInt e with
     | Some i when Integer.is_zero i ->
-      (* GCC extension. Cabs2Cil currently rewrites all such toplevel arrays as
-         having size 1. Hence this case can only appear for arrays within
-         structures *)
+      (* Used for GCC extension of non-C99 flexible array members.
+         Note that Cabs2cil no longer rewrites top-level zero-sized arrays,
+         so this can also happen in such cases. *)
       0
     | _ -> bitsSizeOf typ
   end
@@ -4858,8 +4815,8 @@ and offsetOfFieldAcc_GCC last (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
        find_size_in_cache
 	 scache
 	 (fun () -> begin
-	    (* Empty structs are allowed in msvc mode *)
-	    if not comp.cdefined && not (msvcMode ()) then begin
+	    (* sizeof() empty structs/arrays is only allowed on GCC/MSVC *)
+	    if not comp.cdefined && not (gccMode () || msvcMode ()) then begin
               raise
 		(SizeOfError
 		   (Format.sprintf "abstract type '%s'" (compFullName comp), t))
@@ -4918,12 +4875,14 @@ and offsetOfFieldAcc_GCC last (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	      match (constFold true len).enode with
 		Const(CInt64(l,_,_)) ->
 		  let sz = Integer.mul (Integer.of_int (bitsSizeOf bt)) l in
-		  let sz' = try 
-                              Integer.to_int sz 
-                    with Failure "to_int" -> 
-		      raise 
-                        (SizeOfError ("Array is so long that its size can't be "
-				      ^"represented with an OCaml int.", t))
+		  let sz' =
+                    try 
+                      Integer.to_int sz 
+                    with Failure _ ->
+		      raise
+                        (SizeOfError
+                           ("Array is so long that its size can't be "
+			    ^"represented with an OCaml int.", t))
 
                   in
 		  sz' (*WAS: addTrailing sz' (8 * bytesAlignOf t)*)
@@ -5757,15 +5716,6 @@ let init_builtins () =
      | CReal(f1,k1,_), CReal(f2,k2,_) -> k1 = k2 && f1 = f2
      | (CEnum _ | CInt64 _ | CStr _ | CWStr _ | CChr _ | CReal _), _ -> false
 
- let compareExp (e1: exp) (e2: exp) : bool =
-   Cil_datatype.ExpStructEq.equal e1 e2
-
- let compareLval (lv1: lval) (lv2: lval) : bool =
-   Cil_datatype.LvalStructEq.equal lv1 lv2
-
- let compareOffset (off1: offset) (off2: offset) : bool =
-   Cil_datatype.OffsetStructEq.equal off1 off2
-
  (* Iterate over all globals, including the global initializer *)
  let iterGlobals (fl: file) (doone: global -> unit) : unit =
    let doone' g =
@@ -6453,15 +6403,6 @@ let childrenFileSameGlobals vis f =
    if agressive then List.iter process ss;
    doStmtList [] ss
 
- let dExp: string -> exp =
-   fun d -> new_exp ~loc:Cil_datatype.Location.unknown (Const(CStr(d)))
-
- let dInstr: string -> location -> instr =
-   fun d l -> Asm([], [d], [], [], [], [], l)
-
- let dGlobal: string -> location -> global =
-   fun d l -> GAsm(d, l)
-
   (* Make an AddrOf. Given an lval of type T will give back an expression of
    * type ptr(T)  *)
  let mkAddrOf ~loc ((_b, _off) as lval) : exp =
@@ -6680,11 +6621,12 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
     | TInt(newik, []), Const(CInt64(i, _, None)) -> 
       kinteger64 ~loc ~kind:newik i
     | TPtr _, CastE (_, e') ->
-      (match unrollType (typeOf e') with
-      | (TPtr _ as typ'') ->
+      (match unrollType (typeOf e'), e'.enode with
+      | (TPtr _ as typ''), _ ->
 	  (* Old cast can be removed...*)
         if need_cast ~force newt typ'' then mk_cast e'
 	else (* In fact, both casts can be removed. *) e'
+      | _, Const(CInt64 (i, _, _)) when Integer.is_zero i -> mk_cast e'
       | _ -> mk_cast e)
     | _ ->   
 	(* Do not remove old casts because they are conversions !!! *)
@@ -7400,7 +7342,8 @@ and free_vars_predicate bound_vars p = match p.content with
 	Logic_var.Set.union (free_vars_term bound_vars t) acc)
       Logic_var.Set.empty tl
   | Pallocable (_,t) | Pfreeable (_,t)
-  | Pvalid (_,t) | Pvalid_read (_,t) | Pinitialized (_,t) | Pdangling (_,t) -> 
+  | Pvalid (_,t) | Pvalid_read (_,t) | Pvalid_function t
+  | Pinitialized (_,t) | Pdangling (_,t) ->
     free_vars_term bound_vars t
   | Pseparated seps ->
     List.fold_left
@@ -7646,17 +7589,7 @@ let typeDeepDropAllAttributes t =
 
 (** {1 Deprecated} *)
 
-let lastTermOffset = 
-  Kernel.deprecated "Cil.lastTermOffset" ~now:"Logic_const.lastTermOffset" 
-    Logic_const.lastTermOffset
-
-let addTermOffset = 
-  Kernel.deprecated "Cil.addTermOffset" ~now:"Logic_const.addTermOffset" 
-    Logic_const.addTermOffset
-
-let addTermOffsetLval = 
-  Kernel.deprecated "Cil.addTermOffsetLval" ~now:"Logic_const.addTermOffsetLval"
-    Logic_const.addTermOffsetLval
+(* currently empty, but keep this section for future use. *)
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,6 +33,10 @@ let find_kf_def_by_name
     : (string -> kernel_function) ref
     = Extlib.mk_fun "Parameter_builder.find_kf_def_by_name"
 
+let find_kf_decl_by_name
+    : (string -> kernel_function) ref
+    = Extlib.mk_fun "Parameter_builder.find_kf_decl_by_name"
+
 let kf_category
     : (unit -> kernel_function Parameter_category.t) ref
     = Extlib.mk_fun "Parameter_builder.kf_category"
@@ -40,6 +44,10 @@ let kf_category
 let kf_def_category
     : (unit -> kernel_function Parameter_category.t) ref
     = Extlib.mk_fun "Parameter_builder.kf_def_category"
+
+let kf_decl_category
+    : (unit -> kernel_function Parameter_category.t) ref
+    = Extlib.mk_fun "Parameter_builder.kf_decl_category"
 
 let fundec_category
     : (unit -> fundec Parameter_category.t) ref
@@ -598,6 +606,12 @@ struct
 	  let read_std_char_in_word c =
 	    read_char_in_word (add_char c) (Word false)
 	  in
+          let read_backslash_and_char c =
+            (* read '\\' and [c], without considering than '\\' is the escaping
+               character *)
+            read_char_in_word
+              (fun acc -> add_char c (add_char '\\' acc)) (Word false)
+          in
 	  match Pervasives_string.get s i, pos with
           | '+', Start when use_category ->
             aux (add_action Add acc) (Word true) next s
@@ -612,15 +626,12 @@ struct
 	    read_char_in_word set_category_flag (Word false)
 	  | c, (Start | Word _) -> read_std_char_in_word c
 	  | (',' | '\\' as c), Escaped -> read_std_char_in_word c
-	  | ('+' | '-' | '@' | ' ' | '\t' | '\n' | '\r' as c), 
-	    Escaped when i = 1 ->
+          | ('+' | '-' | '@' | ' ' | '\t' | '\n' | '\r' as c),
+            Escaped when i = 1 ->
             if use_category then read_std_char_in_word c
-            else
-              parse_error
-                ("invalid escaped char '" ^ Pervasives_string.make 1 c ^ "'")
-	  | c, Escaped ->
-	    parse_error
-              ("invalid escaped char '" ^ Pervasives_string.make 1 c ^ "'")
+            else read_backslash_and_char c
+          | c, Escaped ->
+            read_backslash_and_char c
       in
       aux [] Start 0 s
 
@@ -866,22 +877,31 @@ struct
 
   module Filled_string_set = Make_set(String_for_collection)
 
-  let check_function s must_exist no_function set =
+  let check_function s must_exist require_fundecl no_function set =
     if no_function set then
-      let error s = cannot_build (Pretty_utils.sfprintf "no function '%s'" s) in
-      if must_exist then
+      let specific_msg = if require_fundecl then " declaration" else "" in
+      let error s =
+        cannot_build (Pretty_utils.sfprintf "no function%s '%s'"
+                        specific_msg s)
+      in
+      if require_fundecl then
         error s
       else
-        if !Parameter_customize.is_permissive_ref then begin
-          P.L.warning "ignoring non-existing function '%s'." s;
-          set
-        end else
+        if must_exist then
           error s
+        else
+          if !Parameter_customize.is_permissive_ref then begin
+            P.L.warning "ignoring non-existing function%s '%s'."
+              specific_msg s;
+            set
+          end else
+            error s
     else
       set
 
   module Kernel_function_string(
     A: sig val accept_fundecl: bool
+           val require_fundecl: bool
            val must_exist: bool
     end) =
   struct
@@ -890,11 +910,19 @@ struct
 
     let of_string s =
       try
-        (if A.accept_fundecl then !find_kf_by_name else !find_kf_def_by_name) s
+        (if A.require_fundecl then
+            !find_kf_decl_by_name
+         else
+            if A.accept_fundecl then
+              !find_kf_by_name
+            else
+              !find_kf_def_by_name) s
       with Not_found ->
         cannot_build
           (Pretty_utils.sfprintf "no%s function '%s'"
-             (if A.accept_fundecl then "" else " defined")
+             (if A.accept_fundecl then ""
+              else if A.require_fundecl then " declared"
+              else " defined")
              s)
 
     (* Cannot reuse any code to implement [to_string] without forward
@@ -905,16 +933,23 @@ struct
 
     let of_singleton_string s =
       let fcts = Parameter_customize.get_c_ified_functions s in
-      let res =
-        if A.accept_fundecl then fcts else
-          Set.filter
-            (fun s ->
-              match s.fundec with
-                | Definition _ -> true
-                | Declaration _ -> false)
-            fcts
+      let filter keep_def keep_decl =
+        Set.filter
+          (fun s ->
+            match s.fundec with
+            | Definition _ -> keep_def
+            | Declaration _ -> keep_decl)
       in
-      check_function s A.must_exist Set.is_empty res
+      let res =
+        if A.require_fundecl then
+          filter false true fcts
+        else
+          if A.accept_fundecl then
+            fcts
+          else
+            filter true false fcts
+      in
+      check_function s A.must_exist A.require_fundecl Set.is_empty res
 
   end
 
@@ -922,6 +957,7 @@ struct
 
     module A = struct
       let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let require_fundecl = !Parameter_customize.argument_must_be_fundecl_ref
       let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
     end
 
@@ -931,12 +967,15 @@ struct
 
     let () =
       if A.accept_fundecl then Category.enable_all_as (!kf_category ())
-      else Category.enable_all_as (!kf_def_category ())
+      else
+        if A.require_fundecl then Category.enable_all_as (!kf_decl_category ())
+        else Category.enable_all_as (!kf_def_category ())
 
   end
 
   module Fundec_set(X: Parameter_sig.Input_with_arg) = struct
     let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
+    let require_fundecl = !Parameter_customize.argument_must_be_fundecl_ref
 
     include Make_set
     (struct
@@ -954,7 +993,7 @@ struct
 
       let of_singleton_string s =
         let fcts = Parameter_customize.get_c_ified_functions s in
-        let defs = 
+        let defs =
           Cil_datatype.Kf.Set.fold
             (fun s acc ->
               match s.fundec with
@@ -962,7 +1001,7 @@ struct
                 | Declaration _ -> acc)
             fcts Set.empty
         in
-        check_function s must_exist Set.is_empty defs
+        check_function s must_exist require_fundecl Set.is_empty defs
 
      end)
     (struct include X let default = Cil_datatype.Fundec.Set.empty end)
@@ -1196,6 +1235,7 @@ now bound to '%a'.@]"
 
     module A = struct
       let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let require_fundecl = !Parameter_customize.argument_must_be_fundecl_ref
       let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
     end
 
@@ -1382,6 +1422,7 @@ now bound to '%a'.@]"
 
     module A = struct
       let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let require_fundecl = !Parameter_customize.argument_must_be_fundecl_ref
       let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
     end
 

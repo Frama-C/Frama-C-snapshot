@@ -49,7 +49,34 @@ enum aorai_OpStatusList {
     behavior buch_state_init_out:
       ensures 0 ≡ init;
  */
-extern void a_pre_func(void);
+void a_pre_func(void)
+{
+  /*@ ghost int S_tmp; */
+  /*@ ghost int T_tmp; */
+  /*@ ghost int aorai_intermediate_state_tmp; */
+  /*@ ghost int aorai_intermediate_state_0_tmp; */
+  /*@ ghost int init_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_a;
+  S_tmp = S;
+  T_tmp = T;
+  aorai_intermediate_state_tmp = aorai_intermediate_state;
+  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+  init_tmp = init;
+  init_tmp = 0;
+  if (T == 1) aorai_intermediate_state_0_tmp = 1;
+  else aorai_intermediate_state_0_tmp = 0;
+  if (S == 1) aorai_intermediate_state_tmp = 1;
+  else aorai_intermediate_state_tmp = 0;
+  T_tmp = 0;
+  S_tmp = 0;
+  S = S_tmp;
+  T = T_tmp;
+  aorai_intermediate_state = aorai_intermediate_state_tmp;
+  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+  init = init_tmp;
+  return;
+}
 
 /*@ requires
       (1 ≡ aorai_intermediate_state ∨ 1 ≡ aorai_intermediate_state_0) ∧
@@ -84,7 +111,32 @@ extern void a_pre_func(void);
     behavior buch_state_init_out:
       ensures 0 ≡ init;
  */
-extern void a_post_func(void);
+void a_post_func(void)
+{
+  /*@ ghost int S_tmp; */
+  /*@ ghost int T_tmp; */
+  /*@ ghost int aorai_intermediate_state_tmp; */
+  /*@ ghost int aorai_intermediate_state_0_tmp; */
+  /*@ ghost int init_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_a;
+  S_tmp = S;
+  T_tmp = T;
+  aorai_intermediate_state_tmp = aorai_intermediate_state;
+  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+  init_tmp = init;
+  init_tmp = 0;
+  aorai_intermediate_state_0_tmp = 0;
+  aorai_intermediate_state_tmp = 0;
+  if (aorai_intermediate_state == 1) T_tmp = 1; else T_tmp = 0;
+  if (aorai_intermediate_state_0 == 1) S_tmp = 1; else S_tmp = 0;
+  S = S_tmp;
+  T = T_tmp;
+  aorai_intermediate_state = aorai_intermediate_state_tmp;
+  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+  init = init_tmp;
+  return;
+}
 
 /*@ requires
       (1 ≡ S ∨ 1 ≡ T) ∧ 0 ≡ aorai_intermediate_state ∧
@@ -149,7 +201,32 @@ void a(void)
     behavior buch_state_init_out:
       ensures 0 ≡ init;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int S_tmp; */
+  /*@ ghost int T_tmp; */
+  /*@ ghost int aorai_intermediate_state_tmp; */
+  /*@ ghost int aorai_intermediate_state_0_tmp; */
+  /*@ ghost int init_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  S_tmp = S;
+  T_tmp = T;
+  aorai_intermediate_state_tmp = aorai_intermediate_state;
+  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+  init_tmp = init;
+  init_tmp = 0;
+  aorai_intermediate_state_0_tmp = 0;
+  aorai_intermediate_state_tmp = 0;
+  T_tmp = 0;
+  if (init == 1) S_tmp = 1; else S_tmp = 0;
+  S = S_tmp;
+  T = T_tmp;
+  aorai_intermediate_state = aorai_intermediate_state_tmp;
+  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+  init = init_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ S ∧ 0 ≡ T ∧ 0 ≡ aorai_intermediate_state ∧
@@ -179,7 +256,32 @@ extern void main_pre_func(void);
     behavior buch_state_init_out:
       ensures 0 ≡ init;
  */
-extern void main_post_func(void);
+void main_post_func(void)
+{
+  /*@ ghost int S_tmp; */
+  /*@ ghost int T_tmp; */
+  /*@ ghost int aorai_intermediate_state_tmp; */
+  /*@ ghost int aorai_intermediate_state_0_tmp; */
+  /*@ ghost int init_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  S_tmp = S;
+  T_tmp = T;
+  aorai_intermediate_state_tmp = aorai_intermediate_state;
+  aorai_intermediate_state_0_tmp = aorai_intermediate_state_0;
+  init_tmp = init;
+  init_tmp = 0;
+  aorai_intermediate_state_0_tmp = 0;
+  aorai_intermediate_state_tmp = 0;
+  T_tmp = 0;
+  if (S == 1) S_tmp = 1; else S_tmp = 0;
+  S = S_tmp;
+  T = T_tmp;
+  aorai_intermediate_state = aorai_intermediate_state_tmp;
+  aorai_intermediate_state_0 = aorai_intermediate_state_0_tmp;
+  init = init_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ init ∧ 0 ≡ S ∧ 0 ≡ T ∧

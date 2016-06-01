@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -116,19 +116,17 @@ module L = Datatype.Make
     let mem_project = Datatype.never_any_project
     let pretty fmt s = 
       let pp_emitters fmt l =
-	Pretty_utils.pp_list ~sep:", " ~last:" and " 
+        Pretty_utils.pp_list ~sep:",@ " ~last:" and "
 	  Emitter_with_properties.pretty fmt l
       in
       match s with
       | Never_tried -> Format.fprintf fmt "no verification attempted"
       | Best(Dont_know as s, l) ->
-	Format.fprintf fmt "@[%a@ @[(%a tried%s to verify@ \
-but could not decide)@]@]"
+        Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
 	  Emitted_status.pretty s
 	  pp_emitters l
-	  (match l with [] | [ _ ] -> "" | _ :: _ -> " each")
       | Best(True | False_if_reachable | False_and_reachable as s, l) ->
-	Format.fprintf fmt "%a according to %a%s" 
+        Format.fprintf fmt "@[%a according to %a%s@]"
 	  Emitted_status.pretty s 
 	  pp_emitters l
 	  (match l with
@@ -173,6 +171,19 @@ module Status =
      end)
 
 let self = Status.self
+
+let iter_on_statuses f ip =
+  try
+    let h = Status.find ip in
+    Emitter_with_properties.Hashtbl.iter f h
+  with Not_found -> ()
+
+let fold_on_statuses f ip acc =
+  try
+    let h = Status.find ip in
+    Emitter_with_properties.Hashtbl.fold f h acc
+  with Not_found -> acc
+
 
 let iter f = Status.iter (fun p _ -> f p)
 let fold f = Status.fold (fun p _ -> f p)
@@ -352,12 +363,13 @@ and register_as_kernel_logical_consequence ppt = match ppt with
        see [is_not_verifiable_but_valid] *)
     ()
   | Property.IPAxiomatic(_, l) -> logical_consequence Emitter.kernel ppt l
-  | Property.IPBehavior(kf, ki, b) ->
+  | Property.IPBehavior(kf, ki, active, b) ->
+    let active = Datatype.String.Set.elements active in
     (* logical consequence of its postconditions *)
     logical_consequence
-      Emitter.kernel ppt (Property.ip_post_cond_of_behavior kf ki b)
+      Emitter.kernel ppt (Property.ip_post_cond_of_behavior kf ki active b)
   | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
-    (* valid: global properties are always reachable *)
+      (* valid: global properties are always reachable *)
     emit_valid ppt
   | Property.IPReachable(None, Cil_types.Kglobal, Property.After) -> 
     assert false
@@ -366,7 +378,7 @@ and register_as_kernel_logical_consequence ppt = match ppt with
   | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
     let f = kf.Cil_types.fundec in
     if Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
-    (* main is always reachable *)
+      (* main is always reachable *)
     then emit_valid ppt
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
@@ -379,7 +391,7 @@ and register_as_kernel_logical_consequence ppt = match ppt with
 (* the functions above and below MUST be synchronized *)
 and is_kernel_logical_consequence ppt = match ppt with
   | Property.IPPredicate(Property.PKAssumes _, _, _, _)
-  | Property.IPBehavior(_, _, _)
+  | Property.IPBehavior(_, _, _, _)
   | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
     true
   | Property.IPReachable(None, Cil_types.Kglobal, Property.After) ->
@@ -413,7 +425,7 @@ under %d hypothesis@]"
 	properties = hyps; 
 	logical_consequence = auto }
     in
-    let emit s =
+    let emit s = 
       (* first remove from the hypotheses table, each binding [(previous
          hypothesis of e, ppt)]. These hypotheses are stored together with the
          associated emitter as a key of [by_emitter]. Since there is no way to
@@ -437,21 +449,19 @@ under %d hypothesis@]"
       let selection = State_selection.diff selection linked_to_self in
       Project.clear ~selection ();
       (* finally, replace the old emitter by the new one *)
-      (* do not use Hashtbl.replace, see OCaml BTS #5349 (fixed in OCaml 4.0) *)
-      Emitter_with_properties.Hashtbl.remove by_emitter emitter;
-      let add e s =
-        Emitter_with_properties.Hashtbl.add by_emitter e s;
-        List.iter
-          (function
-          | Property.IPOther _ -> ()
-          | h ->
-            let pair = ppt, e in
-            try
-              let l = Hypotheses.find h in
-              l := pair :: !l
-            with Not_found ->
-              Hypotheses.add h (ref [ pair ]))
-          e.properties
+      let add e s = 
+	Emitter_with_properties.Hashtbl.replace by_emitter e s;
+	List.iter
+	  (function 
+	  | Property.IPOther _ -> ()
+	  | h ->
+	    let pair = ppt, e in
+	    try
+	      let l = Hypotheses.find h in
+	      l := pair :: !l
+	    with Not_found ->
+	      Hypotheses.add h (ref [ pair ]))
+	  e.properties
       in
       (match s with
       | True -> add emitter s
@@ -778,7 +788,7 @@ module Consolidation = struct
       let mem_project = Datatype.never_any_project
       let pretty fmt s = 
 	let pp_emitters f fmt l =
-	  Pretty_utils.pp_list ~sep:", " ~last:" and " f fmt l
+          Pretty_utils.pp_list ~sep:",@ " ~last:" and " f fmt l
 	in
 	match s with
 	| Never_tried -> Format.fprintf fmt "no verification attempted"
@@ -787,7 +797,7 @@ module Consolidation = struct
 	    "unverifiable but considered %a; requires external review"
 	    Emitted_status.pretty Emitted.True
 	| Valid set | Invalid set ->
-	  Format.fprintf fmt "%a according to %a" 
+          Format.fprintf fmt "@[%a according to %a@]"
 	    Emitted_status.pretty
 	    (match s with
 	    | Valid _ -> Emitted.True
@@ -803,21 +813,19 @@ remain to be verified)@]@]"
 	    Emitted_status.pretty
 	    (match s with 
 	    | Valid_under_hyp _ -> Emitted.True
-	    | Invalid_under_hyp	_ -> Emitted.False_and_reachable
+            | Invalid_under_hyp _ -> Emitted.False_and_reachable
 	    | _ -> assert false)
 	    (pp_emitters Usable_emitter.pretty) l
 	| Unknown map ->
 	  let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
-	  Format.fprintf fmt "@[%a@ @[(%a tried%s to verify@ \
-but could not decide)@]@]"
+          Format.fprintf fmt "@[%a@ @[(tried by %a)@]@]"
 	    Emitted_status.pretty Emitted.Dont_know
 	    (pp_emitters Usable_emitter.pretty) l
-	    (match l with [] | [ _ ] -> "" | _ :: _ -> " each")
 	| Valid_but_dead map
 	| Invalid_but_dead map
 	| Unknown_but_dead map ->
 	  let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) map [] in
-	  Format.fprintf fmt "%a according to %a, but it is dead anyway" 
+          Format.fprintf fmt "@[%a according to %a, but dead anyway@]"
 	    Emitted_status.pretty 
 	    (match s with
 	    | Valid_but_dead _ -> Emitted.True

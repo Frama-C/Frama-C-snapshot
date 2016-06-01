@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -241,29 +241,30 @@ let need_logic_cast oldt newt =
   not (Cil_datatype.Logic_type.equal (Ctype oldt) (Ctype newt))
 
 (* Does the same kind of optimization than [Cil.mkCastT] for [Ctype]. *)
-let mk_cast ?(loc=Cil_datatype.Location.unknown) newt t =
+let mk_cast ?(loc=Cil_datatype.Location.unknown) ?(force=false) newt t =
   let mk_cast t = (* to new type [newt] *)
     let typ = Cil.type_remove_attributes_for_logic_type newt 
     in term ~loc (TCastE (typ, t)) (Ctype typ)
   in
   match t.term_type with
   | Ctype oldt ->
-      if not (need_logic_cast oldt newt) then t
+      if not (need_logic_cast oldt newt) && not force then t
       else begin
       match Cil.unrollType newt, t.term_node with
       | TPtr _, TCastE (_, t') ->
-	  (match t'.term_type with
-	   | Ctype typ' ->
-	       (match unrollType typ' with
-		| (TPtr _ as typ'') ->
-		    (* Old cast can be removed...*)
-		    if need_logic_cast newt typ'' then mk_cast t'
-		    else (* In fact, both casts can be removed. *) t'
-		| _ -> mk_cast t
-	       )
-	   | _ -> mk_cast t)
+          (match t'.term_type with
+           | Ctype typ' ->
+               (match unrollType typ', t'.term_node with
+                | (TPtr _ as typ''), _ ->
+                    (* Old cast can be removed...*)
+                    if need_logic_cast newt typ'' then mk_cast t'
+                    else (* In fact, both casts can be removed. *) t'
+                | _, TConst (Integer (i,_)) when Integer.is_zero i -> mk_cast t'
+                | _ -> mk_cast t
+               )
+           | _ -> mk_cast t)
       | _ -> (* Do not remove old cast because they are conversions !!! *)
-	  mk_cast t
+          mk_cast t
       end
   | _ -> mk_cast t
 
@@ -326,21 +327,24 @@ let numeric_coerce ltyp t =
   let coerce t =
     Logic_const.term ~loc:t.term_loc (TLogic_coerce(ltyp, t)) ltyp
   in
-  if Cil_datatype.Logic_type.equal (unroll_type t.term_type) ltyp then t
+  let oldt = unroll_type t.term_type in 
+  if Cil_datatype.Logic_type.equal oldt ltyp then t
   else match t.term_node with
     | TLogic_coerce(_,e) -> coerce e
     | TConst(Integer(i,_)) ->
-        (match t.term_type, ltyp with
-          | Ctype (TInt(ikind,_)), Linteger when Cil.fitsInInt ikind i ->
-              { t with term_type = Linteger }
-          | _ -> coerce t)
-    | TCastE(TInt (ikind,_), ({ term_node = TConst(Integer(i,_))} as t'))
-        when Cil.fitsInInt ikind i ->
-        (match t'.term_type with
-          | Linteger -> t'
-          | Ctype (TInt (ikind,_)) when Cil.fitsInInt ikind i ->
-              { t' with term_type = Linteger }
-          | _ -> coerce t')
+        (match oldt, ltyp with
+        | Ctype (TInt(ikind,_)), Linteger when Cil.fitsInInt ikind i ->
+            { t with term_type = Linteger }
+        | _ -> coerce t)
+    | TCastE(typ, ({ term_node = TConst(Integer(i,_))} as t')) ->
+        (match unrollType typ with
+        | TInt (ikind,_) when Cil.fitsInInt ikind i ->
+            (match unroll_type t'.term_type with
+            | Linteger -> t'
+            | Ctype (TInt (ikind,_)) when Cil.fitsInInt ikind i ->
+                { t' with term_type = Linteger }
+            | _ -> coerce t')
+        | _ -> coerce t)
     | _ -> coerce t
 
 let rec expr_to_term ~cast e =
@@ -810,7 +814,9 @@ and is_same_predicate p1 p2 =
     | Pvalid (l1,t1), Pvalid (l2,t2)
     | Pvalid_read (l1,t1), Pvalid_read (l2,t2)
     | Pinitialized (l1,t1), Pinitialized (l2,t2) -> 
-	is_same_logic_label l1 l2 && is_same_term t1 t2
+      is_same_logic_label l1 l2 && is_same_term t1 t2
+    | Pvalid_function t1, Pvalid_function t2 ->
+        is_same_term t1 t2
     | Pdangling (l1,t1), Pdangling (l2,t2) -> 
 	is_same_logic_label l1 l2 && is_same_term t1 t2
     | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) -> 
@@ -823,7 +829,8 @@ and is_same_predicate p1 p2 =
          with Invalid_argument _ -> false)
     | (Pfalse | Ptrue | Papp _ | Prel _ | Pand _ | Por _ | Pimplies _
       | Piff _ | Pnot _ | Pif _ | Plet _ | Pforall _ | Pexists _
-      | Pat _ | Pvalid _ | Pvalid_read _ | Pinitialized _ | Pdangling _
+      | Pat _ | Pvalid _ | Pvalid_read _ | Pvalid_function _
+      | Pinitialized _ | Pdangling _
       | Pfresh _ | Pallocable _ | Pfreeable _ | Psubtype _ | Pxor _ | Pseparated _
       ), _ -> false
 
@@ -1083,6 +1090,8 @@ and is_same_lexpr l1 l2 =
       f1 = f2 && is_same_lexpr e1 e2
     | PLarrget(b1,o1), PLarrget(b2,o2) ->
       is_same_lexpr b1 b2 && is_same_lexpr o1 o2
+    | PLlist l1, PLlist l2 ->
+      is_same_list is_same_lexpr l1 l2
     | PLold e1, PLold e2 -> is_same_lexpr e1 e2
     | PLat (e1,s1), PLat(e2,s2) -> s1 = s2 && is_same_lexpr e1 e2
     | PLresult, PLresult | PLnull, PLnull
@@ -1110,6 +1119,7 @@ and is_same_lexpr l1 l2 =
     | PLtype t1, PLtype t2 -> is_same_pl_type t1 t2
     | PLrel(le1,r1,re1), PLrel(le2,r2,re2) ->
       is_same_relation r1 r2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
+    | PLrepeat (l1, r1), PLrepeat (l2,r2)
     | PLand(l1,r1), PLand(l2,r2) | PLor(l1,r1), PLor(l2,r2)
     | PLimplies(l1,r1), PLimplies(l2,r2) | PLxor(l1,r1), PLxor(l2,r2)
     | PLiff(l1,r1), PLiff(l2,r2) ->
@@ -1127,6 +1137,8 @@ and is_same_lexpr l1 l2 =
     | PLblock_length (l1,e1), PLblock_length (l2,e2)
     | PLinitialized (l1,e1), PLinitialized (l2,e2) ->
 	l1=l2 && is_same_lexpr e1 e2
+    | PLvalid_function e1, PLvalid_function e2 ->
+      is_same_lexpr e1 e2
     | PLdangling (l1,e1), PLdangling (l2,e2) ->
 	l1=l2 && is_same_lexpr e1 e2
     | PLseparated l1, PLseparated l2 ->
@@ -1137,21 +1149,22 @@ and is_same_lexpr l1 l2 =
     | PLcomprehension(e1,q1,p1), PLcomprehension(e2,q2,p2) ->
       is_same_lexpr e1 e2 && is_same_quantifiers q1 q2
       && is_same_opt is_same_lexpr p1 p2
-    | PLsingleton e1, PLsingleton e2 -> is_same_lexpr e1 e2
-    | PLunion l1, PLunion l2 | PLinter l1, PLinter l2 ->
+    | PLset l1, PLset l2 | PLunion l1, PLunion l2 | PLinter l1, PLinter l2 ->
       is_same_list is_same_lexpr l1 l2
     | (PLvar _ | PLapp _ | PLlambda _ | PLlet _ | PLconstant _ | PLunop _
-      | PLbinop _ | PLdot _ | PLarrow _ | PLarrget _ | PLold _ | PLat _
+      | PLbinop _ | PLdot _ | PLarrow _ | PLarrget _ | PLlist _ | PLrepeat _
+      | PLold _ | PLat _
       | PLbase_addr _ | PLblock_length _ | PLoffset _ 
       | PLresult | PLnull | PLcast _
       | PLrange _ | PLsizeof _ | PLsizeofE _ | PLtypeof _ | PLcoercion _
       | PLcoercionE _ | PLupdate _ | PLinitIndex _ | PLtype _ | PLfalse
       | PLtrue | PLinitField _ | PLrel _ | PLand _ | PLor _ | PLxor _
       | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _
-      | PLexists _ | PLvalid _ | PLvalid_read _ | PLfreeable _ | PLallocable _ 
+      | PLexists _ | PLvalid _ | PLvalid_read _ | PLvalid_function _
+      | PLfreeable _ | PLallocable _ 
       | PLinitialized _ | PLdangling _ | PLseparated _ | PLfresh _ | PLnamed _
       | PLsubtype _ | PLcomprehension _ | PLunion _ | PLinter _
-      | PLsingleton _ | PLempty
+      | PLset _ | PLempty
     ),_ -> false
 
 let hash_label l = 
@@ -1592,10 +1605,8 @@ and compare_predicate p1 p2 =
   | Pfreeable (l1,t1), Pfreeable (l2,t2)
   | Pvalid (l1,t1), Pvalid (l2,t2)
   | Pvalid_read (l1,t1), Pvalid_read (l2,t2)
-  | Pinitialized (l1,t1), Pinitialized (l2,t2) -> 
-    let res = compare_logic_label l1 l2 in
-    if res = 0 then compare_term t1 t2 else res
-  | Pdangling (l1,t1), Pdangling (l2,t2) -> 
+  | Pinitialized (l1,t1), Pinitialized (l2,t2)
+  | Pdangling (l1,t1), Pdangling (l2,t2) ->
     let res = compare_logic_label l1 l2 in
     if res = 0 then compare_term t1 t2 else res
   | Pallocable _, _ -> 1
@@ -1610,6 +1621,10 @@ and compare_predicate p1 p2 =
   | _, Pinitialized _ -> -1
   | Pdangling _, _ -> 1
   | _, Pdangling _ -> -1
+  | Pvalid_function t1, Pvalid_function t2 ->
+    compare_term t1 t2
+  | Pvalid_function _, _ -> 1
+  | _, Pvalid_function _ -> -1
   | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) -> 
     let res = compare_logic_label l1 l2 in
     if res = 0 then

@@ -10,26 +10,22 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/subset.i, line 4) in 'mem':
-Let x_0 = (base a_0).
-Let x_1 = (base b_0).
+Let x = a.base.
+Let x_1 = b.base.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 mem_0) /\ (is_sint32 n_0).
+  Type: is_sint32(mem_0) /\ is_sint32(n).
   (* Heap *)
-  Have: ((region x_0)<=0) /\ ((region x_1)<=0).
-  (* Pre-condition (file tests/wp_plugin/subset.i, line 3) in 'mem' *)
-  (* Pre-condition: *)
-  Have: x_0=x_1.
-  (* tests/wp_plugin/subset.i:8: Conditional *)
-  If: (addr_le b_0 a_0)
+  Have: (region(x) <= 0) /\ (region(x_1) <= 0).
+  (* Pre-condition *)
+  Have: x = x_1.
+  If addr_le(b, a)
   Then {
-    (* tests/wp_plugin/subset.i:8: Conditional *)
-    If: (addr_le a_0 (shift_sint32 b_0 n_0))
-    Then { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 1=mem_0. }
-    Else { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 0=mem_0. }
+    If addr_le(a, shift_sint32(b, n))
+    Then { Have: 1 = mem_0. }
+    Else { Have: 0 = mem_0. }
   }
-  Else { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 0=mem_0. }
+  Else { Have: 0 = mem_0. }
 }
-Prove: (0!=mem_0) <-> (included a_0 1 (shift_sint32 b_0 0) (1+n_0)).
+Prove: (0 != mem_0) <-> included(a, 1, shift_sint32(b, 0), 1 + n).
 
 ------------------------------------------------------------

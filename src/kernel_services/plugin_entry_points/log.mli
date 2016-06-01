@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -153,28 +153,6 @@ module type Messages = sig
         @since Beryllium-20090601-beta1
 	@modify Nitrogen-20111001 Optional parameter [dkey]
 	@plugin development guide *)
-
-  val debug0   : ?level:int -> ?dkey:category ->
-    unit pretty_printer
-  val debug1   : ?level:int -> ?dkey:category ->
-    ('a -> unit) pretty_printer
-  val debug2   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> unit) pretty_printer
-  val debug3   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> unit) pretty_printer
-  val debug4   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> unit) pretty_printer
-  val debug5   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> unit) pretty_printer
-  val debug6   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> unit) pretty_printer
-  val debug7   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit) pretty_printer
-  val debug8   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> unit) pretty_printer
-  (** Specific versions of {!debug} with fixed arity that are a lot
-      faster than the generic version when debbuging is not
-      activated. *)
 
   val warning : 'a pretty_printer
   (** Hypothesis and restrictions.

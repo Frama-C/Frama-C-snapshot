@@ -11,7 +11,6 @@
 
 Goal Instance of 'Pre-condition 'r2' in 'g'' in 'f' at call 'g' (file tests/wp_bts/bts_0896.i, line 22)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -20,13 +19,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assigns (file tests/wp_bts/bts_0896.i, line 18) in 'g':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns (file tests/wp_bts/bts_0896.i, line 18) in 'g':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

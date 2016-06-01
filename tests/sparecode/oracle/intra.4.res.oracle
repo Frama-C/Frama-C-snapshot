@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/intra.c (with preprocessing)
+[kernel] Parsing tests/sparecode/intra.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
@@ -9,8 +9,8 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function f10 <- main2.
-        Called from tests/sparecode/intra.c:115.
-tests/sparecode/intra.c:109:[value] Assertion got status valid.
+        Called from tests/sparecode/intra.i:115.
+tests/sparecode/intra.i:109:[value] assertion got status valid.
 [value] Recording results for f10
 [value] Done for function f10
 [value] Recording results for main2

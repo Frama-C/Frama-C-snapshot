@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ let error ~name ~message ~details =
     (fun fmt ->
        if details <> "" && Klog.verbose_atleast 2 then
          Format.fprintf fmt "@\nDetails: %s" details)
-    
+
 (* -------------------------------------------------------------------------- *)
 (* --- Dynlink Common Interface & Dynamic Library                         --- *)
 (* -------------------------------------------------------------------------- *)
@@ -101,7 +101,7 @@ let split_ext p =
     else p , ""
   with Not_found -> p , ""
 
-let is_package = 
+let is_package =
   let pkg = Str.regexp "[a-z-_]+$" in
   fun name -> Str.string_match pkg name 0
 
@@ -109,7 +109,7 @@ let is_meta =
   let meta = Str.regexp "META.frama-c-[a-z-_]+$" in
   fun name -> Str.string_match meta name 0
 
-let is_dir d = Sys.file_exists d && Sys.is_directory d 
+let is_dir d = Sys.file_exists d && Sys.is_directory d
 
 let is_file base ext =
   let file = base ^ ext in
@@ -137,7 +137,6 @@ let once pkg =
 
 exception ArchiveError of string
 
-let predicates = if Dynlib.is_native then [ "plugin" ] else [ "byte" ]
 let load_archive pkg base file =
   let path =
     try Findlib.resolve_path ~base file
@@ -159,16 +158,56 @@ let load_packages pkgs =
       begin fun pkg ->
         if once pkg then
           let base = Findlib.package_directory pkg in
+          (** The way plugins are specified in META have been
+              normalized late. So people started to
+              specified it in different ways:
+              - archive(byte,plugin)
+              - archive(byte)
+              - archive(native,plugin)
+              - archive(plugin)
+
+              The normalized one are:
+              - plugin(byte)
+              - plugin(native)
+          *)
+          let gui = if !Config.is_gui then ["gui"] else [] in
           let predicates =
-            if !Config.is_gui then "gui"::predicates else predicates in
-          let archive = Findlib.package_property predicates pkg "archive" in
+            (** The order is important for the archive cases *)
+            if Dynlib.is_native then
+              [
+                "plugin", ["native"]@gui;
+                "archive", ["plugin"]@gui;
+                "archive", ["native";"plugin"]@gui;
+              ]
+            else
+              [
+                "plugin", ["byte"]@gui;
+                "archive", ["byte";"plugin"]@gui;
+                "archive", ["byte"]@gui;
+              ]
+          in
+          let rec find_package_property = function
+            | [] ->
+              let msg = Printf.sprintf
+                  "package '%s' doesn't contains any known \
+                   specification for dynamic linking"
+                  pkg
+              in
+              raise (ArchiveError msg)
+            | (var,predicates)::l ->
+              try Findlib.package_property predicates pkg var
+              with Not_found -> find_package_property l
+          in
+          let archive = find_package_property predicates in
           let archives = split_word archive in
           if archives = [] then
             Klog.warning "no archive to load for package '%s'" pkg
           else
             List.iter (load_archive pkg base) archives
       end
-      (Findlib.package_deep_ancestors predicates pkgs)
+      (Findlib.package_deep_ancestors
+         (if Dynlib.is_native then [ "native" ] else [ "byte" ])
+         pkgs)
   with
   | Findlib.No_such_package(pkg,details) ->
       Klog.error "[findlib] package '%s' not found (%s)" pkg details
@@ -235,7 +274,7 @@ let scan_directory pkgs dir =
       ) content ;
   with Sys_error error ->
     Klog.error "impossible to read '%s' (%s)" dir error
-      
+
 let load_plugin_path path =
   begin
     let add_dir ~user d ps =
@@ -272,7 +311,7 @@ let load_module m =
         | None ->
             match is_file base ".ml" with
             | Some _ -> load_script base
-            | None -> 
+            | None ->
                 if is_package m && mem_package m then load_packages [m]
                 else
                   let fc = "frama-c-" ^ String.lowercase m in
@@ -327,7 +366,7 @@ let get ~plugin name ty =
       (Printf.sprintf "cannot access value %s in the 'no obj' mode" name)
 
 let iter f = Tbl.iter f dynamic_values
-let iter_comment f = Hashtbl.iter f comments_fordoc 
+let iter_comment f = Hashtbl.iter f comments_fordoc
 
 (* ************************************************************************* *)
 (** {2 Specialised interface for parameters} *)
@@ -348,7 +387,7 @@ module Parameter = struct
     Format.sprintf "Dynamic.Parameter.%s.%s %S"
       functor_name fct_name option_name
 
-  let get_parameter option_name = 
+  let get_parameter option_name =
     get ~plugin:"" option_name Typed_parameter.ty
 
   let get_state option_name =

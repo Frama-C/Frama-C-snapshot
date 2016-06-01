@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -65,6 +65,7 @@ let disj = from_unichar 0x2228
 let neg = from_unichar 0x00AC
 let x_or =  from_unichar 0x22BB
 let inset = from_unichar 0x2208
+let emptyset = from_unichar 0x2205
 
 let boolean = from_unichar 0x1D539
 let integer = from_unichar 0x2124

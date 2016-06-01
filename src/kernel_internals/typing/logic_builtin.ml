@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -33,6 +33,8 @@ let string_type = Ctype Cil.charConstPtrType
 let long_double_type = Ctype Cil.longDoubleType
 let object_ptr = Ctype Cil.voidPtrType
 let fun_ptr = Ctype (TPtr(TFun(Cil.voidType,None,false,[]),[]))
+
+let polymorphic_type name = name, Lvar name
 
 let init =
   let called = ref false in
@@ -84,8 +86,31 @@ let init =
             rounding_mode, [ "\\Up"; "\\Down"; "\\ToZero"; "\\NearestAway";
                              "\\NearestEven" ];
           ];
+	(* logic types used by the builtins *)
+        let a_name, a_type = polymorphic_type "a" in
+        let boolean = Ltype(boolean,[]) in
+        let sign = Ltype(sign,[]) in
         let float_format = Ltype(float_format,[]) in
         let rounding_mode = Ltype(rounding_mode,[]) in
+        let set_of_integer = Ltype (set, [Linteger]) in
+        let set_of_a_type = Ltype (set, [a_type]) in
+	(* "\list" logic type with its constructors *)
+        let list, list_of_a_type = 
+	  let list = { lt_name = "\\list"; lt_params = [a_name]; 
+                       lt_def = None; }  in
+	  Logic_env.add_builtin_logic_type list.lt_name list ;
+          let list_of_a_type = Ltype (list, [a_type]) in
+	  let nil = { ctor_name = "\\Nil"; ctor_type = list; 
+                      ctor_params = [] } in
+	  let cons = { ctor_name = "\\Cons"; ctor_type = list; 
+                       ctor_params = [a_type; list_of_a_type] } in
+          let ctors = [nil ; cons] in
+	  List.iter (fun c -> Logic_env.add_builtin_logic_ctor c.ctor_name c) 
+            ctors ;
+	  list.lt_def <- Some (LTsum ctors);
+	  list, list_of_a_type
+        in
+	let _list_of_integer = Ltype (list, [Linteger]) in
         (* predicates *)
         List.iter
           (fun (f,tparams,params)  ->
@@ -120,8 +145,8 @@ let init =
             "\\ne_float", [], ["x", double_type; "y", double_type];
             "\\no_overflow_single", [], ["m", rounding_mode; "x", Lreal] ;
             "\\no_overflow_double", [], ["m", rounding_mode; "x", Lreal] ;
-            "\\subset", ["a"], ["s1", Ltype (set, [Lvar "a"]);
-                                "s2", Ltype (set, [Lvar "a"])];
+            "\\subset", [a_name], ["s1", set_of_a_type;
+                                   "s2", set_of_a_type];
             "\\pointer_comparable", [], [("p1", object_ptr);
                                          ("p2", object_ptr)];
             "\\pointer_comparable", [], [("p1", fun_ptr);
@@ -135,115 +160,130 @@ let init =
           ];
         (* functions *)
         List.iter
-          (fun (f,params,ret_type)  ->
-             add { bl_name = f; bl_params = []; bl_profile = params;
+          (fun (f,tparams,params,ret_type)  ->
+             add { bl_name = f; bl_params = tparams; bl_profile = params;
                    bl_type = Some ret_type; bl_labels = []})
           [ 
-            "\\min", ["x",Linteger;"y",Linteger], Linteger ;
-            "\\max", ["x",Linteger;"y",Linteger], Linteger ;
-            "\\min", ["x",Lreal;"y",Lreal], Lreal ;
-            "\\max", ["x",Lreal;"y",Lreal], Lreal ;
+            "\\min", [], ["x",Linteger;"y",Linteger], Linteger ;
+            "\\max", [], ["x",Linteger;"y",Linteger], Linteger ;
+            "\\min", [], ["x",Lreal;"y",Lreal], Lreal ;
+            "\\max", [], ["x",Lreal;"y",Lreal], Lreal ;
 
-            "\\abs", ["x",Linteger], Linteger ;
-            "\\labs", ["x",Linteger], Linteger ;
-            "\\abs", ["x",Lreal], Lreal ;
-            "\\fabs", ["x",Lreal], Lreal ;
+            "\\abs", [], ["x",Linteger], Linteger ;
+            "\\labs", [], ["x",Linteger], Linteger ;
+            "\\abs", [], ["x",Lreal], Lreal ;
+            "\\fabs", [], ["x",Lreal], Lreal ;
 
-            "\\sqrt", ["x",Lreal], Lreal ;
-            "\\pow", ["x",Lreal;"y",Lreal], Lreal ;
+            "\\sqrt", [], ["x",Lreal], Lreal ;
+            "\\pow", [], ["x",Lreal;"y",Lreal], Lreal ;
 
-            "\\ceil", ["x",Lreal], Linteger ;
-            "\\floor", ["x",Lreal], Linteger ;
+            "\\ceil", [], ["x",Lreal], Linteger ;
+            "\\floor", [], ["x",Lreal], Linteger ;
 
             (* transcendantal functions *)
-            "\\exp", ["x",Lreal], Lreal ;
-            "\\log", ["x",Lreal], Lreal ;
-            "\\log10", ["x",Lreal], Lreal ;
+            "\\exp", [], ["x",Lreal], Lreal ;
+            "\\log", [], ["x",Lreal], Lreal ;
+            "\\log10", [], ["x",Lreal], Lreal ;
 
-            "\\cos", ["x",Lreal], Lreal ;
-            "\\sin", ["x",Lreal], Lreal ;
-            "\\tan", ["x",Lreal], Lreal ;
+            "\\cos", [], ["x",Lreal], Lreal ;
+            "\\sin", [], ["x",Lreal], Lreal ;
+            "\\tan", [], ["x",Lreal], Lreal ;
 
-            "\\pi", [], Lreal ;
+            "\\pi", [], [], Lreal ;
 
-            "\\cosh", ["x",Lreal], Lreal ;
-            "\\sinh", ["x",Lreal], Lreal ;
-            "\\tanh", ["x",Lreal], Lreal ;
+            "\\cosh", [], ["x",Lreal], Lreal ;
+            "\\sinh", [], ["x",Lreal], Lreal ;
+            "\\tanh", [], ["x",Lreal], Lreal ;
 
-            "\\acos", ["x",Lreal], Lreal ;
-            "\\asin", ["x",Lreal], Lreal ;
-            "\\atan", ["x",Lreal], Lreal ;
+            "\\acos", [], ["x",Lreal], Lreal ;
+            "\\asin", [], ["x",Lreal], Lreal ;
+            "\\atan", [], ["x",Lreal], Lreal ;
 
-            "\\atan2", ["x",Lreal;"y",Lreal], Lreal ;
-            "\\hypot", ["x",Lreal;"y",Lreal], Lreal ;
+            "\\atan2", [], ["x",Lreal;"y",Lreal], Lreal ;
+            "\\hypot", [], ["x",Lreal;"y",Lreal], Lreal ;
 
             (* TODO ?
              * div() fmod() frexp() ldexp()
              * ldiv() modf() modf()
              *)
 
-            "\\sum", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Linteger))], Linteger ;
-            "\\sum", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Lreal))], Lreal ;
-            "\\product", ["min",Linteger;
+            "\\sum", [], ["min",Linteger;
 		          "max", Linteger;
 		          "f",(Larrow ([Linteger],Linteger))], Linteger ;
-            "\\product", ["min",Linteger;
+            "\\sum", [], ["min",Linteger;
 		          "max", Linteger;
 		          "f",(Larrow ([Linteger],Lreal))], Lreal ;
-            "\\min", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Linteger))], Linteger ;
-            "\\min", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Lreal))], Lreal ;
-            "\\max", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Linteger))], Linteger ;
-            "\\max", ["min",Linteger;
-		      "max", Linteger;
-		      "f",(Larrow ([Linteger],Lreal))], Lreal ;
-            "\\numof", ["min",Linteger;
-		        "max", Linteger;
-		        "f",(Larrow ([Linteger],Ltype(boolean,[])))], Linteger ;
+            "\\product", [], ["min",Linteger;
+		              "max", Linteger;
+		              "f",(Larrow ([Linteger],Linteger))], Linteger ;
+            "\\product", [], ["min",Linteger;
+		              "max", Linteger;
+		              "f",(Larrow ([Linteger],Lreal))], Lreal ;
+            "\\min", [], ["min",Linteger;
+		          "max", Linteger;
+		          "f",(Larrow ([Linteger],Linteger))], Linteger ;
+            "\\min", [], ["min",Linteger;
+		          "max", Linteger;
+		          "f",(Larrow ([Linteger],Lreal))], Lreal ;
+            "\\max", [], ["min",Linteger;
+		          "max", Linteger;
+		          "f",(Larrow ([Linteger],Linteger))], Linteger ;
+            "\\max", [], ["min",Linteger;
+		          "max", Linteger;
+		          "f",(Larrow ([Linteger],Lreal))], Lreal ;
+            "\\numof", [], ["min",Linteger;
+		            "max", Linteger;
+		            "f",(Larrow ([Linteger],boolean))], Linteger ;
 
 
             (* for floats special values *)
 
-            "\\round_float", ["f", float_format; "m", rounding_mode; "x", Lreal], Lreal ;
+            "\\round_float", [], 
+               ["f", float_format; "m", rounding_mode; "x", Lreal], Lreal ;
 
-            "\\sign", ["x",float_type], Ltype(sign,[]) ;
-            "\\sign", ["x",double_type], Ltype(sign,[]) ;
-            "\\sign", ["x",long_double_type], Ltype(sign,[]) ;
+            "\\sign", [], ["x",float_type], sign ;
+            "\\sign", [], ["x",double_type], sign ;
+            "\\sign", [], ["x",long_double_type], sign ;
 
-            "\\model", ["x",float_type], Lreal;
-            "\\model", ["x",double_type], Lreal;
-            (*"\\model", ["x",long_double_type], Lreal;*)
+            "\\model", [], ["x",float_type], Lreal;
+            "\\model", [], ["x",double_type], Lreal;
+            (*"\\model", [], ["x",long_double_type], Lreal;*)
 
-            "\\exact", ["x",float_type], Lreal;
-            "\\exact", ["x",double_type], Lreal;
-            (*"\\exact", ["x",long_double_type], Lreal;*)
+            "\\exact", [], ["x",float_type], Lreal;
+            "\\exact", [], ["x",double_type], Lreal;
+            (*"\\exact", [], ["x",long_double_type], Lreal;*)
 
-            "\\total_error", ["x",float_type], Lreal;
-            "\\total_error", ["x",double_type], Lreal;
-            (*"\\total_error", ["x",long_double_type], Lreal;*)
+            "\\total_error", [], ["x",float_type], Lreal;
+            "\\total_error", [], ["x",double_type], Lreal;
+            (*"\\total_error", [], ["x",long_double_type], Lreal;*)
 
-            "\\round_error", ["x",float_type], Lreal;
-            "\\round_error", ["x",double_type], Lreal;
-            (*"\\round_error", ["x",long_double_type], Lreal;*)
+            "\\round_error", [], ["x",float_type], Lreal;
+            "\\round_error", [], ["x",double_type], Lreal;
+            (*"\\round_error", [], ["x",long_double_type], Lreal;*)
 
-            "\\relative_error", ["x",float_type], Lreal;
-            "\\relative_error", ["x",double_type], Lreal;
-            (*"\\relative_error", ["x",long_double_type], Lreal;*)
+            "\\relative_error", [], ["x",float_type], Lreal;
+            "\\relative_error", [], ["x",double_type], Lreal;
+            (*"\\relative_error", [], ["x",long_double_type], Lreal;*)
 
-            "\\round_float", ["m",  rounding_mode; "x", Lreal], float_type;
-            "\\round_double", ["m", rounding_mode ; "x", Lreal], double_type;
-            (*"\\round_quad", ["m",  rounding_mode; "x", Lreal], long_double_type;*)
-            "\\min", ["s", Ltype (set, [Linteger])], Linteger;
-            "\\max", ["s", Ltype (set, [Linteger])], Linteger;
+            "\\round_float", [], 
+               ["m",  rounding_mode; "x", Lreal], float_type;
+            "\\round_double", [], 
+               ["m", rounding_mode ; "x", Lreal], double_type;
+            (*"\\round_quad", [], 
+               ["m",  rounding_mode; "x", Lreal], long_double_type;*)
+
+            "\\min", [], ["s", set_of_integer], Linteger;
+            "\\max", [], ["s", set_of_integer], Linteger;
+
+            "\\nth", [a_name],
+               ["l", list_of_a_type; "n", Linteger], a_type;
+            "\\length", [a_name],
+               ["l", list_of_a_type], Linteger;
+            "\\concat", [a_name],
+               ["l1", list_of_a_type; "l2", list_of_a_type], list_of_a_type;
+            "\\repeat", [a_name], 
+               ["l", list_of_a_type; "n", Linteger], list_of_a_type;
+
           ]
     end
 

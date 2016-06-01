@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,6 +76,17 @@ val add_binding_ival :
 (** [size] must be strictly greater than zero. *)
 val create: size:Integer.t -> v -> t
 
+val empty: t
+(** offsetmap containing no interval. *)
+
+val size_from_validity:
+  Base.validity -> Integer.t Bottom.or_bottom
+(** [size_from_validity v] returns the size to be used when creating a
+    new offsetmap for a base with validity [v]. This is a convention that
+    should be shared by all modules that create offsetmaps.
+    Returns [`Bottom] iff [v] is [Invalid].
+    @since Aluminium-20160501 *)
+
 
 (** {2 Iterators} *)
 
@@ -123,14 +134,17 @@ val fold_join_itvs:
 
 (** {2 Shape} *)
 
-(** [is_single_interval ?f o] is true if
-    (1) the offsetmap [o] contains a single binding
-    (2) either [f] is [None], or the bound value [v] verifies [f v]. *)
-val is_single_interval: ?f:(v -> bool) -> t -> bool
+val is_single_interval: t -> bool
+(** [is_single_interval o] is true if the offsetmap [o] contains a single
+    binding. *)
 
 val single_interval_value: t -> v option
 (** [single_interval_value o] returns [Some v] if [o] contains a single
     interval, to which [v] is bound, and [None] otherwise. *)
+
+val is_same_value: t -> v -> bool
+(** [is_same_value o v] is true if the offsetmap [o] contains a single
+    binding to [v], or is the empty offsetmap. *)
 
 
 (** {2 Misc} *)

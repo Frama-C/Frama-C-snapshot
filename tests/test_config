@@ -1,1 +1,2 @@
-OPT: -val -journal-disable -out -input -deps
+MACRO: VALUECONFIG
+OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,6 +64,8 @@ type alarm =
   | Dangling of lval
   | Is_nan_or_infinite of exp * fkind
   | Valid_string of exp
+  | Function_pointer of exp (** the type of the pointer is compatible with
+                                the type of the pointed function. *)
 
 include Datatype.S_with_collections with type t = alarm
 
@@ -71,19 +73,25 @@ val self: State.t
 
 val register: 
   Emitter.t -> ?kf:kernel_function -> kinstr -> ?loc:location -> 
-  ?status:Property_status.emitted_status -> ?save:bool -> alarm -> 
+  ?status:Property_status.emitted_status -> alarm ->
   code_annotation * bool
 (** Register the given alarm on the given statement. By default, no status is
-    generated. If [save] is [false] (default is [true]), the annotation
-    corresponding to the alarm is built, but neither it nor the alarm is
-    registered. [kf] must be given only if the [kinstr] is a statement, and
+    emitted. [kf] must be given only if the [kinstr] is a statement, and
     must be the function enclosing this statement.
     @return true if the given alarm has never been emitted before on the
     same kinstr (without taking into consideration the status or
     the emitter). 
+
     @modify Oxygen-20120901 remove labeled argument ~deps
     @modify Fluorine-20130401 add the optional arguments [kf], [loc] and
-    [save]; also returns the corresponding code_annotation *)
+    [save]; also returns the corresponding code_annotation
+    @modify Aluminium-20160501 removed argument save. Use
+    {!to_annot} instead. *)
+
+val to_annot: kinstr -> ?loc:location -> alarm -> code_annotation * bool
+(** Conversion of an alarm to a [code_annotation], without any registration.
+    The returned boolean indicates that the alarm has not been registered
+    in the kernel yet. *)
 
 val iter: 
   (Emitter.t -> kernel_function -> stmt -> rank:int -> alarm -> code_annotation
@@ -120,6 +128,10 @@ val create_predicate: ?loc:location -> t -> predicate named
 
 val get_name: t -> string
 (** Short name of the alarm, used to prefix the assertion in the AST. *)
+
+val get_short_name: t -> string
+(** Even shorter name. Similar alarms (e.g. signed overflow vs. unsigned
+    overflow) are aggregated. *)
 
 val get_description: t -> string
 (** Long description of the alarm, explaining the UB it guards against. *)

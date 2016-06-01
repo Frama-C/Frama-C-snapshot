@@ -11,7 +11,7 @@
   Y ∈ [--..--]
   Z ∈ [--..--]
 tests/slicing/loops.c:50:[value] entering loop for the first time
-tests/slicing/loops.c:56:[value] Assertion got status unknown.
+tests/slicing/loops.c:56:[value] warning: assertion got status unknown.
 tests/slicing/loops.c:52:[kernel] warning: signed overflow. assert x1+1 ≤ 2147483647;
 tests/slicing/loops.c:54:[kernel] warning: signed overflow. assert x2+1 ≤ 2147483647;
 [value] Recording results for f2

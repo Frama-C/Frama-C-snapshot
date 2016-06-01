@@ -21,48 +21,8 @@ tests/slicing/call_demo.c:22:[value] entering loop for the first time
 [value] Done for function oper
 [value] computing for function oper <- main.
         Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-tests/slicing/call_demo.c:14:[kernel] warning: signed overflow. assert *p*i ≤ 2147483647;
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
-[value] Recording results for oper
-[value] Done for function oper
-[value] computing for function oper <- main.
-        Called from tests/slicing/call_demo.c:23.
 tests/slicing/call_demo.c:13:[kernel] warning: signed overflow. assert *s+i ≤ 2147483647;
+tests/slicing/call_demo.c:14:[kernel] warning: signed overflow. assert *p*i ≤ 2147483647;
 [value] Recording results for oper
 [value] Done for function oper
 [value] computing for function oper <- main.

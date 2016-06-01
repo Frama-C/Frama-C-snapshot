@@ -1,0 +1,1 @@
+MACRO: PROVE_OPTIONS @AORAI_WP_SHARE@ -aorai-test-prove-aux-spec

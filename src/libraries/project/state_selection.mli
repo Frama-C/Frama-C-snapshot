@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -117,12 +117,6 @@ module type S = sig
         @since Oxygen-20120901
      *)
 
-  val list_state_union: ?deps:(State.t -> t) -> State.t list -> t
-    (** Union of an arbitrary number of states (0 gives an empty selection).
-        Optional [deps] arguments indicates how to handle dependencies. Defaults
-        to {! State_selection.singleton}
-        @since Oxygen-20120901 *)
-
   val diff: t -> t -> t
   (** Difference between two selections.
       @since Carbon-20101201 *)
@@ -140,8 +134,14 @@ module type S = sig
       @since Fluorine-20130401 *)
 
   val pretty: Format.formatter -> t -> unit
-  (** Display a selection iff kernel debug mode is on.
+  (** Display a selection.
       @since Carbon-20101201 *)
+
+  val pretty_witness: Format.formatter -> t -> unit
+  (** Display a selection in a more concise form. (Using the atomic operations
+      that were used to create it.)
+      @since Aluminium-20160501 *)
+
 
   (** {3 Iterators} *)
 

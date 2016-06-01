@@ -22,11 +22,9 @@ int main(void)
  */
 /*@
 inductive model{L}(List<ℤ>  root, List<ℤ>  logic_list) {
-  case nil{L}: \at(model{L}(Nil, Nil),L);
-  case cons{L}: \at(∀ List<ℤ>  l1, List<ℤ>  ll1;
-                      model{L}(l1, ll1) ⇒
-                      model{L}(Cons(0, l1), Cons(0, ll1)),
-                    L);
+  case nil{L}: model(Nil, Nil);
+  case cons{L}: ∀ List<ℤ>  l1, List<ℤ>  ll1;
+                  model(l1, ll1) ⇒ model(Cons(0, l1), Cons(0, ll1));
   }
 
 */

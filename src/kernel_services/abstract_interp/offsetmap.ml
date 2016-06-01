@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,8 +100,15 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
   open Format
 
   type v = V.t
-  type widen_hint = V.widen_hint
+  type widen_hint = V.generic_widen_hint
   type alarm = bool
+
+  let empty = Empty
+  (** All high-level functions of this module must handle a size of 0, in which
+      case it is sometimes necessary to return Empty. In the current
+      implementation, sizes 0 are handled by the outer (exported) functions,
+      while the inner functions assume that the arguments [size] are
+      stricty positive. *)
 
   let equal (t1:V.t offsetmap) (t2:V.t offsetmap) = t1 == t2
 
@@ -111,6 +118,14 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
     | Node _, Empty -> 1
     | Node (_, _, _, _, _, _, _, _, h1), Node (_, _, _, _, _, _, _, _, h2) ->
         Datatype.Int.compare h1 h2
+
+  (* Does not depend on keys. Exported here for convenience for the users *)
+  let size_from_validity = function
+    | Base.Invalid -> `Bottom
+    | Base.Empty -> `Value Int.zero
+    | Base.Known (_, m)
+    | Base.Unknown (_, _, m) -> `Value (Int.succ m)
+    | Base.Variable { Base.max_allocable } -> `Value (Int.succ max_allocable)
 
  (** Pretty printing *)
 
@@ -271,6 +286,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 	  tag land min_int
 
     let nNode cur offl subl offr subr f g v =
+      if debug then assert (Integer.ge cur Integer.zero);
       let current_counter = !counter in
       let tag = 
 	if V.cardinal_zero_or_one v
@@ -580,6 +596,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        | Empty -> assert false
      with Empty_tree -> max, offr, subr
    in
+   if debug then assert (Integer.ge max Integer.zero);
    let curr_off, max, offl, subl, offr =
      try
        let offset, nl, zl =
@@ -618,9 +635,12 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    curr_off,
    nNode span Integer.zero m_empty (succ span) m_empty remrel modu v
 
- (* creates a fresh tree that binds [0..size-1] to the isotropic value [v] *)
+ (* creates a fresh tree that binds [0..size-1] to the isotropic value [v].
+    if [size] if 0, returns [Empty]. *)
  let isotropic_interval size v =
-   nNode (pred size) Integer.zero m_empty size m_empty Rel.zero Integer.one v
+   if Int.(equal size zero) then Empty
+   else
+     nNode (pred size) Integer.zero m_empty size m_empty Rel.zero Integer.one v
 
  (** Smart add node:
      Adds a node to the current tree and merges (new) consecutive intervals
@@ -631,6 +651,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      mergeable intervals.
   *)
  let add_node ~min ~max rem modu v curr_off tree =
+   if debug then assert (min <=~ max);
    let rec aux_add curr_off tree =
      match tree with
      | Empty ->
@@ -1106,7 +1127,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  (*  Format.printf "f_aux_merge: [%a, %a]@.(%a %a %a)@.(%a %a %a)@."
      pretty_int abs_min pretty_int abs_max pretty_int rem1 pretty_int
      modu1 V.pretty v1 pretty_int rem2 pretty_int modu2 V.pretty v2 ; *)
-   let joined size v1 v2 = V.anisotropic_cast size (merge_v v1 v2) in
+   let joined size v1 v2 = V.anisotropic_cast size (merge_v size v1 v2) in
    if (rem1 =~ rem2 && modu1 =~ modu2) || V.is_isotropic v2
    then
      rem1, modu1, joined modu1 v1 v2
@@ -1134,7 +1155,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        pretty_int rem2 pretty_int modu2 V.pretty v2
        pretty_int abs_min pretty_int abs_max
        V.pretty v1' V.pretty v2'; *)
-     rem, size, merge_v v1' v2'
+     rem, size, merge_v size v1' v2'
  ;;
 
  module JoinCache = Binary_cache.Symmetric_Binary(Cacheable)(Cacheable)
@@ -1142,7 +1163,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 
  (** Joining two trees that cover the same range *)
  let join t1 t2 =
-   let f_join = f_aux_merge V.join in
+   let f_join = f_aux_merge (fun _size v1 v2 -> V.join v1 v2) in
    let rec aux_cache t1 t2 =
      if Cacheable.equal t1 t2 then t1
      else JoinCache.merge (merge aux_cache f_join) t1 t2
@@ -1151,25 +1172,31 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    r
  ;;
 
- module NarrowCache = Binary_cache.Symmetric_Binary(Cacheable)(Cacheable)
- let () = clear_caches_ref := NarrowCache.clear :: !clear_caches_ref;;
+ module Make_Narrow(X: sig
+     include Lattice_type.With_Top with type t := V.t
+     include Lattice_type.With_Narrow with type t := V.t
+   end) =
+ struct
 
- let is_top = function
-   | Node (_, _, Empty, _, Empty, _ , _, v, _) -> V.equal v V.top
-   | _ -> false
+   module NarrowCache = Binary_cache.Symmetric_Binary(Cacheable)(Cacheable)
+   let () = clear_caches_ref := NarrowCache.clear :: !clear_caches_ref;;
 
- (** Narrowing two trees that cover the same range *)
- let narrow t1 t2 =
-   let f_join = f_aux_merge V.narrow in
-   let rec aux_cache t1 t2 =
-     if Cacheable.equal t1 t2 || is_top (snd t2) then t1
-     else if is_top (snd t1) then t2
-     else NarrowCache.merge (merge aux_cache f_join) t1 t2
-   in
-   let _, r = aux_cache (Integer.zero, t1) (Integer.zero, t2) in
-   r
- ;;
+   let is_top = function
+     | Node (_, _, Empty, _, Empty, _ , _, v, _) -> V.equal v X.top
+     | _ -> false
 
+   (** Narrowing two trees that cover the same range *)
+   let narrow t1 t2 =
+     let f_join = f_aux_merge (fun _size v1 v2 -> X.narrow v1 v2) in
+     let rec aux_cache t1 t2 =
+       if Cacheable.equal t1 t2 || is_top (snd t2) then t1
+       else if is_top (snd t1) then t2
+       else NarrowCache.merge (merge aux_cache f_join) t1 t2
+     in
+     let _, r = aux_cache (Integer.zero, t1) (Integer.zero, t2) in
+     r
+   ;;
+ end
 
  let join_top_bottom m1 m2 = match m1, m2 with
    | `Bottom, `Bottom -> `Bottom
@@ -1184,9 +1211,9 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    (* Due to the way f_aux_merge is designed, we can obtain intervals on which
       the two bindings do not verify [is_included v1 v2]. The widening
       operations require this, so we correct the arguments here. *)
-   let widen v1 v2 =
+   let widen size v1 v2 =
      let v2 = if not (V.is_included v1 v2) then V.join v1 v2 else v2 in
-     V.widen wh v1 v2
+     V.widen (size,wh) v1 v2
    in
    let f_widen = f_aux_merge widen in
    let rec aux t1 t2 =
@@ -1387,7 +1414,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        | Tr_offset.Overlap (mn, mx, _origin) ->
            find_imprecise_between (mn, mx) tree
        | Tr_offset.Invalid -> V.bottom
-      with Bit_Not_found -> V.top (* does not happen with proper validity *)
+      with Bit_Not_found -> assert false(*does not happen with proper validity*)
     in
     alarm, r
  ;;
@@ -1451,6 +1478,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 ;;
 
 let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
+  if Int.(equal size zero) then curr_off, tree else 
   let off1, t1 = keep_above abs_max curr_off tree in
   let off2, t2 = keep_below offset curr_off tree in
   let rabs = (Rel.add_abs offset rem) %~ size in
@@ -1513,11 +1541,14 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
  (* This should be in Int_Intervals, but is currently needed here.
     Returns an interval with reversed bounds when the intersection is empty. *)
  let clip_by_validity = function
-   | Base.Invalid ->
+   | Base.Empty | Base.Invalid ->
      (fun _-> Int.one, Int.zero (* reversed interval -> no intersection*))
    | Base.Known (min, max)
    | Base.Unknown (min, _, max) ->
      (fun (min', max') -> Integer.max min min', Integer.min max max')
+   | Base.Variable variable_v ->
+     (fun (min', max') -> Integer.max Int.zero min',
+                          Integer.min variable_v.Base.max_alloc max')
 
 (** This function does a weak update of the entire [offsm], by adding the
     topification of [v]. The parameter [validity] is respected, and so is the
@@ -1715,6 +1746,7 @@ let update_aux ?origin ~validity ~exact ~offsets ~size v curr_off t =
   let alarm, reduced =
     Tr_offset.trim_by_validity ?origin offsets size validity
   in
+  let exact = exact && not (Base.is_weak_validity validity) in
   let r = update_aux_tr_offsets ~exact ~offsets:reduced ~size v curr_off t in
   alarm, r
 
@@ -1733,7 +1765,9 @@ let update ?origin ~validity ~exact ~offsets ~size v t =
 let update_under ~validity ~exact ~offsets ~size v t =
   let v = V.anisotropic_cast ~size v in
   let alarm, offsets = Tr_offset.trim_by_validity offsets size validity in
-  if update_aux_tr_offsets_approximates offsets size then
+  if Base.is_weak_validity validity ||
+     update_aux_tr_offsets_approximates offsets size
+  then
     alarm, `Map t
   else
     try
@@ -1789,9 +1823,9 @@ let update_under ~validity ~exact ~offsets ~size v t =
    read_ahead, !acc
  ;;
 
- let is_single_interval ?(f=fun _ -> true) o =
+ let is_single_interval o =
    match o with
-   | Node(_, _, Empty, _, Empty, _, _, v, _) -> f v
+   | Node(_, _, Empty, _, Empty, _, _, _, _) -> true
    | _ -> false
 
  let single_interval_value o =
@@ -1799,12 +1833,18 @@ let update_under ~validity ~exact ~offsets ~size v t =
    | Node(_, _, Empty, _, Empty, _, _, v, _) -> Some v
    | _ -> None
 
+ let is_same_value o v =
+   match o with
+   | Empty -> true
+   | Node(_, _, Empty, _, Empty, _, _, v', _) -> V.equal v v'
+   | _ -> false
 
  let copy_slice ~validity ~offsets ~size tree =
-    assert (Int.gt size Int.zero);
-    let alarm, filtered_by_bound =
-      Tr_offset.trim_by_validity offsets size validity
-    in
+   let alarm, filtered_by_bound =
+     Tr_offset.trim_by_validity offsets size validity
+   in
+   if Int.(equal size zero) then alarm, `Map Empty
+   else
     let init = isotropic_interval size V.bottom in
     let result =
       match filtered_by_bound with
@@ -1885,6 +1925,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
    aux Integer.zero t acc
  ;;
 
+  (* weak validity should be handled caller *)
   let paste_slice_itv ~exact from stop start_dest to_ =
     let update = update_itv_with_rem ~exact in
     let treat_interval (imin, imax) (v, modu, rem) acc =
@@ -1897,40 +1938,48 @@ let update_under ~validity ~exact ~offsets ~size v t =
 
   (** pastes [from] (of size [size]) at all [offsets] in [dst]. Optimisations
       for the case where [size] and the periodicity of [offsets] match are
-      treated in [paste_slice] below *)
+      treated in [paste_slice] below. [size] is supposed to be strictly
+      positive. *)
   let paste_slice_not_contiguous ~validity ~exact ~from:src ~size ~offsets dst =
     try
       let plevel = !plevel in
       let stop_src = Int.pred size in
       ignore (Ival.cardinal_less_than offsets plevel);
-      let alarm = ref false in
+      (* See explanations at the end of [Tr_offset] for what is computed here.*)
+      let min_valid, max_sure_valid, max_maybe_valid = match validity with
+        | Base.Invalid | Base.Empty (* size > 0 *) ->
+          Int.zero, Int.minus_one, Int.minus_one
+        | Base.Known (b,e) ->
+          b, e, e
+        | Base.Unknown (b, k, e) ->
+          let max_sure = Extlib.opt_conv Int.minus_one k in
+          b, max_sure, e
+        | Base.Variable { Base.min_alloc; Base.max_alloc } ->
+          Int.zero, min_alloc, max_alloc
+      in
+      let aux start_to (acc_offsm, acc_alarm, acc_success) =
+        let stop_to = Int.pred (Int.add start_to size) in
+        (* check if at least one access is possibly valid *)
+        if Int.lt start_to min_valid || Int.gt stop_to max_maybe_valid then
+          (* at least one bit cannot be written => invalid access *)
+          acc_offsm, true, acc_success
+        else
+          let exact = exact && not (Base.is_weak_validity validity) in
+          let alarm = acc_alarm || Int.gt stop_to max_sure_valid in
+          paste_slice_itv ~exact src stop_src start_to acc_offsm, alarm, true
+      in
       (* TODO: this should be improved if offsets if of the form [a..b]c%d
          with d >= size. In this case, the write do not overlap, and
-         could be done in one run in the offsetmap itself *)
-      let aux start_to (acc, success) =
-        let stop_to = Int.pred (Int.add start_to size) in
-        match validity with
-          | Base.Invalid ->
-              alarm := true;
-              acc, success
-          | Base.Known (b,e)
-          | Base.Unknown (b,_,e) when Int.lt start_to b || Int.gt stop_to e ->
-              alarm := true;
-              acc, success
-
-          | Base.Known _ | Base.Unknown _ ->
-              paste_slice_itv ~exact src stop_src start_to acc,
-              true
-      in
-      let res, success = Ival.fold_int aux offsets (dst, false) in
-      if success then !alarm, `Map res else true, `Bottom
+         could be done in one run in the offsetmap itself, using a zipper *)
+      let res, alarm, success = Ival.fold_int aux offsets (dst, false, false) in
+      if success then alarm, `Map res else true, `Bottom
     with Not_less_than ->
       (* Value to paste, since we cannot be precise *)
       let v =
         (* Under this size, this may be an integer. Try to be a bit precise
            when doing 'find' *)
         if size <=~ Integer.of_int 128 then
-          let validity_src = Base.Known (Int.zero, Int.pred size) in
+          let validity_src = Base.validity_from_size size in
           let _, v =
             find ~validity:validity_src ~conflate_bottom:false
               ~offsets:Ival.zero ~size src
@@ -1955,18 +2004,20 @@ let update_under ~validity ~exact ~offsets ~size v t =
 
   (** pastes [from] (of size [size]) at all [offsets] in [dst] *)
   let paste_slice ~validity ~exact ~from:src ~size ~offsets dst =
-    match offsets, src with
-    (* Special case: [from] contains a single (aligned) binding [v], and [size]
-       matches the periodicity of [offsets] and the size of [v]. In this case,
-       it is more efficient to perform an interval update instead of an
-       offsetmap copy. *)
-    | Ival.Top (_,_,_, offperiod), Node (_,_, Empty,_, Empty, vrem, vsize, v,_) 
+    if Int.(equal size zero) then (* nothing to do *) false, `Map dst
+    else
+      match offsets, src with
+      (*Special case: [from] contains a single (aligned) binding [v], and [size]
+        matches the periodicity of [offsets] and the size of [v]. In this case,
+        it is more efficient to perform an interval update instead of an
+        offsetmap copy. *)
+      | Ival.Top (_,_,_, offperiod), Node(_,_, Empty,_, Empty, vrem, vsize, v,_)
         when Rel.is_zero vrem && size =~ offperiod &&
-          (size =~ vsize || V.is_isotropic v)
-      ->
-      update ~validity ~exact ~offsets ~size v dst
-    | _ ->
-      paste_slice_not_contiguous ~validity ~exact ~from:src ~size ~offsets dst
+             (size =~ vsize || V.is_isotropic v)
+        ->
+        update ~validity ~exact ~offsets ~size v dst
+      | _ ->
+        paste_slice_not_contiguous ~validity ~exact ~from:src ~size ~offsets dst
 
   let skip_v v = V.equal V.bottom v
 
@@ -2012,19 +2063,27 @@ let update_under ~validity ~exact ~offsets ~size v t =
       end
     in
     if is_empty m then
-      Format.fprintf fmt "@[[?] %s ANYTHING@]" sep
-    else
-    Format.fprintf fmt "@[%a@]"
-      (fun fmt -> iter (pretty_binding fmt)) m
+      Format.fprintf fmt "@[[?] %s EMPTY@]" sep
+    else begin
+      Format.fprintf fmt "@[";
+      iter (pretty_binding fmt) m;
+      if !is_first then
+        Format.fprintf fmt "%s@ %s" sep (Unicode.emptyset_string ());
+      Format.fprintf fmt "@]";
+    end
 
   let create_isotropic ~size v =
-    assert (Int.gt size Int.zero);
-    assert (V.is_isotropic v);
-    isotropic_interval size v
+    assert (Int.ge size Int.zero);
+    if Int.(equal size zero) then Empty
+    else begin
+      assert (V.is_isotropic v);
+      isotropic_interval size v
+    end
 
   let create ~size v ~size_v =
-    assert (Int.gt size Int.zero);
-    snd (interval_aux Int.zero (pred size) Int.zero size_v v)
+    assert (Int.ge size Int.zero);
+    if Int.(equal size zero) then Empty
+    else snd (interval_aux Int.zero (pred size) Int.zero size_v v)
 
   let cardinal_zero_or_one offsetmap =
     (singleton_tag offsetmap) <> 0
@@ -2050,7 +2109,9 @@ let update_under ~validity ~exact ~offsets ~size v t =
     match validity with
     | Base.Known (min, max) | Base.Unknown (min, _, max) ->
         find_imprecise_between (min, max) m
-    | Base.Invalid -> V.bottom
+    | Base.Variable variable_v ->
+        find_imprecise_between (Int.zero, variable_v.Base.max_alloc) m
+    | Base.Invalid | Base.Empty -> V.bottom
 
   let find_imprecise_everywhere m =
     match m with
@@ -2078,7 +2139,9 @@ module FullyIsotropic = struct
   let cardinal_zero_or_one _ = false
 
   let widen _wh _ m = m
-  type widen_hint = unit
+  type generic_widen_hint =  unit
+  type size_widen_hint = Integer.t
+  type widen_hint = size_widen_hint * generic_widen_hint
 end
 
 
@@ -2091,10 +2154,8 @@ module Int_Intervals_Map = struct
   include Make(struct
     include Datatype.Bool
 
-    let top = true
     let bottom = false
     let join = (||)
-    let narrow = (&&)
     let is_included b1 b2 = b2 || not b1
     let join_and_is_included b1 b2 = let r = b1 || b2 in r, r = b2
     let merge_neutral_element = bottom
@@ -2103,6 +2164,11 @@ module Int_Intervals_Map = struct
 
     include FullyIsotropic
   end)
+
+  include Make_Narrow(struct
+    let top = true
+    let narrow = (&&)
+    end)
 
   let () =
     imprecise_write_msg := "elements to enumerate"
@@ -2547,7 +2613,7 @@ module Int_Intervals = struct
     in
     match i with
     | Top -> Format.pp_print_string fmt "[..]"
-    | Bottom -> Format.pp_print_string fmt "BottomISet"
+    | Bottom -> Format.fprintf fmt "[%s]" (Unicode.emptyset_string ())
     | Intervals _ ->
       let pp_one fmt (b,e)=
         assert (Int.le b e) ;
@@ -2580,6 +2646,7 @@ module Int_Intervals = struct
          in [min..start_max+size-1]. Create an englobing offsetmap, then update
          it for all intervals. *)
       let aux_min_max min start_max =
+        if Int.(equal size zero) then Bottom else
         let max = pred (start_max +~ size) in
         let curr_off, ifalse = aux_create_interval ~min ~max false in
         let validity = Base.Known (min, max) in
@@ -2688,8 +2755,9 @@ end) = struct
   let add_binding_intervals ~validity ~exact itvs v m =
     try
       match Base.valid_range validity with
-      | None -> `Bottom
-      | Some _ ->
+      | Base.Invalid_range -> `Bottom
+      | Base.Valid_range None -> (* empty validity *) `Map m
+      | Base.Valid_range (Some _) ->
         let clip = clip_by_validity validity in
         let aux_itv itv m =
           let itv = clip itv in
@@ -2784,6 +2852,7 @@ end) = struct
     in
     Format.fprintf fmt "@[<v>";
     fold_fuse_same (pretty_binding fmt) m ();
+    if !first then Format.fprintf fmt "%s@ %s" sep (Unicode.emptyset_string ());
     Format.fprintf fmt "@]"
 
   let map = map_on_values

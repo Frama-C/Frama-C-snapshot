@@ -1,0 +1,16 @@
+# frama-c -wp -wp-depth 16 [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/nth.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] 2 goals scheduled
+[wp] [alt-ergo] Goal typed_lemma_access_16_16_ok : Unknown
+[wp] [alt-ergo] Goal typed_lemma_access_4_4_ok : Valid
+[wp] Proved goals:    1 / 2
+     Qed:             0 
+     alt-ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Axiomatic Nth       -      -           2      50.0%
+----------------------------------------------------------

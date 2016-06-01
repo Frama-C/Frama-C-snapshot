@@ -14,8 +14,8 @@
 [value] Done for function param
 [value] computing for function tmp <- main.
         Called from tests/journal/intra.i:82.
-tests/journal/intra.i:20:[value] Assertion got status valid.
-tests/journal/intra.i:22:[value] Assertion got status valid.
+tests/journal/intra.i:20:[value] assertion got status valid.
+tests/journal/intra.i:22:[value] assertion got status valid.
 [value] Recording results for tmp
 [value] Done for function tmp
 [value] computing for function spare_called_fct <- main.
@@ -36,8 +36,8 @@ tests/journal/intra.i:22:[value] Assertion got status valid.
 [value] Done for function call_two_outputs
 [value] computing for function loop <- main.
         Called from tests/journal/intra.i:85.
-tests/journal/intra.i:63:[value] Assertion got status valid.
-tests/journal/intra.i:64:[value] Loop invariant got status valid.
+tests/journal/intra.i:63:[value] assertion got status valid.
+tests/journal/intra.i:64:[value] loop invariant got status valid.
 tests/journal/intra.i:66:[value] entering loop for the first time
 [value] Recording results for loop
 [value] Done for function loop

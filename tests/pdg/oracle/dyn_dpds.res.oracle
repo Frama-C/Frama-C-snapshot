@@ -8,7 +8,7 @@
 tests/pdg/dyn_dpds.c:20:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b;
 tests/pdg/dyn_dpds.c:20:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
 tests/pdg/dyn_dpds.c:23:[kernel] warning: signed overflow. assert -x ≤ 2147483647;
-tests/pdg/dyn_dpds.c:24:[value] Assertion got status unknown.
+tests/pdg/dyn_dpds.c:24:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [from] Computing for function main

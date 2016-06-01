@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,10 +24,11 @@
 
 open Lattice_type
 
+type generic_widen_hint
+type size_widen_hint = Integer.t
+
 include Bounded_Join_Semi_Lattice
-include With_Top with type t := t
-include With_Narrow with type t := t
-include With_Widening with type t := t
+include With_Widening with type t := t and type widen_hint = size_widen_hint * generic_widen_hint
 include With_Cardinal_One with type t := t
 
 val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter

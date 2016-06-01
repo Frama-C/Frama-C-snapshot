@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,6 +72,14 @@ val max_bit_address : unit -> Integer.t
 
 val max_bit_size : unit -> Integer.t
   (** @return the maximal possible size in bits of a memory base. *)
+
+val max_byte_address : unit -> Integer.t
+  (** @return the maximal possible offset in bytes of a memory base.
+      @since Aluminium-20160501 *)
+
+val max_byte_size : unit -> Integer.t
+  (** @return the maximal possible size in bits of a memory base.
+      @since Aluminium-20160501 *)
 
 (** {2 Pretty printing} *)
 

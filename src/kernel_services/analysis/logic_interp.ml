@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -156,9 +156,7 @@ let predicate kf ?(loc=Location.unknown) ?(env=default_term_env ()) s =
   let parse () = LT.predicate env pa_expr in
   wrap parse loc
 
-
-(* may raise [Invalid_argument "not an lvalue"] *)
-let error_lval () = invalid_arg "not an lvalue"
+let error_lval () = raise Db.Properties.Interp.No_conversion
 
 let rec logic_type_to_typ = function
   | Ctype typ -> typ
@@ -745,6 +743,9 @@ function contracts."
              taken into account by the functions [from_...] below *)
           DoChildren
 
+      | Pvalid_function _ ->
+          DoChildren
+
       | Papp _ | Pallocable _ | Pfreeable _ | Pfresh _ | Psubtype _
         -> fail ()
 
@@ -761,7 +762,7 @@ function contracts."
               z
           in
           add_result current_before current_stmt z
-        with Invalid_argument "not an lvalue" ->
+        with Db.From.Not_lval ->
           raise (NYI "[logic_interp] dependencies of a term lval")
 
       method! vterm t =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -116,6 +116,15 @@ val is_def_or_last_decl: Cil_types.global -> bool
 
       @since Oxygen-20120901
    *)
+
+val def_or_last_decl: Cil_types.varinfo -> Cil_types.global
+  (** [def_or_last_decl v] returns the global [g] declaring or defining
+      [g] such that [is_def_or_last_decl g] is true.
+
+      [v] must be a global variable declared in the AST.
+
+      @since Aluminium-20160501
+  *)
 
 val clear_last_decl : unit -> unit
   (** reset the mapping between a varinfo and the last global introducing it.

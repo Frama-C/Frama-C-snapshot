@@ -10,19 +10,17 @@
 ------------------------------------------------------------
 
 Goal Pre-condition 'p_is_33FF' in 'main':
-Assume { (* Heap *) Have: (region 0)<=0. }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'q_is_66F0' in 'main':
-Assume { (* Heap *) Have: (region 0)<=0. }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'r_is_q1_ko' in 'main':
-Assume { (* Heap *) Have: (region 0)<=0. }
-Prove: (hardware 26360)=(1+(hardware 26352)).
+Assume { (* Heap *) Have: region(0) <= 0. }
+Prove: hardware(26360) = (1 + hardware(26352)).
 
 ------------------------------------------------------------

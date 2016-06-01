@@ -2,21 +2,12 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*  All rights reserved.                                                  *)
+(*  Contact CEA LIST for licensing.                                       *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -30,7 +21,7 @@ let journal_register ?comment is_dyn name ty_arg fctref fct =
     ()
 
 let nojournal_register fctref fct = 
-  Db.register Db.Journalization_not_required fctref fct
+  Db.register Db.Journalization_not_required fctref (fun () -> fct)
 
 let () = 
   journal_register false
@@ -49,9 +40,11 @@ let () =
   journal_register false 
     "do_rte" Kernel_function.ty Db.RteGen.do_rte Visit.do_rte;
   nojournal_register Db.RteGen.get_precond_status Generator.precond_status;
-  nojournal_register Db.RteGen.get_signedOv_status Generator.signed_status;
+  nojournal_register
+    Db.RteGen.get_signedOv_status Generator.signed_overflow_status;
   nojournal_register Db.RteGen.get_divMod_status Generator.div_mod_status;
-  nojournal_register Db.RteGen.get_downCast_status Generator.downcast_status;
+  nojournal_register
+    Db.RteGen.get_signed_downCast_status Generator.signed_downcast_status;
   nojournal_register Db.RteGen.get_memAccess_status Generator.mem_access_status;
   nojournal_register 
     Db.RteGen.get_unsignedOv_status Generator.unsigned_overflow_status;

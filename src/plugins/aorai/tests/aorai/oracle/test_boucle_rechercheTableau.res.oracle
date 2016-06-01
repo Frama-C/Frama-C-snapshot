@@ -1,7 +1,7 @@
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_boucle_rechercheTableau.c (with preprocessing)
-tests/aorai/test_boucle_rechercheTableau.c:18:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_boucle_rechercheTableau.c:8:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+tests/aorai/test_boucle_rechercheTableau.c:17:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+tests/aorai/test_boucle_rechercheTableau.c:7:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [aorai] Welcome to the Aorai plugin
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_boucle_rechercheTableau0.i (no preprocessing)
@@ -38,7 +38,24 @@ enum aorai_OpStatusList {
     behavior buch_state_WillDoFoo_out:
       ensures 0 ≡ WillDoFoo;
  */
-extern void isPresent_pre_func(int *t, int max, int val);
+void isPresent_pre_func(int *t, int max, int val)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_isPresent;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  WillDoFoo_tmp = 0;
+  if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
+  End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
     requires 1 ≡ Idle ⇒ res ≢ -1 ∨ res ≡ -1;
@@ -65,7 +82,28 @@ extern void isPresent_pre_func(int *t, int max, int val);
       assumes 0 ≡ Idle ∨ ¬(res ≡ -1);
       ensures 0 ≡ WillDoFoo;
  */
-extern void isPresent_post_func(int res);
+void isPresent_post_func(int res)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_isPresent;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  if (Idle == 1) 
+    if (res == -1) WillDoFoo_tmp = 1; else WillDoFoo_tmp = 0;
+  else WillDoFoo_tmp = 0;
+  Idle_tmp = 0;
+  if (Idle == 1) 
+    if (res != -1) End_tmp = 1; else End_tmp = 0;
+  else End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
     requires \valid(t+(0 .. max));
@@ -139,7 +177,24 @@ int isPresent(int *t, int max, int val)
     behavior buch_state_WillDoFoo_out:
       ensures 0 ≡ WillDoFoo;
  */
-extern void foo_pre_func(void);
+void foo_pre_func(void)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_foo;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  WillDoFoo_tmp = 0;
+  Idle_tmp = 0;
+  if (WillDoFoo == 1) End_tmp = 1; else End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -160,7 +215,24 @@ extern void foo_pre_func(void);
     behavior buch_state_WillDoFoo_out:
       ensures 0 ≡ WillDoFoo;
  */
-extern void foo_post_func(void);
+void foo_post_func(void)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_foo;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  WillDoFoo_tmp = 0;
+  Idle_tmp = 0;
+  if (End == 1) End_tmp = 1; else End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ WillDoFoo ∧ 0 ≡ End ∧ 0 ≡ Idle;
     
@@ -193,7 +265,24 @@ void foo(void)
     behavior buch_state_WillDoFoo_out:
       ensures 0 ≡ WillDoFoo;
  */
-extern void main_pre_func(int argc, char **argv);
+void main_pre_func(int argc, char **argv)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  WillDoFoo_tmp = 0;
+  if (Idle == 1) Idle_tmp = 1; else Idle_tmp = 0;
+  End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ End ∧ 0 ≡ Idle ∧ 0 ≡ WillDoFoo;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -214,7 +303,24 @@ extern void main_pre_func(int argc, char **argv);
     behavior buch_state_WillDoFoo_out:
       ensures 0 ≡ WillDoFoo;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int End_tmp; */
+  /*@ ghost int Idle_tmp; */
+  /*@ ghost int WillDoFoo_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  End_tmp = End;
+  Idle_tmp = Idle;
+  WillDoFoo_tmp = WillDoFoo;
+  WillDoFoo_tmp = 0;
+  Idle_tmp = 0;
+  if (End == 1) End_tmp = 1; else End_tmp = 0;
+  End = End_tmp;
+  Idle = Idle_tmp;
+  WillDoFoo = WillDoFoo_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
     

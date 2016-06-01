@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1380,11 +1380,14 @@ struct
           in
           Type.par p_caller Type.Call fmt pp
 
-      let pretty fmt s = 
-	Format.fprintf fmt "@[<hv 2>{@ %t}@]"
-	  (fun fmt ->
-	    S.iter (fun x -> Format.fprintf fmt "@[%a;@ @]" E.pretty x) s)
-	  
+      let pretty fmt s =
+        let pp_elt pp fmt v =
+          Format.fprintf fmt "@[%a@]" pp v
+        in
+        Pretty_utils.pp_iter
+          ~pre:"@[<hov 2>{@ " ~sep:";@ " ~suf:"@ }@]"
+          S.iter (pp_elt E.pretty) fmt s
+
       let varname = undefined
       let mem_project p s =
         try S.iter (fun x -> if E.mem_project p x then raise Exit) s; false

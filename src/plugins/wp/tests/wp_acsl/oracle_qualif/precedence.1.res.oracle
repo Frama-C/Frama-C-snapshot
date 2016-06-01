@@ -1,0 +1,71 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/precedence.i (no preprocessing)
+tests/wp_acsl/precedence.i:90:[kernel] warning: unexpected token ';'
+tests/wp_acsl/precedence.i:135:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:134:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:133:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:132:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:130:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:129:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:128:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:127:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:125:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:124:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:123:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:122:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:120:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:119:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:118:[kernel] warning: Inconsistent relation chain.
+tests/wp_acsl/precedence.i:175:[kernel] warning: R is not a logic variable. Ignoring code annotation
+tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Ignoring code annotation
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 37 goals scheduled
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_xor_and : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_xor_and : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_or_xor : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_or_xor : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_implies_or : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_assoc_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_r_precedence_equiv_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_bitwise_post_ko_l_precedence_equiv_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_precedence_and_eq : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_precedence_and_eq : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_nonassoc_eq : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_nonassoc_eq : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_r_precedence_and_neq : Unknown
+[wp] [Alt-Ergo] Goal typed_comparison_post_ko_l_precedence_and_neq : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_xor_and : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_xor_and : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_or_xor : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_or_xor : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_implies_or : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_equiv_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_equiv_implies : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_ite_equiv : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_ite_equiv : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_forall_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_forall_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_forall_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_assoc_forall : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_exists_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_exists_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_exists_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_assoc_exist : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_r_precedence_let_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_m_precedence_let_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_let_ite : Unknown
+[wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_naming : Unknown
+[wp] Proved goals:    0 / 37
+     Alt-Ergo:        0  (unknown: 37)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+predicate           -      -          23       0.0%
+comparison          -      -           6       0.0%
+bitwise             -      -           8       0.0%
+----------------------------------------------------------

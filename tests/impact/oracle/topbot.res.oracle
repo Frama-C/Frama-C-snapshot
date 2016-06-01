@@ -7,7 +7,7 @@
   
 [value] computing for function f <- main.
         Called from tests/impact/topbot.c:15.
-tests/impact/topbot.c:5:[value] Function f: precondition got status invalid.
+tests/impact/topbot.c:5:[value] warning: function f: precondition got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

@@ -7,9 +7,9 @@
   e ∈ {0}
 [value] computing for function f <- main.
         Called from tests/spec/shifts.c:19.
-tests/spec/shifts.c:13:[value] Assertion got status valid.
-tests/spec/shifts.c:8:[value] Function f, behavior a: postcondition got status valid.
-tests/spec/shifts.c:9:[value] Function f, behavior b: postcondition got status valid.
+tests/spec/shifts.c:13:[value] assertion got status valid.
+tests/spec/shifts.c:8:[value] function f, behavior a: postcondition got status valid.
+tests/spec/shifts.c:9:[value] function f, behavior b: postcondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,6 +71,9 @@ let argument_is_function_name () = argument_is_function_name_ref := true
 let argument_may_be_fundecl_ref = ref false
 let argument_may_be_fundecl () = argument_may_be_fundecl_ref := true
 
+let argument_must_be_fundecl_ref = ref false
+let argument_must_be_fundecl () = argument_must_be_fundecl_ref := true
+
 let argument_must_be_existing_fun_ref = ref false
 let argument_must_be_existing_fun () =
   argument_must_be_existing_fun_ref := true
@@ -127,6 +130,7 @@ let reset () =
   is_visible_ref := true;
   argument_is_function_name_ref := false;
   argument_may_be_fundecl_ref := false;
+  argument_must_be_fundecl_ref := false;
   argument_must_be_existing_fun_ref := false;
   reset_on_copy_ref := true;
   use_category_ref := true

@@ -53,7 +53,7 @@
   S___fc_real_data_1_S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function f <- main.
         Called from tests/saveload/bool.c:25.
-tests/saveload/bool.c:17:[value] Assertion got status valid.
+tests/saveload/bool.c:17:[value] assertion got status valid.
 tests/saveload/bool.c:18:[value] entering loop for the first time
 tests/saveload/bool.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ i-1;
 [value] Recording results for f
@@ -78,7 +78,7 @@ tests/saveload/bool.c:18:[kernel] warning: signed overflow. assert -2147483648 �
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function f:
-  i ∈ [-2147483648..2147483646]
+  i ∈ [-2147483648..9]
   j ∈ {5}
   __retres ∈ {0}
 [value] Values at end of function main:

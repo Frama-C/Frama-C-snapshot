@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -33,8 +33,9 @@ let mkterm tnode ty loc =
 
 let term_of_var v= Ast_info.variable_term v.vdecl (cvar_to_lvar v)
 
-class annotateFunFromDeclspec =
+exception No_recovery
 
+class annotateFunFromDeclspec =
   let recover_from_attr_param params attrparam =
     let rec aux = function
       | AInt i ->
@@ -48,7 +49,7 @@ class annotateFunFromDeclspec =
         begin try
 		let v = List.find (fun v -> v.vname = s) params in
 		term_of_var v
-          with Not_found -> failwith "No recovery" end
+          with Not_found -> raise No_recovery end
       | ABinOp(bop,attr1,attr2) ->
         mkterm
 	  (TBinOp(bop,aux attr1,aux attr2)) 
@@ -64,16 +65,18 @@ class annotateFunFromDeclspec =
       | AStar _
       | AAddrOf _
       | AIndex _
-      | AQuestion _ -> failwith "No recovery" (* Not yet supported *)
+      | AQuestion _ -> raise No_recovery (* Not yet supported *)
     in
     aux attrparam
   in
   let recover_from_attribute params attr =
     match attr with
     | Attr(name,attrparams) ->
-      begin try
-              Some(name, List.map (recover_from_attr_param params) attrparams)
-        with Failure "No recovery" -> None end
+      begin
+        try
+          Some(name, List.map (recover_from_attr_param params) attrparams)
+        with No_recovery -> None
+      end
     | AttrAnnot _ -> None
   in
 
@@ -135,8 +138,7 @@ class annotateFunFromDeclspec =
       (* add [requires] to [b_requires] of default behavior *)
       let return_ty = getReturnType v.vtype in
       let loc = v.vdecl in
-      Annotations.add_requires 
-	Emitter.end_user kf Cil.default_behavior_name requires;
+      Annotations.add_requires Emitter.end_user kf requires;
       (* modify 'ensures' clauses *)
       let insert_spec behavior =
         let ens =

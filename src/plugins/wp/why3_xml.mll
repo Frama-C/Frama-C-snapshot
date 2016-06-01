@@ -27,6 +27,15 @@
         content : element;
       }
 
+  let pretty fmt e =
+    begin
+      Format.fprintf fmt "@[<hov 2><%s" e.name ;
+      List.iter
+        (fun (name,value) -> Format.fprintf fmt "@ %s=%S" name value)
+        e.attributes ;
+      Format.fprintf fmt ">@]" ;
+    end
+
   let buf = Buffer.create 17
 
   let rec pop_all group_stack element_stack =

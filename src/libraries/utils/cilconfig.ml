@@ -201,14 +201,14 @@ let loadConfiguration (fname: string) : unit =
         idx := Str.match_end ();
 	let p = Str.matched_group 1 s in
         (try ConfInt (int_of_string p)
-	 with Failure "int_of_string" ->
+	 with Failure _ ->
 	   Kernel.warning "Invalid integer configuration element %s" p;
 	   raise Not_found)
       end else if Str.string_match floatRegexp s !idx then begin
         idx := Str.match_end ();
 	let p = Str.matched_group 1 s in
         (try ConfFloat (float_of_string p)
-	 with Failure "float_of_string" ->
+	 with Failure _ ->
 	   Kernel.warning "Invalid float configuration element %s" p;
 	   raise Not_found)
       end else if Str.string_match boolRegexp s !idx then begin

@@ -70,7 +70,7 @@
      Alt-Ergo:       21
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               10      8 (38)    18       100%
+Lemma               10      8 (37)    18       100%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 band_int             2     -           2       100%

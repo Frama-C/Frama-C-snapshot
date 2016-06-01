@@ -10,13 +10,8 @@
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_bts/bts779.i, line 6):
-Let x_0 = Mint_0[(shift_uint8 t_1 0)].
-Assume {
-  (* Domain *)
-  Type: (is_uint8 x_0).
-  (* Heap *)
-  Have: (region (base t_1))<=0.
-}
-Prove: x_0<=255.
+Let x = Mint_0[shift_uint8(t, 0)].
+Assume { Type: is_uint8(x). (* Heap *) Have: region(t.base) <= 0. }
+Prove: x <= 255.
 
 ------------------------------------------------------------

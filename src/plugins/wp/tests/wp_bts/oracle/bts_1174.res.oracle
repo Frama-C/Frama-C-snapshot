@@ -10,18 +10,16 @@
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok' (file tests/wp_bts/bts_1174.i, line 11):
-Let r_0 = 2.*x_0.
+Let r = .2e0 * x.
 Assume {
-  (* Domain *)
-  Type: (is_float64 x_0) /\ (is_sint32 a_0) /\ (is_float64 r_0).
+  Type: is_float64(x) /\ is_sint32(a) /\ is_float64(r).
   (* Goal *)
-  When: 0<=x_0.
-  (* Pre-condition (file tests/wp_bts/bts_1174.i, line 5) in 'job' *)
-  (* Pre-condition: *)
-  Have: (-10.<=x_0) /\ (x_0<=10.).
-  (* tests/wp_bts/bts_1174.i:9: Then *)
-  Have: 0!=a_0.
+  When: 0 <= x.
+  (* Pre-condition *)
+  Have: (-.10e0 <= x) /\ (x <= .10e0).
+  (* Then *)
+  Have: 0 != a.
 }
-Prove: 0<=r_0.
+Prove: 0 <= r.
 
 ------------------------------------------------------------

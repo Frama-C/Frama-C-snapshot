@@ -141,9 +141,6 @@ let init_lexicon _ =
                         IDENT ("_inline"));
       ("__attribute__", fun loc -> ATTRIBUTE loc);
       ("__attribute", fun loc -> ATTRIBUTE loc);
-(*
-      ("__attribute_used__", fun loc -> ATTRIBUTE_USED loc);
-*)
       ("__blockattribute__", fun _ -> BLOCKATTRIBUTE);
       ("__blockattribute", fun _ -> BLOCKATTRIBUTE);
       ("__asm__", fun loc -> ASM loc);
@@ -560,6 +557,7 @@ rule initial = parse
                                           initial lexbuf
                                         }
 |		'#'			{ hash lexbuf}
+|		"%:"			{ hash lexbuf}
 |               "_Pragma" 	        { PRAGMA (currentLoc ()) }
 |		'\''			{ CST_CHAR (chr lexbuf, currentLoc ())}
 |		"L'"			{ CST_WCHAR (chr lexbuf, currentLoc ()) }
@@ -617,13 +615,21 @@ rule initial = parse
 |		'|'			{PIPE}
 |		'^'			{CIRC}
 |		'?'			{QUEST}
-|		':'			{COLON}
+|		':'
+  { if Cabshelper.is_attr_test () then begin
+        Cabshelper.pop_attr_test (); COLON2
+      end else COLON
+  }
 |		'~'		        {TILDE (currentLoc ())}
 
 |		'{'		       {dbgToken (LBRACE (currentLoc ()))}
 |		'}'		       {dbgToken (RBRACE (currentLoc ()))}
+|		"<%"		       {dbgToken (LBRACE (currentLoc ()))}
+|		"%>"		       {dbgToken (RBRACE (currentLoc ()))}
 |		'['				{LBRACKET}
 |		']'				{RBRACKET}
+|		"<:"				{LBRACKET}
+|		":>"				{RBRACKET}
 |		'('		       {dbgToken (LPAREN (currentLoc ())) }
 |		')'				{RPAREN}
 |		';'		       {dbgToken (SEMICOLON (currentLoc ())) }
@@ -686,7 +692,7 @@ and hash = parse
                  let s = Lexing.lexeme lexbuf in
                  let lineno = try
                    int_of_string s
-                 with Failure ("int_of_string") ->
+                 with Failure _ ->
                    (* the int is too big. *)
                    Kernel.warning "Bad line number in preprocessed file: %s" s;
                    (-1)

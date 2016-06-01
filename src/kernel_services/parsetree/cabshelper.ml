@@ -43,6 +43,8 @@
 
 open Cabs
 
+let dkey = Kernel.register_category "comments"
+
 let nextident = ref 0
 let getident () =
     nextident := !nextident + 1;
@@ -80,22 +82,31 @@ module Comments =
       MyState.set ((MyTable.add first ((last,comment)::acc)) state)
 
     let get (first,last) =
-      Kernel.debug "Searching for comments between positions %a and %a@."
+      Kernel.debug ~dkey "Searching for comments between positions %a and %a@."
         Cil_datatype.Position.pretty first
         Cil_datatype.Position.pretty last;
-      MyTable.fold_range
-        (fun pos ->
-          match Cil_datatype.Position.compare first pos with
-            | n when n > 0 -> Rangemap.Below
-            | 0 -> Rangemap.Match
-            | _ ->
-              if Cil_datatype.Position.compare pos last <= 0 then 
-                Rangemap.Match
-              else
-                Rangemap.Above)
-        (fun _ comments acc -> acc @ List.rev_map snd comments)
-        (MyState.get ())
+      if Cil_datatype.Position.equal first Lexing.dummy_pos ||
+         Cil_datatype.Position.equal last Lexing.dummy_pos
+      then begin
+        Kernel.debug ~dkey "skipping dummy position@.";
         []
+      end else
+        let r = MyTable.fold_range
+            (fun pos ->
+               match Cil_datatype.Position.compare first pos with
+               | n when n > 0 -> Rangemap.Below
+               | 0 -> Rangemap.Match
+               | _ ->
+                 if Cil_datatype.Position.compare pos last <= 0 then 
+                   Rangemap.Match
+                 else
+                   Rangemap.Above)
+            (fun _ comments acc -> acc @ List.rev_map snd comments)
+            (MyState.get ())
+            []
+        in
+        Kernel.debug ~dkey "%d results@." (List.length r);
+        r
       
     let iter f =
       MyTable.iter 
@@ -203,6 +214,13 @@ let d_cabsloc fmt cl =
   Format.fprintf fmt "%s:%d"
     (fst cl).Lexing.pos_fname
     (fst cl).Lexing.pos_lnum
+
+type attr_test = Normal | Test
+let state_stack = Stack.create ()
+let () = Stack.push Normal state_stack
+let push_attr_test () = Stack.push Test state_stack
+let pop_attr_test () = ignore (Stack.pop state_stack)
+let is_attr_test () = Stack.top state_stack = Test
 
 (*
 Local Variables:

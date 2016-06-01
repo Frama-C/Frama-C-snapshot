@@ -1,0 +1,104 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main6
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 0 to 2047] ∈ [--..--]
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {0}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+tests/value/alias.i:185:[value] entering loop for the first time
+tests/value/alias.i:191:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
+tests/value/alias.i:199:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
+[value] Recording results for main6
+[value] done for function main6
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main6:
+  p[0] ∈ {0}
+   [1] ∈ {0; 77}
+   [2..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3; 77}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  u ∈ {0; 1}
+  v ∈ {0; 1}
+  w ∈ {0; 1}
+  x ∈ [0..99]
+  y ∈ {0; 3; 77}
+  z ∈ {-33}
+  PTR1 ∈ {{ &p[1] ; &q[2] }}
+  PTR2 ∈ [--..--]
+  i_0 ∈ {100}
+[from] Computing for function main6
+[from] Done for function main6
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main6:
+  p[1] FROM c (and SELF)
+  q[2] FROM c (and SELF)
+  u FROM c
+  v FROM c
+  w FROM c
+  x FROM \nothing (and SELF)
+  y FROM p[1]; q[2]; c
+  z FROM NULL[0..3]; PTR2; c
+  PTR1 FROM c
+  PTR2 FROM NULL[0..3]; PTR2
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main6:
+          p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
+[inout] Inputs for function main6:
+          NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c

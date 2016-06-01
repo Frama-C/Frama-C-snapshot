@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,19 +29,28 @@ type cstring = CSString of string | CSWstring of Escape.wstring
 (** This type abstracts over the two kinds of constant strings present
     in strings. It is used in a few modules below Base. *)
 
+(** Validity for variables that might change size. *)
+type variable_validity = private {
+  mutable weak : bool (** Indicate that the variable is weak, i.e. that
+                          it may represent multiple memory locations *);
+  mutable min_alloc : Int.t (** First bit guaranteed to be valid; can be -1 *);
+  mutable max_alloc : Int.t (** Last possibly valid bit *);
+  max_allocable: Int.t (** Maximum valid bit after size increase *);
+}
+
 type base = private
   | Var of Cil_types.varinfo * validity
       (** Base for a standard C variable. *)
-  | Initialized_Var of Cil_types.varinfo * validity
-      (** Base for a variable with a non-standard initial value. This exact
-          value is defined in module {!Cvalue.Default_offsetmap}. *)
   | CLogic_Var of Cil_types.logic_var * Cil_types.typ * validity
       (** Base for a logic variable that has a C type. *)
   | Null (** Base for an addresse like [(int* )0x123] *)
   | String of int (** unique id of the constant string (one per code location)*)
     * cstring (** contents of the constant string *)
+  | Allocated of Cil_types.varinfo * validity
+      (** Base for a variable dynamically allocated via malloc/calloc/realloc *)
 
 and validity =
+  | Empty (** For 0-sized bases *)
   | Known of Int.t * Int.t (** Valid between those two bits *)
   | Unknown of Int.t * Int.t option * Int.t 
       (** Unknown(b,k,e) indicates:
@@ -51,6 +60,13 @@ and validity =
   	   - potentially valid between k+1 and e:
           Accesses on potentially valid parts will succeed, but will also
           raise an alarm. *)
+  | Variable of variable_validity
+        (** Variable(min_alloc, max_alloc) means:
+            - all offsets between [0] and [min_alloc] are valid; min_alloc can
+              be -1, in which case no offsets are guaranteed to be valid.
+            - offsets between [min_alloc+1] and [max_alloc] are potentially valid;
+            - offsets above [max_alloc+1] are invalid.
+        *)
   | Invalid (** Valid nowhere. Typically used for the NULL base, or for
                 function pointers. *)
 
@@ -82,8 +98,35 @@ val typeof : t -> Cil_types.typ option
 
 val pretty_validity : Format.formatter -> validity -> unit
 val validity : t -> validity
+
+(** [validity_from_size size] returns [Empty] if [size] is zero,
+    or [Known (0, size-1)] if [size > 0].
+    [size] must not be negative.
+   @since Aluminium-20160501 *)
+val validity_from_size : Int.t -> validity
 val validity_from_type : Cil_types.varinfo -> validity
-val valid_range: validity -> Int_Intervals_sig.itv option
+
+type range_validity =
+  | Invalid_range
+  | Valid_range of Int_Intervals_sig.itv option
+
+(** [valid_range v] returns [Invalid_range] if [v] is [Invalid],
+    [Valid_range None] if [v] is [Empty], or [Valid_range (Some (mn, mx))]
+    otherwise, where [mn] and [mx] are the minimum and maximum (possibly)
+    valid bounds of [v]. *)
+val valid_range: validity -> range_validity
+
+(** [is_weak_validity v] returns true iff [v] is a [Weak] validity. *)
+val is_weak_validity: validity -> bool
+
+val create_variable_validity:
+  weak:bool -> min_alloc:Int.t -> max_alloc:Int.t -> variable_validity
+
+val update_variable_validity:
+  variable_validity -> weak:bool -> min_alloc:Int.t -> max_alloc:Int.t -> unit
+(** Update the corresponding fields of the variable validity. Bases
+    already weak cannot be made 'strong' through this function, and the
+    validity bounds can only grow. *)
 
 
 (** {2 Finding bases} *)
@@ -135,16 +178,17 @@ val is_valid_offset : for_writing:bool -> Int.t -> t -> Ival.t -> unit
     (expressed in bits) plus [size] bits is valid in [b]. It does nothing
     in this case, and raises [Not_valid_offset] if the offset may be invalid. *)
 
-val base_max_offset: t -> Ival.t
-(** Maximal valid offset (in bits) of the given base. Returns [Ival.bottom]
-    for invalid bases. Returns an interval for bases with an unknown validity.*)
-
 
 (** {2 Misc} *)
 
 val is_read_only : t -> bool
 (** Is the base valid as a read/write location, or only for reading.
     The [const] attribute is not currently taken into account. *)
+
+val is_weak : t -> bool
+(** Is the given base a weak one (in the sens that its validity is {!Weak}).
+    Only possible for {!Allocated} bases. *)
+
 val id : t -> int
 val is_aligned_by : t -> Int.t -> bool
 
@@ -153,11 +197,15 @@ val is_aligned_by : t -> Int.t -> bool
     This is only useful to create an initial memory state for analysis,
     and is never needed for normal users. *)
 
-val register_initialized_var: Cil_types.varinfo -> validity -> t
+val register_allocated_var: Cil_types.varinfo -> validity -> t
+  (** Allocated variables are variables not present in the source of the
+      program, but instead created through dynamic allocation. Their field
+      [vsource] is set to false. *)
+
 val register_memory_var : Cil_types.varinfo -> validity -> t
   (** Memory variables are variables not present in the source of the program.
-      They are created only to fill the contents of another variable, or
-      through dynamic allocation. Their field [vsource] is set to false. *)
+      They are created only to fill the contents of another variable.
+      Their field [vsource] is set to false. *)
 
 (*
 Local Variables:

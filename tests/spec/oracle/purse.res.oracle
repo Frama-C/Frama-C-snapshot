@@ -289,7 +289,7 @@ extern size_t mbstowcs(wchar_t *pwcs, char const *s, size_t n);
  */
 extern size_t wcstombs(char *s, wchar_t const *pwcs, size_t n);
 
-/*@ predicate purse_inv{L}(purse *p) = \valid{L}(p) ∧ p->balance ≥ 0;
+/*@ predicate purse_inv{L}(purse *p) = \valid(p) ∧ p->balance ≥ 0;
  */
 /*@ requires purse_inv(p) ∧ s ≥ 0;
     ensures

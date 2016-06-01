@@ -1,0 +1,46 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/struct_use_case.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'f':
+Let x_1 = var_0.F1_a.
+Let a = var_0.F1_b.
+Let a_1 = { var_0 with F1_b = a[0 <- y][1 <- x] }.
+Assume { Type: IsS1(var_0) /\ is_uint32(x) /\ is_uint32(y) /\ IsS1(a_1). }
+Prove: EqS1(a_1, { var_0 with F1_b = a[1 <- x] }).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'f':
+Let x_1 = var_0.F1_a.
+Let a = var_0.F1_b.
+Let a_1 = { var_0 with F1_b = a[0 <- y][1 <- x] }.
+Assume { Type: IsS1(var_0) /\ is_uint32(x) /\ is_uint32(y) /\ IsS1(a_1). }
+Prove: EqS1(a_1, { var_0 with F1_b = a[1 <- x][0 <- y] }).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'g':
+Let a = (var_0.F1_b)[1 <- x].
+Let a_1 = { F1_a = y ; F1_b = a }.
+Assume { Type: IsS1(var_0) /\ is_uint32(x) /\ is_uint32(y) /\ IsS1(a_1). }
+Prove: EqS1(a_1, { var_0 with F1_b = a }).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'g':
+Let a = { F1_a = y ; F1_b = (var_0.F1_b)[1 <- x] }.
+Assume { Type: IsS1(var_0) /\ is_uint32(x) /\ is_uint32(y) /\ IsS1(a). }
+Prove: EqS1(a, a).
+
+------------------------------------------------------------

@@ -91,7 +91,7 @@ struct st fc(struct st s)
 
 void fd(char *x_0)
 {
-  /*@ assert x_0 ≡ x_0; */ ;
+  /*@ assert (char const *)x_0 ≡ (char *)x_0; */ ;
   x_0 = (char *)"abcdef";
   /*@ assert ¬\valid(x_0) ∧ \valid_read(x_0); */ ;
   return;

@@ -11,7 +11,7 @@
   Y ∈ [--..--]
   Z ∈ [--..--]
 tests/slicing/loops.c:66:[value] entering loop for the first time
-tests/slicing/loops.c:68:[value] Assertion got status valid.
+tests/slicing/loops.c:68:[value] assertion got status valid.
 [value] computing for function stop <- stop_f1.
         Called from tests/slicing/loops.c:70.
 tests/slicing/loops.c:70:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype

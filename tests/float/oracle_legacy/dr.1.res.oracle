@@ -1,0 +1,53 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/dr.i (no preprocessing)
+tests/float/dr.i:6:[kernel] warning: Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106. See documentation for option -warn-decimal-float
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  big ∈ {0x1.3b8b5c0000000p106}
+  big2 ∈ {0x1.3bf1240000000p106}
+  ne1 ∈ {-0x1.99999a0000000p-4}
+  ne2 ∈ {-0x1.0000000000000p-1}
+  nodigits ∈ {0x1.4000000000000p3}
+  smaller ∈ {0}
+  he ∈ {0x1.8000000000000p1}
+  g1 ∈ {0x1.99999a0000000p-4}
+  f1 ∈ {0x1.99999a0000000p-4}
+  f9 ∈ {0x1.0000000000000p0}
+  ep ∈ {0x1.74876e0000000p33}
+  g2 ∈ {0x1.02f8f40000000p0}
+  f2 ∈ {0x1.02f8f60000000p0}
+  d2 ∈ {0x1.02f8f50000000p0}
+  e1 ∈ {0}
+  e2 ∈ {0}
+[value] computing for function printf <- main.
+        Called from tests/float/dr.i:27.
+tests/float/dr.i:27:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  e1 ∈ {1}
+  e2 ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Computing for function printf <-main
+[from] Done for function printf
+tests/float/dr.i:27:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function printf:
+  \result FROM "%d %d\n"[bits 0 to 55]
+[from] Function main:
+  e1 FROM g1; f1
+  e2 FROM g2; f2
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          e1; e2; __retres
+[inout] Inputs for function main:
+          g1; f1; g2; f2; e1; e2; "%d %d\n"[bits 0 to 55]

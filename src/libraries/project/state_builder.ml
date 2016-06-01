@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -491,8 +491,6 @@ module type Hashtbl = sig
   val remove: key -> unit
 end
 
-module Initial_caml_hashtbl = Hashtbl
-
 module Hashtbl
   (H: Datatype.Hashtbl)
   (Data: Datatype.S)
@@ -636,7 +634,7 @@ end
 module Caml_weak_hashtbl(Data: Datatype.S) =
   Weak_hashtbl(Weak.Make(Data))(Data)
 
-module Hashconsing_tbl
+module Hashconsing_tbl_weak
   (Data: sig
     include Datatype.S
     val equal_internal: t -> t -> bool
@@ -696,6 +694,82 @@ struct
   include Weak_hashtbl(W)(Data)(Info)
 
 end
+
+module Hashconsing_tbl_not_weak
+  (Data: sig
+    include Datatype.S
+    val equal_internal: t -> t -> bool
+    val hash_internal: t -> int
+    val initial_values: t list
+  end)
+  (Info: Info_with_size)
+  =
+struct
+
+  (* OCaml module typing requires to name this module. Too bad :-( *)
+  module W = struct
+
+    module HW = FCHashtbl.Make
+      (struct
+        include Data
+        let equal = Data.equal_internal
+        let hash = Data.hash_internal
+       end)
+    
+    type data = Data.t
+    type t = data HW.t
+    
+    let merge h v =
+      try HW.find h v
+      with Not_found ->
+        HW.add h v v;
+        v
+
+    let count = HW.length
+    
+    let add_initial_values h =
+      List.iter (fun vi -> let _r = merge h vi in ()) Data.initial_values
+
+    let create size =
+      let h = HW.create size in
+      add_initial_values h;
+      h
+
+    let clear t =
+      HW.clear t;
+      add_initial_values t
+
+    let stats _ =
+      abort "Not implemented: stats for %s (Hashconsing_tbl_no_gc)" Info.name
+    let fold f = HW.fold_sorted (fun v _ acc -> f v acc)
+    let iter f = HW.iter_sorted (fun v _ -> f v)
+    let mem = HW.mem
+    let find_all = HW.find_all
+    let find = HW.find
+    let remove = HW.remove
+    let add h v = HW.replace h v v 
+
+  end
+
+  include Weak_hashtbl(W)(Data)(Info)
+
+end
+
+module type Hashconsing_tbl =
+  functor
+    (Data: sig
+       include Datatype.S
+       val equal_internal: t -> t -> bool
+       val hash_internal: t -> int
+       val initial_values: t list
+    end) ->
+  functor (Info: Info_with_size) ->
+    Weak_hashtbl with type data = Data.t
+
+module Hashconsing_tbl =
+  (val if Cmdline.deterministic
+       then (module Hashconsing_tbl_not_weak: Hashconsing_tbl)
+       else (module Hashconsing_tbl_weak: Hashconsing_tbl))
 
 (* ************************************************************************* *)
 (** {3 Counters} *)
@@ -788,6 +862,7 @@ end
 
 module type Queue = sig
   type elt
+  val self: State.t
   val add: elt -> unit
   val iter: (elt -> unit) -> unit
   val is_empty: unit -> bool

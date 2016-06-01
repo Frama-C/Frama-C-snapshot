@@ -139,65 +139,6 @@ val selfMachine_is_computed: ?project:Project.project -> unit -> bool
 val msvcMode: unit -> bool
 val gccMode: unit -> bool
 
-(** Styles of printing line directives *)
-type lineDirectiveStyle =
-  | LineComment                (** Before every element, print the line
-                                * number in comments. This is ignored by
-                                * processing tools (thus errors are reported
-                                * in the CIL output), but useful for
-                                * visual inspection *)
-  | LineCommentSparse          (** Like LineComment but only print a line
-                                * directive for a new source line *)
-  | LinePreprocessorInput      (** Use #line directives *)
-  | LinePreprocessorOutput     (** Use # nnn directives (in gcc mode) *)
-
-type miscState =
-    { (** How to print line directives *)
-      mutable lineDirectiveStyle: lineDirectiveStyle option;
-      (** Whether we print something that will only be used as input to our own
-	  parser. In that case we are a bit more liberal in what we print *)
-      mutable print_CIL_Input: bool;
-      (** Whether to print the CIL as they are, without trying to be smart and
-	  print nicer code. Normally this is false, in which case the pretty
-	  printer will turn the while(1) loops of CIL into nicer loops, will not
-	  print empty "else" blocks, etc. These is one case howewer in which if
-	  you turn this on you will get code that does not compile: if you use
-	  varargs the __builtin_va_arg function will be printed in its internal
-	  form. *)
-      mutable printCilAsIs: bool;
-      (** The length used when wrapping output lines. Setting this variable to
-	  a large integer will prevent wrapping and make #line directives more
-	  accurate. *)
-      mutable lineLength: int;
-      (** Emit warnings when truncating integer constants (default true) *)
-      mutable warnTruncate: bool }
-
-val miscState: miscState
-
-(** To be able to add/remove features easily, each feature should be package
-    as an interface with the following interface. *)
-type featureDescr = {
-    fd_enabled: bool ref;
-    (** The enable flag. Set to default value  *)
-
-    fd_name: string;
-    (** This is used to construct an option "--doxxx" and "--dontxxx" that
-     * enable and disable the feature  *)
-
-    fd_description: string;
-    (** A longer name that can be used to document the new options  *)
-
-    fd_extraopt: (string * Arg.spec * string) list;
-    (** Additional command line options *)
-
-    fd_doit: (file -> unit);
-    (** This performs the transformation *)
-
-    fd_post_check: bool;
-    (** Whether to perform a CIL consistency checking after this stage, if
-     * checking is enabled (--check is passed to cilly). Set this to true if
-     * your feature makes any changes for the program. *)
-}
 
 (* ************************************************************************* *)
 (** {2 Values for manipulating globals} *)
@@ -495,7 +436,7 @@ val isSignedInteger: typ -> bool
 val isUnsignedInteger: typ -> bool
 
 
-(** Creates a a (potentially recursive) composite type. The arguments are:
+(** Creates a (potentially recursive) composite type. The arguments are:
  * (1) a boolean indicating whether it is a struct or a union, (2) the name
  * (always non-empty), (3) a function that when given a representation of the
  * structure type constructs the type of the fields recursive type (the first
@@ -754,18 +695,6 @@ val addOffsetLval: offset -> lval -> lval
 (** [addOffset o1 o2] adds [o1] to the end of [o2]. *)
 val addOffset:     offset -> offset -> offset
 
-(** Equivalent to [lastOffset] for terms.
-        @deprecated Oxygen-20120901  use Logic_const.addTermOffsetLval *)
-val lastTermOffset: term_offset -> term_offset
-
-(** Equivalent to [addOffsetLval] for terms.
-        @deprecated Oxygen-20120901  use Logic_const.addTermOffsetLval *)
-val addTermOffsetLval: term_offset -> term_lval -> term_lval
-
-(** Equivalent to [addOffset] for terms.
-        @deprecated Oxygen-20120901  use Logic_const. *)
-val addTermOffset:     term_offset -> term_offset -> term_offset
-
 (** Remove ONE offset from the end of an lvalue. Returns the lvalue with the
  * trimmed offset and the final offset. If the final offset is [NoOffset]
  * then the original [lval] did not have an offset. *)
@@ -901,21 +830,6 @@ val constFoldBinOp: loc:location -> bool -> binop -> exp -> exp -> typ -> exp
     @since Nitrogen-20111001
 *)
 val compareConstant: constant -> constant -> bool
-
-(** [true] if the two expressions are syntactically the same. 
-    @deprecated Oxygen-20120901 use {!Cil_datatype.ExpStructEq.compare}
-*)
-val compareExp: exp -> exp -> bool
-
-(** [true] if the two lval are syntactically the same. 
-    @deprecated Oxygen-20120901 use {!Cil_datatype.LvalStructEq.compare}
-*)
-val compareLval: lval -> lval -> bool
-
-(** [true] if the two offsets are syntactically the same. 
-    @deprecated Oxygen-20120901 use {!Cil_datatype.OffsetStructEq.compare}
-*)
-val compareOffset: offset -> offset -> bool
 
 (** Increment an expression. Can be arithmetic or pointer type *)
 val increm: exp -> int -> exp
@@ -1836,7 +1750,7 @@ val doVisitList:
 
 (** {3 Visitor's entry points} *)
 
-(** Visit a file. This will will re-cons all globals TWICE (so that it is
+(** Visit a file. This will re-cons all globals TWICE (so that it is
  * tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
  * not change the list of globals.
     @plugin development guide *)
@@ -1988,11 +1902,6 @@ val is_skip: stmtkind -> bool
  * machine specific simplifications to be done, or not. *)
 val constFoldVisitor: bool -> cilVisitor
 
-(** Return the string 's' if we're printing output for gcc, suppres
- *  it if we're printing for CIL to parse back in.  the purpose is to
- *  hide things from gcc that it complains about, but still be able
- *  to do lossless transformations when CIL is the consumer *)
-val forgcc: string -> string
 
 (* ************************************************************************* *)
 (** {2 Debugging support} *)
@@ -2005,9 +1914,6 @@ module CurrentLoc: State_builder.Ref with type data = location
 
 (** Pretty-print [(Cil.CurrentLoc.get ())] *)
 val pp_thisloc: Format.formatter -> unit
-
-(** A reference to the current global being visited *)
-val currentGlobal: global ref
 
 (** @return a dummy specification *)
 val empty_funspec : unit -> funspec
@@ -2027,7 +1933,7 @@ val is_empty_behavior: funbehavior -> bool
     used by CIL internally, but once you print the file out the compiler
     downstream might be confused. You might have added a new global that happens
     to have the same name as a local in some function. Rename the local to
-    ensure that there would never be confusioin. Or, viceversa, you might have
+    ensure that there would never be confusion. Or, viceversa, you might have
     added a local with a name that conflicts with a global *)
 val uniqueVarNames: file -> unit
 
@@ -2150,15 +2056,6 @@ val bytesAlignOf: typ -> int
  * the size. This function is architecture dependent, so you should only call
  * this after you call {!Cil.initCIL}. *)
 val bitsOffset: typ -> offset -> int * int
-
-(** Generate an {!Cil_types.exp} to be used in case of errors. *)
-val dExp:string -> exp
-
-(** Generate an {!Cil_types.instr} to be used in case of errors. *)
-val dInstr: string -> location -> instr
-
-(** Generate a {!Cil_types.global} to be used in case of errors. *)
-val dGlobal: string -> location -> global
 
 (** Like map but try not to make a copy of the list *)
 val mapNoCopy: ('a -> 'a) -> 'a list -> 'a list

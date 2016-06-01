@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,6 +67,12 @@ val to_int : t -> int
 (** @raise Failure if the argument does not fit in an OCaml int *)
 
 val to_float : t -> float
+val of_float : float -> t
+(** Converts from a floating-point value. The value is truncated.
+    Raises [Overflow] on infinity and NaN arguments. (Or on big values
+    with Big_int.) *)
+
+
 val neg : t -> t
 val succ : t -> t
 val pred : t -> t

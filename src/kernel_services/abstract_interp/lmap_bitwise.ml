@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,6 +52,8 @@ module type Location_map_bitwise = sig
     sep:string ->
     unit ->
     t Pretty_utils.formatter
+
+  val pretty_debug: t Pretty_utils.formatter
 
   val add_binding : reducing:bool -> exact:bool -> t -> Zone.t -> v -> t
   val add_binding_loc: reducing:bool -> exact:bool -> t -> location -> v -> t
@@ -106,24 +108,24 @@ struct
 
   (* validity must not be invalid; otherwise, Invalid_base is raised. *)
   let default_offsetmap_aux b validity =
+    let size_or_bottom = LOffset.size_from_validity validity in
     let default () =
-      match Base.valid_range validity with
-      | None -> raise Invalid_base
-      | Some (ib, ie) ->
-        assert (Integer.(equal ib zero));
-        LOffset.create ~size:(Integer.succ ie) V.default
+      match size_or_bottom with
+      | `Bottom -> raise Invalid_base
+      | `Value size -> LOffset.create ~size V.default
     in
     if Base.equal Base.null b then
       match validity with
       | Base.Invalid -> raise Invalid_base
-      | Base.Known (ib, ie) | Base.Unknown (ib, _, ie) ->
+      | Base.Known (ib, ie) ->
         if Integer.is_zero ib then
           default ()
         else begin
           (* NULL is special, because the validity may not start at 0. We must
              bind the beginning of the interval to bottom. *)
           assert (Integer.gt ib Integer.zero);
-          let to_bottom = LOffset.create ~size:(Integer.succ ie) V.bottom in
+          let size = Bottom.non_bottom size_or_bottom in
+          let to_bottom = LOffset.create ~size V.bottom in
           let range = Int_Intervals.inject_bounds ib ie in
           match LOffset.add_binding_intervals
            ~validity ~exact:true range V.default to_bottom
@@ -131,6 +133,7 @@ struct
           | `Bottom -> assert false
           | `Map m -> m
         end
+      | Base.Unknown _ | Base.Empty | Base.Variable _ -> assert false
     else
       default ()
 
@@ -149,8 +152,7 @@ struct
           let default = default_offsetmap Base.null in
           LOffset.equal default offsm
         else
-          let is_default v = V.equal v V.default in
-          LOffset.is_single_interval ~f:is_default offsm
+          LOffset.is_same_value offsm V.default
       in
       if is_default then
         remove b m
@@ -189,6 +191,15 @@ struct
     | Bottom, Bottom -> true
     | (Top | Bottom | Map _),  _ -> false
 
+  let compare =
+    if LBase.compare == Datatype.undefined then Datatype.undefined
+    else
+      fun m1 m2 -> match m1, m2 with
+        | Bottom, Bottom | Top, Top -> 0
+        | Map m1, Map m2 -> LBase.compare m1 m2
+        | Bottom, (Top | Map _) | Map _, Top -> -1
+        | Top, (Bottom | Map _) | Map _, Bottom -> 1
+
   let is_empty x = equal empty x
   let is_bottom x = x = Bottom
 
@@ -210,6 +221,11 @@ struct
 
   let pretty = pretty_generic_printer ~sep:"FROM" ()
 
+  let pretty_debug fmt m =
+    match m with
+    | Top | Bottom -> pretty fmt m
+    | Map m -> LBase.pretty_debug fmt m
+
   include Datatype.Make
       (struct
         type t = lmap
@@ -219,7 +235,7 @@ struct
          let name = LOffset.name ^ " lmap_bitwise"
         let hash = hash
         let equal = equal
-        let compare = Datatype.undefined
+        let compare = compare
         let pretty = pretty
         let internal_pretty_code = Datatype.undefined
         let rehash = Datatype.identity

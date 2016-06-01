@@ -8,14 +8,14 @@
   G2 ∈ [--..--]
   G3 ∈ [--..--]
   G4 ∈ [--..--]
-[value] computing for function fct1 <- appel_ptr_fct.
-        Called from tests/pdg/multiple_calls.c:23.
-[value] Recording results for fct1
-[value] Done for function fct1
 [value] computing for function fct2 <- appel_ptr_fct.
         Called from tests/pdg/multiple_calls.c:23.
 [value] Recording results for fct2
 [value] Done for function fct2
+[value] computing for function fct1 <- appel_ptr_fct.
+        Called from tests/pdg/multiple_calls.c:23.
+[value] Recording results for fct1
+[value] Done for function fct1
 tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert x+G1 ≤ 2147483647;
 tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(x+G1)+G2;
 tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert (int)(x+G1)+G2 ≤ 2147483647;

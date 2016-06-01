@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,6 +36,7 @@ type lmap = private Bottom | Top | Map of map
 include Datatype.S_with_collections with type t = lmap
 
 val pretty: Format.formatter -> t -> unit
+val pretty_debug: Format.formatter -> t -> unit
 val pretty_filter: Format.formatter -> t -> Zone.t -> unit
 (** [pretty_filter m z] pretties only the part of [m] that correspond to
     the bases present in [z] *)
@@ -96,6 +97,18 @@ val find_base_or_default : Base.t -> t -> offsetmap_top_bottom
 
 (** {2 Binding variables} *)
 
+(** [add_binding ~reducing ~exact initial_mem loc v] simulates the effect of
+    writing [v] at location [loc], in the initial memory state given by
+    [initial_mem].
+    If [loc] is not writable, {!bottom} is returned.
+    If [exact] is true, and [loc] is a precise location, a strong update
+    is performed.
+    If [reducing] is true, read-only locations are also updated;
+    this should only be used to build an initial state,
+    or to refine an existing state by a condition.
+    Returns [(alarm, offsm)], where [alarm] indicates that it may be invalid
+    to write at the location [loc]. [offsm] is the resulting memory after
+    the write. *)
 val add_binding:
   reducing:bool -> exact:bool -> t -> location -> v -> bool * t
 
@@ -165,6 +178,8 @@ val cached_map :
 
 
 (** {2 Misc} *)
+
+val remove_variables: Cil_types.varinfo list -> t -> t
 
 val shape: map -> offsetmap Hptmap.Shape(Base.Base).t
 (** Shape of the map. This can be used for simultaneous iterations

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,9 @@ class check: ?is_normalized:bool -> string -> Visitor.frama_c_visitor
       inconsistency, in order to trace the issue. [is_normalized] defaults to
       [true]. Some checks are deactivated when it is set [false].  *)
 
-
+val check_ast: ?is_normalized:bool -> string -> unit
+(** performs the checks of the [check] class on the current AST.
+    @since Aluminium-20160501 *)
 
 (*
 Local Variables:

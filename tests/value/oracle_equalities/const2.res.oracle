@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/const2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0].a ∈ {1}
+   [0].[bits 8 to 31] ∈ {0}
+   [0].b ∈ {2}
+   [1].a ∈ {3}
+   [1].[bits 8 to 31] ∈ {0}
+   [1].b ∈ {4}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ {2}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM T[0].b
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          T[0].b

@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/intra.c (with preprocessing)
+[kernel] Parsing tests/sparecode/intra.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -9,52 +9,52 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function param <- main.
-        Called from tests/sparecode/intra.c:82.
+        Called from tests/sparecode/intra.i:82.
 [value] Recording results for param
 [value] Done for function param
 [value] computing for function tmp <- main.
-        Called from tests/sparecode/intra.c:83.
-tests/sparecode/intra.c:21:[value] Assertion got status valid.
-tests/sparecode/intra.c:23:[value] Assertion got status valid.
+        Called from tests/sparecode/intra.i:83.
+tests/sparecode/intra.i:21:[value] assertion got status valid.
+tests/sparecode/intra.i:23:[value] assertion got status valid.
 [value] Recording results for tmp
 [value] Done for function tmp
 [value] computing for function spare_called_fct <- main.
-        Called from tests/sparecode/intra.c:84.
+        Called from tests/sparecode/intra.i:84.
 [value] Recording results for spare_called_fct
 [value] Done for function spare_called_fct
 [value] computing for function call_two_outputs <- main.
-        Called from tests/sparecode/intra.c:85.
+        Called from tests/sparecode/intra.i:85.
 [value] computing for function two_outputs <- call_two_outputs <- main.
-        Called from tests/sparecode/intra.c:49.
+        Called from tests/sparecode/intra.i:49.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] computing for function two_outputs <- call_two_outputs <- main.
-        Called from tests/sparecode/intra.c:53.
+        Called from tests/sparecode/intra.i:53.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] Recording results for call_two_outputs
 [value] Done for function call_two_outputs
 [value] computing for function loop <- main.
-        Called from tests/sparecode/intra.c:86.
-tests/sparecode/intra.c:64:[value] Assertion got status valid.
-tests/sparecode/intra.c:65:[value] Loop invariant got status valid.
-tests/sparecode/intra.c:67:[value] entering loop for the first time
+        Called from tests/sparecode/intra.i:86.
+tests/sparecode/intra.i:64:[value] assertion got status valid.
+tests/sparecode/intra.i:65:[value] loop invariant got status valid.
+tests/sparecode/intra.i:67:[value] entering loop for the first time
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function assign <- main.
-        Called from tests/sparecode/intra.c:87.
+        Called from tests/sparecode/intra.i:87.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function assign <- main.
-        Called from tests/sparecode/intra.c:88.
+        Called from tests/sparecode/intra.i:88.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function stop <- main.
-        Called from tests/sparecode/intra.c:91.
-tests/sparecode/intra.c:91:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+        Called from tests/sparecode/intra.i:91.
+tests/sparecode/intra.i:91:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
-tests/sparecode/intra.c:93:[value] entering loop for the first time
+tests/sparecode/intra.i:93:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -120,9 +120,19 @@ type status = private
 include Datatype.S with type t = status
 
 val get: Property.t -> status
-(** @return the most precise **local** status and all its emitters. Please
-    condiser to use {!Property_status.Consolidation.get} if you want to know the
+(** @return the most precise **local** status and all its emitters.
+    Consider using {!Property_status.Consolidation.get} if you want to know the
     consolidated status of the property. *)
+
+val iter_on_statuses:
+  (emitter_with_properties -> emitted_status -> unit) -> Property.t -> unit
+
+val fold_on_statuses:
+  (emitter_with_properties -> emitted_status -> 'a -> 'a) ->
+  Property.t ->
+  'a -> 'a
+(** Iteration on all the individual statuses emitted for the given property.
+    @since Aluminium-20160501 *)
 
 (* ************************************************************************ *)
 (** {2 Consolidated status} *)

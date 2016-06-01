@@ -1,5 +1,5 @@
-/* run.config
-   OPT: -val -float-hex -warn-decimal-float all -journal-disable -then -out -deps
+/* run.config*
+   OPT: -val @VALUECONFIG@ -float-hex -warn-decimal-float all -journal-disable -then -out -deps
 */
 typedef double mydouble;
 

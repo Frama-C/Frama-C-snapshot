@@ -10,245 +10,190 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'init':
-Let a_1 = (shift_sint32 t_2 a_0).
-Let x_0 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i_1).
   (* Goal *)
-  When: (a_0<=i_5) /\ (i_5<=b_0) /\ (is_sint32 i_5).
+  When: (a <= i) /\ (i <= b) /\ is_sint32(i).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_2))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_2 a_1 (i_2-a_0)).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (e_1=Mint_2[(shift_sint32 t_2 i_0)]).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_plugin/loop.i:15: Else *)
-  Have: b_0<i_2.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_1, Mint_0, a_1, i_1 - a).
+  (* Invariant 'qed_ok' *)
+  Have: forall i_2 : Z. ((i_2 < i_1) -> ((a <= i_2) ->
+      (e = Mint_0[shift_sint32(t, i_2)]))).
+  (* Invariant 'qed_ok' *)
+  Have: (a <= i_1) /\ (i_1 <= (1 + b)).
+  (* Else *)
+  Have: b < i_1.
 }
-Prove: e_1=Mint_2[(shift_sint32 t_2 i_5)].
+Prove: e = Mint_0[shift_sint32(t, i)].
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12):
-Let x_0 = 1+i_2.
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_1 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = 1 + i.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 x_0).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(x_1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_3 a_1 (i_2-a_0)).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (e_0=Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_plugin/loop.i:15: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  (* Invariant 'qed_ok' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (e = Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'qed_ok' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: a_0<=x_0.
+Prove: a <= x_1.
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12):
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0).
+  Type: is_sint32(a) /\ is_sint32(b).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 (shift_sint32 t_0 a_0) (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
 }
-Prove: a_0<=(1+b_0).
+Prove: a <= (1 + b).
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13):
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (a_0<=i_1) /\ (i_1<=i_2) /\ (is_sint32 i_1).
+  When: (a <= i_1) /\ (i_1 <= i) /\ is_sint32(i_1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_1 a_1 (i_2-a_0)).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (e_0=Mint_1[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_plugin/loop.i:15: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  (* Invariant 'qed_ok' *)
+  Have: forall i_2 : Z. ((i_2 < i) -> ((a <= i_2) ->
+      (e = Mint_0[shift_sint32(t, i_2)]))).
+  (* Invariant 'qed_ok' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: e_0=Mint_1[(shift_sint32 t_0 i_2)->e_0][(shift_sint32 t_0 i_1)].
+Prove: e = Mint_0[shift_sint32(t, i) <- e][shift_sint32(t, i_1)].
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13):
-Assume { (* Goal *) When: false. }
-Prove: e_0=Mint_4[(shift_sint32 t_0 i_8)].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Loop assigns 'qed_ok' (1/3):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Loop assigns 'qed_ok' (2/3):
 Effect at line 15
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
-Let x_1 = i_2-a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = i - a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (valid_rd Malloc_0 a_1 x_1).
+  When: valid_rd(Malloc_0, a_1, x_1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_3 a_1 x_1).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (e_0=Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_plugin/loop.i:15: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_0, Mint_1, a_1, x_1).
+  (* Invariant 'qed_ok' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (e = Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'qed_ok' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: (included a_1 x_1 a_1 (1+i_2-a_0)).
+Prove: included(a_1, x_1, a_1, 1 + i - a).
 
 ------------------------------------------------------------
 
 Goal Loop assigns 'qed_ok' (3/3):
 Effect at line 16
-Let a_1 = (shift_sint32 t_0 i_2).
-Let a_2 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let a_2 = shift_sint32(t, i).
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (valid_rd Malloc_0 a_1 1).
+  When: valid_rd(Malloc_0, a_2, 1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_2 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_3 a_2 (i_2-a_0)).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 13) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (e_0=Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12) *)
-  (* tests/wp_plugin/loop.i:15: Invariant 'qed_ok': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_plugin/loop.i:15: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  (* Invariant 'qed_ok' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (e = Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'qed_ok' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: (included a_1 1 a_2 (1+i_2-a_0)).
+Prove: included(a_2, 1, a_1, 1 + i - a).
 
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' in 'init' (1/2):
 Effect at line 15
-Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0).
-  (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 (shift_sint32 t_0 a_0) (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' in 'init' (2/2):
 Effect at line 15
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
-Let x_1 = i_2-a_0.
-Let x_2 = 1+b_1-a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = i - a.
+Let x_2 = 1 + b - a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_1) /\ (is_sint32 i_2).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 5) in 'init' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 a_1 x_2).
-  (* Pre-condition (file tests/wp_plugin/loop.i, line 6) in 'init' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_1.
-  (* tests/wp_plugin/loop.i:15: Assigns *)
-  (* tests/wp_plugin/loop.i:15: Loop assigns 'qed_ok': *)
-  Have: (havoc Mint_4 Mint_3 a_1 x_1).
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, x_2).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns 'qed_ok' *)
+  Have: havoc(Mint_0, Mint_1, a_1, x_1).
 }
-Prove: (valid_rd Malloc_1 a_1 x_1) -> (included a_1 x_1 a_1 x_2).
+Prove: (valid_rd(Malloc_0, a_1, x_1) -> included(a_1, x_1, a_1, x_2)).
 
 ------------------------------------------------------------

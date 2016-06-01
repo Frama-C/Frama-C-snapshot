@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,6 +93,21 @@ let pp_iter
           if !need_sep then Format.fprintf fmt sep else need_sep := true;
           pp fmt v;
        ) v;
+  Format.fprintf fmt suf;
+;;
+
+let pp_iter2
+    ?(pre=format_of_string "@[")
+    ?(sep=format_of_string "")
+    ?(suf=format_of_string "@]")
+    ?(between=format_of_string "@ ")
+    iter pp_key pp_v fmt v =
+  let need_sep = ref false in
+  Format.fprintf fmt pre;
+  iter (fun key v ->
+      if !need_sep then Format.fprintf fmt sep else need_sep := true;
+      Format.fprintf fmt "%a%(%)%a" pp_key key between pp_v v
+    ) v;
   Format.fprintf fmt suf;
 ;;
 

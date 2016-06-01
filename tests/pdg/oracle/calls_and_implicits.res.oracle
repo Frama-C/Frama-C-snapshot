@@ -37,9 +37,6 @@ tests/pdg/calls_and_implicits.c:22:[kernel] warning: Neither code nor specificat
         Called from tests/pdg/calls_and_implicits.c:22.
 [value] Done for function printf
 [value] computing for function printf <- print <- main.
-        Called from tests/pdg/calls_and_implicits.c:22.
-[value] Done for function printf
-[value] computing for function printf <- print <- main.
         Called from tests/pdg/calls_and_implicits.c:23.
 [value] Done for function printf
 [value] Recording results for print
@@ -50,9 +47,6 @@ tests/pdg/calls_and_implicits.c:22:[kernel] warning: Neither code nor specificat
 [value] Done for function swap
 [value] computing for function print <- main.
         Called from tests/pdg/calls_and_implicits.c:33.
-[value] computing for function printf <- print <- main.
-        Called from tests/pdg/calls_and_implicits.c:22.
-[value] Done for function printf
 [value] computing for function printf <- print <- main.
         Called from tests/pdg/calls_and_implicits.c:22.
 [value] Done for function printf

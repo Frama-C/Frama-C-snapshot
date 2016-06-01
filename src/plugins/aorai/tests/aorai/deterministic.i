@@ -1,6 +1,5 @@
-/* run.config
-   EXECNOW: make tests/aorai/Aorai_test.cmxs
-   OPT: -aorai-automata tests/aorai/deterministic.ya -aorai-test 1 -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@
+/* run.config*
+   OPT: -aorai-automata tests/aorai/deterministic.ya -aorai-test 1 -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@ @PROVE_OPTIONS@
 */
 
 int X;

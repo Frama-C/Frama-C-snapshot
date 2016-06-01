@@ -7,7 +7,7 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
-tests/misc/bts0541.c:13:[value] Assertion got status valid.
+tests/misc/bts0541.c:13:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -71,8 +71,6 @@ share/Makefile.kernel: Makefile.generating share/Makefile.config share/Makefile.
 	$(CHMOD_RO) $@
 
 $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generating configure.in
-	$(PRINT_MAKING) $@
-	$(RM) $@
 	$(SED) \
 	  -e "s|@VERSION@|$(VERSION)|" \
           -e "s|@CURR_DATE@|$$(LC_ALL=C date)|" \
@@ -91,7 +89,10 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
           -e "s|@LIBRARY_NAMES@|$(LIBRARY_NAMES)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
           -e "s|@EXE@|$(EXE)|" \
-          $< > $@
+          $< > $@.tmp
+	@touch -r $@.tmp $<
+	$(CP_IF_DIFF) $@.tmp $@
+	$(RM) $@.tmp
 	$(CHMOD_RO) $@
 
 ifeq ("$(LOCAL_MACHDEP)","yes")
