@@ -31,6 +31,7 @@ authors: [
 ]
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
+dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
 doc: ["http://frama-c.com/download/user-manual-Aluminium-20160501.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
@@ -56,7 +57,7 @@ build: [
                  "--disable-gui" { !conf-gtksourceview:installed |
                                    !conf-gnomecanvas:installed }
 ]
-  [make]
+  [make "-j%{jobs}%"]
 ]
 
 install: [
@@ -81,7 +82,7 @@ build-doc: [
 ]
 
 build-test: [
-  [make "PTESTS_OPTS=-error-code" "tests"]
+  [make "-j%{jobs}%" "PTESTS_OPTS=-error-code" "tests"]
 ]
 
 depends: [
