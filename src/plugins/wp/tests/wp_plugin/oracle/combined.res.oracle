@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/combined.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function job
@@ -13,7 +12,7 @@ Goal Assertion (file tests/wp_plugin/combined.c, line 26):
 Assume {
   Type: is_sint32(A).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
 }
 Prove: (50 <= A) /\ (A <= 100).
 
@@ -23,13 +22,13 @@ Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 28):
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(v) /\ is_sint32(1 + i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       P_P(Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
@@ -53,13 +52,13 @@ Assume {
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_2 : Z. ((i_2 < i) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
       P_P(Mint_0[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
@@ -82,13 +81,13 @@ Let x = 1 + j.
 Assume {
   Type: is_sint32(A) /\ is_sint32(i) /\ is_sint32(j) /\ is_sint32(x).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       P_P(Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
@@ -116,13 +115,13 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 49).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_2, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_2 : Z. ((i_2 < i_1) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
       P_P(Mint_2[shift_sint32(t, i_2)]))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 50).
@@ -170,13 +169,13 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a, x).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       P_P(Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).
@@ -203,13 +202,13 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_1, 1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
   Have: (50 <= A) /\ (A <= 100).
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, shift_sint32(t, 0), 50).
   (* Invariant *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       P_P(Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 50).

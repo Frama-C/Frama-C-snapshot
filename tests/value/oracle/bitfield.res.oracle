@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   h ∈ {0}
   k ∈ {0}
   k8 ∈ {0}
@@ -25,14 +25,17 @@
   ee ∈ {0}
   foo ∈ [--..--]
   y ∈ [--..--]
+[value] computing for function main_old <- main.
+        Called from tests/value/bitfield.i:150.
 [value] Called Frama_C_show_each({1})
 [value] Called Frama_C_show_each({3})
-[value] casting address to a bit-field of 22 bits: this is smaller than sizeof(void*)
-tests/value/bitfield.i:118:[kernel] warning: signed overflow. assert -2147483648 ≤ v.d+1;
-tests/value/bitfield.i:118:[kernel] warning: signed overflow. assert v.d+1 ≤ 2147483647;
-[value] computing for function f <- main.
-        Called from tests/value/bitfield.i:121.
-[value] DUMPING STATE of file tests/value/bitfield.i line 17
+tests/value/bitfield.i:120:[value] Assigning imprecise value to v.c.
+        The imprecision originates from Arithmetic {tests/value/bitfield.i:120}
+tests/value/bitfield.i:122:[value] warning: signed overflow. assert -2147483648 ≤ (int)v.d + 1;
+tests/value/bitfield.i:122:[value] warning: signed overflow. assert (int)v.d + 1 ≤ 2147483647;
+[value] computing for function f <- main_old <- main.
+        Called from tests/value/bitfield.i:125.
+[value] DUMPING STATE of file tests/value/bitfield.i line 21
         h ∈ {0}
         k ∈ {0}
         k8 ∈ {0}
@@ -55,74 +58,72 @@ tests/value/bitfield.i:118:[kernel] warning: signed overflow. assert v.d+1 ≤ 2
         ee ∈ {0}
         foo ∈ [--..--]
         y ∈ [--..--]
-        a ∈ [--..--]
-        b_0 ∈ [--..--]
         v.a ∈ {0}
          .b ∈ {7}
          .c ∈
-         {{ garbled mix of &{v} (origin: Arithmetic {tests/value/bitfield.i:116}) }}
+         {{ garbled mix of &{v} (origin: Arithmetic {tests/value/bitfield.i:120}) }}
          .[bits 28 to 31] ∈ UNINITIALIZED
          .d ∈ {{ &v + {9} }}
         l_161{.f0; .f1[bits 0 to 31]} ∈ {-1}
-        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Recording results for f
 [value] Done for function f
-tests/value/bitfield.i:122:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b_0;
-tests/value/bitfield.i:122:[kernel] warning: signed overflow. assert a+b_0 ≤ 2147483647;
-[value] casting address to a bit-field of 22 bits: this is smaller than sizeof(void*)
-[value] computing for function return_8 <- main.
-        Called from tests/value/bitfield.i:126.
+tests/value/bitfield.i:126:[value] warning: signed overflow. assert -2147483648 ≤ foo + foo;
+tests/value/bitfield.i:126:[value] warning: signed overflow. assert foo + foo ≤ 2147483647;
+tests/value/bitfield.i:127:[value] Assigning imprecise value to h.c.
+        The imprecision originates from Arithmetic {tests/value/bitfield.i:127}
+[value] computing for function return_8 <- main_old <- main.
+        Called from tests/value/bitfield.i:130.
 [value] Recording results for return_8
 [value] Done for function return_8
-[value] computing for function g <- main.
-        Called from tests/value/bitfield.i:129.
+[value] computing for function g <- main_old <- main.
+        Called from tests/value/bitfield.i:133.
 [value] Recording results for g
 [value] Done for function g
+[value] Recording results for main_old
+[value] Done for function main_old
+tests/value/bitfield.i:150:[value] warning: locals {v} escaping the scope of main_old through h
 [value] computing for function imprecise_bts_1671 <- main.
-        Called from tests/value/bitfield.i:131.
-tests/value/bitfield.i:65:[value] entering loop for the first time
+        Called from tests/value/bitfield.i:151.
+tests/value/bitfield.i:69:[value] entering loop for the first time
 [value] computing for function leaf <- imprecise_bts_1671 <- main.
-        Called from tests/value/bitfield.i:66.
-tests/value/bitfield.i:66:[kernel] warning: Neither code nor specification for function leaf, generating default assigns from the prototype
+        Called from tests/value/bitfield.i:70.
+tests/value/bitfield.i:70:[kernel] warning: Neither code nor specification for function leaf, generating default assigns from the prototype
 [value] using specification for function leaf
 [value] Done for function leaf
-tests/value/bitfield.i:67:[value] Reading left-value ee.
+tests/value/bitfield.i:71:[value] Reading left-value ee.
         It contains a garbled mix of {b} because of Misaligned
-        {tests/value/bitfield.i:66}.
+        {tests/value/bitfield.i:70}.
 [value] Called Frama_C_show_each({{ garbled mix of &{b}
-                                 (origin: Misaligned {tests/value/bitfield.i:66}) }})
-tests/value/bitfield.i:69:[value] Reading left-value ee.
+                                 (origin: Misaligned {tests/value/bitfield.i:70}) }})
+tests/value/bitfield.i:73:[value] Reading left-value ee.
         It contains a garbled mix of {b} because of Misaligned
-        {tests/value/bitfield.i:66}.
+        {tests/value/bitfield.i:70}.
 [value] Called Frama_C_show_each(.next ∈
                                  {{ garbled mix of &{b}
-                                  (origin: Misaligned {tests/value/bitfield.i:66}) }}
+                                  (origin: Misaligned {tests/value/bitfield.i:70}) }}
                                  .bitf ∈ {0}
                                  .[bits 65 to 95] ∈
                                  {{ garbled mix of &{b}
-                                  (origin: Misaligned {tests/value/bitfield.i:66}) }})
-tests/value/bitfield.i:70:[value] Assigning imprecise value to c.
-        The imprecision originates from Misaligned {tests/value/bitfield.i:66}
-tests/value/bitfield.i:66:[value] Reading left-value c.
-        It contains a garbled mix of {b; ee} because of Misaligned
-        {tests/value/bitfield.i:66}.
+                                  (origin: Misaligned {tests/value/bitfield.i:70}) }})
+tests/value/bitfield.i:74:[value] Assigning imprecise value to c.
+        The imprecision originates from Misaligned {tests/value/bitfield.i:70}
 [value] computing for function leaf <- imprecise_bts_1671 <- main.
-        Called from tests/value/bitfield.i:66.
+        Called from tests/value/bitfield.i:70.
 [value] Done for function leaf
 [value] Called Frama_C_show_each({{ garbled mix of &{b}
-                                 (origin: Misaligned {tests/value/bitfield.i:66}) }})
-tests/value/bitfield.i:68:[kernel] warning: out of bounds write. assert \valid(&c->bitf);
+                                 (origin: Misaligned {tests/value/bitfield.i:70}) }})
+tests/value/bitfield.i:72:[value] warning: out of bounds write. assert \valid(&c->bitf);
 [value] Called Frama_C_show_each({{ garbled mix of &{b}
-                                 (origin: Misaligned {tests/value/bitfield.i:66}) }})
-tests/value/bitfield.i:70:[kernel] warning: out of bounds read. assert \valid_read(&c->next.next);
+                                 (origin: Misaligned {tests/value/bitfield.i:70}) }})
+tests/value/bitfield.i:74:[value] warning: out of bounds read. assert \valid_read(&c->next.next);
 [value] computing for function leaf <- imprecise_bts_1671 <- main.
-        Called from tests/value/bitfield.i:66.
+        Called from tests/value/bitfield.i:70.
 [value] Done for function leaf
 [value] Recording results for imprecise_bts_1671
 [value] Done for function imprecise_bts_1671
 [value] computing for function logic <- main.
-        Called from tests/value/bitfield.i:133.
+        Called from tests/value/bitfield.i:152.
 [value] Called Frama_C_show_each(.v0_3 ∈ [--..--]
                                  .v4 ∈ {0}
                                  .v5_31 ∈ [--..--])
@@ -130,51 +131,123 @@ tests/value/bitfield.i:70:[kernel] warning: out of bounds read. assert \valid_re
                                  .v4 ∈ {0}
                                  .v5_31 ∈ [--..--])
 [value] Called Frama_C_show_each({0})
-tests/value/bitfield.i:89:[value] assertion got status valid.
+tests/value/bitfield.i:93:[value] assertion got status valid.
 [value] Called Frama_C_show_each([bits 0 to 2] ∈ [--..--]
                                  [bits 3 to 3] ∈ {0}
                                  [bits 4 to 31] ∈ [--..--])
-tests/value/bitfield.i:95:[value] assertion got status valid.
-tests/value/bitfield.i:97:[kernel] warning: accessing uninitialized left-value. assert \initialized(&w.v4);
+tests/value/bitfield.i:99:[value] assertion got status valid.
+tests/value/bitfield.i:101:[value] warning: accessing uninitialized left-value. assert \initialized(&w.v4);
 [value] Recording results for logic
 [value] Done for function logic
+[value] computing for function eq_bitfields <- main.
+        Called from tests/value/bitfield.i:153.
+[value] DUMPING STATE of file tests/value/bitfield.i line 143
+        h.a ∈ {0}
+         .b ∈ [--..--]
+         .c ∈ [--..--] or ESCAPINGADDR
+         {.d; .[bits 28 to 31]} ∈ {0}
+        k ∈ {0}
+        k8.a ∈ {0}
+          .b ∈ {-8}
+          {.c; .d; .[bits 28 to 31]} ∈ {0}
+        kr8.a ∈ {0}
+           .b ∈ {8}
+           {.c; .d; .[bits 28 to 31]} ∈ {0}
+        ll.b ∈ {-25536}
+          .[bits 16 to 31] ∈ {0}
+        ini.a ∈ {2}
+           .b ∈ {-7}
+           .c ∈ {99999}
+           {.d; .[bits 28 to 31]} ∈ {0}
+        VV ∈ {0}
+        q4 ∈ {40000}
+        X ∈ {7}
+        x{.f; .sf} ∈ {28349}
+        us ∈ {56355}
+        G ∈ {1}
+        H ∈ {0}
+        b ∈ {0}
+        c ∈
+         {{ garbled mix of &{b; ee}
+          (origin: Misaligned {tests/value/bitfield.i:70}) }}
+        ee ∈
+          {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:70}) }}
+        foo ∈ [--..--]
+        y.v0_3 ∈ [--..--]
+         .v4 ∈ {0}
+         .v5_31 ∈ [--..--]
+        i ∈ {16; 17}
+        s.a ∈ {0; 1}
+         .b ∈ UNINITIALIZED
+         .c ∈ {16; 17}
+         {.d; .[bits 28 to 31]} ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] Recording results for eq_bitfields
+[value] Done for function eq_bitfields
 [value] Recording results for main
 [value] done for function main
-tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final status invalid.
+tests/value/bitfield.i:101:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function eq_bitfields:
+  i ∈ [--..--]
+[value:final-states] Values at end of function f:
   X ∈ {7}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   H ∈ {0}
   r ∈ {1}
-[value] Values at end of function imprecise_bts_1671:
+[value:final-states] Values at end of function imprecise_bts_1671:
   b ∈ {0}
   c ∈
    {{ garbled mix of &{b; ee}
-    (origin: Misaligned {tests/value/bitfield.i:66}) }}
+    (origin: Misaligned {tests/value/bitfield.i:70}) }}
   ee ∈
     {{ garbled mix of &{b}
-     (origin: Misaligned {tests/value/bitfield.i:66}) }}
-[value] Values at end of function logic:
+     (origin: Misaligned {tests/value/bitfield.i:70}) }}
+[value:final-states] Values at end of function logic:
   y.v0_3 ∈ [--..--]
    .v4 ∈ {0}
    .v5_31 ∈ [--..--]
   w.v0_3 ∈ {1}
    {.v4; .v5_31} ∈ UNINITIALIZED
-[value] Values at end of function return_8:
+[value:final-states] Values at end of function return_8:
   __retres ∈ {8}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main_old:
   h.a ∈ {0}
    .b ∈ [--..--]
    .c ∈
    {{ garbled mix of &{v}
-    (origin: Arithmetic {tests/value/bitfield.i:123}) }}
+    (origin: Arithmetic {tests/value/bitfield.i:127}) }}
    {.d; .[bits 28 to 31]} ∈ {0}
   k8.a ∈ {0}
     .b ∈ {-8}
     {.c; .d; .[bits 28 to 31]} ∈ {0}
   kr8.a ∈ {0}
-     .b ∈ {-8}
+     .b ∈ {8}
+     {.c; .d; .[bits 28 to 31]} ∈ {0}
+  ll.b ∈ {-25536}
+    .[bits 16 to 31] ∈ {0}
+  VV ∈ {0}
+  X ∈ {7}
+  G ∈ {1}
+  H ∈ {0}
+  v.a ∈ {0}
+   .b ∈ {7}
+   .c ∈
+   {{ garbled mix of &{v}
+    (origin: Arithmetic {tests/value/bitfield.i:120}) }}
+   .[bits 28 to 31] ∈ UNINITIALIZED
+   .d ∈ {{ &v + {9} }}
+  l_161{.f0; .f1[bits 0 to 31]} ∈ {-1}
+[value:final-states] Values at end of function main:
+  h.a ∈ {0}
+   .b ∈ [--..--]
+   .c ∈ [--..--] or ESCAPINGADDR
+   {.d; .[bits 28 to 31]} ∈ {0}
+  k8.a ∈ {0}
+    .b ∈ {-8}
+    {.c; .d; .[bits 28 to 31]} ∈ {0}
+  kr8.a ∈ {0}
+     .b ∈ {8}
      {.c; .d; .[bits 28 to 31]} ∈ {0}
   ll.b ∈ {-25536}
     .[bits 16 to 31] ∈ {0}
@@ -185,25 +258,18 @@ tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final sta
   b ∈ {0}
   c ∈
    {{ garbled mix of &{b; ee}
-    (origin: Misaligned {tests/value/bitfield.i:66}) }}
+    (origin: Misaligned {tests/value/bitfield.i:70}) }}
   ee ∈
     {{ garbled mix of &{b}
-     (origin: Misaligned {tests/value/bitfield.i:66}) }}
+     (origin: Misaligned {tests/value/bitfield.i:70}) }}
   y.v0_3 ∈ [--..--]
    .v4 ∈ {0}
    .v5_31 ∈ [--..--]
-  v.a ∈ {0}
-   .b ∈ {7}
-   .c ∈
-   {{ garbled mix of &{v}
-    (origin: Arithmetic {tests/value/bitfield.i:116}) }}
-   .[bits 28 to 31] ∈ UNINITIALIZED
-   .d ∈ {{ &v + {9} }}
-  l_161{.f0; .f1[bits 0 to 31]} ∈ {-1}
-  __retres ∈ {0}
-[from] Computing for function f
-[from] Computing for function Frama_C_dump_each <-f
+[from] Computing for function eq_bitfields
+[from] Computing for function Frama_C_dump_each <-eq_bitfields
 [from] Done for function Frama_C_dump_each
+[from] Done for function eq_bitfields
+[from] Computing for function f
 [from] Done for function f
 [from] Computing for function g
 [from] Done for function g
@@ -215,10 +281,14 @@ tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final sta
 [from] Done for function logic
 [from] Computing for function return_8
 [from] Done for function return_8
+[from] Computing for function main_old
+[from] Done for function main_old
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function eq_bitfields:
+  NO EFFECTS
 [from] Function f:
   X FROM x_0
 [from] Function g:
@@ -236,9 +306,20 @@ tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final sta
   y.v4 FROM y.v4 (and SELF)
 [from] Function return_8:
   \result FROM \nothing
+[from] Function main_old:
+  h.a FROM h.a
+   .b FROM h{.a; .b}; foo
+   .c FROM \nothing
+  k8.b FROM \nothing
+  kr8.b FROM \nothing
+  ll.b FROM q4
+  VV FROM h.a
+  X FROM \nothing
+  G FROM x.f; us
+  H FROM x.sf; us
 [from] Function main:
   h.a FROM h.a
-   .b FROM h{.a; .b}; a; b_0
+   .b FROM h{.a; .b}; foo
    .c FROM \nothing
   k8.b FROM \nothing
   kr8.b FROM \nothing
@@ -253,8 +334,11 @@ tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final sta
     FROM ee{.next.next; {.bitf; .[bits 65 to 95]}}; foo (and SELF)
     .next.prev FROM ee{.next.next; {.bitf; .[bits 65 to 95]}}; foo
   y.v4 FROM y.v4 (and SELF)
-  \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function eq_bitfields:
+          i; s{.a; .c}
+[inout] Inputs for function eq_bitfields:
+          foo
 [inout] Out (internal) for function f:
           X
 [inout] Inputs for function f:
@@ -275,8 +359,11 @@ tests/value/bitfield.i:97:[value] assertion 'Value,initialisation' got final sta
           __retres
 [inout] Inputs for function return_8:
           \nothing
+[inout] Out (internal) for function main_old:
+          h{.a; .b; .c}; k8.b; kr8.b; ll.b; VV; X; G; H; v{{.a; .b; .c}; .d}; l_161
+[inout] Inputs for function main_old:
+          h{.a; .b}; VV; q4; x; us; foo
 [inout] Out (internal) for function main:
-          h{.a; .b; .c}; k8.b; kr8.b; ll.b; VV; X; G; H; b; c; ee; y.v4;
-          v{{.a; .b; .c}; .d}; l_161; __retres
+          h{.a; .b; .c}; k8.b; kr8.b; ll.b; VV; X; G; H; b; c; ee; y.v4
 [inout] Inputs for function main:
           h{.a; .b}; VV; q4; x; us; c; ee; foo; y

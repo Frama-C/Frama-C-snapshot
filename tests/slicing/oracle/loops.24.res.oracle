@@ -1,17 +1,17 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/loops.c (with preprocessing)
+[kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing an incomplete application starting at alarm
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-tests/slicing/loops.c:210:[value] assertion got status valid.
-tests/slicing/loops.c:211:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+tests/slicing/loops.i:210:[value] assertion got status valid.
+tests/slicing/loops.i:211:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] Recording results for alarm
 [value] done for function alarm
 [from] Computing for function alarm
@@ -46,3 +46,5 @@ void alarm(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_24_loops.i (no preprocessing)

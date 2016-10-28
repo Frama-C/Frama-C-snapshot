@@ -302,20 +302,32 @@ let work () =
           printverb "Refining pre/post      : \n";
           Aorai_dataflow.compute ();
             (* Step 6 : Removing transitions never crossed *)
-          if (Aorai_option.AutomataSimplification.get()) then
-            begin
-              printverb "Removing unused trans  : done\n";
-              Data_for_aorai.removeUnusedTransitionsAndStates ();
-            end
-          else
-            printverb "Removing unused trans  : skipped\n";
+          let automaton_has_states =
+            if (Aorai_option.AutomataSimplification.get()) then
+              begin
+                printverb "Removing unused trans  : done\n";
+                try
+                  Data_for_aorai.removeUnusedTransitionsAndStates ();
+                  true
+                with Data_for_aorai.Empty_automaton ->
+                  Aorai_option.warning
+                    "No state of the automaton is reachable. \
+                     Program and specification are incompatible, \
+                     instrumentation will not be generated.";
+                  false
+              end
+            else
+              (printverb "Removing unused trans  : skipped\n"; true)
+          in
+          if automaton_has_states then begin
             (* Step 7 : Labeling abstract file *)
             (* Finally the information is added into the Cil automata. *)
-          Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
-          Aorai_visitors.add_sync_with_buch file;
-          Aorai_visitors.add_pre_post_from_buch file
-            (Aorai_option.advance_abstract_interpretation ());
-          printverb "Annotation of Cil      : done\n";
+            Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
+            Aorai_visitors.add_sync_with_buch file;
+            Aorai_visitors.add_pre_post_from_buch file
+              (Aorai_option.advance_abstract_interpretation ());
+            printverb "Annotation of Cil      : done\n";
+          end
         end
       else
         begin
@@ -343,6 +355,7 @@ let work () =
       Cfg.clearFileCFG ~clear_id:false file;
       Cfg.computeFileCFG file;
       Ast.clear_last_decl ();
+      if Kernel.Check.get() then Filecheck.check_ast "aorai";
       let prj =
         File.create_project_from_visitor "aorai"
           (fun prj -> new Visitor.frama_c_copy prj)

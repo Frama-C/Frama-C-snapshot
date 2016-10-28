@@ -4,7 +4,7 @@ Start
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/syntax/Refresh_visitor.i:13:[value] warning: assertion got status unknown.
 tests/syntax/Refresh_visitor.i:10:[value] warning: function main: postcondition got status unknown.

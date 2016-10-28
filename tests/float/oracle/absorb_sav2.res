@@ -1,7 +1,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0x1.0000000000000p0}
   y ∈ {0}
@@ -19,7 +19,7 @@ tests/float/absorb.c:16:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0x1.0000000000000p0}
   y ∈ {0x1.0000000000000p0}

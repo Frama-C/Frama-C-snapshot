@@ -99,14 +99,14 @@ let translate_variadics (file : file) =
             let vf = Table.find classification vi in
             let s' = try 
               let call_translator = match vf.vf_class with
-              | Overload o -> Standard.overloaded_call o
-              | Aggregator a -> Standard.aggregator_call a fundec
-              | FormatFun f -> Standard.format_fun_call env f
+              | Overload o -> Standard.overloaded_call ~fundec o
+              | Aggregator a -> Standard.aggregator_call ~fundec a
+              | FormatFun f -> Standard.format_fun_call ~fundec env f
               | _ -> raise Standard.Translate_call_exn
               in
               call_translator vf s
             with Standard.Translate_call_exn ->
-              Generic.translate_call fundec s
+              Generic.translate_call ~fundec s
             in
             File.must_recompute_cfg fundec;
             Cil.ChangeTo (s')

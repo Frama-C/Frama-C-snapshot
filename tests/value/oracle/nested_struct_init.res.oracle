@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3.f0 ∈ {-1}
      .[bits 8 to 15] ∈ {0}
      .f1 ∈ {19284}
@@ -65,12 +65,12 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3.f0 ∈ {-1}
      .[bits 8 to 15] ∈ UNINITIALIZED
      .f1 ∈ {19284}
@@ -134,12 +134,12 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3.f0 ∈ {-1}
      .[bits 8 to 15] ∈ {0} or UNINITIALIZED
      .f1 ∈ {19284}
@@ -203,12 +203,12 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3.f0 ∈ [--..--]
      .[bits 8 to 15] ∈ [--..--] or UNINITIALIZED
      {.f1; .f2; .f3; .f4} ∈ [--..--]
@@ -254,12 +254,12 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3.f0 ∈ [--..--]
      .[bits 8 to 15] ∈ UNINITIALIZED
      {.f1; .f2; .f3; .f4} ∈ [--..--]
@@ -305,12 +305,12 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   g_3 ∈ [--..--]
   g_8.f0{.f0; .[bits 8 to 15]} ∈ [--..--]
      .f0.f1 ∈ {-10}
@@ -327,5 +327,5 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}

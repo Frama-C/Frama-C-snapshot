@@ -4,7 +4,7 @@
 [value] Computing initial state
 tests/value/noreturn.i:22:[value] warning: global initialization of volatile variable v ignored
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function warn_may_never_end <- main.
         Called from tests/value/noreturn.i:26.
@@ -48,15 +48,15 @@ tests/value/noreturn.i:13:[value] warning: function should_never_end may termina
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function never_ends:
+[value:final-states] Values at end of function never_ends:
   NON TERMINATING FUNCTION
-[value] Values at end of function should_never_end:
+[value:final-states] Values at end of function should_never_end:
   
-[value] Values at end of function warn_may_never_end:
+[value:final-states] Values at end of function warn_may_never_end:
   
-[value] Values at end of function warn_never_ends:
+[value:final-states] Values at end of function warn_never_ends:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {0}
 [from] Computing for function never_ends
 [from] Non-terminating function never_ends (no dependencies)

@@ -717,13 +717,13 @@ let extend_name e pred =
   if Emitter.equal e Emitter.end_user || Emitter.equal e Emitter.kernel
   then pred
   else
-    let names = pred.name in
+    let names = pred.pred_name in
     let s = Emitter.get_name e in
     if (List.mem s names) ||
        let acsl_identifier_regexp =
          Str.regexp "^\\([\\][_a-zA-Z]\\|[_a-zA-Z]\\)[0-9_a-zA-Z]*$"
        in not (Str.string_match acsl_identifier_regexp s 0)
-    then pred else { pred with name = s :: names }
+    then pred else { pred with pred_name = s :: names }
 
 (** {3 Adding subparts of a function contract} *)
 
@@ -1101,7 +1101,13 @@ let add_code_annot emitter ?kf stmt ca =
            spec.spec_disjoint_behaviors;
          (* By construction, we have exactly one contract
             corresponding to our criterion and emitter. *)
-         List.hd (code_annot ~emitter ~filter stmt), []
+         let ca = List.hd (code_annot ~emitter ~filter stmt) in
+         (* remove the previous binding in order to replace it
+            with the updated one. Statuses being attached to sub-elements
+            of the contract, they do not need any update here.
+          *)
+         remove_code_annot emitter ~kf stmt ca;
+         { a with annot_content = ca.annot_content }, []
        | _ ->
          Kernel.fatal
            "more than one contract attached to a given statement for \
@@ -1241,7 +1247,7 @@ let add_code_annot emitter ?kf stmt ca =
                 Annotations internal state broken"
          in
          emit_a, Extlib.list_of_opt ip)
-    | APragma _ -> a, Property.ip_of_code_annot kf stmt a
+    | APragma _ | AExtended _ -> a, Property.ip_of_code_annot kf stmt a
   in
   let ca, ppts = convert ca in
   let e = Emitter.get emitter in
@@ -1359,7 +1365,7 @@ let unsafe_add_global e a =
 
 let add_global e a =
   unsafe_add_global e a;
-  if not (Emitter.equal Emitter.end_user e) then insert_global_in_ast a
+  if Ast.is_computed() then insert_global_in_ast a
 
 (**************************************************************************)
 (** {2 Removing annotations} *)

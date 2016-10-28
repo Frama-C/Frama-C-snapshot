@@ -6,7 +6,7 @@ tests/value/precond2.c:24:[kernel] warning: No code nor implicit assigns clause 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
 [value] computing for function f <- main.
         Called from tests/value/precond2.c:21.
@@ -30,9 +30,9 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {0; 1}
 [report] Computing properties status...
 
@@ -41,7 +41,7 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 --------------------------------------------------------------------------------
 
 [  Valid  ] Pre-condition (file tests/value/precond2.c, line 9)
-            requires i+1 ≥ 0
+            requires i + 1 ≥ 0
             by Call Preconditions.
 [  Alarm  ] Pre-condition (file tests/value/precond2.c, line 10)
             requires i ≥ 0
@@ -67,13 +67,13 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 --------------------------------------------------------------------------------
 
 [  Valid  ] Pre-condition for 'pre_f' (generated) at call 'f' (file tests/value/precond2.c, line 21)
-            requires 1+1 ≥ 0
+            requires 1 + 1 ≥ 0
             by Value.
 [  Valid  ] Pre-condition for 'pre_f' (generated) at call 'f' (file tests/value/precond2.c, line 21)
             requires 1 ≥ 0
             by Value.
 [  Valid  ] Pre-condition for 'pre_f_2' (generated) at call 'f' (file tests/value/precond2.c, line 22)
-            requires (int)(-1)+1 ≥ 0
+            requires (int)(-1) + 1 ≥ 0
             by Value.
 [  Alarm  ] Pre-condition for 'pre_f_2' (generated) at call 'f' (file tests/value/precond2.c, line 22)
             requires (int)(-1) ≥ 0
@@ -85,24 +85,12 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 [  Valid  ] Pre-condition for 'pre_g_2' (generated) at call 'g' (file tests/value/precond2.c, line 24)
             requires x ≤ 8
             by Value.
-[  Valid  ] Default behavior at call 'f' (file tests/value/precond2.c, line 21)
-            default behavior for statement 6
-            by Frama-C kernel.
-[  Valid  ] Default behavior at call 'f' (file tests/value/precond2.c, line 22)
-            default behavior for statement 9
-            by Frama-C kernel.
-[  Valid  ] Default behavior at call 'g' (file tests/value/precond2.c, line 24)
-            default behavior for statement 12
-            by Frama-C kernel.
-[  Valid  ] Default behavior at call 'g' (file tests/value/precond2.c, line 24)
-            default behavior for statement 13
-            by Frama-C kernel.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-    11 Completely validated
+     7 Completely validated
      2 To be validated
      2 Alarms emitted
-    15 Total
+    11 Total
 --------------------------------------------------------------------------------

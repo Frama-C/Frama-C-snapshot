@@ -19,6 +19,15 @@ void main(void)
     t[i] = 0;
     i ++;
   }
+  L1: /*@ requires \true;
+          ensures \true; */
+      t[4] = 42;
+  L2: /*@ requires \true;
+          ensures \true; */
+      t[3] = 36;
+  L3: /*@ requires \true;
+          ensures \true; */
+      t[2] = 12;
   return;
 }
 

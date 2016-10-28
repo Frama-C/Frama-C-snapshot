@@ -1,0 +1,574 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/wchar_c_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[value] computing for function wmemchr <- main.
+        Called from tests/libc/wchar_c_h.c:23.
+[value] using specification for function wmemchr
+[value] Done for function wmemchr
+[value] computing for function wmemcmp <- main.
+        Called from tests/libc/wchar_c_h.c:24.
+[value] using specification for function wmemcmp
+[value] Done for function wmemcmp
+[value] computing for function wmemcmp <- main.
+        Called from tests/libc/wchar_c_h.c:24.
+[value] Done for function wmemcmp
+[value] computing for function wmemcpy <- main.
+        Called from tests/libc/wchar_c_h.c:25.
+share/libc/wchar.h:44:[value] function wmemcpy: precondition got status valid.
+share/libc/wchar.h:47:[value] function wmemcpy: postcondition got status valid.
+[value] Recording results for wmemcpy
+[value] Done for function wmemcpy
+[value] computing for function wmemcpy <- main.
+        Called from tests/libc/wchar_c_h.c:25.
+[value] Recording results for wmemcpy
+[value] Done for function wmemcpy
+[value] computing for function wmemmove <- main.
+        Called from tests/libc/wchar_c_h.c:26.
+[value] using specification for function wmemmove
+[value] Done for function wmemmove
+[value] computing for function wmemmove <- main.
+        Called from tests/libc/wchar_c_h.c:26.
+[value] Done for function wmemmove
+[value] computing for function wmemmove <- main.
+        Called from tests/libc/wchar_c_h.c:26.
+[value] Done for function wmemmove
+[value] computing for function wmemset <- main.
+        Called from tests/libc/wchar_c_h.c:27.
+share/libc/wchar.h:61:[value] function wmemset: postcondition got status valid.
+[value] Recording results for wmemset
+[value] Done for function wmemset
+[value] computing for function wmemset <- main.
+        Called from tests/libc/wchar_c_h.c:27.
+[value] Recording results for wmemset
+[value] Done for function wmemset
+[value] computing for function wmemset <- main.
+        Called from tests/libc/wchar_c_h.c:27.
+[value] Recording results for wmemset
+[value] Done for function wmemset
+[value] computing for function wcschr <- main.
+        Called from tests/libc/wchar_c_h.c:28.
+[value] using specification for function wcschr
+[value] Done for function wcschr
+[value] computing for function wcschr <- main.
+        Called from tests/libc/wchar_c_h.c:28.
+[value] Done for function wcschr
+[value] computing for function wcschr <- main.
+        Called from tests/libc/wchar_c_h.c:28.
+[value] Done for function wcschr
+[value] computing for function wcscmp <- main.
+        Called from tests/libc/wchar_c_h.c:29.
+[value] using specification for function wcscmp
+[value] Done for function wcscmp
+[value] computing for function wcscmp <- main.
+        Called from tests/libc/wchar_c_h.c:29.
+[value] Done for function wcscmp
+[value] computing for function wcscmp <- main.
+        Called from tests/libc/wchar_c_h.c:29.
+[value] Done for function wcscmp
+[value] computing for function wcscpy <- main.
+        Called from tests/libc/wchar_c_h.c:30.
+share/libc/wchar.h:84:[value] function wcscpy: postcondition got status valid.
+[value] Recording results for wcscpy
+[value] Done for function wcscpy
+[value] computing for function wcscpy <- main.
+        Called from tests/libc/wchar_c_h.c:30.
+[value] Recording results for wcscpy
+[value] Done for function wcscpy
+[value] computing for function wcscpy <- main.
+        Called from tests/libc/wchar_c_h.c:30.
+[value] Recording results for wcscpy
+[value] Done for function wcscpy
+[value] computing for function wcscspn <- main.
+        Called from tests/libc/wchar_c_h.c:31.
+[value] using specification for function wcscspn
+[value] Done for function wcscspn
+[value] computing for function wcscspn <- main.
+        Called from tests/libc/wchar_c_h.c:31.
+[value] Done for function wcscspn
+[value] computing for function wcscspn <- main.
+        Called from tests/libc/wchar_c_h.c:31.
+[value] Done for function wcscspn
+[value] computing for function wcscspn <- main.
+        Called from tests/libc/wchar_c_h.c:31.
+[value] Done for function wcscspn
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] using specification for function wcslcat
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcat <- main.
+        Called from tests/libc/wchar_c_h.c:32.
+[value] Done for function wcslcat
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] using specification for function wcslcpy
+share/libc/wchar.h:100:[value] function wcslcpy: precondition got status valid.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslcpy <- main.
+        Called from tests/libc/wchar_c_h.c:33.
+[value] Done for function wcslcpy
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcslen <- main.
+        Called from tests/libc/wchar_c_h.c:34.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] using specification for function wcsncmp
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncmp <- main.
+        Called from tests/libc/wchar_c_h.c:35.
+[value] Done for function wcsncmp
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+share/libc/wchar.h:120:[value] function wcsncpy: precondition got status valid.
+share/libc/wchar.h:123:[value] function wcsncpy: postcondition got status valid.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcsncpy <- main.
+        Called from tests/libc/wchar_c_h.c:36.
+[value] Recording results for wcsncpy
+[value] Done for function wcsncpy
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] using specification for function wcspbrk
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcspbrk <- main.
+        Called from tests/libc/wchar_c_h.c:37.
+[value] Done for function wcspbrk
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] using specification for function wcsrchr
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsrchr <- main.
+        Called from tests/libc/wchar_c_h.c:38.
+[value] Done for function wcsrchr
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] using specification for function wcsspn
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsspn <- main.
+        Called from tests/libc/wchar_c_h.c:39.
+[value] Done for function wcsspn
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] using specification for function wcsstr
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcsstr <- main.
+        Called from tests/libc/wchar_c_h.c:40.
+[value] Done for function wcsstr
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+share/libc/wchar.h:68:[value] function wcscat: postcondition got status valid.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcscat <- main.
+        Called from tests/libc/wchar_c_h.c:44.
+[value] Recording results for wcscat
+[value] Done for function wcscat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+share/libc/wchar.h:112:[value] function wcsncat: postcondition got status valid.
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] computing for function wcsncat <- main.
+        Called from tests/libc/wchar_c_h.c:46.
+[value] computing for function wcslen <- wcsncat <- main.
+        Called from share/libc/wchar.c:89.
+[value] Recording results for wcslen
+[value] Done for function wcslen
+[value] Recording results for wcsncat
+[value] Done for function wcsncat
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function wcscat:
+  s1 ∈ {{ &buf{[9], [10], [11], [12], [13], [14]} }}
+  s2 ∈ {{ L"Haystack" + {36} }}
+  os1 ∈ {{ &buf[0] }}
+  buf[0..4] ∈ [--..--]
+     [5] ∈ {72; 97; 115; 116; 121}
+     [6] ∈ {97; 99; 115; 116; 121}
+     [7] ∈ {97; 99; 107; 115; 116; 121}
+     [8] ∈ {0; 97; 99; 107; 115; 116}
+     [9..19] ∈ [--..--] or UNINITIALIZED
+[value:final-states] Values at end of function wcscpy:
+  s1 ∈ {{ &buf[9] }}
+  s2 ∈ {{ L"Haystack" + {36} }}
+  os1 ∈ {{ &buf[0] }}
+  buf[0] ∈ {72}
+     [1] ∈ {97}
+     [2] ∈ {121}
+     [3] ∈ {115}
+     [4] ∈ {116}
+     [5] ∈ {97}
+     [6] ∈ {99}
+     [7] ∈ {107}
+     [8] ∈ {0}
+     [9..19] ∈ UNINITIALIZED
+[value:final-states] Values at end of function wcslen:
+  s ∈ {{ &buf{[0], [1], [2], [3], [4], [5]} ; L"Needle" + {24} }}
+  __retres ∈ {0; 1; 2; 3; 4; 5; 6}
+[value:final-states] Values at end of function wcsncat:
+  dest_len ∈ {0; 1; 2; 3; 4; 5}
+  i ∈ {5}
+  buf[0..4] ∈ [--..--]
+     [5] ∈ {0; 72; 97; 115; 116; 121}
+     [6..19] ∈ [--..--] or UNINITIALIZED
+[value:final-states] Values at end of function wcsncpy:
+  s1 ∈ {{ &buf[5] }}
+  s2 ∈ {{ L"Haystack" + {20} }}
+  n ∈ {0}
+  os1 ∈ {{ &buf[0] }}
+  buf[0] ∈ {72}
+     [1] ∈ {97}
+     [2] ∈ {121}
+     [3] ∈ {115}
+     [4] ∈ {116}
+     [5..19] ∈ [--..--] or UNINITIALIZED
+[value:final-states] Values at end of function wmemcpy:
+  first ∈ {{ L"Haystack" + {20} }}
+  last ∈ {{ L"Haystack" + {20} }}
+  result ∈ {{ &buf[0] }}
+  dest ∈ {{ &buf[5] }}
+  buf[0] ∈ {72}
+     [1] ∈ {97}
+     [2] ∈ {121}
+     [3] ∈ {115}
+     [4] ∈ {116}
+     [5..19] ∈ UNINITIALIZED
+[value:final-states] Values at end of function wmemset:
+  len ∈ {4294967295}
+  ptr ∈ {{ &buf[5] }}
+  buf[0..4] ∈ [--..--]
+     [5..19] ∈ UNINITIALIZED
+[value:final-states] Values at end of function main:
+  sc1 ∈ {{ L"Needle" }}
+  sc2 ∈ {{ L"Haystack" }}
+  buf[0..4] ∈ [--..--]
+     [5] ∈ {0; 72; 97; 115; 116; 121}
+     [6..19] ∈ [--..--] or UNINITIALIZED
+  c ∈ [--..--]
+  n ∈ {5}
+  r ∈ [--..--] or UNINITIALIZED
+  i ∈ {5}
+  res ∈ {{ NULL ; &buf[0] ; L"Needle" + [0..--],0%4 }}
+  __retres ∈ {0}

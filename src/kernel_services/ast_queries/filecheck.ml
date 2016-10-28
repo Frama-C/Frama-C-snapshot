@@ -69,6 +69,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     val mutable logic_labels = []
     val mutable globals_functions = Varinfo.Set.empty
     val mutable globals_vars = Varinfo.Set.empty
+    val mutable return_stmt = None
 
     val quant_orig = Stack.create ()
 
@@ -139,7 +140,9 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         check_abort
           "variable %s is not shared between definition and use" v.vname
       in
-      let unknown () = check_abort "variable %s is not declared" v.vname in
+      let unknown () =
+        check_abort "variable %s(%d) is not declared" v.vname v.vid
+      in
       if not v.vglob || not (Ast_info.is_frama_c_builtin v.vname) then
         (try
            if Varinfo.Hashtbl.find known_vars v != v then not_shared ()
@@ -222,6 +225,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           check_abort
             "Body of %a is not shared between kernel function and AST"
             Kernel_function.pretty kf;
+        return_stmt <- Some (Kernel_function.find_return kf)
       end;
       labelled_stmt <- [];
       Stmt.Hashtbl.clear known_stmts;
@@ -266,6 +270,12 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                  Printer.pp_varinfo f.svar)
           labelled_stmt;
         labelled_stmt <- [];
+        (match return_stmt with
+         | None -> ()
+         | Some _ -> (* can only happen in normalized mode. *)
+           check_abort
+             "Function %a does not have a return statement in its body"
+             Kernel_function.pretty (Extlib.the self#current_kf));
         let check_one_stmt stmt _ =
           let check_cfg_edge stmt' =
             try
@@ -341,6 +351,13 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           "Statement is referenced by \\at or goto without having a label";
       labelled_stmt <- !s :: labelled_stmt
 
+    method private check_try_catch_decl (decl,_) =
+      match decl with
+      | Catch_exn(v,l) ->
+        self#check_local_var v;
+        List.iter (fun (v,_) -> self#check_local_var v) l
+      | Catch_all -> ()
+
     method! vstmt_aux s =
       Stmt.Hashtbl.add known_stmts s s;
       Stmt.Hashtbl.remove switch_cases s;
@@ -391,23 +408,42 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
          logic_labels <-
            Logic_const.(loop_current_label :: loop_entry_label :: logic_labels);
          Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
+       | TryCatch(_,c,_) ->
+         List.iter self#check_try_catch_decl c;
+         Cil.DoChildren
+       | Return _ ->
+         if is_normalized then begin
+           match return_stmt with
+           | None ->
+             check_abort
+               "Found a second return statement in body of function %a"
+               Kernel_function.pretty (Extlib.the self#current_kf)
+           | Some s' when s != s' ->
+             check_abort
+               "Function %a is supposed to have as return statement %d:@\n%a@\n\
+                Found in its body statement %d:@\n%a@\n"
+               Kernel_function.pretty (Extlib.the self#current_kf)
+               s'.sid Printer.pp_stmt s'
+               s.sid Printer.pp_stmt s
+           | Some _ -> return_stmt <- None
+         end;
+         Cil.DoChildren
        | _ -> Cil.DoChildren);
 
+    method private check_local_var v =
+      if Varinfo.Set.mem v local_vars then begin
+        local_vars <- Varinfo.Set.remove v local_vars;
+      end else begin
+        check_abort
+          "In function %a, variable %a(%d) is supposed to be local to a block \
+           but not mentioned in the function's locals."
+          Printer.pp_varinfo
+          (Extlib.the self#current_func).svar
+          Printer.pp_varinfo v v.vid
+      end
+
     method! vblock b =
-      (* ensures that the blocals are part of the locals of the function. *)
-      List.iter
-        (fun v ->
-           if Varinfo.Set.mem v local_vars then begin
-             local_vars <- Varinfo.Set.remove v local_vars;
-           end else begin
-             check_abort
-               "In function %a, variable %a is supposed to be local to a block \
-                but not mentioned in the function's locals."
-               Printer.pp_varinfo
-               (Kernel_function.get_vi (Extlib.the self#current_kf))
-               Printer.pp_varinfo v
-           end)
-        b.blocals;
+      List.iter self#check_local_var b.blocals;
       Cil.DoChildren
 
     method! vbehavior b =
@@ -432,15 +468,21 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     method! vspec _ =
       let old_labels = logic_labels in
       logic_labels <-
-        Logic_const.(here_label :: pre_label :: old_label :: logic_labels);
+        Logic_const.(
+          init_label :: here_label :: pre_label :: old_label :: logic_labels);
       Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
 
     method! vcode_annot ca =
-      if Hashtbl.mem known_code_annot_id ca.annot_id then
-        (check_abort "duplicated code annotation")
-      else Hashtbl.add known_code_annot_id ca.annot_id ();
+      if Hashtbl.mem known_code_annot_id ca.annot_id then begin
+        check_abort "duplicated code annotation id: %d@\n%a@\nand@\n%a"
+          ca.annot_id
+          Printer.pp_code_annotation
+          (Hashtbl.find known_code_annot_id ca.annot_id)
+          Printer.pp_code_annotation ca
+      end else Hashtbl.add known_code_annot_id ca.annot_id ca;
       let old_labels = logic_labels in
-      logic_labels <- Logic_const.(here_label :: pre_label :: logic_labels);
+      logic_labels <-
+        Logic_const.(init_label :: here_label :: pre_label :: logic_labels);
       Cil.DoChildrenPost (fun ca -> logic_labels <- old_labels; ca)
 
     method! voffs = function
@@ -491,6 +533,29 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                fi.fname fi.fcomp.cname fi.fcomp.ckey)
         end;
         Cil.DoChildren
+
+    method! vterm_lhost = function
+      | TResult t when is_normalized ->
+        (* if not normalized, contracts are visited while kf is not set *)
+        (match self#current_kf with
+         | None ->
+           check_abort "\\result found outside of a function contract"
+         | Some kf ->
+           let t1 = Kernel_function.get_return_type kf in
+           if Cil.isVoidType t1 then
+             check_abort
+               "\\result found in a contract for function %a that returns void"
+               Kernel_function.pretty kf;
+           if not (Cil_datatype.TypNoUnroll.equal t t1) then
+             check_abort
+               "\\result of type %a found in a contract for function %a that \
+                returns %a"
+               Cil_datatype.Typ.pretty t
+               Kernel_function.pretty kf
+               Cil_datatype.Typ.pretty t1
+        );
+        Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method private check_ei: 'a. enumitem -> 'a Cil.visitAction =
       fun ei ->
@@ -775,7 +840,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       | StmtLabel l -> self#check_label l; Cil.SkipChildren
       | _ -> Cil.DoChildren
 
-    method! vpredicate = function
+    method! vpredicate_node = function
       | Papp(li,labs,args) ->
         (match li.l_type with
          | None -> ()
@@ -804,7 +869,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       let old_labels = logic_labels in
       logic_labels <- labels @ logic_labels;
       ignore
-        (Visitor.visitFramacPredicateNamed (self:>Visitor.frama_c_visitor) p);
+        (Visitor.visitFramacPredicate (self:>Visitor.frama_c_visitor) p);
       logic_labels <- old_labels
 
     method! vlogic_info_decl li =
@@ -932,16 +997,27 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       | _ -> Cil.DoChildren
 
     method! vtype ty =
-      (match ty with
-       | TArray (_, _, _, la) ->
-         let elt, _ = Cil.splitArrayAttributes la in
-         if elt != [] then
-           Kernel.fatal
-             "Element attribute on array type itself: %a"
-             Printer.pp_attributes elt
-       | _ -> ()
-      );
-      Cil.DoChildren
+      match ty with
+      | TArray (_, _, _, la) ->
+        let elt, _ = Cil.splitArrayAttributes la in
+        if elt != [] then
+          Kernel.fatal
+            "Element attribute on array type itself: %a"
+            Printer.pp_attributes elt;
+        Cil.DoChildren
+      | TFun(rt, _, _, attrs) ->
+         (* we do not visit parameters. This is handled elsewhere, and it
+            is not possible to perform a sensible check for dependent types
+            at this level, e.g. for
+            void f(int n, int arr[10][n]);
+            as in TFun the parameters are simple string, and not tied to
+            the varinfo that we would like to put in scope to check that
+            arr[10][n] is well formed.
+         *)
+        ignore (Cil.visitCilType (self:>Cil.cilVisitor) rt);
+        ignore (Cil.visitCilAttributes (self:>Cil.cilVisitor) attrs);
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
 
 
     initializer
@@ -959,14 +1035,12 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
 
   end
 
-let check_ast ?is_normalized what =
+let check_ast ?is_normalized ?(ast = Ast.get()) what =
   Cil.visitCilFileSameGlobals
-    (new check ?is_normalized what :> Cil.cilVisitor)
-    (Ast.get())
-
+    (new check ?is_normalized what :> Cil.cilVisitor) ast
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

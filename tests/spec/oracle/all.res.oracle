@@ -9,15 +9,15 @@ struct st {
    int a ;
    int b ;
 };
-/*@ lemma z: ∀ int x; (x&x) ≡ x;
+/*@ lemma z: ∀ int x; (x & x) ≡ x;
  */
-/*@ lemma a: ∀ int x; (~x|x) ≡ -1;
+/*@ lemma a: ∀ int x; (~x | x) ≡ -1;
  */
-/*@ lemma b: ∀ int x; (~x^x) ≡ -1;
+/*@ lemma b: ∀ int x; (~x ^ x) ≡ -1;
  */
-/*@ lemma c: (\let x = 0; x+1) ≡ 1;
+/*@ lemma c: (\let x = 0; x + 1) ≡ 1;
  */
-/*@ lemma d: (name: 77) ≡ 76+1;
+/*@ lemma d: (name: 77) ≡ 76 + 1;
  */
 /*@
 axiomatic Test {
@@ -27,23 +27,23 @@ axiomatic Test {
   
   axiom e: P ⊻ Q;
   
-  axiom f: 0≢0? P: Q;
+  axiom f: 0 ≢ 0? P: Q;
   
   axiom g: (P ⇒ P) ∧ (¬P ⇒ Q);
   
-  axiom h: \let x = 0; x+1 ≡ 1;
+  axiom h: \let x = 0; x + 1 ≡ 1;
   
-  axiom i: name: 77 ≡ 76+1;
+  axiom i: name: 77 ≡ 76 + 1;
   
   }
  */
-/*@ predicate R(ℤ i, ℤ j) = (1≢0? i+j: (j: j)) ≡ i+j;
+/*@ predicate R(ℤ i, ℤ j) = (1 ≢ 0? i + j: (j: j)) ≡ i + j;
  */
-/*@ predicate S(ℤ i, ℤ j) = (1≢0? (i: j): j) ≡ j;
+/*@ predicate S(ℤ i, ℤ j) = (1 ≢ 0? (i: j): j) ≡ j;
  */
-/*@ predicate T(ℤ i, ℤ j) = (1≢0? i: j) ≡ i;
+/*@ predicate T(ℤ i, ℤ j) = (1 ≢ 0? i: j) ≡ i;
  */
-/*@ lemma tauto: 0≢0? T(0, 0): R(1, 2);
+/*@ lemma tauto: 0 ≢ 0? T(0, 0): R(1, 2);
  */
 /*@ lemma tauto2: (R(0, 1) ⇒ S(3, 4)) ∧ (¬R(0, 1) ⇒ T(5, 6));
  */
@@ -66,7 +66,7 @@ void f(int G, int *p)
   /*@ assert \base_addr(&G) ≡ \base_addr(&G); */ ;
   /*@ assert \block_length(&G) ≡ 4; */ ;
   /*@ assert \block_length(&G) ≡ sizeof(G); */ ;
-  /*@ assert \base_addr(&G)+\offset(&G+4) ≡ (char *)(&G+4); */ ;
+  /*@ assert \base_addr(&G) + \offset(&G + 4) ≡ (char *)(&G + 4); */ ;
   /*@ assert \null ≢ &G; */ ;
   /*@ loop invariant &G ≢ \null; */
   while (1) {
@@ -105,7 +105,7 @@ int x = 0;
       
       }
  */
-/*@ logic ℤ z= \let f = \lambda ℤ a; a+1; f(12);
+/*@ logic ℤ z= \let f = \lambda ℤ a; a + 1; f(12);
  */
 /*@ logic a id<a>(a x) = x;
  */

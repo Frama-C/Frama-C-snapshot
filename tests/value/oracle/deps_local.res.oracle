@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
 [value] computing for function f <- main.
@@ -25,16 +25,16 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   ga ∈ {0}
   fa ∈ {0}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   fa ∈ {0}
   __retres ∈ {0}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   ga ∈ {0}
   __retres ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function h
 [from] Done for function h

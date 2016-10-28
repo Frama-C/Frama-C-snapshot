@@ -1,14 +1,14 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/csmith.c (with preprocessing)
+[kernel] Parsing tests/slicing/csmith.i (no preprocessing)
 [value] Analyzing a complete application starting at bts906c
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G1b ∈ {0}
   G2 ∈ {0}
-tests/slicing/csmith.c:189:[value] entering loop for the first time
-tests/slicing/csmith.c:190:[value] entering loop for the first time
+tests/slicing/csmith.i:189:[value] entering loop for the first time
+tests/slicing/csmith.i:190:[value] entering loop for the first time
 [value] Recording results for bts906c
 [value] done for function bts906c
 [pdg] computing for function bts906c

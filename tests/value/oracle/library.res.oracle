@@ -2,16 +2,10 @@
 [kernel] Parsing tests/value/library.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
-[value:initial_state] creating variable S_0_p_ss with imprecise size (type struct ss [2])
 tests/value/library.i:44:[value] warning: during initialization of variable 'ss', size of type 'struct ss' cannot be
                  computed (abstract type 'struct ss')
-[value:initial_state] creating variable S_1_p_ss with imprecise size (type struct ss [2])
-[value:initial_state] creating variable S_0_0_S_q_ss with imprecise size (type struct ss [2])
-[value:initial_state] creating variable S_1_0_S_q_ss with imprecise size (type struct ss [2])
-[value:initial_state] creating variable S_0_1_S_q_ss with imprecise size (type struct ss [2])
-[value:initial_state] creating variable S_1_1_S_q_ss with imprecise size (type struct ss [2])
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {{ NULL ; &S_G[0] }}
   v ∈ [--..--]
   G0 ∈ [--..--]
@@ -74,19 +68,19 @@ tests/value/library.i:17:[kernel] warning: Neither code nor specification for fu
 tests/value/library.i:18:[kernel] warning: Neither code nor specification for function f_star_int, generating default assigns from the prototype
 [value] using specification for function f_star_int
 [value] Done for function f_star_int
-tests/value/library.i:19:[kernel] warning: out of bounds write. assert \valid(G1);
-tests/value/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(G);
-tests/value/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(*G);
-tests/value/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(*(*G));
-tests/value/library.i:20:[kernel] warning: out of bounds write. assert \valid(*(*(*G)));
+tests/value/library.i:19:[value] warning: out of bounds write. assert \valid(G1);
+tests/value/library.i:20:[value] warning: out of bounds read. assert \valid_read(G);
+tests/value/library.i:20:[value] warning: out of bounds read. assert \valid_read(*G);
+tests/value/library.i:20:[value] warning: out of bounds read. assert \valid_read(*(*G));
+tests/value/library.i:20:[value] warning: out of bounds write. assert \valid(*(*(*G)));
 [value] computing for function gen <- main.
         Called from tests/value/library.i:24.
 tests/value/library.i:24:[kernel] warning: Neither code nor specification for function gen, generating default assigns from the prototype
 [value] using specification for function gen
 [value] Done for function gen
-tests/value/library.i:25:[kernel] warning: pointer to function with incompatible type. assert \valid_function(f);
-tests/value/library.i:26:[kernel] warning: pointer to function with incompatible type. assert \valid_function(g);
-tests/value/library.i:27:[kernel] warning: pointer to function with incompatible type. assert \valid_function(h);
+tests/value/library.i:25:[value] warning: pointer to function with incompatible type. assert \valid_function(f);
+tests/value/library.i:26:[value] warning: pointer to function with incompatible type. assert \valid_function(g);
+tests/value/library.i:27:[value] warning: pointer to function with incompatible type. assert \valid_function(h);
 [value] computing for function alloced_return_gen <- main.
         Called from tests/value/library.i:27.
 tests/value/library.i:27:[kernel] warning: Neither code nor specification for function alloced_return_gen, generating default assigns from the prototype
@@ -97,20 +91,20 @@ tests/value/library.i:27:[kernel] warning: Neither code nor specification for fu
 tests/value/library.i:28:[kernel] warning: Neither code nor specification for function i, generating default assigns from the prototype
 [value] using specification for function i
 [value] Done for function i
-tests/value/library.i:29:[kernel] warning: out of bounds read. assert \valid_read(pf);
-tests/value/library.i:31:[kernel] warning: non-finite float value. assert \is_finite((float)(*pf+*pf));
+tests/value/library.i:29:[value] warning: out of bounds read. assert \valid_read(pf);
+tests/value/library.i:31:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
 [value] computing for function k <- main.
         Called from tests/value/library.i:32.
 tests/value/library.i:32:[kernel] warning: Neither code nor specification for function k, generating default assigns from the prototype
 [value] using specification for function k
 [value] Done for function k
-tests/value/library.i:33:[kernel] warning: out of bounds write. assert \valid(pd);
+tests/value/library.i:33:[value] warning: out of bounds write. assert \valid(pd);
 [value] Recording results for main
 [value] done for function main
 tests/value/library.i:25:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/library.i:26:[value] assertion 'Value,function_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G0 ∈ [--..--]
   G1 ∈ {{ &alloced_return_f_star_int + [0..2147483644],0%4 }}
   x ∈ [--..--]
@@ -176,7 +170,7 @@ tests/value/library.i:26:[value] assertion 'Value,function_pointer' got final st
 [value] Analyzing an incomplete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {{ NULL ; &S_G[0] }}
   v ∈ [--..--]
   G0 ∈ [--..--]
@@ -240,7 +234,7 @@ tests/value/library.i:68:[value] warning: assertion 'Unknown_Invalid' got status
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2
@@ -255,28 +249,8 @@ tests/value/library.i:68:[value] warning: assertion 'Unknown_Invalid' got status
           v
 [value] Analyzing an incomplete application starting at main2
 [value] Computing initial state
-[value:initial_state] creating variable S_0_p_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_1_p_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_2_p_ss with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_3_p_ss with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_0_0_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_1_0_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_2_0_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_3_0_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_0_1_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_1_1_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_2_1_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_3_1_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_0_2_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_1_2_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_2_2_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_3_2_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_0_3_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_1_3_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_2_3_S_q_ss_0 with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_3_3_S_q_ss_0 with imprecise size (type struct ss [4])
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {{ NULL ; &S_G_0[0] }}
   v ∈ [--..--]
   G0 ∈ [--..--]
@@ -504,7 +478,7 @@ tests/value/library.i:68:[value] warning: assertion 'Unknown_Invalid' got status
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2

@@ -25,7 +25,7 @@ let ksfprintf f fmt =
   let return fmt = Format.pp_print_flush fmt (); f (Buffer.contents b) in
   Format.kfprintf return (Format.formatter_of_buffer b) fmt
 
-let sfprintf fmt = ksfprintf Extlib.id fmt
+let sfprintf = Format.asprintf
 
 let to_string ?margin pp x =
   let b = Buffer.create 20 in
@@ -53,6 +53,7 @@ let pp_list
     ?(sep=format_of_string "@,")
     ?(last=sep)
     ?(suf=format_of_string "@]")
+    ?(empty=format_of_string "")
     pp_elt f l =
   let rec aux f = function
     | [] -> assert false
@@ -61,16 +62,17 @@ let pp_list
     | e :: l -> Format.fprintf f "%a%(%)%a" pp_elt e sep aux l
   in
   match l with
-  | [] -> ()
+  | [] -> Format.fprintf f "%(%)" empty
   | _ :: _ as l -> Format.fprintf f "%(%)%a%(%)" pre aux l suf
 
 let pp_array
     ?(pre=format_of_string "@[")
     ?(sep=format_of_string "")
     ?(suf=format_of_string "@]")
+    ?(empty=format_of_string "")
     pp_elt f xs =
   match xs with
-    | [| |] -> ()
+    | [| |] -> Format.fprintf f "%(%)" empty
     | xs ->
         begin
           Format.fprintf f pre ;
@@ -111,9 +113,9 @@ let pp_iter2
   Format.fprintf fmt suf;
 ;;
 
-let pp_opt ?(pre=format_of_string "@[")  ?(suf=format_of_string "@]") pp_elt f =
+let pp_opt ?(pre=format_of_string "@[")  ?(suf=format_of_string "@]") ?(none=format_of_string "") pp_elt f =
   function
-  | None -> ()
+  | None -> Format.fprintf f "%(%)" none
   | Some v ->  Format.fprintf f "%(%)%a%(%)" pre pp_elt v suf
 
 let pp_cond ?(pr_false=format_of_string "") cond f pr_true =

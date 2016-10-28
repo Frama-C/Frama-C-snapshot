@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/ergo_typecheck.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 8 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_var_divded : Valid
@@ -19,5 +18,5 @@
      Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-f                    6      2 (105)    8       100%
+f                    6      2 (23)     8       100%
 ----------------------------------------------------------

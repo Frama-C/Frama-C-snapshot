@@ -3,10 +3,8 @@
 [kernel] Parsing tests/wp_usage/frama_c_exo3_solved.old.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
-[wp] 39 goals scheduled
+[wp] 37 goals scheduled
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_post : Valid
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_post_2 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_post_3 : Valid
@@ -32,11 +30,9 @@
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_10_established : Valid
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert : Valid
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_2 : Valid
-[wp] [Qed] Goal typed_ref_equal_elements_loop_assign_part1 : Valid
-[wp] [Qed] Goal typed_ref_equal_elements_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_assign : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assign_2_part1 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_assign_2_part2 : Valid
-[wp] [Qed] Goal typed_ref_equal_elements_loop_assign_2_part3 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assign_part1 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assign_part2 : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_assign_part3 : Valid
@@ -46,10 +42,10 @@
 [wp] [Qed] Goal typed_ref_equal_elements_loop_term_positive : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_decrease : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_positive : Valid
-[wp] Proved goals:   39 / 39
-     Qed:            23 
+[wp] Proved goals:   37 / 37
+     Qed:            21 
      Alt-Ergo:       16
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-equal_elements      23     16 (693)   39       100%
+equal_elements      21     16 (379)   37       100%
 ----------------------------------------------------------

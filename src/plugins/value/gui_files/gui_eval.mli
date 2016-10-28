@@ -73,7 +73,7 @@ val term_ev:
 val predicate_ev:
   Gui_types.gui_loc ->
   (Eval_terms.eval_env,
-   predicate named,
+   predicate,
    Eval_terms.predicate_status Bottom.or_bottom
   ) evaluation_functions
 

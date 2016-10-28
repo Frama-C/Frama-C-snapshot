@@ -4,7 +4,7 @@
 [value] Computing initial state
 tests/value/big_lib_entry.i:32:[value] Initializing a complex array of 1000 elements. This may take some time
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s.c1 ∈ [--..--]
    .[bits 8 to 31] ∈ UNINITIALIZED
    .tcs[0].f1 ∈ [--..--]
@@ -9113,5 +9113,5 @@ tests/value/big_lib_entry.i:32:[value] Initializing a complex array of 1000 elem
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   

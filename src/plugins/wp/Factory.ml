@@ -45,7 +45,7 @@ type driver = LogicBuiltins.driver
 let main (i,t) name =
   begin
     Buffer.add_string i name ;
-    Buffer.add_string t (String.capitalize name) ;
+    Buffer.add_string t (Transitioning.String.capitalize_ascii name) ;
   end
 
 let add (i,t) part =
@@ -54,7 +54,7 @@ let add (i,t) part =
     Buffer.add_string i part ;
     Buffer.add_char t ' ' ;
     Buffer.add_char t '(' ;
-    Buffer.add_string t (String.capitalize part) ;
+    Buffer.add_string t (Transitioning.String.capitalize_ascii part) ;
     Buffer.add_char t ')' ;
   end
 
@@ -75,13 +75,12 @@ let descr_mvar d = function
   | Caveat -> add d "caveat"
 
 let descr_cint d = function
-  | Cint.Natural -> ()
-  | Cint.NoRange -> add d "rg"
-  | Cint.Machine -> add d "int"
+  | Cint.Machine -> ()
+  | Cint.Natural -> add d "nat"
 
 let descr_cfloat d = function
-  | Cfloat.Real -> ()
-  | Cfloat.Float -> add d "float"
+  | Cfloat.Real -> add d "real"
+  | Cfloat.Float -> ()
 
 let descr_setup (s:setup) =
   begin
@@ -107,96 +106,75 @@ let descr s =
 (* No implicit context for these AlterableVarUsage modules *) 
 module type AlterableVarUsage = sig
   val datatype : string
-  type t_usage
-  val decode : (Cil_types.varinfo -> t_usage) -> Cil_types.varinfo -> MemVar.param
-  val usage :  Cil_types.varinfo ->  t_usage
-  (** Must iterate over all operational inputs of the function
-      (formals and used globals). *)
-  val iter_inputs : ?kf:Kernel_function.t -> init:bool -> ((Cil_types.varinfo -> t_usage) -> Cil_types.varinfo -> unit) -> unit
+  val param : Cil_types.varinfo -> MemVar.param
+  val iter_inputs : ?kf:Kernel_function.t -> init:bool -> (Cil_types.varinfo -> unit) -> unit
 end
-
-let default_iter_inputs ?kf ~init f =
-  RefUsage.iter ?kf ~init (fun x _ -> f x)
-
-let old_default_iter_inputs ?kf ~init f = let _ = init in
-  begin
-    Globals.Vars.iter (fun x _initinfo -> f x) ;
-    match kf with
-    | None -> ()
-    | Some kf -> List.iter f (Kernel_function.get_formals kf) ;
-  end
 
 module VarHoare : AlterableVarUsage =
 struct
   let datatype = "Value"
-  type t_usage = ()  
-  let usage _x = ()
-  let decode _usage _x = MemVar.ByValue
-
-  let iter_inputs ?kf ~init f = default_iter_inputs ?kf ~init (fun x -> f usage x)
-  let iter_inputs ?kf ~init f = old_default_iter_inputs ?kf ~init (fun x -> f usage x) (* TODO[PB]: removing this line *)
+  let param _x = MemVar.ByValue
+  let iter_inputs ?kf ~init f =
+    begin
+      ignore init ;
+      Globals.Vars.iter (fun x _initinfo -> f x) ;
+      match kf with
+      | None -> ()
+      | Some kf -> List.iter f (Kernel_function.get_formals kf) ;
+    end
 end
+
+module VarRefUsage =
+struct
+
+  let formal_ptr x =
+    let open Cil_types in
+    x.vformal && Cil.isPointerType x.vtype
+
+  let param ~byref ~context x =
+    let kf = Model.get_scope () in
+    let init = match kf with
+      | None -> false
+      | Some f -> WpStrategy.is_main_init f in
+    let open RefUsage in
+    match RefUsage.get ?kf ~init x with
+    | NoAccess -> MemVar.NotUsed
+    | ByAddr -> MemVar.InHeap
+    | ByRef when byref -> MemVar.ByRef
+    | ByArray when context && formal_ptr x -> MemVar.InArray
+    | ByValue when context && formal_ptr x -> MemVar.InContext
+    | ByRef | ByArray | ByValue -> MemVar.ByValue
+
+  let iter ?kf ~init f = RefUsage.iter ?kf ~init (fun x _usage -> f x)
+
+end
+
 module VarRef0 : AlterableVarUsage =
 struct
   let datatype = "Ref0"
-  type t_usage = Variables_analysis.var_kind
-  let usage = Variables_analysis.dispatch_cvar
-  let decode usage x = 
-    match usage x with
-    | Variables_analysis.Fvar -> MemVar.ByValue
-    | _ -> MemVar.InHeap
-  let iter_inputs ?kf ~init f = default_iter_inputs ?kf ~init (fun x -> f usage x)
-  let iter_inputs ?kf ~init f = old_default_iter_inputs  ?kf ~init (fun x -> f usage x) (* TODO[PB]: removing this line *)
+  let param = VarRefUsage.param ~byref:false ~context:false
+  let iter_inputs = VarRefUsage.iter
 end
+
 module VarRef2 : AlterableVarUsage =
 struct
   let datatype = "Ref2"
-  type t_usage = VarUsageRef.usage
-  let usage = VarUsageRef.of_cvar
-  let decode usage x = 
-    let open VarUsageRef in 
-    match usage x with
-    | NotUsed -> MemVar.NotUsed
-    | ByValue | ByArray _ | ByRefArray _ -> MemVar.ByValue
-    | ByReference -> MemVar.ByRef
-    | ByAddress -> MemVar.InHeap
-
-  let iter_inputs ?kf ~init f = default_iter_inputs ?kf ~init (fun x -> f usage x)
-  let iter_inputs ?kf ~init f = old_default_iter_inputs ?kf ~init (fun x -> f usage x) (* TODO[PB]: removing this line *)
+  let param = VarRefUsage.param ~byref:true ~context:false
+  let iter_inputs = VarRefUsage.iter
 end
 
 module VarCaveat : AlterableVarUsage =
 struct
   let datatype = "Caveat"
-  type t_usage = RefUsage.access
-
-  let usage x = 
-    let kf = Model.get_scope () in
-    let init = match kf with
-      | None -> false
-      | Some f -> WpStrategy.is_main_init f in
-    RefUsage.get ?kf ~init x
-
-  let decode usage x = 
-    let open RefUsage in
-    match usage x with
-    | NoAccess -> MemVar.NotUsed
-    | ByAddr -> MemVar.InHeap
-    | ByRef -> MemVar.ByRef
-    | ByValue | ByArray ->
-        let open Cil_types in
-        if x.vformal && Cil.isPointerType x.vtype
-        then MemVar.InContext
-        else MemVar.ByValue
-  let iter_inputs ?kf ~init f = RefUsage.iter ?kf ~init (fun x usage -> f (fun _ -> usage) x) (* immediate access to the usage from the iterator*) 
-  let iter_inputs ?kf ~init f = default_iter_inputs ?kf ~init (fun x -> f (RefUsage.get ?kf ~init) x) (* TODO[PB]: removing this line *)
+  let param = VarRefUsage.param ~byref:true ~context:true
+  let iter_inputs = VarRefUsage.iter
 end
 
 module AltVarUsage(V : AlterableVarUsage) : MemVar.VarUsage =
 struct
   let datatype = "VarUsage." ^ V.datatype
 
-  let alter usage x =
+  let param x =
     let get_heap = Wp_parameters.InHeap.get in
     let get_ctxt = Wp_parameters.InCtxt.get in
     let get_refs = Wp_parameters.ByRef.get in
@@ -207,10 +185,7 @@ struct
     if S.mem x.vname (get_ctxt ()) then MemVar.InContext else
     if S.mem x.vname (get_refs ()) then MemVar.ByRef else
     if S.mem x.vname (get_vars ()) then MemVar.ByValue else
-      V.decode usage x
-
-  let param x = (* Alternative variable usage from options *)
-    alter V.usage x
+      V.param x
 
   (** A memory model context has to be set. *)
   let separation () =
@@ -224,20 +199,22 @@ struct
     let r_other = ref [] in
     let s_mutex r = r_mutex := r::!r_mutex in
     let s_other r = r_other := r::!r_other in
-    let s_partition usage x = 
-      if (Cil.isPointerType x.vtype) || (Cil.isArrayType x.vtype) then begin
-        match alter usage x with
-        | ByValue   -> s_other (Separation.Arr x)
-        | ByRef     -> s_mutex (Separation.Ptr x)
-        | InHeap    -> s_other (Separation.Arr x)
-        | InContext -> s_mutex (Separation.Arr x)
-        | NotUsed   -> ()
-      end;
+    let s_partition x =
+      if (Cil.isPointerType x.vtype) || (Cil.isArrayType x.vtype) then
+        begin
+          match param x with
+          | ByValue   -> s_other (Separation.Arr x)
+          | ByRef     -> s_mutex (Separation.Ptr x)
+          | InHeap    -> s_other (Separation.Arr x)
+          | InContext -> s_mutex (Separation.Ptr x)
+          | InArray   -> s_mutex (Separation.Arr x)
+          | NotUsed   -> ()
+        end;
     in
     V.iter_inputs ?kf ~init
-      (fun usage vi ->
+      (fun vi ->
          if vi.vglob then s_other (Separation.Var vi);
-         if vi.vformal then s_partition usage vi;
+         if vi.vformal then s_partition vi;
       ) ;
     let open Separation in
     { mutex = List.rev !r_mutex ; other = List.rev !r_other }
@@ -277,6 +254,7 @@ let configure (s:setup) (d:driver) () =
     configure_mheap s.mheap ;
     Cint.configure s.cint ;
     Cfloat.configure s.cfloat ;
+    Vlist.configure () ;
     Context.set LogicBuiltins.driver d ;
   end
 
@@ -330,7 +308,8 @@ let split ~warning (m:string) : string list =
        | '_' | ',' | '@' | '+' | ' ' | '\t' | '\n' | '(' | ')' -> flush ()
        | _ -> warning (Printf.sprintf
                        "In model spec %S : unexpected character '%c'" m c)
-    ) (String.uppercase m) ;
+    )
+    (Transitioning.String.uppercase_ascii m) ;
   flush () ; !tk
 
 let update_config ~warning m s = function
@@ -343,14 +322,13 @@ let update_config ~warning m s = function
   | "RAW" -> { s with mvar = Raw }
   | "REF" -> { s with mvar = Ref }
   | "VAR" -> { s with mvar = Var }
-  | "NAT" -> { s with cint = Cint.Natural }
   | "INT" | "CINT" -> { s with cint = Cint.Machine }
-  | "RG" -> { s with cint = Cint.NoRange }
+  | "NAT" | "RG" -> { s with cint = Cint.Natural }
   | "REAL" -> { s with cfloat = Cfloat.Real }
   | "FLOAT" | "CFLOAT" -> { s with cfloat = Cfloat.Float }
   | t -> warning (Printf.sprintf
                   "In model spec %S : unknown '%s' selector@." m t) ; s
-           
+
 let apply_config ~warning (s:setup) m : setup =
   List.fold_left (update_config ~warning m) s (split ~warning m)
 
@@ -358,8 +336,8 @@ let default =
   {
     mheap = Typed MemTyped.Fits ;
     mvar = Var ;
-    cint = Cint.Natural ;
-    cfloat = Cfloat.Real ;
+    cint = Cint.Machine ;
+    cfloat = Cfloat.Float ;
   }
 
 let abort msg = Wp_parameters.abort "%s" msg

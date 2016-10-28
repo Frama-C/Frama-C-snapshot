@@ -39,6 +39,5 @@ tests/wp_usage/reads.i:86:[kernel] warning: No code nor implicit assigns clause 
    b
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] No proof obligations

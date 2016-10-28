@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i1 ∈ [--..--]
   i2 ∈ [--..--]
 tests/value/unsigned_overflow.c:4:[value] warning: assertion got status unknown.
@@ -12,7 +12,7 @@ tests/value/unsigned_overflow.c:5:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   v ∈ [--..--]
   __retres ∈ {0}
 [from] Computing for function main

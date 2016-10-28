@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   auto_states[0..3] ∈ {0}
 [value] computing for function copy <- main.
         Called from tests/spec/default_assigns_bts0966.i:34.
@@ -15,7 +15,7 @@ tests/spec/default_assigns_bts0966.i:20:[value] warning: no \from part for claus
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   auto_states[0] ∈ {0}
              [1] ∈ {1}
              [2..3] ∈ {0}

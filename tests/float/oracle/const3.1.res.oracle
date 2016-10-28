@@ -5,7 +5,7 @@ tests/float/const3.i:7:[kernel] warning: Floating-point constant 1e-40 is not re
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   f1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   d0 ∈ [0x1.16c262777579cp-133 .. 0x1.16c262777579dp-133]
 [value] DUMPING STATE of file tests/float/const3.i line 11
@@ -17,7 +17,7 @@ tests/float/const3.i:7:[kernel] warning: Floating-point constant 1e-40 is not re
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   d1 ∈ [0x1.16c2000000000p-133 .. 0x1.16c3000000000p-133]
   __retres ∈ {0}
 [from] Computing for function main

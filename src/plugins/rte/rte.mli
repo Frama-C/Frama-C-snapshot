@@ -43,6 +43,7 @@ val uminus_assertion: exp alarm_gen
 val signed_downcast_assertion: (typ * exp) alarm_gen
 val unsigned_downcast_assertion: (typ * exp) alarm_gen
 val float_to_int_assertion: (typ * exp) alarm_gen
+val pointer_call: exp alarm_gen
 
 (*
 Local Variables:

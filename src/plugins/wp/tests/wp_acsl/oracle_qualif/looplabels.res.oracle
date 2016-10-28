@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/looplabels.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 10 goals scheduled
 [wp] [Alt-Ergo] Goal typed_copy_post : Valid
@@ -21,5 +20,5 @@
      Alt-Ergo:        7
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-copy                 3      7 (569)   10       100%
+copy                 3      7 (584)   10       100%
 ----------------------------------------------------------

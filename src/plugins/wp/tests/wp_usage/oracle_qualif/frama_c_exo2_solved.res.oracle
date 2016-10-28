@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_usage/frama_c_exo2_solved.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 28 goals scheduled
 [wp] [Alt-Ergo] Goal typed_max_subarray_post : Valid
@@ -39,5 +38,5 @@
      Alt-Ergo:       13
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-max_subarray        15     13 (156)   28       100%
+max_subarray        15     13 (249)   28       100%
 ----------------------------------------------------------

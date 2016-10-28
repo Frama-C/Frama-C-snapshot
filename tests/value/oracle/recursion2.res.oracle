@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
 [value] computing for function h2 <- main.
@@ -25,13 +25,13 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h1:
+[value:final-states] Values at end of function h1:
   r ∈ {0}
   q ∈ {0}
-[value] Values at end of function h2:
+[value:final-states] Values at end of function h2:
   r ∈ {0}
   q ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [inout] Out (internal) for function h1:
           r; q

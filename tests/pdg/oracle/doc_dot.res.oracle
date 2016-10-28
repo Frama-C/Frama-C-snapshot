@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   T[0..9] ∈ [--..--]

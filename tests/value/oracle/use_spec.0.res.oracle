@@ -7,7 +7,7 @@ tests/value/use_spec.i:7:[kernel] warning: Neither code nor specification for fu
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   w ∈ {0}
   x ∈ {0}
   y ∈ {0}
@@ -34,7 +34,7 @@ tests/value/use_spec.i:23:[kernel] warning: Neither code nor specification for f
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   w ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]

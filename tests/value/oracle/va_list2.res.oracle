@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/va_list2.c:8:[value] entering loop for the first time
-tests/value/va_list2.c:8:[kernel] warning: out of bounds read. assert \valid_read(fmt);
+tests/value/va_list2.c:8:[value] warning: out of bounds read. assert \valid_read(fmt);
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])
-tests/value/va_list2.c:16:[kernel] warning: non-finite float value. assert \is_finite(tmp_0);
-                                          (tmp_0 from vararg)
+tests/value/va_list2.c:16:[value] warning: non-finite float value. assert \is_finite(tmp_0);
+                                         (tmp_0 from vararg)
 [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
-tests/value/va_list2.c:9:[kernel] warning: out of bounds read. assert \valid_read(fmt);
+tests/value/va_list2.c:9:[value] warning: out of bounds read. assert \valid_read(fmt);
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])
 [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
 [value] Recording results for main
@@ -20,7 +20,7 @@ tests/value/va_list2.c:9:[kernel] warning: out of bounds read. assert \valid_rea
 tests/value/va_list2.c:7:[kernel] warning: Neither code nor specification for function __builtin_va_start, generating default assigns from the prototype
 tests/value/va_list2.c:11:[kernel] warning: Neither code nor specification for function __builtin_va_arg, generating default assigns from the prototype
 tests/value/va_list2.c:24:[kernel] warning: Neither code nor specification for function __builtin_va_end, generating default assigns from the prototype
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   fmt ∈ {{ &S_fmt{[0], [1]} }}
 [from] Computing for function main
 [from] Computing for function __builtin_va_start <-main

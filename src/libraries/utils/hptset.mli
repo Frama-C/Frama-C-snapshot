@@ -74,6 +74,8 @@ module type S = sig
         Those caches are not project-aware, so this function must be called
         at least each a project switch occurs. *)
     val clear_caches: unit -> unit
+
+    val pretty_debug: t Pretty_utils.formatter
 end
 
 module Make(X: Hptmap.Id_Datatype)

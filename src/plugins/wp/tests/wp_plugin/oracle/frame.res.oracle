@@ -3,14 +3,13 @@
 [kernel] Parsing tests/wp_plugin/frame.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function alias
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'alias':
-Let a = shift_sint32(global(P_r_86), 0).
+Let a = global(P_r_86).
 Let x = Mint_0[a].
 Let x_1 = Mint_1[a].
 Assume {

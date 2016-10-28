@@ -11,8 +11,6 @@
 [rte] annotating function spec_if_not_cond
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
-[wp] warning: Missing RTE guards
 [wp] 25 goals scheduled
 [wp] [Alt-Ergo] Goal hoare_bts0513_post_qed_ko_ko1 : Unknown
 [wp] [Alt-Ergo] Goal hoare_bts0513_post_qed_ko_ko2 : Unknown

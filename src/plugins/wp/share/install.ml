@@ -41,7 +41,7 @@ let on_out file job = try_finally ~finally:close_out job (open_out file)
 
 let hardcopy inc out =
   begin
-    let buffer = String.create 1024 in
+    let buffer = Bytes.create 1024 in
     let n = ref 0 in
     while (n := Pervasives.input inc buffer 0 1024 ; !n > 0) do
       Pervasives.output out buffer 0 !n 

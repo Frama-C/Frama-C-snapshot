@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at locks0_good
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   ghost_loctable[0..99] ∈ {0}
   pmutex ∈ {0}
 tests/value/lock.i:48:[value] warning: function locks0_good: precondition got status unknown.
@@ -24,7 +24,7 @@ tests/value/lock.i:29:[value] warning: no \from part for clause 'assigns ghost_l
 [value] Recording results for locks0_good
 [value] done for function locks0_good
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function locks0_good:
+[value:final-states] Values at end of function locks0_good:
   ghost_loctable[0..99] ∈ [--..--]
 [from] Computing for function locks0_good
 [from] Computing for function acquire_lock <-locks0_good

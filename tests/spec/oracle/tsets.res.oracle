@@ -23,8 +23,8 @@ struct bli {
     assigns x->bar[0 .. 3] \from x->bar[0 .. 3]; */
 extern int f(struct foo *x);
 
-/*@ assigns *(x+(0 .. 3));
-    assigns *(x+(0 .. 3)) \from y->bli[0 .. 3]; */
+/*@ assigns *(x + (0 .. 3));
+    assigns *(x + (0 .. 3)) \from y->bli[0 .. 3]; */
 extern int g(char * /*[4]*/ x, struct bli *y);
 
 int main(void)
@@ -42,14 +42,14 @@ int main(void)
 
 /*@
 predicate test1(set<int>  s1, set<int>  s2) =
-  \subset(s1, \union(s2, {k+1 | int k; constraint: 0 ≤ k < 10}));
+  \subset(s1, \union(s2, {k + 1 | int k; constraint: 0 ≤ k < 10}));
  */
 /*@
 predicate test2(set<int>  s1, set<int>  s2) =
-  \subset(\union({k+1 | int k; constraint: 0 ≤ k < 10}, s2), s1);
+  \subset(\union({k + 1 | int k; constraint: 0 ≤ k < 10}, s2), s1);
 
 */
-/*@ ensures \subset(\result, {\old(x), \old(x)+1, \old(x)-1}); */
+/*@ ensures \subset(\result, {\old(x), \old(x) + 1, \old(x) - 1}); */
 int h(int x, int c)
 {
   int tmp_0;
@@ -64,7 +64,7 @@ int h(int x, int c)
   return tmp_0;
 }
 
-/*@ requires \valid(\union(*(a+(0 .. 1)), *(b+(0 .. 1)))); */
+/*@ requires \valid(\union(*(a + (0 .. 1)), *(b + (0 .. 1)))); */
 int foo(int **a, int **b)
 {
   int __retres;
@@ -73,13 +73,14 @@ int foo(int **a, int **b)
 }
 
 /*@
-predicate test_singleton_1{L}(int *a, int x) = \at(x ≡ *(a+(0 .. 1)),L);
+predicate test_singleton_1{L}(int *a, int x) = \at(x ≡ *(a + (0 .. 1)),L);
  */
-/*@ predicate test_singleton_2{L}(int *a) = \at(*(a+(0 .. 1)) ≡ 1,L);
+/*@ predicate test_singleton_2{L}(int *a) = \at(*(a + (0 .. 1)) ≡ 1,L);
  */
-/*@ predicate test_singleton_3{L}(int *a) = \at(*(a+(0 .. 1)) ≡ {1},L);
+/*@ predicate test_singleton_3{L}(int *a) = \at(*(a + (0 .. 1)) ≡ {1},L);
  */
-/*@ predicate test_set_of_elem{L}(int *a) = \at(*(a+(0 .. 1)) ≡ {1, 2},L);
+/*@
+predicate test_set_of_elem{L}(int *a) = \at(*(a + (0 .. 1)) ≡ {1, 2},L);
 
 */
 int A[100];

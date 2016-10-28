@@ -39,21 +39,30 @@ module type S = sig
                                 and type origin = origin
                                 and type loc = loc
 
-  (** [evaluate ~valuation ~indeterminate state exp] evaluates the expression
-      [exp] in the state [state], and returns the pair [res, alarms], where:
+  (** [evaluate ~valuation state expr] evaluates the expression [expr] in the
+      state [state], and returns the pair [result, alarms], where:
       - [alarms] are the set of alarms ensuring the soundness of the evaluation;
-      - [res] is either `Bottom if the evaluation is impossible,
+      - [result] is either `Bottom if the evaluation leads to an error,
         or `Value (valuation, value), where [value] is the numeric value computed
-        for [exp], and [valuation] contains all the intermediate results of the
-        evaluation.
-      About optional arguments:
-      - [valuation] is a cache of already computed expressions; empty by default.
-      - if [indeterminate] is true, then the lvalues uninitialized or escaping
-        are considered as unreduced (their reductness is not set to Reduced);
-        false by default. *)
+        for the expression [expr], and [valuation] contains all the intermediate
+        results of the evaluation.
+      The [valuation] argument is a cache of already computed expressions.
+      It is empty by default.
+      The [reduction] argument allows deactivating the backward reduction
+      performed after the forward evaluation. *)
   val evaluate :
-    ?valuation:Valuation.t -> ?indeterminate:bool -> ?reduction:bool ->
+    ?valuation:Valuation.t -> ?reduction:bool ->
     state -> exp -> (Valuation.t * value) evaluated
+
+  (** Computes the value of a lvalue, with possible indeterminateness: the
+      returned value may be uninitialized, or contain escaping addresses.
+      Also returns the alarms resulting of the evaluation of the lvalue location,
+      and a valuation containing all the intermediate results of the evaluation.
+      The [valuation] argument is a cache of already computed expressions.
+      It is empty by default. *)
+  val copy_lvalue :
+    ?valuation:Valuation.t ->
+    state -> lval -> (Valuation.t * value flagged_value) evaluated
 
   (** [lvaluate ~valuation ~for_writing state lval] evaluates the left value
       [lval] in the state [state]. Same general behavior as [evaluate] above
@@ -65,10 +74,25 @@ module type S = sig
     ?valuation:Valuation.t -> for_writing:bool ->
     state -> lval -> (Valuation.t * loc * typ) evaluated
 
-  (** *)
+  (** [reduce ~valuation state expr positive] evaluates the expresssion [expr]
+      in the state [state], and then reduces the [valuation] such that
+      the expression [expr] evaluates to a zero or a non-zero value, according
+      to [positive]. By default, the empty valuation is used. *)
   val reduce:
     ?valuation:Valuation.t ->
     state -> exp -> bool -> Valuation.t evaluated
+
+  (** [assume ~valuation state expr value] assumes in the [valuation] that
+      the expression [expr] has the value [value] in the state [state],
+      and backward propagates this information to the subterm of [expr].
+      If [expr] has not been already evaluated in the [valuation], its forward
+      evaluation takes place first, but the alarms are dismissed. By default,
+      the empty valuation is used.
+      The function returns the updated valuation, or bottom if it discovers
+      a contradiction. *)
+  val assume:
+    ?valuation:Valuation.t ->
+    state -> exp -> value -> Valuation.t or_bottom
 
 
   val loc_size: loc -> Int_Base.t
@@ -97,7 +121,7 @@ module type S = sig
 
   val eval_function_exp:
     exp -> state -> (Kernel_function.t * Valuation.t) list evaluated
-  (** Evaluation of the function argument of a [Call] constructor *)
+    (** Evaluation of the function argument of a [Call] constructor *)
 
 end
 
@@ -111,12 +135,17 @@ module type Value = sig
   val reduce : t -> t
 end
 
+module type Queries = sig
+  include Abstract_domain.Queries
+  include Datatype.S with type t = state
+end
+
 (** Generic functor. *)
 module Make
     (Value : Value)
     (Loc : Abstract_location.S with type value = Value.t)
-    (Domain : Abstract_domain.Queries with type value = Value.t
-                                       and type location = Loc.location)
+    (Domain : Queries with type value = Value.t
+                       and type location = Loc.location)
   : S with type state = Domain.state
        and type value = Value.t
        and type origin = Domain.origin

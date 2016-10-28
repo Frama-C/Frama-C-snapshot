@@ -25,6 +25,7 @@
 #define __FC_STDIO
 #include "features.h"
 #include "__fc_machdep.h"
+#include "__fc_string_axiomatic.h"
 #include "stdarg.h"
 #include "stddef.h"
 #include "errno.h"
@@ -32,13 +33,13 @@
 #include "__fc_define_fpos_t.h"
 #include "__fc_define_file.h"
 #include "__fc_define_null.h"
+#include "__fc_define_eof.h"
 
 #define _IOFBF 0
 #define _IOLBF 1
 #define _IONBF 2
 
 #define BUFSIZ __FC_BUFSIZ
-#define EOF __FC_EOF
 #define FOPEN_MAX __FC_FOPEN_MAX
 #define FILENAME_MAX __FC_FILENAME_MAX
 #define L_tmpnam __FC_L_tmpnam
@@ -59,7 +60,7 @@ extern FILE * __fc_stdout;
 #define stdout (__fc_stdout)
 
 /*
-  Note: currently some functions only consider the __fc_stdio_id field of FILE.
+  Note: currently some functions only consider the __fc_FILE_id field of FILE.
         This models the fact that operations on different files are considered
         non-interferent between them.
 */
@@ -83,7 +84,7 @@ char *tmpnam(char *s);
 
 /*@
   requires \valid(stream);
-  assigns \result \from stream, stream->__fc_stdio_id;
+  assigns \result \from stream, stream->__fc_FILE_id;
   ensures \result == 0 || \result == EOF;
   // TODO: more precise behaviors from ISO C 7.19.4.1 
 */
@@ -91,7 +92,7 @@ int fclose(FILE *stream);
 
 /*@
   requires stream == \null || \valid_read(stream);
-  assigns \result \from stream, stream->__fc_stdio_id;
+  assigns \result \from stream, stream->__fc_FILE_id;
   ensures \result == 0 || \result == EOF;
   // TODO: more precise behaviors from ISO C 7.19.5.2
  */
@@ -130,12 +131,12 @@ int setvbuf(FILE * restrict stream,
      char * restrict buf,
      int mode, size_t size);
 
-/*@ assigns *stream \from stream->__fc_stdio_id; */
+/*@ assigns *stream \from stream->__fc_FILE_id; */
 // unsupported...
 int fprintf(FILE * restrict stream,
      const char * restrict format, ...);
 
-/*@ assigns *stream \from stream->__fc_stdio_id;
+/*@ assigns *stream \from stream->__fc_FILE_id;
 // unsupported...
  */
 int fscanf(FILE * restrict stream,

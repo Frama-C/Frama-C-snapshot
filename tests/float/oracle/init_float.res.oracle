@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s.y ∈ [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
   r ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
   cv ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
@@ -19,7 +19,7 @@ tests/float/init_float.i:17:[value] warning: function main: precondition got sta
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   s.y ∈ [-0.0000000000000000 .. 0.0000000000000000]
   r ∈ [-1000.0000000000000000 .. 1000.0000000000000000]
   cv ∈ [1.0000000715686179 .. 1.6096441013214644*2^20]

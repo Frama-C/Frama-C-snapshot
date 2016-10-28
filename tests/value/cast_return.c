@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-print -then -val-warn-copy-indeterminate @all -no-print"
-   STDOPT: #"-print -no-collapse-call-cast"
+   STDOPT: +"-val-warn-copy-indeterminate=-@all -print -then -val-warn-copy-indeterminate @all -no-print"
+   STDOPT: #"-val-warn-copy-indeterminate=-g,-fl1,-fl2 -print -no-collapse-call-cast"
 */
 
 extern int i;
@@ -51,7 +51,16 @@ void main2() {
   d2 = fl2();
 }
 
+//@ assigns \result \from \nothing;
+float ret_float();
+
+void main3() {
+  float f1 = ret_float ();
+  float f2 = f1 + 1;
+}
+
 void main() {
   main1();
   main2();
+  main3();
 }

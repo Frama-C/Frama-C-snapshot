@@ -1,0 +1,22 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/issue-189.i (no preprocessing)
+[wp] Running WP plugin...
+.................................................
+... Ref Usage
+.................................................
+... Initial state
+  Nothing
+............
+... Function f
+  *ptr
+   src
+   idx
+.................................................
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_usage/issue-189.i:17:[wp] warning: forbidden write to variable 'src' considered in an isolated context.
+              Use model 'Typed' instead or specify '-wp-unalias-vars src'
+tests/wp_usage/issue-189.i:17:[wp] user error: forbidden assigns to variable 'src' considered in an isolated context.
+                 Use model 'Typed' instead or specify '-wp-unalias-vars src'
+[kernel] Plug-in wp aborted: invalid user input.

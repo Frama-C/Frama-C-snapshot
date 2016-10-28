@@ -50,30 +50,10 @@ let current_kf () =
 
 let call_stack () = !call_stack
 
-
-
-
-let pretty_call_stack_short fmt callstack =
-  Pretty_utils.pp_flowlist ~left:"" ~sep:" <- " ~right:""
-     (fun fmt (kf,_) -> Kernel_function.pretty fmt kf)
-    fmt
-    callstack
-
-let pretty_call_stack fmt callstack =
-  Format.fprintf fmt "@[<hv>";
-  List.iter (fun (kf,ki) ->
-    Kernel_function.pretty fmt kf;
-    match ki with
-      | Kglobal -> ()
-      | Kstmt stmt -> Format.fprintf fmt " :: %a <-@ "
-          Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc stmt)
-  ) callstack;
-  Format.fprintf fmt "@]"
-
 let pp_callstack fmt =
   if Value_parameters.PrintCallstacks.get () then
     Format.fprintf fmt "@ stack: %a"
-      pretty_call_stack (call_stack())
+      Value_types.Callstack.pretty (call_stack())
 ;;
 
 (* Misc *)
@@ -152,11 +132,19 @@ let pretty_current_cfunction_name fmt =
 let warning_once_current fmt =
   Value_parameters.warning ~current:true ~once:true fmt
 
+(* Emit alarms in "non-warning" mode *)
+let alarm_report ?(level=1) ?current ?source ?emitwith ?echo ?once ?append =
+  if Value_parameters.AlarmsWarnings.get () then
+    Value_parameters.warning ?current ?source ?emitwith ?echo ?once ?append
+  else
+    Value_parameters.result ~dkey:Value_parameters.dkey_alarm
+      ?current ?source ?emitwith ?echo ?once ?append ~level
+
 let debug_result kf (last_ret,_,last_clob) =
   Value_parameters.debug
     "@[RESULT FOR %a <-%a:@\n\\result -> %t@\nClobered set:%a@]"
     Kernel_function.pretty kf
-    pretty_call_stack (call_stack ())
+    Value_types.Callstack.pretty (call_stack ())
     (fun fmt ->
       match last_ret with
         | None -> ()
@@ -227,50 +215,13 @@ let postconditions_mention_result spec =
   Cil.CurrentLoc.set loc;
   res
 
-let written_formals kf =
-  let module S = Cil_datatype.Varinfo.Set in
-  match kf.fundec with
-  | Declaration _ -> S.empty
-  | Definition (fdec,  _) ->
-    let add_addr_taken acc vi = if vi.vaddrof then S.add vi acc else acc in
-    let referenced_formals =
-      ref (List.fold_left add_addr_taken S.empty fdec.sformals)
-    in
-    let obj = object
-      inherit Visitor.frama_c_inplace
-
-      method! vinst i =
-        begin match i with
-        | Call (Some (Var vi, _), _, _, _)
-        | Set ((Var vi, _), _, _) ->
-          if Kernel_function.is_formal vi kf then
-            referenced_formals := S.add vi !referenced_formals
-        | _ -> ()
-        end;
-        Cil.SkipChildren
-    end
-    in
-    ignore (Visitor.visitFramacFunction (obj :> Visitor.frama_c_visitor) fdec);
-    !referenced_formals
-
-module WrittenFormals =
-  Kernel_function.Make_Table(Cil_datatype.Varinfo.Set)
-    (struct
-      let size = 17
-      let dependencies = [Ast.self]
-      let name = "Value_util.WrittenFormals"
-     end)
-
-let written_formals = WrittenFormals.memo written_formals
-
-
 let bind_block_locals states b =
   (* Bind [vi] in [states] *)
   let bind_local_stateset states vi =
     let b = Base.of_varinfo vi in
     match Cvalue.Default_offsetmap.default_offsetmap b with
     | `Bottom -> states
-    | `Map offsm ->
+    | `Value offsm ->
        (* Bind [vi] in [state], and does not modify the trace *)
        let bind_local_state (state, trace) =
          (Cvalue.Model.add_base b offsm state, trace)
@@ -372,23 +323,46 @@ let zero e =
 let is_value_zero e =
   e.eloc == loc_dummy_value
 
-(* Definitions related to malloc builtins *)
+let dump_garbled_mix () =
+  let l = Cvalue.V.get_garbled_mix () in
+  if l <> [] && Value_parameters.(is_debug_key_enabled dkey_garbled_mix) then
+    let pp_one fmt v = Format.fprintf fmt "@[<hov 2>%a@]" Cvalue.V.pretty v in
+    Value_parameters.warning
+      "Garbled mix generated during analysis:@.\
+      @[<v>%a@]"
+      (Pretty_utils.pp_list ~pre:"" ~suf:"" ~sep:"@ " pp_one) l
 
-module Dynamic_Alloc_Bases =
-  State_builder.Ref
-    (Base.Hptset)
-    (struct
-      let dependencies = [Ast.self] (* TODO: should probably depend on Value
-                                       itself *)
-      let name = "Dynamic_Alloc_Bases"
-      let default () = Base.Hptset.empty
-    end)
-let () = Ast.add_monotonic_state Dynamic_Alloc_Bases.self
+let rec zone_of_expr find_loc expr =
+  let rec process expr = match expr.enode with
+    | Lval lval -> zone_of_lval find_loc lval
+    | UnOp (_, e, _) | CastE (_, e) | Info (e, _) -> process e
+    | BinOp (_, e1, e2, _) -> Locations.Zone.join (process e1) (process e2)
+    | StartOf lv | AddrOf lv -> zone_of_lval find_loc lv
+    | _ -> Locations.Zone.bottom
+  in
+  process expr
 
-let register_malloced_base b =
-  Dynamic_Alloc_Bases.set (Base.Hptset.add b (Dynamic_Alloc_Bases.get ()))
+and zone_of_lval find_loc lval =
+  let loc = find_loc lval in
+  let zone = Locations.enumerate_bits (Precise_locs.imprecise_location loc) in
+  Locations.Zone.join zone
+    (indirect_zone_of_lval find_loc lval)
 
-let malloced_bases () = Dynamic_Alloc_Bases.get ()
+and indirect_zone_of_lval find_loc (lhost, offset) =
+  (Locations.Zone.join
+     (zone_of_lhost find_loc lhost) (zone_of_offset find_loc offset))
+
+and zone_of_lhost find_loc = function
+  | Var _ -> Locations.Zone.bottom
+  | Mem e -> zone_of_expr find_loc e
+
+and zone_of_offset find_loc = function
+  | NoOffset -> Locations.Zone.bottom
+  | Field (_, o) -> zone_of_offset find_loc o
+  | Index (e, o) ->
+    Locations.Zone.join
+      (zone_of_expr find_loc e) (zone_of_offset find_loc o)
+
 
 (*
 Local Variables:

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s50.z ∈ {2}
      .[bits 50 to 63] ∈ {0}
   s10.z ∈ {2}
@@ -15,7 +15,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {1}
   y ∈ {0}
   __retres ∈ {0}

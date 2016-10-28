@@ -146,6 +146,7 @@ type results = {
   initial_state: Cvalue.Model.t;
   initial_args: Cvalue.V.t list option;
   alarms: Property_status.emitted_status AlarmsStmt.Hashtbl.t;
+  builtins_alarms: Code_annotation.Set.t Stmt.Hashtbl.t;
   statuses: Property_status.emitted_status Property.Hashtbl.t
     (** alarms are _not_ present here *);
 (* conditions then/else *)
@@ -200,6 +201,9 @@ let get_results () =
     aux_statuses f_status ip
   in
   Alarms.iter aux_alarms;
+  let builtins_alarms = Stmt.Hashtbl.create 64 in
+  let aux_builtins_alarms stmt s () = Stmt.Hashtbl.add builtins_alarms stmt s in
+  Builtins.fold_emitted_alarms aux_builtins_alarms ();
   let statuses = Property.Hashtbl.create 128 in
   let aux_ip (ip: Property.t) =
     let add () =
@@ -215,7 +219,7 @@ let get_results () =
   in
   Property_status.iter aux_ip;
   { before_states; after_states; kf_initial_states; kf_is_called; kf_callers;
-    initial_state; initial_args; alarms; statuses; main }
+    initial_state; initial_args; alarms; builtins_alarms; statuses; main }
 
 let set_results results =
   let selection = State_selection.with_dependencies Db.Value.self in
@@ -264,6 +268,14 @@ let set_results results =
     ignore (Alarms.register Value_util.emitter ki ~status:st alarm)
   in
   AlarmsStmt.Hashtbl.iter aux_alarms results.alarms;
+  (* Builtin alarms; must be done before statuses *)
+  let aux_builtins_alarm stmt ca_set =
+    let aux_ca ca =
+      Annotations.add_code_annot Value_util.emitter stmt ca
+    in
+    Code_annotation.Set.iter aux_ca ca_set
+  in
+  Stmt.Hashtbl.iter aux_builtins_alarm results.builtins_alarms;
   (* Statuses *)
   let aux_statuses ip st =
     Property_status.emit Value_util.emitter ~hyps:[] ip st
@@ -326,6 +338,7 @@ let merge r1 r2 =
   let merge_cs _ = CallstackH.merge (fun _ -> Cvalue.Model.join) in
   (* Keep the "most informative" status. This is not what we do usually,
      because here False + Unknown = False, instead of Unknown *)
+  let merge_builtins_alarms _ s1 s2 = Code_annotation.Set.union s1 s2 in
   let merge_statuses _ s1 s2 =
     let open Property_status in
     match s1, s2 with
@@ -358,6 +371,9 @@ let merge r1 r2 =
   in
   let kf_callers = KfH.merge merge_callers r1.kf_callers r2.kf_callers in
   let alarms = AlarmsStmtH.merge merge_statuses r1.alarms r2.alarms in
+  let builtins_alarms =
+    StmtH.merge merge_builtins_alarms r1.builtins_alarms r2.builtins_alarms
+  in
   let statuses = PropertyH.merge merge_statuses r1.statuses r2.statuses in
   let initial_state = Cvalue.Model.join r1.initial_state r2.initial_state in
   let initial_args =
@@ -369,7 +385,7 @@ let merge r1 r2 =
       with Invalid_argument _ -> None (* should not occur *)
   in
   { main; before_states; after_states; kf_initial_states; kf_is_called;
-    initial_state; initial_args; alarms; statuses; kf_callers }
+    initial_state; initial_args; alarms; builtins_alarms; statuses; kf_callers }
 
 
 (*

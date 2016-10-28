@@ -20,26 +20,40 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Hierarchical Strongly Connected Components: performs Bourdoncle
-    computation of a weak topological order on a graph represented by
-    contiguous integers. Used by {!Wto_statement}.  *)
-
-type partition =
-  | Nil
-  | Node of int * partition
-  | Component of partition * partition
-
-val pretty: partition Pretty_utils.formatter
+(** Weak topological orderings (WTOs) are a hierarchical decompositions of the
+    a graph where each layer is topologically ordered and strongly connected
+    components are agregated and oredered recursively. This is a very
+    convenient reprentation to describe an evaluation order to reach a
+    fixpoint. *)
 
 
-type succ = (int -> unit) -> int -> unit
+(** Each component of the graph is either an individual node of the graph
+    (without) self loop, or a strongly connected component where a node is
+    designed as the head of the component and the remaining nodes are given
+    by a list of components topologically ordered. *)
+type 'n component =
+  | Component of 'n * 'n partition
+    (** A strongly connected component, described by its head node and the
+        remaining sub-components topologically ordered *)
+  | Node of 'n
+    (** A signe node without self loop *)
 
-val partition : size:int -> succ:succ -> root:int -> partition
-(** @return a weak partial order with Bourdoncle's algorithm. *)
+(** A list of strongly connected components, sorted topologically *)
+and 'n partition = 'n component list
 
-val fixpoint : (level:int -> int -> bool) -> (int -> unit) -> partition -> unit
-(** Iterate over a weak partial order.
-    The first function is supposed to update the given node and return [true]
-    when stable. It must eventually apply widening to stabilize.
-    The second function simply update the given node. It should never apply
-    widening. *)
+
+(** This functor provides the partitioning algorithm constructing a WTO. *)
+module Make(Node:sig
+    type t
+    val equal: t -> t -> bool
+    val hash: t -> int
+    val pretty: Format.formatter -> t -> unit
+  end):sig
+
+  (** Implements Bourdoncle "Efficient chaotic iteration strategies with 
+  widenings" algorithm to compute a WTO. *)
+  val partition: init:Node.t -> succs:(Node.t -> Node.t list) -> Node.t partition
+
+  val pretty_partition: Format.formatter -> Node.t partition -> unit
+  val pretty_component: Format.formatter -> Node.t component -> unit    
+end

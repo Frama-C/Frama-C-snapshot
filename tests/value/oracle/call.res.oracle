@@ -3,19 +3,19 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p[0..9] ∈ {0}
   q[0..9] ∈ {0}
   r ∈ {0}
   res ∈ {0}
   x ∈ {0}
-tests/value/call.i:19:[kernel] warning: out of bounds read. assert \valid_read(v+1);
+tests/value/call.i:19:[value] warning: out of bounds read. assert \valid_read(v + 1);
 [value] computing for function leaf_fun_int <- main.
         Called from tests/value/call.i:19.
 tests/value/call.i:19:[kernel] warning: Neither code nor specification for function leaf_fun_int, generating default assigns from the prototype
 [value] using specification for function leaf_fun_int
 [value] Done for function leaf_fun_int
-tests/value/call.i:20:[kernel] warning: out of bounds read. assert \valid_read(v+1);
+tests/value/call.i:20:[value] warning: out of bounds read. assert \valid_read(v + 1);
 [value] computing for function leaf_fun_charp <- main.
         Called from tests/value/call.i:20.
 tests/value/call.i:20:[kernel] warning: Neither code nor specification for function leaf_fun_charp, generating default assigns from the prototype
@@ -29,9 +29,9 @@ tests/value/call.i:23:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   res ∈ {177; 188}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p[0..4] ∈ {0; 1; 2; 3; 4; 5; 6}
    [5] ∈ {177}
    [6] ∈ {0; 1; 2; 3; 4; 5; 6}

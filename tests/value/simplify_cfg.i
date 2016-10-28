@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -simplify-cfg -keep-switch -val @VALUECONFIG@ -check -journal-disable
-   OPT: -simplify-cfg -val @VALUECONFIG@ -check -journal-disable
+   OPT: -simplify-cfg -keep-switch -val @VALUECONFIG@ -journal-disable
+   OPT: -simplify-cfg -val @VALUECONFIG@ -journal-disable
 */
 
 int main(int x, int y) {

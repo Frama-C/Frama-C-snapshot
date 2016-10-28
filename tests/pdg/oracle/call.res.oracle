@@ -3,16 +3,16 @@
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   A ∈ [--..--]
   B ∈ [--..--]
-tests/pdg/call.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ x+y;
-tests/pdg/call.c:18:[kernel] warning: signed overflow. assert x+y ≤ 2147483647;
+tests/pdg/call.c:18:[value] warning: signed overflow. assert -2147483648 ≤ x + y;
+tests/pdg/call.c:18:[value] warning: signed overflow. assert x + y ≤ 2147483647;
 [value] computing for function f <- g.
         Called from tests/pdg/call.c:18.
-tests/pdg/call.c:14:[kernel] warning: signed overflow. assert -2147483648 ≤ a+G.a;
-tests/pdg/call.c:14:[kernel] warning: signed overflow. assert a+G.a ≤ 2147483647;
+tests/pdg/call.c:14:[value] warning: signed overflow. assert -2147483648 ≤ a + G.a;
+tests/pdg/call.c:14:[value] warning: signed overflow. assert a + G.a ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g

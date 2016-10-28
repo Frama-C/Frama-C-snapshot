@@ -305,9 +305,13 @@ sig
 
   (** {3 Internal Checks} *)
 
-  val do_checks : bool ref
-  val iter_checks : (qed:term -> raw:term -> goal:pred -> unit) -> unit
-
+  module Check :
+  sig
+    val reset : unit -> unit
+    val set : string -> unit (* check constructor *)
+    val is_set : unit -> bool
+    val iter : (qed:term -> raw:term -> goal:pred -> unit) -> unit
+  end
 
 end
 

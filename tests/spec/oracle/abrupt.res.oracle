@@ -27,11 +27,11 @@ int f(int c)
     while_1_continue: ;
     __sid_14_label: ;
     /*@ breaks x ≡ \old(x);
-        continues x ≡ \old(x)+1; */
+        continues x ≡ \old(x) + 1; */
     {
       if (x < c) {
         x ++;
-        /*@ assert x ≡ \at(x,__sid_14_label)+1; */ ;
+        /*@ assert x ≡ \at(x,__sid_14_label) + 1; */ ;
         goto while_1_continue;
       }
       /*@ assert x ≡ \at(x,__sid_14_label); */ ;

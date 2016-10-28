@@ -3,9 +3,7 @@
 Goal typed_lemma_UNION_DESCR.
 Hint UNION_DESCR,property.
 Proof.
-  intros. split.
-  - intros. intuition.
-  - intros. exists (i-i_1). intuition (auto with zarith).
+  intros. exists (i_1-i). intuition (auto with zarith).
 Qed.
 
 

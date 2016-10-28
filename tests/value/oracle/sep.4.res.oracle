@@ -6,7 +6,7 @@
 [value] Analyzing an incomplete application starting at f1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   index ∈ [--..--]
   tab[0..4] ∈ [--..--]
 tests/value/sep.i:36:[value] warning: function f1: precondition got status unknown.
@@ -22,10 +22,10 @@ tests/value/sep.i:18:[kernel] warning: No code nor implicit assigns clause for f
 [value] Recording results for f1
 [value] done for function f1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function init1:
+[value:final-states] Values at end of function init1:
   index ∈ [--..--]
   res ∈ {-1; 0}
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   index ∈ [--..--]
   res ∈ {-1; 0}
   __retres ∈ [--..--]

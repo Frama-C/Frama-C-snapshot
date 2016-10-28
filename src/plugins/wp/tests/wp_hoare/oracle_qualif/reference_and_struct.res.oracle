@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/reference_and_struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 [wp] 32 goals scheduled
 [wp] [Qed] Goal typed_ref_call_array_in_struct_param_post_Pload2 : Valid
 [wp] [Qed] Goal typed_ref_call_array_in_struct_param_post_Pload3 : Valid
@@ -46,10 +44,10 @@
 Functions           WP   Alt-Ergo    Total   Success
 reset                2     -           2       100%
 call_reset           5     -           5       100%
-call_reset_5         3      1 (21)     4       100%
+call_reset_5         3      1 (5)      4       100%
 call_reset_5_tps     3      1 (17)     4       100%
-call_reset_1_5       3      1 (21)     4       100%
-call_reset_5_dim2    3      1 (21)     4       100%
-call_on_array_in_struct_global   3    1 (19)   4  100%
+call_reset_1_5       3      1 (5)      4       100%
+call_reset_5_dim2    3      1 (6)      4       100%
+call_on_array_in_struct_global   3    1 (6)   4  100%
 call_array_in_struct_param   5   -     5       100%
 ----------------------------------------------------------

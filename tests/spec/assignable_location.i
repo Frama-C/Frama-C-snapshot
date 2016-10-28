@@ -1,5 +1,5 @@
 /* run.config 
-OPT: -continue-annot-error -check
+OPT: -continue-annot-error
 */
 
 typedef double typetab[2];

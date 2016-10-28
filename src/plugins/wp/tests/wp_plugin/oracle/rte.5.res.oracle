@@ -1,0 +1,14 @@
+# frama-c -wp -wp-model 'Typed (Nat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/rte.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp:rte] function job: missing rte for memory access
+[wp:rte] function job: missing rte for division by zero
+[wp:rte] function job: missing rte for signed overflow
+[wp] warning: Missing RTE guards
+[wp:rte] function job2: missing rte for memory access
+[wp:rte] function job2: missing rte for division by zero
+[wp:rte] function job2: missing rte for signed overflow
+[wp] Goal typed_nat_job_post : not tried
+[wp] Goal typed_nat_job2_post : not tried

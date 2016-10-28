@@ -28,134 +28,6 @@ open Visitor
 
 let dkey = Kernel.register_category "ulevel"
 
-let rec fold_itv f b e acc =
-  if Integer.equal b e then f acc b
-  else fold_itv f (Integer.succ b) e (f acc b)
-
-(* Find the initializer for index [i] in [init] *)
-let find_init_by_index init i =
-  let same_offset (off, _) = match off with
-    | Index (i', NoOffset) ->
-      Integer.equal i (Extlib.the (Cil.isInteger i'))
-    | _ -> false
-  in
-  snd (List.find same_offset init)
-
-(* Find the initializer for field [f] in [init] *)
-let find_init_by_field init f =
-  let same_offset (off, _) = match off with
-    | Field (f', NoOffset) -> f == f'
-    | _ -> false
-  in
-  snd (List.find same_offset init)
-
-exception CannotSimplify
-
-(* Evaluate the bounds of the range [b..e] as constants. The array being
-   indexed has type [typ]. If [b] or [e] are not specified, use default
-   values. *)
-let const_fold_trange_bounds typ b e =
-  let extract = function None -> raise CannotSimplify | Some i -> i in
-  let b = match b with
-    | Some tb -> extract (Logic_utils.constFoldTermToInt tb)
-    | None -> Integer.zero
-  in
-  let e = match e with
-    | Some te -> extract (Logic_utils.constFoldTermToInt te)
-    | None ->
-      match Cil.unrollType typ with
-      | TArray (_, Some size, _, _) ->
-        Integer.pred (extract (Cil.isInteger size))
-      | _ -> raise CannotSimplify
-  in
-  b, e
-
-(** Find the value corresponding to the logic offset [loff] inside the
-    initialiser [init]. Zero is used as a default value when the initialiser is
-    incomplete. [loff] must have an integral type. Returns a set of values
-    when [loff] contains ranges. *)
-let find_initial_value init loff =
-  let module S = Datatype.Integer.Set in
-  let extract = function None -> raise CannotSimplify | Some i -> i in
-  let rec aux loff init =
-    match loff, init with
-    | TNoOffset, SingleInit e -> S.singleton (extract (Cil.constFoldToInt e))
-    | TIndex (i, loff), CompoundInit (typ, l) -> begin
-      (* Add the initializer at offset [Index(i, loff)] to [acc]. *)
-      let add_index acc i =
-        let vi =
-          try aux loff (find_init_by_index l i)
-          with Not_found -> S.singleton Integer.zero
-        in
-        S.union acc vi
-      in
-      match i.term_node with
-      | Tunion tl ->
-        let conv t = extract (Logic_utils.constFoldTermToInt t) in
-        List.fold_left add_index S.empty (List.map conv tl)
-      | Trange (b, e) ->
-        let b, e = const_fold_trange_bounds typ b e in
-        fold_itv add_index b e S.empty
-      | _ ->
-        let i = extract (Logic_utils.constFoldTermToInt i) in
-        add_index S.empty i
-    end
-    | TField (f, loff), CompoundInit (_, l) ->
-      if f.fcomp.cstruct then
-        try aux loff (find_init_by_field l f)
-        with Not_found -> S.singleton Integer.zero
-      else (* too complex, a value might be written through another field *)
-        raise CannotSimplify
-    | TNoOffset, CompoundInit _
-    | (TIndex _ | TField _), SingleInit _ -> assert false
-    | TModel _, _ -> raise CannotSimplify
-  in
-  try
-    match init with
-    | None -> Some (S.singleton Integer.zero)
-    | Some init -> Some (aux loff init)
-  with CannotSimplify -> None
-
-
-(** Evaluate the given term l-value in the initial state *)
-let eval_term_lval (lhost, loff) =
-  match lhost with
-  | TVar lvi -> begin
-    (** See if we can evaluate the l-value using the initializer of lvi*)
-    let off_type = Cil.typeTermOffset lvi.lv_type loff in
-    if Logic_const.plain_or_set Cil.isLogicIntegralType off_type then
-      match lvi.lv_origin with
-      | Some vi when vi.vglob && Cil.typeHasQualifier "const" vi.vtype ->
-        find_initial_value (Globals.Vars.find vi).init loff
-      | _ -> None
-    else None
-  end
-  | _ -> None
-
-class simplify_const_lval = object (self)
-  inherit Visitor.frama_c_copy (Project.current ())
-
-  method! vterm t =
-    match t.term_node with
-    | TLval tlv -> begin
-      (* simplify recursively tlv before attempting evaluation *)
-      let tlv = Visitor.(visitFramacTermLval (self:>frama_c_visitor) tlv) in
-      match eval_term_lval tlv with
-      | None -> Cil.SkipChildren
-      | Some itvs ->
-        (* Replace the value/set of values found by something that has the
-           expected logic type (plain/Set) *)
-        let typ = Logic_const.plain_or_set Extlib.id t.term_type in
-        let aux i l = Logic_const.term (TConst (Integer (i,None))) typ :: l in
-        let l = Datatype.Integer.Set.fold aux itvs [] in
-        match l, Logic_const.is_plain_type t.term_type with
-        | [i], true -> Cil.ChangeTo i
-        | _, false -> Cil.ChangeTo (Logic_const.term (Tunion l) t.term_type)
-        | _ -> Cil.SkipChildren
-    end
-    | _ -> Cil.DoChildren
-end
-
 type loop_pragmas_info =
   { unroll_number: int option;
     total_unroll: Emitter.t option;
@@ -164,7 +36,7 @@ type loop_pragmas_info =
 let empty_info =
   { unroll_number = None; total_unroll = None; ignore_unroll = false }
 
-let update_info emitter info spec =
+let update_info global_find_init emitter info spec =
   match spec with
     | {term_type=typ}  when Logic_typing.is_integral_type typ ->
       if Extlib.has_some info.unroll_number && not info.ignore_unroll then begin
@@ -174,7 +46,9 @@ let update_info emitter info spec =
       end else begin
 	try
 	  begin
-            let t = Visitor.visitFramacTerm (new simplify_const_lval) spec in
+            let t = Cil.visitCilTerm
+                (new Logic_utils.simplify_const_lval global_find_init) spec
+            in
             let i = Logic_utils.constFoldTermToInt t in
 	    match i with
 	      | Some i -> { info with unroll_number = Some (Integer.to_int i) }
@@ -201,13 +75,13 @@ let update_info emitter info spec =
 	  "ignoring invalid unrolling directive";
       info
 
-let extract_from_pragmas s =
+let extract_from_pragmas global_find_init s =
   let filter _ a = Logic_utils.is_loop_pragma a in
   let pragmas = Annotations.code_annot_emitter ~filter s in
   let get_infos info (a,e) =
     match a.annot_content with
       | APragma (Loop_pragma (Unroll_specs specs)) ->
-        List.fold_left (update_info e) info specs
+        List.fold_left (update_info global_find_init e) info specs
       | APragma (Loop_pragma _) -> info
       | _ -> assert false (* should have been filtered above. *)
   in 
@@ -605,7 +479,7 @@ let copy_block kf break_continue_must_change bl =
 let ast_has_changed = ref false
 
 (* Update to take into account annotations*)
-class do_it ((force:bool),(times:int)) = object(self)
+class do_it global_find_init ((force:bool),(times:int)) = object(self)
   inherit Visitor.frama_c_inplace
     initializer ast_has_changed := false;
   (* We sometimes need to move labels between statements. This table
@@ -666,7 +540,7 @@ class do_it ((force:bool),(times:int)) = object(self)
       in
       ChangeDoChildrenPost (s, update)
   | Loop _ ->
-    let infos = extract_from_pragmas s in
+    let infos = extract_from_pragmas global_find_init s in
     let number = Extlib.opt_conv times infos.unroll_number in
     let total_unrolling = infos.total_unroll in
     let is_ignored_unrolling = not force && infos.ignore_unroll in
@@ -777,7 +651,10 @@ let apply_transformation ?(force=true) nb file =
      When [nb] is negative, no unrolling is done; all UNROLL loop pragmas 
      are ignored. *)
   if nb >= 0 then
-    let visitor = new do_it (force, nb) in
+    let global_find_init vi =
+      try (Globals.Vars.find vi).init with Not_found -> None
+    in
+    let visitor = new do_it global_find_init (force, nb) in
       Kernel.debug ~dkey "Using -ulevel %d option and UNROLL loop pragmas@." nb;
       visitFramacFileSameGlobals (visitor:>Visitor.frama_c_visitor) file;
       if !ast_has_changed then Ast.mark_as_changed ()

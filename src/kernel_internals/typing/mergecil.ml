@@ -833,7 +833,7 @@ let rec combineTypes (what: combineWhat)
             k
           else (
             let msg =
-              Pretty_utils.sfprintf
+              Format.asprintf
 		"different integer types %a and %a"
 		Cil_printer.pp_typ oldt Cil_printer.pp_typ t
             in
@@ -958,7 +958,7 @@ let rec combineTypes (what: combineWhat)
   | _ -> (
       (* raise (Failure "different type constructors") *)
     let msg:string =
-      Pretty_utils.sfprintf
+      Format.asprintf
         "different type constructors: %a vs. %a"
         Cil_printer.pp_typ oldt Cil_printer.pp_typ t
     in
@@ -1034,12 +1034,12 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
         (* Our assumption was wrong. Forget the isomorphism *)
         undo ();
         let fields_old = 
-          Pretty_utils.sfprintf "%a"
+          Format.asprintf "%a"
 	    Cil_printer.pp_global
 	    (GCompTag(oldci, Cil_datatype.Location.unknown)) 
 	in
 	let fields =
-          Pretty_utils.sfprintf "%a"
+          Format.asprintf "%a"
             Cil_printer.pp_global (GCompTag(ci, Cil_datatype.Location.unknown))
 	in
 	let fullname_old = compFullName oldci in 
@@ -1049,21 +1049,21 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
 	    fields_old = fields (* Could also use a special comparison *)
 	  with
 	    true, true ->
-	      Pretty_utils.sfprintf
+	      Format.asprintf
 		"Definitions of %s are not isomorphic. Reason follows:@\n@?%s"
 		fullname_old reason
 	  | false, true ->
-	      Pretty_utils.sfprintf
+	      Format.asprintf
 		"%s and %s are not isomorphic. Reason follows:@\n@?%s"
 		fullname_old fullname reason
 	  | true, false ->
-	      Pretty_utils.sfprintf
+	      Format.asprintf
 		"Definitions of %s are not isomorphic. \
                  Reason follows:@\n@?%s@\n@?%s@?%s"
 		fullname_old reason
 		fields_old fields
 	  | false, false ->
-	      Pretty_utils.sfprintf
+	      Format.asprintf
 		"%s and %s are not isomorphic. Reason follows:@\n@?%s@\n@?%s@?%s"
 		fullname_old fullname reason
 		fields_old fields
@@ -2429,7 +2429,7 @@ let oneFilePass2 (f: file) =
                 List.iter renameOne fdec'.slocals
               end;
               (* Now print it *)
-              let res = Pretty_utils.sfprintf "%a" Cil_printer.pp_global g' in
+              let res = Format.asprintf "%a" Cil_printer.pp_global g' in
               Cil_printer.state.Printer_api.line_directive_style <- oldprintln;
               fdec'.svar.vname <- newname;
               if mergeInlinesWithAlphaConvert then begin

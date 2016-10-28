@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   t ∈ {0}
   R1 ∈ {0}
@@ -20,13 +20,13 @@
      [6] ∈ {103}
      [7] ∈ {102}
      [8] ∈ {101}
-tests/value/relation_reduction.i:9:[kernel] warning: signed overflow. assert y+10 ≤ 2147483647;
-tests/value/relation_reduction.i:20:[kernel] warning: accessing out of bounds index. assert 0 ≤ y;
-tests/value/relation_reduction.i:20:[kernel] warning: accessing out of bounds index. assert y < 9;
+tests/value/relation_reduction.i:9:[value] warning: signed overflow. assert y + 10 ≤ 2147483647;
+tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;
+tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert y < 9;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   y ∈ [-2147483648..2147483637]
   t ∈ [-2147483638..2147483647]
   R1 ∈ [-2147483648..2147483637]

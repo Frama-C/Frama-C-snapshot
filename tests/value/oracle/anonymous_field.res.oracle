@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Sa ∈ {0}
 [value] computing for function set_anonymous_struct <- main.
         Called from tests/value/anonymous_field.i:19.
@@ -13,10 +13,10 @@ tests/value/anonymous_field.i:10:[value] function set_anonymous_struct: postcond
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function set_anonymous_struct:
+[value:final-states] Values at end of function set_anonymous_struct:
   Sa{.a; .__anonCompField1.gcc_a} ∈ {42}
     {.__anonCompField1.gcc_b; .b} ∈ {3}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Sa{.a; .__anonCompField1.gcc_a} ∈ {42}
     {.__anonCompField1.gcc_b; .b} ∈ {3}
   __retres ∈ {0}

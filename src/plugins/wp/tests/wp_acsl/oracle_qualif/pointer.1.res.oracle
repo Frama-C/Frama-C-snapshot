@@ -3,10 +3,9 @@
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations p_0 and mem:t
 [wp] 9 goals scheduled
 [wp] [Alt-Ergo] Goal typed_absurd_post_qed_ko_Base_oracle_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_absurd_post_qed_ko_Comp_oracle_ko : Unknown

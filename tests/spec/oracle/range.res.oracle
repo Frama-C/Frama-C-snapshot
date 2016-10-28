@@ -12,8 +12,8 @@ struct bli {
     assigns x->bar[0 .. 3] \from x->bar[0 .. 3]; */
 extern int f(struct foo *x);
 
-/*@ assigns *(x+(0 .. 3));
-    assigns *(x+(0 .. 3)) \from y->bli[0 .. 3]; */
+/*@ assigns *(x + (0 .. 3));
+    assigns *(x + (0 .. 3)) \from y->bli[0 .. 3]; */
 extern int g(char * /*[4]*/ x, struct bli *y);
 
 

@@ -2,10 +2,100 @@
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/dispatch_var.i (no preprocessing)
 [wp] Running WP plugin...
+.................................................
+... Ref Usage
+.................................................
+... Initial state
+  Nothing
+............
+... Function ref_ctr
+  *p
+............
+... Function call_ref_ctr
+   r1
+   tmp
+............
+... Function call_ref_ctr2
+  &n1
+   s
+   tmp
+   __retres
+............
+... Function ref_bd
+  *q
+   __retres
+............
+... Function call_ref_bd
+   r2
+   tmp
+............
+... Function call_ref_bd2
+   n1
+  &n2
+   p
+   tmp
+   __retres
+............
+... Function ref_valid
+  *p1
+............
+... Function call_ref_valid
+   r7
+  &n4
+   p
+   tmp
+   tmp_0
+   __retres
+............
+... Function no_ref_bd
+   q1
+   q
+   __retres
+............
+... Function call_no_ref_bd
+  &n5
+   nr6
+   p
+   tmp
+   tmp_0
+   __retres
+............
+... Function ref_ctr_nr
+  *ref
+  *ref1
+  *ref2
+............
+... Function call_ref_ctr_nr
+   r5
+   r6
+   f3
+   r4
+   k
+   tmp
+............
+... Function ref_ctr_nstars
+  *pp
+............
+... Function call_ref_ctr_nstars
+  &x
+   px
+   tmp
+............
+... Function call_two_ref
+   r0
+   tmp
+   tmp_0
+   __retres
+............
+... Function g
+  *pg
+   tmp
+............
+... Function array_in_struct_param
+   sf
+.................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function array_in_struct_param
 ------------------------------------------------------------

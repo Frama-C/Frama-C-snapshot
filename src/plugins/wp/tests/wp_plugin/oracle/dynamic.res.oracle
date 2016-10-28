@@ -5,26 +5,25 @@
 [wp] Computing dynamic calls.
 [wp] Dynamic call(s): 1.
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function call
 ------------------------------------------------------------
 
 Goal calls f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
-Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
-Let a_1 = shift_PTR(global(G_f2_75), 0).
-Let a_2 = shift_PTR(global(G_f1_69), 0).
+Let a = global(G_f2_75).
+Let a_1 = Mptr_0[shiftfield_F1_S_f(closure_0)].
+Let a_2 = global(G_f1_69).
 Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
   Type: is_sint32(Mint_0[shiftfield_F1_S_param(closure_1)]) /\
       is_sint32(Mint_0[shiftfield_F1_S_param(closure_2)]) /\ is_sint32(x).
   (* Heap *)
-  Have: framed(Mptr_0) /\ (region(closure_0.base) <= 0).
+  Have: (region(closure_0.base) <= 0) /\ framed(Mptr_0).
   (* Pre-condition *)
-  Have: (a = a_1) \/ ((a = a_2) /\ (abs_int(x) <= 5)).
+  Have: (a = a_1) \/ ((a_2 = a_1) /\ (abs_int(x) <= 5)).
 }
-Prove: (a = a_2) \/ (a = a_1).
+Prove: (a_2 = a_1) \/ (a = a_1).
 
 ------------------------------------------------------------
 
@@ -43,16 +42,15 @@ Prove: true.
 Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 10) in 'f1'' in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30)
 :
 Tags: Call f1.
-Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
-Let a_1 = shift_PTR(global(G_f1_69), 0).
+Let a = global(G_f1_69).
+Let a_1 = Mptr_0[shiftfield_F1_S_f(closure_0)].
 Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
   Type: is_sint32(x) /\ is_sint32(Mint_0[shiftfield_F1_S_param(closure_1)]).
   (* Heap *)
-  Have: framed(Mptr_0) /\ (region(closure_0.base) <= 0).
+  Have: (region(closure_0.base) <= 0) /\ framed(Mptr_0).
   (* Pre-condition *)
-  Have: (a = shift_PTR(global(G_f2_75), 0)) \/
-      ((a = a_1) /\ (abs_int(x) <= 5)).
+  Have: (global(G_f2_75) = a_1) \/ ((a = a_1) /\ (abs_int(x) <= 5)).
   (* Instance of 'f1' *)
   Have: a = a_1.
 }

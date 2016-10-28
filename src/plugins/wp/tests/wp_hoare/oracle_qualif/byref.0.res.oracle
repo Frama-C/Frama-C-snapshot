@@ -1,31 +1,31 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp [...]
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
-[wp] 11 goals scheduled
-[wp] [Qed] Goal typed_ref_correct_post_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_correct_call_f_pre_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_f_post_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_f_assign : Valid
-[wp] [Qed] Goal typed_ref_f_ko_post_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_f_ko_assign : Valid
-[wp] [Qed] Goal typed_ref_formal_post_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_formal_call_f_pre_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_local_post_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_local_call_f_pre_qed_ok : Valid
-[wp] [Qed] Goal typed_ref_wrong_post_qed_ok : Valid
-[wp] Proved goals:   11 / 11
-     Qed:            11
+[wp] 12 goals scheduled
+[wp] [Qed] Goal typed_f_post : Valid
+[wp] [Qed] Goal typed_f_assign : Valid
+[wp] [Qed] Goal typed_formal_post : Valid
+[wp] [Qed] Goal typed_formal_call_f_pre : Valid
+[wp] [Qed] Goal typed_global_post : Valid
+[wp] [Qed] Goal typed_global_call_f_pre : Valid
+[wp] [Qed] Goal typed_local_post : Valid
+[wp] [Qed] Goal typed_local_call_f_pre : Valid
+[wp] [Qed] Goal typed_pointer_post : Valid
+[wp] [Qed] Goal typed_pointer_call_f_pre : Valid
+[wp] [Qed] Goal typed_wrong_without_ref_post : Valid
+[wp] [Alt-Ergo] Goal typed_wrong_without_ref_call_f_pre : Unknown
+[wp] Proved goals:   11 / 12
+     Qed:            11 
+     Alt-Ergo:        0  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    2     -           2       100%
-f_ko                 2     -           2       100%
-wrong                1     -           1       100%
-correct              2     -           2       100%
+wrong_without_ref    1     -           2      50.0%
+pointer              2     -           2       100%
 local                2     -           2       100%
 formal               2     -           2       100%
+global               2     -           2       100%
 ----------------------------------------------------------

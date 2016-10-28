@@ -232,7 +232,7 @@ class command name =
         dump_buffer stderr logerr ;
         if echo then
           begin match st with
-            | Task.Result 0 | Task.Canceled | Task.Timeout -> ()
+            | Task.Result 0 | Task.Canceled | Task.Timeout _ -> ()
             | Task.Result 127 ->
                 begin
                   Wp_parameters.error "Command '%s' not found (exit status 127)@." cmd ;

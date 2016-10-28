@@ -516,7 +516,7 @@ struct
         let cp =
           try String.sub dp 0 (String.index dp ':')
           with Not_found -> dp
-        in Some (String.uppercase cp)
+        in Some (Transitioning.String.uppercase_ascii cp)
 
   let create () = { dps = Pmap.empty ; cps = Cmap.empty }
 

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 23 goals scheduled
 [wp] [Alt-Ergo] Goal typed_band_post : Valid

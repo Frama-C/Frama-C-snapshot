@@ -84,12 +84,17 @@ let is_config_visible () = config_visible_ref := true
 let plugin_subpath_ref = ref None
 let plugin_subpath s = plugin_subpath_ref := Some s
 
+let default_msg_keys_ref = ref []
+let default_msg_keys l = default_msg_keys_ref := l
+
 let reset_plugin () =
   kernel := false;
   share_visible_ref := false;
   session_visible_ref := false;
   config_visible_ref := false;
-  plugin_subpath_ref := None
+  plugin_subpath_ref := None;
+  default_msg_keys_ref := [];
+;;
 
 (* ************************************************************************* *)
 (** {2 Generic functors} *)
@@ -183,22 +188,19 @@ struct
        let verbose_atleast level = !verbose_level () >= level
      end)
 
-  module L = struct
-    module K = Cmdline.Kernel_log
-    module P = Plugin_log
-    let abort = if is_kernel () then K.abort else P.abort
-    let warning = if is_kernel () then K.warning else P.warning
-    let feedback =
-      if is_kernel () then fun ?level x -> K.feedback ?level x 
-      else fun ?level x -> P.feedback ?level x
-    let get_all_categories = 
-      if is_kernel () then K.get_all_categories else P.get_all_categories
-    let get_category = if is_kernel () then K.get_category else P.get_category
-    let add_debug_keys = 
-      if is_kernel () then K.add_debug_keys else P.add_debug_keys
-    let del_debug_keys = 
-      if is_kernel () then K.del_debug_keys else P.del_debug_keys
-  end
+  module L =
+    (val if is_kernel ()
+      then (module Cmdline.Kernel_log)
+      else (module Plugin_log)
+      : Log.Messages)
+
+  (* Add default message keys to the instance of Log.Messages *)
+  let () =
+    let add s =
+      let c = L.register_category s in
+      L.add_debug_keys (Log.Category_set.singleton c)
+    in
+    List.iter add !default_msg_keys_ref
 
   let plugin =
     let name = if is_kernel () then kernel_name else P.name in
@@ -418,7 +420,11 @@ struct
         (struct
           include Datatype.String
           type key = string
-          let of_string ~key:_ ~prev:_ s = s
+          let of_string ~key:_ ~prev:_ s =
+            match s with
+            | None -> raise (Cannot_build "missing delimiter")
+            | Some s when s = "" -> raise (Cannot_build "missing filename")
+            | Some _ -> s
           let to_string ~key:_a b = b
         end)
         (struct
@@ -453,7 +459,9 @@ struct
           ("invalid log kind character, must be one of: " ^ valid_kinds_str)
       else
         let str = if str = "" then default_kinds_str else str in
-        let has_ch c = CamlString.contains str (Char.lowercase c) in
+        let has_ch c =
+          CamlString.contains str (Transitioning.Char.lowercase_ascii c)
+        in
         let list_of_bool b e = if b then [e] else [] in
         let kinds =
           list_of_bool (has_ch 'd' || has_ch 'a') Log.Debug @
@@ -471,6 +479,20 @@ struct
         Format.fprintf fmt "%s:%d:" (Filepath.pretty src.Lexing.pos_fname)
           src.Lexing.pos_lnum
   end
+
+  (* Output must be synchronized with functions [prefix_*] in module Log. *)
+  let pp_event_prefix fmt event =
+    let pp_dkey fmt = (Pretty_utils.pp_opt ~pre:(format_of_string ":")
+                         Format.pp_print_string) fmt event.Log.evt_dkey
+    in
+    match event.Log.evt_kind with
+    | Log.Error ->
+      Format.fprintf fmt "[%s%t] user error:" event.Log.evt_plugin pp_dkey
+    | Log.Warning ->
+      Format.fprintf fmt "[%s%t] warning:" event.Log.evt_plugin pp_dkey
+    | Log.Failure ->
+      Format.fprintf fmt "[%s%t] failure:" event.Log.evt_plugin pp_dkey
+    | _ -> Format.fprintf fmt "[%s%t]" event.Log.evt_plugin pp_dkey
 
   (* Note: because of the imperative nature of Log listeners, and the
      fact that they cannot be removed, whenever the -log option is
@@ -490,9 +512,10 @@ struct
           let fmt = File_formatters.get filename in
           Log.add_listener ~plugin:plugin_name ~kind:kinds
             (fun event ->
-               Format.fprintf fmt "%a[%s] %s@."
+               Format.fprintf fmt "%a%a %s@."
                  LogToFile.pp_source event.Log.evt_source
-                 event.Log.evt_plugin event.Log.evt_message);
+                 pp_event_prefix event
+                 event.Log.evt_message);
       ) new_entries
 
   let () =
@@ -558,14 +581,8 @@ struct
   end
 
   let debug_category_optname = output_mode "Msg_key" "msg-key"
-  let () = 
-    Parameter_customize.set_unset_option_name
-      (output_mode "Msg_key" "msg-key-unset");
-    Parameter_customize.set_unset_option_help
-      "disables message display for categories <k1>,...,<kn>"
-
   module Debug_category =
-    String_set(struct
+    Filled_string_set(struct
       let option_name = debug_category_optname
       let arg_name="k1[,...,kn]"
       let help =
@@ -573,6 +590,7 @@ struct
         ^ debug_category_optname
         ^ " help to get a list of available categories, and * to enable \
               all categories"
+      let default = Datatype.String.Set.of_list !default_msg_keys_ref
     end)
 
   let () = 

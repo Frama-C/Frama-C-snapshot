@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x1 ∈ {0}
   y1 ∈ {0}
   z1 ∈ {0}
@@ -51,22 +51,22 @@ tests/value/memexec.c:33:[value] warning: assertion 'rte,mem_access' got status 
 tests/value/memexec.c:33:[value] assertion 'rte,mem_access' got status valid.
 [value] Recording results for fbug
 [value] Done for function fbug
-tests/value/memexec.c:43:[value] warning: locals {x} escaping the scope of bug through p
 [value] Recording results for bug
 [value] Done for function bug
+tests/value/memexec.c:157:[value] warning: locals {x} escaping the scope of bug through p
 [value] computing for function f4 <- main.
         Called from tests/value/memexec.c:158.
 [value] computing for function f4_2 <- f4 <- main.
         Called from tests/value/memexec.c:84.
 [value] computing for function f4_11 <- f4_2 <- f4 <- main.
         Called from tests/value/memexec.c:74.
-tests/value/memexec.c:59:[kernel] warning: accessing out of bounds index. assert ps->i < 10;
+tests/value/memexec.c:59:[value] warning: accessing out of bounds index. assert ps->i < 10;
 tests/value/memexec.c:59:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for f4_11
 [value] Done for function f4_11
 [value] computing for function f4_12 <- f4_2 <- f4 <- main.
         Called from tests/value/memexec.c:76.
-tests/value/memexec.c:63:[kernel] warning: accessing out of bounds index. assert i < 10;
+tests/value/memexec.c:63:[value] warning: accessing out of bounds index. assert i < 10;
 tests/value/memexec.c:63:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for f4_12
 [value] Done for function f4_12
@@ -129,7 +129,7 @@ tests/value/memexec.c:137:[value] Reusing old results for call to f7_1
         Called from tests/value/memexec.c:162.
 [value] computing for function f8_1 <- f8 <- main.
         Called from tests/value/memexec.c:147.
-tests/value/memexec.c:141:[kernel] warning: accessing uninitialized left-value. assert \initialized(q);
+tests/value/memexec.c:141:[value] warning: accessing uninitialized left-value. assert \initialized(q);
 [value] Recording results for f8_1
 [value] Done for function f8_1
 [value] computing for function f8_1 <- f8 <- main.
@@ -142,25 +142,25 @@ tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f11:
+[value:final-states] Values at end of function f11:
   x1 ∈ {1}
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   x1 ∈ {1}
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   
-[value] Values at end of function f4_11:
+[value:final-states] Values at end of function f4_11:
   t[0..5] ∈ {0}
    [6] ∈ {1}
    [7..9] ∈ {0}
-[value] Values at end of function f4_12:
+[value:final-states] Values at end of function f4_12:
   t[0..1] ∈ {0}
    [2] ∈ {3}
    [3..4] ∈ {0}
    [5] ∈ {2}
    [6..9] ∈ {0}
-[value] Values at end of function f4_2:
+[value:final-states] Values at end of function f4_2:
   i ∈ {5}
   t[0..1] ∈ {0}
    [2] ∈ {0; 3}
@@ -172,7 +172,7 @@ tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
   S[0..7] ∈ {0}
    [8].i ∈ {6}
    [9] ∈ {0}
-[value] Values at end of function f4:
+[value:final-states] Values at end of function f4:
   i ∈ {0; 5}
   t[0..1] ∈ {0}
    [2] ∈ {0; 3}
@@ -185,32 +185,32 @@ tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
    [8].i ∈ {0; 6}
    [9] ∈ {0}
   n ∈ {6; 12}
-[value] Values at end of function f5_aux:
+[value:final-states] Values at end of function f5_aux:
   v ∈ [--..--]
-[value] Values at end of function f5:
+[value:final-states] Values at end of function f5:
   g_f5_1 ∈ [--..--]
   g_f5_2 ∈ [-2147483648..7]
   arg ∈ [9..2147483647]
-[value] Values at end of function f6_1:
+[value:final-states] Values at end of function f6_1:
   two_fields.x ∈ {1}
             .y ∈ {2; 3}
-[value] Values at end of function f6:
+[value:final-states] Values at end of function f6:
   two_fields.x ∈ {1}
             .y ∈ {3}
-[value] Values at end of function f7_1:
+[value:final-states] Values at end of function f7_1:
   x{.x; .y} ∈ {1}
-[value] Values at end of function f7:
+[value:final-states] Values at end of function f7:
   x{.x; .y} ∈ {1}
-[value] Values at end of function f8_1:
+[value:final-states] Values at end of function f8_1:
   q ∈ {0}
-[value] Values at end of function f8:
+[value:final-states] Values at end of function f8:
   x ∈ {1}
-[value] Values at end of function fbug:
+[value:final-states] Values at end of function fbug:
   __retres ∈ {1}
-[value] Values at end of function bug:
+[value:final-states] Values at end of function bug:
   p ∈ {{ &x }}
   x ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x1 ∈ {1}
   p ∈ ESCAPINGADDR
   i ∈ {0; 5}

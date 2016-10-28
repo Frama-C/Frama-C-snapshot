@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   sz_str ∈ {0}
   sz_typ ∈ {0}
   align_str ∈ {0}
@@ -21,29 +21,29 @@ tests/value/sizeof.i:17:[value] assertion got status valid.
         Called from tests/value/sizeof.i:39.
 tests/value/sizeof.i:32:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic {tests/value/sizeof.i:32}
-tests/value/sizeof.i:33:[kernel] warning: accessing out of bounds index.
-                  assert (unsigned int)(sizeof(s1.t)-(unsigned int)i) < 10;
-tests/value/sizeof.i:33:[kernel] warning: out of bounds write.
-                  assert \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
-tests/value/sizeof.i:34:[kernel] warning: accessing out of bounds index.
-                  assert (unsigned int)(sizeof(s1.t)-(unsigned int)i) < 10;
-tests/value/sizeof.i:34:[kernel] warning: out of bounds write.
-                  assert \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
+tests/value/sizeof.i:33:[value] warning: accessing out of bounds index.
+                 assert (unsigned int)(sizeof(s1.t) - (unsigned int)i) < 10;
+tests/value/sizeof.i:33:[value] warning: out of bounds write.
+                 assert \valid(&p->t[(unsigned int)(sizeof(s1.t) - (unsigned int)i)]);
+tests/value/sizeof.i:34:[value] warning: accessing out of bounds index.
+                 assert (unsigned int)(sizeof(s1.t) - (unsigned int)i) < 10;
+tests/value/sizeof.i:34:[value] warning: out of bounds write.
+                 assert \valid(&p->t[(unsigned int)(sizeof(s1.t) - (unsigned int)i)]);
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   sz_str ∈ {4}
   sz_typ ∈ {1}
   align_str ∈ {1}
   align_typ ∈ {4}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   s1 ∈ [--..--]
   p ∈ {{ &s1 + [-36..36] }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   sz_str ∈ {4}
   sz_typ ∈ {1}
   align_str ∈ {1}
@@ -110,19 +110,19 @@ void main2(void)
   struct s *p;
   p = & s1 + (int)(& s1);
   /*@ assert
-      Value: index_bound: (unsigned int)(sizeof(s1.t)-(unsigned int)i) < 10;
+      Value: index_bound: (unsigned int)(sizeof(s1.t) - (unsigned int)i) < 10;
   */
   /*@ assert
       Value: mem_access:
-        \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
+        \valid(&p->t[(unsigned int)(sizeof(s1.t) - (unsigned int)i)]);
   */
   p->t[sizeof(s1.t) - (unsigned int)i] = 1;
   /*@ assert
-      Value: index_bound: (unsigned int)(sizeof(s1.t)-(unsigned int)i) < 10;
+      Value: index_bound: (unsigned int)(sizeof(s1.t) - (unsigned int)i) < 10;
   */
   /*@ assert
       Value: mem_access:
-        \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
+        \valid(&p->t[(unsigned int)(sizeof(s1.t) - (unsigned int)i)]);
   */
   p->t[sizeof(s1.t) - (unsigned int)i] = 2;
   return;

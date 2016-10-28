@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t ∈ {0}
   a ∈ {0}
   tt[0..4][0..4] ∈ {0}
-tests/value/deps_addr.i:6:[kernel] warning: out of bounds read. assert \valid_read(t+(int)(&a));
+tests/value/deps_addr.i:6:[value] warning: out of bounds read. assert \valid_read(t + (int)(&a));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

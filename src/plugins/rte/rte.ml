@@ -68,8 +68,7 @@ let valid_index ~remove_trivial ~on_alarm e size =
 
 (* returns the assertion associated with an lvalue:
    returns non empty assertions only on pointer dereferencing and array access.
-   Dereferencing a function pointer generates no assertion (but a warning
-   is emitted). The validity assertions are emitted using [valid] if
+   The validity assertions are emitted using [valid] if
    [~read_only] is false, or with [valid_read] otherwise *)
 let lval_assertion ~read_only ~remove_trivial ~on_alarm lv =
   (* For accesses to known arrays we generate an assertions that constrains
@@ -100,18 +99,9 @@ let lval_assertion ~read_only ~remove_trivial ~on_alarm lv =
   in
   match lv with
   | Var vi , off -> check_array_access false off vi.vtype false
-  | Mem _exp as lh, off ->
-    let dft = 
-      if Cil.isFunctionType (Cil.typeOfLval lv) then begin
-        Options.warn
-          "no predicate available yet to check validity of function pointer \
- dereferencing %a"
-          Printer.pp_lval lv;
-        false
-      end else
-        true
-    in
-    check_array_access dft off (Cil.typeOfLhost lh) false
+  | (Mem _ as lh), off ->
+    if not (Cil.isFunctionType (Cil.typeOfLval lv)) then
+      check_array_access true off (Cil.typeOfLhost lh) false
 
 (* assertion for unary minus signed overflow *)
 let uminus_assertion ~remove_trivial ~on_alarm exp =
@@ -442,6 +432,10 @@ let float_to_int_assertion ~remove_trivial ~on_alarm (ty, exp) =
         alarm Lower_bound;
     )
   | _ -> ()
+
+(* assertion for a pointer call [( *e )(...)]. *)
+let pointer_call ~remove_trivial:_ ~on_alarm e =
+  on_alarm ?status:None (Alarms.Function_pointer e)
 
 (*
 Local Variables:

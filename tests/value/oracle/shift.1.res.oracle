@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   d ∈ {0}
@@ -20,15 +20,15 @@
   uf ∈ {0}
   t[0..9] ∈ {0}
   v ∈ [--..--]
-tests/value/shift.i:21:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
+tests/value/shift.i:21:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
 tests/value/shift.i:22:[value] assertion got status valid.
-tests/value/shift.i:25:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
+tests/value/shift.i:25:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
 tests/value/shift.i:26:[value] assertion got status valid.
-tests/value/shift.i:29:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
+tests/value/shift.i:29:[value] warning: invalid RHS operand for shift. assert 0 ≤ c < 32;
 tests/value/shift.i:32:[value] warning: assertion got status unknown.
-tests/value/shift.i:35:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ 32 < 32;
-tests/value/shift.i:36:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ 5555 < 32;
-tests/value/shift.i:40:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ b < 32;
+tests/value/shift.i:35:[value] warning: invalid RHS operand for shift. assert 0 ≤ 32 < 32;
+tests/value/shift.i:36:[value] warning: invalid RHS operand for shift. assert 0 ≤ 5555 < 32;
+tests/value/shift.i:40:[value] warning: invalid RHS operand for shift. assert 0 ≤ b < 32;
 [value] computing for function printf <- main.
         Called from tests/value/shift.i:48.
 tests/value/shift.i:48:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
@@ -36,10 +36,12 @@ tests/value/shift.i:48:[kernel] warning: Neither code nor specification for func
 [value] Done for function printf
 tests/value/shift.i:52:[value] Assigning imprecise value to r.
         The imprecision originates from Arithmetic {tests/value/shift.i:52}
-tests/value/shift.i:53:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)((char *)t)<<8;
-tests/value/shift.i:53:[kernel] warning: signed overflow. assert (long)((char *)t)<<8 ≤ 2147483647;
-tests/value/shift.i:53:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)r+(long)((long)((char *)t)<<8);
-tests/value/shift.i:53:[kernel] warning: signed overflow. assert (long)r+(long)((long)((char *)t)<<8) ≤ 2147483647;
+tests/value/shift.i:53:[value] warning: signed overflow. assert -2147483648 ≤ (long)((char *)t) << 8;
+tests/value/shift.i:53:[value] warning: signed overflow. assert (long)((char *)t) << 8 ≤ 2147483647;
+tests/value/shift.i:53:[value] warning: signed overflow.
+                 assert -2147483648 ≤ (long)r + (long)((long)((char *)t) << 8);
+tests/value/shift.i:53:[value] warning: signed overflow.
+                 assert (long)r + (long)((long)((char *)t) << 8) ≤ 2147483647;
 tests/value/shift.i:53:[value] Assigning imprecise value to r.
         The imprecision originates from Arithmetic
 [value] Recording results for main
@@ -48,7 +50,7 @@ tests/value/shift.i:35:[value] assertion 'Value,shift' got final status invalid.
 tests/value/shift.i:36:[value] assertion 'Value,shift' got final status invalid.
 tests/value/shift.i:40:[value] assertion 'Value,shift' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   a ∈ {314; 1256; 5024}
   b ∈ {0}
   d ∈ {61; 246; 255; 987}

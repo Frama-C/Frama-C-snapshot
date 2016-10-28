@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at F2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ [--..--]
@@ -160,7 +160,7 @@ tests/value/dur.i:167:[value] entering loop for the first time
 [value] Recording results for F2
 [value] done for function F2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function F2:
+[value:final-states] Values at end of function F2:
   G5.M75 ∈ [0..255]
     .[bits 16 to 31] ∈ [--..--]
     .M76[0].M1 ∈ [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]

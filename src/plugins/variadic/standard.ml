@@ -102,12 +102,12 @@ let match_args tparams args =
 
 (* translate a call by applying argument matching/pruning and changing
    callee *)
-let match_call stmt loc lval new_callee new_tparams args =
+let match_call ~fundec stmt loc lval new_callee new_tparams args =
   let block = Cil.mkBlock [] in
   let block_stmt = {stmt with skind = Block block} in
   let new_args, unused_args = match_args new_tparams args in
   let call = Build.call ~loc lval new_callee new_args in
-  let reads = List.map (Build.read ~loc) unused_args in
+  let reads = List.map (Cil.mkPureExpr ~fundec ~loc) unused_args in
   block.bstmts <- reads @ [call];
   block_stmt
 
@@ -121,7 +121,7 @@ let find_null exp_list =
   List.ifind (fun e -> Cil.isZero (Cil.constFold false e)) exp_list
 
 
-let aggregator_call {a_target; a_pos; a_type; a_param} caller vf stmt =
+let aggregator_call ~fundec {a_target; a_pos; a_type; a_param} vf stmt =
   (* Extract call informations *)
   let lval, args, loc = match stmt.skind with
   | Instr(Call(lval, _, args, loc)) -> lval, args, loc
@@ -169,13 +169,13 @@ let aggregator_call {a_target; a_pos; a_type; a_param} caller vf stmt =
   let block = Cil.mkBlock [] in
   let block_stmt = {stmt with skind = Block block} in
   let pname = if pname = "" then "param" else pname in
-  let vaggr, assigns = Build.array_init ~loc caller block
+  let vaggr, assigns = Build.array_init ~loc fundec block
     pname ptyp args_middle in
   let new_arg = Cil.mkAddrOrStartOf ~loc (Cil.var vaggr) in
   let new_args = args_left @ [new_arg] @ args_right in
   let new_args,_ = match_args tparams new_args in
   let call = Build.call ~loc lval a_target new_args in
-  let reads = List.map (Build.read ~loc) unused_args in
+  let reads = List.map (Cil.mkPureExpr ~fundec ~loc) unused_args in
   block.bstmts <- assigns @ reads @ [call];
 
   (* Return the created block *)
@@ -222,7 +222,7 @@ let filter_matching_prototypes overload args =
   List.map fst candidates
 
 
-let overloaded_call overload vf stmt =
+let overloaded_call ~fundec overload vf stmt =
   (* Extract call informations *)
   let lval, args, loc = match stmt.skind with
   | Instr(Call(lval, _, args, loc)) -> lval, args, loc
@@ -255,7 +255,7 @@ let overloaded_call overload vf stmt =
   Self.result ~current:true ~level:2
     "Translating call to the specialized version %a."
     (pp_prototype name) tparams;
-  match_call stmt loc lval new_callee tparams args
+  match_call ~fundec stmt loc lval new_callee tparams args
 
 
 
@@ -311,8 +311,15 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   and insert x t = 
     t := x :: !t
   in
-  let insert_source lval =
-    insert (iterm lval) sources
+  let insert_source ?(indirect=false) lval =
+    let itlval = iterm lval in
+    let it_content = if indirect then
+        { itlval.it_content with
+          term_name = "indirect" :: itlval.it_content.term_name }
+      else itlval.it_content
+    in
+    let itlval = { itlval with Cil_types.it_content } in
+    insert itlval sources
   and insert_dest lval =
     insert (iterm lval) dests
   and insert_require pred =
@@ -320,12 +327,12 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   and insert_ensure pred =
     insert (Normal, Logic_const.new_predicate pred) ensures
   in
-  let add_lval (lval,dir) =
+  let add_lval ~indirect (lval,dir) =
     (* Add the lval to the list of sources/dests *)
     begin match dir with
-    | (`ArgIn | `ArgInArray) -> insert_source lval
+    | (`ArgIn | `ArgInArray) -> insert_source ~indirect lval
     | (`ArgOut | `ArgOutArray) -> insert_dest lval
-    | `ArgInOut -> insert_source lval; insert_dest lval
+    | `ArgInOut -> insert_source ~indirect lval; insert_dest lval
     end
   in 
   let add_var (vi,dir) =
@@ -370,29 +377,29 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   (* Build variadic parameter source/dest list *)
   let dirs = List.map snd tvparams in
   let l = List.combine vformals dirs in
-  List.iter add_var l;
+  List.iter (add_var ~indirect:false) l;
 
   (* Add format source and additionnal parameters *)
-  add_var (List.nth sformals format_fun.f_format_pos, `ArgInArray);
-  List.iter (fun p -> add_var (List.nth sformals p, `ArgIn))
+  add_var ~indirect:true (List.nth sformals format_fun.f_format_pos, `ArgInArray);
+  List.iter (fun p -> add_var ~indirect:true (List.nth sformals p, `ArgIn))
     format_fun.f_additionnal_args;
 
   (* Add buffer source/dest *)
   begin match format_fun.f_buffer, format_fun.f_kind with
   | StdIO, ScanfLike ->
       begin match find_global env "__fc_stdin" with
-      | Some vi -> add_var (vi, `ArgInOut)
+      | Some vi -> add_var ~indirect:true (vi, `ArgInOut)
       | None -> ()
       end
   | StdIO, PrintfLike ->
       begin match find_global env "__fc_stdout" with
-      | Some vi -> add_var (vi, `ArgInOut)
+      | Some vi -> add_var ~indirect:true (vi, `ArgInOut)
       | None -> ()
       end
   | Arg i, ScanfLike -> 
-      add_var (List.nth sformals i, `ArgInArray)
+      add_var ~indirect:true (List.nth sformals i, `ArgInArray)
   | Arg i, PrintfLike -> 
-      add_var (List.nth sformals i, `ArgOutArray)
+      add_var ~indirect:true (List.nth sformals i, `ArgOutArray)
   | Stream _i, _ -> () (*
       (* These generated dependencies doesn't really help analyses *)
       (* assigns *stream \from stream->__fc_stdio_id *)
@@ -411,7 +418,7 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   (* Add return value dest *)
   let rettyp = Cil.getReturnType vf.vf_decl.vtype in
   if not (Cil.isVoidType rettyp) then
-    add_lval (Build.logic_return rettyp, `ArgOut);
+    add_lval ~indirect:true (Build.logic_return rettyp, `ArgOut);
 
   (* Build the assign clause *)
   let froms = List.map (fun iterm -> iterm, From !sources) !dests in
@@ -425,7 +432,7 @@ let build_fun_spec env loc vf format_fun tvparams formals =
 
 (* --- Call translation --- *)
 
-let format_fun_call env format_fun vf stmt =
+let format_fun_call ~fundec env format_fun vf stmt =
   (* Extract call informations *)
   let lval, args, loc = match stmt.skind with
   | Instr(Call(lval, _, args, loc)) -> lval, args, loc
@@ -470,7 +477,7 @@ let format_fun_call env format_fun vf stmt =
   let ret_typ, _, _, attributes = Cil.splitFunctionType vf.vf_decl.vtype in
   let new_callee_typ = TFun (ret_typ, Some new_params, false, attributes) in
   let mk_spec formals = build_fun_spec env loc vf format_fun tvparams formals in
-  let new_callee, glob = Build.function_declaration ~loc 
+  let new_callee, glob = Build.function_declaration ~loc:vf.vf_decl.vdecl
     name new_callee_typ mk_spec in
   new_globals := glob :: !new_globals;
 
@@ -479,6 +486,6 @@ let format_fun_call env format_fun vf stmt =
     "Translating call to %s to a call to the specialized version %s."
     name new_callee.vname;
   let tparams = params_types new_params in
-  match_call stmt loc lval new_callee tparams args;
+  match_call ~fundec stmt loc lval new_callee tparams args
 
 

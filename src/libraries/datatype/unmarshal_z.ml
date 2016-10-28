@@ -25,7 +25,7 @@ open Unmarshal;;
 let readz ch =
   let sign = read8u ch in
   let charlen = read32u ch in
-  let str = String.create charlen in 
+  let str = Bytes.create charlen in 
   readblock ch (Obj.repr str) 0 charlen;
 (* My beautiful string reversing code; 
    now useless :( 
@@ -36,7 +36,7 @@ let readz ch =
     str.[max - i] <- c
   done;
 *)
-  let n = Z.of_bits str in
+  let n = Z.of_bits (Bytes.to_string str) in
   let z = if sign = 0 then n else Z.neg n in
   Obj.repr z
 ;;

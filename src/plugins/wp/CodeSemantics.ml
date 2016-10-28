@@ -93,11 +93,11 @@ struct
       match v with
       | None -> is_zero sigma obj (M.shift l obj k)
       | Some v ->
-          let shift = (M.load sigma obj (M.shift l obj k)) in
+          let elt = (M.load sigma obj (M.shift l obj k)) in
           if Ctypes.is_pointer obj then
-            M.loc_eq (cloc shift) (cloc v)
+            M.loc_eq (cloc elt) (cloc v)
           else
-            p_equal (cval shift) (cval v)
+            p_equal (cval elt) (cval v)
     in
     p_forall [x] (p_hyps range init)
 
@@ -219,11 +219,11 @@ struct
 
     | C_int ir , C_int ie ->
         let v = cval ve in
-        Val( if Ctypes.sub_c_int ie ir then v else Cint.iconvert ir v )
+        Val( if Ctypes.sub_c_int ie ir then v else Cint.downcast ir v )
 
     | C_float fr , C_float fe ->
         let v = cval ve in
-        Val( if Ctypes.sub_c_float fe fr then v else Cfloat.fconvert fr v )
+        Val( if Ctypes.sub_c_float fe fr then v else Cfloat.convert fr v )
 
     | C_int ir , C_float _ -> Val(Cint.of_real ir (cval ve))
     | C_float fr , C_int _ -> Val(Cfloat.float_of_int fr (cval ve))

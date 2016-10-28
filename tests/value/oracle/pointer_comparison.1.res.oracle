@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
@@ -24,7 +24,7 @@ tests/value/pointer_comparison.c:18:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &x + [20..--],0%4 }}
   __retres ∈ {0}
 [from] Computing for function main
@@ -49,31 +49,31 @@ tests/value/pointer_comparison.c:18:[value] entering loop for the first time
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
 [value] Called Frama_C_show_each_1t({{ &x + {4} }})
-tests/value/pointer_comparison.c:10:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_0, (void *)(&y));
-                  (tmp_0 from p++)
+tests/value/pointer_comparison.c:10:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_0, (void *)(&y));
+                 (tmp_0 from p++)
 [value] Called Frama_C_show_each_2({{ &x + {8} }})
 [value] Called Frama_C_show_each_2e({{ &x + {8} }})
-tests/value/pointer_comparison.c:12:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_1, (void *)(&y));
-                  (tmp_1 from p++)
+tests/value/pointer_comparison.c:12:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_1, (void *)(&y));
+                 (tmp_1 from p++)
 [value] Called Frama_C_show_each_3({{ &x + {12} }})
 [value] Called Frama_C_show_each_3e({{ &x + {12} }})
-tests/value/pointer_comparison.c:14:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_2, (void *)(&y));
-                  (tmp_2 from p++)
+tests/value/pointer_comparison.c:14:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_2, (void *)(&y));
+                 (tmp_2 from p++)
 [value] Called Frama_C_show_each_4({{ &x + {16} }})
 [value] Called Frama_C_show_each_4e({{ &x + {16} }})
 [value] Called Frama_C_show_each_5({{ &x + {16} }})
 [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-tests/value/pointer_comparison.c:18:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_3, (void *)(&y));
-                  (tmp_3 from p++)
+tests/value/pointer_comparison.c:18:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_3, (void *)(&y));
+                 (tmp_3 from p++)
 [value] Called Frama_C_show_each_6({{ &x + {20} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24; 28} }})
@@ -81,7 +81,7 @@ tests/value/pointer_comparison.c:18:[kernel] warning: pointer comparison.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &x + [20..--],0%4 }}
   __retres ∈ {0}
 [from] Computing for function main
@@ -132,32 +132,32 @@ tests/value/pointer_comparison.c:18:[kernel] warning: pointer comparison.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
 [value] Called Frama_C_show_each_1t({{ &x + {4} }})
-tests/value/pointer_comparison.c:10:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_0, (void *)(&y));
-                  (tmp_0 from p++)
+tests/value/pointer_comparison.c:10:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_0, (void *)(&y));
+                 (tmp_0 from p++)
 [value] Called Frama_C_show_each_2({{ &x + {8} }})
 [value] Called Frama_C_show_each_2e({{ &x + {8} }})
-tests/value/pointer_comparison.c:12:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_1, (void *)(&y));
-                  (tmp_1 from p++)
+tests/value/pointer_comparison.c:12:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_1, (void *)(&y));
+                 (tmp_1 from p++)
 [value] Called Frama_C_show_each_3({{ &x + {12} }})
 [value] Called Frama_C_show_each_3e({{ &x + {12} }})
-tests/value/pointer_comparison.c:14:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_2, (void *)(&y));
-                  (tmp_2 from p++)
+tests/value/pointer_comparison.c:14:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_2, (void *)(&y));
+                 (tmp_2 from p++)
 [value] Called Frama_C_show_each_4({{ &x + {16} }})
 [value] Called Frama_C_show_each_4e({{ &x + {16} }})
-tests/value/pointer_comparison.c:16:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&y));
+tests/value/pointer_comparison.c:16:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&y));
 [value] Called Frama_C_show_each_5({{ &x + {16} }})
 [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-tests/value/pointer_comparison.c:18:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)tmp_3, (void *)(&y));
-                  (tmp_3 from p++)
+tests/value/pointer_comparison.c:18:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)tmp_3, (void *)(&y));
+                 (tmp_3 from p++)
 [value] Called Frama_C_show_each_6({{ &x + {20} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24; 28} }})
@@ -165,7 +165,7 @@ tests/value/pointer_comparison.c:18:[kernel] warning: pointer comparison.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &x + [20..--],0%4 }}
   __retres ∈ {0}
 [from] Computing for function main

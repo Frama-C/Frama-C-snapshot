@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   q ∈ {{ &x }}
   p ∈ {{ &x }}
@@ -15,7 +15,7 @@ tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite'
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -73,21 +73,21 @@ tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite'
 [value] Analyzing a complete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   q ∈ {{ &x }}
   p ∈ {{ &x }}
   v ∈ [--..--]
 tests/value/init_const_guard.i:32:[value] assertion 'Read' got status valid.
 tests/value/init_const_guard.i:33:[value] assertion 'Guard_against_Const' got status valid.
-tests/value/init_const_guard.i:35:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \valid(p);
 tests/value/init_const_guard.i:35:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 tests/value/init_const_guard.i:27:[value] function g: postcondition 'P_not_Const' got status valid.
 [value] Recording results for g
 [value] done for function g
 tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   p ∈ {{ &x }}
 [from] Computing for function g
 [from] Done for function g
@@ -141,7 +141,7 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ [--..--]
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p[0] }}
@@ -150,7 +150,7 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -212,17 +212,17 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ [--..--]
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p[0] }}
   v ∈ [--..--]
   S_p[0..1] ∈ [--..--]
-tests/value/init_const_guard.i:35:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for g
 [value] done for function g
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   p ∈ {{ &x }}
 [from] Computing for function g
 [from] Done for function g

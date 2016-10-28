@@ -47,6 +47,8 @@ val sizeof_lval_typ: typ -> Int_Base.t
 val offsetmap_matches_type: typ -> Cvalue.V_Offsetmap.t -> bool
 
 val need_cast: typ -> typ -> bool
+(** return [true] if the two types are statically distinct, and a cast
+    from one to the other may have an effect on an abstract value. *)
 
 type fct_pointer_compatibility =
   | Compatible
@@ -78,3 +80,36 @@ val lval_contains_volatile: lval -> bool
     volatile qualifier. Relational analyses should not learn anything on
     such values. *)
 
+val kf_assigns_only_result_or_volatile: kernel_function -> bool
+(** returns [true] if the function assigns only [\result] or variables
+    that have [volatile] qualifier (that are usually not tracked by domains
+    anyway). *)
+
+
+(** Abstraction of an integer type, more convenient than an [ikind] because
+    it can also be used for bitfields. *)
+type integer_range = { i_bits: int; i_signed: bool }
+
+module DatatypeIntegerRange: Datatype.S with type t = integer_range
+
+val ik_range: ikind -> integer_range
+val ik_attrs_range: ikind -> attributes -> integer_range
+(** Range for an integer type with some attributes. The attribute
+    {!Cil.bitfield_attribute_name} influences the width of the type. *)
+
+val range_inclusion: integer_range -> integer_range -> bool * bool
+(** Check inclusion of two integer ranges. Returns two boolean [ok_low, ok_up],
+    for inclusion of the low and upper ranges respectively. *)
+
+val range_lower_bound: integer_range -> Integer.t
+val range_upper_bound: integer_range -> Integer.t
+
+(** Abstraction of scalar types -- in particular, all those that can be involved
+    in a cast. Enum and integers are coalesced. *)
+type scalar_typ =
+  | TSInt of integer_range
+  | TSPtr of integer_range
+  | TSFloat of fkind
+  | TSNotScalar
+
+val classify_as_scalar: typ -> scalar_typ

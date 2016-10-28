@@ -10,7 +10,7 @@ tests/float/logic.i:77:[kernel] warning: Floating-point constant 3.3 is not repr
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   undet ∈ [--..--]
   top_int ∈ [--..--]
@@ -49,9 +49,9 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function my_ratio_body:
+[value:final-states] Values at end of function my_ratio_body:
   __retres ∈ {-0x1.bca1b00000000p-1}
-[value] Values at end of function test_is_finite:
+[value:final-states] Values at end of function test_is_finite:
   f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   f2 ∈ [--..--]
   f3 ∈ [--..--]
@@ -60,7 +60,7 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
   g2 ∈ {0x1.a666660000000p1}
   g3 ∈ [-0x1.fffffe0000000p-1 .. 0x1.fffffe0000000p-1]
   g4 ∈ {-0x1.bca1b00000000p-1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function my_ratio_body
 [from] Computing for function my_fabs <-my_ratio_body

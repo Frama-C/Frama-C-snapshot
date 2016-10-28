@@ -3,17 +3,17 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
 tests/value/control.i:11:[value] entering loop for the first time
-tests/value/control.i:14:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/value/control.i:14:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ [0..2147483647]
   i ∈ {4}
 [from] Computing for function f

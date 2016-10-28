@@ -97,7 +97,7 @@ endif
 %.o: %.cmx
 	$(TOUCH) $@
 
-.ml.cmxs:
+%.cmxs: %.cmx
 	$(PRINT_PACKING) $@
 	$(OCAMLOPT) -shared -o $@ $(OFLAGS) $<
 

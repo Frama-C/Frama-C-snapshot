@@ -71,6 +71,8 @@ class type ['a] marker =
     method on_click : ('a entry -> unit) -> unit
     method on_double_click : ('a entry -> unit) -> unit
     method on_right_click : ('a entry -> unit) -> unit
+    method on_shift_click : ('a entry -> unit) -> unit
+    method on_add : ('a entry -> unit) -> unit
     method wrap : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a -> unit
     method mark : 'b. 'a -> (Format.formatter -> 'b -> unit) -> Format.formatter -> 'b -> unit
     method add : 'a entry -> unit
@@ -128,6 +130,8 @@ class ['a] poly_marker
     val mutable demon_click  : ('a entry -> unit) list = []
     val mutable demon_double : ('a entry -> unit) list = []
     val mutable demon_right  : ('a entry -> unit) list = []
+    val mutable demon_shift  : ('a entry -> unit) list = []
+    val mutable demon_added  : ('a entry -> unit) list = []
 
     (*--- Signal Connection ---*)
 
@@ -135,6 +139,8 @@ class ['a] poly_marker
     method on_click d = demon_click <- demon_click @ [d]
     method on_double_click d = demon_double <- demon_double @ [d]
     method on_right_click d = demon_right <- demon_right @ [d]
+    method on_shift_click d = demon_shift <- demon_shift @ [d]
+    method on_add d = demon_added <- demon_added @ [d]
 
     (*--- Adding ---*)
 
@@ -150,11 +156,17 @@ class ['a] poly_marker
           end ;
         let click double evt =
           List.iter (fun f -> f evt e) demon ;
-          match GdkEvent.Button.button evt with
-          | 1 -> fire e (if double then demon_double else demon_click)
-          | 3 -> fire e demon_right
-          | _ -> ()
-        in registry (p,q,{ hover ; click })
+          if double then fire e demon_double else
+            let state = GdkEvent.Button.state evt in
+            if Gdk.Convert.test_modifier `BUTTON3 state
+            then fire e demon_right else
+            if Gdk.Convert.test_modifier `BUTTON1 state
+            then if Gdk.Convert.test_modifier `SHIFT state
+              then fire e demon_shift
+              else fire e demon_click
+        in
+        registry (p,q,{ hover ; click }) ;
+        ignore (fire e demon_added) ;
       end
       
     method wrap pp (fmt:Format.formatter) (w:'a) : unit =
@@ -189,6 +201,8 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
     val marks : (string,int -> int -> unit) Hashtbl.t = Hashtbl.create 32
     val mutable links : string marker option = None
     val mutable width = width
+    val mutable hrule = ""
+    val mutable ruled = false
     val mutable indent = indent
     val mutable hid = 0
     val mutable autoscroll = autoscroll
@@ -257,7 +271,8 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
     method offset = self#flush () ; buffer#end_iter#offset
 
     method set_width w =
-      width <- w ; match fmtref with None -> () | Some fmt ->
+      width <- w ; hrule <- "" ;
+      match fmtref with None -> () | Some fmt ->
         Format.pp_set_margin fmt w
 
     method set_indent p =
@@ -407,7 +422,9 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
         let line = view#buffer#line_count in
         let finally fmt =
           Format.pp_print_flush fmt () ;
-          Hashtbl.clear marks ; hid <- 0 ;
+          Hashtbl.clear marks ;
+          hid <- 0 ;
+          ruled <- false ;
           if scroll then
             (* scrolling must be performed asynchronously using Gtk_helper.later,
                otherwise it will not take into account the newly added text. *)
@@ -415,6 +432,16 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
         in
         Format.kfprintf finally self#fmt text
 
+    method hrule =
+      if not ruled then
+        begin
+          if String.length hrule = 0 then
+            hrule <- String.make width '-' ;
+          Format.pp_print_string self#fmt hrule ;
+          Format.pp_print_newline self#fmt () ;
+          ruled <- true ;
+        end
+    
     method lines = view#buffer#line_count
 
     method scroll ?line () =
@@ -440,7 +467,9 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
       end
 
     method coerce = scroll#coerce
-    method set_enabled (_:bool) = () (* ignored *)
+    method widget = (self :> Widget.t)
+    method set_enabled = Wutil.set_enabled scroll
+    method set_visible = Wutil.set_visible scroll
 
     method set_font font = view#misc#modify_font_by_name font
     method set_monospace = self#set_font "monospace"

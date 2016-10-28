@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/float/zero.i:5:[value] warning: function main: precondition got status unknown.
 [value] Called Frama_C_show_each({1})
@@ -15,7 +15,7 @@ tests/float/zero.i:5:[value] warning: function main: precondition got status unk
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   f ∈ {-0.}
   i1 ∈ {1}
   i2 ∈ {1}
@@ -34,7 +34,7 @@ tests/float/zero.i:5:[value] warning: function main: precondition got status unk
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Called Frama_C_show_each({1})
 [value] Called Frama_C_show_each({1})
@@ -45,7 +45,7 @@ tests/float/zero.i:5:[value] warning: function main: precondition got status unk
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   f ∈ {-0.}
   i1 ∈ {1}
   i2 ∈ {1}

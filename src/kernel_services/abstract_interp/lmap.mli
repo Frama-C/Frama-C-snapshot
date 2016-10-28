@@ -24,11 +24,18 @@
     [Offsetmap] module.
     @plugin development guide *)
 
+(** Contents of a variable when it is not present in the state.
+    See function [default_contents] in the functor below *)
+type 'a default_contents =
+  | Bottom
+  | Top of 'a
+  | Constant of 'a
+  | Other 
+
 module Make_LOffset
   (V: sig
      include module type of Offsetmap_lattice_with_isotropy
-     include Lattice_type.With_Top with type t := t
-     include Lattice_type.With_Narrow with type t := t
+     include Lattice_type.With_Top_Opt with type t := t
    end)
   (Offsetmap: module type of Offsetmap_sig
               with type v = V.t
@@ -37,20 +44,20 @@ module Make_LOffset
      val name: string
      (** Used to create different datatypes each time the functor is applied *)
 
-     val default_offsetmap : Base.t -> [`Bottom | `Map of Offsetmap.t]
+     val default_offsetmap : Base.t -> Offsetmap.t Bottom.or_bottom
      (** Value returned when a map is queried, and the base is not present.
          [`Bottom] indicates that the base is never bound in such a map. *)
 
-     val default_contents: [ `Bottom | `Top | `Constant of V.t | `Other ]
+     val default_contents: V.t default_contents
      (** This function is used to optimize functions that add keys in a map,
          in particular when maintaining canonicity w.r.t. default contents.
          It describes the contents [c] of the offsetmap
          resulting from [default_offsetmap b]. The possible values are:
-         - [`Bottom] means that [c] is [V.bottom] everywhere, and furthemore
+         - [Bottom] means that [c] is [V.bottom] everywhere, and furthemore
            that [V.bottom] has an empty concretization. We deduce from this
            fact that unmapped keys do not contribute to a join, and that
            [join c v] is never [c] as soon as [v] is not itself [v].
-         - [`Top] means that [c] is [V.top] everywhere. Thus unmapped keys
+         - [Top] means that [c] is [V.top] everywhere. Thus unmapped keys
            have a default value more general than the one in a map where the
            key is bound.
          - [`Constant v] means that [c] is an offsetmap with a single interval

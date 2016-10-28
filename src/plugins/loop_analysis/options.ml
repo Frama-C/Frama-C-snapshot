@@ -50,3 +50,10 @@ module MaxSlevel = Int
       let help = "If slevel is found to be higher than this number,"
                  ^ "set slevel to 0 instead (default: 10000)"
     end)
+
+module NoBranches = False
+    (struct
+      let option_name = "-loop-no-branches"
+      let help = "Modify the algorithm use to estimate the slevel: ignore \
+                  branching due to ifs and always merge after loops"
+    end)

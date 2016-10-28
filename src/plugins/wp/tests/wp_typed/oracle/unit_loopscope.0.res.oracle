@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_typed/unit_loopscope.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 tests/wp_typed/unit_loopscope.i:14:[wp] warning: Missing assigns clause (assigns 'everything' instead)
 ------------------------------------------------------------
@@ -18,7 +17,7 @@ Prove: true.
 Goal Establishment of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
 Assume {
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(written_0.base) <= 0).
+  Have: (region(written_0.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, written_0, 1).
 }

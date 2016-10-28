@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/user_assertion_uninit_var.i:3:[value] entering loop for the first time
 tests/value/user_assertion_uninit_var.i:4:[value] warning: assertion got status unknown.
-tests/value/user_assertion_uninit_var.i:6:[kernel] warning: accessing uninitialized left-value. assert \initialized(&n);
+tests/value/user_assertion_uninit_var.i:6:[value] warning: accessing uninitialized left-value. assert \initialized(&n);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {10}
   n ∈ [0..9]
   x ∈ {0; 1}

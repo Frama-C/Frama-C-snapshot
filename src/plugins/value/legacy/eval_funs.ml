@@ -96,11 +96,7 @@ let compute_using_specification (kf, spec) ~call_kinstr ~with_formals () =
   end;
   Value_parameters.feedback ~once:true "@[using specification for function %a@]"
     Kernel_function.pretty kf;
-  let compute_fun = if List.length spec.spec_behavior > 1
-    then Eval_behaviors.compute_using_specification_multiple_behaviors
-    else Eval_behaviors.compute_using_specification_single_behavior
-  in
-  compute_fun kf spec ~call_kinstr ~with_formals
+  Eval_behaviors.compute_using_specification kf spec ~call_kinstr ~with_formals
 
 (*  Compute a call to [kf] in the state [with_formals]. The evaluation will
     be done either using the body of [kf] or its specification, depending
@@ -111,11 +107,10 @@ let compute_using_specification (kf, spec) ~call_kinstr ~with_formals () =
 let compute_using_spec_or_body ~with_formals ~call_kinstr ~show_progress kf =
   Value_results.mark_kf_as_called kf;
   let pp = show_progress && Value_parameters.ValShowProgress.get() in
-  let entry_time = if pp then Unix.time () else 0. in
   if pp then
     Value_parameters.feedback
       "@[computing for function %a.@\nCalled from %a.@]"
-      pretty_call_stack_short (call_stack ())
+      Value_types.Callstack.pretty_short (call_stack ())
       Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc call_kinstr);
   let use_spec = match kf.fundec with
     | Declaration (_,_,_,_) -> `Spec (Annotations.funspec kf)
@@ -132,15 +127,8 @@ let compute_using_spec_or_body ~with_formals ~call_kinstr ~show_progress kf =
        Db.Value.Call_Type_Value_Callbacks.apply (`Def, with_formals, call_stack());
         compute_using_body (kf, f) ~call_kinstr ~with_formals
   in
-  if pp then begin
-    let compute_time = (Unix.time ()) -. entry_time in
-      if compute_time > Value_parameters.FloatTimingStep.get ()
-      then Value_parameters.feedback "Done for function %a, in %a seconds."
-             Kernel_function.pretty kf
-             Datatype.Float.pretty  compute_time
-      else Value_parameters.feedback "Done for function %a"
-             Kernel_function.pretty kf
-  end;
+  if pp then
+    Value_parameters.feedback "Done for function %a" Kernel_function.pretty kf;
   result
 
 
@@ -169,12 +157,10 @@ let compute_from_entry_point () =
       (Value_parameters.feedback "Computing initial state";
        let r = Db.Value.globals_state () in
        Value_parameters.feedback "Initial state computed";
-       if Value_parameters.ValShowInitialState.get ()
-       then
-	 Value_parameters.printf
-           ~header:(fun fmt -> Format.pp_print_string fmt
-                       "Values of globals at initialization")
-           "@[  %a@]" Db.Value.pretty_state r;
+       Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
+         ~header:(fun fmt -> Format.pp_print_string fmt
+                     "Values of globals at initialization")
+         "@[  %a@]" Db.Value.pretty_state r;
        r
       ) in
   if not (Db.Value.is_reachable initial_state_globals) 
@@ -204,6 +190,7 @@ let compute_from_entry_point () =
     Db.Value.Call_Value_Callbacks.apply (with_formals, [ kf, Kglobal ]);
     ignore(compute_using_spec_or_body kf
              ~call_kinstr:Kglobal ~with_formals ~show_progress:false);
+    pop_call_stack ();
     Value_parameters.feedback "done for function %a" Kernel_function.pretty kf;
     Separate.epilogue();
   end
@@ -228,46 +215,35 @@ let compute_maybe_builtin kf ~state actuals =
   in
   let (!!) = Lazy.force in
   let name = Kernel_function.get_name kf in
-  try
-    let name, override =
-      (* Advanced builtins which override a Cil function with a Caml one, but
-         use the Cil one as backup if the Caml one fails. (None by default) *)
+  match Builtins.find_builtin_override kf with
+  | Some abstract_function ->
+    (* Mark the function as called, otherwise it would get skipped, eg. from
+       the Gui. *)
+    Value_results.mark_kf_as_called kf;
+    begin
       try
-        let name = Value_parameters.BuiltinsOverrides.find kf in
-        (* This is an interesting C function. Mark it as called, otherwise
-           it would get skipped, eg. from the Gui. *)
-        Value_results.mark_kf_as_called kf;
-        name, true
-      with Not_found -> name, false
-    in
-    (* Standard builtins with constant names, e.g. Frama_C_cos *)
-    let abstract_function = Builtins.find_builtin name in
-    (try
-       Some (abstract_function state !!actuals)
-     with
-     | Builtins.Invalid_nb_of_args n ->
-       Value_parameters.error ~current:true
-         "Invalid number of arguments for builtin %s: %d expected, %d found"
-         name n (List.length !!actuals);
-       raise Db.Value.Aborted
-     | Db.Value.Outside_builtin_possibilities ->
-       if override then None
-       else (
-         Value_parameters.warning ~once:true ~current:true
-           "Call to builtin %s failed, aborting." name;
-         raise Db.Value.Aborted
-       )
-    )
-  with Not_found ->
+        Some (abstract_function state !!actuals)
+      with
+      | Builtins.Invalid_nb_of_args n ->
+        Value_parameters.error ~current:true
+          "Invalid number of arguments for builtin %s: %d expected, %d found"
+          name n (List.length !!actuals);
+        raise Db.Value.Aborted
+      | Db.Value.Outside_builtin_possibilities ->
+        Value_parameters.warning ~once:true ~current:true
+          "Call to builtin %s failed, aborting." name;
+        raise Db.Value.Aborted
+    end
+  | None ->
     (* Special builtins, such as Frama_C_show_each_foo *)
     if Ast_info.can_be_cea_function name then
       (* A few special functions that are not registered in the builtin table *)
       if Ast_info.is_cea_dump_function name then
-        Some (Builtins.dump_state state !!actuals)
+        Some (Builtins_misc.dump_state state !!actuals)
       else if Ast_info.is_cea_function name then
-        Some (Builtins.dump_args name state !!actuals)
+        Some (Builtins_misc.dump_args name state !!actuals)
       else if Ast_info.is_cea_dump_file_function name then
-        Some (Builtins.dump_state_file name state !!actuals)
+        Some (Builtins_misc.dump_state_file name state !!actuals)
       else
         None
     else None
@@ -385,14 +361,14 @@ let compute_recursive_call kf ~call_kinstr state actuals =
         (* Any copy of the formal may have been modified by the call, join
            the possible values *)
         let post = Cvalue.Model.find_base b post_state in
-        let r = Cvalue.V_Offsetmap.join_top_bottom old post in
+        let r = Bottom.Top.join Cvalue.V_Offsetmap.join old post in
         r
       else
         old
     in
     match offsm with
     | `Top | `Bottom -> assert false
-    | `Map offsm -> Cvalue.Model.add_base b offsm post_state
+    | `Value offsm -> Cvalue.Model.add_base b offsm post_state
   in
   let formals = Kernel_function.get_formals kf in
   let restore_formals state = List.fold_left restore_formal state formals in
@@ -474,6 +450,7 @@ let pre () =
   (* We may be resuming Value from a previously crashed analysis. Clear
      degeneration states *)
   Value_util.DegenerationPoints.clear ();
+  Cvalue.V.clear_garbled_mix ();
 ;;
 
 let post_cleanup ~aborted =
@@ -521,6 +498,7 @@ let force_compute () =
     if (Cvalue.Model.is_reachable (Db.Value.globals_state ()))
     then Eval_annots.mark_unreachable ()
     else Eval_annots.mark_invalid_initializers ();
+    Value_util.dump_garbled_mix ();
     (* Try to refine the 'Unknown' statuses that have been emitted during
        this analysis. *)
     Eval_annots.mark_green_and_red ();

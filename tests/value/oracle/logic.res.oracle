@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   u[0..10] ∈ {0}
   s1 ∈ {0}
@@ -75,8 +75,8 @@ tests/value/logic.c:71:[value] assertion got status valid.
 [value] Done for function empty_tset
 [value] computing for function reduce_by_equal <- main.
         Called from tests/value/logic.c:119.
-tests/value/logic.c:76:[kernel] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/logic.c:76:[kernel] warning: accessing out of bounds index. assert v < 10;
+tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert 0 ≤ v;
+tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert v < 10;
 tests/value/logic.c:77:[value] warning: assertion got status unknown.
 tests/value/logic.c:78:[value] warning: assertion got status unknown.
 [value] Recording results for reduce_by_equal
@@ -108,20 +108,20 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function alarms:
+[value:final-states] Values at end of function alarms:
   x_0 ∈ {1}
-[value] Values at end of function casts:
+[value:final-states] Values at end of function casts:
   
-[value] Values at end of function eq_char:
+[value:final-states] Values at end of function eq_char:
   c ∈ {-126}
-[value] Values at end of function eq_tsets:
+[value:final-states] Values at end of function eq_tsets:
   
-[value] Values at end of function empty_tset:
+[value:final-states] Values at end of function empty_tset:
   T[0] ∈ {2}
-[value] Values at end of function reduce_by_equal:
+[value:final-states] Values at end of function reduce_by_equal:
   a[0..8] ∈ {1}
    [9] ∈ [--..--]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function alarms
 [from] Done for function alarms

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function create_msg <- main.
         Called from tests/spec/array_typedef.c:35.
@@ -32,7 +32,7 @@ tests/spec/array_typedef.c:12:[value] warning: no \from part for clause 'assigns
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function host_address:
+[value:final-states] Values at end of function host_address:
   i ∈ {4}
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
@@ -42,7 +42,7 @@ tests/spec/array_typedef.c:12:[value] warning: no \from part for clause 'assigns
       .dst[1] ∈ {100} or UNINITIALIZED
       .dst[2] ∈ {200} or UNINITIALIZED
       .dst[3] ∈ {101} or UNINITIALIZED
-[value] Values at end of function create_msg:
+[value:final-states] Values at end of function create_msg:
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
       .src[2] ∈ {200}
@@ -51,9 +51,9 @@ tests/spec/array_typedef.c:12:[value] warning: no \from part for clause 'assigns
       .dst[1] ∈ {100}
       .dst[2] ∈ {200}
       .dst[3] ∈ {101}
-[value] Values at end of function send_msg:
+[value:final-states] Values at end of function send_msg:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   msg1.src[0] ∈ {192}
       .src[1] ∈ {100}
       .src[2] ∈ {200}
@@ -96,7 +96,7 @@ void create_msg(msg *msg_0)
   host_address(msg_0->dst);
   /*@ assert msg_0->dst[0] ≡ 192; */ ;
   /*@ assert msg_0->src[0] ≡ 192; */ ;
-  /*@ assert msg_0->dst[sizeof(ip_address)/sizeof(int)-1] ≡ 101; */ ;
+  /*@ assert msg_0->dst[sizeof(ip_address) / sizeof(int) - 1] ≡ 101; */ ;
   return;
 }
 

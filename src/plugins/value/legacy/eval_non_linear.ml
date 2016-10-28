@@ -23,7 +23,6 @@
 open Cil_types
 open Cil
 open Locations
-module Ki = Cil_datatype.Kinstr
 open Abstract_interp
 open Cvalue
 

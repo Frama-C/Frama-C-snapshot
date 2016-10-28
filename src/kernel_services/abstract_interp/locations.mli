@@ -205,7 +205,18 @@ module Location_Bytes : sig
   val may_reach : Base.t -> t -> bool
     (** [may_reach base loc] is true if [base] might be accessed from [loc]. *)
 
+
+  val get_garbled_mix: unit -> t list
+    (** All the garbled mix that have been created so far, sorted by "temporal"
+        order of emission. *)
+
+  val clear_garbled_mix: unit -> unit
+    (** Clear the information on created garbled mix. *)
+
+  val do_track_garbled_mix: bool -> unit
+  
 (**/**)
+  val pretty_debug: t Pretty_utils.formatter
   val clear_caches: unit -> unit
 end
 

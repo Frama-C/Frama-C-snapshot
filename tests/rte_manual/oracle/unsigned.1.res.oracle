@@ -8,11 +8,11 @@ unsigned int f(unsigned int a, unsigned int b)
   unsigned int y;
   unsigned int z;
   x = a << 3;
-  /*@ assert rte: unsigned_overflow: 0 ≤ b*(unsigned int)2; */
-  /*@ assert rte: unsigned_overflow: b*(unsigned int)2 ≤ 4294967295; */
+  /*@ assert rte: unsigned_overflow: 0 ≤ b * (unsigned int)2; */
+  /*@ assert rte: unsigned_overflow: b * (unsigned int)2 ≤ 4294967295; */
   y = b * (unsigned int)2;
-  /*@ assert rte: unsigned_overflow: 0 ≤ x-y; */
-  /*@ assert rte: unsigned_overflow: x-y ≤ 4294967295; */
+  /*@ assert rte: unsigned_overflow: 0 ≤ x - y; */
+  /*@ assert rte: unsigned_overflow: x - y ≤ 4294967295; */
   z = x - y;
   return z;
 }

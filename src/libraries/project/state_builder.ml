@@ -817,8 +817,6 @@ module SharedCounter(Info : sig val name : string end) = struct
 
 end
 
-module Cpt = SharedCounter(struct let name = "State_builder.Cpt" end)
-
 module Counter(Info : sig val name : string end) = struct
 
   let create () = ref 0
@@ -924,13 +922,13 @@ struct
 
   type elt = Data.t
 
-  let state = ref (Array.create 0 Info.default)
+  let state = ref (Array.make 0 Info.default)
 
   include Register
   (Datatype.Array(Data))
   (struct
      type t = elt array
-     let create () = Array.create 0 Info.default
+     let create () = Array.make 0 Info.default
      let clear v  = Array.iteri (fun i _ -> v.(i) <- Info.default) v
      let get () = !state
      let set x = state := x
@@ -950,7 +948,7 @@ struct
   (struct include Info let unique_name = name end)
 
   let length () = Array.length !state
-  let set_length i = state := Array.create i Info.default
+  let set_length i = state := Array.make i Info.default
   let get i = !state.(i)
   let set i v = !state.(i) <- v
   let iter f = Array.iter f !state
@@ -987,6 +985,92 @@ let apply_once name dep f =
          raise exn
      end),
   First.self
+
+
+(* ****************************************************************************)
+(** {3 Generic hashconsing} *)
+(* ****************************************************************************)
+
+module type Hashcons = sig
+  type elt
+
+  include Datatype.S_with_collections
+
+  val hashcons: elt -> t
+  val get: t -> elt
+
+  val id: t -> int
+
+  val self: State.t
+end
+
+
+module Hashcons (Data: Datatype.S)(Info: Info) = struct
+
+  type elt = Data.t
+
+  type hashconsed = { key : Data.t; id : int; }
+
+  let rehash_ref = ref (fun _ -> assert false)
+
+  module D = Datatype.Make_with_collections (struct
+      include Datatype.Serializable_undefined
+      type t = hashconsed
+      let name = "Hashconsed(" ^ Data.name ^ "," ^ Info.name ^ ")"
+
+      let reprs = [ { key = List.hd Data.reprs; id = 0 } ]
+
+      let structural_descr =
+        Structural_descr.t_record
+          [| Data.packed_descr; Structural_descr.p_int |]
+
+      let equal = ( == )
+      let compare { id = t1 } { id = t2 } = Datatype.Int.compare t1 t2
+      let pretty fmt { key } = Data.pretty fmt key
+      let hash { id } = id
+      let copy c = c
+
+      let rehash x = !rehash_ref x
+
+    end)
+
+  include D
+
+  module HashConsTbl =
+    Hashconsing_tbl
+      (struct
+        include D
+        let hash_internal a =  Data.hash a.key
+        let equal_internal a b = Data.equal a.key b.key
+        let initial_values = [] (* TODO? *)
+      end)
+      (struct
+        let name = "Hashconstable(" ^ Data.name ^ "," ^ Info.name ^ ")"
+        let dependencies = Info.dependencies
+        let size = 128
+      end)
+
+  let self = HashConsTbl.self
+
+  let counter = ref 0
+
+  let hashcons key =
+    let id = !counter in
+    let hashed_atom = { key; id } in
+    let hashconsed_atom = HashConsTbl.merge hashed_atom in
+    if hashconsed_atom.id = !counter then
+      (* Fresh new atom. this counter id is used. *)
+      counter := succ !counter;
+    hashconsed_atom
+
+  let () = rehash_ref := fun x -> hashcons x.key
+
+  let get { key } = key
+  let id { id } = id
+
+end
+
+
 
 (*
 Local Variables:

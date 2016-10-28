@@ -3,20 +3,21 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
-  
+[value:initial-state] Values of globals at initialization
+  g ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/reduce_formals.i:56.
+        Called from tests/value/reduce_formals.i:69.
 tests/value/reduce_formals.i:2:[value] warning: assertion got status unknown.
 tests/value/reduce_formals.i:5:[value] entering loop for the first time
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/reduce_formals.i:57.
+        Called from tests/value/reduce_formals.i:70.
 [value] using specification for function main2
 tests/value/reduce_formals.i:8:[value] warning: function main2: precondition got status unknown.
 [value] Done for function main2
-[value] DUMPING STATE of file tests/value/reduce_formals.i line 59
+[value] DUMPING STATE of file tests/value/reduce_formals.i line 72
+        g ∈ [--..--]
         v ∈ [--..--]
         w ∈ [6..2147483647]
         x ∈ [5..2147483647]
@@ -24,7 +25,7 @@ tests/value/reduce_formals.i:8:[value] warning: function main2: precondition got
         z ∈ [8..2147483647]
         =END OF DUMP==
 [value] computing for function main3 <- main.
-        Called from tests/value/reduce_formals.i:62.
+        Called from tests/value/reduce_formals.i:75.
 tests/value/reduce_formals.i:18:[value] assertion got status valid.
 [value] computing for function f_main3 <- main3 <- main.
         Called from tests/value/reduce_formals.i:19.
@@ -34,23 +35,23 @@ tests/value/reduce_formals.i:18:[value] assertion got status valid.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/reduce_formals.i:63.
+        Called from tests/value/reduce_formals.i:76.
 [value] computing for function f_main4_1 <- main4 <- main.
         Called from tests/value/reduce_formals.i:33.
 tests/value/reduce_formals.i:24:[value] warning: assertion got status unknown.
 [value] Recording results for f_main4_1
 [value] Done for function f_main4_1
-[value] Called Frama_C_show_each_v([-2147483648..15])
+[value] Called Frama_C_show_each_v({10; 11; 12; 13; 14; 15})
 [value] computing for function f_main4_2 <- main4 <- main.
         Called from tests/value/reduce_formals.i:36.
 tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
 [value] Recording results for f_main4_2
 [value] Done for function f_main4_2
-[value] Called Frama_C_show_each_v([16..2147483647])
+[value] Called Frama_C_show_each_v({16; 17; 18; 19; 20})
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/reduce_formals.i:64.
+        Called from tests/value/reduce_formals.i:77.
 [value] computing for function f_main_1 <- main5 <- main.
         Called from tests/value/reduce_formals.i:52.
 [value] computing for function f_main_2 <- f_main_1 <- main5 <- main.
@@ -61,36 +62,53 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
 [value] Done for function f_main_1
 [value] Recording results for main5
 [value] Done for function main5
+[value] computing for function main6 <- main.
+        Called from tests/value/reduce_formals.i:78.
+tests/value/reduce_formals.i:63:[value] warning: assertion got status unknown.
+[value] computing for function f_main6 <- main6 <- main.
+        Called from tests/value/reduce_formals.i:64.
+tests/value/reduce_formals.i:58:[value] warning: assertion got status unknown.
+[value] Recording results for f_main6
+[value] Done for function f_main6
+[value] Called Frama_C_show_each_6({3})
+[value] Recording results for main6
+[value] Done for function main6
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f_main3:
+[value:final-states] Values at end of function f_main3:
   x ∈ {6}
-[value] Values at end of function f_main4_1:
+[value:final-states] Values at end of function f_main4_1:
   
-[value] Values at end of function f_main4_2:
+[value:final-states] Values at end of function f_main4_2:
   
-[value] Values at end of function f_main_2:
+[value:final-states] Values at end of function f_main6:
+  g ∈ {3}
+[value:final-states] Values at end of function f_main_2:
   __retres ∈ {0}
-[value] Values at end of function f_main_1:
+[value:final-states] Values at end of function f_main_1:
   v ∈ {0}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   j ∈ [-306783375..306783381]
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   x ∈ {6}
   p ∈ {{ &x }}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   l ∈ {2}
-[value] Values at end of function main:
-  
+[value:final-states] Values at end of function main6:
+  g ∈ {3}
+[value:final-states] Values at end of function main:
+  g ∈ {3}
 [from] Computing for function f_main3
 [from] Done for function f_main3
 [from] Computing for function f_main4_1
 [from] Done for function f_main4_1
 [from] Computing for function f_main4_2
 [from] Done for function f_main4_2
+[from] Computing for function f_main6
+[from] Done for function f_main6
 [from] Computing for function f_main_2
 [from] Done for function f_main_2
 [from] Computing for function f_main_1
@@ -103,6 +121,8 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
 [from] Done for function main4
 [from] Computing for function main5
 [from] Done for function main5
+[from] Computing for function main6
+[from] Done for function main6
 [from] Computing for function main
 [from] Computing for function main2 <-main
 [from] Done for function main2
@@ -117,6 +137,8 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
   NO EFFECTS
 [from] Function f_main4_2:
   NO EFFECTS
+[from] Function f_main6:
+  g FROM \nothing
 [from] Function f_main_2:
   \result FROM \nothing
 [from] Function f_main_1:
@@ -131,8 +153,10 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
   NO EFFECTS
 [from] Function main5:
   NO EFFECTS
+[from] Function main6:
+  g FROM \nothing
 [from] Function main:
-  NO EFFECTS
+  g FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f_main3:
           x
@@ -145,6 +169,10 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
 [inout] Out (internal) for function f_main4_2:
           \nothing
 [inout] Inputs for function f_main4_2:
+          \nothing
+[inout] Out (internal) for function f_main6:
+          g
+[inout] Inputs for function f_main6:
           \nothing
 [inout] Out (internal) for function f_main_2:
           __retres
@@ -170,7 +198,11 @@ tests/value/reduce_formals.i:28:[value] warning: assertion got status unknown.
           l
 [inout] Inputs for function main5:
           \nothing
+[inout] Out (internal) for function main6:
+          g
+[inout] Inputs for function main6:
+          g
 [inout] Out (internal) for function main:
-          \nothing
+          g
 [inout] Inputs for function main:
-          \nothing
+          g

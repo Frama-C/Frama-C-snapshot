@@ -253,6 +253,14 @@ axiom to_sint64_extraction_inf1 :
   (forall x:int. forall i:int [bit_test(to_sint64(x), i)]. (((0 <= i) and
   (i <  63)) -> (bit_test(x, i) -> bit_test(to_sint64(x), i))))
 
+axiom is_uint_lxor :
+  (forall n:int. forall x:int. forall y:int. (is_uint(n, x) -> (is_uint(n,
+  y) -> (to_uint(n, lxor(x, y)) = lxor(x, y)))))
+
+axiom is_uint8_lxor :
+  (forall x:int. forall y:int [to_uint8(lxor(x, y))]. (is_uint8(x) ->
+  (is_uint8(y) -> (to_uint8(lxor(x, y)) = lxor(x, y)))))
+
 axiom is_uint8_lor :
   (forall x:int. forall y:int [to_uint8(lor(x, y))]. (is_uint8(x) ->
   (is_uint8(y) -> (to_uint8(lor(x, y)) = lor(x, y)))))
@@ -272,6 +280,10 @@ axiom is_uint8_lsl1_inf :
 axiom is_uint8_lsl1_sup :
   (forall y:int [to_uint8(lsl(1, y))]. ((8 <= y) -> (to_uint8(lsl(1,
   y)) = 0)))
+
+axiom is_uint16_lxor :
+  (forall x:int. forall y:int [to_uint16(lxor(x, y))]. (is_uint16(x) ->
+  (is_uint16(y) -> (to_uint16(lxor(x, y)) = lxor(x, y)))))
 
 axiom is_uint16_lor :
   (forall x:int. forall y:int [to_uint16(lor(x, y))]. (is_uint16(x) ->
@@ -293,6 +305,10 @@ axiom is_uint16_lsl1_sup :
   (forall y:int [to_uint16(lsl(1, y))]. ((16 <= y) -> (to_uint16(lsl(1,
   y)) = 0)))
 
+axiom is_uint32_lxor :
+  (forall x:int. forall y:int [to_uint32(lxor(x, y))]. (is_uint32(x) ->
+  (is_uint32(y) -> (to_uint32(lxor(x, y)) = lxor(x, y)))))
+
 axiom is_uint32_lor :
   (forall x:int. forall y:int [to_uint32(lor(x, y))]. (is_uint32(x) ->
   (is_uint32(y) -> (to_uint32(lor(x, y)) = lor(x, y)))))
@@ -312,6 +328,10 @@ axiom is_uint32_lsl1_inf :
 axiom is_uint32_lsl1_sup :
   (forall y:int [to_uint32(lsl(1, y))]. ((32 <= y) -> (to_uint32(lsl(1,
   y)) = 0)))
+
+axiom is_uint64_lxor :
+  (forall x:int. forall y:int [to_uint64(lxor(x, y))]. (is_uint64(x) ->
+  (is_uint64(y) -> (to_uint64(lxor(x, y)) = lxor(x, y)))))
 
 axiom is_uint64_lor :
   (forall x:int. forall y:int [to_uint64(lor(x, y))]. (is_uint64(x) ->

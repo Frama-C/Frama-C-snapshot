@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main7
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -38,14 +38,14 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-tests/value/strings.i:101:[kernel] warning: out of bounds write. assert \valid(tmp);
-                                       (tmp from f?s5 + 2:& c)
-tests/value/strings.i:103:[kernel] warning: out of bounds write. assert \valid(s5);
-tests/value/strings.i:105:[kernel] warning: out of bounds write. assert \valid(s6);
+tests/value/strings.i:101:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from f?s5 + 2:& c)
+tests/value/strings.i:103:[value] warning: out of bounds write. assert \valid(s5);
+tests/value/strings.i:105:[value] warning: out of bounds write. assert \valid(s6);
 [value] Recording results for main7
 [value] done for function main7
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main7:
+[value:final-states] Values at end of function main7:
   s5 ∈ {{ &c }}
   s6 ∈ {{ &c }}
   R ∈ {84}

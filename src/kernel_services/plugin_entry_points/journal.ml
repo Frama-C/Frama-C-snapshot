@@ -154,7 +154,7 @@ let print_trailer fmt =
   Format.fprintf fmt "@[(* Registering *)@]@\n";
   Format.fprintf fmt
     "@[<hv 2>let main : unit -> unit =@;@[<hv 2>Dynamic.register@;~plugin:%S@;\"main\"@;"
-    (String.capitalize (Filename.basename (get_name ())));
+    (Transitioning.String.capitalize_ascii (Filename.basename (get_name ())));
   Format.fprintf fmt
     "@[<hv 2>(Datatype.func@;Datatype.unit@;Datatype.unit)@]@;";
   Format.fprintf fmt "~journalize:false@;main@]@]@\n@\n";
@@ -299,7 +299,7 @@ let never_write name f =
           if !started then Obj.magic f y
           else
             let msg =
-              Pretty_utils.sfprintf
+              Format.asprintf
                 "a call to the function %s has to be written in the journal, \
 but this function was never journalized."
                 name
@@ -320,12 +320,12 @@ let pp (type t) (ty: t Type.t) fmt (x:t) =
       let pp = Datatype.internal_pretty_code ty in
       if pp == Datatype.undefined then
 	pp_error 
-	  (Pretty_utils.sfprintf
+	  (Format.asprintf
 	     "no printer registered for value of type %s"
              (Type.name ty))
       else if pp == Datatype.pp_fail then
 	pp_error
-	  (Pretty_utils.sfprintf
+	  (Format.asprintf
              "no code for pretty printer of type %s"
              (Type.name ty))
       else

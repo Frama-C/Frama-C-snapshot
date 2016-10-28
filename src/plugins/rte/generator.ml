@@ -67,6 +67,14 @@ module Mem_access =
        let additional_parameters = [ Kernel.SafeArrays.parameter ]
      end)
 
+module Pointer_call =
+  Make
+    (struct
+       let name = "pointer_call"
+       let parameter = Options.DoPointerCall.parameter
+       let additional_parameters = []
+     end)
+
 module Div_mod =
   Make
     (struct
@@ -136,6 +144,7 @@ let proxy =
     "RTE" 
     State_builder.Proxy.Backward
     [ Mem_access.self;
+      Pointer_call.self;
       Div_mod.self;
       Shift.self;
       Signed_overflow.self;
@@ -154,6 +163,7 @@ let shift_status = Shift.triple
 let signed_overflow_status = Signed_overflow.triple
 let signed_downcast_status = Signed_downcast.triple
 let mem_access_status = Mem_access.triple
+let pointer_call_status = Pointer_call.triple
 let float_to_int_status = Float_to_int.triple
 let unsigned_overflow_status = Unsigned_overflow.triple
 let unsigned_downcast_status = Unsigned_downcast.triple
@@ -161,6 +171,7 @@ let unsigned_downcast_status = Unsigned_downcast.triple
 let all_status =
   [ precond_status;
     mem_access_status;
+    pointer_call_status;
     div_mod_status;
     shift_status;
     signed_overflow_status;

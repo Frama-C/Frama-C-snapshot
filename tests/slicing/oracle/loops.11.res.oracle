@@ -1,18 +1,18 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/loops.c (with preprocessing)
+[kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing a complete application starting at loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   C1 ∈ {1}
   C2 ∈ {1}
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-tests/slicing/loops.c:176:[value] entering loop for the first time
-tests/slicing/loops.c:183:[value] assertion got status valid.
-tests/slicing/loops.c:179:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
+tests/slicing/loops.i:176:[value] entering loop for the first time
+tests/slicing/loops.i:183:[value] assertion got status valid.
+tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
 [value] Recording results for loop
 [value] done for function loop
 [from] Computing for function loop
@@ -47,3 +47,5 @@ void loop(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_11_loops.i (no preprocessing)

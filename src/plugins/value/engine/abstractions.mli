@@ -26,7 +26,9 @@
 type config = {
   cvalue : bool;
   equalities : bool;
+  symbolic_locs : bool;
   bitwise : bool;
+  gauges: bool;
   apron_oct : bool;
   apron_box : bool;
   polka_loose : bool;

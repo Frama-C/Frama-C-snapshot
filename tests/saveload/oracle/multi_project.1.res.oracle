@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
         Called from tests/saveload/multi_project.i:14.
@@ -13,9 +13,9 @@ tests/saveload/multi_project.i:15:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {4}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {2}
   y ∈ {4}
   __retres ∈ {8}

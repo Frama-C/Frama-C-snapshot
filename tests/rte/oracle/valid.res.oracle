@@ -179,9 +179,10 @@ int main(void)
   /*@ assert rte: index_bound: i1 < 11; */
   /*@ assert rte: mem_access: \valid_read(&pp->tq[i3][i1].v); */
   v = pp->tq[i3][i1].v;
-  /*@ assert rte: mem_access: \valid_read(p.znexts+i0); */
-  /*@ assert rte: mem_access: \valid_read(*(p.znexts+i0)+i1); */
-  /*@ assert rte: mem_access: \valid_read(&(*(*(p.znexts+i0)+i1)+i2)->val);
+  /*@ assert rte: mem_access: \valid_read(p.znexts + i0); */
+  /*@ assert rte: mem_access: \valid_read(*(p.znexts + i0) + i1); */
+  /*@ assert
+      rte: mem_access: \valid_read(&(*(*(p.znexts + i0) + i1) + i2)->val);
   */
   v = (*(*(p.znexts + i0) + i1) + i2)->val;
   /*@ assert rte: index_bound: 0 ≤ i0; */
@@ -333,9 +334,10 @@ int main(void)
   v = (p.tq[i1][i2].next)->tq[i3][i4].v;
   /*@ assert rte: mem_access: \valid_read(&pp->tq[i3][i1].v); */
   v = pp->tq[i3][i1].v;
-  /*@ assert rte: mem_access: \valid_read(p.znexts+i0); */
-  /*@ assert rte: mem_access: \valid_read(*(p.znexts+i0)+i1); */
-  /*@ assert rte: mem_access: \valid_read(&(*(*(p.znexts+i0)+i1)+i2)->val);
+  /*@ assert rte: mem_access: \valid_read(p.znexts + i0); */
+  /*@ assert rte: mem_access: \valid_read(*(p.znexts + i0) + i1); */
+  /*@ assert
+      rte: mem_access: \valid_read(&(*(*(p.znexts + i0) + i1) + i2)->val);
   */
   v = (*(*(p.znexts + i0) + i1) + i2)->val;
   /*@ assert rte: mem_access: \valid_read(&p.tq[i0][i1]); */

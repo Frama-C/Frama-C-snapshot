@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   X10 ∈ {0}
   Y10 ∈ {0}

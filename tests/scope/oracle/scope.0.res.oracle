@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   S1 ∈ {0}
   S2 ∈ {0}
@@ -19,7 +19,7 @@ share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   Frama_C_entropy_source ∈ [--..--]
   T[0..4] ∈ {0}
    [5..9] ∈ {0; 1}

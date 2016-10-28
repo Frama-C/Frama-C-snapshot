@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-model +ref -wp-msg-key var_kind 
+   OPT: -wp-model +ref -wp-msg-key refusage 
 */
 
 /* run.config_qualif

@@ -47,7 +47,6 @@ module Make
 struct
 
   open M
-  module Hmap = Heap.Map
   module Dom = Heap.Set
 
   type region = (c_object * loc sloc list) list

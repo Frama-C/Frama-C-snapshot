@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   choix ∈ {0}
   state ∈ {1}
   cumul ∈ {0}
@@ -166,7 +166,7 @@ tests/slicing/bts1768.i:44:[value] entering loop for the first time
         Called from tests/slicing/bts1768.i:46.
 [value] Recording results for fsm_transition
 [value] Done for function fsm_transition
-tests/slicing/bts1768.i:51:[kernel] warning: signed overflow. assert step+1 ≤ 2147483647;
+tests/slicing/bts1768.i:51:[value] warning: signed overflow. assert step + 1 ≤ 2147483647;
 [value] computing for function lecture <- main.
         Called from tests/slicing/bts1768.i:45.
 [value] computing for function choisir <- lecture <- main.
@@ -187,10 +187,10 @@ tests/slicing/bts1768.i:51:[kernel] warning: signed overflow. assert step+1 ≤ 
 [value] Done for function lecture
 [value] computing for function fsm_transition <- main.
         Called from tests/slicing/bts1768.i:46.
-tests/slicing/bts1768.i:25:[kernel] warning: signed overflow. assert cumul+2 ≤ 2147483647;
-tests/slicing/bts1768.i:29:[kernel] warning: signed overflow. assert cumul+1 ≤ 2147483647;
-tests/slicing/bts1768.i:35:[kernel] warning: signed overflow. assert cumul+1 ≤ 2147483647;
-tests/slicing/bts1768.i:35:[kernel] warning: signed overflow. assert cumul+1 ≤ 2147483647;
+tests/slicing/bts1768.i:25:[value] warning: signed overflow. assert cumul + 2 ≤ 2147483647;
+tests/slicing/bts1768.i:29:[value] warning: signed overflow. assert cumul + 1 ≤ 2147483647;
+tests/slicing/bts1768.i:35:[value] warning: signed overflow. assert cumul + 1 ≤ 2147483647;
+tests/slicing/bts1768.i:35:[value] warning: signed overflow. assert cumul + 1 ≤ 2147483647;
 [value] Recording results for fsm_transition
 [value] Done for function fsm_transition
 [value] Recording results for main
@@ -304,3 +304,5 @@ void main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts1768.i (no preprocessing)

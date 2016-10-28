@@ -23,6 +23,8 @@
 open Cil_types
 open Cil_datatype
 
+let compare_vi_names v1 v2 = Extlib.compare_ignore_case v1.vname v2.vname
+
 class coverageAuxVisitor = object(self)
   inherit Visitor.frama_c_inplace
 
@@ -163,14 +165,20 @@ object(self)
     if not (Varinfo.Set.is_empty unseen) || initializers <> [] then begin
       Format.fprintf fmt "@[<v>%a@ "
         (Metrics_base.mk_hdr 2) "References to non-analyzed functions";
-      Varinfo.Set.iter self#visit_function semantic;
+      let sorted_semantic =
+        List.sort compare_vi_names (Varinfo.Set.elements semantic)
+      in
+      List.iter self#visit_function sorted_semantic;
+      let sorted_initializers =
+        List.sort (fun (v1, _) (v2, _) -> compare_vi_names v1 v2) initializers
+      in
       List.iter (fun (vinit, init) ->
                    current_initializer <- Some vinit;
                    ignore (Visitor.visitFramacInit
                              (self:>Visitor.frama_c_visitor)
                              vinit NoOffset init);
                    current_initializer <- None;
-                ) initializers;
+                ) sorted_initializers;
       Format.fprintf fmt "@]"
     end
 
@@ -203,8 +211,12 @@ let compute_coverage_by_fun semantic =
     with Kernel_function.No_Definition -> acc
   in
   let res = Varinfo.Set.fold one_fun semantic [] in
-  List.sort (fun (_, _, _, p1) (_, _, _, p2) -> compare p2 p1) res
-
+  (* Sort by percentage (higher first),
+     then sort by name (for same percentage) *)
+  List.sort (fun (kf1, _, _, p1) (kf2, _, _, p2) ->
+      let c = compare p2 p1 in
+      if c = 0 then compare kf1 kf2 else c
+    ) res
 
 let pp_unreached_calls fmt ~syntactic ~semantic initializers =
   let v = new deadCallsVisitor fmt ~syntactic ~semantic initializers in
@@ -252,13 +264,15 @@ let pp_fun_set_by_file fmt set =
   Format.fprintf fmt "@[<v 0>";
   Datatype.String.Map.iter
     (fun fname fvinfoset ->
-      Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
-        (Filepath.pretty fname)
-        (fun fmt vinfoset ->
-          Varinfo.Set.iter
-            (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
-            vinfoset)
-        fvinfoset
+       Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
+         (Filepath.pretty fname)
+         (fun fmt vinfoset ->
+            let vars = Varinfo.Set.elements vinfoset in
+            let sorted_vars = List.sort compare_vi_names vars in
+            List.iter
+              (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
+              sorted_vars
+         ) fvinfoset
     ) map;
     Format.fprintf fmt "@]"
 ;;
@@ -326,11 +340,11 @@ let pp_reached_from_function fmt kf =
   let syntactic, _ = compute_syntactic kf in
   let all = all_funs () in
   let card_syn = Varinfo.Set.cardinal syntactic in
-  let title_reach = Pretty_utils.sfprintf "%a: %d"
+  let title_reach = Format.asprintf "%a: %d"
     Kernel_function.pretty kf card_syn
   in
   let card_all = Varinfo.Set.cardinal all in
-  let title_unreach = Pretty_utils.sfprintf "%a: %d"
+  let title_unreach = Format.asprintf "%a: %d"
     Kernel_function.pretty kf (card_all - card_syn)
   in
   Format.fprintf fmt "@[<v 0>%a@ %a@ %a@ %a@]"

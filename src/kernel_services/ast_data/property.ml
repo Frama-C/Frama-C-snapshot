@@ -83,14 +83,14 @@ type program_point = Before | After
 
 type identified_reachable = kernel_function option * kinstr * program_point
 
-type identified_type_invariant = string * typ * predicate named * location
+type identified_type_invariant = string * typ * predicate * location
 
-type identified_global_invariant = string * predicate named * location
+type identified_global_invariant = string * predicate * location
 
 and identified_axiomatic = string * identified_property list
 
 and identified_lemma = 
-    string * logic_label list * string list * predicate named * location
+    string * logic_label list * string list * predicate * location
 
 and identified_axiom = identified_lemma
 
@@ -157,7 +157,7 @@ let loc_of_kf_ki kf = function
   | Kglobal -> Kernel_function.get_location kf
 
 let rec location = function
-  | IPPredicate (_,_,_,ip) -> ip.ip_loc
+  | IPPredicate (_,_,_,ip) -> ip.ip_content.pred_loc
   | IPBehavior(kf,ki, _,_) 
   | IPComplete (kf,ki,_,_) 
   | IPDisjoint(kf,ki,_,_)
@@ -524,7 +524,7 @@ include Datatype.Make_with_collections
      end)
 
 let rec short_pretty fmt p = match p with
-  | IPPredicate (_,_,_,{ ip_name = name :: _ }) ->
+  | IPPredicate (_,_,_,{ ip_content = {pred_name = name :: _ }}) ->
     Format.pp_print_string fmt name
   | IPPredicate _ -> pretty fmt p
   | IPAxiom (name,_,_,_,_) | IPLemma(name,_,_,_,_)
@@ -540,9 +540,10 @@ let rec short_pretty fmt p = match p with
   | IPDisjoint (kf,_,_,_) ->
     Format.fprintf fmt "disjoint clause in function %a"
       Kernel_function.pretty kf
-  | IPCodeAnnot (_,_,{ annot_content = AAssert (_, { name = name :: _ })}) ->
+  | IPCodeAnnot (_,_,{ annot_content = AAssert (_, { pred_name = name :: _ })}) ->
     Format.pp_print_string fmt name
-  | IPCodeAnnot(_,_,{annot_content = AInvariant (_,_, { name = name :: _ })})->
+  | IPCodeAnnot(_,_,{annot_content =
+                       AInvariant (_,_, { pred_name = name :: _ })})->
     Format.pp_print_string fmt name
   | IPCodeAnnot _ -> pretty fmt p
   | IPAllocation (kf,_,_,_) ->
@@ -595,11 +596,13 @@ module Names = struct
   let pp_code_annot_names fmt ca = 
     match ca.annot_content with
       | AAssert(for_bhv,named_pred) | AInvariant(for_bhv,_,named_pred) -> 
-	  let pp_for_bhv fmt l =  
-	    match l with [] -> ()
-	      | _ -> Format.fprintf fmt "_for_%a"
-		  (Pretty_utils.pp_list ~sep:"_" Format.pp_print_string) l
-	  in Format.fprintf fmt "%a%a" pp_names named_pred.name pp_for_bhv for_bhv
+        let pp_for_bhv fmt l =
+          match l with
+          | [] -> ()
+          | _ -> Format.fprintf fmt "_for_%a"
+                   (Pretty_utils.pp_list ~sep:"_" Format.pp_print_string) l
+        in
+        Format.fprintf fmt "%a%a" pp_names named_pred.pred_name pp_for_bhv for_bhv
       | AVariant(term, _) -> pp_names fmt term.term_name
       | _ -> () (* TODO : add some more names ? *)
 	  
@@ -637,8 +640,9 @@ module Names = struct
 	
   let rec id_prop_txt p = match p with
     | IPPredicate (pk,kf,ki,idp) ->
-        Pretty_utils.sfprintf "%s%s%a"
-          (kf_prefix kf) (predicate_kind_txt pk ki) pp_names idp.ip_name
+        Format.asprintf "%s%s%a"
+          (kf_prefix kf) (predicate_kind_txt pk ki)
+          pp_names idp.ip_content.pred_name
     | IPCodeAnnot (kf,_, ca) ->
         let name = match ca.annot_content with
           | AAssert _ -> "assert" 
@@ -646,46 +650,48 @@ module Names = struct
           | AInvariant _ -> "inv"
           | APragma _ -> "pragma"
           | _ -> assert false
-        in Pretty_utils.sfprintf "%s%s%a" (kf_prefix kf) name pp_code_annot_names ca
+        in Format.asprintf "%s%s%a" (kf_prefix kf) name pp_code_annot_names ca
     | IPComplete (kf, ki, a, lb) ->
-        Pretty_utils.sfprintf  "%s%s%acomplete%a"
+        Format.asprintf  "%s%s%acomplete%a"
           (kf_prefix kf) (ki_prefix ki) active_prefix a pp_names lb
     | IPDisjoint (kf, ki, a, lb) ->
-        Pretty_utils.sfprintf  "%s%s%adisjoint%a"
+        Format.asprintf  "%s%s%adisjoint%a"
           (kf_prefix kf) (ki_prefix ki) active_prefix a pp_names lb
     | IPDecrease (kf,_,None, variant) -> (kf_prefix kf) ^ "decr" ^ (variant_suffix variant)
     | IPDecrease (kf,_,_,variant) -> (kf_prefix kf) ^ "loop_term" ^ (variant_suffix variant)
     | IPAxiom (name,_,_,named_pred,_) ->
-	Pretty_utils.sfprintf "axiom_%s%a" name pp_names named_pred.name
+	Format.asprintf "axiom_%s%a" name pp_names named_pred.pred_name
     | IPAxiomatic(name, _) -> "axiomatic_" ^ name
     | IPLemma (name,_,_,named_pred,_) ->
-	Pretty_utils.sfprintf "lemma_%s%a" name pp_names named_pred.name
+	Format.asprintf "lemma_%s%a" name pp_names named_pred.pred_name
     | IPTypeInvariant (name,_,named_pred,_) ->
-      Pretty_utils.sfprintf "type_invariant_%s%a" name pp_names named_pred.name
+      Format.asprintf "type_invariant_%s%a"
+        name pp_names named_pred.pred_name
     | IPGlobalInvariant (name,named_pred,_) ->
-      Pretty_utils.sfprintf "global_invariant_%s%a"name pp_names named_pred.name
+      Format.asprintf "global_invariant_%s%a"
+        name pp_names named_pred.pred_name
     | IPAllocation (kf, ki, (Id_contract (a,b)), _) ->
-      Pretty_utils.sfprintf "%s%s%a%salloc"
+      Format.asprintf "%s%s%a%salloc"
         (kf_prefix kf) (ki_prefix ki) active_prefix a (behavior_prefix b) 
     | IPAllocation (kf, Kstmt _s, (Id_loop ca), _) ->
-      Pretty_utils.sfprintf "%sloop_alloc%a"
+      Format.asprintf "%sloop_alloc%a"
         (kf_prefix kf) pp_code_annot_names ca
     | IPAllocation _ -> assert false
     | IPAssigns (kf, ki, (Id_contract (a,b)), _) ->
-      Pretty_utils.sfprintf "%s%s%a%sassign"
+      Format.asprintf "%s%s%a%sassign"
         (kf_prefix kf) (ki_prefix ki) active_prefix a (behavior_prefix b)
     | IPAssigns (kf, Kstmt _s, (Id_loop ca), _) ->
-      Pretty_utils.sfprintf "%sloop_assign%a"
+      Format.asprintf "%sloop_assign%a"
         (kf_prefix kf) pp_code_annot_names ca
     | IPAssigns _ -> assert false
     | IPFrom (_, _, _, (out,_)) -> 
         "from_id_"^(string_of_int (out.it_id))
     | IPReachable _ -> "reachable_stmt"
     | IPBehavior(kf, ki, a, b) ->
-      Pretty_utils.sfprintf "%s%s%a%s"
+      Format.asprintf "%s%s%a%s"
         (kf_prefix kf) (ki_prefix ki) active_prefix a b.b_name
     | IPPropertyInstance (kfopt, ki, ip) ->
-      Pretty_utils.sfprintf "specialization_%s_at_%t" (id_prop_txt ip)
+      Format.asprintf "specialization_%s_at_%t" (id_prop_txt ip)
         (fun fmt -> match kfopt, ki with
         | None, Kglobal -> Format.pp_print_string fmt "global"
         | Some kf, Kglobal -> Kernel_function.pretty fmt kf
@@ -697,24 +703,17 @@ module Names = struct
 
   (** function used to normanize basename *)
   let normalize_basename s = 
-    let is_valid_id = ref true 
-    and is_valid_char_id = function
+    let is_valid_char_id = function
       | 'a'..'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> true
       | _ -> false
     and is_numeric = function
       | '0'..'9' -> true
       | _ -> false
     in
-    String.iter (fun c -> if not (is_valid_char_id c) then is_valid_id := false) s  ;
-    let s = if !is_valid_id then s else
-      begin
-	let sn = String.copy s
-	and i = ref 0 
-	in String.iter (fun c -> if not (is_valid_char_id c) then String.set sn !i '_' ; i := succ !i) s ;
-	   sn
-      end
-    in if s = "" then "property" else 
-	if is_numeric (String.get s 0) then "property_" ^ s else s
+    if s ="" then "property"
+    else
+      let s = String.map (fun c -> if not (is_valid_char_id c) then '_' else c) s in
+      if is_numeric s.[0] then "property_" ^ s else s
 
   (** returns the name that should be returned by the function [get_prop_name_id] if the given property has [name] as basename. That name is reserved so that [get_prop_name_id prop] can never return an identical name. *)
   let reserve_name_id basename =
@@ -925,6 +924,7 @@ let ip_of_code_annot kf ki ca =
   | APragma p when Logic_utils.is_property_pragma p ->
     [ IPCodeAnnot (kf,ki,ca) ]
   | APragma _ -> []
+  | AExtended _ -> []
 
 let ip_of_code_annot_single kf ki ca = match ip_of_code_annot kf ki ca with
   | [] ->

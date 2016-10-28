@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_typed/user_collect.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function caller
 ------------------------------------------------------------
@@ -90,96 +88,67 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Q1' in 'caller2':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_2).
-Let a_3 = Load_S1_S(a_2, Mint_0).
+Let m = q[x <- v].
+Let m_1 = m[k <- v_1].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(Load_S1_S(a_1, Mint_0)) /\ IsS1_S(a_3).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v_1) /\
+      IsS1_S(v) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job2' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_2[x <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_1, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, q[x <- s1_0]).
   (* Call 'job2' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqS1_S(a_3, s1_0).
+Prove: EqS1_S(v, s1_0).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Q2' in 'caller2':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_2).
-Let a_3 = Load_S1_S(a_1, Mint_0).
+Let m = q[x <- v_1].
+Let m_1 = m[k <- v].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(a_3) /\ IsS1_S(Load_S1_S(a_2, Mint_0)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v) /\
+      IsS1_S(v_1) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job2' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_2[x <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_1, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, q[x <- s1_0]).
   (* Call 'job2' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqS1_S(a_3, s2_0).
+Prove: EqS1_S(v, s2_0).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'R' in 'caller2':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_2).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_1).
-Let m_3 = m_2[x <- s1_0].
+Let m = q[x <- v].
+Let m_1 = m[k <- v_1].
+Let m_2 = q[x <- s1_0].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(Load_S1_S(a_1, Mint_0)) /\
-      IsS1_S(Load_S1_S(a_2, Mint_0)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v_1) /\
+      IsS1_S(v) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job2' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_3).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_2, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, m_2).
   (* Call 'job2' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqArray1_S1_S(10, m, m_3[k <- s2_0]).
+Prove: EqArray1_S1_S(10, m_1, m_2[k <- s2_0]).
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 65)
 :
-Let a = shift_A10_S(global(G_q_69), 0).
 Assume {
-  Type: is_sint32(k) /\ IsS1_S(Load_S1_S(shift_S(a, k), Mint_0)) /\
-      IsS1_S(Load_S1_S(shift_S(a, 1 + k), Mint_0)).
+  Type: is_sint32(k) /\ IsS1_S(q[k]) /\ IsS1_S(q[1 + k]).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
 }
@@ -189,21 +158,15 @@ Prove: k <= 9.
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 66)
 :
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
+Let m = q[k <- v].
 Let x = 1 + k.
 Assume {
-  Type: IsS1_S(s1_0) /\ is_sint32(k) /\ is_sint32(x) /\ IsArray1S1_S(m) /\
-      IsArray1S1_S(m_1) /\ IsS1_S(Load_S1_S(a_1, Mint_2)) /\
-      IsS1_S(Load_S1_S(shift_S(a, x), Mint_2)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ is_sint32(k) /\ IsArray1S1_S(m) /\
+      IsS1_S(q_1[k]) /\ is_sint32(x) /\ IsS1_S(q_1[x]).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
   (* Call 'job2' *)
-  Have: (k <= 9) /\ EqArray1_S1_S(10, m, m_1[k <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: (k <= 9) /\ EqArray1_S1_S(10, m, q[k <- s1_0]).
 }
 Prove: (-1) <= k.
 
@@ -218,96 +181,67 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Q1' in 'caller3':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_2).
-Let a_3 = Load_S1_S(a_2, Mint_0).
+Let m = q[x <- v].
+Let m_1 = m[k <- v_1].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(Load_S1_S(a_1, Mint_0)) /\ IsS1_S(a_3).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v_1) /\
+      IsS1_S(v) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job3' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_2[x <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_1, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, q[x <- s1_0]).
   (* Call 'job3' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqS1_S(a_3, s1_0).
+Prove: EqS1_S(v, s1_0).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Q2' in 'caller3':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_2).
-Let a_3 = Load_S1_S(a_1, Mint_0).
+Let m = q[x <- v_1].
+Let m_1 = m[k <- v].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(a_3) /\ IsS1_S(Load_S1_S(a_2, Mint_0)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v) /\
+      IsS1_S(v_1) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job3' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_2[x <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_1, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, q[x <- s1_0]).
   (* Call 'job3' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqS1_S(a_3, s2_0).
+Prove: EqS1_S(v, s2_0).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'R' in 'caller3':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_2).
 Let x = k - 1.
-Let a_2 = shift_S(a, x).
-Let m_2 = Array1_S1_S(a, 10, Mint_1).
-Let m_3 = m_2[x <- s1_0].
+Let m = q[x <- v].
+Let m_1 = m[k <- v_1].
+Let m_2 = q[x <- s1_0].
 Assume {
-  Type: IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ is_sint32(k) /\ is_sint32(x) /\
-      is_sint32(1 + k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\
-      IsArray1S1_S(m_2) /\ IsS1_S(Load_S1_S(a_1, Mint_0)) /\
-      IsS1_S(Load_S1_S(a_2, Mint_0)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ IsS1_S(s2_0) /\ IsS1_S(v_1) /\
+      IsS1_S(v) /\ is_sint32(k) /\ is_sint32(x) /\ is_sint32(1 + k) /\
+      IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
   (* Pre-condition *)
   Have: (0 < k) /\ (k <= 9).
   (* Call 'job3' *)
-  Have: (k <= 10) /\ EqArray1_S1_S(10, m_1, m_3).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_2, a_2, 2).
+  Have: (k <= 10) /\ EqArray1_S1_S(10, m, m_2).
   (* Call 'job3' *)
-  Have: EqArray1_S1_S(10, m, m_1[k <- s2_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_2, Mint_0, a_1, 2).
+  Have: EqArray1_S1_S(10, m_1, m[k <- s2_0]).
 }
-Prove: EqArray1_S1_S(10, m, m_3[k <- s2_0]).
+Prove: EqArray1_S1_S(10, m_1, m_2[k <- s2_0]).
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 78)
 :
-Let a = shift_A10_S(global(G_q_69), 0).
 Assume {
-  Type: is_sint32(k) /\ IsS1_S(Load_S1_S(shift_S(a, k), Mint_0)) /\
-      IsS1_S(Load_S1_S(shift_S(a, 1 + k), Mint_0)).
+  Type: is_sint32(k) /\ IsS1_S(q[k]) /\ IsS1_S(q[1 + k]).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
 }
@@ -317,21 +251,15 @@ Prove: k <= 9.
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 79)
 :
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
+Let m = q[k <- v].
 Let x = 1 + k.
 Assume {
-  Type: IsS1_S(s1_0) /\ is_sint32(k) /\ is_sint32(x) /\ IsArray1S1_S(m) /\
-      IsArray1S1_S(m_1) /\ IsS1_S(Load_S1_S(a_1, Mint_2)) /\
-      IsS1_S(Load_S1_S(shift_S(a, x), Mint_2)).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ is_sint32(k) /\ IsArray1S1_S(m) /\
+      IsS1_S(q_1[k]) /\ is_sint32(x) /\ IsS1_S(q_1[x]).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
   (* Call 'job3' *)
-  Have: (k <= 9) /\ EqArray1_S1_S(10, m, m_1[k <- s1_0]).
-  (* Call Effects *)
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
+  Have: (k <= 9) /\ EqArray1_S1_S(10, m, q[k <- s1_0]).
 }
 Prove: (-1) <= k.
 
@@ -383,18 +311,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Q' in 'job2':
-Let a = shift_A10_S(global(G_q_69), 0).
-Let a_1 = shift_S(a, k).
-Let m = Array1_S1_S(a, 10, Mint_0).
-Let m_1 = Array1_S1_S(a, 10, Mint_1).
-Let a_2 = Load_S1_S(a_1, Mint_0).
+Let m = q[k <- s].
 Assume {
-  Type: is_sint32(k) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1) /\ IsS1_S(a_2).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s) /\ is_sint32(k) /\ IsArray1S1_S(m).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 9).
-  Have: havoc(Mint_1, Mint_0, a_1, 2).
 }
-Prove: EqArray1_S1_S(10, m, m_1[k <- a_2]).
+Prove: EqArray1_S1_S(10, m, m).
 
 ------------------------------------------------------------
 
@@ -424,23 +347,14 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Q' in 'job3':
-Let a = shift_S(global(P_s_82), 0).
-Let a_1 = Load_S1_S(a, Mint_0).
-Let a_2 = shift_A10_S(global(G_q_69), 0).
-Let m = Array1_S1_S(a_2, 10, Mint_0).
-Let a_3 = shiftfield_F1_S_f(shift_S(a_2, k)).
-Let a_4 = shiftfield_F1_S_f(a).
-Let m_1 = Array1_S1_S(a_2, 10,
-            Mint_0[shift_sint32(a_3, 0) <- Mint_0[shift_sint32(a_4, 0)]]
-              [shift_sint32(a_3, 1) <- Mint_0[shift_sint32(a_4, 1)]]).
+Let a = s.F1_S_f.
+Let m = q[k <- { F1_S_f = (q[k].F1_S_f)[0 <- a[0]][1 <- a[1]] }].
 Assume {
-  Type: is_sint32(k) /\ IsS1_S(a_1) /\ IsArray1S1_S(m) /\ IsArray1S1_S(m_1).
-  (* Heap *)
-  Have: linked(Malloc_0).
+  Type: IsArray1S1_S(q) /\ IsS1_S(s) /\ is_sint32(k) /\ IsArray1S1_S(m).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 9).
 }
-Prove: EqArray1_S1_S(10, m_1, m[k <- a_1]).
+Prove: EqArray1_S1_S(10, m, q[k <- s]).
 
 ------------------------------------------------------------
 

@@ -204,12 +204,15 @@ class engine (lang : Plang.engine) =
 let pretty fmt seq =
   let plang = new Plang.engine in
   let pcond = new engine plang in
-  plang#global (fun () -> pcond#pp_sequent fmt seq)
+  pcond#pp_sequent fmt seq
 
 let sequence ?(clause="Assume") fmt seq =
   let plang = new Plang.engine in
   let pcond = new engine plang in
-  plang#global (fun () -> pcond#pp_sequence ~clause fmt seq)
+  plang#global
+    (fun () ->
+       Vars.iter (fun x -> ignore (plang#bind x)) (Conditions.vars_hyp seq) ;
+       pcond#pp_sequence ~clause fmt seq)
 
 let bundle ?clause fmt bundle =
   sequence ?clause fmt (Conditions.sequence bundle)

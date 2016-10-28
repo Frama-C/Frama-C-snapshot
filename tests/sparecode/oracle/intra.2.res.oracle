@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   X10 ∈ {0}
   Y10 ∈ {0}
@@ -49,7 +49,7 @@ tests/sparecode/intra.i:109:[value] assertion got status valid.
 [pdg] Bottom for function spare_called_fct
 [pdg] computing for function stop
 [from] Computing for function stop
-tests/sparecode/intra.i:35:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+tests/sparecode/intra.i:110:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
 [from] Done for function stop
 [pdg] done for function stop
 [pdg] computing for function tmp

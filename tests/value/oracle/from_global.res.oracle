@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -16,10 +16,10 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   B ∈ {0}
   C ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}

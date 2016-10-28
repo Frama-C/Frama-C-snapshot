@@ -12,7 +12,7 @@ void main(int c)
     goto there_unrolling_6_loop;
   X ++;
   there_unrolling_6_loop: i ++;
-  /*@ assert c ≡ 0 ⇒ \at(X,there_unrolling_6_loop) ≡ i+1; */ ;
+  /*@ assert c ≡ 0 ⇒ \at(X,there_unrolling_6_loop) ≡ i + 1; */ ;
   unrolling_5_loop: ;
   if (! (i < 10)) goto unrolling_2_loop;
   if (c) 
@@ -20,7 +20,7 @@ void main(int c)
     goto there_unrolling_4_loop;
   X ++;
   there_unrolling_4_loop: i ++;
-  /*@ assert c ≡ 0 ⇒ \at(X,there_unrolling_4_loop) ≡ i+1; */ ;
+  /*@ assert c ≡ 0 ⇒ \at(X,there_unrolling_4_loop) ≡ i + 1; */ ;
   unrolling_3_loop: ;
   /*@ loop pragma UNROLL "done", 2; */
   while (i < 10) {
@@ -29,7 +29,7 @@ void main(int c)
       goto there;
     X ++;
     there: i ++;
-    /*@ assert c ≡ 0 ⇒ \at(X,there) ≡ i+1; */ ;
+    /*@ assert c ≡ 0 ⇒ \at(X,there) ≡ i + 1; */ ;
   }
   unrolling_2_loop: ;
   return;

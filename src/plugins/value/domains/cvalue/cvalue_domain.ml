@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
 open Eval
 
 let key = Structure.Key_Domain.create_key "cvalue_domain"
@@ -50,24 +49,6 @@ module Model = struct
       | C_init_esc _     -> Alarmset.singleton (Alarms.Dangling lval)
       | C_init_noesc _   -> Alarmset.none
 
-  let imprecise_eval_one_loc state lval =
-    fun loc (acc_v, acc_alarms) ->
-      let size = Int_Base.project loc.Locations.size in
-      let _, offsm = copy_offsetmap loc.Locations.loc size state in
-      let process_one_v v (acc_v, acc_alarms) =
-        let vv = Cvalue.V_Or_Uninitialized.get_v v in
-        Cvalue.V.join (Cvalue.V.topify_merge_origin vv) acc_v,
-        Alarmset.union (indeterminate_alarms lval v) acc_alarms
-      in
-      match offsm with
-      | `Bottom    -> acc_v, acc_alarms
-      | `Top       -> Warn.warn_top ()
-      | `Map offsm ->
-        let v, alarms =
-          Cvalue.V_Offsetmap.fold_on_values
-            process_one_v offsm (acc_v, acc_alarms)
-        in
-        v, alarms
 
   let eval_one_loc state lval typ =
     let eval_one_loc single_loc =
@@ -78,18 +59,10 @@ module Model = struct
     fun loc (acc_result, acc_alarms) ->
       let result, alarms = eval_one_loc loc in
       let result = Cvalue_forward.make_volatile ~typ:typ result in
-      let result =
-        Cvalue_forward.cast_lval_if_bitfield typ result
-      in
       Cvalue.V.join result acc_result, Alarmset.union alarms acc_alarms
 
   let extract_lval _oracle state lval typ loc =
-    let process_one_loc =
-      if Cil.isArithmeticOrPointerType typ
-      || Int_Base.is_top (Main_locations.PLoc.size loc)
-      then eval_one_loc state lval typ
-      else imprecise_eval_one_loc state lval
-    in
+    let process_one_loc = eval_one_loc state lval typ in
     let acc = Cvalue.V.bottom, Alarmset.none in
     let value1, alarms1 = Precise_locs.fold process_one_loc loc acc in
     let expr = Cil.dummy_exp (Cil_types.Lval lval) in
@@ -111,7 +84,6 @@ module Model = struct
     let eval_one_loc single_loc =
       let v = snd (Cvalue.Model.find state single_loc) in
       let v = Cvalue_forward.make_volatile ~typ v in
-      let v = Cvalue_forward.cast_lval_if_bitfield typ v in
       Cvalue_forward.unsafe_reinterpret typ v
     in
     let process_ival base ival (acc_loc, acc_val as acc) =
@@ -142,10 +114,10 @@ module Model = struct
       let loc = Precise_locs.inject_location_bits loc_bits in
       `Value (Precise_locs.make_precise_loc loc ~size, value)
 
-  type summary = Cvalue.V_Offsetmap.t option
+  type return = Cvalue.V_Offsetmap.t option
   (* the value returned (ie. what is after the 'return' C keyword). *)
 
-  module Summary = Datatype.Option (Cvalue.V_Offsetmap)
+  module Return = Datatype.Option (Cvalue.V_Offsetmap)
 
 end
 
@@ -196,8 +168,8 @@ module State = struct
     Model.backward_location state lval typ precise_loc value
   let reduce_further _ _ _ = []
 
-  type summary = Model.summary
-  module Summary = Model.Summary
+  type return = Model.return
+  module Return = Model.Return
 
 
   module Transfer
@@ -210,23 +182,16 @@ module State = struct
     type value = Valuation.value
     type location = Valuation.loc
     type state = t
-    type summary = Model.summary
+    type return = Model.return
     type valuation = Valuation.t
 
     let update valuation (s, clob) = T.update valuation s, clob
-
-    let value_of_assigned assigned =
-      match assigned with
-      | Assign v -> `Value v
-      | Copy (_lv, copy) -> match copy with
-        | Determinate v -> `Value v.v
-        | Exact v -> v.v
 
     let assign stmt lv expr assigned valuation (s, clob) =
       T.assign stmt lv expr assigned valuation s >>-: fun s ->
       (* TODO: use the value in assignment *)
       let _ =
-        value_of_assigned assigned >>-: fun value ->
+        Eval.value_assigned assigned >>-: fun value ->
         let location = Precise_locs.imprecise_location lv.lloc in
         Locals_scoping.remember_if_locals_in_value clob location value
       in
@@ -249,12 +214,10 @@ module State = struct
         (fun return -> { return with post_state = (return.post_state, clob) })
         result
 
-    let call_action stmt call valuation (s, _clob) : (t, summary, value) action =
-      match T.call_action stmt call valuation s with
+    let start_call stmt call valuation (s, _clob) =
+      match T.start_call stmt call valuation s with
       | Compute (init, b), _ ->
         Compute (init_with_clob (Locals_scoping.bottom ()) init, b)
-      | Recall init, _ ->
-        Recall (init_with_clob (Locals_scoping.bottom ()) init)
       | Result (list, c), post_clob ->
         Result ((list >>-: fun l -> result_with_clob post_clob l), c)
 
@@ -263,8 +226,8 @@ module State = struct
        dangling pointers to locals and formals. The abstract state is _not_
        checked for such pointers. For locals, this is done automatically by
        the engine. For formals, this is done when we go back to the caller. *)
-    let summarize kf stmt ~returned (s, clob) =
-      T.summarize kf stmt returned s >>-: fun (return_offsm, state) ->
+    let make_return kf stmt assign valuation (s, clob) =
+      let return_offsm = T.make_return kf stmt assign valuation s in
       let fundec = Kernel_function.get_definition kf in
       let return_offsm = match return_offsm with
         | None -> None
@@ -277,26 +240,39 @@ module State = struct
             Warn.warn_locals_escape_result fundec locals;
           Some r
       in
-      return_offsm, (state, clob)
+      return_offsm
 
-    let resolve_call stmt call ~assigned valuation ~pre ~post =
-      let return, (post_state, post_clob) = post
+    let finalize_call stmt call ~pre ~post =
+      let (post_state, post_clob) = post
       and pre_state, clob = pre in
       Locals_scoping.(remember_bases_with_locals clob post_clob.clob);
-      (match return, assigned with
-       | Some offsm, Some (left_loc, _) ->
+      T.finalize_call stmt call ~pre:pre_state ~post:post_state
+      >>-: fun state ->
+      state, clob
+
+    let assign_return stmt lv kf return_offsm value valuation (state, clob) =
+      (match return_offsm with
+       | Some offsm ->
          Precise_locs.fold
            (fun loc () ->
               Locals_scoping.remember_if_locals_in_offsetmap clob loc offsm)
-           left_loc.lloc ()
+           lv.lloc ()
        | _ -> ());
-      T.resolve_call stmt call ~assigned valuation
-        ~pre:pre_state ~post:(return, post_state)
+      T.assign_return stmt lv kf return_offsm value valuation state
       >>-: fun state ->
       state, clob
 
     (* TODO *)
     let default_call _stmt _call (_state, _clob) = assert false
+
+    let enter_loop stmt (s, clob) =
+      T.enter_loop stmt s, clob
+
+    let leave_loop stmt (s, clob) =
+      T.leave_loop stmt s, clob
+
+    let incr_loop_counter stmt (s, clob) =
+      T.incr_loop_counter stmt s, clob
 
   end
 
@@ -357,22 +333,18 @@ module State = struct
     end;
     Value_parameters.feedback ~once:true "@[using specification for function %a@]"
       Kernel_function.pretty kf;
-    let compute_fun = if List.length spec.spec_behavior > 1
-      then Eval_behaviors.compute_using_specification_multiple_behaviors
-      else Eval_behaviors.compute_using_specification_single_behavior
-    in
-    let result = compute_fun kf spec ~call_kinstr ~with_formals:state in
+    let result = Eval_behaviors.compute_using_specification kf spec ~call_kinstr ~with_formals:state in
     let aux (offsm, post_state) =
       let default =
-        { post_state; summary = None; returned_value = None }
+        { post_state; return = None }
       in
       match offsm with
       | None -> default
-      | Some offsm as summary ->
+      | Some offsm ->
         let typ = Kernel_function.get_return_type kf in
         let right_v = Cvalue_transfer.find_right_value typ offsm in
-        { post_state; summary;
-          returned_value = Some right_v }
+        { post_state;
+          return = Some (right_v, Some offsm) }
     in
     List.map aux result.Value_types.c_values, result.Value_types.c_clobbered
 
@@ -447,23 +419,61 @@ module State = struct
   (*                                  Misc                                    *)
   (* ------------------------------------------------------------------------ *)
 
-  let close_block fdec block ~body (state, clob) =
-    let state = Model.remove_variables block.blocals state in
-    if body
-    then snd (Locals_scoping.top_addresses_of_locals fdec clob) state, clob
-    else
-      Locals_scoping.block_top_addresses_of_locals fdec clob [block] state, clob
-
-  let open_block _fundec block ~body:_ (state, clob) =
+  let enter_scope _kf vars (state, clob) =
     let bind_local state vi =
       let b = Base.of_varinfo vi in
-      match Cvalue.Default_offsetmap.default_offsetmap b with
-      | `Bottom -> state
-      | `Map offsm -> Model.add_base b offsm state
+      let offsm =
+        Bottom.non_bottom (Cvalue.Default_offsetmap.default_offsetmap b)
+      in
+      Model.add_base b offsm state
     in
-    List.fold_left bind_local state block.blocals, clob
+    List.fold_left bind_local state vars, clob
 
+  let leave_scope kf vars (state, clob) =
+    let state = Model.remove_variables vars state in
+    try
+      let fdec = Kernel_function.get_definition kf in
+      Locals_scoping.state_top_addresses fdec clob vars state, clob
+    with Kernel_function.No_Definition -> state, clob
+
+
+  (* ------------------------------------------------------------------------ *)
+  (*                                Storage                                   *)
+  (* ------------------------------------------------------------------------ *)
+
+  module Store = struct
+    let register_initial_state callstack (state, _clob) =
+      Db.Value.merge_initial_state callstack state
+    let register_state_before_stmt callstack stmt (state, _clob) =
+      Db.Value.update_callstack_table ~after:false stmt callstack state
+    let register_state_after_stmt callstack stmt (state, _clob) =
+      Db.Value.update_callstack_table ~after:true stmt callstack state
+
+    let return state =
+      if Cvalue.Model.(equal state bottom)
+      then `Bottom
+      else `Value (state, Locals_scoping.top ())
+
+    let lift_tbl tbl =
+      let open Value_types in
+      let h = Callstack.Hashtbl.create 7 in
+      let process callstack state =
+        Callstack.Hashtbl.replace h callstack (state, Locals_scoping.top ())
+      in
+      Callstack.Hashtbl.iter process tbl;
+      h
+
+    let get_initial_state kf = return (Db.Value.get_initial_state kf)
+    let get_initial_state_by_callstack kf =
+      Extlib.opt_map lift_tbl (Db.Value.get_initial_state_callstack kf)
+
+    let get_stmt_state stmt = return (Db.Value.get_stmt_state stmt)
+    let get_stmt_state_by_callstack ~after stmt =
+      Extlib.opt_map lift_tbl (Db.Value.get_stmt_state_callstack ~after stmt)
+
+  end
 end
+
 
 let inject cvalue_model = cvalue_model, Locals_scoping.bottom ()
 let project (state, _) = state

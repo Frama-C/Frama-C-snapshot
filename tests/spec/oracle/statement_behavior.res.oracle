@@ -3,24 +3,24 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function pfsqopfc <- main.
         Called from tests/spec/statement_behavior.c:23.
 tests/spec/statement_behavior.c:13:[value] warning: assuming assembly code has no effects in function pfsqopfc
 tests/spec/statement_behavior.c:17:[value] warning: assertion got status unknown.
 tests/spec/statement_behavior.c:4:[value] warning: function pfsqopfc: postcondition got status unknown.
+tests/spec/statement_behavior.c:18:[value] warning: accessing uninitialized left-value. assert \initialized(&five_times);
 [value] Recording results for pfsqopfc
 [value] Done for function pfsqopfc
 [value] Recording results for main
 [value] done for function main
+tests/spec/statement_behavior.c:18:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function pfsqopfc:
+[value:final-states] Values at end of function pfsqopfc:
   
-[value] Values at end of function main:
-  x ∈ {1}
-  y ∈ UNINITIALIZED
-  __retres ∈ {0}
+[value:final-states] Values at end of function main:
+  NON TERMINATING FUNCTION
 [inout] InOut (internal) for function pfsqopfc:
         Operational inputs:
           five_times
@@ -34,4 +34,4 @@ tests/spec/statement_behavior.c:4:[value] warning: function pfsqopfc: postcondit
         Operational inputs on termination:
           \nothing
         Sure outputs:
-          x; y; __retres
+          ANYTHING(origin:Unknown)

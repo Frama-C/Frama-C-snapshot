@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   i ∈ {0}
   j ∈ {0}
@@ -213,24 +213,24 @@ tests/value/precise_locations.i:21:[value] function g: precondition got status v
 [value] computing for function g <- main.
         Called from tests/value/precise_locations.i:49.
 [value] Done for function g
-tests/value/precise_locations.i:46:[kernel] warning: signed overflow. assert t[j].f1[i]+1 ≤ 2147483647;
+tests/value/precise_locations.i:46:[value] warning: signed overflow. assert t[j].f1[i] + 1 ≤ 2147483647;
 [value] computing for function f <- main.
         Called from tests/value/precise_locations.i:48.
 tests/value/precise_locations.i:18:[value] warning: function f: precondition got status unknown.
 [value] Done for function f
-tests/value/precise_locations.i:49:[kernel] warning: signed overflow. assert t[j].f1[i]+1 ≤ 2147483647;
+tests/value/precise_locations.i:49:[value] warning: signed overflow. assert t[j].f1[i] + 1 ≤ 2147483647;
 [value] computing for function g <- main.
         Called from tests/value/precise_locations.i:49.
 tests/value/precise_locations.i:21:[value] warning: function g: precondition got status unknown.
 [value] Done for function g
-tests/value/precise_locations.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ q+r;
-tests/value/precise_locations.i:52:[kernel] warning: signed overflow. assert q+r ≤ 2147483647;
+tests/value/precise_locations.i:52:[value] warning: signed overflow. assert -2147483648 ≤ q + r;
+tests/value/precise_locations.i:52:[value] warning: signed overflow. assert q + r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function ct:
+[value:final-states] Values at end of function ct:
   __retres ∈ {20}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0]{.f1[0..4]; .f_inter[0..4]} ∈ {0; 10; 20}
    [0].f2 ∈ [--..--]
    [bits 328 to 831]# ∈ {0; 10; 20} repeated %32, bits 8 to 511 
@@ -335,8 +335,7 @@ tests/value/precise_locations.i:52:[kernel] warning: signed overflow. assert q+r
    [49]{.f_inter2[0..4]; .[bits 328 to 351]} ∈ {0}
   i ∈ {5}
   j ∈ {50}
-  q[bits 0 to 7] ∈ [--..--]
-   [bits 8 to 31]# ∈ {0; 10; 20}%32, bits 8 to 31 
+  q ∈ [--..--]
   r ∈ [-2147483647..2147483647]
   __retres ∈ [--..--]
 [from] Computing for function ct
@@ -427,7 +426,7 @@ tests/value/precise_locations.i:52:[kernel] warning: signed overflow. assert q+r
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   i ∈ {0}
   j ∈ {0}
@@ -833,9 +832,9 @@ tests/value/precise_locations.i:46:[value] assertion 'Value,signed_overflow' got
 tests/value/precise_locations.i:49:[value] assertion 'Value,signed_overflow' got final status valid.
 tests/value/precise_locations.i:52:[value] assertion 'Value,signed_overflow' got final status valid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function ct:
+[value:final-states] Values at end of function ct:
   __retres ∈ {20}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0].f1[0..4] ∈ {0; 10; 20}
    [0].f_inter[0..4] ∈ {0}
    [0].f2 ∈ {-99; 0}

@@ -1,0 +1,21 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/issue-189.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_usage/issue-189.i, line 14) in 'f' (1/2):
+Effect at line 17
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_usage/issue-189.i, line 14) in 'f' (2/2):
+Effect at line 18
+Prove: true.
+
+------------------------------------------------------------

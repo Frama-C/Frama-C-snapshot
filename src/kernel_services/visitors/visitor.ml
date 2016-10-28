@@ -950,12 +950,12 @@ let visitFramacLogicType vis l =
   let l' = visitCilLogicType (vis:>cilVisitor) l in
   vis#fill_global_tables; l'
 
-let visitFramacPredicate vis p =
-  let p' = visitCilPredicate (vis:>cilVisitor) p in
+let visitFramacPredicateNode vis p =
+  let p' = visitCilPredicateNode (vis:>cilVisitor) p in
   vis#fill_global_tables; p'
 
-let visitFramacPredicateNamed vis p =
-  let p' = visitCilPredicateNamed (vis:>cilVisitor) p in
+let visitFramacPredicate vis p =
+  let p' = visitCilPredicate (vis:>cilVisitor) p in
   vis#fill_global_tables; p'
 
 let visitFramacIdPredicate vis p =

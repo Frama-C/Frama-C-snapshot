@@ -58,7 +58,7 @@ let pp_from_file fmt file =
       raise err
 
 let rec bincopy buffer cin cout =
-  let s = String.length buffer in
+  let s = Bytes.length buffer in
   let n = Pervasives.input cin buffer 0 s in
   if n > 0 then
     ( Pervasives.output cout buffer 0 n ; bincopy buffer cin cout )
@@ -77,10 +77,7 @@ let on_out file job =
 
 let copy src tgt =
   on_inc src
-    (fun inc ->
-       on_out tgt
-         (fun out ->
-            bincopy (String.create 2048) inc out))
+    (fun inc -> on_out tgt (fun out -> bincopy (Bytes.create 2048) inc out))
 
 let read_file file job =
   let inc = open_in file in

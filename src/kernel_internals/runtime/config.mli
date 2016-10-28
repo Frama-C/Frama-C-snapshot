@@ -47,7 +47,7 @@ val libdir: string
 
 val plugin_dir: string list
   (** Directory where the Frama-C dynamic plug-ins are.
-      @modified Magnesium-20151001 *)
+      @modify Magnesium-20151001 *)
 
 val plugin_path: string
   (** The coma-separated concatenation of [plugin_dir].

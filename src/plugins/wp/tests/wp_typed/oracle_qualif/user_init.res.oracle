@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_typed/user_init.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 10 goals scheduled
 [wp] [Alt-Ergo] Goal typed_init_post : Valid

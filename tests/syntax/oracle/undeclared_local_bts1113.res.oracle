@@ -17,14 +17,17 @@ void funk(int rounds)
   int *k_long_long_size;
   unsigned int __lengthof_k_long_long_size;
   { /* sequence */
-    /*@ assert alloca_bounds: 0 < sizeof(*k)*(2*rounds) ≤ 4294967295; */ ;
+    /*@ assert alloca_bounds: 0 < sizeof(*k) * (2 * rounds) ≤ 4294967295;
+     */
+    ;
     __lengthof_k = (unsigned int)(2 * rounds);
     k = (int *)alloca(sizeof(*k) * __lengthof_k);
   }
   { /* sequence */
     /*@
     assert
-    alloca_bounds: 0 < sizeof(*kk)*(unsigned int)(2*rounds) ≤ 4294967295;
+    alloca_bounds:
+      0 < sizeof(*kk) * (unsigned int)(2 * rounds) ≤ 4294967295;
      */
     ;
     __lengthof_kk = (unsigned int)(2 * rounds);
@@ -33,8 +36,8 @@ void funk(int rounds)
   j = (long long)(rounds * rounds);
   { /* sequence */
     /*@
-    assert alloca_bounds: 0 < sizeof(*k_long_long_size)*(j*2) ≤ 4294967295;
-     */
+    assert
+    alloca_bounds: 0 < sizeof(*k_long_long_size) * (j * 2) ≤ 4294967295; */
     ;
     __lengthof_k_long_long_size = (unsigned int)(j * (long long)2);
     k_long_long_size = (int *)alloca(sizeof(*k_long_long_size) * __lengthof_k_long_long_size);

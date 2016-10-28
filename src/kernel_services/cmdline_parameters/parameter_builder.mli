@@ -53,6 +53,7 @@ val kf_decl_category: (unit -> kernel_function Parameter_category.t) ref
 val kf_string_category: (unit -> string Parameter_category.t) ref
 val fundec_category: (unit -> fundec Parameter_category.t) ref
 val force_ast_compute: (unit -> unit) ref
+val ast_dependencies: State.t list ref
 
 (*
 Local Variables:

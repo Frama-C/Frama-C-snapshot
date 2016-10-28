@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
         Called from tests/value/cast_fun.i:58.
 [value] using specification for function f1
 tests/value/cast_fun.i:6:[value] warning: no 'assigns \result \from ...' clause specified for function f1
 [value] Done for function f1
-tests/value/cast_fun.i:63:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p1);
+tests/value/cast_fun.i:63:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
 [value] computing for function f2 <- main.
         Called from tests/value/cast_fun.i:63.
 [value] using specification for function f2
@@ -21,8 +21,8 @@ tests/value/cast_fun.i:8:[value] warning: no 'assigns \result \from ...' clause 
 [value] using specification for function f3
 tests/value/cast_fun.i:10:[value] warning: no 'assigns \result \from ...' clause specified for function f3
 [value] Done for function f3
-tests/value/cast_fun.i:73:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:78:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p1);
+tests/value/cast_fun.i:73:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
+tests/value/cast_fun.i:78:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
 [value] computing for function f6 <- main.
         Called from tests/value/cast_fun.i:83.
 [value] using specification for function f6
@@ -31,20 +31,20 @@ tests/value/cast_fun.i:78:[kernel] warning: pointer to function with incompatibl
         Called from tests/value/cast_fun.i:88.
 [value] using specification for function f7
 [value] Done for function f7
-tests/value/cast_fun.i:93:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p2);
+tests/value/cast_fun.i:93:[value] warning: pointer to function with incompatible type. assert \valid_function(p2);
 [value] computing for function f9 <- main.
         Called from tests/value/cast_fun.i:98.
 [value] using specification for function f9
 [value] Done for function f9
-tests/value/cast_fun.i:103:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p3);
-tests/value/cast_fun.i:108:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p4);
+tests/value/cast_fun.i:103:[value] warning: pointer to function with incompatible type. assert \valid_function(p3);
+tests/value/cast_fun.i:108:[value] warning: pointer to function with incompatible type. assert \valid_function(p4);
 [value] computing for function f10 <- main.
         Called from tests/value/cast_fun.i:113.
 [value] using specification for function f10
 [value] Done for function f10
-tests/value/cast_fun.i:118:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:123:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p1);
-tests/value/cast_fun.i:128:[kernel] warning: pointer to function with incompatible type. assert \valid_function(p4);
+tests/value/cast_fun.i:118:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
+tests/value/cast_fun.i:123:[value] warning: pointer to function with incompatible type. assert \valid_function(p1);
+tests/value/cast_fun.i:128:[value] warning: pointer to function with incompatible type. assert \valid_function(p4);
 [value] Recording results for main
 [from] Computing for function main
 tests/value/cast_fun.i:58:[from] warning: variadic call detected. Using only 0 argument(s).
@@ -62,7 +62,7 @@ tests/value/cast_fun.i:118:[value] assertion 'Value,function_pointer' got final 
 tests/value/cast_fun.i:123:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p1 ∈ {{ &f1 ; (int (*)(int ))&f2 ; &f3 }} or UNINITIALIZED
   p2 ∈ {{ &f6 ; (void (*)(struct s1 ))&f7 }} or UNINITIALIZED
   p3 ∈ {{ &f9 }} or UNINITIALIZED

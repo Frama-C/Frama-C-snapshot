@@ -965,7 +965,7 @@ let () =
     (* [Note] Can be Journalized -> Functions computing [term] values have to be Journalized *)
     Db.Slicing.Select.select_stmt_term SlicingCmds.select_stmt_term ;
   Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_pred")
-    (* [Note] Can be Journalized -> Functions computing [predicate named] values have to be Journalized *)
+    (* [Note] Can be Journalized -> Functions computing [predicate] values have to be Journalized *)
     Db.Slicing.Select.select_stmt_pred SlicingCmds.select_stmt_pred ;
   Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_annot")
     (* [Note] Can be Journalized -> Functions computing [code_annotation] values have to be Journalized *)

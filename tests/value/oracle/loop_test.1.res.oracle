@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at test_cent_onzes
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   r0 ∈ {0}
   r1 ∈ {0}
   r2 ∈ {0}
@@ -77,27 +77,27 @@ tests/value/loop_test.i:92:[value] entering loop for the first time
 [value] Recording results for test_cent_onzes
 [value] done for function test_cent_onzes
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function cent_onze_0:
+[value:final-states] Values at end of function cent_onze_0:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_1:
+[value:final-states] Values at end of function cent_onze_1:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_2:
+[value:final-states] Values at end of function cent_onze_2:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_3:
+[value:final-states] Values at end of function cent_onze_3:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_4:
+[value:final-states] Values at end of function cent_onze_4:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_5:
+[value:final-states] Values at end of function cent_onze_5:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_6:
+[value:final-states] Values at end of function cent_onze_6:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_7:
+[value:final-states] Values at end of function cent_onze_7:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_8:
+[value:final-states] Values at end of function cent_onze_8:
   cent_onze ∈ {111}
-[value] Values at end of function cent_onze_9:
+[value:final-states] Values at end of function cent_onze_9:
   cent_onze ∈ {111}
-[value] Values at end of function test_cent_onzes:
+[value:final-states] Values at end of function test_cent_onzes:
   c0 ∈ {111}
   c1 ∈ {111}
   c2 ∈ {111}

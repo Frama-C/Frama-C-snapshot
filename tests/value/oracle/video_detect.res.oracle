@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NULL[rbits 256 to 287] ∈ [--..--]
   G ∈ {0}
 [value] computing for function detect_video <- main.
@@ -13,13 +13,13 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function detect_video:
+[value:final-states] Values at end of function detect_video:
   NULL[rbits 256 to 287] ∈ [--..--]
   p ∈ {32}
   saved1 ∈ [--..--]
   saved2 ∈ [--..--]
   video_found ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NULL[rbits 256 to 287] ∈ [--..--]
   ADDR ∈ {32}
 [from] Computing for function detect_video

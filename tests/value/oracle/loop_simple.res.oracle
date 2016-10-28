@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -12,12 +12,13 @@
 tests/value/loop_simple.i:24:[value] entering loop for the first time
 tests/value/loop_simple.i:25:[value] entering loop for the first time
 tests/value/loop_simple.i:26:[value] entering loop for the first time
-tests/value/loop_simple.i:27:[kernel] warning: signed overflow. assert (int)((int)(i+j)+k)+r ≤ 2147483647;
-tests/value/loop_simple.i:27:[kernel] warning: signed overflow. assert (int)((int)((int)(i+j)+k)+r)+1 ≤ 2147483647;
+tests/value/loop_simple.i:27:[value] warning: signed overflow. assert (int)((int)(i + j) + k) + r ≤ 2147483647;
+tests/value/loop_simple.i:27:[value] warning: signed overflow.
+                 assert (int)((int)((int)(i + j) + k) + r) + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {2}
   j ∈ {0; 2}
   k ∈ {0; 2}

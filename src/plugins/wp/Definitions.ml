@@ -35,6 +35,10 @@ open Lang.F
 type trigger = (var,lfun) Qed.Engine.ftrigger
 type typedef = (tau,field,lfun) Qed.Engine.ftypedef
 
+let rec rev_iter f = function
+  | [] -> ()
+  | x::w -> rev_iter f w ; f x
+
 type cluster = {
   c_id : string ;
   c_title : string ;
@@ -65,7 +69,7 @@ and dfun = {
 }
 
 and definition =
-  | Logic of tau (** return type of an abstract function *)
+  | Logic of tau (* return type of an abstract function *)
   | Value of tau * recursion * term
   | Predicate of recursion * pred
   | Inductive of dlemma list
@@ -471,14 +475,14 @@ class virtual visitor main =
     method vgoal (axioms : axioms option) prop =
       match axioms with
       | None ->
-          (** Print a goal *)
+          (* Visit a goal *)
           begin
             let hs = LogicUsage.proof_context () in
             List.iter self#vlemma hs ;
             self#vpred prop ;
           end
       | Some(cluster,hs) ->
-          (** Print the goal corresponding to a lemma *)
+          (* Visit the goal corresponding to a lemma *)
           begin
             self#section (cluster_title cluster) ;
             self#set_local cluster ;
@@ -486,12 +490,12 @@ class virtual visitor main =
             self#vpred prop ;
           end
 
-    method vself = (** Print a cluster *)
+    method vself = (* Visit a cluster *)
       begin
-        List.iter self#vcomp main.c_records ;
-        List.iter self#vtype main.c_types ;
-        List.iter (fun d -> self#vsymbol d.d_lfun) main.c_symbols ;
-        List.iter (fun l -> self#vdlemma l) main.c_lemmas ;
+        rev_iter self#vcomp main.c_records ;
+        rev_iter self#vtype main.c_types ;
+        rev_iter (fun d -> self#vsymbol d.d_lfun) main.c_symbols ;
+        rev_iter (fun l -> self#vdlemma l) main.c_lemmas ;
       end
 
     method virtual section : string -> unit

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at inout_11_0
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -21,9 +21,9 @@
       [6] ∈ {25}
       [7] ∈ {40}
   I5_nt ∈ {0}
-tests/value/inout.i:16:[kernel] warning: signed overflow. assert -2147483648 ≤ i1+i2;
-tests/value/inout.i:16:[kernel] warning: signed overflow. assert i1+i2 ≤ 2147483647;
-tests/value/inout.i:18:[kernel] warning: out of bounds write. assert \valid(i);
+tests/value/inout.i:16:[value] warning: signed overflow. assert -2147483648 ≤ i1 + i2;
+tests/value/inout.i:16:[value] warning: signed overflow. assert i1 + i2 ≤ 2147483647;
+tests/value/inout.i:18:[value] warning: out of bounds write. assert \valid(i);
 [value] Recording results for inout_11_0
 [value] done for function inout_11_0
 [from] Computing for function inout_11_0

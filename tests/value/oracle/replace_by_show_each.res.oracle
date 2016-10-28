@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
 [value] Called Frama_C_show_each_2()
 [value] Called Frama_C_show_each_1()
@@ -11,13 +11,13 @@
                  imprecise.
 [from] warning: no assigns clauses for function Frama_C_show_each_1. Results will be
                 imprecise.
-tests/value/replace_by_show_each.c:26:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+tests/value/replace_by_show_each.c:26:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   x ∈ {0}
   j ∈ [-2147483648..2147483646]

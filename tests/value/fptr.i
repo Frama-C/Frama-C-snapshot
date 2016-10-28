@@ -3,10 +3,10 @@
    OPT: -val @VALUECONFIG@ -journal-disable -then -deps -out
    OPT: -val @VALUECONFIG@ -main main_uninit -journal-disable -inout-callwise -then -deps -out
 */
-int R=77;
+int R=77; volatile int v; int n;
 
-int f(int (ptr(int x))) {
-  R = ptr(1);
+int f(int (ptr(int x)), int i) {
+  n=i; R = ptr(1);
   return R;
 }
 
@@ -49,7 +49,7 @@ void main (int c)
   GLOBAL[1] = hh;
   for(i=0;i<3;i++) {
     Frama_C_show_each_F(GLOBAL[i]);
-    G=f(GLOBAL[i]);
+    if (v) { G=f(GLOBAL[i], i+1); Frama_C_show_each(i); /* i==2 is impossible */}
   }
 
   PTR_FCT p = (c&16) ? &h : &hh;
@@ -65,7 +65,7 @@ void main_uninit (int c)
   GLOBAL[1] = hh;
   for(i=0;i<3;i++) {
     Frama_C_show_each_F(GLOBAL[i]);
-    G=f(GLOBAL[i]);
+    G=f(GLOBAL[i],i);
   }
 }
 

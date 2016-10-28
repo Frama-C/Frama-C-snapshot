@@ -45,7 +45,7 @@ let basic_copy ?(start=Int.zero) ~size o =
   let offsets = Ival.inject_singleton start in
   match V_Offsetmap.copy_slice ~validity ~offsets ~size o with
   | _, `Bottom -> assert false
-  | _, `Map r -> r
+  | _, `Value r -> r
 
 (* paste [src] of size [size_src] starting at [start] in [r]. If [r] has size
    [size_r], [size+start <= size_r] must hold. *)
@@ -57,7 +57,7 @@ let basic_paste ?(start=Int.zero) ~src ~size_src dst =
   let from = src in
   match V_Offsetmap.paste_slice ~validity ~exact ~from ~size ~offsets dst with
   | _, `Bottom -> assert false
-  | _, `Map r -> r
+  | _, `Value r -> r
 
 (* Reads [size] bits starting at [start] in [o], as a single value *)
 let basic_find ?(start=Int.zero) ~size o =
@@ -71,7 +71,7 @@ let basic_add ?(start=Int.zero) ~size v o =
   let offsets = Ival.inject_singleton start in
   let v = V_Or_Uninitialized.initialized v in
   match V_Offsetmap.update ~validity ~exact:true ~offsets ~size v o with
-  | _, `Map m -> m
+  | _, `Value m -> m
   | _ -> assert false
 
 let inject ~size v =
@@ -388,15 +388,9 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
     | Top, _ | _, Top -> Top
     | O o1, O o2 -> O (V_Offsetmap.join o1 o2)
 
-  let join_and_is_included o1 o2 = match o1, o2 with
-    | _, Top -> Top, true
-    | Top, O _ -> Top, false
-    | O o1, O o2 -> O (V_Offsetmap.join o1 o2), V_Offsetmap.is_included o1 o2
-
   let narrow o1 o2 = match o1, o2 with
     | Top, o | o, Top -> `Value o
     | O o1, O o2 ->
-      let open Bottom.Type in
       V_Offsetmap.narrow o1 o2 >>-: (fun o -> O o)
 
   (* Simple values cannot be injected because we do not known their type
@@ -404,13 +398,14 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
   let zero = Top
   let float_zeros = Top
   let top_int = Top
-  let all_values _ = Top
 
   let inject_int typ i =
     try
       let size = Integer.of_int (Cil.bitsSizeOf typ) in
       O (inject ~size (V.inject_int i))
     with Cil.SizeOfError _ -> Top
+
+  let inject_address _ = Top
 
   let constant e _c =
     let o =
@@ -422,7 +417,7 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
     in
     `Value o, Alarmset.all
 
-  let resolve_functions ~typ_pointer:_ _ = `Top, false (* TODO *)
+  let resolve_functions ~typ_pointer:_ _ = `Top, true (* TODO: extract value *)
 
   let forward_unop ~context:_ _typ op o =
     let o' = match o, op with

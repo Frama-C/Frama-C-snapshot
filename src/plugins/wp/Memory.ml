@@ -42,13 +42,12 @@ type 'a value =
 
 type 'a rloc =
   | Rloc of c_object * 'a
-  | Rarray of 'a * c_object * int
   | Rrange of 'a * c_object * term option * term option
   (** a contiguous set of location *)
 
 type 'a sloc =
   | Sloc of 'a
-  | Sarray of 'a * c_object * int (** full sized-array range *)
+  | Sarray of 'a * c_object * int (** full sized range (optimized assigns) *)
   | Srange of 'a * c_object * term option * term option
   | Sdescr of var list * 'a * pred
   (** a set of location *)
@@ -107,7 +106,9 @@ sig
   val havoc_chunk : t -> chunk -> t
   val havoc_any : call:bool -> t -> t
   val domain : t -> domain
-
+  val union : domain -> domain -> domain
+  val empty : domain
+  
   val pretty : Format.formatter -> t -> unit
 
 end
@@ -171,8 +172,8 @@ sig
   val shift : loc -> c_object -> term -> loc
   (** Return the memory location obtained by array access at an index
       represented by the given {!term}. The element of the array are of
-      the given {!c_object} type *)
-
+      the given {!c_object} type. *)
+  
   val base_addr : loc -> loc
   (** Return the memory location of the base address of a given memory
       location *)

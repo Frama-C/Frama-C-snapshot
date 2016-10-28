@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   d1 ∈ {0}
   d2 ∈ {0}
   d3 ∈ {0}
@@ -59,4 +59,6 @@ int main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts1684.i (no preprocessing)
 [kernel] writing journal in file `./frama_c_journal.ml'.

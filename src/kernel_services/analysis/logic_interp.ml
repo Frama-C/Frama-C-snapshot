@@ -85,7 +85,7 @@ end) =
       let integral_cast ty t =
         raise
           (Failure
-             (Pretty_utils.sfprintf
+             (Format.asprintf
                 "term %a has type %a, but %a is expected."
                 Printer.pp_term t
                 Printer.pp_logic_type Linteger
@@ -395,12 +395,12 @@ module To_zone : sig
         needed to evaluate the list of [terms] relative to the [ctx] of
 	interpretation. *) 
 
-  val from_pred: predicate named -> ctx -> (zone_info * decl)
+  val from_pred: predicate -> ctx -> (zone_info * decl)
     (** Entry point to get zones
         needed to evaluate the [predicate] relative to the [ctx] of
 	interpretation. *) 
 
-  val from_preds: predicate named list -> ctx -> (zone_info * decl)
+  val from_preds: predicate list -> ctx -> (zone_info * decl)
     (** Entry point to get zones
         needed to evaluate the list of [predicates] relative to the [ctx] of
 	interpretation. *) 
@@ -705,10 +705,10 @@ function contracts."
 	    self#change_label (AbsLabel_stmt stmt) x
 
 
-      method! vpredicate p =
+      method! vpredicate_node p =
       let fail () =
         raise (NYI (Pretty_utils.sfprintf
-                      "[logic_interp] %a" Printer.pp_predicate p))
+                      "[logic_interp] %a" Printer.pp_predicate_node p))
       in
       match p with
       | Pat (_, LogicLabel (_,"Old")) -> self#change_label_to_old p
@@ -820,7 +820,7 @@ function contracts."
         relative to the [ctx] of interpretation. *)
     let from_pred pred ctx =
         (try
-           ignore(Visitor.visitFramacPredicateNamed
+           ignore(Visitor.visitFramacPredicate
                     (new populate_zone ctx.state_opt ctx.ki_opt ctx.kf) pred)
          with NYI msg -> 
 	   add_top_zone msg) ;
@@ -834,7 +834,7 @@ function contracts."
     let from_preds preds ctx =
       let f pred =
         (try
-           ignore(Visitor.visitFramacPredicateNamed
+           ignore(Visitor.visitFramacPredicate
                     (new populate_zone ctx.state_opt ctx.ki_opt ctx.kf) pred)
          with NYI msg -> 
 	   add_top_zone msg) ;
@@ -860,7 +860,7 @@ function contracts."
       and get_zone_from_pred k x =
         (try
            ignore
-             (Visitor.visitFramacPredicateNamed
+             (Visitor.visitFramacPredicate
                 (new populate_zone (Some true) (Some (k,true)) kf) x)
          with NYI msg -> 
 	   add_top_zone msg) ;
@@ -928,7 +928,7 @@ function contracts."
           l
       | AStmtSpec _ -> (* TODO *)
         raise (NYI "[logic_interp] statement contract")
-
+      | AExtended _ -> raise (NYI "[logic_interp] extension")
     (** Used by annotations entry points. *)
     let get_from_stmt_annots code_annot_filter ((ki, _kf) as stmt) =
       Extlib.may
@@ -985,7 +985,7 @@ function contracts."
         | AAllocation _ -> others
         | AAssigns _ -> others
         | APragma (Loop_pragma _)| APragma (Impact_pragma _) -> others
-        | AStmtSpec _  (* TODO: statement contract *) -> false
+        | AStmtSpec _  | AExtended _ (* TODO *) -> false
   end
 
 exception Prune
@@ -1002,7 +1002,7 @@ let to_result_from_pred p =
   end
   in
   (try
-     ignore(Visitor.visitFramacPredicateNamed visitor p);
+     ignore(Visitor.visitFramacPredicate visitor p);
      false
    with Prune -> 
      true)

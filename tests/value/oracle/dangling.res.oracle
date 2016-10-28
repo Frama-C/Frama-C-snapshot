@@ -3,21 +3,21 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/value/dangling.i:9:[value] warning: locals {v_0} escaping the scope of a block of main through x
 tests/value/dangling.i:15:[value] warning: assertion got status unknown.
 tests/value/dangling.i:16:[value] assertion got status valid.
-tests/value/dangling.i:19:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&x);
+tests/value/dangling.i:19:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&x);
 tests/value/dangling.i:23:[value] warning: assertion got status unknown.
-tests/value/dangling.i:24:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&x);
+tests/value/dangling.i:24:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&x);
 [value] Recording results for main
 [value] done for function main
 tests/value/dangling.i:24:[value] assertion 'Value,dangling_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {{ &y }} or ESCAPINGADDR
   y ∈ {1}
 [from] Computing for function main

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
 [value] computing for function main <- main1.
         Called from tests/value/invalid_loc_return.i:21.
@@ -11,19 +11,19 @@
         Called from tests/value/invalid_loc_return.i:17.
 [value] Recording results for foo
 [value] Done for function foo
-tests/value/invalid_loc_return.i:17:[kernel] warning: accessing uninitialized left-value. assert \initialized(&p);
+tests/value/invalid_loc_return.i:17:[value] warning: accessing uninitialized left-value. assert \initialized(&p);
 [value] Recording results for main
 [value] Done for function main
 [value] Recording results for main1
 [value] done for function main1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function foo:
+[value:final-states] Values at end of function foo:
   __retres ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {1}
   p ∈ {{ &q }}
   q ∈ {{ &x }}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   
 [from] Computing for function foo
 [from] Done for function foo
@@ -55,7 +55,7 @@ tests/value/invalid_loc_return.i:17:[kernel] warning: accessing uninitialized le
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
 [value] computing for function main <- main2.
         Called from tests/value/invalid_loc_return.i:25.
@@ -63,7 +63,7 @@ tests/value/invalid_loc_return.i:17:[kernel] warning: accessing uninitialized le
         Called from tests/value/invalid_loc_return.i:17.
 [value] Recording results for foo
 [value] Done for function foo
-tests/value/invalid_loc_return.i:17:[kernel] warning: accessing uninitialized left-value. assert \initialized(&p);
+tests/value/invalid_loc_return.i:17:[value] warning: accessing uninitialized left-value. assert \initialized(&p);
 [value] computing for function foo <- main <- main2.
         Called from tests/value/invalid_loc_return.i:17.
 [value] Recording results for foo
@@ -73,13 +73,13 @@ tests/value/invalid_loc_return.i:17:[kernel] warning: accessing uninitialized le
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function foo:
+[value:final-states] Values at end of function foo:
   __retres ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {1}
   p ∈ {{ &q }}
   q ∈ {{ &x }}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
 [from] Computing for function foo
 [from] Done for function foo

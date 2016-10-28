@@ -7,5 +7,6 @@ void main(int arg)
   int i;
   for (i=0; i<=arg; i++)
     G += t[i];
+  Frama_C_show_each(G,arg);
 }
 

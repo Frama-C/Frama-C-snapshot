@@ -1,0 +1,51 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/base_addr_offset_block_length.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+tests/value/base_addr_offset_block_length.i:9:[value] warning: function main: precondition got status unknown.
+tests/value/base_addr_offset_block_length.i:17:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:18:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:19:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:20:[value] warning: assertion got status unknown.
+tests/value/base_addr_offset_block_length.i:21:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:22:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:23:[value] warning: assertion got status unknown.
+tests/value/base_addr_offset_block_length.i:24:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:25:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:26:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:27:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:28:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  px ∈ {{ &x + {4} }}
+  px2 ∈ {{ &x + {12} }}
+  py ∈ {{ &y + {8} }}
+  pz ∈ {{ &z + {4} }}
+  p ∈ {{ &x + {4} ; &y }}
+  q ∈ {{ &x + {8} ; &y + {4} }}
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+tests/value/base_addr_offset_block_length.i:20:[value] assertion got status valid.
+tests/value/base_addr_offset_block_length.i:23:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  px ∈ {{ &x + {4} }}
+  px2 ∈ {{ &x + {12} }}
+  py ∈ {{ &y + {8} }}
+  pz ∈ {{ &z + {4} }}
+  p ∈ {{ &x + {4} ; &y }}
+  q ∈ {{ &x + {8} ; &y + {4} }}

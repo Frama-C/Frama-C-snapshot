@@ -3,16 +3,15 @@
 [kernel] Parsing tests/wp_plugin/plet.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 ------------------------------------------------------------
   Axiomatic 'Test'
 ------------------------------------------------------------
 
 Lemma GOAL:
 Prove: ((forall i_0:int.
-         (i_0<L_N) -> (0<=i_0) -> (P_H i_0)) -> P_A)
+         (0<=i_0) -> (i_0<L_N) -> (P_H i_0)) -> P_A)
        <-> (P_A
             \/ (exists i_0:int.
-                (i_0<L_N) /\ (0<=i_0) /\ (not (P_H i_0))))
+                (0<=i_0) /\ (i_0<L_N) /\ (not (P_H i_0))))
 
 ------------------------------------------------------------

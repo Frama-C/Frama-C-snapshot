@@ -89,17 +89,26 @@ module Configuration: sig
   (** Looks for an integer configuration element, and if it is found, it is
       given to the given function. Otherwise, does nothing *)
 
+  val set_int: string -> int -> unit
+  (** Sets a ConfigInt *)
+  
   val find_bool : ?default:bool -> string -> bool
   (** Same as {find_int}. *)
 
   val use_bool: string -> (bool -> unit) -> unit
   (** Same as {!use_int}. *)
 
+  val set_bool: string -> bool -> unit
+  (** Sets a ConfigBool *)
+
   val find_float : ?default:float -> string -> float
   (** Same as {!find_int}. *)
 
   val use_float: string -> (float -> unit) -> unit
   (** Same as {!use_int}. *)
+
+  val set_float: string -> float -> unit
+  (** Sets a ConfigFloat *)
 
   val find_string: ?default:string -> string -> string
   (** Same as {!find_int}. *)
@@ -109,6 +118,35 @@ module Configuration: sig
 
   val find_list: string -> configData list
   val use_list: string -> (configData list -> unit) -> unit
+  val set_list: string -> configData list -> unit
+
+  (** Helpers to connect widgets to configuration values.
+      The configuration value is first pushed to the widget
+      using method [#set], or the [~default] value is used instead.
+      
+      Then, a callback is registered
+      into the widget via [#connect] such that subsequent
+      values from user's action are saved back into the 
+      configuration file. *)
+
+  (** Abstract interface to the connected widget. 
+      This API is consistent with the [Widget] ones. *)
+  class type ['a] selector =
+    object
+      method set : 'a -> unit
+      (** Set's widget value to given one. *)
+      method connect : ('a -> unit) -> unit
+      (** Register a callback invoked by the widget each time the value is edited. *)
+    end
+    
+  val config_int : key:string -> default:int -> int #selector -> unit
+  val config_bool : key:string -> default:bool -> bool #selector -> unit
+  val config_string : key:string -> default:string -> string #selector -> unit
+  val config_values : key:string -> default:'a ->
+    values:('a * string) list -> 'a #selector -> unit
+  (** The [values] field is used as a dictionnary of available values. 
+      They are compared with [Pervasives.(=)]. *)
+  
 end
 
 (* ************************************************************************** *)

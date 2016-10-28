@@ -1,0 +1,27 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_2246.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function bad
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/bts_2246.i, line 9) in 'bad' (1/3):
+Tags: Default.
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/bts_2246.i, line 9) in 'bad' (2/3):
+Tags: Case 1.
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/bts_2246.i, line 9) in 'bad' (3/3):
+Tags: Case 0.
+Prove: true.
+
+------------------------------------------------------------

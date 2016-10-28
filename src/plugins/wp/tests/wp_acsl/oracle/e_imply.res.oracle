@@ -1,0 +1,242 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/e_imply.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'p0' in 'f':
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p1' in 'f':
+Assume { (* Goal *) When: P_P(1). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p2' in 'f':
+Assume { (* Goal *) When: P_F. }
+Prove: P_P(2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p3' in 'f':
+Assume { (* Goal *) When: P_F /\ P_P(2). }
+Prove: P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p4' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p5' in 'f':
+Assume { (* Goal *) When: P_P(2). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p6' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p7' in 'f':
+Assume { (* Goal *) When: P_F /\ P_P(12). }
+Prove: P_P(21) /\ P_P(22).
+
+------------------------------------------------------------
+
+Goal Post-condition 'p8' in 'f':
+Assume { (* Goal *) When: P_P(1). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'p9' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i0' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i1' in 'f':
+Assume { (* Goal *) When: P_P(1) /\ P_P(2). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i2' in 'f':
+Assume { (* Goal *) When: P_F. }
+Prove: (!P_P(1)) \/ (!P_P(2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'i3' in 'f':
+Assume { (* Goal *) When: P_P(1) /\ P_P(2). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i4' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i5' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i6' in 'f':
+Assume { (* Goal *) When: P_P(0) /\ P_P(1) /\ P_P(2) /\ P_P(3) /\ P_P(4). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i7' in 'f':
+Assume { (* Goal *) When: P_P(0) /\ P_P(1) /\ P_P(2) /\ P_P(3) /\ P_P(4). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'i8' in 'f':
+Prove: (!P_F) \/ (!P_P(0)) \/ (!P_P(1)) \/ (!P_P(2)) \/ (!P_P(3)) \/ P_P(5).
+
+------------------------------------------------------------
+
+Goal Post-condition 'i9' in 'f':
+Prove: (!P_F) \/ (!P_P(0)) \/ (!P_P(1)) \/ (!P_P(2)) \/ (!P_P(3)) \/ P_P(5).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a0' in 'f':
+Prove: (!P_F) \/ (!P_P(2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a1' in 'f':
+Assume { (* Goal *) When: P_F. }
+Prove: P_P(1) /\ P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a2' in 'f':
+Prove: (!P_F) \/ (!P_P(0)) \/ (!P_P(2)) \/ P_P(3) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a3' in 'f':
+Prove: (!P_F) \/ (!P_P(0)) \/ (!P_P(2)) \/ P_P(3) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a4' in 'f':
+Prove: P_T \/ (!P_P(0)) \/ (!P_P(1)) \/ (!P_P(2)) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a5' in 'f':
+Prove: P_T \/ (!P_P(2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a6' in 'f':
+Prove: P_T \/ (!P_P(2)) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a7' in 'f':
+Prove: P_T \/ (!P_P(2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a8' in 'f':
+Prove: (!P_F) \/ P_P(2) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'a9' in 'f':
+Prove: (!P_F) \/ (!P_P(2)) \/ P_P(3) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o0' in 'f':
+Assume { (* Goal *) When: P_F /\ P_P(2). }
+Prove: P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o1' in 'f':
+Assume { (* Goal *) When: P_F /\ P_P(2). }
+Prove: !P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o2' in 'f':
+Prove: (!P_F) \/ (!P_P(0)) \/ (!P_P(2)) \/ (!P_P(3)) \/ P_P(4).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o3' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'o4' in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'o5' in 'f':
+Assume { (* Goal *) When: (!P_T) /\ P_P(2). }
+Prove: P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o6' in 'f':
+Assume { (* Goal *) When: (!P_T) /\ P_P(2) /\ P_P(4). }
+Prove: P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o7' in 'f':
+Assume { (* Goal *) When: (!P_T) /\ P_P(2). }
+Prove: P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o8' in 'f':
+Assume { (* Goal *) When: P_F /\ (!P_P(2)) /\ P_P(4). }
+Prove: !P_P(3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'o9' in 'f':
+Prove: (!P_F) \/ (!P_P(2)) \/ P_P(3) \/ (!P_P(4)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'f0' in 'f':
+Assume { (* Goal *) When: P_P(1) /\ P_P(2) /\ (P_P(1) \/ P_P(12)). }
+Prove: P_T.
+
+------------------------------------------------------------
+
+Goal Post-condition 'f1' in 'f':
+Assume {
+  (* Goal *)
+  When: P_P(1) /\ P_P(2) /\ (P_P(1) \/ P_P(12)) /\ (P_P(2) \/ P_P(11)).
+}
+Prove: P_T.
+
+------------------------------------------------------------

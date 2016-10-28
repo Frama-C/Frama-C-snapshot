@@ -1,3 +1,7 @@
+/* run.config_equalities
+   STDOPT: +"-value-msg-key d-eq"
+*/
+
 struct t1 { unsigned int a:2; int b:4; int c:22;int d:32;} h;
 struct t2 { unsigned int a:2; int b:4; int c:22; int d;} k,k8,kr8;
 
@@ -98,7 +102,7 @@ void logic() {
   }
 }
 
-int main (int a, int b){
+void main_old (){
   struct t1 v,w;
 
   union U1 l_161;
@@ -119,7 +123,7 @@ int main (int a, int b){
   v.a = 4;
   v.b = 7;
   f(v.b);
-  h.b = a+b + h.a + h.b;
+  h.b = foo + foo + h.a + h.b;
   h.c = &v +1;
 
   k8.b = 8;
@@ -128,7 +132,23 @@ int main (int a, int b){
   ll.b = q4;
   G=g();
 
-  imprecise_bts_1671();
+}
 
+void eq_bitfields() {
+  int i = foo;
+  if (i >= 16 && i <= 17) {
+    struct t1 s;
+    s.a =i;
+    s.c =i;
+    Frama_C_dump_each();
+    if (s.a == s.c) // False, because of bitfield downcasts
+      Frama_C_show_each_unreachable();
+  }
+}
+
+void main() {
+  main_old();
+  imprecise_bts_1671();
   logic();
+  eq_bitfields();
 }

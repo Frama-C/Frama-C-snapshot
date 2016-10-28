@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/issue_143.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] 2 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_with_consistent_antecedent_ok : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_with_inconsistent_antecedent_ok : Valid

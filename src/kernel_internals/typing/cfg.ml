@@ -290,7 +290,7 @@ let xform_switch_block ?(keepSwitch=false) b =
   let () = Stack.push (Stack.create()) continues_stack in
   let assert_of_clause f ca =
     match ca.annot_content with
-      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | AAllocation _ | APragma _ -> Logic_const.ptrue
+      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | AAllocation _ | APragma _ | AExtended _ -> Logic_const.ptrue
       | AStmtSpec (_bhv,s) ->
         let open Logic_const in
         List.fold_left
@@ -301,15 +301,13 @@ let xform_switch_block ?(keepSwitch=false) b =
                  (pands
                     (List.map
                        (fun p ->
-                         pold ~loc:p.ip_loc
-                           (Logic_utils.named_of_identified_predicate p))
+                         pold ~loc:p.ip_content.pred_loc
+                           (Logic_const.pred_of_id_pred p))
                        bhv.b_assumes),
                   pands
                     (List.fold_left
                        (fun acc (kind,p) ->
-                         if f kind then
-                           Logic_utils.named_of_identified_predicate p
-                           :: acc
+                         if f kind then Logic_const.pred_of_id_pred p :: acc
                          else acc)
                        [ptrue] bhv.b_post_cond)
                  )))
@@ -404,7 +402,7 @@ let xform_switch_block ?(keepSwitch=false) b =
               Stack.iter (fun p ->
                   assertion := Logic_const.pand (p,!assertion)) breaks;
               (match !assertion with
-                  { content = Ptrue } ->
+                  { pred_content = Ptrue } ->
                     popn popstack;
                     s ::
                       xform_switch_stmt
@@ -425,7 +423,7 @@ let xform_switch_block ?(keepSwitch=false) b =
               Stack.iter (fun p ->
                   assertion := Logic_const.pand(p,!assertion)) continues;
               (match !assertion with
-                  { content = Ptrue } ->
+                  { pred_content = Ptrue } ->
                     popn popstack;
                     s ::
                       xform_switch_stmt

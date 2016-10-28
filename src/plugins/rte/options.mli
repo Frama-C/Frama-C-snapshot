@@ -29,6 +29,7 @@ module DoShift : Parameter_sig.Bool
 module DoDivMod : Parameter_sig.Bool
 module DoFloatToInt : Parameter_sig.Bool
 module DoMemAccess : Parameter_sig.Bool
+module DoPointerCall : Parameter_sig.Bool
 module DoCalledPrecond : Parameter_sig.Bool
 
 module Trivial : Parameter_sig.Bool

@@ -7,7 +7,7 @@
    COMMENT: TEST_TITLE: Chiffrement via AES-NI
    COMMENT: TEST_MAIN: encrypt_aesni
    COMMENT: TEST_DESCRIPTION: Un message de 64 octets est initialisé à une valeur précise. Le nombre de tours est fixé à 12 et la clé de chiffrement étendue est initialisée à une valeur abstraite. L'appel à la fonction do_aesni_enc effectue le chiffrement et place le résultat à l'adresse mémoire pointée par le paramètre b. On vérifie ensuite que les cases du tableau b ont bien été initialisées et que le tableau a n'a pas été modifié.
-   OPT: -cpp-extra-args='-DUSE_AESNI' -check -print
+   OPT: -cpp-extra-args='-DUSE_AESNI' -print
    -------------------------
 */
 #include <__fc_builtin.h>

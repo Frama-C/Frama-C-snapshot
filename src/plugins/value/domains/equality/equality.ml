@@ -36,38 +36,37 @@ module Make
   : Equality_sig.S_with_collections with type elt = Elt.t
 = struct
 
+  type 'a trivial = 'a Equality_sig.trivial = Trivial | NonTrivial of 'a
+
+  type 'a tree =
+    'a Equality_sig.tree = Empty | Leaf of 'a | Node of 'a tree * 'a tree
+
   module Equality = struct
     include Set
 
     let name = Functor_info.module_name
 
-    let return s = if cardinal s > 1 then `Value s else `Void
+    (* cardinality less or equal to 1: not a real equivalence class *)
+    let is_trivial s =
+      try fold (fun _ acc -> if acc = 0 then 1 else raise Exit) s 0 <= 1
+      with Exit -> false
 
-    let cardinal s = cardinal s - 1
+    let return s = if is_trivial s then Trivial else NonTrivial s
 
     (* TODO: consistency *)
     let pair e1 e2 =
       if Elt.equal e1 e2
-      then `Void
-      else return (add e2 (singleton e1))
+      then Trivial
+      else NonTrivial (add e2 (singleton e1))
 
     let remove e s = return (remove e s)
 
     let inter s s' = return (inter s s')
 
-    let intersect set1 set2 = exists (fun elt -> mem elt set2) set1
-
     let filter f s = return (filter f s)
 
-    let subst f set =
-      let process x result = match f x with
-        | Some r -> add r result
-        | None -> result
-      in
-      return (fold process set empty)
-
     let pretty fmt s =
-      Pretty_utils.pp_iter ~pre:"@[{" ~sep:"@ =@ " ~suf:"}@]"
+      Pretty_utils.pp_iter ~pre:"@[<hov 3>{" ~sep:"@ =@ " ~suf:"}@]"
         iter (fun fmt a -> Elt.pretty fmt a)
         fmt s
 
@@ -82,291 +81,140 @@ module Make
     module Initial_Values = struct let v = [[]] end
     module Dependencies = struct let l = [ Elt.self ] end
 
-    module Union = struct
-      include
-        Hptmap.Make (Elt) (Equality)
-          (Hptmap.Comp_unused) (Initial_Values) (Dependencies)
+    include Hptmap.Make (Elt) (Equality)
+        (Hptmap.Comp_unused) (Initial_Values) (Dependencies)
 
-      let find rep union =
-        try find rep union
-        with Not_found ->
-          Value_parameters.warning
-            "Representing %a not found in the equalities; return void equality."
-            Elt.pretty rep;
-          Equality.empty
-    end
-
-    module Find = struct
-      include Hptmap.Make (Elt) (Elt)
-          (Hptmap.Comp_unused) (Initial_Values) (Dependencies)
-
-      let find_option elt map =
-        try Some (find elt map)
-        with Not_found -> None
-    end
-
-    include Datatype.Pair (Union) (Find)
+    let find_option elt map =
+      try Some (find elt map)
+      with Not_found -> None
 
     type element = Equality.elt
     type equality = Equality.t
 
-    let pretty fmt (union, _) =
-      Pretty_utils.pp_iter ~pre:"@[" ~sep:"@ " ~suf:"@]"
-        (fun f union -> Union.iter (fun _ eq -> f eq) union)
-        (fun fmt eq -> Format.fprintf fmt "@[%a@]" Equality.pretty eq)
-        fmt union
+    let contains = mem
 
-    let empty = (Union.empty, Find.empty)
-    let is_empty (union, _) = Union.is_empty union
+    let mem equality map =
+      let head = Equality.choose equality in
+      match find_option head map with
+      | None -> false
+      | Some eq -> Equality.subset equality eq
 
-    let equal (u1, _) (u2, _) = Union.equal u1 u2
-    let compare (u1, _) (u2, _) = Union.compare u1 u2
+    let subset =
+      binary_predicate
+        (Hptmap_sig.PersistentCache "equality.set.subset")
+        UniversalPredicate
+        ~decide_fast:decide_fast_inclusion
+        ~decide_fst:(fun _ _ -> false)
+        ~decide_snd:(fun _ _ -> true)
+        ~decide_both:(fun _ e1 e2 -> Equality.subset e1 e2)
 
+    (* TODO: replace all occurrences of Equality.fold by an heterogeneous
+       iteration on the equality and the set of equalities. *)
 
-    let fold f (union, _) accu =
-      Union.fold (fun _ eq accu -> f eq accu) union accu
+    let singleton equality =
+      Equality.fold (fun elt map -> add elt equality map) equality empty
 
-    let deep_fold f unfi accu =
-      fold (fun eq accu -> Equality.fold (f eq) eq accu) unfi accu
+    let remove elt map =
+      match find_option elt map with
+      | None -> map
+      | Some eq -> match Equality.remove elt eq with
+        | Trivial -> Equality.fold (fun e map -> remove e map) eq map
+        | NonTrivial eq ->
+          let map = Equality.fold (fun e map -> add e eq map) eq map in
+          remove elt map
 
-    let iter f (union, _) = Union.iter (fun _ eq -> f eq) union
-    let exists f (union, _) = Union.exists (fun _ eq -> f eq) union
-    let for_all f (union, _) = Union.for_all (fun _ eq -> f eq) union
-
-
-    let find_option elt (union, find) =
-      try
-        let rep = Find.find elt find in
-        Some (Union.find rep union)
-      with
-        | Not_found -> None
-
-    let find elt (union, find) =
-      let rep = Find.find elt find in Union.find rep union
-
-    let contains elt (_, find) = Find.mem elt find
-
-    let mem equality (union, find) =
-      try
-        let head = Equality.choose equality in
-        let rep = Find.find head find in
-        Equality.subset equality (Union.find rep union)
-      with
-        | Not_found -> false
-
-    let subset (u1, _) (u2, f2) =
-      let process rep1 equality1 =
-        let rep2 = Find.find rep1 f2 in
-        let equality2 = Union.find rep2 u2 in
-        Equality.subset equality1 equality2
-      in
-      try
-        Union.for_all process u1
-      with
-        Not_found -> false
-
-    let cardinal (union, _) =
-      Union.fold (fun _ e acc -> acc + Equality.cardinal e) union 0
-
-
-    let update_representative set rep find =
-      Equality.fold (fun elt find -> Find.add elt rep find) set find
-
-    let register equality rep (union, find) =
-      Union.add rep equality union, update_representative equality rep find
-
-    let inset equality (union, find) =
-      let representative = Equality.choose equality in
-      register equality representative (union, find)
-
-    let singleton equality = inset equality empty
-
-    let add equality (union, find) =
-      let representatives =
+    let add equality map =
+      (* Compute the transitive closure of [equality], taking the equalities
+         already in [map] into account. *)
+      let overall_equality =
         Equality.fold
-          (fun elt accu ->
-             try let rep = Find.find elt find in Set.add rep accu
-             with Not_found -> accu)
-          equality Set.empty
+          (fun elt acc -> match find_option elt map with
+             | None -> acc
+             | Some eq -> Equality.union eq equality)
+          equality equality
       in
-      let process rep equality = Equality.union (Union.find rep union) equality in
-      if Set.is_empty representatives
-      then inset equality (union, find)
-      else
-        let equality = Set.fold process representatives equality in
-        let union = Set.fold Union.remove representatives union in
-        inset equality (union, find)
+      (* map all the elements in this transitive closure to the closure itself*)
+      Equality.fold
+        (fun elt map -> add elt overall_equality map) overall_equality map
 
-    let union unfi1 unfi2 =
-      if Union.cardinal (fst unfi1) > Union.cardinal (fst unfi2)
-      then fold add unfi2 unfi1
-      else fold add unfi1 unfi2
+    let unite a b map =
+      match Equality.pair a b with
+      | Trivial -> map
+      | NonTrivial equality -> add equality map
 
-    let add equality unfi = add equality unfi
+    (* The implementation of this function is buggy. Take e.g.
+       [a == b, c == d] and [b == c]. Another function and a fixpoint is
+       needed. However, this may not be critical because this only endangers
+       the transitive closure of the equality. TODO: check. *)
+    let _union =
+      join
+        ~cache:(Hptmap_sig.PersistentCache "equality.set.union")
+        ~symmetric:true
+        ~idempotent:true
+        ~decide:(fun _key left right -> Equality.union left right)
 
-    let remove elt (union, find) =
-      try
-        let rep = Find.find elt find in
-        let equality = Union.find rep union in
-        match Equality.remove elt equality with
-          | `Void -> Union.remove rep union,
-                     Equality.fold Find.remove equality find
-          | `Value equality ->
-              if Elt.equal rep elt
-              then
-                let uf = Union.remove rep union, Find.remove elt find in
-                inset equality uf
-              else
-                Union.add rep equality union, Find.remove elt find
-      with
-        | Not_found -> (union, find)
+    let union a b =
+      if cardinal a > cardinal b
+      then fold (fun _ eq acc -> add eq acc) b a
+      else fold (fun _ eq acc -> add eq acc) a b
 
-    let unite (union, find) =
-      (* Add the new element [e] to the equality whose representative si [rep]. *)
-      let add_one e rep =
-        let equality = Equality.add e (Union.find rep union) in
-        let rep' = Equality.choose equality in
-        let res =
-          if Elt.equal rep rep'
-          then
-            Union.add rep equality union, Find.add e rep find
-          else
-            register equality rep' (Union.remove rep union, find)
-        in
-        res
+    let inter =
+      let decide _key left right =
+        match Equality.inter left right with
+        | Trivial -> None
+        | NonTrivial eq -> Some eq
       in
-      (* Join the two equalities whose representative are [rep_a] and [rep_b]. *)
-      let join rep_a rep_b =
-        if Elt.equal rep_a rep_b then union, find
-        else
-          let equality_a = Union.find rep_a union
-          and equality_b = Union.find rep_b union in
-          let equality = Equality.union equality_a equality_b in
-          let rep = Equality.choose equality in
-          let res =
-            if Elt.equal rep_a rep
-            then
-              (Union.add rep equality (Union.remove rep_b union),
-               update_representative equality_b rep find)
-            else if Elt.equal rep_b rep
-            then
-              (Union.add rep equality (Union.remove rep_a union),
-               update_representative equality_a rep find)
-            else
-              assert false
-          in
-          res
+      inter
+        ~cache:(Hptmap_sig.PersistentCache "equality.set.inter")
+        ~symmetric:true
+        ~idempotent:true
+        ~decide
+
+    let choose map = snd (min_binding map)
+
+    let elements map = fold (fun _ eq acc -> eq :: acc) map []
+
+    (* is representative? *)
+    let is_rep elt eq = Elt.equal (Equality.choose eq) elt
+
+    let fold f map acc =
+      fold (fun elt eq acc -> if is_rep elt eq then f eq acc else acc) map acc
+
+    let deep_fold f map acc =
+      fold (fun eq accu -> Equality.fold (f eq) eq accu) map acc
+
+    let iter f map =
+      iter (fun elt eq -> if is_rep elt eq then f eq) map
+    let exists f map =
+      exists (fun elt eq -> if is_rep elt eq then f eq else false) map
+    let for_all f map =
+      for_all (fun elt eq -> if is_rep elt eq then f eq else true) map
+
+
+    let pretty fmt map =
+      Pretty_utils.pp_iter ~pre:"@[" ~sep:"@ " ~suf:"@]"
+        iter (fun fmt eq -> Format.fprintf fmt "@[%a@]" Equality.pretty eq)
+        fmt map
+
+    let keys =
+      let cache_name = "Equalities.Set.keys" in 
+      let temporary = false in
+      let f k _ = Leaf k in
+      let joiner t1 t2 = Node (t1, t2) in
+      let empty = Empty in
+      cached_fold ~cache_name ~temporary ~f ~joiner ~empty
+
+    let elements_only_left =
+      let cache = Hptmap_sig.PersistentCache "Equality.Set.only_left" in
+      let empty_left _ = Empty (* impossible *) in
+      let empty_right t = keys t in
+      let both _ _ _ = Empty in
+      let join t1 t2 = Node (t1, t2) in
+      let empty = Empty in
+      let f = fold2_join_heterogeneous
+          ~cache ~empty_left ~empty_right ~both ~join ~empty
       in
-      fun a b ->
-        if Elt.equal a b
-        then union, find
-        else
-          let rep_a = Find.find_option a find
-          and rep_b = Find.find_option b find in
-          match rep_a, rep_b with
-            | Some rep_a, Some rep_b -> join rep_a rep_b
-            | Some rep_a, None -> add_one b rep_a
-            | None, Some rep_b -> add_one a rep_b
-            | None, None ->
-              match Equality.pair a b with
-              | `Void -> assert false (* a != b *)
-              | `Value equality ->
-                let rep = Equality.choose equality in
-                let find = Find.add a rep (Find.add b rep find)
-                and union = Union.add rep equality union in
-                union, find
+      fun eqs1 eqs2 -> f eqs1 (shape eqs2)
 
-    let unite a b unfi = unite unfi a b
-
-    let replace elt ersatz (union, find) =
-      if contains elt (union, find)
-      then
-        let united = unite elt ersatz (union, find) in
-        remove elt united
-      else union, find
-
-    let inter (u1, f1) (u2, f2) =
-      if u1 == u2 then (u1, f1)
-      else
-        let u' = ref Union.empty in
-        let inter =
-          let cache = Hashtbl.create 24 in
-          fun _key rep1 rep2 ->
-            try Hashtbl.find cache (rep1, rep2)
-            with Not_found ->
-              let eq1 = Union.find rep1 u1 and eq2 = Union.find rep2 u2 in
-              let rep' = match Equality.inter eq1 eq2 with
-                | `Value eq' ->
-                    let rep' = Equality.choose eq' in
-                    u' := Union.add rep' eq' !u';
-                    Some rep'
-                | `Void -> None
-              in
-              Hashtbl.add cache (rep1, rep2) rep'; rep'
-        in
-        let f' =
-          Find.inter
-            ~cache:Hptmap_sig.NoCache
-            ~symmetric:false
-            ~idempotent:false
-            ~decide:inter
-            f1 f2
-        in
-        (!u', f')
-
-    let diff (union1, find1) (union2, find2) =
-      let process rep1 equality1 (union, find as acc) =
-        try
-          let rep2 = Find.find rep1 find2 in
-          let equality2 = Union.find rep2 union2 in
-          if Equality.subset equality1 equality2
-          then
-            Union.remove rep1 union,
-            Equality.fold Find.remove equality1 find
-          else
-            acc
-        with Not_found -> acc
-      in
-      Union.fold process union1 (union1, find1)
-
-    (* This function is correct only if the second argument is a subset of
-       the first. *)
-    let _diff' =
-      let union_merge =
-        Union.merge
-          ~cache:(Hptmap_sig.PersistentCache "Equalities.diff")
-          ~symmetric:false
-          ~idempotent:false
-          ~decide_both:(fun _ v v' -> if Equality.equal v v' then None else Some v)
-          ~decide_left:Union.Neutral
-          ~decide_right:Union.Absorbing
-      in
-      fun former inter ->
-        let u, f = former and u', _ = inter in
-        let union = union_merge u u' in
-        let filter _ rep = if Union.mem rep union then Some rep else None in
-        let find = Find.map' filter f in
-        union, find
-
-    let choose (union, _) = snd (Union.min_binding union)
-
-    let elements (union, _) = Union.fold (fun _ eq accu -> eq :: accu) union []
-
-    let terms (_, find) =
-      Find.fold (fun elt _ accu -> elt :: accu) find []
-
-    let subst s (union, find) =
-      let process elt _ (union, find) =
-        match s elt with
-          | Some ersatz ->
-              begin
-                if Elt.equal elt ersatz then (union, find)
-                else replace elt ersatz (union, find)
-              end
-          | None -> remove elt (union, find)
-      in
-      Find.fold process find (union, find)
   end
-
-
 end

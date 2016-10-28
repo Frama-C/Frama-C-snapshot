@@ -156,14 +156,15 @@ let check_no_recursive_call kf =
             "@[recursive call@ during@ value@ analysis@ of %a @[(%a <- %a)@].@ \
              Using specification of %a.@]"
             Kernel_function.pretty kf Kernel_function.pretty kf
-            pretty_call_stack (call_stack ()) Kernel_function.pretty kf;
+            Value_types.Callstack.pretty (call_stack ())
+            Kernel_function.pretty kf;
           Db.Value.recursive_call_occurred kf;
           raise Recursive_call
         end
         else begin
 	  warning_once_current "@[@[detected@ recursive@ call@ (%a <- %a)@]@;@[Use %s@ to@ ignore@ (beware@ this@ will@ make@ the analysis@ unsound)@]@]"
             Kernel_function.pretty kf
-            pretty_call_stack (call_stack ())
+            Value_types.Callstack.pretty (call_stack ())
             Value_parameters.IgnoreRecursiveCalls.option_name;
           raise Db.Value.Aborted
 

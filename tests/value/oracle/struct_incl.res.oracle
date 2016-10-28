@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
   tab_s[0..1] ∈ {0}
@@ -23,13 +23,13 @@
   z ∈ {0}
   t ∈ {0}
   v ∈ [--..--]
-tests/value/struct_incl.i:48:[kernel] warning: accessing out of bounds index. assert 10 < 10;
+tests/value/struct_incl.i:48:[value] warning: accessing out of bounds index. assert 10 < 10;
 tests/value/struct_incl.i:48:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
 tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   s1{.a; .d[0..2]} ∈ {2}
     .d[3..4] ∈ {0}
     .d[5] ∈ {7}

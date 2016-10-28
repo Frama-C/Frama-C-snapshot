@@ -15,7 +15,14 @@
   lemma access_4_4: ok: 
   \forall integer k ; 0 <= k < 4 ==>
     f(k)==\nth([| f(0), f(1), f(2),  f(3) |], k);
-              
+
+  lemma eq_repeat_concat_3: ok:
+    \forall \list<integer> x ; (x *^ 3) == (x ^ x ^ x) ;      
+   
+  lemma access_repeat_concat_3: ok:
+    \forall \list<integer> x ; 
+      \forall integer k ; 0 <= k < 3*\length(x) ==> \nth(x *^ 3, k) == \nth(x ^ x ^ x, k) ;      
+
   }
 */
 

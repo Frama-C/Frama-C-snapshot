@@ -184,18 +184,12 @@ type name"
     in
     !add_abstract_types p T.name
 end
-    
-(* cannot use [Pretty_utils] here *)
-let sfprintf fmt =
-  let b = Buffer.create 20 in
-  let return fmt = Format.pp_print_flush fmt (); Buffer.contents b in
-  Format.kfprintf return (Format.formatter_of_buffer b) fmt
 
 let name ty = ty.name
 let structural_descr ty = ty.structural_descr
 let digest ty = ty.digest
 let pp_ml_name ty = ty.pp_ml_name
-let ml_name ty = sfprintf "%t" (ty.pp_ml_name Basic)
+let ml_name ty = Format.asprintf "%t" (ty.pp_ml_name Basic)
 
 let unsafe_reprs ty = (Hashtbl.find types ty.name).reprs
 let reprs ty =
@@ -260,7 +254,7 @@ module Polymorphic(T: Polymorphic_input) = struct
   type 'a poly = 'a T.t
 
   let ml_name from_ty = 
-    sfprintf "%s.instantiate %t"
+    Format.asprintf "%s.instantiate %t"
       T.module_name
       (from_ty.pp_ml_name Call)
 
@@ -325,7 +319,7 @@ module Polymorphic2(T: Polymorphic2_input) = struct
   let instances : (concrete_repr * concrete_repr) Tbl.t = Tbl.create 17
 
   let ml_name from_ty1 from_ty2 =
-    sfprintf
+    Format.asprintf
       "%s.instantiate %t %t"
       T.module_name
       (from_ty1.pp_ml_name Call)
@@ -429,7 +423,7 @@ module Function = struct
     ^ par_ty_name is_instance_of ty1 ^ " -> " ^ name ty2
 
   let ml_name label ty1 ty2 =
-    sfprintf
+    Format.asprintf
       "Datatype.func%s %t %t"
       (match label with None -> "" | Some l -> " ~label:(" ^ l ^ ", None)")
       (ty1.pp_ml_name Call) (ty2.pp_ml_name Call)
@@ -507,7 +501,7 @@ module Polymorphic3(T:Polymorphic3_input) = struct
       = Tbl.create 17
 
   let ml_name from_ty1 from_ty2 from_ty3 =
-    sfprintf
+    Format.asprintf
       "%s.instantiate %t %t %t"
       T.module_name
       (from_ty1.pp_ml_name Call)
@@ -608,7 +602,7 @@ module Polymorphic4(T:Polymorphic4_input) = struct
       = Tbl.create 17
 
   let ml_name from_ty1 from_ty2 from_ty3 from_ty4 =
-    sfprintf
+    Format.asprintf
       "%s.instantiate %t %t %t %t"
       T.module_name
       (from_ty1.pp_ml_name Call)

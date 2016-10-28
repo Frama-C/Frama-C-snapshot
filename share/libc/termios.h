@@ -26,6 +26,7 @@
 #ifndef _TERMIOS_H
 #define _TERMIOS_H
 
+extern int Frama_C_entropy_source;
 #include "__fc_define_pid_t.h"
 #include "features.h"
 #define IGNBRK	0000001
@@ -174,10 +175,37 @@ int     cfsetospeed(struct termios *, speed_t);
 int     tcdrain(int);
 int     tcflow(int, int);
 int     tcflush(int, int);
-int     tcgetattr(int, struct termios *);
+
+/*@ requires \valid(termios_p);
+    assigns \result, *termios_p \from indirect:fd,
+                                       indirect:Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    behavior ok:
+      assumes Frama_C_entropy_source == 0; // arbitrary condition
+      ensures \initialized(termios_p);
+      ensures \result == 0;
+    behavior error:
+      assumes Frama_C_entropy_source != 0; // arbitrary condition
+      ensures \result == -1;
+    disjoint behaviors ok, error;
+    complete behaviors ok, error;
+ */
+int     tcgetattr(int fd, struct termios *termios_p);
+
 pid_t   tcgetsid(int);
 int     tcsendbreak(int, int);
-int     tcsetattr(int, int, struct termios *);
+
+/*@
+  requires \valid(termios_p);
+  assigns *termios_p \from indirect:fd, indirect:optional_actions,
+                      indirect:Frama_C_entropy_source, *termios_p;
+  assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+  assigns \result \from indirect:fd, indirect:optional_actions,
+                        indirect:Frama_C_entropy_source,
+                        indirect:*termios_p;
+  ensures \result == 0 || \result == -1;
+ */
+int     tcsetattr(int fd, int optional_actions, struct termios *termios_p);
 
 __END_DECLS
 

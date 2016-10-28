@@ -3,13 +3,11 @@
 [kernel] Parsing tests/value/abstract_struct_2.c (with preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
-[value:initial_state] creating variable S_data_0_S_repositories with imprecise size (type struct abstracttype [2])
 tests/value/abstract_struct_1.c:10:[value] warning: during initialization of variable 'repositories', size of
                  type 'struct abstracttype' cannot be computed
                  (abstract type 'struct abstracttype')
-[value:initial_state] creating variable S_data_1_S_repositories with imprecise size (type struct abstracttype [2])
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
@@ -22,13 +20,14 @@ tests/value/abstract_struct_1.c:10:[value] warning: during initialization of var
   S_data_1_S_repositories[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
 [value] computing for function calloc <- main.
         Called from tests/value/abstract_struct_1.c:13.
-tests/value/abstract_struct_1.c:13:[kernel] warning: Neither code nor specification for function calloc, generating default assigns from the prototype
+tests/value/abstract_struct_1.c:13:[kernel] warning: No code nor implicit assigns clause for function calloc, generating default assigns from the prototype
 [value] using specification for function calloc
+share/libc/stdlib.h:159:[value] function calloc: precondition got status valid.
 [value] Done for function calloc
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   repositories ∈
               {{ NULL + [--..--] ;
                  &alloced_return_calloc + [0..2147483647] }}

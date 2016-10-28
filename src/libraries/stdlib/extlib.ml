@@ -286,8 +286,12 @@ let xor x y = if x then not y else y
 (** {2 Performance} *)
 (* ************************************************************************* *)
 
+(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+[@@@ warning "-3"]
 external getperfcount: unit -> int = "getperfcount" "noalloc"
 external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
+external address_of_value: 'a -> int = "address_of_value" "noalloc"
+[@@@ warning "+3"]
 
 let gentime counter ?msg f x =
   let c1 = counter () in
@@ -323,8 +327,6 @@ let _time2 name f =
     cpt := !cpt + diff;
     Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
     res
-
-external address_of_value: 'a -> int = "address_of_value" "noalloc"
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -415,7 +417,10 @@ let temp_dir_cleanup_at_exit ?(debug=false) base =
   in
   try_dir_cleanup_at_exit 10 base
 
+(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+[@@@ warning "-3"]
 external terminate_process: int -> unit = "terminate_process" "noalloc"
+    [@@deprecated "Use Unix.kill instead"]
   (* In ../utils/c_binding.c ; can be replaced by Unix.kill in OCaml >= 4.02 *)
 
 external usleep: int -> unit = "ml_usleep" "noalloc"
@@ -426,6 +431,7 @@ external usleep: int -> unit = "ml_usleep" "noalloc"
 (* ************************************************************************* *)
 
 external compare_strings: string -> string -> int -> bool = "compare_strings" "noalloc"
+[@@@ warning "+3"]
 
 let string_prefix ?(strict=false) prefix s =
   let add = if strict then 1 else 0 in
@@ -469,6 +475,11 @@ let make_unique_name mem ?(sep=" ") ?(start=2) from =
 (* ************************************************************************* *)
 
 external compare_basic: 'a -> 'a -> int = "%compare"
+
+let compare_ignore_case s1 s2 =
+  String.compare
+    (Transitioning.String.lowercase_ascii s1)
+    (Transitioning.String.lowercase_ascii s2)
 
 (*
 Local Variables:

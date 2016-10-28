@@ -219,6 +219,8 @@ module Feedback: sig
   val get: Property.t -> t
   val get_conjunction: Property.t list -> t
 
+  val pretty: Format.formatter -> t -> unit
+
 end
  
 (** See the consolidated status of a property in a graph, which all its

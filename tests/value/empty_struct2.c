@@ -41,12 +41,12 @@ int main() {
   e1 = global_empty;
   Frama_C_show_each_global_empty(global_empty);
   Frama_C_show_each_e1(e1);
-  memcpy(&e2, &e1, sizeof(e1));
+  memcpy(&e2, &e1, sizeof(e1)); // imprecise, no builtin
   comp c1, c2;
   c1.a = 42;
   c1.b = 77;
   c1.e = e1;
-  memcpy(&c2, &c1, sizeof(c1));
+  memcpy(&c2, &c1, sizeof(c1)); // imprecise, no builtin
   Frama_C_show_each_c2(c2);
   Frama_C_show_each_c2_e(c2.e);
   comp res = f(c2, &c1);

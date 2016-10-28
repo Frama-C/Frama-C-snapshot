@@ -3,22 +3,22 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/degeneration2.i:14:[kernel] warning: accessing uninitialized left-value. assert \initialized(&A);
-tests/value/degeneration2.i:14:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)A);
-tests/value/degeneration2.i:14:[kernel] warning: signed overflow. assert -((int)A) ≤ 2147483647;
+tests/value/degeneration2.i:14:[value] warning: accessing uninitialized left-value. assert \initialized(&A);
+tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -2147483648 ≤ -((int)A);
+tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -((int)A) ≤ 2147483647;
 tests/value/degeneration2.i:14:[value] Assigning imprecise value to A.
         The imprecision originates from Arithmetic {tests/value/degeneration2.i:14}
 tests/value/degeneration2.i:16:[value] entering loop for the first time
-tests/value/degeneration2.i:17:[kernel] warning: accessing uninitialized left-value. assert \initialized((int *)A);
-tests/value/degeneration2.i:17:[kernel] warning: out of bounds read. assert \valid_read((int *)A);
-tests/value/degeneration2.i:25:[kernel] warning: accessing uninitialized left-value. assert \initialized(&offset_uninit);
+tests/value/degeneration2.i:17:[value] warning: accessing uninitialized left-value. assert \initialized((int *)A);
+tests/value/degeneration2.i:17:[value] warning: out of bounds read. assert \valid_read((int *)A);
+tests/value/degeneration2.i:25:[value] warning: accessing uninitialized left-value. assert \initialized(&offset_uninit);
 [value] Recording results for main
 [value] done for function main
 tests/value/degeneration2.i:25:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   A ∈
    {{ garbled mix of &{B; C; D; E}
     (origin: Arithmetic {tests/value/degeneration2.i:14}) }}

@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-memexec-all" +"-rte-select fbug -rte"
+   STDOPT: #" -no-val -rte-select fbug -rte -then -memexec-all -val"
 */
 
 int x1, y1, z1; volatile int c;

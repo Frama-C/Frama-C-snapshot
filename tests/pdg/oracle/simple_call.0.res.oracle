@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   S ∈ [--..--]
 [value] computing for function call <- main.
         Called from tests/pdg/simple_call.c:59.
-tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 2147483647;
+tests/pdg/simple_call.c:45:[value] warning: signed overflow. assert G + y ≤ 2147483647;
 [value] Recording results for call
 [value] Done for function call
 [value] Recording results for main

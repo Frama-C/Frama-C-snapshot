@@ -38,10 +38,6 @@ val push_call_stack : kernel_function -> kinstr -> unit
 val current_kf : unit -> kernel_function
 val call_stack : unit -> callstack
 
-(** Print a call stack. The first one does not display the call sites. *)
-val pretty_call_stack_short : Format.formatter -> callstack -> unit
-val pretty_call_stack : Format.formatter -> callstack -> unit
-
 (** Prints the current callstack. *)
 val pp_callstack : Format.formatter -> unit
 
@@ -62,6 +58,11 @@ val pretty_actuals :
   Format.formatter -> (Cil_types.exp * Cvalue.V.t * 'b) list -> unit
 val pretty_current_cfunction_name : Format.formatter -> unit
 val warning_once_current : ('a, Format.formatter, unit) format -> 'a
+
+(** Emit an alarm, either as warning or as a result, according to
+    option AlarmsWarnings. *)
+val alarm_report: ?level:int -> 'a Log.pretty_printer
+
 val debug_result :
   Kernel_function.t ->
   Cvalue.V_Offsetmap.t option * 'a * Base.SetLattice.t -> unit
@@ -91,9 +92,6 @@ val float_kind: Cil_types.fkind -> Fval.float_kind
 val postconditions_mention_result: Cil_types.funspec -> bool
 (** Does the post-conditions of this specification mention [\result]? *)
 
-val written_formals: Cil_types.kernel_function -> Cil_datatype.Varinfo.Set.t
-(** Over-approximation of its formals the given function may write into. *)
-
 val bind_block_locals: State_set.t -> Cil_types.block -> State_set.t
 (** Bind all locals of the block to their default value
     (namely UNINITIALIZED) *)
@@ -116,10 +114,24 @@ val zero: exp -> exp
 val is_value_zero: exp -> bool
 (** Return [true] iff the argument has been created by {!zero} *)
 
-(** These two functions are used to model the calls to [malloc] and [free]
-    correctly. *)
-val register_malloced_base: Base.t -> unit
-val malloced_bases: unit -> Base.Hptset.t
+val dump_garbled_mix: unit -> unit
+(** print information on the garblex mix created during evaluation *)
+
+
+(** Dependences of expressions and lvalues. *)
+
+val zone_of_expr:
+  (lval -> Precise_locs.precise_location) -> exp -> Locations.Zone.t
+(** Given a function computing the location of lvalues, computes the memory zone
+    on which the value of an expression depends. *)
+
+val indirect_zone_of_lval:
+  (lval -> Precise_locs.precise_location) -> lval -> Locations.Zone.t
+(** Given a function computing the location of lvalues, computes the memory zone
+    on which the offset and the pointer expression (if any) of an lvalue depend.
+*)
+
+
 
 (*
 Local Variables:

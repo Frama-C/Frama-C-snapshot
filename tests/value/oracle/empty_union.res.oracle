@@ -4,9 +4,9 @@
 [value] Computing initial state
 tests/value/empty_union.c:59:[value] warning: during initialization of variable 'f1', size of type 'int []' cannot be
                  computed (Size of array without number of elements.)
-tests/value/empty_union.c:59:[kernel] imprecise size for variable f1
+tests/value/empty_union.c:59:[kernel] imprecise size for variable f1 (Size of array without number of elements.)
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   array_of_comp[0]{.a; .e{}; .b} ∈ {17}
   f1[bits 0 to ..] ∈ {0} or UNINITIALIZED
@@ -14,8 +14,8 @@ tests/value/empty_union.c:59:[kernel] imprecise size for variable f1
     .data[1..2] ∈ {0}
 tests/value/empty_union.c:75:[value] assertion got status valid.
 tests/value/empty_union.c:76:[value] assertion got status valid.
-[value] Called Frama_C_show_each_global_empty({{  }})
-[value] Called Frama_C_show_each_e1({{  }})
+[value] Called Frama_C_show_each_global_empty(∅)
+[value] Called Frama_C_show_each_e1(∅)
 [value] computing for function memcpy <- main.
         Called from tests/value/empty_union.c:80.
 [value] using specification for function memcpy
@@ -29,7 +29,7 @@ tests/value/empty_union.c:80:[value] cannot evaluate ACSL term, unsupported ACSL
 tests/value/empty_union.c:85:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] Done for function memcpy
 [value] Called Frama_C_show_each_c2([--..--])
-[value] Called Frama_C_show_each_c2_e({{  }})
+[value] Called Frama_C_show_each_c2_e(∅)
 [value] computing for function f <- main.
         Called from tests/value/empty_union.c:88.
 [value] Recording results for f
@@ -47,13 +47,13 @@ tests/value/empty_union.c:37:[value] function copy_empty: postcondition got stat
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function copy_empty:
+[value:final-states] Values at end of function copy_empty:
   
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   res{.a; .e{}; .b} ∈ {74}
-[value] Values at end of function gcc_zero_length_examples:
+[value:final-states] Values at end of function gcc_zero_length_examples:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   c1{.a; .e{}; .b} ∈ {77}
   c2 ∈ [--..--] or UNINITIALIZED
   res{.a; .e{}; .b} ∈ {74}

@@ -67,7 +67,7 @@ struct
       method! vlogic_var_decl _ = assert false
       method! vquantifiers _ = assert false
       method! vpredicate _ = assert false
-      method! vpredicate_named _ = assert false
+      method! vpredicate_node _ = assert false
       method! vbehavior _ = assert false
       method! vannotation _ = assert false
     end

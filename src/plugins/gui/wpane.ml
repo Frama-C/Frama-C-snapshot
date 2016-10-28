@@ -26,9 +26,9 @@ open Widget
 (* ---  Forms                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-type field = [ `Compact | `Field | `Editor ]
+type field = [ `Compact | `Field | `Panel ]
 
-let fexpand = function `Compact -> `NONE | `Field -> `X | `Editor -> `BOTH
+let fexpand = function `Compact -> `NONE | `Field -> `X | `Panel -> `BOTH
 
 class form () =
   let box = GPack.table ~columns:2 ~col_spacings:16 ~homogeneous:false () in
@@ -38,7 +38,7 @@ class form () =
     val mutable right = false (* right column feeded on current line *)
     val mutable xpadding = 0  (* set with sections *)
 
-    inherit Wutil.coerce box
+    inherit Wutil.gobj_widget box
 
     method private occupy_left =
       if left || right then line <- succ line ;
@@ -55,7 +55,7 @@ class form () =
     method add_newline =
       self#occupy_both ;
       let w = GMisc.label ~text:"" () in
-      box#attach ~left:0 ~right:1 ~top:line ~ypadding:12 ~expand:`Y w#coerce
+      box#attach ~left:0 ~right:2 ~top:line ~ypadding:12 ~expand:`Y w#coerce
 
     method add_section label =
       self#occupy_both ;
@@ -78,9 +78,10 @@ class form () =
       self#occupy_right ;
       box#attach ~left:1 ~top:line ~expand:(fexpand field) w
 
-    method add_row ?(field:field=`Field) w =
+    method add_row ?(field:field=`Field) ?(xpadding=xpadding) ?ypadding w =
       self#occupy_both ;
-      box#attach ~left:0 ~right:1 ~top:line ~expand:(fexpand field) w
+      box#attach ~left:0 ~right:2 ~top:line
+        ~xpadding ?ypadding ~expand:(fexpand field) w
 
   end
 
@@ -100,7 +101,7 @@ let no_entry = fun _ -> assert false
 class ['a] warray ?(dir=`VERTICAL) ?(entry = no_entry) () =
   let box = GPack.box dir ~homogeneous:false () in
   object(self)
-    inherit Wutil.coerce box
+    inherit Wutil.gobj_widget box
 
     val mutable rows : ('a * entry) list = []
     val mutable creator : ('a -> entry) = entry
@@ -193,7 +194,9 @@ class ['a] notebook ?tabs ~default () =
         Wutil.on tabs (fun p -> view#set_show_tabs true ; view#set_tab_pos p) ;
       end
     method coerce = view#coerce
-    method! set_enabled = view#misc#set_sensitive
+    method widget = (self :> Widget.t)
+    method! set_enabled = Wutil.set_enabled view
+    method set_visible = Wutil.set_visible view
   end
 
 (* -------------------------------------------------------------------------- *)

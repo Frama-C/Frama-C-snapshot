@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   si ∈ {0}
   i ∈ {0}
   S[0] ∈ {1}
@@ -15,7 +15,7 @@ tests/value/cast1.i:8:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   si ∈ {2}
   i ∈ {2}
   S[0] ∈ {1; 2}

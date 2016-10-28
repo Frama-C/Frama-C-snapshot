@@ -2,18 +2,45 @@
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/reference_array_simple.i (no preprocessing)
 [wp] Running WP plugin...
+.................................................
+... Ref Usage
+.................................................
+... Initial state
+  Nothing
+............
+... Function f1
+   p1[_]
+   i
+............
+... Function call_f1
+  &tt
+   tmp
+............
+... Function f2
+   p2[_]
+   j
+............
+... Function call_f2
+   tt
+   tmp
+   __retres
+............
+... Function f3
+   p3[_]
+   k
+............
+... Function call_f3
+   tp
+   tmp
+.................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function call_f1
 ------------------------------------------------------------
 
-Goal Post-condition 'todo' in 'call_f1':
-Let x = Mint_0[shift_sint32(shift_A10_A5_sint32(global(G_tt_67), 0), 3)].
-Assume { Type: is_sint32(x). }
-Prove: 5 = x.
+Goal Post-condition (file tests/wp_hoare/reference_array_simple.i, line 14) in 'call_f1':
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

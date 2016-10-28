@@ -36,6 +36,10 @@ open Definitions
 (* --- C Constants                                                        --- *)
 (* -------------------------------------------------------------------------- *)
 
+let ainf = Some e_zero
+let asup n = Some (e_int (n-1))
+let arange k n = p_and (p_leq e_zero k) (p_lt k (e_int n))
+
 let rec constant = function
   | CInt64(z,_,_) -> e_bigint z
   | CChr c -> e_int64 (Ctypes.char c)
@@ -79,9 +83,9 @@ and is_constrained_comp c =
 module type CASES =
 sig
   val prefix : string
-  val model : Cint.model
-  (* Natural : all types are constrained, but only with their natural values *)
-  (* Machine : only atomic types are constrained *)
+  val natural : bool
+  (* natural: all types are constrained, but only with their natural values *)
+  (* otherwize: only atomic types are constrained *)
   val is_int : c_int -> term -> pred
   val is_float : c_float -> term -> pred
   val is_pointer : term -> pred
@@ -90,29 +94,26 @@ end
 module STRUCTURAL(C : CASES) =
 struct
 
-  let constrained_elt ty = match C.model with
-    | Cint.Natural | Cint.NoRange -> true
-    | Cint.Machine -> is_constrained ty
+  let constrained_elt ty = C.natural || is_constrained ty
 
-  let constrained_comp c = match C.model with
-    | Cint.Natural | Cint.NoRange -> true
-    | Cint.Machine -> is_constrained_comp c
+  let constrained_comp c = C.natural || is_constrained_comp c
 
-  let model_int fmt i = match C.model with
-    | Cint.Natural | Cint.NoRange -> Format.pp_print_string fmt "int"
-    | Cint.Machine -> Ctypes.pp_int fmt i
+  let model_int fmt i =
+    if C.natural
+    then Format.pp_print_string fmt "int"
+    else Ctypes.pp_int fmt i
 
   let array_name te ds =
     let dim = List.length ds in
     match te with
     | C_int i ->
-        Pretty_utils.sfprintf "%sArray%d_%a" C.prefix dim model_int i
+        Format.asprintf "%sArray%d_%a" C.prefix dim model_int i
     | C_float _ ->
-        Pretty_utils.sfprintf "%sArray%d_float" C.prefix dim
+        Format.asprintf "%sArray%d_float" C.prefix dim
     | C_pointer _ ->
-        Pretty_utils.sfprintf "%sArray%d_pointer" C.prefix dim
+        Format.asprintf "%sArray%d_pointer" C.prefix dim
     | C_comp c ->
-        Pretty_utils.sfprintf "%sArray%d%s" C.prefix dim (Lang.comp_id c)
+        Format.asprintf "%sArray%d%s" C.prefix dim (Lang.comp_id c)
     | C_array _ ->
         Wp_parameters.fatal "Unflatten array (%s %a)" C.prefix Ctypes.pretty te
 
@@ -173,7 +174,7 @@ let null = Context.create "Lang.null"
 module NULL = STRUCTURAL
     (struct
       let prefix = "Null"
-      let model = Cint.Natural
+      let natural = true
       let is_int _i = p_equal e_zero
       let is_float _f = p_equal e_zero_real
       let is_pointer p = Context.get null p
@@ -184,9 +185,9 @@ let is_null = NULL.is_obj
 module TYPE = STRUCTURAL
     (struct
       let prefix = "Is"
-      let model = Cint.Machine
-      let is_int = Cint.irange
-      let is_float = Cfloat.frange
+      let natural = false
+      let is_int = Cint.range
+      let is_float = Cfloat.range
       let is_pointer _ = p_true
     end)
 
@@ -296,7 +297,7 @@ let map_value f = function
 
 let map_sloc f = function
   | Sloc l -> Sloc (f l)
-  | Sarray(l,obj,s) -> Sarray(f l,obj,s)
+  | Sarray(l,obj,n) -> Sarray(f l,obj,n)
   | Srange(l,obj,a,b) -> Srange(f l,obj,a,b)
   | Sdescr(xs,l,p) -> Sdescr(xs,f l,p)
 
@@ -305,6 +306,13 @@ let map_logic f = function
   | Vloc l -> Vloc (f l)
   | Vset s -> Vset s
   | Lset ls -> Lset (List.map (map_sloc f) ls)
+
+let plain lt e =
+  if Logic_typing.is_set_type lt then
+    let te = Logic_typing.type_of_set_elem lt in
+    Vset [Vset.Set(tau_of_ltype te,e)]
+  else
+    Vexp e
 
 (* -------------------------------------------------------------------------- *)
 (* --- Int-As-Boolans                                                     --- *)
@@ -343,7 +351,7 @@ struct
   let value = function
     | Vexp e -> e
     | Vloc l -> M.pointer_val l
-    | Vset _ -> Warning.error "Set of values not yet implemented"
+    | Vset s -> Vset.concretize s
     | Lset _ -> Warning.error "T-Set of values not yet implemented"
 
   let loc = function
@@ -355,10 +363,10 @@ struct
   let rdescr = function
     | Sloc l -> [],l,p_true
     | Sdescr(xs,l,p) -> xs,l,p
-    | Sarray(l,obj,s) ->
+    | Sarray(l,obj,n) ->
         let x = Lang.freshvar ~basename:"k" Logic.Int in
         let k = e_var x in
-        [x],M.shift l obj k,Vset.in_size k s
+        [x],M.shift l obj k,arange k n
     | Srange(l,obj,a,b) ->
         let x = Lang.freshvar ~basename:"k" Logic.Int in
         let k = e_var x in
@@ -467,19 +475,41 @@ struct
               Vset.Descr(xs,k,p_conj [p_leq a k;p_lt k b;p])
         else kset
 
+  let is_ainf = function
+    | Some e -> e == e_zero
+    | None -> false
+
+  let is_asup n = function
+    | Some e -> e == e_int (n-1)
+    | None -> false
+  
+  let srange loc obj size a b =
+    match size with
+    | None -> Srange(loc,obj,a,b)
+    | Some n ->
+        if is_ainf a && is_asup n b then
+          Sarray(loc,obj,n)
+        else
+          Srange(loc,obj,a,b)
+  
   let shift_set sloc obj (size : int option) kset =
     match sloc , size , kset with
-    | Sloc l , Some n , Vset.Range(None,None) when Kernel.SafeArrays.get () -> Sarray(l,obj,n)
+    | Sloc l , Some n , Vset.Range(None,None) when Kernel.SafeArrays.get () ->
+        Sarray(l,obj,n)
     | _ ->
         match sloc , restrict kset size with
         | Sloc l , Vset.Singleton k -> Sloc(M.shift l obj k)
-        | Sloc l , Vset.Range(a,b) -> Srange(l,obj,a,b)
+        | Sloc l , Vset.Range(a,b) -> srange l obj size a b
         | Srange(l,obj0,a0,b0) , Vset.Singleton k
           when Ctypes.equal obj0 obj ->
-            Srange(l,obj0, Vset.bound_add a0 (Some k), Vset.bound_add b0 (Some k))
+            let a = Vset.bound_add a0 (Some k) in
+            let b = Vset.bound_add b0 (Some k) in
+            srange l obj0 size a b
         | Srange(l,obj0,a0,b0) , Vset.Range(a1,b1)
           when Ctypes.equal obj0 obj ->
-            Srange(l,obj0, Vset.bound_add a0 a1, Vset.bound_add b0 b1)
+            let a = Vset.bound_add a0 a1 in
+            let b = Vset.bound_add b0 b1 in
+            srange l obj0 size a b
         | _ ->
             let xs,l,p = rdescr sloc in
             let ys,k,q = Vset.descr kset in
@@ -497,7 +527,7 @@ struct
                      shift_set sloc obj size kset :: s
                   ) s ks
              ) [] (sloc lv))
-
+  
   (* -------------------------------------------------------------------------- *)
   (* --- Load in Memory                                                     --- *)
   (* -------------------------------------------------------------------------- *)
@@ -567,10 +597,10 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- Sloc to Rloc                                                       --- *)
   (* -------------------------------------------------------------------------- *)
-
+  
   let rloc obj = function
     | Sloc l -> Rloc(obj,l)
-    | Sarray(l,t,s) -> Rarray(l,t,s)
+    | Sarray(l,t,n) -> Rrange(l,t,ainf,asup n)
     | Srange(l,t,a,b) -> Rrange(l,t,a,b)
     | Sdescr _ -> raise Exit
 
@@ -630,7 +660,7 @@ struct
 
   let valid_sloc sigma acs obj = function
     | Sloc l -> M.valid sigma acs (Rloc(obj,l))
-    | Sarray(l,t,s) -> M.valid sigma acs (Rarray(l,t,s))
+    | Sarray(l,t,n) -> M.valid sigma acs (Rrange(l,t,ainf,asup n))
     | Srange(l,t,a,b) -> M.valid sigma acs (Rrange(l,t,a,b))
     | Sdescr(xs,l,p) -> p_forall xs (p_imply p (M.valid sigma acs (Rloc(obj,l))))
 
@@ -644,8 +674,10 @@ struct
     match la , lb with
     | Vexp x , Vexp y -> F.p_equal x y
     | Vexp e , Vset b -> Vset.member e b
+    | Vset a , Vexp e -> Vset.subset a [Vset.Singleton e]
     | Vset a , Vset b -> Vset.subset a b
-    | _ ->
+    | Vloc _ , _ | _ , Vloc _
+    | Lset _ , _ | _ , Lset _ ->
         let ta = Ctypes.object_of_logic_pointed ta in
         let tb = Ctypes.object_of_logic_pointed tb in
         included ta (sloc la) tb (sloc lb)

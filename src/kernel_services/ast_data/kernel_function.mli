@@ -53,8 +53,7 @@ val find_first_stmt : t -> stmt
 
 val find_return : t -> stmt
   (** Find the return statement of a kernel function.
-      @raise No_Statement is there is no return statement for the given
-      function.
+      @raise No_Statement is the kernel function is only a prototype.
       @modify Nitrogen-20111001 may raise No_Statement*)
 
 val find_label : t -> string -> stmt ref

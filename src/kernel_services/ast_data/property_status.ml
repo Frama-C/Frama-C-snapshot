@@ -986,7 +986,7 @@ either status %a or %a not allowed when choosing the best emitter@]"
       assert (Usable_emitter.Map.is_empty issues);
       Inconsistent
 	(let l = Usable_emitter.Map.fold (fun e _ acc -> e :: acc) m [] in
-	 Pretty_utils.sfprintf
+	 Format.asprintf
 	   "@[Valid for: %a (at least).@\n\
 Invalid for: %a.@]"
 	   Usable_emitter.pretty e
@@ -995,7 +995,7 @@ Invalid for: %a.@]"
     | Valid set, Invalid _ ->
       Inconsistent
 	(let l = Usable_emitter.Set.elements set in
-	 Pretty_utils.sfprintf
+	 Format.asprintf
 	   "@[Valid for: %a.@\n\
 Invalid for: %a (at least).@]"
 	   (Pretty_utils.pp_list ~sep:", " ~last:" and " Usable_emitter.pretty) 
@@ -1079,7 +1079,7 @@ either status %a or %a not allowed when merging status@]"
 	Invalid_but_dead invalid_map
       end else
 	if Usable_emitter.Map.is_empty invalid_map then Valid_but_dead valid_map
-	else Inconsistent (Pretty_utils.sfprintf "%a" L.pretty s)
+	else Inconsistent (Format.asprintf "%a" L.pretty s)
 
     (* status of hypotheses = invalid (encoded by invalid_but_dead) *)
     | Invalid_but_dead m, 
@@ -1327,6 +1327,19 @@ module Feedback = struct
     | Consolidation.Unknown_but_dead _ -> Unknown_but_dead
     | Consolidation.Inconsistent _ -> Inconsistent
 
+  let pretty fmt = function
+    | Never_tried -> Format.fprintf fmt "Never_tried"
+    | Considered_valid -> Format.fprintf fmt "Considered_valid"
+    | Valid -> Format.fprintf fmt "Valid"
+    | Valid_under_hyp -> Format.fprintf fmt "Valid_under_hyp"
+    | Unknown -> Format.fprintf fmt "Unknown"
+    | Invalid -> Format.fprintf fmt "Invalid"
+    | Invalid_under_hyp -> Format.fprintf fmt "Invalid_under_hyp"
+    | Invalid_but_dead -> Format.fprintf fmt "Invalid_but_dead"
+    | Valid_but_dead -> Format.fprintf fmt "Valid_but_dead"
+    | Unknown_but_dead -> Format.fprintf fmt "Unknown_but_dead"
+    | Inconsistent -> Format.fprintf fmt "Inconsistent"
+
   let get p = from_consolidation (Consolidation.get p)
   let get_conjunction l = from_consolidation (Consolidation.get_conjunction l)
 
@@ -1380,7 +1393,6 @@ module Consolidation_graph = struct
   end
 
   module G = Graph.Persistent.Digraph.ConcreteLabeled(Vertex)(Edge)
-  module G_oper = Graph.Oper.P(G)
 
   module Graph_by_property =
     State_builder.Hashtbl
@@ -1403,7 +1415,7 @@ module Consolidation_graph = struct
   type t = G.t
 
   let get_parameter_string ~tuning e s =
-    Pretty_utils.sfprintf
+    Format.asprintf
       "%t"
       (fun fmt -> Usable_emitter.pretty_parameter fmt ~tuning e s)
 
@@ -1518,11 +1530,11 @@ module Consolidation_graph = struct
 		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
 		  -> s
 	      in 
-	      Pretty_utils.sfprintf "\"%s\"" s
+	      Format.asprintf "\"%s\"" s
 
 	    let label v =
 	      let s = match v with
-		| Property p -> Pretty_utils.sfprintf "%a" Property.pretty p
+		| Property p -> Format.asprintf "%a" Property.pretty p
 		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
 		  -> s
 	      in 

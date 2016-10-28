@@ -66,7 +66,6 @@ struct
   let e = false
   let f _ _ = false
   let compose _ _ = false
-  let default = false
 end
 
 type ('key, 'value) tree =
@@ -106,7 +105,6 @@ module Make
      val e: bool
      val f : Key.t -> V.t -> bool
      val compose : bool -> bool -> bool
-     val default: bool
    end)
   (Initial_Values: sig val v : (Key.t * V.t) list list end)
   (Datatype_deps: sig val l : State.t list end)
@@ -208,15 +206,11 @@ struct
 	  iter f tree0;
 	  iter f tree1
 
-    let prettykv fmt k v =
-      Format.fprintf fmt "%a -> %a@."
-	Key.pretty k
-	V.pretty v
-
     let pretty fmt tree =
-      Format.fprintf fmt "[[@.";
-      iter (prettykv fmt) tree;
-      Format.fprintf fmt "]]@."
+      Pretty_utils.pp_iter2
+        ~pre:"@[<v 3>{[ " ~suf:" ]}@]" ~sep:"@ " ~between:" -> "
+        iter Key.pretty (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
+        fmt tree
 
     let empty = Empty
 
@@ -320,18 +314,11 @@ struct
       result
 
     let wrap_Branch p m l r =
-      let open Compositional_bool in
-      let tag = !current_tag in
-      let comp = compose (compositional_bool l) (compositional_bool r) in
-      let comp = 
-	match l, r with
-	| Branch (_,ml,_,_,_), Branch (_,mr,_,_,_) when ml + mr = m  ->
-	    comp
-	| Leaf (_,_,_), Leaf (_,_,_) -> 
-	    comp
-	| _ -> compose default comp
+      let b =
+        Compositional_bool.compose (compositional_bool l) (compositional_bool r)
       in
-      let new_tr = Branch (p, m, l, r, Tag_comp.encode tag comp) in
+      let tag = !current_tag in
+      let new_tr = Branch (p, m, l, r, Tag_comp.encode tag b) in
       let result = PatriciaHashconsTbl.merge new_tr in
       if result == new_tr
       then current_tag := (succ tag) land max_int ;
@@ -474,6 +461,9 @@ struct
 	wrap_Branch p m t1 t0
 
     let pretty_prefix (p,m) fmt tree =
+      let prettykv fmt k v =
+        Format.fprintf fmt "[@[%a@] -> @[%a@]@]@ " Key.pretty k V.pretty v
+      in
       let rec pretty_prefix_aux tree = 
 	match tree with
 	  Empty -> ()
@@ -488,9 +478,9 @@ struct
 	    then pretty_prefix_aux l
 	    else pretty_prefix_aux r
       in
-      Format.fprintf fmt "[[@.";
+      Format.fprintf fmt "@[<v 2>[[";
       pretty_prefix_aux tree;
-      Format.fprintf fmt "]]@."
+      Format.fprintf fmt "]]@]"
 
     type subtree = t
     exception Found_prefix of prefix * subtree * subtree

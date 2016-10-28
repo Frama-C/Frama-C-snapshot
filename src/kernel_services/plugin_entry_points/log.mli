@@ -31,6 +31,7 @@ type kind = Result | Feedback | Debug | Warning | Error | Failure
 type event = {
   evt_kind : kind ;
   evt_plugin : string ;
+  evt_dkey : string option ;
   evt_source : Lexing.position option ;
   evt_message : string ;
 }
@@ -239,6 +240,8 @@ module type Messages = sig
 
   val register_category: string -> category
   (** register a new debugging/verbose category.
+      Note: this should not be used directly by plug-in developers;
+      use instead [Plugin.S.Debug_category.add].
       @since Fluorine-20130401
    *)
 
@@ -255,6 +258,8 @@ module type Messages = sig
     (** adds categories corresponding to string (including potential
         subcategories) to the set of categories for which messages are
         to be displayed.
+        Note: this should not be used directly by plug-in developers;
+        use instead [Plugin.S.Debug_category.add].
 	@since Fluorine-20130401 use categories instead of plain string
      *)
 

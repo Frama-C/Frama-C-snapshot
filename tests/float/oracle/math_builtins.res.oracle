@@ -4,7 +4,7 @@ tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   __FC_errno ∈ [--..--]
   nondet ∈ [--..--]
 [value] computing for function test_cos_det <- main.
@@ -83,20 +83,24 @@ tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is
 [value] Done for function double_interval
 tests/float/math_builtins.c:100:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
                  ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 tests/float/math_builtins.c:102:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
                  ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
         Called from tests/float/math_builtins.c:105.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:106:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 tests/float/math_builtins.c:107:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in +oo/NaN
+                 negative base and noninteger exponent,
+                 computation may result in +oo/NaN
 tests/float/math_builtins.c:110:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
                  computation may result in +oo/-oo
@@ -109,14 +113,16 @@ tests/float/math_builtins.c:111:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:115:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([1.0000000000000000*2^50 .. 1.0000000000000000*2^62], {19.5000000000000000})
-                 , computation may result in +oo
+                 ,
+                 computation may result in +oo
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
         Called from tests/float/math_builtins.c:116.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:117:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
-                 , computation may result in -oo
+                 ,
+                 computation may result in -oo
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
         Called from tests/float/math_builtins.c:120.
 [value] Recording results for double_interval
@@ -161,21 +167,24 @@ tests/float/math_builtins.c:117:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:160:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:161.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:162:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:163.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:164:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:165.
 [value] Recording results for double_interval
@@ -214,7 +223,8 @@ tests/float/math_builtins.c:177:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:180:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in +oo/NaN
+                 : negative base and noninteger exponent,
+                 computation may result in +oo/NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:184.
 [value] Recording results for double_interval
@@ -225,7 +235,8 @@ tests/float/math_builtins.c:180:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:186:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:189.
 [value] Recording results for double_interval
@@ -236,7 +247,8 @@ tests/float/math_builtins.c:186:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:191:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:194.
 [value] Recording results for double_interval
@@ -255,7 +267,8 @@ tests/float/math_builtins.c:191:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:201:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-0.0000000000000000 .. 10.0000000000000000], [-3.5000000000000000 .. 4.5000000000000000])
-                 , computation may result in +oo/-oo
+                 ,
+                 computation may result in +oo/-oo
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:204.
 [value] Recording results for double_interval
@@ -266,21 +279,24 @@ tests/float/math_builtins.c:201:[value] warning: builtin Frama_C_pow: out-of-ran
 [value] Done for function double_interval
 tests/float/math_builtins.c:206:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
                  ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.7500000000000000*2^-1 .. -1.0000000000000000*2^-3])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:207.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:208:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.0000000000000000*2^-2 .. 1.0000000000000000*2^-2])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:209.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:210:[value] warning: builtin Frama_C_pow: out-of-range arguments
                  ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [10.0000000000000000 .. 11.5000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:211.
 [value] Recording results for double_interval
@@ -297,7 +313,8 @@ tests/float/math_builtins.c:212:[value] warning: builtin Frama_C_pow: out-of-ran
         Called from tests/float/math_builtins.c:216.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:217:[value] warning: builtin Frama_C_pow: result is always non-finite
+tests/float/math_builtins.c:217:[value] warning: builtin Frama_C_pow:
+                 result is always non-finite
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:220.
 [value] Recording results for double_interval
@@ -306,7 +323,8 @@ tests/float/math_builtins.c:217:[value] warning: builtin Frama_C_pow: result is 
         Called from tests/float/math_builtins.c:221.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-tests/float/math_builtins.c:222:[value] warning: builtin Frama_C_pow: result is always non-finite
+tests/float/math_builtins.c:222:[value] warning: builtin Frama_C_pow:
+                 result is always non-finite
 [value] computing for function double_interval <- test_pow <- main.
         Called from tests/float/math_builtins.c:224.
 [value] Recording results for double_interval
@@ -356,7 +374,8 @@ tests/float/math_builtins.c:341:[value] warning: builtin Frama_C_fmod: completel
 [value] Done for function double_interval
 tests/float/math_builtins.c:363:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-9.0000000000000000 .. 8.7500000000000000], [-2.0000000000000000 .. 4.5000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:364.
 [value] Recording results for double_interval
@@ -367,28 +386,32 @@ tests/float/math_builtins.c:363:[value] warning: builtin Frama_C_fmod: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:366:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-2.0000000000000000 .. 4.5000000000000000], [-9.0000000000000000 .. 8.7500000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:367.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:368:[value] warning: builtin Frama_C_fmod: completely out-of-range arguments
                  ([-2.0000000000000000 .. 4.5000000000000000], [-0.0000000000000000 .. 0.0000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:369.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:370:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-2.0000000000000000 .. 4.5000000000000000], [0.0000000000000000 .. 1.0000000000000000*2^-3])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:371.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:372:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-2.0000000000000000 .. 4.5000000000000000], [-1.0000000000000000*2^-3 .. -0.0000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:373.
 [value] Recording results for double_interval
@@ -451,27 +474,31 @@ tests/float/math_builtins.c:372:[value] warning: builtin Frama_C_fmod: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:400:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:401.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:402:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_fmod <- main.
         Called from tests/float/math_builtins.c:403.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:404:[value] warning: builtin Frama_C_fmod: out-of-range arguments
                  ([-3.0000000000000000 .. 2.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
-                 : division by zero, computation may result in NaN
+                 : division by zero,
+                 computation may result in NaN
 [value] Recording results for test_fmod
 [value] Done for function test_fmod
 [value] computing for function test_sqrt_det <- main.
         Called from tests/float/math_builtins.c:665.
 tests/float/math_builtins.c:410:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
-                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+                 ({-2.0000000000000000}): negative argument,
+                 computation may result in NaN
 [value] Recording results for test_sqrt_det
 [value] Done for function test_sqrt_det
 [value] computing for function test_sqrt <- main.
@@ -505,31 +532,40 @@ tests/float/math_builtins.c:423:[value] warning: builtin Frama_C_sqrt: completel
 [value] Done for function test_sqrt
 [value] computing for function test_exp_det <- main.
         Called from tests/float/math_builtins.c:667.
-tests/float/math_builtins.c:451:[value] warning: builtin Frama_C_exp: result is always non-finite
+tests/float/math_builtins.c:451:[value] warning: builtin Frama_C_exp:
+                 result is always non-finite
 [value] Recording results for test_exp_det
 [value] Done for function test_exp_det
 [value] computing for function test_log_det <- main.
         Called from tests/float/math_builtins.c:668.
 tests/float/math_builtins.c:465:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-2.0000000000000000})
-                 : negative argument, computation may result in NaN
+                 : negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:466:[value] warning: builtin Frama_C_log: completely out-of-range argument ({0.0000000000000000}):
-                 negative argument, computation may result in NaN
+                 negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:467:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-0.0000000000000000})
-                 : negative argument, computation may result in NaN
+                 : negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:468:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.0000000000000000})
-                 : negative argument, computation may result in NaN
+                 : negative argument,
+                 computation may result in NaN
 [value] Recording results for test_log_det
 [value] Done for function test_log_det
 [value] computing for function test_log10_det <- main.
         Called from tests/float/math_builtins.c:669.
 tests/float/math_builtins.c:483:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+                 ({-2.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:484:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-                 ({0.0000000000000000}): negative argument, computation may result in NaN
+                 ({0.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:485:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+                 ({-0.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:486:[value] warning: builtin Frama_C_log10: completely out-of-range argument
-                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+                 ({-1.0000000000000000}): negative argument,
+                 computation may result in NaN
 [value] Recording results for test_log10_det
 [value] Done for function test_log10_det
 [value] computing for function test_powf_det <- main.
@@ -544,20 +580,24 @@ tests/float/math_builtins.c:486:[value] warning: builtin Frama_C_log10: complete
 [value] Done for function double_interval
 tests/float/math_builtins.c:233:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
                  ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 tests/float/math_builtins.c:235:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
                  ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
         Called from tests/float/math_builtins.c:238.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:239:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in NaN
+                 negative base and noninteger exponent,
+                 computation may result in NaN
 tests/float/math_builtins.c:240:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
-                 negative base and noninteger exponent, computation may result in +oo/NaN
+                 negative base and noninteger exponent,
+                 computation may result in +oo/NaN
 tests/float/math_builtins.c:243:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
                  computation may result in +oo/-oo
@@ -574,7 +614,8 @@ tests/float/math_builtins.c:244:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:250:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
-                 , computation may result in -oo
+                 ,
+                 computation may result in -oo
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
         Called from tests/float/math_builtins.c:253.
 [value] Recording results for double_interval
@@ -619,21 +660,24 @@ tests/float/math_builtins.c:250:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:293:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:294.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:295:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:296.
 [value] Recording results for double_interval
 [value] Done for function double_interval
 tests/float/math_builtins.c:297:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:298.
 [value] Recording results for double_interval
@@ -672,7 +716,8 @@ tests/float/math_builtins.c:310:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:315:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in +oo/NaN
+                 : negative base and noninteger exponent,
+                 computation may result in +oo/NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:319.
 [value] Recording results for double_interval
@@ -683,7 +728,8 @@ tests/float/math_builtins.c:315:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:321:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:324.
 [value] Recording results for double_interval
@@ -694,7 +740,8 @@ tests/float/math_builtins.c:321:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] Done for function double_interval
 tests/float/math_builtins.c:326:[value] warning: builtin Frama_C_powf: out-of-range arguments
                  ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
-                 : negative base and noninteger exponent, computation may result in NaN
+                 : negative base and noninteger exponent,
+                 computation may result in NaN
 [value] computing for function double_interval <- test_powf <- main.
         Called from tests/float/math_builtins.c:329.
 [value] Recording results for double_interval
@@ -708,7 +755,8 @@ tests/float/math_builtins.c:326:[value] warning: builtin Frama_C_powf: out-of-ra
 [value] computing for function test_sqrtf_det <- main.
         Called from tests/float/math_builtins.c:674.
 tests/float/math_builtins.c:429:[value] warning: builtin Frama_C_sqrtf: completely out-of-range argument
-                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+                 ({-2.0000000000000000}): negative argument,
+                 computation may result in NaN
 [value] Recording results for test_sqrtf_det
 [value] Done for function test_sqrtf_det
 [value] computing for function test_sqrtf <- main.
@@ -747,25 +795,33 @@ tests/float/math_builtins.c:442:[value] warning: builtin Frama_C_sqrt: completel
 [value] computing for function test_logf_det <- main.
         Called from tests/float/math_builtins.c:677.
 tests/float/math_builtins.c:474:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+                 ({-2.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:475:[value] warning: builtin Frama_C_logf: completely out-of-range argument ({0.0000000000000000})
-                 : negative argument, computation may result in NaN
+                 : negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:476:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+                 ({-0.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:477:[value] warning: builtin Frama_C_logf: completely out-of-range argument
-                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+                 ({-1.0000000000000000}): negative argument,
+                 computation may result in NaN
 [value] Recording results for test_logf_det
 [value] Done for function test_logf_det
 [value] computing for function test_log10f_det <- main.
         Called from tests/float/math_builtins.c:678.
 tests/float/math_builtins.c:492:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+                 ({-2.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:493:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-                 ({0.0000000000000000}): negative argument, computation may result in NaN
+                 ({0.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:494:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+                 ({-0.0000000000000000}): negative argument,
+                 computation may result in NaN
 tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
-                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+                 ({-1.0000000000000000}): negative argument,
+                 computation may result in NaN
 [value] Recording results for test_log10f_det
 [value] Done for function test_log10f_det
 [value] computing for function test_diff_pow_powf <- main.
@@ -935,9 +991,9 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function double_interval:
+[value:final-states] Values at end of function double_interval:
   __retres ∈ [-1.2237906221789607*2^1023 .. 1.2237906221789607*2^1023]
-[value] Values at end of function test_atan2:
+[value:final-states] Values at end of function test_atan2:
   x ∈ [1.0000000000000000 .. 5.0000000000000000]
   y ∈ [-0.0000000000000000 .. 0.0000000000000000]
   a ∈ [1.5999166744782948*2^-7 .. 1.5582969777755348]
@@ -954,7 +1010,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   l ∈ {-0.0000000000000000}
   m ∈ {3.1415926535897931}
   n ∈ {-3.1415926535897931}
-[value] Values at end of function test_atan2_det:
+[value:final-states] Values at end of function test_atan2_det:
   a ∈ {1.5707963267948965}
   b ∈ {0}
   c ∈ {1.5707963267948965}
@@ -968,74 +1024,74 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   k ∈ {-1.1071487177940904}
   l ∈ {2.0344439357957027}
   m ∈ {-2.0344439357957027}
-[value] Values at end of function test_ceil:
+[value:final-states] Values at end of function test_ceil:
   x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
   a ∈ [-0.0000000000000000 .. 2.0000000000000000]
   b ∈ [-0.0000000000000000 .. 1.0000000000000000]
   c ∈ [-2.0000000000000000 .. -0.0000000000000000]
-[value] Values at end of function test_ceil_det:
+[value:final-states] Values at end of function test_ceil_det:
   a ∈ {2.0000000000000000}
   b ∈ {1.0000000000000000}
   c ∈ {0}
   d ∈ {-0.0000000000000000}
   e ∈ {-0.0000000000000000}
   f ∈ {-1.0000000000000000}
-[value] Values at end of function test_ceilf:
+[value:final-states] Values at end of function test_ceilf:
   f32__x ∈ [-2.500000 .. -1.000000*2^-1]
   f32__a ∈ [-0.000000 .. 2.000000]
   f32__b ∈ [-0.000000 .. 1.000000]
   f32__c ∈ [-2.000000 .. -0.000000]
-[value] Values at end of function test_ceilf_det:
+[value:final-states] Values at end of function test_ceilf_det:
   f32__a ∈ {2.000000}
   f32__b ∈ {1.000000}
   f32__c ∈ {0}
   f32__d ∈ {-0.000000}
   f32__e ∈ {-0.000000}
   f32__f ∈ {-1.000000}
-[value] Values at end of function test_cos_det:
+[value:final-states] Values at end of function test_cos_det:
   x ∈ {1.0806046117362795*2^-1}
   y ∈ {1.0000000000000000}
   z ∈ {1.0806046117362795*2^-1}
-[value] Values at end of function test_diff_pow_powf:
+[value:final-states] Values at end of function test_diff_pow_powf:
   d ∈ {1.3824840787361052*2^-96}
   f32__f ∈ {1.382483*2^-96}
-[value] Values at end of function test_exp_det:
+[value:final-states] Values at end of function test_exp_det:
   a ∈ {1.7094457008275896*2^60}
   b ∈ {1.0826822658929016*2^-3}
   c ∈ {1.0000000000000000}
   d ∈ {1.0000000000000000}
   e ∈ {1.4715177646857693*2^-2}
-[value] Values at end of function test_expf_det:
+[value:final-states] Values at end of function test_expf_det:
   f32__a ∈ {1.709445*2^60}
   f32__b ∈ {1.082682*2^-3}
   f32__c ∈ {1.000000}
   f32__d ∈ {1.000000}
   f32__e ∈ {1.471517*2^-2}
-[value] Values at end of function test_floor:
+[value:final-states] Values at end of function test_floor:
   x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
   a ∈ [-1.0000000000000000 .. 1.0000000000000000]
   b ∈ [-0.0000000000000000 .. 0.0000000000000000]
   c ∈ [-3.0000000000000000 .. -1.0000000000000000]
-[value] Values at end of function test_floor_det:
+[value:final-states] Values at end of function test_floor_det:
   a ∈ {1.0000000000000000}
   b ∈ {0}
   c ∈ {0}
   d ∈ {-0.0000000000000000}
   e ∈ {-1.0000000000000000}
   f ∈ {-2.0000000000000000}
-[value] Values at end of function test_floorf:
+[value:final-states] Values at end of function test_floorf:
   f32__x ∈ [-2.500000 .. -1.000000*2^-1]
   f32__a ∈ [-1.000000 .. 1.000000]
   f32__b ∈ [-0.000000 .. 0.000000]
   f32__c ∈ [-3.000000 .. -1.000000]
-[value] Values at end of function test_floorf_det:
+[value:final-states] Values at end of function test_floorf_det:
   f32__a ∈ {1.000000}
   f32__b ∈ {0}
   f32__c ∈ {0}
   f32__d ∈ {-0.000000}
   f32__e ∈ {-1.000000}
   f32__f ∈ {-2.000000}
-[value] Values at end of function test_fmod:
+[value:final-states] Values at end of function test_fmod:
   x ∈ [-3.0000000000000000 .. 2.0000000000000000]
   y ∈ [-4.0000000000000000 .. 5.0000000000000000]
   a ∈ [0.0000000000000000 .. 1.4999999999999998]
@@ -1066,26 +1122,26 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   w1 ∈ [0.0000000000000000 .. 3.0000000000000000]
   w2 ∈ [-2.0000000000000000 .. 3.0000000000000000]
   w3 ∈ [-3.0000000000000000 .. 2.0000000000000000]
-[value] Values at end of function test_fmod_det:
+[value:final-states] Values at end of function test_fmod_det:
   a ∈ {1.7500000000000000}
   b ∈ {-1.7500000000000000}
   c ∈ {-0.0000000000000000}
   d ∈ {0}
   e ∈ {0}
   f ∈ {0}
-[value] Values at end of function test_log10_det:
+[value:final-states] Values at end of function test_log10_det:
   a ∈ {1.6245399138793950}
   b ∈ {-1.8061799739838871*2^-1}
-[value] Values at end of function test_log10f_det:
+[value:final-states] Values at end of function test_log10f_det:
   f32__a ∈ {1.624539}
   f32__b ∈ {-1.806180*2^-1}
-[value] Values at end of function test_log_det:
+[value:final-states] Values at end of function test_log_det:
   a ∈ {3.7406413886725258}
   b ∈ {-2.0794415416798357}
-[value] Values at end of function test_logf_det:
+[value:final-states] Values at end of function test_logf_det:
   f32__a ∈ {3.740641}
   f32__b ∈ {-2.079441}
-[value] Values at end of function test_pow:
+[value:final-states] Values at end of function test_pow:
   x ∈ [-1.4551915228366852*2^36 .. -1.1641532182693481*2^33]
   y ∈ [-1.0000000000000000*2^-1 .. 9.5000000000000000]
   a ∈ {1.0000000000000000}
@@ -1106,7 +1162,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   p ∈ [-1.4551915228366852*2^25 .. 1.1641532182693481*2^23]
   q ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
   r ∈ [1.2649110640673517*2^-2 .. 1.4725502860585131*2^31]
-[value] Values at end of function test_pow_det:
+[value:final-states] Values at end of function test_pow_det:
   a ∈ {1.0000000000000000}
   b ∈ {0}
   c ∈ {1.0000000000000000}
@@ -1115,7 +1171,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   f ∈ {1.1857484052378015*2^-2}
   g ∈ {1.6817928305074290*2^-21}
   h ∈ {1.0000000000000000}
-[value] Values at end of function test_pow_singleton_exp:
+[value:final-states] Values at end of function test_pow_singleton_exp:
   x ∈ [-3.5000000000000000 .. -1.0000000000000000*2^-3]
   c ∈ [0.0000000000000000 .. 4.5603590867386749]
   d ∈ [1.7542478229978975*2^-3 .. 1.9999999999999998*2^1023]
@@ -1134,7 +1190,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   q ∈ [1.0000000000000000*2^-8 .. 289.5314941406250000]
   r ∈ [1.3061224489795917*2^-4 .. 64.0000000000000000]
   s ∈ [-8.0000000000000000 .. -1.1428571428571428*2^-2]
-[value] Values at end of function test_powf:
+[value:final-states] Values at end of function test_powf:
   f32__x ∈ [-0.000000 .. 10.000000]
   f32__y ∈ [-0.000000 .. 5.000000]
   f32__a ∈ {1.000000}
@@ -1150,7 +1206,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   f32__k ∈ [-1.416370*2^18 .. 1.403624*2^52]
   f32__l ∈ [-1024.000000 .. 256.000000]
   f32__m ∈ [-0.000000 .. 1.525878*2^16]
-[value] Values at end of function test_powf_det:
+[value:final-states] Values at end of function test_powf_det:
   f32__a ∈ {1.000000}
   f32__b ∈ {0}
   f32__c ∈ {1.000000}
@@ -1159,7 +1215,7 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   f32__f ∈ {1.185748*2^-2}
   f32__g ∈ {1.681792*2^-21}
   f32__h ∈ {1.000000}
-[value] Values at end of function test_powf_singleton_exp:
+[value:final-states] Values at end of function test_powf_singleton_exp:
   f32__x ∈ [-3.500000 .. -1.000000*2^-3]
   f32__c ∈ [0.000000 .. 4.560359]
   f32__d ∈ [1.754247*2^-3 .. 1.999999*2^127]
@@ -1178,79 +1234,79 @@ tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: complet
   f32__q ∈ [1.000000*2^-8 .. 289.531494]
   f32__r ∈ [1.306122*2^-4 .. 64.000000]
   f32__s ∈ [-8.000000 .. -1.142857*2^-2]
-[value] Values at end of function test_round:
+[value:final-states] Values at end of function test_round:
   x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
   a ∈ [-1.0000000000000000 .. 2.0000000000000000]
   b ∈ [-0.0000000000000000 .. 1.0000000000000000]
   c ∈ [-3.0000000000000000 .. -1.0000000000000000]
-[value] Values at end of function test_round_det:
+[value:final-states] Values at end of function test_round_det:
   a ∈ {2.0000000000000000}
   b ∈ {1.0000000000000000}
   c ∈ {0}
   d ∈ {-0.0000000000000000}
   e ∈ {-1.0000000000000000}
   f ∈ {-2.0000000000000000}
-[value] Values at end of function test_roundf:
+[value:final-states] Values at end of function test_roundf:
   f32__x ∈ [-2.500000 .. -1.000000*2^-1]
   f32__a ∈ [-1.000000 .. 2.000000]
   f32__b ∈ [-0.000000 .. 1.000000]
   f32__c ∈ [-3.000000 .. -1.000000]
-[value] Values at end of function test_roundf_det:
+[value:final-states] Values at end of function test_roundf_det:
   f32__a ∈ {2.000000}
   f32__b ∈ {1.000000}
   f32__c ∈ {0}
   f32__d ∈ {-0.000000}
   f32__e ∈ {-1.000000}
   f32__f ∈ {-2.000000}
-[value] Values at end of function test_sin_det:
+[value:final-states] Values at end of function test_sin_det:
   x ∈ {1.6829419696157930*2^-1}
   y ∈ {0}
   z ∈ {-1.6829419696157930*2^-1}
-[value] Values at end of function test_sqrt:
+[value:final-states] Values at end of function test_sqrt:
   x ∈ [-6.5000000000000000 .. -1.6000000000000000*2^-4]
   a ∈ [-0.0000000000000000 .. 2.2360679774997898]
   b ∈ [-0.0000000000000000 .. 0.0000000000000000]
   c ∈ {-0.0000000000000000}
-[value] Values at end of function test_sqrt_det:
+[value:final-states] Values at end of function test_sqrt_det:
   a ∈ {6.4903774928735851}
   b ∈ {1.4142135623730951*2^-2}
   c ∈ {0}
   d ∈ {-0.0000000000000000}
-[value] Values at end of function test_sqrtf:
+[value:final-states] Values at end of function test_sqrtf:
   f32__x ∈ [-6.500000 .. -1.600000*2^-4]
   f32__a ∈ [-0.000000 .. 2.236068]
   b ∈ [-0.0000000000000000 .. 0.0000000000000000]
   c ∈ {-0.0000000000000000}
-[value] Values at end of function test_sqrtf_det:
+[value:final-states] Values at end of function test_sqrtf_det:
   f32__a ∈ {6.490377}
   f32__b ∈ {1.414213*2^-2}
   f32__c ∈ {0}
   f32__d ∈ {-0.000000}
-[value] Values at end of function test_trunc:
+[value:final-states] Values at end of function test_trunc:
   x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
   a ∈ [-0.0000000000000000 .. 1.0000000000000000]
   b ∈ [-0.0000000000000000 .. 0.0000000000000000]
   c ∈ [-2.0000000000000000 .. -0.0000000000000000]
-[value] Values at end of function test_trunc_det:
+[value:final-states] Values at end of function test_trunc_det:
   a ∈ {1.0000000000000000}
   b ∈ {0}
   c ∈ {0}
   d ∈ {-0.0000000000000000}
   e ∈ {-0.0000000000000000}
   f ∈ {-1.0000000000000000}
-[value] Values at end of function test_truncf:
+[value:final-states] Values at end of function test_truncf:
   f32__x ∈ [-2.500000 .. -1.000000*2^-1]
   f32__a ∈ [-0.000000 .. 1.000000]
   f32__b ∈ [-0.000000 .. 0.000000]
   f32__c ∈ [-2.000000 .. -0.000000]
-[value] Values at end of function test_truncf_det:
+[value:final-states] Values at end of function test_truncf_det:
   f32__a ∈ {1.000000}
   f32__b ∈ {0}
   f32__c ∈ {0}
   f32__d ∈ {-0.000000}
   f32__e ∈ {-0.000000}
   f32__f ∈ {-1.000000}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function double_interval
 [from] Done for function double_interval
@@ -1682,89 +1738,93 @@ typedef int wchar_t;
 /*@
 axiomatic MemCmp {
   logic ℤ memcmp{L1, L2}(char *s1, char *s2, ℤ n) 
-    reads \at(*(s1+(0 .. n-1)),L1), \at(*(s2+(0 .. n-1)),L2);
+    reads \at(*(s1 + (0 .. n - 1)),L1), \at(*(s2 + (0 .. n - 1)),L2);
   
   axiom memcmp_zero{L1, L2}:
     ∀ char *s1, char *s2;
     ∀ ℤ n;
       memcmp{L1, L2}(s1, s2, n) ≡ 0 ⇔
-      (∀ ℤ i; 0 ≤ i < n ⇒ \at(*(s1+i),L1) ≡ \at(*(s2+i),L2));
+      (∀ ℤ i; 0 ≤ i < n ⇒ \at(*(s1 + i),L1) ≡ \at(*(s2 + i),L2));
   
   }
  */
 /*@
 axiomatic MemChr {
   logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) 
-    reads *(s+(0 .. n-1));
+    reads *(s + (0 .. n - 1));
   
   axiom memchr_def{L}:
     ∀ char *s;
     ∀ ℤ c;
     ∀ ℤ n;
-      memchr(s, c, n) ≡ \true ⇔ (∃ int i; 0 ≤ i < n ∧ *(s+i) ≡ c);
+      memchr(s, c, n) ≡ \true ⇔
+      (∃ int i; 0 ≤ i < n ∧ *(s + i) ≡ c);
   
   }
  */
 /*@
 axiomatic MemSet {
   logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) 
-    reads *(s+(0 .. n-1));
+    reads *(s + (0 .. n - 1));
   
   axiom memset_def{L}:
     ∀ char *s;
     ∀ ℤ c;
     ∀ ℤ n;
-      memset(s, c, n) ≡ \true ⇔ (∀ ℤ i; 0 ≤ i < n ⇒ *(s+i) ≡ c);
+      memset(s, c, n) ≡ \true ⇔
+      (∀ ℤ i; 0 ≤ i < n ⇒ *(s + i) ≡ c);
   
   }
  */
 /*@
 axiomatic StrLen {
   logic ℤ strlen{L}(char *s) 
-    reads *(s+(0 ..));
+    reads *(s + (0 ..));
   
   axiom strlen_pos_or_null{L}:
     ∀ char *s;
     ∀ ℤ i;
-      0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s+j) ≢ '\000') ∧
-      *(s+i) ≡ '\000' ⇒ strlen(s) ≡ i;
+      0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s + j) ≢ '\000') ∧
+      *(s + i) ≡ '\000' ⇒ strlen(s) ≡ i;
   
   axiom strlen_neg{L}:
-    ∀ char *s; (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ '\000') ⇒ strlen(s) < 0;
+    ∀ char *s;
+      (∀ ℤ i; 0 ≤ i ⇒ *(s + i) ≢ '\000') ⇒ strlen(s) < 0;
   
   axiom strlen_before_null{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i < strlen(s) ⇒ *(s+i) ≢ '\000';
+    ∀ ℤ i; 0 ≤ i < strlen(s) ⇒ *(s + i) ≢ '\000';
   
   axiom strlen_at_null{L}:
-    ∀ char *s; 0 ≤ strlen(s) ⇒ *(s+strlen(s)) ≡ '\000';
+    ∀ char *s; 0 ≤ strlen(s) ⇒ *(s + strlen(s)) ≡ '\000';
   
   axiom strlen_not_zero{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ≤ strlen(s) ∧ *(s+i) ≢ '\000' ⇒ i < strlen(s);
+    ∀ ℤ i;
+      0 ≤ i ≤ strlen(s) ∧ *(s + i) ≢ '\000' ⇒ i < strlen(s);
   
   axiom strlen_zero{L}:
     ∀ char *s;
     ∀ ℤ i;
-      0 ≤ i ≤ strlen(s) ∧ *(s+i) ≡ '\000' ⇒ i ≡ strlen(s);
+      0 ≤ i ≤ strlen(s) ∧ *(s + i) ≡ '\000' ⇒ i ≡ strlen(s);
   
   axiom strlen_sup{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
+    ∀ ℤ i; 0 ≤ i ∧ *(s + i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
   
   axiom strlen_shift{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ≤ strlen(s) ⇒ strlen(s+i) ≡ strlen(s)-i;
+    ∀ ℤ i; 0 ≤ i ≤ strlen(s) ⇒ strlen(s + i) ≡ strlen(s) - i;
   
   axiom strlen_create{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
+    ∀ ℤ i; 0 ≤ i ∧ *(s + i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
   
   axiom strlen_create_shift{L}:
     ∀ char *s;
     ∀ ℤ i;
     ∀ ℤ k;
-      0 ≤ k ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s+k) ≤ i-k;
+      0 ≤ k ≤ i ∧ *(s + i) ≡ '\000' ⇒ 0 ≤ strlen(s + k) ≤ i - k;
   
   axiom memcmp_strlen_left{L}:
     ∀ char *s1, char *s2;
@@ -1781,150 +1841,151 @@ axiomatic StrLen {
   axiom memcmp_strlen_shift_left{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ k, ℤ n;
-      memcmp{L, L}(s1, s2+k, n) ≡ 0 ≤ k ∧ strlen(s1) < n ⇒
-      0 ≤ strlen(s2) ≤ k+strlen(s1);
+      memcmp{L, L}(s1, s2 + k, n) ≡ 0 ≤ k ∧ strlen(s1) < n ⇒
+      0 ≤ strlen(s2) ≤ k + strlen(s1);
   
   axiom memcmp_strlen_shift_right{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ k, ℤ n;
-      memcmp{L, L}(s1+k, s2, n) ≡ 0 ≤ k ∧ strlen(s2) < n ⇒
-      0 ≤ strlen(s1) ≤ k+strlen(s2);
+      memcmp{L, L}(s1 + k, s2, n) ≡ 0 ≤ k ∧ strlen(s2) < n ⇒
+      0 ≤ strlen(s1) ≤ k + strlen(s2);
   
   }
  */
 /*@
 axiomatic StrCmp {
   logic ℤ strcmp{L}(char *s1, char *s2) 
-    reads *(s1+(0 .. strlen(s1))), *(s2+(0 .. strlen(s2)));
+    reads *(s1 + (0 .. strlen(s1))), *(s2 + (0 .. strlen(s2)));
   
   axiom strcmp_zero{L}:
     ∀ char *s1, char *s2;
       strcmp(s1, s2) ≡ 0 ⇔
       strlen(s1) ≡ strlen(s2) ∧
-      (∀ ℤ i; 0 ≤ i ≤ strlen(s1) ⇒ *(s1+i) ≡ *(s2+i));
+      (∀ ℤ i; 0 ≤ i ≤ strlen(s1) ⇒ *(s1 + i) ≡ *(s2 + i));
   
   }
  */
 /*@
 axiomatic StrNCmp {
   logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) 
-    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
+    reads *(s1 + (0 .. n - 1)), *(s2 + (0 .. n - 1));
   
   axiom strncmp_zero{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ n;
       strncmp(s1, s2, n) ≡ 0 ⇔
       (strlen(s1) < n ∧ strcmp(s1, s2) ≡ 0) ∨
-      (∀ ℤ i; 0 ≤ i < n ⇒ *(s1+i) ≡ *(s2+i));
+      (∀ ℤ i; 0 ≤ i < n ⇒ *(s1 + i) ≡ *(s2 + i));
   
   }
  */
 /*@
 axiomatic StrChr {
   logic 𝔹 strchr{L}(char *s, ℤ c) 
-    reads *(s+(0 .. strlen(s)));
+    reads *(s + (0 .. strlen(s)));
   
   axiom strchr_def{L}:
     ∀ char *s;
     ∀ ℤ c;
       strchr(s, c) ≡ \true ⇔
-      (∃ ℤ i; 0 ≤ i ≤ strlen(s) ∧ *(s+i) ≡ c);
+      (∃ ℤ i; 0 ≤ i ≤ strlen(s) ∧ *(s + i) ≡ c);
   
   }
  */
 /*@
 axiomatic WcsLen {
   logic ℤ wcslen{L}(wchar_t *s) 
-    reads *(s+(0 ..));
+    reads *(s + (0 ..));
   
   axiom wcslen_pos_or_null{L}:
     ∀ wchar_t *s;
     ∀ ℤ i;
-      0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s+j) ≢ 0) ∧ *(s+i) ≡ 0 ⇒
-      wcslen(s) ≡ i;
+      0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s + j) ≢ 0) ∧
+      *(s + i) ≡ 0 ⇒ wcslen(s) ≡ i;
   
   axiom wcslen_neg{L}:
-    ∀ wchar_t *s; (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ 0) ⇒ wcslen(s) < 0;
+    ∀ wchar_t *s; (∀ ℤ i; 0 ≤ i ⇒ *(s + i) ≢ 0) ⇒ wcslen(s) < 0;
   
   axiom wcslen_before_null{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i < wcslen(s) ⇒ *(s+i) ≢ 0;
+    ∀ int i; 0 ≤ i < wcslen(s) ⇒ *(s + i) ≢ 0;
   
   axiom wcslen_at_null{L}:
-    ∀ wchar_t *s; 0 ≤ wcslen(s) ⇒ *(s+wcslen(s)) ≡ 0;
+    ∀ wchar_t *s; 0 ≤ wcslen(s) ⇒ *(s + wcslen(s)) ≡ 0;
   
   axiom wcslen_not_zero{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s+i) ≢ 0 ⇒ i < wcslen(s);
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s + i) ≢ 0 ⇒ i < wcslen(s);
   
   axiom wcslen_zero{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s+i) ≡ 0 ⇒ i ≡ wcslen(s);
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s + i) ≡ 0 ⇒ i ≡ wcslen(s);
   
   axiom wcslen_sup{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
+    ∀ int i; 0 ≤ i ∧ *(s + i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
   
   axiom wcslen_shift{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ≤ wcslen(s) ⇒ wcslen(s+i) ≡ wcslen(s)-i;
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ⇒ wcslen(s + i) ≡ wcslen(s) - i;
   
   axiom wcslen_create{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
+    ∀ int i; 0 ≤ i ∧ *(s + i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
   
   axiom wcslen_create_shift{L}:
     ∀ wchar_t *s;
     ∀ int i;
-    ∀ int k; 0 ≤ k ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s+k) ≤ i-k;
+    ∀ int k;
+      0 ≤ k ≤ i ∧ *(s + i) ≡ 0 ⇒ 0 ≤ wcslen(s + k) ≤ i - k;
   
   }
  */
 /*@
 axiomatic WcsCmp {
   logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) 
-    reads *(s1+(0 .. wcslen(s1))), *(s2+(0 .. wcslen(s2)));
+    reads *(s1 + (0 .. wcslen(s1))), *(s2 + (0 .. wcslen(s2)));
   
   axiom wcscmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
       wcscmp(s1, s2) ≡ 0 ⇔
       wcslen(s1) ≡ wcslen(s2) ∧
-      (∀ ℤ i; 0 ≤ i ≤ wcslen(s1) ⇒ *(s1+i) ≡ *(s2+i));
+      (∀ ℤ i; 0 ≤ i ≤ wcslen(s1) ⇒ *(s1 + i) ≡ *(s2 + i));
   
   }
  */
 /*@
 axiomatic WcsNCmp {
   logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) 
-    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
+    reads *(s1 + (0 .. n - 1)), *(s2 + (0 .. n - 1));
   
   axiom wcsncmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
     ∀ ℤ n;
       wcsncmp(s1, s2, n) ≡ 0 ⇔
       (wcslen(s1) < n ∧ wcscmp(s1, s2) ≡ 0) ∨
-      (∀ ℤ i; 0 ≤ i < n ⇒ *(s1+i) ≡ *(s2+i));
+      (∀ ℤ i; 0 ≤ i < n ⇒ *(s1 + i) ≡ *(s2 + i));
   
   }
  */
-/*@ logic ℤ minimum(ℤ i, ℤ j) = i<j? i: j;
+/*@ logic ℤ minimum(ℤ i, ℤ j) = i < j? i: j;
  */
-/*@ logic ℤ maximum(ℤ i, ℤ j) = i<j? j: i;
+/*@ logic ℤ maximum(ℤ i, ℤ j) = i < j? j: i;
  */
 /*@
 predicate valid_string{L}(char *s) =
-  0 ≤ strlen(s) ∧ \valid(s+(0 .. strlen(s)));
+  0 ≤ strlen(s) ∧ \valid(s + (0 .. strlen(s)));
  */
 /*@
 predicate valid_read_string{L}(char *s) =
-  0 ≤ strlen(s) ∧ \valid_read(s+(0 .. strlen(s)));
+  0 ≤ strlen(s) ∧ \valid_read(s + (0 .. strlen(s)));
  */
 /*@
 predicate valid_string_or_null{L}(char *s) = s ≡ \null ∨ valid_string(s);
  */
 /*@
 predicate valid_wstring{L}(wchar_t *s) =
-  0 ≤ wcslen(s) ∧ \valid(s+(0 .. wcslen(s)));
+  0 ≤ wcslen(s) ∧ \valid(s + (0 .. wcslen(s)));
  */
 /*@
 predicate valid_wstring_or_null{L}(wchar_t *s) =

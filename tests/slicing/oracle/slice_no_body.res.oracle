@@ -1,31 +1,31 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/slice_no_body.c (with preprocessing)
+[kernel] Parsing tests/slicing/slice_no_body.i (no preprocessing)
 [value] Analyzing an incomplete application starting at h
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
 [value] computing for function f <- h.
-        Called from tests/slicing/slice_no_body.c:21.
-tests/slicing/slice_no_body.c:21:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+        Called from tests/slicing/slice_no_body.i:21.
+tests/slicing/slice_no_body.i:21:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function f <- h.
-        Called from tests/slicing/slice_no_body.c:22.
+        Called from tests/slicing/slice_no_body.i:22.
 [value] Done for function f
 [value] computing for function f <- h.
-        Called from tests/slicing/slice_no_body.c:23.
+        Called from tests/slicing/slice_no_body.i:23.
 [value] Done for function f
 [value] computing for function f <- h.
-        Called from tests/slicing/slice_no_body.c:24.
+        Called from tests/slicing/slice_no_body.i:24.
 [value] Done for function f
 [value] computing for function g <- h.
-        Called from tests/slicing/slice_no_body.c:26.
-tests/slicing/slice_no_body.c:12:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
-tests/slicing/slice_no_body.c:13:[kernel] warning: signed overflow. assert -2147483648 ≤ c*2;
-tests/slicing/slice_no_body.c:13:[kernel] warning: signed overflow. assert c*2 ≤ 2147483647;
+        Called from tests/slicing/slice_no_body.i:26.
+tests/slicing/slice_no_body.i:12:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+tests/slicing/slice_no_body.i:13:[value] warning: signed overflow. assert -2147483648 ≤ c * 2;
+tests/slicing/slice_no_body.i:13:[value] warning: signed overflow. assert c * 2 ≤ 2147483647;
 [value] computing for function f <- g <- h.
-        Called from tests/slicing/slice_no_body.c:15.
+        Called from tests/slicing/slice_no_body.i:15.
 [value] Done for function f
 [value] Recording results for g
 [value] Done for function g
@@ -64,11 +64,11 @@ Print slice = g_slice_1:
   /* <[---], [---]> */ int __retres;
   /* <[---], [---]> */ int x;
   /* <[---], [---]> */ int y;
-  /*@ assert Value: signed_overflow: c+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: c + 1 ≤ 2147483647; */
   /* <[---], [---]> */
   x = c + 1;
-  /*@ assert Value: signed_overflow: -2147483648 ≤ c*2; */
-  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: -2147483648 ≤ c * 2; */
+  /*@ assert Value: signed_overflow: c * 2 ≤ 2147483647; */
   /* <[---], [---]> */
   y = c * 2;
   /* <[---], [---]> */
@@ -183,11 +183,11 @@ Print slice = g_slice_1: (InCtrl: <[---], [ S ]>)
   /* <[---], [---]> */ int __retres;
   /* <[---], [ S ]> */ int x;
   /* <[---], [---]> */ int y;
-  /*@ assert Value: signed_overflow: c+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: c + 1 ≤ 2147483647; */
   /* <[---], [ S ]> */
   x = c + 1;
-  /*@ assert Value: signed_overflow: -2147483648 ≤ c*2; */
-  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: -2147483648 ≤ c * 2; */
+  /*@ assert Value: signed_overflow: c * 2 ≤ 2147483647; */
   /* <[---], [---]> */
   y = c * 2;
   /* <[---], [ S ]> */

@@ -69,7 +69,7 @@ let extract_single_var state vi =
   try
     match Cvalue.Model.find_base b state with
     | `Bottom -> GO_InvalidLoc, false
-    | `Map m -> GO_Offsetmap m, true
+    | `Value m -> GO_Offsetmap m, true
     | `Top -> GO_Top, true
   with Not_found ->
     GO_InvalidLoc, false
@@ -93,8 +93,7 @@ let reduce_loc_and_eval ~with_alarms state ref_ok loc =
                     ~with_alarms loc'.Locations.loc size state
             with
             | `Bottom -> GO_Bottom, false
-            | `Top -> GO_Top, true
-            | `Map offsm ->
+            | `Value offsm ->
               let ok = !ref_ok && (Locations.loc_equal loc loc') in
               GO_Offsetmap offsm, ok
           with Int_Base.Error_Top -> GO_Top, true
@@ -161,7 +160,7 @@ let null_to_offsetmap state (_:unit) =
   match Cvalue.Model.find_base_or_default Base.null state with
   | `Bottom -> GO_InvalidLoc, true
   | `Top -> GO_Top, true
-  | `Map m -> GO_Offsetmap m, true
+  | `Value m -> GO_Offsetmap m, true
 
 let null_ev =
   {eval_and_warn=null_to_offsetmap;

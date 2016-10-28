@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at test_exit
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
 [value] computing for function exit <- test_exit.
         Called from tests/pdg/pb_infinite_loop.c:48.

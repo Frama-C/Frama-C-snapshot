@@ -312,12 +312,12 @@ let script_for_ide ~pid ~gid =
           begin
             match Wp_parameters.CoqTactic.get () with
             | "none" -> ""
-            | tactic -> Pretty_utils.sfprintf "(* %s. *)\n" tactic
+            | tactic -> Format.asprintf "(* %s. *)\n" tactic
           end
         else
           begin
             let nhints = Wp_parameters.Hints.get () in
-            Pretty_utils.sfprintf "%t"
+            Format.asprintf "%t"
               (fun fmt ->
                  List.iter
                    (fun (_,g,script,_) ->

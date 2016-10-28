@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   A ∈ {0}
   B ∈ {0}
@@ -130,30 +130,30 @@ tests/value/postcondition.i:79:[value] warning: function f: postcondition got st
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function bound:
+[value:final-states] Values at end of function bound:
   cmd ∈ {2}
   __retres ∈ {0}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {0}
-[value] Values at end of function t0:
+[value:final-states] Values at end of function t0:
   G ∈ {6}
-[value] Values at end of function t1:
+[value:final-states] Values at end of function t1:
   G ∈ {6}
-[value] Values at end of function t2:
+[value:final-states] Values at end of function t2:
   G ∈ {6}
   p ∈ {{ &G }}
-[value] Values at end of function t3:
+[value:final-states] Values at end of function t3:
   TAB[0].a ∈ {12}
      {[0]{.b; .c}; [1..9]} ∈ {0}
-[value] Values at end of function t4:
+[value:final-states] Values at end of function t4:
   x ∈ {4}
   y ∈ {3}
-[value] Values at end of function t5:
+[value:final-states] Values at end of function t5:
   x ∈ {9}
-[value] Values at end of function get_index:
+[value:final-states] Values at end of function get_index:
   ret ∈ [0..2147483647]
   __retres ∈ [0..2147483647]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {0; 6}
   B ∈ {0}
   C ∈ [0..299]

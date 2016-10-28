@@ -221,11 +221,13 @@ module WP = Calculus.Cfg(VC)
 (* --- Proof Obilgation Generation                                      --- *)
 (* ------------------------------------------------------------------------ *)
 
-class computer =
+class computer () =
+  let driver = Driver.load_driver () in
+  let model = Factory.(instance default driver) in
   object
-
     val mutable wptasks = []
 
+    method model = model
     method lemma = true
     method add_lemma (_ : LogicUsage.logic_lemma) = ()
 
@@ -252,5 +254,4 @@ class computer =
 
   end (* class computer *)
 
-let create () = (new computer :> Generator.computer)
-
+let create () = (new computer () :> Generator.computer)

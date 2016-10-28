@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "frama-c"
-version: "20160502"
+version: "20161101"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Patrick Baudin"
@@ -61,5 +61,4 @@ depends: [
 messages: [
    "Alt-Ergo Graphical Interface can be used by the WP plug-in" { !altgr-ergo:installed }
 ]
-available: [ ocaml-version >= "4.00.1" & ocaml-version != "4.02.0" &
-             ocaml-version != "4.02.2" ]
+available: [ ocaml-version >= "4.02.3" ]

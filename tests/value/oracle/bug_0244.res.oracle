@@ -3,19 +3,19 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   R ∈ {0}
   p ∈ {0}
 tests/value/bug_0244.i:7:[value] entering loop for the first time
 tests/value/bug_0244.i:10:[value] warning: locals {u} escaping the scope of a block of main through p
-tests/value/bug_0244.i:12:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&p);
-tests/value/bug_0244.i:12:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/value/bug_0244.i:12:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&p);
+tests/value/bug_0244.i:12:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
 tests/value/bug_0244.i:12:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

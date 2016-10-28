@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f_precis
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NULL[rbits 32768 to 65543] ∈ [--..--]
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
@@ -42,40 +42,40 @@
   v ∈ [--..--]
   Tab[0..9] ∈ {0}
   P ∈ {0}
-tests/value/struct2.i:74:[kernel] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/value/struct2.i:74:[kernel] warning: accessing out of bounds index. assert i < 2;
-tests/value/struct2.i:76:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(i+j);
-tests/value/struct2.i:76:[kernel] warning: accessing out of bounds index. assert (int)(i+j) < 2;
-tests/value/struct2.i:76:[kernel] warning: signed overflow. assert i+j ≤ 2147483647;
-tests/value/struct2.i:78:[kernel] warning: accessing out of bounds index. assert tab2[i] < 2;
-tests/value/struct2.i:80:[kernel] warning: accessing out of bounds index. assert tab2[1] < 2;
-tests/value/struct2.i:82:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(tab2[i]+j);
-tests/value/struct2.i:82:[kernel] warning: accessing out of bounds index. assert (int)(tab2[i]+j) < 2;
-tests/value/struct2.i:99:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(tabl[i]+y);
-tests/value/struct2.i:99:[kernel] warning: accessing out of bounds index. assert (int)(tabl[i]+y) < 2;
-tests/value/struct2.i:117:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+x;
-tests/value/struct2.i:117:[kernel] warning: signed overflow. assert *p+x ≤ 2147483647;
-tests/value/struct2.i:124:[kernel] warning: out of bounds read. assert \valid_read(r);
+tests/value/struct2.i:74:[value] warning: accessing out of bounds index. assert 0 ≤ i;
+tests/value/struct2.i:74:[value] warning: accessing out of bounds index. assert i < 2;
+tests/value/struct2.i:76:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(i + j);
+tests/value/struct2.i:76:[value] warning: accessing out of bounds index. assert (int)(i + j) < 2;
+tests/value/struct2.i:76:[value] warning: signed overflow. assert i + j ≤ 2147483647;
+tests/value/struct2.i:78:[value] warning: accessing out of bounds index. assert tab2[i] < 2;
+tests/value/struct2.i:80:[value] warning: accessing out of bounds index. assert tab2[1] < 2;
+tests/value/struct2.i:82:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
+tests/value/struct2.i:82:[value] warning: accessing out of bounds index. assert (int)(tab2[i] + j) < 2;
+tests/value/struct2.i:99:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tabl[i] + y);
+tests/value/struct2.i:99:[value] warning: accessing out of bounds index. assert (int)(tabl[i] + y) < 2;
+tests/value/struct2.i:117:[value] warning: signed overflow. assert -2147483648 ≤ *p + x;
+tests/value/struct2.i:117:[value] warning: signed overflow. assert *p + x ≤ 2147483647;
+tests/value/struct2.i:124:[value] warning: out of bounds read. assert \valid_read(r);
 tests/value/struct2.i:124:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/struct2.i:130:[kernel] warning: out of bounds read. assert \valid_read(p3+2);
-tests/value/struct2.i:138:[kernel] warning: signed overflow. assert *((int *)0x1020)+i ≤ 2147483647;
-tests/value/struct2.i:149:[kernel] warning: out of bounds write. assert \valid(*t+i);
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(i+j);
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert (int)(i+j) < 2;
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert 0 ≤ k;
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert k < 2;
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert 0 ≤ l;
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert l < 2;
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(tab3[l]+m);
-tests/value/struct2.i:185:[kernel] warning: accessing out of bounds index. assert (int)(tab3[l]+m) < 10;
-tests/value/struct2.i:185:[kernel] warning: signed overflow. assert -2147483648 ≤ tab3[l]+m;
-tests/value/struct2.i:185:[kernel] warning: signed overflow. assert tab3[l]+m ≤ 2147483647;
+tests/value/struct2.i:130:[value] warning: out of bounds read. assert \valid_read(p3 + 2);
+tests/value/struct2.i:138:[value] warning: signed overflow. assert *((int *)0x1020) + i ≤ 2147483647;
+tests/value/struct2.i:149:[value] warning: out of bounds write. assert \valid(*t + i);
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(i + j);
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert (int)(i + j) < 2;
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert 0 ≤ k;
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert k < 2;
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert 0 ≤ l;
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert l < 2;
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tab3[l] + m);
+tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert (int)(tab3[l] + m) < 10;
+tests/value/struct2.i:185:[value] warning: signed overflow. assert -2147483648 ≤ tab3[l] + m;
+tests/value/struct2.i:185:[value] warning: signed overflow. assert tab3[l] + m ≤ 2147483647;
 [value] Recording results for f_precis
 [value] done for function f_precis
 tests/value/struct2.i:124:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/struct2.i:130:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f_precis:
+[value:final-states] Values at end of function f_precis:
   NULL[rbits 32768 to 32799] ∈ {{ NULL + [--..--] ; (? *)&a }}
       [rbits 32800 to 65543] ∈ [--..--]
   tab_s[0] ∈ {0}

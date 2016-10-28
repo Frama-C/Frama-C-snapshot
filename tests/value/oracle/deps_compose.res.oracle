@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ {1}
   z ∈ {0}
   x1 ∈ {0}
@@ -29,14 +29,14 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x1 ∈ {0}
   x2 ∈ {0}
   x3 ∈ {0}
   x4 ∈ {0}
   x5 ∈ {0}
   x6 ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x1 ∈ {0}
   y1 ∈ {0}
   x2 ∈ {0}

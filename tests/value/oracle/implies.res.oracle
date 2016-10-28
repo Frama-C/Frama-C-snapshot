@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
 tests/value/implies.i:6:[value] warning: assertion got status unknown.
@@ -11,7 +11,7 @@ tests/value/implies.i:8:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   A ∈ {1}
   __retres ∈ {1}
 [from] Computing for function main

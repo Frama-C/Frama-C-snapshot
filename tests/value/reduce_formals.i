@@ -31,7 +31,7 @@ void f_main4_2 (unsigned int f) {
 void main4 (int v) {
   if (v <= 15) {
     f_main4_1(v);
-    Frama_C_show_each_v(v); // no reduction for now, because of cast
+    Frama_C_show_each_v(v); // reduction on eva thx to backward propagation on exps
   } else {
     f_main4_2(v);
     Frama_C_show_each_v(v); // same
@@ -52,6 +52,19 @@ void main5() {
   f_main_1(l); // no reduction here, l is written in f_main_1
 }
 
+extern int g;
+
+void f_main6(int x) {
+  //@ assert x >= 4;
+  g = 3;
+}
+
+void main6() {
+  //@ assert 0 <= g <= 10;
+  f_main6(g); // No reduction there, the global may be/is modified externally
+  Frama_C_show_each_6(g);
+}
+
 void main(int v, int w, int x, int y, int z) {
   main1(x, y, z);
   main2(w);
@@ -62,4 +75,5 @@ void main(int v, int w, int x, int y, int z) {
   main3();
   main4(v);
   main5();
+  main6();
 }

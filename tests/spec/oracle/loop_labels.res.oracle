@@ -12,7 +12,7 @@ int main(void)
   */
   while (x < 15) {
     x ++;
-    /*@ assert x ≡ \at(x,LoopCurrent)+1; */ ;
+    /*@ assert x ≡ \at(x,LoopCurrent) + 1; */ ;
   }
   __retres = 0;
   return __retres;

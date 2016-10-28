@@ -5,17 +5,17 @@ tests/float/parse.i:30:[kernel] warning: Floating-point constant 0.0000001E99999
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] Called Frama_C_show_each({0}, {{ "reached" }})
 [value] Called Frama_C_show_each({0}, {{ "reached" }})
 [value] Called Frama_C_show_each({0}, {0}, {{ "reached" }})
 [value] Called Frama_C_show_each({0x1.83a99c3ec7eb0p893}, {{ "reached" }})
-tests/float/parse.i:30:[kernel] warning: non-finite double value. assert \is_finite(0.0000001E9999999999999999999);
+tests/float/parse.i:30:[value] warning: non-finite double value. assert \is_finite(0.0000001E9999999999999999999);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Done for function main

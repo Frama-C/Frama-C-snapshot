@@ -20,6 +20,13 @@ int *h(int *x)
   return x+1;
 }
 
+void i(int *x)
+{
+  int local;
+  x = &local;
+  return; // must NOT emit warning about escaping address of 'local'
+}
+
 void main(void)
 {
   int e;
@@ -27,4 +34,5 @@ void main(void)
   Z = g();
   Frama_C_dump_each();
   V = h(&e);
+  i(&e);
 }

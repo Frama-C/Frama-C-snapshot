@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -20,7 +20,7 @@
 [value] Recording results for f3
 [value] done for function f3
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   p ∈ {{ &T[0] }}
   T[0..7] ∈ {0}
 [from] Computing for function f3

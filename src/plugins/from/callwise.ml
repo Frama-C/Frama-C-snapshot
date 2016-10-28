@@ -150,10 +150,13 @@ let record_for_individual_froms (call_stack, value_res) =
       | Value_types.NormalStore ((states, _after_states), _) ->
           let cur_kf, _ = List.hd call_stack in
           let froms =
-            if !Db.Value.no_results (Kernel_function.get_definition cur_kf) then
-              Function_Froms.top
-            else
-              compute_call_from_value_states cur_kf (Lazy.force states)
+            try
+              if !Db.Value.no_results (Kernel_function.get_definition cur_kf)
+              then
+                Function_Froms.top
+              else
+                compute_call_from_value_states cur_kf (Lazy.force states)
+            with Kernel_function.No_Definition -> Function_Froms.top
           in
           let pre_state = match !call_froms_stack with
             | [] -> assert false

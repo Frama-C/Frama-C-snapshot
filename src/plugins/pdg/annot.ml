@@ -73,26 +73,24 @@ let find_nodes_for_function_contract pdg f_interpret =
     decl_nodes, data_dpds
 
 let find_fun_precond_nodes (pdg:PdgTypes.Pdg.t) p =
-  let named_p = { name = []; loc = Location.unknown; content = p } in
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat
                   ~state_opt:(Some true) kf in
-      !Db.Properties.Interp.To_zone.from_pred named_p f_ctx
+      !Db.Properties.Interp.To_zone.from_pred p f_ctx
   in find_nodes_for_function_contract pdg f_interpret
 
 let find_fun_postcond_nodes pdg p =
-  let named_p = { name = []; loc = Location.unknown; content = p } in
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat
                   ~state_opt:(Some false) kf in
-      !Db.Properties.Interp.To_zone.from_pred named_p f_ctx
+      !Db.Properties.Interp.To_zone.from_pred p f_ctx
   in let nodes,deps = find_nodes_for_function_contract pdg f_interpret
   in let nodes =
       (* find is \result is used in p, and if it is the case,
        * add the node [Sets.find_output_node pdg]
        * to the returned list of nodes.
        *)
-      if !Db.Properties.Interp.to_result_from_pred named_p then
+      if !Db.Properties.Interp.to_result_from_pred p then
         (Sets.find_output_node pdg)::nodes
       else nodes
   in nodes,deps

@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let dkey = Options.register_category "value"
+
 module Loop_Max_Iteration =
   Cil_state_builder.Stmt_hashtbl
     (Datatype.Int)
@@ -37,10 +39,9 @@ let add_loop_bound stmt n =
 
 module type BINARY_SEMILATTICE = sig
   include  Dataflows.JOIN_SEMILATTICE
-  open Cil_types
-  val transfer_exp : exp -> (lval -> t option) -> t
-  val transfer_lval : lval -> (lval -> t option) -> t
 end
+
+let pretty_int = Integer.pretty ~hexa:false
 
 module Binary(* :BINARY_SEMILATTICE *) = struct
 
@@ -56,7 +57,6 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
     | AffineRef of varinfo * Integer.t
     | Boolean of conds
     | Unknown
-    | Bottom
 
   and cond =
     | UnknownCond
@@ -76,8 +76,6 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
       if res == 0 then Integer.compare i1 i2 else res
     | Boolean _c1, Boolean _c2 -> assert false
     | Unknown, Unknown -> 0
-    | Bottom, Bottom -> 0
-    | Bottom, _ -> 1 | _,Bottom -> -1
     | Unknown, _ -> 1 | _, Unknown -> -1
     | Boolean _, _ -> 1 | _, Boolean _ -> -1
     | AffineRef _, _ -> 1 | _, AffineRef _ -> -1
@@ -109,8 +107,6 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
 
   type t = binary
 
-  let bottom = Bottom
-
   let add b1 b2 = match b1, b2 with
     | Unknown, _ | _, Unknown -> Unknown
     | ConstantInt(i1), ConstantInt(i2) -> ConstantInt(Integer.add i1 i2)
@@ -125,14 +121,13 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
 
 
   let pretty fmt = function
-    | ConstantInt(i) -> Format.fprintf fmt "%a" (Integer.pretty ~hexa:false) i
+    | ConstantInt(i) -> Format.fprintf fmt "%a" pretty_int i
     | AffineRef(v,i) -> Format.fprintf fmt "ref<%a>+%a"
                           Cil_datatype.Varinfo.pretty v
-                          (Integer.pretty ~hexa:false) i
+                          pretty_int i
     | Unknown -> Format.fprintf fmt "unknown"
     | ConstantVar(v) -> Format.fprintf fmt "%a" Cil_datatype.Varinfo.pretty v
     | Boolean _ -> Format.fprintf fmt "bools"
-    | Bottom -> Format.fprintf fmt "bottom"
 
 
   let pretty_cond fmt = function
@@ -225,7 +220,6 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
       when Cil_datatype.Varinfo.equal va vb && Integer.equal ia ib -> a
     | Boolean(condsa), Boolean(condsb) -> Boolean(join_conds condsa condsb)
     | Unknown, Unknown -> Unknown
-    | Bottom, x | x, Bottom -> x
     | _,_ -> Unknown
 
   (* let pretty _ = assert false *)
@@ -290,7 +284,15 @@ module Store(* (B:sig *)
     else assert false
   ;;
 
-
+  let pretty_increment fmt increment =
+    if Integer.(equal increment one) then Format.fprintf fmt "++"
+    else if Integer.(equal increment minus_one) then Format.fprintf fmt "--"
+    else if Integer.(gt increment zero) then
+      Format.fprintf fmt " += %a" (Integer.pretty ~hexa:false) increment
+    else if Integer.(lt increment zero) then
+      Format.fprintf fmt " -= %a" (Integer.pretty ~hexa:false)
+        (Integer.neg increment)
+    else assert false (* should never happen *)
 
   let do_instr instr (value,conds) =
     let open Cil_types in
@@ -340,7 +342,48 @@ module Store(* (B:sig *)
       Options.abort "unsupported exception-related statement: %a"
         Printer.pp_stmt stmt
 
+  let value_min_max stmt vi =
+    if (Db.Value.is_computed ()) then
+      begin
+        Options.feedback ~dkey ~once:true
+          "value analysis computed, trying results";
+        if Db.Value.is_reachable_stmt stmt then
+          let state = Db.Value.get_stmt_state stmt in
+          try
+            let loc = Locations.loc_of_varinfo vi in
+            let v = Db.Value.find state loc in
+            let ival = Cvalue.V.project_ival v in
+            let omin, omax = Ival.min_and_max ival in
+            omin, omax
+          with
+          | Not_found ->
+            Options.feedback ~dkey "value_min_max: not found: %a@.\
+                                    function: %a, stmt: %a"
+              Printer.pp_varinfo vi Kernel_function.pretty
+              (Kernel_function.find_englobing_kf stmt) Printer.pp_stmt stmt;
+            None, None
+          | Cvalue.V.Not_based_on_null ->
+            Options.feedback ~dkey "value_min_max: not based on null: %a@.\
+                                    function: %a, stmt: %a"
+              Printer.pp_varinfo vi Kernel_function.pretty
+              (Kernel_function.find_englobing_kf stmt) Printer.pp_stmt stmt;
+            None, None
+        else
+          begin
+            Options.feedback ~dkey "skipping unreachable stmt (function: %a)"
+              Kernel_function.pretty (Kernel_function.find_englobing_kf stmt);
+            None, None
+          end
+      end
+    else
+      begin
+        Options.feedback ~dkey ~once:true
+          "value analysis NOT computed, loop analysis will not use it";
+        None, None
+      end
+
   let mu (f:(t -> t)) (value,conds,stmt) =
+    Cil.CurrentLoc.set (Cil_datatype.Stmt.loc stmt);
     let (result,final_conds,_) = f (init stmt) in
 
     (* Induction variables is a map from each Varinfo to its increment. *)
@@ -363,31 +406,166 @@ module Store(* (B:sig *)
     let success = ref false in
 
     (* Now fill Loop_Max_Iteration for the kernel function. *)
-    let maybe_insert vi bound =
+    (* smaller = true => the test is "vi < bound";
+       smaller = false => the test is "vi > bound". *)
+    let maybe_insert vi smaller bound offset binop =
       try
         let initial =
           match Varinfo.Map.find vi value with
           | B.ConstantInt i -> i
+          | B.AffineRef(vi,offset) ->
+            begin
+              match value_min_max stmt vi with
+              | Some imin, _ when smaller -> Integer.add imin offset
+              | _, Some imax when not smaller -> Integer.add imax offset
+              | _, _ -> raise Not_found
+            end
           | _ -> raise Not_found (* TODO: handle comparison between pointers *)
         in
         let increment = Varinfo.Map.find vi induction_variables in
+        Options.debug "maybe_insert: function %a, found var %a, smaller: %b, \
+                       initial %a, increment %a, bound %a, offset %a, binop '%a'"
+          Kernel_function.pretty (Kernel_function.find_englobing_kf stmt)
+          Printer.pp_varinfo vi smaller pretty_int initial pretty_int increment
+          pretty_int bound pretty_int offset Printer.pp_binop binop;
         let bound = Integer.sub bound initial in
-        let value = (Integer.to_int (Integer.div bound increment)) in
-        if value >= 0 then
-          (success := true;
-           add_loop_bound stmt value)
+        let bound_offset =
+          if smaller then Integer.sub bound offset
+          else Integer.add bound offset
+        in
+        (* remainder is used for two purposes:
+           1. in the case of '!=' loops, to warn if the termination condition
+              may be missed;
+           2. in '<=' and '>=' loops, to adjust for the last iteration *)
+        let divident = Integer.sub bound offset in
+        let remainder = Integer.rem divident increment in
+        (* check if induction variable may miss termination condition *)
+        if binop = Cil_types.Ne && not Integer.(equal remainder zero) then
+          Options.warning ~current:true
+            "termination condition may not be reached (infinite loop?)@;\
+             loop amounts to: for (%a = 0; %a != %a; %a%a)"
+            Printer.pp_varinfo vi
+            Printer.pp_varinfo vi pretty_int divident
+            Printer.pp_varinfo vi pretty_increment increment
+        else
+          let value = (Integer.to_int (Integer.c_div bound_offset increment)) in
+          let adjusted_value =
+            if (binop = Cil_types.Le && Integer.(equal remainder zero))
+            || (not Integer.(equal remainder zero))
+            then value + 1
+            else value
+          in
+          if adjusted_value >= 0 then
+            begin
+              success := true;
+              add_loop_bound stmt adjusted_value
+            end
+      (* TODO: check if this is useful and does not cause false alarms
+         else
+         if Kernel.UnsignedOverflow.get() then
+          Options.warning ~current:true
+            "possibly infinite loop, or loop which relies on unsigned overflow"
+      *)
       with Not_found -> ()
     in
     List.iter (function
         | B.Lt(_,B.AffineRef(vi,offset),B.ConstantInt bound) ->
-          maybe_insert vi (Integer.sub bound offset)
+          maybe_insert vi true bound offset Cil_types.Lt
         | B.Le(_,B.AffineRef(vi,offset),B.ConstantInt bound) ->
-          maybe_insert vi (Integer.sub (Integer.add bound Integer.one) offset)
+          maybe_insert vi true bound offset Cil_types.Le
         | B.Lt(_,B.ConstantInt bound,B.AffineRef(vi,offset)) ->
-          maybe_insert vi (Integer.sub offset bound)
+          maybe_insert vi false bound offset Cil_types.Lt
         | B.Le(_,B.ConstantInt bound,B.AffineRef(vi,offset)) ->
-          maybe_insert vi (Integer.sub offset (Integer.add bound Integer.one))
-        | _ -> ()                   (* TODO: also do Ne. *)
+          maybe_insert vi false bound offset Cil_types.Le
+        | B.Ne(B.ConstantInt bound,B.AffineRef(vi, offset))
+        | B.Ne(B.AffineRef(vi, offset),B.ConstantInt bound) ->
+          begin
+            try
+              let increment = Varinfo.Map.find vi induction_variables in
+              assert (not (Integer.equal increment Integer.zero));
+              if Integer.gt increment Integer.zero then
+                maybe_insert vi true bound offset Cil_types.Ne
+              else
+                maybe_insert vi false bound offset Cil_types.Ne
+            with Not_found -> ()
+          end
+        | c ->
+          if (Db.Value.is_computed ()) then
+            begin
+              let min_max_int = value_min_max stmt in
+              match c with
+              | B.Lt(_,B.AffineRef(vi,offset),B.AffineRef(vi', offset')) ->
+                begin
+                  match min_max_int vi, min_max_int vi' with
+                  | (Some min_bound, _), (_, Some max_bound') ->
+                    let b1 = Integer.add min_bound offset in
+                    maybe_insert vi' false b1 offset' Cil_types.Lt;
+                    let b2 = Integer.add max_bound' offset' in
+                    maybe_insert vi true b2 offset Cil_types.Lt
+                  | _, _ -> ()
+                end
+              | B.Le(_,B.AffineRef(vi,offset),B.AffineRef(vi', offset')) ->
+                begin
+                  match min_max_int vi, min_max_int vi' with
+                  | (Some min_bound, _), (_, Some max_bound') ->
+                    let b1 = Integer.add min_bound offset in
+                    maybe_insert vi' false b1 offset' Cil_types.Le;
+                    let b2 = Integer.add max_bound' offset' in
+                    maybe_insert vi true b2 offset Cil_types.Le
+                  | a, b ->
+                    Options.debug "failed to get min/max bounds?@.\
+                                   -   get_min_max_int_for_vi(%a)=%a@.\
+                                   -   get_min_max_int_for_vi(%a)=%a"
+                      Printer.pp_varinfo vi
+                      (Pretty_utils.pp_pair
+                         (Pretty_utils.pp_opt pretty_int)
+                         (Pretty_utils.pp_opt pretty_int)) a
+                      Printer.pp_varinfo vi'
+                      (Pretty_utils.pp_pair
+                         (Pretty_utils.pp_opt pretty_int)
+                         (Pretty_utils.pp_opt pretty_int)) b
+                end
+              | B.Ne(B.AffineRef(vi, offset),B.AffineRef(vi', offset')) ->
+                begin
+                  try
+                    let increment = Varinfo.Map.find vi induction_variables in
+                    assert (not (Integer.equal increment Integer.zero));
+                    if Integer.gt increment Integer.zero then
+                      match min_max_int vi' with
+                      | (_, Some max_bound') ->
+                        let b = Integer.add max_bound' offset' in
+                        maybe_insert vi true b offset Cil_types.Lt
+                      | _ -> ()
+                    else
+                      match min_max_int vi' with
+                      | (Some min_bound', _) ->
+                        let b = Integer.add min_bound' offset in
+                        maybe_insert vi false b offset' Cil_types.Lt
+                      | _ -> ()
+                  with Not_found -> (* try other variable as increment *)
+                  try
+                    let increment = Varinfo.Map.find vi' induction_variables in
+                    assert (not (Integer.equal increment Integer.zero));
+                    if Integer.gt increment Integer.zero then
+                      match min_max_int vi with
+                      | (_, Some max_bound) ->
+                        let b = Integer.add max_bound offset in
+                        maybe_insert vi' true b offset' Cil_types.Lt;
+                      | _ -> ()
+                    else
+                      match min_max_int vi with
+                      | (Some min_bound, _) ->
+                        let b = Integer.add min_bound offset' in
+                        maybe_insert vi' false b offset Cil_types.Lt
+                      | _ -> ()
+                  with Not_found -> ()
+                end
+              | _ -> Options.debug
+                       "cannot use value, pattern not matched, c: %a@."
+                       B.pretty_cond c
+            end
+          else
+            () (* no value => cannot infer anything *)
       ) final_conds;
 
     (* TODO: Use this table in a second pass, for the slevel analysis. *)
@@ -441,7 +619,7 @@ end;;
 
 
 let analyze kf =
-  Options.debug "loop analyzis of function %a" Kernel_function.pretty kf;
+  Options.debug "loop analysis of function %a" Kernel_function.pretty kf;
   let module Specific = struct
     let kf = kf
     include Generic
@@ -452,3 +630,11 @@ let analyze kf =
   let _dict = after (Generic.init (Kernel_function.find_first_stmt kf)) in
   ()
 ;;
+
+let get_bounds stmt =
+  try
+    Some (Loop_Max_Iteration.find stmt)
+  with Not_found -> None
+
+let fold_bounds f acc =
+  Loop_Max_Iteration.fold_sorted ~cmp:Cil_datatype.Stmt.compare f acc

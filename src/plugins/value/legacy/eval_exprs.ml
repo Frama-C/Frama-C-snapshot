@@ -1124,7 +1124,7 @@ let offsetmap_of_lv ~with_alarms state lv =
     let size = Int_Base.project loc.size in
     let alarm, copy = Cvalue.Model.copy_offsetmap loc.loc size state in
     if alarm then Valarms.warn_mem_read with_alarms;
-    V_Offsetmap.join_top_bottom copy offsm_res
+    Bottom.join V_Offsetmap.join copy offsm_res
   in
   loc_to_read,
   state,

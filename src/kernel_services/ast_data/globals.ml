@@ -175,7 +175,7 @@ module Functions = struct
   end
 
   let init_kernel_function f spec =
-    { fundec = f; return_stmt = None; spec = spec }
+    { fundec = f; spec = spec }
 
   let fundec_of_decl spec v l =
     let args =
@@ -208,8 +208,7 @@ module Functions = struct
       | Definition (_, loc) | Declaration (_, _, _, loc) -> loc 
     in
     Cil.CurrentLoc.set loc;
-    Logic_utils.merge_funspec kf.spec spec;
-    kf.return_stmt <- None
+    Logic_utils.merge_funspec kf.spec spec
 
   let replace_by_declaration s v l=
 (*    Kernel.feedback "replacing %a by decl" Cil_datatype.Varinfo.pretty v;*)

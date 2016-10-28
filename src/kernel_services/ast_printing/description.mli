@@ -38,7 +38,7 @@ val pp_region : bool -> Format.formatter -> identified_term from list -> unit
 (** prints message "nothing" or the "'<names>'" or the "(<location>)" of the
     relation *) 
 
-val pp_named: Format.formatter -> 'a named -> unit
+val pp_named: Format.formatter -> predicate -> unit
 (** prints the name of a named logic structure (if any), separated by ','. *)
 
 val pp_for : Format.formatter -> string list -> unit

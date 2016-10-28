@@ -1,0 +1,30 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/type_redef.i (no preprocessing)
+tests/syntax/type_redef.i:13:[kernel] user error: redefinition of type 'st' in the same scope with conflicting type.
+                     Previous declaration was at tests/syntax/type_redef.i:12
+tests/syntax/type_redef.i:18:[kernel] user error: redefinition of type 'u' in the same scope with conflicting type.
+                     Previous declaration was at tests/syntax/type_redef.i:17
+tests/syntax/type_redef.i:21:[kernel] user error: redefinition of 'A' in the same scope.
+                     Previous declaration was at tests/syntax/type_redef.i:20
+tests/syntax/type_redef.i:21:[kernel] user error: redefinition of type 'e' in the same scope with conflicting type.
+                     Previous declaration was at tests/syntax/type_redef.i:20
+tests/syntax/type_redef.i:24:[kernel] user error: redefinition of 'B' in the same scope.
+                     Previous declaration was at tests/syntax/type_redef.i:23
+tests/syntax/type_redef.i:26:[kernel] user error: redefinition of type 'st1' in the same scope with conflicting type.
+                     Previous declaration was at tests/syntax/type_redef.i:15
+tests/syntax/type_redef.i:30:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+tests/syntax/type_redef.i:31:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+tests/syntax/type_redef.i:35:[kernel] user error: redefinition of type 'vi' in the same scope with incompatible type.
+                     Previous declaration was at tests/syntax/type_redef.i:34
+tests/syntax/type_redef.i:38:[kernel] user error: redefinition of type 'ci' in the same scope with incompatible type.
+                     Previous declaration was at tests/syntax/type_redef.i:37
+tests/syntax/type_redef.i:44:[kernel] user error: redefinition of type 'ftest_t' in the same scope with incompatible type.
+                     Previous declaration was at tests/syntax/type_redef.i:43
+tests/syntax/type_redef.i:49:[kernel] user error: redefinition of type 'stt' in the same scope with conflicting type.
+                     Previous declaration was at tests/syntax/type_redef.i:47
+tests/syntax/type_redef.i:53:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+tests/syntax/type_redef.i:57:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+tests/syntax/type_redef.i:62:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+tests/syntax/type_redef.i:63:[kernel] failure: redefinition of a typedef in a non-global scope is currently unsupported
+[kernel] user error: stopping on file "tests/syntax/type_redef.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

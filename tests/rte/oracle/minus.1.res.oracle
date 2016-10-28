@@ -23,55 +23,55 @@ int main(void)
   sz = (short)0;
   /*@ assert rte: signed_overflow: -2147483647 ≤ x; */
   z = - x;
-  /*@ assert rte: signed_overflow: -2147483647 ≤ (int)(-0x7fffffff)-1; */
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-0x7fffffff)-1; */
-  /*@ assert rte: signed_overflow: (int)(-0x7fffffff)-1 ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483647 ≤ (int)(-0x7fffffff) - 1; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-0x7fffffff) - 1; */
+  /*@ assert rte: signed_overflow: (int)(-0x7fffffff) - 1 ≤ 2147483647; */
   /*@ assert rte: signed_overflow: -2147483647 ≤ 0x7fffffff; */
   z = - (-0x7fffffff - 1);
   /*@ assert rte: signed_downcast: -ux ≤ 2147483647; */
   z = (int)(- ux);
   /*@ assert
       rte: signed_downcast:
-        (int)((unsigned short)((int)(65535+3)))+x ≤ 32767;
+        (int)((unsigned short)((int)(65535 + 3))) + x ≤ 32767;
   */
   /*@ assert
       rte: signed_downcast:
-        -32768 ≤ (int)((unsigned short)((int)(65535+3)))+x;
+        -32768 ≤ (int)((unsigned short)((int)(65535 + 3))) + x;
   */
-  /*@ assert rte: signed_overflow: -2147483648 ≤ 65535+3; */
-  /*@ assert rte: signed_overflow: 65535+3 ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ 65535 + 3; */
+  /*@ assert rte: signed_overflow: 65535 + 3 ≤ 2147483647; */
   sz = (short)((int)((unsigned short)(65535 + 3)) + x);
   /*@ assert
       rte: signed_downcast:
-        (unsigned int)(-0x80000000)-(unsigned int)1 ≤ 2147483647;
+        (unsigned int)(-0x80000000) - (unsigned int)1 ≤ 2147483647;
   */
   z = (int)(-0x80000000 - (unsigned int)1);
   /*@ assert
       rte: signed_downcast:
-        (unsigned int)(-2147483648)-(unsigned int)1 ≤ 2147483647;
+        (unsigned int)(-2147483648) - (unsigned int)1 ≤ 2147483647;
   */
   z = (int)(-2147483648 - (unsigned int)1);
   /*@ assert
-      rte: signed_overflow: -2147483648 ≤ (int)((int)(-2147483647)-1)-1;
+      rte: signed_overflow: -2147483648 ≤ (int)((int)(-2147483647) - 1) - 1;
   */
   /*@ assert
-      rte: signed_overflow: (int)((int)(-2147483647)-1)-1 ≤ 2147483647;
+      rte: signed_overflow: (int)((int)(-2147483647) - 1) - 1 ≤ 2147483647;
   */
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-2147483647)-1; */
-  /*@ assert rte: signed_overflow: (int)(-2147483647)-1 ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-2147483647) - 1; */
+  /*@ assert rte: signed_overflow: (int)(-2147483647) - 1 ≤ 2147483647; */
   /*@ assert rte: signed_overflow: -2147483647 ≤ 2147483647; */
   z = (-2147483647 - 1) - 1;
   /*@ assert
       rte: signed_overflow:
-        -2147483648 ≤ (int)(-((int)((int)(-0x7fffffff)-1)))-1;
+        -2147483648 ≤ (int)(-((int)((int)(-0x7fffffff) - 1))) - 1;
   */
   /*@ assert
       rte: signed_overflow:
-        (int)(-((int)((int)(-0x7fffffff)-1)))-1 ≤ 2147483647;
+        (int)(-((int)((int)(-0x7fffffff) - 1))) - 1 ≤ 2147483647;
   */
-  /*@ assert rte: signed_overflow: -2147483647 ≤ (int)(-0x7fffffff)-1; */
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-0x7fffffff)-1; */
-  /*@ assert rte: signed_overflow: (int)(-0x7fffffff)-1 ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483647 ≤ (int)(-0x7fffffff) - 1; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(-0x7fffffff) - 1; */
+  /*@ assert rte: signed_overflow: (int)(-0x7fffffff) - 1 ≤ 2147483647; */
   /*@ assert rte: signed_overflow: -2147483647 ≤ 0x7fffffff; */
   z = - (-0x7fffffff - 1) - 1;
   __retres = 0;

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function leaf <- main.
         Called from tests/value/copy_stdin.i:4.
@@ -13,10 +13,12 @@ tests/value/copy_stdin.i:4:[kernel] warning: Neither code nor specification for 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   stdin ∈
        {{ NULL + [--..--] ; &alloced_return_leaf + [0..2147483644],0%4 }}
-  toto ∈ {{ NULL + [--..--] ; &alloced_return_leaf + [0..2147483644],0%4 }}
+  toto ∈
+      {{ NULL + [0..4294967295] ;
+         &alloced_return_leaf + [0..2147483644],0%4 }}
 [from] Computing for function main
 [from] Computing for function leaf <-main
 [from] Done for function leaf

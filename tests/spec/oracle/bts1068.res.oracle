@@ -45,19 +45,19 @@ axiomatic A {
   logic S s
     reads \nothing;
   
-  logic ℤ fs{L}(S x) = \at(*(x.b+1),L);
+  logic ℤ fs{L}(S x) = \at(*(x.b + 1),L);
   
   logic ℤ fs2{L}(S x) 
-    reads \at(*(x.b+1),L);
+    reads \at(*(x.b + 1),L);
   
-  predicate PS{L}(S x) = \at(*(x.b+1) > 1,L);
+  predicate PS{L}(S x) = \at(*(x.b + 1) > 1,L);
   
   predicate PS2{L}(S x) 
-    reads \at(*(x.b+1),L);
+    reads \at(*(x.b + 1),L);
   
   axiom S1: s.a ≡ 0;
   
-  axiom S2{L}: *(s.b+0) ≡ 0;
+  axiom S2{L}: *(s.b + 0) ≡ 0;
   
   axiom S3{L}: PS(s) ⇒ PS2(s);
   
@@ -74,7 +74,7 @@ axiomatic A {
   
   logic int fa2{L}(int *q) = \at(*q,L);
   
-  logic char * fa3{L}(ℤ i) = \at((char *)(&P)+i,L);
+  logic char * fa3{L}(ℤ i) = \at((char *)(&P) + i,L);
   
   logic ℤ fa4{L}(T *q) 
     reads \at(q->a,L);
@@ -83,9 +83,9 @@ axiomatic A {
   
   predicate Valid{L}(int *q) = \at(\valid(q),L);
   
-  predicate ValidIndex{L}(int *q) = \at(\valid(q+1),L);
+  predicate ValidIndex{L}(int *q) = \at(\valid(q + 1),L);
   
-  predicate ValidRange{L}(int *q) = \at(\valid(q+(0 .. 2)),L);
+  predicate ValidRange{L}(int *q) = \at(\valid(q + (0 .. 2)),L);
   
   predicate Separated(int *a, int *b) = \separated(a, b);
   
@@ -93,7 +93,7 @@ axiomatic A {
   
   logic char * Base_addr{L}(int *q) = \at(\base_addr(q),L);
   
-  logic ℤ fi{L}(T *t) = \at(t->a+t->a,L);
+  logic ℤ fi{L}(T *t) = \at(t->a + t->a,L);
   
   }
  */
@@ -156,7 +156,7 @@ inductive model_5{L}(list *root, List<int>  logic_list) {
  */
 /*@
 inductive model_6{L}(list *root, List<int>  logic_list) {
-  case nil{L1}: model_6{L}(\null, Nil);
+  case nil{L1}: model_6(\null, Nil);
   case cons{L}: \at(∀ list *l1, List<int>  ll1;
                       \valid(l1) ⇒
                       model_6(l1->next, ll1) ⇒
@@ -188,5 +188,9 @@ inductive model_8{L1}(list *root, List<int>  logic_list) {
 inductive model_9{L1, L2}(list *root, List<int>  logic_list) {
   case nil{L}: \at(\valid(P),L);
   }
+ */
+void *px;
+/*@ inductive Pind{L}(void *root, ℤ px) { case p0{L}: \at(Pind(px, 0),L);
+      }
  */
 

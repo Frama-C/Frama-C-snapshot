@@ -327,8 +327,8 @@ let ident_names names =
                       | _ as n -> '\"' <> (String.get n 0) ) names
 
 let code_annot_names ca = match ca.annot_content with
-  | AAssert (_, named_pred)  -> "@assert"::(ident_names named_pred.name)
-  | AInvariant (_,_,named_pred) -> "@invariant"::(ident_names named_pred.name)
+  | AAssert (_, named_pred)  -> "@assert"::(ident_names named_pred.pred_name)
+  | AInvariant (_,_,named_pred) -> "@invariant"::(ident_names named_pred.pred_name)
   | AVariant (term, _) -> "@variant"::(ident_names term.term_name)
   | _ -> [] (* TODO : add some more names ? *)
 
@@ -337,17 +337,18 @@ let code_annot_names ca = match ca.annot_content with
 let user_prop_names p = match p with
   | Property.IPPredicate (kind,_,_,idp) ->
       let kind_name =
-        Pretty_utils.sfprintf  "%c%a" '@' Property.pretty_predicate_kind kind
-      in kind_name::idp.ip_name
+        Format.asprintf  "%c%a" '@' Property.pretty_predicate_kind kind
+      in
+      kind_name::idp.ip_content.pred_name
   | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
   | Property.IPComplete (_, _,_,lb) ->
       let kind_name = "@complete_behaviors" in
       let name =
-        Pretty_utils.sfprintf  "complete_behaviors%a" pp_names lb
+        Format.asprintf  "complete_behaviors%a" pp_names lb
       in kind_name::[name]
   | Property.IPDisjoint (_, _,_, lb) ->
       let kind_name = "@disjoint_behaviors" in
-      let name = Pretty_utils.sfprintf  "disjoint_behaviors%a" pp_names lb
+      let name = Format.asprintf  "disjoint_behaviors%a" pp_names lb
       in kind_name::[name]
   | Property.IPAssigns (_, _, _, l) ->
       let kind_name = "@assigns" in
@@ -360,7 +361,7 @@ let user_prop_names p = match p with
       let kind_name = "@decreases"
       in kind_name::[] (*TODO: add more names ? *)
   | Property.IPLemma (a,_,_,l,_) ->
-      let names = "@lemma"::a::(ident_names l.name)
+      let names = "@lemma"::a::(ident_names l.pred_name)
       in begin
         match LogicUsage.section_of_lemma a with
         | LogicUsage.Toplevel _ -> names
@@ -498,21 +499,22 @@ let assigns_hints hs froms =
 
 let annot_hints hs = function
   | AAssert(bs,ipred) | AInvariant(bs,_,ipred) ->
-      List.iter (add_hint hs) (ident_names ipred.name) ;
+      List.iter (add_hint hs) (ident_names ipred.pred_name) ;
       List.iter (add_hint hs) bs
   | AAssigns(bs,Writes froms) ->
       List.iter (add_hint hs) bs ;
       assigns_hints hs froms
-  | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _ | AVariant _ | APragma _ -> ()
+  | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _ 
+  | AVariant _ | APragma _ | AExtended _ -> ()
 
 let property_hints hs = function
   | Property.IPAxiom (s,_,_,p,_)
-  | Property.IPLemma (s,_,_,p,_) -> List.iter (add_required hs) (s::p.name)
+  | Property.IPLemma (s,_,_,p,_) -> List.iter (add_required hs) (s::p.pred_name)
   | Property.IPBehavior _ -> ()
   | Property.IPComplete(_,_,_,ps) | Property.IPDisjoint(_,_,_,ps) ->
       List.iter (add_required hs) ps
   | Property.IPPredicate(_,_,_,ipred) ->
-      List.iter (add_hint hs) ipred.ip_name
+      List.iter (add_hint hs) ipred.ip_content.pred_name
   | Property.IPCodeAnnot(_,_,ca) -> annot_hints hs ca.annot_content
   | Property.IPAssigns(_,_,_,froms) -> assigns_hints hs froms
   | Property.IPAllocation _ (* TODO *)
@@ -715,13 +717,13 @@ let pp_assigns_desc fmt a = Wp_error.pp_assigns fmt a.a_assigns
 *)
 (*----------------------------------------------------------------------------*)
 
-type pred_info = prop_id * Cil_types.predicate named
+type pred_info = prop_id * Cil_types.predicate
 
 let mk_pred_info id p = (id, p)
 let pred_info_id (id, _) = id
-let pp_pred_of_pred_info fmt (_id, p) = Printer.pp_predicate_named fmt p
+let pp_pred_of_pred_info fmt (_id, p) = Printer.pp_predicate fmt p
 let pp_pred_info fmt (id, p) =
-  Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id Printer.pp_predicate_named p
+  Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id Printer.pp_predicate p
 
 type assigns_info = prop_id * assigns_desc
 
@@ -792,7 +794,7 @@ let mk_axiom_info lemma =
 
 let pp_axiom_info fmt (id,thm) =
   Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id
-    Printer.pp_predicate_named thm.LogicUsage.lem_property
+    Printer.pp_predicate thm.LogicUsage.lem_property
 
 (* -------------------------------------------------------------------------- *)
 (* --- Prop Splitter                                                      --- *)

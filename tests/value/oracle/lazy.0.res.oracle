@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {-1}
   b ∈ {0}
   d ∈ {0}
@@ -11,13 +11,13 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
-tests/value/lazy.i:11:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
-tests/value/lazy.i:14:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
-tests/value/lazy.i:19:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a+2));
+tests/value/lazy.i:11:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
+tests/value/lazy.i:14:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
+tests/value/lazy.i:19:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   a ∈ {6}
   b ∈ {1}
   q ∈ {{ &a + {-4; 0} }}

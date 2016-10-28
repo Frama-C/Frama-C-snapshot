@@ -10,8 +10,8 @@ struct S s;
 int t;
 /*@ predicate int_eq(int logical, int from_c) = logical ≡ from_c;
  */
-/*@ ensures int_eq(*((int *)(0x1+0x2)), *((int *)(0x1+0x2)));
-    ensures int_eq(*((int *)(0x1+0x2)), (int)0);
+/*@ ensures int_eq(*((int *)(0x1 + 0x2)), *((int *)(0x1 + 0x2)));
+    ensures int_eq(*((int *)(0x1 + 0x2)), (int)0);
  */
 int f(void)
 {

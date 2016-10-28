@@ -52,7 +52,7 @@ let pretty fmt = function
 
 let loc = function
   | THEN s | ELSE s | MARK s | CASE(s,_) | CALL(s,_) | DEFAULT s -> Stmt.loc s
-  | ASSERT(p,_,_) -> p.ip_loc
+  | ASSERT(p,_,_) -> p.ip_content.pred_loc
 
 let compare p q =
   if p == q then 0 else
@@ -92,24 +92,24 @@ let rec disjunction p =
   with Exit -> [p]
 
 and unwrap p =
-  match p.content with
+  match p.pred_content with
   | Por(a,b) -> disjunction a @ disjunction b
   | Plet(f,a) ->
       List.map
-        (fun q -> { p with content = Plet(f,q) })
+        (fun q -> { p with pred_content = Plet(f,q) })
         (unwrap a)
   | Pexists(qs,p) ->
       List.map
-        (fun q -> { p with content = Pexists(qs,q) })
+        (fun q -> { p with pred_content = Pexists(qs,q) })
         (unwrap p)
   | Pat(p,l) ->
       List.map
-        (fun q -> { p with content = Pat(q,l) })
+        (fun q -> { p with pred_content = Pat(q,l) })
         (unwrap p)
   | _ -> raise Exit
 
 let predicate ip =
-  { name = ip.ip_name ; loc = ip.ip_loc ; content = ip.ip_content }
+  ip.ip_content
 
 let rec enumerate ip k n = function
   | [] -> []

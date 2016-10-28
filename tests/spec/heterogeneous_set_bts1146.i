@@ -1,7 +1,7 @@
 /* run.config
    DONTRUN: bugfix in progress
    EXECNOW: make -s tests/spec/Type_of_term.cmxs
-   OPT: -load-module ./tests/spec/Type_of_term.cmxs -check -print
+   OPT: -load-module ./tests/spec/Type_of_term.cmxs -print
 */
 
 /*@ lemma foo: \union(1) == \union(1.0); */

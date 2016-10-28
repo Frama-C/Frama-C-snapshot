@@ -1,10 +1,10 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/slice_pragma_stmt.c (with preprocessing)
+[kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at double_effect4
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
 [value] Recording results for double_effect4
@@ -41,3 +41,5 @@ void double_effect4(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_12_slice_pragma_stmt.i (no preprocessing)

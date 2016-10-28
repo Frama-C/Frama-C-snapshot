@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t1[0] ∈ {1}
     [1] ∈ {2}
     [2] ∈ {3}
@@ -137,24 +137,21 @@
         Called from tests/value/array_access.c:16.
 [value] Done for function any_int
 [value] Called Frama_C_show_each_I([0..8])
-tests/value/array_access.c:19:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)((int)(-i)-1);
-tests/value/array_access.c:19:[kernel] warning: accessing out of bounds index. assert (int)((int)(-i)-1) < 10;
+tests/value/array_access.c:19:[value] warning: accessing out of bounds index. assert 0 ≤ (int)((int)(-i) - 1);
+tests/value/array_access.c:19:[value] warning: accessing out of bounds index. assert (int)((int)(-i) - 1) < 10;
 [value] computing for function any_int <- main.
         Called from tests/value/array_access.c:21.
 [value] Done for function any_int
-tests/value/array_access.c:21:[kernel] warning: out of bounds read.
-                  assert \valid_read((int *)((char *)ch)+tmp_0);
-                  (tmp_0 from any_int())
+tests/value/array_access.c:21:[value] warning: out of bounds read.
+                 assert \valid_read((int *)((char *)ch) + tmp_0);
+                 (tmp_0 from any_int())
 [value] Recording results for main
 [value] done for function main
 tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final status valid.
 tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
-  R[bits 0 to 7] ∈ {0; 1}
-   [bits 8 to 15] ∈ {1}
-   [bits 16 to 23] ∈ {0}
-   [bits 24 to 31] ∈ {1}
+[value:final-states] Values at end of function main:
+  R ∈ {16777472; 16777473}
   i ∈ [--..--]
   j ∈ {10}
   k ∈ {88}
@@ -170,6 +167,8 @@ tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final st
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_bzero:
+  LT[0..9] FROM \nothing
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:

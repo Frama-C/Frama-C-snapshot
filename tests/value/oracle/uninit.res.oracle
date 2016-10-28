@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/value/uninit.i:3:[kernel] warning: accessing uninitialized left-value. assert \initialized(&i);
+tests/value/uninit.i:3:[value] warning: accessing uninitialized left-value. assert \initialized(&i);
 [value] Recording results for main
 [value] done for function main
 tests/value/uninit.i:3:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

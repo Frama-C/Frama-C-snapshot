@@ -138,7 +138,7 @@ let register name kinds link =
   let sigs = try Hashtbl.find (cdriver ()).hlogic name with Not_found -> [] in
   begin
     if List.exists (fun (s,_) -> s = kinds) sigs then
-      let msg = Pretty_utils.sfprintf "Builtin %s%a already defined" name
+      let msg = Format.asprintf "Builtin %s%a already defined" name
           pp_kinds kinds
       in failwith msg ;
   end ;

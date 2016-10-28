@@ -63,7 +63,7 @@ type logic_lemma = {
   lem_axiom : bool ;
   lem_types : string list ;
   lem_labels : logic_label list ;
-  lem_property : predicate named ;
+  lem_property : predicate ;
   lem_depends : logic_lemma list ;
   (* global lemmas declared before in AST order (in reverse order) *)
 }
@@ -331,7 +331,7 @@ class visitor =
           ind_call = LabelMap.empty ;
         } in
         inductive <- Some indcase ;
-        ignore (visitFramacPredicateNamed (self :> frama_c_visitor) pnamed) ;
+        ignore (visitFramacPredicate (self :> frama_c_visitor) pnamed) ;
         inductive <- None ; indcase
       end
 
@@ -354,7 +354,7 @@ class visitor =
 
     (* --- PREDICATE --- *)
 
-    method! vpredicate = function
+    method! vpredicate_node = function
       | Papp(l,labels,_) -> self#do_call l labels ; DoChildren
       | _ -> DoChildren
 
@@ -421,7 +421,7 @@ class visitor =
   end
 
 let compute () =
-  Wp_parameters.feedback ~ontty:`Feedback "Collecting axiomatic usage" ;
+  Wp_parameters.feedback ~ontty:`Transient "Collecting axiomatic usage" ;
   Visitor.visitFramacFile (new visitor) (Ast.get ())
 
 (* -------------------------------------------------------------------------- *)

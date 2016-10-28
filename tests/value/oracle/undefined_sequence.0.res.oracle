@@ -71,25 +71,25 @@ tests/value/undefined_sequence.i:67:[kernel] warning: Unspecified sequence with 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G[0..9] ∈ {0}
   c ∈ [--..--]
   r ∈ {0}
   H ∈ {0}
-tests/value/undefined_sequence.i:35:[kernel] warning: undefined multiple accesses in expression. assert \separated(&x, y);
+tests/value/undefined_sequence.i:35:[value] warning: undefined multiple accesses in expression. assert \separated(&x, y);
 tests/value/undefined_sequence.i:36:[value] entering loop for the first time
 tests/value/undefined_sequence.i:38:[value] entering loop for the first time
 tests/value/undefined_sequence.i:40:[value] entering loop for the first time
-tests/value/undefined_sequence.i:40:[kernel] warning: signed overflow.
-                  assert G[tmp_2]+G[tmp_3] ≤ 2147483647;
-                  (tmp_2 from j++, tmp_3 from i++)
+tests/value/undefined_sequence.i:40:[value] warning: signed overflow.
+                 assert G[tmp_2] + G[tmp_3] ≤ 2147483647;
+                 (tmp_2 from j++, tmp_3 from i++)
 tests/value/undefined_sequence.i:43:[value] entering loop for the first time
-tests/value/undefined_sequence.i:44:[kernel] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
-tests/value/undefined_sequence.i:45:[kernel] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+tests/value/undefined_sequence.i:44:[value] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
+tests/value/undefined_sequence.i:45:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
 tests/value/undefined_sequence.i:49:[value] entering loop for the first time
-tests/value/undefined_sequence.i:50:[kernel] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
-tests/value/undefined_sequence.i:51:[kernel] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
-tests/value/undefined_sequence.i:53:[kernel] warning: undefined multiple accesses in expression. assert \separated(&x, &x);
+tests/value/undefined_sequence.i:50:[value] warning: undefined multiple accesses in expression. assert \separated(&j, &j);
+tests/value/undefined_sequence.i:51:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+tests/value/undefined_sequence.i:53:[value] warning: undefined multiple accesses in expression. assert \separated(&x, &x);
 [value] computing for function g <- main.
         Called from tests/value/undefined_sequence.i:54.
 [value] Recording results for g
@@ -100,7 +100,7 @@ tests/value/undefined_sequence.i:53:[kernel] warning: undefined multiple accesse
 [value] Done for function f
 [value] computing for function h <- main.
         Called from tests/value/undefined_sequence.i:56.
-tests/value/undefined_sequence.i:16:[kernel] warning: undefined multiple accesses in expression. assert \separated(&r, &r);
+tests/value/undefined_sequence.i:16:[value] warning: undefined multiple accesses in expression. assert \separated(&r, &r);
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function h <- main.
@@ -113,10 +113,10 @@ tests/value/undefined_sequence.i:16:[kernel] warning: undefined multiple accesse
 [value] Done for function func
 [value] computing for function ub_ret <- main.
         Called from tests/value/undefined_sequence.i:65.
-tests/value/undefined_sequence.i:28:[kernel] warning: undefined multiple accesses in expression. assert \separated(&d, &d);
+tests/value/undefined_sequence.i:28:[value] warning: undefined multiple accesses in expression. assert \separated(&d, &d);
 [value] Recording results for ub_ret
 [value] Done for function ub_ret
-tests/value/undefined_sequence.i:67:[kernel] warning: undefined multiple accesses in expression. assert \separated(&my_f, &my_f);
+tests/value/undefined_sequence.i:67:[value] warning: undefined multiple accesses in expression. assert \separated(&my_f, &my_f);
 [value] Recording results for main
 [value] done for function main
 tests/value/undefined_sequence.i:16:[value] assertion 'Value,separation' got final status invalid.
@@ -129,19 +129,19 @@ tests/value/undefined_sequence.i:51:[value] assertion 'Value,separation' got fin
 tests/value/undefined_sequence.i:53:[value] assertion 'Value,separation' got final status invalid.
 tests/value/undefined_sequence.i:67:[value] assertion 'Value,separation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {6}
-[value] Values at end of function func:
+[value:final-states] Values at end of function func:
   __retres ∈ {5; 6}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   __retres ∈ {5}
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   r ∈ {1; 2}
   H ∈ {0; 1}
   i ∈ {0; 1}
-[value] Values at end of function ub_ret:
+[value:final-states] Values at end of function ub_ret:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G[0..1] ∈ [0..2147483647]
    [2] ∈ {0; 1}
    [3..9] ∈ [0..2147483647]

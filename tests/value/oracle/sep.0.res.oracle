@@ -4,7 +4,7 @@
 [value] Part of a case analysis: 0 of 0..3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   index ∈ [--..--]
   tab[0..4] ∈ [--..--]
 tests/value/sep.i:36:[value] warning: function f1: precondition got status unknown.
@@ -23,8 +23,8 @@ tests/value/sep.i:26:[value] warning: Statement 6: only propagating for conditio
 [value] done for function f1
 [value] Next case to cover in sequential order: 1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function init1:
+[value:final-states] Values at end of function init1:
   res ∈ {-1}
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   res ∈ {-1}
   __retres ∈ {-1}

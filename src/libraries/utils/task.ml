@@ -38,19 +38,19 @@ let error = function
 (* ------------------------------------------------------------------------ *)
 
 type 'a status =
-  | Timeout
+  | Timeout of int
   | Canceled
   | Result of 'a
   | Failed of exn
 
 let map f = function
-  | Timeout -> Timeout
+  | Timeout n -> Timeout n
   | Canceled -> Canceled
   | Result x -> Result (f x)
   | Failed e -> Failed e
 
 let pretty pp fmt = function
-  | Timeout -> Format.pp_print_string fmt "timeout"
+  | Timeout _ -> Format.pp_print_string fmt "timeout"
   | Canceled -> Format.pp_print_string fmt "canceled"
   | Result x -> Format.fprintf fmt "result %a" pp x
   | Failed (Failure msg) -> Format.fprintf fmt "failed (%s)" msg
@@ -144,7 +144,7 @@ let sequence a k =
   Monad.bind a (function
       | Result r -> k r
       | Failed e -> Monad.unit (Failed e)
-      | Timeout -> Monad.unit Timeout
+      | Timeout n -> Monad.unit (Timeout n)
       | Canceled -> Monad.unit Canceled)
     
 let nop = return ()
@@ -186,8 +186,8 @@ let rec lock m =
   else (m := true ; return ())
 let unlock m =
   if not !m
-  then (failed "Invalid lock on mutex")
-  else (m := false ; return ())
+  then (invalid_arg "Invalid lock on mutex")
+  else m := false
 
 let sync m t = lock m >>= t >>? fun _ -> unlock m
 
@@ -256,7 +256,7 @@ let ping_command cmd coin =
       when cmd.time_killed ->
         set_chrono cmd ;
         Kernel.debug ~dkey "timeout '%s' [%d]" cmd.name s ;
-        Return Timeout
+        Return (Timeout cmd.timeout)
 
     | Command.Result (Unix.WEXITED s) ->
         set_chrono cmd ;
@@ -296,7 +296,7 @@ let shared ~descr ~retry builder =
 
 let retry_shared sh = function
   | Failed _ -> sh.retry
-  | Timeout | Canceled -> true
+  | Timeout _ | Canceled -> true
   | Result _ -> false
 
 let ping_shared sh = function
@@ -327,22 +327,75 @@ let share sh = todo
       Monad.async (ping_shared sh)
     end
 
-(* ------------------------------------------------------------------------ *)
-(* ---  Server                                                          --- *)
-(* ------------------------------------------------------------------------ *)
+(* -------------------------------------------------------------------------- *)
+(* --- IDLE                                                               --- *)
+(* -------------------------------------------------------------------------- *)
+    
+let on_idle = ref
+    (fun f -> try
+        while f () do Extlib.usleep 50000 (* wait for 50ms *) done
+      with Db.Cancel -> ())
+
+(* -------------------------------------------------------------------------- *)
+(* --- Task thread                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+type thread = {
+  mutable task : unit task ;
+  mutable lock : bool ;
+}
+
+let thread task = { task = (task >>= fun _ -> nop) ; lock = false }
+let cancel th = th.task <- Monad.cancel th.task
+let running th =
+  th.lock ||
+  begin
+    try
+      th.lock <- true ;
+      let t = Monad.progress th.task in
+      th.task <- t ;
+      th.lock <- false ;
+      Monad.waiting t
+    with e ->
+      th.lock <- false ;
+      raise e
+  end
+
+let run th = !on_idle (fun () -> (running th))
+
+(* -------------------------------------------------------------------------- *)
+(* --- Task Pool                                                          --- *)
+(* -------------------------------------------------------------------------- *)
+
+type pool = thread list ref
+
+let pool () = ref []
+
+let iter f p =
+  let rec walk f = function
+    | [] -> []
+    | t::ts ->
+        if running t then f t ;
+        let ts = walk f ts in
+        if running t then t :: ts else ts
+  in p := walk f !p
+
+let add p t =
+  let ps = List.filter running !p in
+  p := if running t then t :: ps else ps
+
+let flush p = p := List.filter running !p
+let size p = flush p ; List.length !p
+
+(* -------------------------------------------------------------------------- *)
+(* --- Task Server                                                        --- *)
+(* -------------------------------------------------------------------------- *)
 
 type callbacks = (unit -> unit) list
 
 (* Invariant:
-
    terminated + (length running) + Sum ( length queue.(i) ) == scheduled
-
 *)
-
-type thread = unit task ref
-
-let thread task = ref (task >>= fun _ -> nop)
-let cancel th = th := Monad.cancel !th
 
 type server = {
   queue : thread Queue.t array ;
@@ -368,11 +421,6 @@ let server ?(stages=1) ?(procs=4) () = {
   activity = [] ; start = [] ; stop = [] ; wait = [] ;
   waiting = false ;
 }
-    
-let on_idle = ref
-    (fun f -> try
-        while f () do Extlib.usleep 50000 (* wait for 50ms *) done
-      with Db.Cancel -> ())
 
 let set_procs s p = s.procs <- p
 let on_server_activity s cb  = s.activity <- s.activity @ [cb]
@@ -386,9 +434,10 @@ let cancel_all server =
     List.iter cancel server.running ;
   end
 
-let spawn server ?(stage=0) task =
+let spawn server ?pool ?(stage=0) thread =
   begin
-    Queue.push task server.queue.(stage) ;      (* queue(i) ++ *)
+    (match pool with None -> () | Some pool -> add pool thread) ;
+    Queue.push thread server.queue.(stage) ;      (* queue(i) ++ *)
     server.scheduled <- succ server.scheduled ; (* scheduled ++ *)
     server.waiting <- false ;
   end (* invariant holds *)
@@ -397,10 +446,6 @@ let scheduled s = s.scheduled
 let terminated s = s.terminated
 let waiting s =
   if s.waiting || s.running = [] then None else Some (List.length s.running)
-
-let running th =
-  let t = Monad.progress !th
-  in th := t ; Monad.waiting t
 
 let is_empty server =
   try Array.iter
@@ -457,5 +502,4 @@ let rec run_server server () =
 let launch server =
   if server.scheduled > server.terminated
   then ( fire server.start ; !on_idle (run_server server) )
-
-let run th = !on_idle (fun () -> not (running th))
+    

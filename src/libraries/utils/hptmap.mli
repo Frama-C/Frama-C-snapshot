@@ -63,7 +63,6 @@ module Make
      val f : Key.t -> V.t -> bool  (** Value for a leaf *)
      val compose : bool -> bool -> bool
        (** Composition of the values of two subtrees *)
-     val default:bool
    end)
   (Initial_Values : sig
     val v : (Key.t*V.t) list list
@@ -89,7 +88,6 @@ module Comp_unused : sig
   val e : bool
   val f : 'a -> 'b -> bool
   val compose : bool -> bool -> bool
-  val default : bool
 end
 
 (*

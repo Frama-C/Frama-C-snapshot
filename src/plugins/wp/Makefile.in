@@ -23,10 +23,10 @@
 # Do not use ?= to initialize both below variables
 # (fixed efficiency issue, see GNU Make manual, Section 8.11)
 ifndef FRAMAC_SHARE
-FRAMAC_SHARE  :=$(shell frama-c -journal-disable -print-path)
+FRAMAC_SHARE  :=$(shell frama-c-config -print-share-path)
 endif
 ifndef FRAMAC_LIBDIR
-FRAMAC_LIBDIR :=$(shell frama-c -journal-disable -print-libpath)
+FRAMAC_LIBDIR :=$(shell frama-c-config -print-libpath)
 endif
 PLUGIN_DIR ?=.
 
@@ -56,9 +56,8 @@ PLUGIN_CMO:= \
 	wp_parameters wp_error \
 	dyncall ctypes clabels \
 	Separation \
-	LogicUsage VarUsageRef VarUsage RefUsage variables_analysis \
-	cil2cfg normAtLabels \
-	wpPropId wpStrategy wpAnnot mcfg \
+	LogicUsage RefUsage \
+	cil2cfg normAtLabels wpPropId mcfg \
 	Context Warning Model Lang Plang Matrix Passive Splitter \
 	Letify Cleaning Conditions Pcond \
 	LogicBuiltins Definitions \
@@ -68,6 +67,7 @@ PLUGIN_CMO:= \
 	LogicCompiler \
 	LogicSemantics LogicAssigns  \
 	Sigma MemEmpty MemZeroAlias MemVar MemTyped \
+	wpStrategy wpRTE wpAnnot \
 	VCS script proof wpo wpReport \
 	why3_xml \
 	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
@@ -110,7 +110,7 @@ QED_LIB := $(PLUGIN_DIR)/qed/bin
 QED_CMO = $(QED_LIB)/Qed.cmo
 QED_CMX = $(QED_LIB)/Qed.cmx
 
-QED_SRC = $(PLUGIN_DIR)/qed/src
+QED_SRC := $(PLUGIN_DIR)/qed/src
 
 include $(QED_SRC)/Makefile.src
 

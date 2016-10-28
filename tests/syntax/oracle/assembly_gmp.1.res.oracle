@@ -42,9 +42,9 @@ mp_limb_t mpn_mod_1_1p(mp_srcptr ap, mp_size_t n, mp_limb_t b,
       p0 = (long)(__m0 * __m1);
     }
     /*@ assigns r2, r1, r0;
-        assigns r2 \from r0, p1, *(ap+(n-3)), p0;
-        assigns r1 \from r0, p1, *(ap+(n-3)), p0;
-        assigns r0 \from r0, p1, *(ap+(n-3)), p0;
+        assigns r2 \from r0, p1, *(ap + (n - 3)), p0;
+        assigns r1 \from r0, p1, *(ap + (n - 3)), p0;
+        assigns r0 \from r0, p1, *(ap + (n - 3)), p0;
     */
     __asm__ (
       "add\t%6, %q2\n\t"
@@ -72,9 +72,9 @@ mp_limb_t mpn_mod_1_1p(mp_srcptr ap, mp_size_t n, mp_limb_t b,
         ADDC_LIMB(cy,r0,r0,r2 & B2modb);
         r0 -= - cy & b;
         /*@ assigns r2, r1, r0;
-            assigns r2 \from r0, p1, *(ap+j), p0;
-            assigns r1 \from r0, p1, *(ap+j), p0;
-            assigns r0 \from r0, p1, *(ap+j), p0;
+            assigns r2 \from r0, p1, *(ap + j), p0;
+            assigns r1 \from r0, p1, *(ap + j), p0;
+            assigns r0 \from r0, p1, *(ap + j), p0;
         */
         __asm__ (
           "add\t%6, %q2\n\t"

@@ -35,6 +35,9 @@ struct
   type chunk = C.t
   type domain = H.set
 
+  let empty = H.Set.empty
+  let union = H.Set.union
+  
   type t = { id : int ; mutable map : var H.map }
 
   let id = ref 0 (* for debugging purpose *)

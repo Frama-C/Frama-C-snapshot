@@ -20,10 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-class type widget =
+class type t = Wutil.widget
+class type widget = Wutil.widget
+
+class type action =
   object
-    method set_enabled : bool -> unit
-    method coerce : GObj.widget
+    inherit widget
+    method set_tooltip : string -> unit
   end
 
 class type ['a] signal =
@@ -53,17 +56,50 @@ open Wutil
 
 type align = [`Left | `Right | `Center]
 type style = [`Label | `Descr | `Title]
+type color = [ GDraw.color | `NORMAL ]
 
 let xalign = function `Left -> 0.0 | `Right -> 1.0 | `Center -> 0.5
 
-class label ?(style=`Label) ?text ?(align=`Left) () =
+class label ?(style=`Label) ?(align=`Left) ?width ?text () =
   let w = GMisc.label ?text ~xalign:(xalign align) () in
   object
-    inherit Wutil.coerce w
-    initializer match style with
+    inherit Wutil.gobj_widget w
+    val mutable fg = None
+    val mutable bg = None
+      
+    method set_fg (c : color) =
+      match fg , c with
+      | None , `NORMAL -> ()
+      | Some c0 , `NORMAL ->
+          w#misc#modify_fg [ `NORMAL , `COLOR c0 ]
+      | None , (#GDraw.color as c) ->
+          fg <- Some (w#misc#style#fg `NORMAL) ;
+          w#misc#modify_fg [ `NORMAL , c ]
+      | Some _ , (#GDraw.color as c) ->
+          w#misc#modify_fg [ `NORMAL , c ]
+
+    method set_bg (c : color) =
+      match bg , c with
+      | None , `NORMAL -> ()
+      | Some c0 , `NORMAL ->
+          w#misc#modify_bg [ `NORMAL , `COLOR c0 ]
+      | None , (#GDraw.color as c) ->
+          bg <- Some (w#misc#style#bg `NORMAL) ;
+          w#misc#modify_bg [ `NORMAL , c ]
+      | Some _ , (#GDraw.color as c) ->
+          w#misc#modify_bg [ `NORMAL , c ]
+
+    initializer
+      Wutil.on width w#set_width_chars ;
+      match style with
       | `Label -> ()
-      | `Descr -> w#set_line_wrap true ; set_small_font w
       | `Title -> set_bold_font w
+      | `Descr ->
+          w#set_single_line_mode false ;
+          w#set_line_wrap true ;
+          w#set_justify `LEFT ;
+          set_small_font w
+            
     method set_text = w#set_text
   end
 
@@ -71,7 +107,7 @@ class label ?(style=`Label) ?text ?(align=`Left) () =
 (* ---  Icons                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-type icon = [ GtkStock.id | `Share of string ]
+type icon = [ GtkStock.id | `Share of string | `None ]
 
 let default_icon =
   let xpm =
@@ -104,30 +140,44 @@ let shared_icon (f:string) =
         default_icon ()
     in Hashtbl.add pixbufs f pixbuf ; pixbuf
 
-let gimage (icon:icon) = match icon with
+let gimage = function 
+  | `None -> GMisc.image ()
   | `Share f -> GMisc.image ~pixbuf:(shared_icon f) ()
   | #GtkStock.id as stock -> GMisc.image ~stock ()
+
+class image (icn:icon) =
+  let img = gimage icn in
+  object
+    inherit gobj_widget img
+    method set_icon (icn:icon) =
+      match icn with
+      | `None -> img#clear ()
+      | `Share f -> img#set_pixbuf (shared_icon f)
+      | #GtkStock.id as id -> img#set_stock id
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* ---  Buttons                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-class button_skel ?icon ?tooltip (button:GButton.button_skel) =
+class button_skel ?align ?(icon=`None) ?tooltip (button:GButton.button_skel) =
   object(self)
     val mutable images = []
     initializer
       begin
         self#set_icon icon ;
+        Wutil.on align (fun a -> button#set_xalign (xalign a)) ;
         set_tooltip button tooltip ;
         button#misc#set_can_focus false ;
         button#set_focus_on_click false ;
       end
-    inherit coerce button
+    inherit gobj_action button
     method set_label = button#set_label
     method set_relief e = button#set_relief (if e then `NORMAL else `NONE)
-    method set_icon = function
-      | None -> button#unset_image ()
-      | Some icn ->
+    method set_icon (i:icon) =
+      match i with
+      | `None -> button#unset_image ()
+      | #icon as icn ->
           let image =
             try List.assoc icn images
             with Not_found ->
@@ -136,11 +186,11 @@ class button_skel ?icon ?tooltip (button:GButton.button_skel) =
           in button#set_image image#coerce
   end
 
-class button ?label ?icon ?tooltip () =
+class button ?align ?icon ?label ?tooltip () =
   let button = GButton.button ?label ~show:true () in
   object(self)
     inherit [unit] signal as s
-    inherit! button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
+    inherit! button_skel ?align ?icon ?tooltip (button :> GButton.button_skel) as b
     method! set_enabled e = s#set_enabled e ; b#set_enabled e
     method default = button#grab_default
     initializer
@@ -155,7 +205,7 @@ class checkbox ~label ?tooltip () =
   let button = GButton.check_button ~label ~show:true () in
   object
     inherit [bool] selector false as s
-    inherit! coerce button as b
+    inherit! gobj_action button as b
     method! set_enabled e = s#set_enabled e ; b#set_enabled e
     method! set a = s#set a ; button#set_active a
     initializer
@@ -165,31 +215,23 @@ class checkbox ~label ?tooltip () =
       end
   end
 
-(* only used inside groups -> not exported to API *)
-class radio ~label ?tooltip () =
-  let button = GButton.radio_button ~label ~show:true () in
-  object
-    inherit [bool] selector false as s
-    inherit! coerce button
-    method! set e = s#set e ; if e then button#set_active true
-    method group = function
-      | None -> Some button#group
-      | (Some g) as sg -> button#set_group g ; sg
-    initializer
-      begin
-        set_tooltip button tooltip ;
-        ignore (button#connect#clicked (fun () -> s#set button#active)) ;
-      end
-  end
+let toggle_icon_warning = ref true
 
-class toggle ?label ?icon ?tooltip () =
-  let button = GButton.button ?label ~show:true ~relief:`NONE () in
+class toggle ?align ?icon ?label ?(border=true) ?tooltip () =
+  let relief = if border then `NORMAL else `NONE in
+  let button = GButton.toggle_button ?label ~relief ~show:true () in
   object
     inherit [bool] selector false as s
-    inherit! button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
+    inherit! button_skel ?align ?icon ?tooltip (button :> GButton.button_skel) as b
     method! set_enabled e = s#set_enabled e ; b#set_enabled e
-    method! set a = s#set a ; button#set_relief (if a then `NORMAL else `NONE)
-    initializer ignore (button#connect#clicked (fun () -> s#set (not s#get)))
+    method! set = button#set_active
+    method! set_icon icn =
+      if icn <> `None && !toggle_icon_warning then
+        ( Wutil.warning "[Widget] Icon may not appear on toggle buttons" ;
+          toggle_icon_warning := false ) ;
+      b#set_icon icn
+    initializer
+      ignore (button#connect#clicked (fun () -> s#set button#active))
   end
 
 class switch ?tooltip () =
@@ -199,7 +241,7 @@ class switch ?tooltip () =
   let img = GMisc.image ~pixbuf:pix_on ~packing:evt#add () in
   object(self)
     inherit [bool] selector false as s
-    inherit! coerce evt as b
+    inherit! gobj_action evt as b
     method! set_enabled e = s#set_enabled e ; b#set_enabled e
     method! set a = s#set a ; img#set_pixbuf (if a then pix_on else pix_off)
     initializer
@@ -214,20 +256,32 @@ class switch ?tooltip () =
 (* ---  Button Group                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-class hbox (widgets : widget list) =
-  let box = GPack.hbox ~homogeneous:true ~spacing:0 ~border_width:0 () in
+(* only used inside groups -> not exported to API *)
+class radio_group ~label ?tooltip () =
+  let button = GButton.radio_button ~label ~show:true () in
   object
-    initializer List.iter (fun w -> box#add w#coerce) widgets
-    method set_enabled e = List.iter (fun w -> w#set_enabled e) widgets
-    method coerce = box#coerce
+    inherit [bool] selector false as s
+    inherit! gobj_action button
+    method! set e = s#set e ; if e then button#set_active true
+    method group = function
+      | None -> Some button#group
+      | (Some g) as sg -> button#set_group g ; sg
+    initializer
+      begin
+        set_tooltip button tooltip ;
+        ignore (button#connect#clicked (fun () -> s#set button#active)) ;
+      end
   end
 
-class vbox (widgets : widget list) =
-  let box = GPack.vbox ~homogeneous:true ~spacing:0 ~border_width:0 () in
+(* only used inside groups -> not exported to API *)
+class toggle_group ?label ?icon ?tooltip () =
+  let button = GButton.button ?label ~show:true ~relief:`NONE () in
   object
-    initializer List.iter (fun w -> box#add w#coerce) widgets
-    method set_enabled e = List.iter (fun w -> w#set_enabled e) widgets
-    method coerce = box#coerce
+    inherit [bool] selector false as s
+    inherit! button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
+    method! set_enabled e = s#set_enabled e ; b#set_enabled e
+    method! set a = s#set a ; button#set_relief (if a then `NORMAL else `NONE)
+    initializer ignore (button#connect#clicked (fun () -> s#set (not s#get)))
   end
 
 class ['a] group (default : 'a) =
@@ -247,12 +301,12 @@ class ['a] group (default : 'a) =
       end
 
     method add_toggle ?label ?icon ?tooltip ~value () =
-      let toggle = new toggle ?label ?icon ?tooltip () in
+      let toggle = new toggle_group ?label ?icon ?tooltip () in
       self#add_case (toggle :> bool selector) value ;
       (toggle :> widget)
 
     method add_radio ~label ?tooltip ~value () =
-      let radio = new radio ~label ?tooltip () in
+      let radio = new radio_group ~label ?tooltip () in
       self#add_case (radio :> bool selector) value ;
       group <- radio#group group ;
       (radio :> widget)
@@ -270,15 +324,15 @@ class spinner ?min ?max ?(step=1) ~value ?tooltip () =
   let b = GEdit.spin_button ~digits:0 () in
   object
     inherit [int] selector value as s
-    inherit! coerce b
+    inherit! gobj_action b
     method! set_enabled e = s#set_enabled e ; b#misc#set_sensitive e
     method! set a = s#set a ; b#set_value (float value)
     initializer
       begin
         set_tooltip b tooltip ;
-        let fmap = function None -> None | Some x -> Some (float x) in
+        let fmap v = function None -> v | Some x -> float x in
         b#adjustment#set_bounds
-          ?lower:(fmap min) ?upper:(fmap max)
+          ~lower:(fmap 0.0 min) ~upper:(fmap max_float max)
           ~step_incr:(float step) () ;
         b#set_value (float value) ;
         let callback () = s#set b#value_as_int in
@@ -290,43 +344,59 @@ class spinner ?min ?max ?(step=1) ~value ?tooltip () =
 (* ---  PopDown                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-class ['a] menu ~default ~render ?(items=[]) () =
-  let strings = List.map render items in
+let render_options opt a =
+  try List.assoc a opt
+  with Not_found -> "<unknown>"
+
+class ['a] menu ~default ?(options=[]) ?render ?items () =
+  let strings = List.map snd options in
   let (cmb,(model,_)) as combo = GEdit.combo_box_text ~strings ~wrap_width:1 () in
   object(self)
 
-    inherit coerce cmb as widget
+    inherit gobj_action cmb as widget
     inherit! ['a] selector default as select
 
-    val mutable items = Array.of_list items
+    initializer
+      begin
+        on render self#set_render ;
+        on items self#set_items ;
+      end
+        
+    val mutable printer = render_options options
+    val mutable values = Array.of_list (List.map fst options)
 
+    method set_options opt =
+      printer <- render_options opt ;
+      self#set_items (List.map fst opt)
+    
+    method set_render p = printer <- p
+    
     method! set_enabled e =
       select#set_enabled e ; widget#set_enabled e
 
-    method get_items = Array.to_list items
+    method get_items = Array.to_list values
 
     method set_items xs =
       begin
-        items <- Array.of_list xs ; model#clear () ;
-        Array.iter (fun x -> GEdit.text_combo_add combo (render x)) items ;
+        values <- Array.of_list xs ; model#clear () ;
+        Array.iter (fun x -> GEdit.text_combo_add combo (printer x)) values ;
         let e = select#get in
         self#lock (fun () ->
-            Array.iteri (fun i x -> if x=e then cmb#set_active i) items) ;
+            Array.iteri (fun i x -> if x=e then cmb#set_active i) values) ;
       end
 
-    method private clicked () =
-      let n = cmb#active in
-      if 0 <= n && n < Array.length items then
-        self#lock (fun () -> select#set items.(n))
-
+    method private clicked n =
+      if 0 <= n && n < Array.length values then
+        select#set values.(n)
+          
     method! set x =
       begin
         select#set x ;
-        Array.iteri (fun i e -> if x=e then cmb#set_active i) items ;
+        Array.iteri (fun i e -> if x=e then cmb#set_active i) values ;
       end
 
     initializer
-      ignore (cmb#connect#changed self#clicked) ;
+      ignore (cmb#connect#notify_active self#clicked)
 
   end
 
@@ -357,8 +427,9 @@ class popup () =
       ignore (item#connect#activate ~callback) ;
       empty <- false ; separator <- false
 
-    method popup () =
-      let time = GMain.Event.get_current_time () in
-      menu#popup ~button:3 ~time
+    method run () =
+      if not empty then
+        let time = GMain.Event.get_current_time () in
+        menu#popup ~button:3 ~time
 
   end

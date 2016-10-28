@@ -148,6 +148,13 @@ axiom to_sint64_extraction_inf : forall x:int, i:int [Cint.bit_test
   (Cint.to_sint64 x) i]. (Int.(<=) (0) (i)) /\ (Int.(<) (i) (63)) ->
   Cint.bit_test (Cint.to_sint64 x) i <-> Cint.bit_test x i
 
+axiom is_uint_lxor : forall n:int, x:int, y:int. Cint.is_uint n x ->
+  Cint.is_uint n y -> ((Cint.to_uint n (Cint.lxor x y)) = (Cint.lxor x y))
+
+axiom is_uint8_lxor : forall x:int, y:int [Cint.to_uint8 (Cint.lxor x y)].
+  Cint.is_uint8 x -> Cint.is_uint8 y -> ((Cint.to_uint8 (Cint.lxor x
+  y)) = (Cint.lxor x y))
+
 axiom is_uint8_lor : forall x:int, y:int [Cint.to_uint8 (Cint.lor x y)].
   Cint.is_uint8 x -> Cint.is_uint8 y -> ((Cint.to_uint8 (Cint.lor x
   y)) = (Cint.lor x y))
@@ -166,6 +173,10 @@ axiom is_uint8_lsl1_inf : forall y:int [Cint.to_uint8 (Cint.lsl 1 y)].
 
 axiom is_uint8_lsl1_sup : forall y:int [Cint.to_uint8 (Cint.lsl 1 y)].
   (Int.(<=) (8) (y)) -> ((Cint.to_uint8 (Cint.lsl 1 y)) = (0))
+
+axiom is_uint16_lxor : forall x:int, y:int [Cint.to_uint16 (Cint.lxor x y)].
+  Cint.is_uint16 x -> Cint.is_uint16 y -> ((Cint.to_uint16 (Cint.lxor x
+  y)) = (Cint.lxor x y))
 
 axiom is_uint16_lor : forall x:int, y:int [Cint.to_uint16 (Cint.lor x y)].
   Cint.is_uint16 x -> Cint.is_uint16 y -> ((Cint.to_uint16 (Cint.lor x
@@ -186,6 +197,10 @@ axiom is_uint16_lsl1_inf : forall y:int [Cint.to_uint16 (Cint.lsl 1 y)].
 axiom is_uint16_lsl1_sup : forall y:int [Cint.to_uint16 (Cint.lsl 1 y)].
   (Int.(<=) (16) (y)) -> ((Cint.to_uint16 (Cint.lsl 1 y)) = (0))
 
+axiom is_uint32_lxor : forall x:int, y:int [Cint.to_uint32 (Cint.lxor x y)].
+  Cint.is_uint32 x -> Cint.is_uint32 y -> ((Cint.to_uint32 (Cint.lxor x
+  y)) = (Cint.lxor x y))
+
 axiom is_uint32_lor : forall x:int, y:int [Cint.to_uint32 (Cint.lor x y)].
   Cint.is_uint32 x -> Cint.is_uint32 y -> ((Cint.to_uint32 (Cint.lor x
   y)) = (Cint.lor x y))
@@ -204,6 +219,10 @@ axiom is_uint32_lsl1_inf : forall y:int [Cint.to_uint32 (Cint.lsl 1 y)].
 
 axiom is_uint32_lsl1_sup : forall y:int [Cint.to_uint32 (Cint.lsl 1 y)].
   (Int.(<=) (32) (y)) -> ((Cint.to_uint32 (Cint.lsl 1 y)) = (0))
+
+axiom is_uint64_lxor : forall x:int, y:int [Cint.to_uint64 (Cint.lxor x y)].
+  Cint.is_uint64 x -> Cint.is_uint64 y -> ((Cint.to_uint64 (Cint.lxor x
+  y)) = (Cint.lxor x y))
 
 axiom is_uint64_lor : forall x:int, y:int [Cint.to_uint64 (Cint.lor x y)].
   Cint.is_uint64 x -> Cint.is_uint64 y -> ((Cint.to_uint64 (Cint.lor x

@@ -100,12 +100,14 @@ module IncompatibleDeclHook =
 let register_incompatible_decl_hook f =
   IncompatibleDeclHook.extend (fun (x,y,z) -> f x y z)
 
-
 module DifferentDeclHook =
   Hook.Build(struct type t = varinfo * varinfo end)
 
 let register_different_decl_hook f =
   DifferentDeclHook.extend (fun (x,y) -> f x y)
+
+module NewGlobalHook = Hook.Build(struct type t = varinfo * bool end)
+let register_new_global_hook f = NewGlobalHook.extend (fun (x, y) -> f x y)
 
 module LocalFuncHook = Hook.Build(struct type t = varinfo end)
 
@@ -538,6 +540,26 @@ type undoScope =
 
 let scopes :  undoScope list ref list ref = ref []
 
+(* tries to estimate if the name 's' was declared in the current scope;
+   note that this may not work in all cases *)
+let declared_in_current_scope s =
+  match !scopes with
+  | [] -> (* global scope: check if present in genv *) H.mem genv s
+  | cur_scope :: _ ->
+    let names_declared_in_current_scope =
+      Extlib.filter_map
+        (fun us ->
+           match us with
+           | UndoRemoveFromEnv _ | UndoRemoveFromAlphaTable _ -> true
+           | UndoResetAlphaCounter _ -> false)
+        (fun us ->
+           match us with
+           | UndoRemoveFromEnv s | UndoRemoveFromAlphaTable s -> s
+           | UndoResetAlphaCounter _ -> assert false (* already filtered *)
+        ) !cur_scope
+    in
+    List.mem s names_declared_in_current_scope
+
 (* When you add to env, you also add it to the current scope *)
 let addLocalToEnv (n: string) (d: envdata) =
   (*log "%a: adding local %s to env\n" d_loc !currentLoc n; *)
@@ -642,11 +664,15 @@ let newAlphaName (globalscope: bool) (* The name should have global scope *)
         then fst (H.find env lookupname)
         else raise Not_found
       in
-      Kernel.error ~current:true 
-        "redefinition of '%s'%s in the same scope. \
-         Previous declaration was at %a"
-        origname (if is_same_kind kind info then "" else " with different kind")
-        Cil_datatype.Location.pretty oldloc
+      if not (Kernel.C11.get () && kind = "type") then
+        (* in C11, typedefs can be redefined under some conditions (which are
+           checked in doTypedef); this test catches other kinds of errors, such
+           as redefined enumeration constants *)
+        Kernel.error ~current:true
+          "redefinition of '%s'%s in the same scope.@ \
+           Previous declaration was at %a"
+          origname (if is_same_kind kind info then "" else " with different kind")
+          Cil_datatype.Location.pretty oldloc
     with 
     | Not_found -> () (* no clash of identifiers *)
     | Failure _ ->
@@ -761,9 +787,8 @@ let alphaConvertVarAndAddToEnv (addtoenv: bool) (vi: varinfo) : varinfo =
       end
     end
   in
-  (* Store all locals in the slocals (in reversed order). We'll reverse them
-   * and take out the formals at the end of the function *)
-  if not vi.vglob then
+  (* Store all locals in the slocals (in reversed order). *)
+  if not vi.vglob && not vi.vformal then
     !currentFunctionFDEC.slocals <- newvi :: !currentFunctionFDEC.slocals;
 
   (if addtoenv then
@@ -1472,7 +1497,15 @@ struct
       unspecified_order = false;
     }
 
-  let keepPureExpr ~ghost e l = ifChunk ~ghost e l skipChunk skipChunk
+  let keepPureExpr ~ghost e loc =
+    let fundec = !currentFunctionFDEC in
+    let s = Cil.mkPureExpr ~ghost ~fundec ~loc e in
+    match s.skind with
+    | Block b ->
+      { empty with
+        stmts = List.map (fun s -> (s,[],[],[],[])) b.bstmts;
+        locals = b.blocals }
+    | _ ->i2c (s,[],[],[])
 
   (* We can duplicate a chunk if it has a few simple statements, and if
    * it does not have cases *)
@@ -2090,7 +2123,10 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
             * type than a prototype that says "int" *)
            k
          | _ ->
-           raise (Failure "different integer types"))
+           raise (Failure
+                    (Format.asprintf
+                       "different integer types:@ '%a' and '%a'"
+                       Cil_printer.pp_ikind oldk Cil_printer.pp_ikind k)))
     in
     TInt (combineIK oldik ik, cabsAddAttributes olda a)
   | TFloat (oldfk, olda), TFloat (fk, a) ->
@@ -2280,13 +2316,24 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
     let res = combineTypes what oldt.ttype t in
     cabsTypeAddAttributes a res
 
-  | _ -> raise (Failure "different type constructors")
+  | _ -> raise (Failure
+                  (Format.asprintf "different type constructors:@ %a and %a"
+                     Cil_printer.pp_typ oldt Cil_printer.pp_typ t))
 
 let cleanup_isomorphicStructs () = H.clear isomorphicStructs
+
+let same_qualifiers t1 t2 =
+  let attrs1 = Cil.filter_qualifier_attributes (Cil.typeAttrs t1) in
+  let attrs2 = Cil.filter_qualifier_attributes (Cil.typeAttrs t2) in
+  attrs1 = attrs2
 
 let compatibleTypes t1 t2 =
   try
     let r = combineTypes CombineOther t1 t2 in
+    (* C99, 6.7.3 §9: "... to be compatible, both shall have the identically
+       qualified version of a compatible type;" *)
+    if not (same_qualifiers t1 t2) then raise (Failure "different qualifiers");
+    (* Note: different non-qualifier attributes will be silently dropped. *)
     cleanup_isomorphicStructs ();
     r
   with Failure _ as e ->
@@ -2295,12 +2342,8 @@ let compatibleTypes t1 t2 =
 
 let compatibleTypesp t1 t2 =
   try
-    ignore (combineTypes CombineOther t1 t2);
-    cleanup_isomorphicStructs ();
-    true
-  with Failure _ ->
-    cleanup_isomorphicStructs ();
-    false
+    ignore (compatibleTypes t1 t2); true
+  with Failure _ -> false
 
 let extInlineSuffRe = Str.regexp "\\(.+\\)__extinline"
 
@@ -2309,121 +2352,124 @@ let extInlineSuffRe = Str.regexp "\\(.+\\)__extinline"
  * Returns the varinfo to use (might be the old one), and an indication
  * whether the variable exists already in the environment *)
 let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
-  try (* See if already defined, in the global environment. We could also
-       * look it up in the whole environment but in that case we might see a
-       * local. This can happen when we declare an extern variable with
-       * global scope but we are in a local scope. *)
+  let res =
+    try (* See if already defined, in the global environment. We could also
+         * look it up in the whole environment but in that case we might see a
+         * local. This can happen when we declare an extern variable with
+         * global scope but we are in a local scope. *)
 
-    (* We lookup in the environment. If this is extern inline then the name
-     * was already changed to foo__extinline. We lookup with the old name *)
-    let lookupname =
-      if vi.vstorage = Static then
-        if Str.string_match extInlineSuffRe vi.vname 0 then
-          let no_extinline_name = Str.matched_group 1 vi.vname in
-          if no_extinline_name=vi.vorig_name then no_extinline_name
-          else vi.vname
+      (* We lookup in the environment. If this is extern inline then the name
+       * was already changed to foo__extinline. We lookup with the old name *)
+      let lookupname =
+        if vi.vstorage = Static then
+          if Str.string_match extInlineSuffRe vi.vname 0 then
+            let no_extinline_name = Str.matched_group 1 vi.vname in
+            if no_extinline_name=vi.vorig_name then no_extinline_name
+            else vi.vname
+          else
+            vi.vname
         else
           vi.vname
-      else
-        vi.vname
-    in
-    Kernel.debug ~dkey:category_global
-      "makeGlobalVarinfo isadef=%b vi.vname=%s (lookup = %s)"
-      isadef vi.vname lookupname;
-    (* This may throw an exception Not_found *)
-    let oldvi, oldloc = lookupGlobalVar lookupname in
-    Kernel.debug ~dkey:category_global "  %s(%d) already in the env at loc %a"
-      vi.vname oldvi.vid Cil_printer.pp_location oldloc;
-    (* It was already defined. We must reuse the varinfo. But clean up the
-     * storage.  *)
-    let newstorage = (** See 6.2.2 *)
-      match oldvi.vstorage, vi.vstorage with
-      (* Extern and something else is that thing *)
-      | Extern, other
-      | other, Extern -> other
-      | NoStorage, other
-      | other, NoStorage ->  other
-      | _ ->
-        if vi.vstorage != oldvi.vstorage then
-          Kernel.warning ~current:true
-            "Inconsistent storage specification for %s. \
+      in
+      Kernel.debug ~dkey:category_global
+        "makeGlobalVarinfo isadef=%b vi.vname=%s (lookup = %s)"
+        isadef vi.vname lookupname;
+      (* This may throw an exception Not_found *)
+      let oldvi, oldloc = lookupGlobalVar lookupname in
+      Kernel.debug ~dkey:category_global "  %s(%d) already in the env at loc %a"
+        vi.vname oldvi.vid Cil_printer.pp_location oldloc;
+      (* It was already defined. We must reuse the varinfo. But clean up the
+       * storage.  *)
+      let newstorage = (** See 6.2.2 *)
+        match oldvi.vstorage, vi.vstorage with
+        (* Extern and something else is that thing *)
+        | Extern, other
+        | other, Extern -> other
+        | NoStorage, other
+        | other, NoStorage ->  other
+        | _ ->
+          if vi.vstorage != oldvi.vstorage then
+            Kernel.warning ~current:true
+              "Inconsistent storage specification for %s. \
              Previous declaration: %a"
-            vi.vname Cil_printer.pp_location oldloc;
-        vi.vstorage
-    in
-    oldvi.vinline <- oldvi.vinline || vi.vinline;
-    (* If the new declaration has a section attribute, remove any
-     * preexisting section attribute. This mimics behavior of gcc that is
-     * required to compile the Linux kernel properly. *)
-    if hasAttribute "section" vi.vattr then
-      oldvi.vattr <- dropAttribute "section" oldvi.vattr;
-    (* Union the attributes *)
-    oldvi.vattr <- cabsAddAttributes oldvi.vattr vi.vattr;
-    begin
-      try
-        let what =
-          if isadef then
-            CombineFundef (hasAttribute "FC_OLDSTYLEPROTO" vi.vattr)
-          else CombineOther
-        in
-        let mytype = combineTypes what oldvi.vtype vi.vtype in
-        if not (Cil_datatype.Typ.equal oldvi.vtype vi.vtype)
-        then DifferentDeclHook.apply (oldvi,vi);
-        Cil.update_var_type oldvi mytype;
-      with Failure reason ->
-        Kernel.debug ~dkey:category_global "old type = %a\nnew type = %a\n"
-          Cil_printer.pp_typ oldvi.vtype
-          Cil_printer.pp_typ vi.vtype ;
-        Kernel.error ~once:true ~current:true
-          "Declaration of %s does not match previous declaration from %a (%s)."
-          vi.vname Cil_printer.pp_location oldloc reason;
-        IncompatibleDeclHook.apply (oldvi,vi,reason)
-    end;
-    (* Update the storage and vdecl if useful. Do so only after the hooks have
-       been applied, as they may need to read those fields *)
-    if oldvi.vstorage <> newstorage then begin
-      oldvi.vstorage <- newstorage;
-      (* Also update the location; [vi.vdecl] is a better declaration/definition
-         site for [vi]. *)
-      oldvi.vdecl <- vi.vdecl;
-    end;
-    (* Let's mutate the formals vid's name attribute and type for function
-       prototypes. Logic specifications refer to the varinfo in this table. *)
-    begin
-      match vi.vtype with
-      | TFun (_,Some formals , _, _ ) ->
-        (try
-           let old_formals_env = getFormalsDecl oldvi in
-           List.iter2
-             (fun old (name,typ,attr) ->
-                if name <> "" then begin
-                  Kernel.debug ~dkey:category_global
-                    "replacing formal %s with %s" old.vname name;
-                  old.vname <- name;
-                  Cil.update_var_type old typ;
-                  old.vattr <- attr;
-                  (match old.vlogic_var_assoc with
+              vi.vname Cil_printer.pp_location oldloc;
+          vi.vstorage
+      in
+      oldvi.vinline <- oldvi.vinline || vi.vinline;
+      (* If the new declaration has a section attribute, remove any
+       * preexisting section attribute. This mimics behavior of gcc that is
+       * required to compile the Linux kernel properly. *)
+      if hasAttribute "section" vi.vattr then
+        oldvi.vattr <- dropAttribute "section" oldvi.vattr;
+      (* Union the attributes *)
+      oldvi.vattr <- cabsAddAttributes oldvi.vattr vi.vattr;
+      begin
+        try
+          let what =
+            if isadef then
+              CombineFundef (hasAttribute "FC_OLDSTYLEPROTO" vi.vattr)
+            else CombineOther
+          in
+          let mytype = combineTypes what oldvi.vtype vi.vtype in
+          if not (Cil_datatype.Typ.equal oldvi.vtype vi.vtype)
+          then DifferentDeclHook.apply (oldvi,vi);
+          Cil.update_var_type oldvi mytype;
+        with Failure reason ->
+          Kernel.debug ~dkey:category_global "old type = %a\nnew type = %a\n"
+            Cil_printer.pp_typ oldvi.vtype
+            Cil_printer.pp_typ vi.vtype ;
+          Kernel.error ~once:true ~current:true
+            "Declaration of %s does not match previous declaration from \
+ %a (%s)."
+            vi.vname Cil_printer.pp_location oldloc reason;
+          IncompatibleDeclHook.apply (oldvi,vi,reason)
+      end;
+      (* Update the storage and vdecl if useful. Do so only after the hooks have
+         been applied, as they may need to read those fields *)
+      if oldvi.vstorage <> newstorage then begin
+        oldvi.vstorage <- newstorage;
+        (* Also update the location; [vi.vdecl] is a better
+           declaration/definition site for [vi]. *)
+        oldvi.vdecl <- vi.vdecl;
+      end;
+      (* Let's mutate the formals vid's name attribute and type for function
+         prototypes. Logic specifications refer to the varinfo in this table. *)
+      begin
+        match vi.vtype with
+        | TFun (_,Some formals , _, _ ) ->
+          (try
+             let old_formals_env = getFormalsDecl oldvi in
+             List.iter2
+               (fun old (name,typ,attr) ->
+                 if name <> "" then begin
+                   Kernel.debug ~dkey:category_global
+                     "replacing formal %s with %s" old.vname name;
+                   old.vname <- name;
+                   Cil.update_var_type old typ;
+                   old.vattr <- attr;
+                   (match old.vlogic_var_assoc with
                    | None -> ()
                    | Some old_lv -> old_lv.lv_name <- name)
-                end)
-             old_formals_env
-             formals;
-         with
-         | Invalid_argument _ ->
-           Kernel.abort "Inconsistent formals" ;
-         | Not_found -> 
-           Cil.setFormalsDecl oldvi vi.vtype)
-      | _ -> ()
-    end ;
-    (* if [isadef] is true, [vi] is a definition.  *)
-    if isadef then begin
-      oldvi.vdecl <- vi.vdecl; (* always favor the location of the definition.*)
-      oldvi.vdefined <- true;
-    end;
-    (* notice that [vtemp] is immutable, and cannot be updated. Hopefully,
-       temporaries have sufficiently fresh names that this is not a problem *)
-    oldvi, true
-  with Not_found -> begin (* A new one.  *)
+                 end)
+               old_formals_env
+               formals;
+           with
+           | Invalid_argument _ ->
+             Kernel.abort "Inconsistent formals" ;
+           | Not_found ->
+             Cil.setFormalsDecl oldvi vi.vtype)
+        | _ -> ()
+      end ;
+      (* if [isadef] is true, [vi] is a definition.  *)
+      if isadef then begin
+        (* always favor the location of the definition.*)
+        oldvi.vdecl <- vi.vdecl;
+        oldvi.vdefined <- true;
+      end;
+      (* notice that [vtemp] is immutable, and cannot be updated. Hopefully,
+         temporaries have sufficiently fresh names that this is not a problem *)
+      oldvi, true
+    with Not_found -> begin (* A new one.  *)
       Kernel.debug ~level:2 ~dkey:category_global
         "  %s not in the env already" vi.vname;
       (* Announce the name to the alpha conversion table. This will not
@@ -2435,6 +2481,10 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
       vi.vattr <- dropAttribute "FC_OLDSTYLEPROTO" vi.vattr;
       vi, false
     end
+  in
+  NewGlobalHook.apply res;
+  res
+
 
 (* Register a builtin function *)
 let setupBuiltin name (resTyp, argTypes, isva) =
@@ -2522,7 +2572,7 @@ let rec _pp_preInit fmt = function
 let empty_preinit() =
   if Cil.gccMode () || Cil.msvcMode () then
     CompoundPre (ref (-1), ref [| |])
-  else Kernel.abort "empty initializers only allowed for GCC/MSVC"
+  else Kernel.abort ~current:true "empty initializers only allowed for GCC/MSVC"
 
 (* Set an initializer *)
 let rec setOneInit this o preinit =
@@ -3042,7 +3092,7 @@ let optConstFoldBinOp loc machdep bop e1 e2 t =
 let integral_cast ty t =
   raise
     (Failure
-       (Pretty_utils.sfprintf "term %a has type %a, but %a is expected."
+       (Format.asprintf "term %a has type %a, but %a is expected."
           Cil_printer.pp_term t Cil_printer.pp_logic_type Linteger Cil_printer.pp_typ ty))
 
 (* Exception raised by the instance of Logic_typing local to this module.
@@ -3644,6 +3694,34 @@ let rec evaluate_cond_exp = function
     | `CTrue -> `CFalse
     | `CFalse -> `CTrue
     | `CUnknown -> `CUnknown
+
+
+(* The way formals are handled now might generate incorrect types, in the
+   sense that they refer to a varinfo (in the case of VLA depending on a
+   previously declared formal) that exists only during the call to doType.
+   We replace them here with the definitive version of the formals' varinfos.
+   A global refactoring of cabs2cil would be welcome, though.
+*)
+let fixFormalsType formals =
+  let table = Hashtbl.create 5 in
+  let vis =
+    object
+      inherit Cil.nopCilVisitor
+      method! vvrbl v =
+        if v.vformal then begin
+          try
+            ChangeTo (Hashtbl.find table v.vname)
+          with Not_found ->
+            Kernel.fatal "Formal %a not tied to a varinfo"
+              Cil_printer.pp_varinfo v;
+        end else SkipChildren
+    end
+  in
+  let treat_one_formal v =
+    v.vtype <- Cil.visitCilType vis v.vtype;
+    Hashtbl.add table v.vname v;
+  in
+  List.iter treat_one_formal formals
 
 let rec doSpecList ghost (suggestedAnonName: string)
     (* This string will be part of
@@ -4318,7 +4396,7 @@ and doType (ghost:bool) isFuncArg
       let lo =
         match len.expr_node with
         | A.NOTHING -> None
-        | _ -> 
+        | _ ->
             (* Check that len is a constant expression.
                We used to also cast the length to int here, but that's
                theoretically too restrictive on 64-bit machines. *)
@@ -4991,7 +5069,9 @@ and doExp local_env
           let l = String.length str in
           fun s ->
             let ls = String.length s in
-            l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
+            l >= ls &&
+            s =
+            Transitioning.String.uppercase_ascii (String.sub str (l - ls) ls)
         in
         match ct with
         | A.CONST_INT str -> begin
@@ -5496,7 +5576,7 @@ and doExp local_env
             let reads, se', result =
               if what <> ADrop && what <> AType then
                 let descr =
-                  Pretty_utils.sfprintf "%a%s"
+                  Format.asprintf "%a%s"
                     Cil_descriptive_printer.pp_exp  e'
                     (if uop = A.POSINCR then "++" else "--") in
                 let tmp = newTempVar descr true t in
@@ -5599,7 +5679,7 @@ and doExp local_env
             let r1, tmplv, se3 =
               if needsTemp then
                 let descr = 
-                  Pretty_utils.sfprintf "%a" Cil_descriptive_printer.pp_lval lv
+                  Format.asprintf "%a" Cil_descriptive_printer.pp_lval lv
                 in
                 let tmp = newTempVar descr true lvt in
                 let chunk =
@@ -5881,7 +5961,7 @@ and doExp local_env
           (* create a temporary *)
           let tmp =
             newTempVar
-              (Pretty_utils.sfprintf "%a" Cil_descriptive_printer.pp_exp e)
+              (Format.asprintf "%a" Cil_descriptive_printer.pp_exp e)
               true
               t
           in
@@ -6251,7 +6331,7 @@ and doExp local_env
               | _ -> resType'
             in
             let descr =
-              Pretty_utils.sfprintf "%a(%a)"
+              Format.asprintf "%a(%a)"
                 Cil_descriptive_printer.pp_exp !pf
                 (Pretty_utils.pp_list ~sep:", " 
                    Cil_descriptive_printer.pp_exp) 
@@ -6379,7 +6459,7 @@ and doExp local_env
             (match e2'o with
              | None when is_dangerous e3' || not (isEmpty se3) ->
                let descr =
-                 Pretty_utils.sfprintf "%a" Cprint.print_expression e1
+                 Format.asprintf "%a" Cprint.print_expression e1
                in
                let tmp = newTempVar descr true tresult in
                let tmp_var = var tmp in
@@ -6444,7 +6524,7 @@ and doExp local_env
               match e2'o with
               | None -> (* has form "e1 ? : e3"  *)
                 let descr =
-                  Pretty_utils.sfprintf "%a" Cprint.print_expression e1
+                  Format.asprintf "%a" Cprint.print_expression e1
                 in
                 let tmp = newTempVar descr true tresult in
                 let tmp_var = var tmp in
@@ -6469,7 +6549,7 @@ and doExp local_env
                     is_real, lv, r, lvt, empty
                   | _ ->
                     let descr =
-                      Pretty_utils.sfprintf "%a?%a:%a"
+                      Format.asprintf "%a?%a:%a"
                         Cprint.print_expression e1
                         Cil_descriptive_printer.pp_exp e2'
                         Cil_descriptive_printer.pp_exp e3'
@@ -6611,8 +6691,8 @@ and doBinOp loc (bop: binop) (e1: exp) (t1: typ) (e2: exp) (t2: typ) =
       optConstFoldBinOp loc false bop
         (makeCastT e1 t1 tres) (makeCastT e2 t2 tres) tres
     | _ ->
-      Kernel.fatal ~current:true "%a operator on a non-integer type" 
-        Cil_printer.pp_binop bop
+      Kernel.fatal ~current:true "%a operator on non-integer type %a"
+        Cil_printer.pp_binop bop Printer.pp_typ tres
   in
   (* Invariant: t1 and t2 are pointers types *)
   let pointerComparison e1 t1 e2 t2 =
@@ -7765,7 +7845,7 @@ and createLocal ghost ((_, sto, _, _) as specs)
               Logic_const.prel ~loc:castloc (Rle, talloca_size, max_bound) 
             in
             let alloca_bounds = Logic_const.pand ~loc:castloc (pos_size, max_size) in
-            let alloca_bounds = { alloca_bounds with name = ["alloca_bounds"] } in
+            let alloca_bounds = { alloca_bounds with pred_name = ["alloca_bounds"] } in
             let annot =
               Logic_const.new_code_annotation (AAssert ([], alloca_bounds))
             in
@@ -7793,7 +7873,7 @@ and createLocal ghost ((_, sto, _, _) as specs)
           let rt, _, _, _ = splitFunctionType alloca.vtype in
           let tmp =
             newTempVar 
-              (Pretty_utils.sfprintf "alloca(%a)" Cil_printer.pp_exp alloca_size)
+              (Format.asprintf "alloca(%a)" Cil_printer.pp_exp alloca_size)
               false rt
           in
           (local_var_chunk setlen tmp)
@@ -7911,7 +7991,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
           try
             let spec =
               Ltyping.code_annot loc' local_env.known_behaviors
-                (Ctype !currentReturnType) (AStmtSpec ([],spec))
+                (Ctype !currentReturnType) (Logic_ptree.AStmtSpec ([],spec))
             in
             append_chunk_to_annot ~ghost
               (s2c
@@ -8142,6 +8222,12 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
         in
         let fmlocs = (match dt with PROTO(_, fml, _) -> fml | _ -> []) in
         let formals = doFormals (argsToList formals_t) fmlocs in
+        (* in case of formals referred to in types of others, doType has
+           put dummy varinfos. We need to fix them now that we have proper
+           bindings.
+           TODO: completely refactor the way formals' typechecking is done.
+        *)
+        let () = fixFormalsType formals in
 
         (* Recreate the type based on the formals. *)
         let ftype = TFun(returnType,
@@ -8239,7 +8325,8 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                 @ behaviors;
               is_ghost = local_env.is_ghost
             }
-            body in
+            body
+        in
         (* Finish everything *)
         exitScope ();
         (* Now fill in the computed goto statement with cases. Do this
@@ -8298,21 +8385,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
         H.clear gotoTargetHash;
         gotoTargetNextAddr := 0;
       in
-      let rec dropFormals formals locals =
-        match formals, locals with
-        | [], l -> l
-        | f :: formals, l :: locals ->
-          if f != l then
-            Kernel.abort ~current:true
-              "formal %s is not in locals (found instead %s)"
-              f.vname
-              l.vname;
-          dropFormals formals locals
-        | _ -> Kernel.abort ~current:true "Too few locals"
-      in
-      !currentFunctionFDEC.slocals
-      <- dropFormals !currentFunctionFDEC.sformals
-          (List.rev !currentFunctionFDEC.slocals);
+      !currentFunctionFDEC.slocals <- (List.rev !currentFunctionFDEC.slocals);
       setMaxId !currentFunctionFDEC;
 
       (* Now go over the types of the formals and pull out the formals
@@ -8354,7 +8427,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
           (* Guard the [return] instructions we add with an
              [\assert \false]*)
           let pfalse = Logic_const.unamed ~loc:endloc Pfalse in
-          let pfalse = { pfalse with name = ["missing_return"] } in
+          let pfalse = { pfalse with pred_name = ["missing_return"] } in
           let assert_false () =
             let annot =
               Logic_const.new_code_annotation (AAssert ([], pfalse))
@@ -8454,6 +8527,72 @@ and doTypedef ghost ((specs, nl): A.name_group) =
     let newTyp, tattr =
       doType ghost false AttrType bt (A.PARENTYPE(attrs, ndt, a))  in
     let newTyp' = cabsTypeAddAttributes tattr newTyp in
+    if H.mem typedefs n && H.mem env n then
+      (* check if type redefinition is allowed (C11 only);
+         in all cases, do not create a new type.
+         TODO: if local typedef redefinitions are to be supported, then the new type
+         must be created if the definition is syntactically valid. *)
+      begin
+        if !scopes <> [] then
+          Kernel.failure ~current:true
+            "redefinition of a typedef in a non-global scope is currently unsupported";
+        let typeinfo = H.find typedefs n in
+        let _, oldloc = lookupType "type" n in
+        if compatibleTypesp typeinfo.ttype newTyp' then
+          begin
+            let error_conflicting_types () =
+              Kernel.error ~current:true
+                "redefinition of type '%s' in the same scope with conflicting type.@ \
+                 Previous declaration was at %a"
+                n Cil_datatype.Location.pretty oldloc
+            in
+            let error_c11_redefinition () =
+              Kernel.error ~current:true
+                "redefinition of type '%s' in the same scope is only allowed in C11 \
+                 (option %s).@ Previous declaration was at %a" n Kernel.C11.name
+                Cil_datatype.Location.pretty oldloc
+            in
+            (* Tested with GCC+Clang: redefinition of compatible types in same scope:
+               - enums are NOT allowed;
+               - composite types are allowed only if the composite type itself is
+                 not redefined (complex rules; with some extra tag checking performed
+                 in compatibleTypesp, we use tags here to detect redefinitions,
+                 which are invalid)
+               - redefinition via a typedef of a struct/union/enum IS allowed;
+               - other types are allowed. *)
+            if declared_in_current_scope n then
+              begin
+                match newTyp' with (* do NOT unroll type here,
+                                      redefinitions of typedefs are ok *)
+                | TComp (newci, _, _) ->
+                  (* Composite types with different tags may be compatible, but here
+                     we use the tags to try and detect if the type is being redefined,
+                     which is NOT allowed. *)
+                  begin
+                    match unrollType typeinfo.ttype with
+                    | TComp (ci, _, _) ->
+                      if ci.cname <> newci.cname then
+                        (* different tags => we consider that the type is being redefined *)
+                        error_conflicting_types ()
+                      else
+                        (* redeclaration in same scope valid only in C11 *)
+                      if not (Kernel.C11.get ()) then error_c11_redefinition ()
+                    | _ -> (* because of the compatibility test, this should not happen *)
+                      Kernel.fatal ~current:true "typeinfo.ttype (%a) should be TComp"
+                        Cil_printer.pp_typ typeinfo.ttype
+                  end
+                | TEnum _ -> (* GCC/Clang: "conflicting types" *)
+                  error_conflicting_types ()
+                | _ -> (* redeclaration in same scope valid only in C11 *)
+                  if not (Kernel.C11.get ()) then error_c11_redefinition ()
+              end
+          end
+        else if declared_in_current_scope n then
+          Kernel.error ~current:true
+            "redefinition of type '%s' in the same scope with incompatible type.@ \
+             Previous declaration was at %a" n Cil_datatype.Location.pretty oldloc;
+      end
+    else (* effectively create new type *) begin
     let n', _  = newAlphaName true "type" n in
     let ti =
       { torig_name = n; tname = n';
@@ -8469,6 +8608,7 @@ and doTypedef ghost ((specs, nl): A.name_group) =
      * local context  *)
     addLocalToEnv (kindPlusName "type" n) (EnvTyp namedTyp);
     cabsPushGlobal (GType (ti, CurrentLoc.get ()))
+    end
   in
   List.iter createTypedef nl
 
@@ -8744,7 +8884,10 @@ and doBody local_env (blk: A.block) : chunk =
                  match s.stmt_node with
                  | CODE_ANNOT _  -> [], true
                  | CODE_SPEC (s,_) ->
-                   List.map (fun x -> x.b_name) s.spec_behavior, true
+                   List.map
+                     (fun x -> x.Logic_ptree.b_name)
+                     s.Logic_ptree.spec_behavior,
+                   true
                  | _ -> [], false
                in
                (*               Format.eprintf "Done statement %a@." d_chunk res; *)
@@ -8830,8 +8973,8 @@ and doStatement local_env (s : A.statement) : chunk =
     doCondition local_env false e st' sf'
 
   | A.WHILE(a,e,s,loc) ->
-    let a = mk_loop_annot a loc in
     startLoop true;
+    let a = mk_loop_annot a loc in
     let s' = doStatement local_env s in
     let s' =
       if !doTransformWhile then
@@ -8847,8 +8990,8 @@ and doStatement local_env (s : A.statement) : chunk =
        @@ (s', ghost))
 
   | A.DOWHILE(a, e,s,loc) ->
-    let a = mk_loop_annot a loc in
     startLoop false;
+    let a = mk_loop_annot a loc in
     let s' = doStatement local_env s in
     let loc' = convLoc loc in
     CurrentLoc.set loc';
@@ -8890,9 +9033,9 @@ and doStatement local_env (s : A.statement) : chunk =
         | FC_DECL d1 ->
           (doDecl local_env false d1, zero ~loc, voidType), true
       in
-      let a = mk_loop_annot a loc in
       let (se3, _, _) = doFullExp local_env false e3 ADrop in
       startLoop false;
+      let a = mk_loop_annot a loc in
       let s' = doStatement local_env s in
       (*Kernel.debug "Loop body : %a" d_chunk s';*)
       CurrentLoc.set loc';
@@ -9169,6 +9312,7 @@ and doStatement local_env (s : A.statement) : chunk =
               ~ghost ~isformal:false ~isglobal:false ldecl spec (n,ndt,a)
           in
           addLocalToEnv n (EnvVar vi);
+          !currentFunctionFDEC.slocals <- vi :: !currentFunctionFDEC.slocals;
           Catch_exn(vi,[])
       in
       let chunk_catch = doStatement local_env scatch in
@@ -9234,7 +9378,7 @@ and doStatement local_env (s : A.statement) : chunk =
       try
         let spec =
           Ltyping.code_annot loc' local_env.known_behaviors
-            (Ctype !currentReturnType) (AStmtSpec ([],a))
+            (Ctype !currentReturnType) (Logic_ptree.AStmtSpec ([],a))
         in
         s2c (mkStmtOneInstr ~ghost (Code_annot (spec,loc')))
       with LogicTypeError ((source,_),msg) ->

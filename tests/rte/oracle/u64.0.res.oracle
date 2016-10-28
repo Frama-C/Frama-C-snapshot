@@ -5,8 +5,9 @@
 unsigned long f(unsigned int n)
 {
   unsigned long __retres;
-  /*@ assert rte: unsigned_overflow: 0 ≤ n*sizeof(unsigned long); */
-  /*@ assert rte: unsigned_overflow: n*sizeof(unsigned long) ≤ 4294967295;
+  /*@ assert rte: unsigned_overflow: 0 ≤ n * sizeof(unsigned long); */
+  /*@ assert
+      rte: unsigned_overflow: n * sizeof(unsigned long) ≤ 4294967295;
   */
   __retres = (unsigned long)(n * sizeof(unsigned long));
   return __retres;

@@ -23,8 +23,8 @@
 (** Internal Cil printer.
 
     Must not be used by plug-in developers: use module {!Printer} instead.
-    In particular, this pretty-printer is incorrect regarding annotations. 
-    It should only be used by modules linked before {!Annotations}. 
+    In particular, this pretty-printer is incorrect regarding annotations.
+    It should only be used by modules linked before {!Annotations}.
 
     @since Fluorine-20130401 *)
 
@@ -35,11 +35,11 @@ val get_termination_kind_name: Cil_types.termination_kind -> string
 val register_shallow_attribute: string -> unit
 (** Register an attribute that will never be pretty printed. *)
 
-val register_behavior_extension: 
-  string -> 
-  (Printer_api.extensible_printer_type -> Format.formatter -> 
-   int * Cil_types.identified_predicate list -> unit) -> unit
-(** Register a pretty-printer used for behavior extension. 
+val register_behavior_extension:
+  string ->
+  (Printer_api.extensible_printer_type -> Format.formatter ->
+   Cil_types.acsl_extension_kind -> unit) -> unit
+(** Register a pretty-printer used for behavior extension.
     @plugin development guide
  *)
 

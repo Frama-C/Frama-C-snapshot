@@ -3,14 +3,28 @@
 [kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
-[wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_ref_wrong_call_f_ko_pre_qed_ko : Unknown
-[wp] Proved goals:    0 / 1
-     Alt-Ergo:        0  (unknown: 1)
+[wp] 12 goals scheduled
+[wp] [Qed] Goal typed_ref_f_post : Valid
+[wp] [Qed] Goal typed_ref_f_assign : Valid
+[wp] [Qed] Goal typed_ref_formal_post : Valid
+[wp] [Qed] Goal typed_ref_formal_call_f_pre : Valid
+[wp] [Qed] Goal typed_ref_global_post : Valid
+[wp] [Qed] Goal typed_ref_global_call_f_pre : Valid
+[wp] [Qed] Goal typed_ref_local_post : Valid
+[wp] [Qed] Goal typed_ref_local_call_f_pre : Valid
+[wp] [Qed] Goal typed_ref_pointer_post : Valid
+[wp] [Qed] Goal typed_ref_pointer_call_f_pre : Valid
+[wp] [Qed] Goal typed_ref_wrong_without_ref_post : Valid
+[wp] [Qed] Goal typed_ref_wrong_without_ref_call_f_pre : Valid
+[wp] Proved goals:   12 / 12
+     Qed:            12
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-wrong               -      -           1       0.0%
+f                    2     -           2       100%
+wrong_without_ref    2     -           2       100%
+pointer              2     -           2       100%
+local                2     -           2       100%
+formal               2     -           2       100%
+global               2     -           2       100%
 ----------------------------------------------------------

@@ -252,13 +252,6 @@ struct
     current : sigma option ;
   }
 
-  let plain_of_exp lt e =
-    if Logic_typing.is_set_type lt then
-      let te = Logic_typing.type_of_set_elem lt in
-      Vset [Vset.Set(tau_of_ltype te,e)]
-    else
-      Vexp e
-
   let new_env lvars =
     let lvars = List.fold_left
         (fun lvars lv ->
@@ -288,7 +281,7 @@ struct
   let env_letp env x p = env_let env x (Vexp (F.e_prop p))
   let env_letval env x = function
     | Loc l -> env_let env x (Vloc l)
-    | Val e -> env_let env x (plain_of_exp x.lv_type e)
+    | Val e -> env_let env x (Cvalues.plain x.lv_type e)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Signature Generators                                               --- *)
@@ -328,7 +321,7 @@ struct
     | lv :: profile ->
         let x = param_of_lv lv in
         let h = Cvalues.has_ltype lv.lv_type (e_var x) in
-        let v = plain_of_exp lv.lv_type (e_var x) in
+        let v = Cvalues.plain lv.lv_type (e_var x) in
         profile_env
           (Logic_var.Map.add lv v vars)
           (h::domain)
@@ -343,6 +336,9 @@ struct
   (* --- Generic Compiler                                                   --- *)
   (* -------------------------------------------------------------------------- *)
 
+  let occurs_pvars f p = Vars.exists f (F.varsp p)
+  let occurs_ps x ps = List.exists (F.occursp x) ps
+  
   let compile_step
       (name:string)
       (types:string list)
@@ -358,12 +354,15 @@ struct
         let env,domain,sigv = profile_env Logic_var.Map.empty [] [] profile in
         let env = default_label env labels in
         let result = cc env data in
-        let used = List.filter (fun (_,x) -> filter result x) sigv in
+        let used_domain p = occurs_pvars (filter result) p in
+        let domain = List.filter used_domain domain in
+        let used_var (_,x) = filter result x || occurs_ps x domain in
+        let used = List.filter used_var sigv in
         let parp = List.map snd used in
         let sigp = List.map (fun (lv,_) -> Sig_value lv) used in
         let (parm,sigm) =
           LabelMap.fold
-            (fun label sigma ->
+            (fun label sigma acc ->
                Heap.Set.fold_sorted
                  (fun chunk acc ->
                     if filter result (Sigma.get sigma chunk) then
@@ -372,7 +371,7 @@ struct
                       let s = Sig_chunk(chunk,label) in
                       ( x::parm , s::sigm )
                     else acc)
-                 (Sigma.domain sigma))
+                 (Sigma.domain sigma) acc)
             frame.labels (parp,sigp)
         in
         parm , frame.triggers , domain , result , sigm
@@ -380,7 +379,7 @@ struct
 
   let cc_term : (env -> Cil_types.term -> term) ref
     = ref (fun _ _ -> assert false)
-  let cc_pred : (polarity -> env -> predicate named -> pred) ref
+  let cc_pred : (polarity -> env -> predicate -> pred) ref
     = ref (fun _ _ -> assert false)
   let cc_logic : (env -> Cil_types.term -> logic) ref
     = ref (fun _ _ -> assert false)
@@ -409,15 +408,6 @@ struct
   (* --- Registering User-Defined Signatures                                --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module Axiomatic = Model.Index
-      (struct
-        type key = string
-        type data = unit
-        let name = "LogicCompiler." ^ M.datatype ^ ".Axiomatic"
-        let compare = String.compare
-        let pretty = Format.pp_print_string
-      end)
-
   module Signature = Model.Index
       (struct
         type key = logic_info
@@ -431,7 +421,7 @@ struct
   (* --- Compiling Lemmas                                                   --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec strip_forall xs p = match p.content with
+  let rec strip_forall xs p = match p.pred_content with
     | Pforall(qs,q) -> strip_forall (xs @ qs) q
     | _ -> xs , p
 
@@ -798,7 +788,7 @@ struct
           match LogicBuiltins.logic cst with
           | ACSLDEF -> call_fun env cst [] []
           | LFUN phi -> e_fun phi []
-        in plain_of_exp x.lv_type v
+        in Cvalues.plain x.lv_type v
       with Not_found ->
         Wp_parameters.fatal "Unbound logic variable '%a'"
           Printer.pp_logic_var x

@@ -42,7 +42,7 @@ let rec stmt_labels = function
   | Label _ :: ls -> stmt_labels ls
   | Case(e,_) :: ls -> 
       let cvalue = (Cil.constFold true e) in
-      Pretty_utils.sfprintf "case %a" Printer.pp_exp cvalue
+      Format.asprintf "case %a" Printer.pp_exp cvalue
       :: stmt_labels ls
   | Default _ :: ls ->
       "default" :: stmt_labels ls
@@ -54,9 +54,10 @@ let pp_labels fmt stmt =
     | ls -> Format.fprintf fmt " '%s'" (String.concat "," ls)
 
 let pp_idpred kloc fmt idpred =
-  if idpred.ip_name <> [] 
-  then Format.fprintf fmt " '%s'" (String.concat "," idpred.ip_name)
-  else pp_kloc kloc fmt idpred.ip_loc
+  let np = idpred.ip_content in
+  if np.pred_name <> [] 
+  then Format.fprintf fmt " '%s'" (String.concat "," np.pred_name)
+  else pp_kloc kloc fmt np.pred_loc
 
 let pp_allocation kloc fmt (allocation:identified_term list) =
   if allocation = [] then Format.fprintf fmt "nothing"
@@ -106,7 +107,8 @@ let pp_for fmt = function
   | bs -> Format.fprintf fmt " for '%s'" (String.concat "," bs)
 
 let pp_named fmt nx =
-  if nx.name <> [] then Format.fprintf fmt " '%s'" (String.concat "," nx.name)
+  if nx.pred_name <> [] then
+    Format.fprintf fmt " '%s'" (String.concat "," nx.pred_name)
 
 let pp_code_annot fmt ca =
   match ca.annot_content with
@@ -118,6 +120,7 @@ let pp_code_annot fmt ca =
     | APragma _ -> Format.pp_print_string fmt "pragma"
     | AVariant _ -> Format.pp_print_string fmt "variant"
     | AStmtSpec _ -> Format.pp_print_string fmt "block contract"
+    | AExtended _ -> Format.pp_print_string fmt "extension"
 
 let pp_stmt kloc fmt stmt =
   match stmt.skind with
@@ -221,12 +224,12 @@ let rec pp_prop kfopt kiopt kloc fmt = function
     Format.fprintf fmt "Assertion%a%a%a" 
       pp_for bs 
       pp_named np 
-      (pp_kloc kloc) np.loc
+      (pp_kloc kloc) np.pred_loc
   | IPCodeAnnot(_,_,{annot_content=AInvariant(bs,_,np)}) ->
     Format.fprintf fmt "Invariant%a%a%a" 
       pp_for bs 
       pp_named np 
-      (pp_kloc kloc) np.loc
+      (pp_kloc kloc) np.pred_loc
   | IPCodeAnnot(_,stmt,_) ->
     Format.fprintf fmt "Annotation %a" (pp_stmt kloc) stmt
   | IPAllocation(kf,Kglobal,Id_contract (_,bhv),(frees,allocates)) ->
@@ -363,8 +366,10 @@ let for_order k = function
   | [] -> [I k] 
   | bs -> I (succ k) :: named_order bs
 let annot_order = function
-  | {annot_content=AAssert(bs,np)} -> for_order 0 bs @ named_order np.name
-  | {annot_content=AInvariant(bs,_,np)} -> for_order 2 bs @ named_order np.name
+  | {annot_content=AAssert(bs,np)} ->
+    for_order 0 bs @ named_order np.pred_name
+  | {annot_content=AInvariant(bs,_,np)} ->
+    for_order 2 bs @ named_order np.pred_name
   | _ -> [I 4]
 let loop_order = function
   | Id_contract (active,b) -> [B b; A active]

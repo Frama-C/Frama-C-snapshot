@@ -1,26 +1,26 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/merge.c (with preprocessing)
+[kernel] Parsing tests/slicing/merge.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}
 [value] computing for function g <- main.
-        Called from tests/slicing/merge.c:26.
+        Called from tests/slicing/merge.i:26.
 [value] computing for function init <- g <- main.
-        Called from tests/slicing/merge.c:21.
+        Called from tests/slicing/merge.i:21.
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function add <- g <- main.
-        Called from tests/slicing/merge.c:22.
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G1+a1;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G1+a1 ≤ 2147483647;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G2+a2;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G2+a2 ≤ 2147483647;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G3+a3;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G3+a3 ≤ 2147483647;
+        Called from tests/slicing/merge.i:22.
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G1 + a1;
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert G1 + a1 ≤ 2147483647;
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G2 + a2;
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert G2 + a2 ≤ 2147483647;
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G3 + a3;
+tests/slicing/merge.i:17:[value] warning: signed overflow. assert G3 + a3 ≤ 2147483647;
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for g

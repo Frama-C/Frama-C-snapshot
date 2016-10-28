@@ -59,14 +59,15 @@ class engine : Plang.engine ->
     (** Assumes an "<hv>" box is opened. *)
         
     method pp_sequence : clause:string -> sequence printer
-    (** Assumes an "<hv>" box is opened. *)
+    (** Assumes an "<hv>" box is opened {i and} all variables are declared. 
+        (recursively used) *)
 
     method pp_sequent : sequent printer
     (** Print the sequent in global environment. *)
     
     method pp_esequent : env -> sequent printer
     (** Print the sequent in the given environment.
-        The environment is enrich with the shared terms. *)
+        The environment is enriched with the shared terms. *)
         
   end
     

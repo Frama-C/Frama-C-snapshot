@@ -79,7 +79,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   bar ∈ {0}
   t[0] ∈ {{ &baz }}
    [1] ∈ {0}

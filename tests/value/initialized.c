@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-big-ints-hex 257 -inout-callwise"
+   STDOPT: #"-big-ints-hex 257 -inout-callwise -val-warn-copy-indeterminate=-g6"
 */
 #include "__fc_builtin.h"
 
@@ -139,7 +139,7 @@ void g6() {
   int i;
 
   if (rand)
-    i6 = i;
+    i6 = i; // warn-copy-indeterminate is not set
   //@ assert !\initialized(&i6) || i6 >= 3; // Does not work
   //@ assert !\initialized(&i6) || i6 >= 3;
   //@ assert !\initialized(&i6) || (\initialized(&i6) && i6 >= 3);

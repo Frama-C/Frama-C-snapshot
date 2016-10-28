@@ -249,7 +249,7 @@ let add_code_annot_stats stmt _ ca =
       List.iter
         (function (_,FromAny) -> () | (_,From _) -> incr_all incr_loop_froms) l
     | AAllocation _ -> () (* TODO *)
-    | APragma _ -> ()
+    | APragma _ | AExtended _ -> ()
 
 let compute () =
   if not (Computed.get()) then begin
@@ -277,7 +277,7 @@ let dump_acsl_stats fmt =
     compute ();
     Functions_acsl_stats.iter
       (fun kf stats ->
-        let kf_name = Pretty_utils.sfprintf "%a" Kernel_function.pretty kf in
+        let kf_name = Format.asprintf "%a" Kernel_function.pretty kf in
         Format.fprintf fmt "@[<v 2>%a@;%a@]@;"
           (Metrics_base.mk_hdr 2) kf_name pretty_acsl_stats stats)
   end else pretty_acsl_stats fmt (get_global_stats())

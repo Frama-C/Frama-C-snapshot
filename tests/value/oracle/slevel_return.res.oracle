@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
 [value] computing for function main1 <- main.
@@ -25,13 +25,13 @@ tests/value/slevel_return.i:23:[value] function main2: postcondition got status 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {-3; 0; 5}
   y ∈ {0; 1; 6}
 [from] Computing for function main1

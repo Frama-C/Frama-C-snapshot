@@ -14,14 +14,14 @@ int main(void)
   unsigned int uy;
   unsigned int uz;
   unsigned short s;
-  /*@ assert rte: signed_downcast: (int)sx+(int)sy ≤ 127; */
-  /*@ assert rte: signed_downcast: -128 ≤ (int)sx+(int)sy; */
+  /*@ assert rte: signed_downcast: (int)sx + (int)sy ≤ 127; */
+  /*@ assert rte: signed_downcast: -128 ≤ (int)sx + (int)sy; */
   sz = (signed char)((int)sx + (int)sy);
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)sx+(int)sy; */
-  /*@ assert rte: signed_overflow: (int)sx+(int)sy ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)sx + (int)sy; */
+  /*@ assert rte: signed_overflow: (int)sx + (int)sy ≤ 2147483647; */
   uc = (unsigned char)((int)sx + (int)sy);
   uc = (unsigned char)x;
-  /*@ assert rte: signed_downcast: uy+uz ≤ 2147483647; */
+  /*@ assert rte: signed_downcast: uy + uz ≤ 2147483647; */
   x = (int)(uy + uz);
   ux = uy + uz;
   s = (unsigned short)(uy + uz);

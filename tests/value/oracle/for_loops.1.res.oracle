@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main_2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 [value] computing for function Frama_C_interval <- main_2.
@@ -35,12 +35,12 @@ tests/value/for_loops.c:16:[value] entering loop for the first time
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:16:[kernel] warning: signed overflow. assert w+1 ≤ 2147483647;
+tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
 [value] Called Frama_C_show_each_F([0..2147483647])
 [value] Recording results for main_2
 [value] done for function main_2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main_2:
+[value:final-states] Values at end of function main_2:
   Frama_C_entropy_source ∈ [--..--]
   j ∈ [0..2147483647]
   nSelectors ∈ [0..100]

@@ -391,16 +391,17 @@ let is_noop_cast ~src_typ ~dst_typ =
   let src_typ = Logic_const.plain_or_set
     (fun lt ->
       match Logic_utils.unroll_type lt with
-      | Ctype typ -> Some (Cil.unrollType typ)
+      | Ctype typ -> Some (Eval_typ.classify_as_scalar typ)
       | _ -> None
     ) (Logic_utils.unroll_type src_typ)
   in
-  match src_typ, Cil.unrollType dst_typ with
-  | Some (TInt (srckind,_)), TInt(destkind,_) ->
-    Cil.intTypeIncluded srckind destkind
-  | Some (TFloat(srckind,_)), TFloat(destkind,_) ->
+  let open Eval_typ in
+  match src_typ, Eval_typ.classify_as_scalar dst_typ with
+  | Some (TSInt rsrc), TSInt rdst ->
+    let b1, b2 = Eval_typ.range_inclusion rsrc rdst in b1 && b2
+  | Some (TSFloat srckind), TSFloat destkind ->
     Cil.frank srckind <= Cil.frank destkind
-  | Some (TPtr _), TPtr _ -> true
+  | Some (TSPtr _), TSPtr _ -> true
   | _ -> false
 
 (* Note: non-constant integers can happen e.g. for sizeof of structures of an unknown size. *)
@@ -628,7 +629,7 @@ let rec eval_term ~with_alarms env t =
           if is_noop_cast ~src_typ:t.term_type ~dst_typ:typ
           then r.eover, r.eunder
           else
-	    let eover = conv r.eover in
+            let eover = conv r.eover in
             eover, under_from_over eover
         in
         { etype = typ;
@@ -715,7 +716,7 @@ let rec eval_term ~with_alarms env t =
 	   	   eover = conv r.eover }
                else r (* already a floating-point number (hopefully) *)
            | _ -> unsupported
-               (Pretty_utils.sfprintf "logic coercion %a -> %a@."
+               (Format.asprintf "logic coercion %a -> %a@."
                   Printer.pp_logic_type t.term_type Printer.pp_logic_type ltyp)
         )
 
@@ -788,14 +789,14 @@ let rec eval_term ~with_alarms env t =
 and eval_binop ~with_alarms env op t1 t2 =
   if not (isLogicNonCompositeType t1.term_type) then
     if Value_parameters.debug_atleast 1 then
-      unsupported (Pretty_utils.sfprintf
+      unsupported (Format.asprintf
                      "operation (%a) %a (%a) on non-supported type %a"
                      Printer.pp_term t1
                      Printer.pp_binop op
                      Printer.pp_term t2
                      Printer.pp_logic_type t1.term_type)
     else
-      unsupported (Pretty_utils.sfprintf
+      unsupported (Format.asprintf
                      "%a operation on non-supported type %a"
                      Printer.pp_binop op
                      Printer.pp_logic_type t1.term_type)
@@ -809,7 +810,7 @@ and eval_binop ~with_alarms env op t1 t2 =
       match te1 with
       | TInt _ | TPtr _ | TEnum _ -> int_op
       | TFloat _ -> float_op
-      | _ -> ast_error (Pretty_utils.sfprintf
+      | _ -> ast_error (Format.asprintf
                           "binop on incorrect type %a" Printer.pp_typ te1)
     in
     let kop = int_or_float_op
@@ -967,7 +968,7 @@ and eval_tlval ~with_alarms env t =
       (* Logic coerce on locations (that are pointers) can only introduce
          sets, that do not change the abstract value. *)
       eval_tlval ~with_alarms env t
-  | _ -> ast_error (Pretty_utils.sfprintf "non-lval term %a" Printer.pp_term t)
+  | _ -> ast_error (Format.asprintf "non-lval term %a" Printer.pp_term t)
 
 let eval_tlval_as_location ~with_alarms env t =
   let r = eval_tlval ~with_alarms env t in
@@ -1058,7 +1059,7 @@ let is_same_term_coerce t1 t2 =
     | _ -> Logic_utils.is_same_term t1 t2
 
 let rec reduce_by_predicate ~with_alarms env positive p =
-  reduce_by_predicate_content ~with_alarms env positive p.content
+  reduce_by_predicate_content ~with_alarms env positive p.pred_content
 
 and reduce_by_predicate_content ~with_alarms env positive p_content =
     match positive,p_content with
@@ -1069,10 +1070,10 @@ and reduce_by_predicate_content ~with_alarms env positive p_content =
 
     (* desugared form of a <= b <= c <= d *)
     | true, Pand (
-        {content=Pand (
-          {content=Prel ((Rlt | Rgt | Rle | Rge | Req as op),_ta,tb) as p1},
-          {content=Prel (op', tb',tc) as p2})},
-         {content=Prel (op'',tc',_td) as p3})
+        {pred_content=Pand (
+          {pred_content=Prel ((Rlt | Rgt | Rle | Rge | Req as op),_ta,tb) as p1},
+          {pred_content=Prel (op', tb',tc) as p2})},
+         {pred_content=Prel (op'',tc',_td) as p3})
         when
 	  op = op' && op' = op'' &&
 	  is_same_term_coerce tb tb' &&
@@ -1406,11 +1407,45 @@ and reduce_by_left_relation ~with_alarms env positive tl rel tr =
     | Not_an_exact_loc -> env
     | LogicEvalError ee -> display_evaluation_error ee; env
 
+(* Evaluates a [valid_read_string] predicate using str* builtins.
+   - if [bottom] is obtained, return False;
+   - otherwise, if no alarms are emitted, return True;
+   - otherwise, return [Unknown].
+*)
+let eval_valid_read_string env arg v =
+  let args = [ (Builtins_string.Term arg, v) ] in
+  let state = env_current_state env in
+  let res, alarms = Builtins_string.frama_c_strlen_wrapper state args in
+  let is_bottom vs =
+    List.for_all (fun (_ret, s) -> Cvalue.Model.(equal s bottom)) vs
+  in
+  match is_bottom res.Value_types.c_values,
+        Builtins_string.String_alarms.Set.is_empty alarms
+  with
+  | true, _ -> (* bottom state => string always invalid *) False
+  | false, false -> (* alarm => string possibly invalid *) Unknown
+  | false, true -> (* no alarm => string always valid for reading *) True
+
+(* Evaluates a [valid_string] predicate. First, we check the constness of
+   the arguments. Then, we evaluate [valid_read_string] on non-const ones. *)
+let eval_valid_string env arg v =
+  assert (not (Cvalue.V.is_bottom v));
+  (* filter const bases *)
+  let v' = Cvalue.V.filter_base (fun b -> not (Base.is_read_only b)) v in
+  if Cvalue.V.is_bottom v' then False (* all bases were const *)
+  else
+    if Cvalue.V.equal v v' then
+      eval_valid_read_string env arg v (* all bases non-const *)
+    else (* at least one base was const *)
+      match eval_valid_read_string env arg v with 
+      | True -> Unknown (* weaken result *)
+      | False | Unknown as r -> r
+
 
 let eval_predicate env pred =
   let with_alarms = warn_raise_mode in
   let rec do_eval env p =
-    match p.content with
+    match p.pred_content with
     | Ptrue -> True
     | Pfalse -> False
     | Pand (p1,p2 ) ->
@@ -1427,7 +1462,7 @@ let eval_predicate env pred =
         let val_p1 = do_eval env p1 in
         (*Format.printf "Disjunction: state %a p1:%a@."
             Cvalue.Model.pretty (env_current_state env)
-            Printer.pp_predicate_named p1; *)
+            Printer.pp_predicate p1; *)
         begin match val_p1 with
         | True -> True
         | False -> do_eval env p2
@@ -1435,7 +1470,7 @@ let eval_predicate env pred =
           let reduced_state = reduce_by_predicate ~with_alarms env false p1 in
           (* Format.printf "Disjunction: reduced to %a to eval %a@."
              Cvalue.Model.pretty (env_current_state reduced_state)
-             Printer.pp_predicate_named p2; *)
+             Printer.pp_predicate p2; *)
           match do_eval reduced_state p2 with
             | True -> True
             | _ -> Unknown
@@ -1463,14 +1498,14 @@ let eval_predicate env pred =
       (* TODO: see same constructor in reduce_by_predicate *)
         try
           let for_writing =
-            (match p.content with Pvalid_read _ -> false | _ -> true) in
+            (match p.pred_content with Pvalid_read _ -> false | _ -> true) in
           let state = env_current_state env in
           let typ_pointed = match Logic_utils.unroll_type tsets.term_type with
             | Ctype (TPtr _ |  TArray _ as t)
             | Ltype ({lt_name = "set"},[Ctype t]) -> Cil.typeOf_pointed t
             | _ ->
               ast_error
-                (Pretty_utils.sfprintf "valid on incorrect location %a"
+                (Format.asprintf "valid on incorrect location %a"
                    Printer.pp_term tsets)
           in
           (* Check if we are trying to write in a const l-value *)
@@ -1553,7 +1588,7 @@ let eval_predicate env pred =
           let loc = make_loc locbi (sizeof_pointed typ) in
           let alarm, value = Model.find_unspecified state loc in
           if alarm then c_alarm ();
-          match p.content with
+          match p.pred_content with
           | Pinitialized _ -> begin
             match value with
             | V_Or_Uninitialized.C_uninit_esc _ -> Unknown
@@ -1591,7 +1626,7 @@ let eval_predicate env pred =
         try
           let env = bind_logic_vars env varl in
           let r = do_eval env p' in
-          match p.content with
+          match p.pred_content with
             | Pexists _ -> if r = False then False else Unknown
             | Pforall _ -> if r = True then True else Unknown
             | _ -> assert false
@@ -1694,18 +1729,16 @@ let eval_predicate env pred =
     end
     | "valid_read_string", [arg] -> begin
         try
-          (* Handle the simple case of constant strings *)
           let r = eval_term ~with_alarms env arg in
-          let is_cst_c_string = function
-            | Base.String (_, Base.CSString _) -> true
-            | _ -> false
-          in
-          let all_c_cst_strings =
-            V.fold_bases (fun b acc -> acc && is_cst_c_string b) r.eover true
-          in
-          if all_c_cst_strings then True else Unknown
-      with LogicEvalError ee -> display_evaluation_error ee; Unknown
-    end
+          eval_valid_read_string env arg r.eover
+        with LogicEvalError ee -> display_evaluation_error ee; Unknown
+      end
+    | "valid_string", [arg] -> begin
+        try
+          let r = eval_term ~with_alarms env arg in
+          eval_valid_string env arg r.eover
+        with LogicEvalError ee -> display_evaluation_error ee; Unknown
+      end
     | _, _ -> Unknown
   in
   try (* Each case of the matching above should handle evaluation errors.
@@ -1716,7 +1749,7 @@ let eval_predicate env pred =
 let predicate_deps env pred =
   let with_alarms = CilE.warn_none_mode in
   let rec do_eval env p =
-    match p.content with
+    match p.pred_content with
     | Ptrue | Pfalse -> empty_logic_deps
 
     | Pand (p1, p2) | Por (p1, p2 ) | Pxor (p1, p2) | Piff (p1, p2 )
@@ -1769,7 +1802,7 @@ let predicate_deps env pred =
 exception Does_not_improve
 
 let rec fold_on_disjunction f p acc =
-  match p.content with
+  match p.pred_content with
   | Por (p1,p2 ) -> fold_on_disjunction f p2 (fold_on_disjunction f p1 acc)
   | _ -> f p acc
 

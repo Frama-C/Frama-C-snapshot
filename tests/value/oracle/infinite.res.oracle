@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
 tests/value/infinite.i:6:[value] entering loop for the first time
 [value] computing for function pause <- main.
@@ -14,7 +14,7 @@ tests/value/infinite.i:9:[kernel] warning: Neither code nor specification for fu
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Computing for function pause <-main

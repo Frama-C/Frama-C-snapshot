@@ -3,18 +3,18 @@
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:9:[kernel] warning: out of bounds read. assert \valid_read(x);
+tests/misc/bts1347.i:9:[value] warning: out of bounds read. assert \valid_read(x);
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:10:[kernel] warning: out of bounds read. assert \valid_read(tmp);
-                                      (tmp from x++)
+tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(tmp);
+                                     (tmp from x++)
 [value] Recording results for g
 [value] done for function g
 [report] Computing properties status...
@@ -52,19 +52,19 @@ tests/misc/bts1347.i:10:[kernel] warning: out of bounds read. assert \valid_read
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:9:[kernel] warning: out of bounds read. assert \valid_read(x);
+tests/misc/bts1347.i:9:[value] warning: out of bounds read. assert \valid_read(x);
 tests/misc/bts1347.i:9:[value] assertion 'emitter' got status valid.
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:10:[kernel] warning: out of bounds read. assert \valid_read(tmp);
-                                      (tmp from x++)
+tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(tmp);
+                                     (tmp from x++)
 tests/misc/bts1347.i:10:[value] assertion 'emitter' got status valid.
 [value] Recording results for g
 [value] done for function g

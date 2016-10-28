@@ -3,10 +3,10 @@
 [value] Analyzing an incomplete application starting at simple_with_break
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   after ∈ [--..--]
 tests/pdg/loops.c:51:[value] entering loop for the first time
-tests/pdg/loops.c:53:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
+tests/pdg/loops.c:53:[value] warning: signed overflow. assert s + 2 ≤ 2147483647;
 [value] Recording results for simple_with_break
 [value] done for function simple_with_break
 [pdg] computing for function simple_with_break

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   __fc_sockfds[0..1023] ∈ {0}
   __fc_socket_counter ∈ [--..--]
   __fc_open_sock_fds ∈ [--..--]
@@ -30,67 +30,9 @@
   rcv_buffer[0..9] ∈ {0}
   socket_fd[0..1] ∈ {0}
   nondet ∈ [--..--]
-  S___fc_stderr[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_0_S___fc_stderr[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_0_S___fc_stderr[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stderr[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stderr[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_inode_0_S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_real_data_0_S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_inode_1_S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_real_data_1_S___fc_stderr[0..1] ∈ [--..--]
-  S___fc_stdin[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-              [--..--]
-              [0].[bits 80 to 95] ∈ UNINITIALIZED
-              [0].__fc_flags ∈ [--..--]
-              [0].__fc_inode ∈ {{ NULL ; &S___fc_inode_0_S___fc_stdin[0] }}
-              [0].__fc_real_data ∈
-              {{ NULL ; &S___fc_real_data_0_S___fc_stdin[0] }}
-              {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-              [--..--]
-              [1].[bits 80 to 95] ∈ UNINITIALIZED
-              [1].__fc_flags ∈ [--..--]
-              [1].__fc_inode ∈ {{ NULL ; &S___fc_inode_1_S___fc_stdin[0] }}
-              [1].__fc_real_data ∈
-              {{ NULL ; &S___fc_real_data_1_S___fc_stdin[0] }}
-              [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_inode_0_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_real_data_0_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_inode_1_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_real_data_1_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_inode_0_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_real_data_0_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_inode_1_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_real_data_1_S___fc_stdout[0..1] ∈ [--..--]
+  S___fc_stderr[0..1] ∈ [--..--]
+  S___fc_stdin[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
   S_optarg[0..1] ∈ [--..--]
 [value] computing for function init_sockets <- main.
         Called from tests/libc/socket.c:125.
@@ -106,7 +48,7 @@ share/libc/sys/socket.h:265:[value] function socketpair: precondition got status
 [value] computing for function exit <- init_sockets <- main.
         Called from tests/libc/socket.c:53.
 [value] using specification for function exit
-share/libc/stdlib.h:249:[value] function exit: no state left in which to evaluate postcondition, status not computed.
+share/libc/stdlib.h:253:[value] function exit: no state left in which to evaluate postcondition, status not computed.
 [value] Done for function exit
 tests/libc/socket.c:55:[value] assertion got status valid.
 [value] Recording results for init_sockets
@@ -119,16 +61,16 @@ tests/libc/socket.c:55:[value] assertion got status valid.
 [value] computing for function write <- init_reception <- test_read <- main.
         Called from tests/libc/socket.c:44.
 [value] using specification for function write
-share/libc/unistd.h:858:[value] function write: precondition got status valid.
-share/libc/unistd.h:859:[value] function write: precondition got status valid.
+share/libc/unistd.h:872:[value] function write: precondition got status valid.
+share/libc/unistd.h:873:[value] function write: precondition got status valid.
 [value] Done for function write
 [value] Recording results for init_reception
 [value] Done for function init_reception
 [value] computing for function read <- test_read <- main.
         Called from tests/libc/socket.c:61.
 [value] using specification for function read
-share/libc/unistd.h:821:[value] function read: precondition got status valid.
 share/libc/unistd.h:822:[value] function read: precondition got status valid.
+share/libc/unistd.h:823:[value] function read: precondition got status valid.
 [value] Done for function read
 [value] computing for function printf <- test_read <- main.
         Called from tests/libc/socket.c:62.
@@ -151,11 +93,11 @@ share/libc/unistd.h:822:[value] function read: precondition got status valid.
 [value] using specification for function readv
 share/libc/sys/uio.h:33:[value] function readv: precondition got status valid.
 share/libc/sys/uio.h:36:[value] warning: no \from part
-                 for clause 'assigns *((char *)(iov+(0 .. iovcnt-1))->iov_base+(0 ..));' of
+                 for clause 'assigns *((char *)(iov + (0 .. iovcnt - 1))->iov_base + (0 ..));' of
                  function readv
 [value] Done for function readv
-tests/libc/socket.c:72:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized((char *)rcv_buffer_scattered1);
+tests/libc/socket.c:72:[value] warning: accessing uninitialized left-value.
+                 assert \initialized((char *)rcv_buffer_scattered1);
 [value] computing for function printf <- test_readv <- main.
         Called from tests/libc/socket.c:75.
 [value] Done for function printf
@@ -179,8 +121,8 @@ share/libc/sys/socket.h:215:[value] function recvmsg: precondition got status va
 share/libc/sys/socket.h:216:[value] function recvmsg: precondition got status valid.
 share/libc/sys/socket.h:217:[value] function recvmsg: precondition got status valid.
 [value] Done for function recvmsg
-tests/libc/socket.c:92:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized((char *)rcv_buffer_scattered1);
+tests/libc/socket.c:92:[value] warning: accessing uninitialized left-value.
+                 assert \initialized((char *)rcv_buffer_scattered1);
 [value] computing for function printf <- test_recvmsg <- main.
         Called from tests/libc/socket.c:95.
 [value] Done for function printf
@@ -222,7 +164,7 @@ share/libc/sys/socket.h:166:[value] function accept, behavior addr_not_null: pre
 tests/libc/socket.c:112:[value] function accept, behavior addr_not_null: assumes got status invalid; behavior not evaluated.
 share/libc/sys/socket.h:161:[value] function accept, behavior addr_null: precondition got status valid.
 tests/libc/socket.c:112:[value] warning: Completely invalid destination for assigns
-                 clause *((char *)addr+(0 .. *addrlen-1)). Ignoring.
+                 clause *((char *)addr + (0 .. *addrlen - 1)). Ignoring.
 [value] Done for function accept
 [value] computing for function read <- test_server_echo <- main.
         Called from tests/libc/socket.c:115.
@@ -233,7 +175,7 @@ tests/libc/socket.c:112:[value] warning: Completely invalid destination for assi
 [value] computing for function close <- test_server_echo <- main.
         Called from tests/libc/socket.c:118.
 [value] using specification for function close
-share/libc/unistd.h:728:[value] function close: precondition got status valid.
+share/libc/unistd.h:729:[value] function close: precondition got status valid.
 [value] Done for function close
 [value] computing for function close <- test_server_echo <- main.
         Called from tests/libc/socket.c:119.
@@ -243,50 +185,18 @@ share/libc/unistd.h:728:[value] function close: precondition got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function init_sockets:
+[value:final-states] Values at end of function init_sockets:
   __fc_socket_counter ∈ [--..--]
   socket_fd[0..1] ∈ [0..1023]
-  S___fc_stderr[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_0_S___fc_stderr[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_0_S___fc_stderr[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stderr[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stderr[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-[value] Values at end of function init_reception:
+  S___fc_stderr[0..1] ∈ [--..--]
+[value:final-states] Values at end of function init_reception:
   __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
-[value] Values at end of function test_read:
+[value:final-states] Values at end of function test_read:
   __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ [--..--]
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ [--..--] or UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL + [--..--] ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL + [--..--] ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-[value] Values at end of function test_readv:
+  S___fc_stdout[0..1] ∈ [--..--]
+[value:final-states] Values at end of function test_readv:
   __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
   rcv_buffer_scattered1[0] ∈ [--..--]
@@ -302,24 +212,8 @@ share/libc/unistd.h:728:[value] function close: precondition got status valid.
                             [2].iov_base ∈
                             {{ (void *)&rcv_buffer_scattered3 }}
                             [2].iov_len ∈ {3}
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ [--..--] or UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL + [--..--] ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL + [--..--] ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-[value] Values at end of function test_recvmsg:
+  S___fc_stdout[0..1] ∈ [--..--]
+[value:final-states] Values at end of function test_recvmsg:
   __fc_sockfds[0..1023] ∈ [--..--]
   __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
@@ -343,24 +237,8 @@ share/libc/unistd.h:728:[value] function close: precondition got status valid.
      .msg_control ∈ {0}
      .msg_controllen ∈ [--..--]
      .msg_flags ∈ [--..--] or UNINITIALIZED
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ [--..--] or UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL + [--..--] ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL + [--..--] ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-[value] Values at end of function test_server_echo:
+  S___fc_stdout[0..1] ∈ [--..--]
+[value:final-states] Values at end of function test_server_echo:
   __fc_sockfds[0..1023] ∈ [--..--]
   __fc_socket_counter ∈ [--..--]
   __fc_fds[0..1023] ∈ [--..--]
@@ -371,7 +249,7 @@ share/libc/unistd.h:728:[value] function close: precondition got status valid.
   buf[0..63] ∈ [--..--] or UNINITIALIZED
   r ∈ [-1..64] or UNINITIALIZED
   __retres ∈ {0; 1; 5; 20; 100; 200; 300; 400}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __fc_sockfds[0..1023] ∈ [--..--]
   __fc_socket_counter ∈ [--..--]
   __fc_fds[0..1023] ∈ [--..--]
@@ -379,37 +257,5 @@ share/libc/unistd.h:728:[value] function close: precondition got status valid.
   socket_fd[0..1] ∈ [0..1023]
   r ∈ {0; 1; 5; 20; 100; 200; 300; 400}
   __retres ∈ {0}
-  S___fc_stderr[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_0_S___fc_stderr[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_0_S___fc_stderr[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stderr[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stderr[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ [--..--] or UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL + [--..--] ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL + [--..--] ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
+  S___fc_stderr[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]

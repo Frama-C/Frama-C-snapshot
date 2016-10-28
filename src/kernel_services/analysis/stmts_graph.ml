@@ -42,8 +42,6 @@ struct
        changes, which includes every time we switch project. *)
   let () = Ast.add_hook_on_update (fun _ -> HptmapStmtBool.clear_caches ())
 
-  module HashStmtHptmapStmtBool = Stmt.Hashtbl.Make(HptmapStmtBool)
-
   (* this a cache containing the path tests already computed *)
   type path_checker = HptmapStmtBool.t Stmt.Hashtbl.t
 
@@ -134,7 +132,7 @@ module TP = struct
   let graph_attributes _ = []
 
   let pretty_raw_stmt s =
-    let s = Pretty_utils.sfprintf "%a" Printer.pp_stmt s in
+    let s = Format.asprintf "%a" Printer.pp_stmt s in
     if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s
 
   let vertex_name s =
@@ -147,7 +145,7 @@ module TP = struct
        | Break _ -> Format.sprintf "BREAK <%d>" s.sid
        | Continue _ -> Format.sprintf "CONTINUE <%d>" s.sid
        | If(e,_,_,_) ->
-	 Pretty_utils.sfprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
+	 Format.asprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
        | Switch _ ->  Format.sprintf "SWITCH <%d>" s.sid
        | Loop _ ->  Format.sprintf "WHILE(1) <%d>" s.sid
        | Block _ ->  Format.sprintf "BLOCK <%d>" s.sid
@@ -232,28 +230,36 @@ let get_graph kf =
 
 
 module Reachable_Stmts =
-  Cil_state_builder.Stmt_hashtbl
-    (Stmt)
+  State_builder.Hashtbl(Stmt.Hashtbl)(Stmt.Hptset)
     (struct
-       let name = "reachable_stmts"
-       let size = 97
-       let dependencies = [ Ast.self ]
-     end)
+      let name = "Stmts_graph.Reachable_Stmts"
+      let size = 97
+      let dependencies = [ Ast.self ]
+    end)
 
 let reachable_stmts kf s =
   let g = get_graph kf in
+  let add e v =
+    let new_v =
+      try
+        Stmt.Hptset.add v (Reachable_Stmts.find e)
+      with Not_found -> Stmt.Hptset.singleton v
+    in
+    Reachable_Stmts.replace e new_v
+  in
   let rec apply s =
-    if Reachable_Stmts.mem s then
-      Reachable_Stmts.find_all s
-    else begin
+    try
+      Reachable_Stmts.find s
+    with Not_found ->
       SG.iter_succ
         (fun s' ->
-           Reachable_Stmts.add s s';
-           List.iter (Reachable_Stmts.add s) (apply s'))
+           add s s';
+           Stmt.Hptset.iter (add s) (apply s'))
         g
         s;
-      Reachable_Stmts.find_all s
-    end
+      try
+        Reachable_Stmts.find s
+      with Not_found -> (* stmt has no successors *) Stmt.Hptset.empty
   in
   apply s
 

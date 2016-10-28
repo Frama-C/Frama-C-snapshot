@@ -250,7 +250,7 @@ module D =
             Printer.pp_exp e1 Printer.pp_exp e2          
         | Overflow(s, e, n, b) ->
           Format.fprintf fmt "%s(@[%a@]@ %s@ @[%a@])"
-            (String.capitalize (string_of_overflow_kind s))
+            (Transitioning.String.capitalize_ascii (string_of_overflow_kind s))
             Printer.pp_exp e
             (match b with Lower_bound -> ">=" | Upper_bound -> "<=")
             Datatype.Integer.pretty n
@@ -591,8 +591,8 @@ let create_predicate ?(loc=Location.unknown) alarm =
 
   in
   let p = aux alarm in
-  assert (p.name = []);
-  { p with name = [ get_name alarm ] }
+  assert (p.pred_name = []);
+  { p with pred_name = [ get_name alarm ] }
 
 exception Found of (code_annotation * kernel_function * stmt * int)
 let find_alarm_in_emitters tbl alarm =

@@ -25,6 +25,8 @@ open Cil_types
 open Gtk_helper
 open Cil_datatype
 
+let dkey = Gui_parameters.register_category "pretty-source"
+
 (** The kind of object that can be selected in the source viewer *)
 type localizable =
   | PStmt of (kernel_function * stmt)
@@ -432,7 +434,7 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
             (self#tag_property ip)
             super#code_annotation ca;
           localize_predicate <- true
-      | AStmtSpec (active,_) ->
+      | AStmtSpec (active,_) | AExtended(active,_) ->
           (* tags will be set in the inner nodes. *)
           active_behaviors <- active;
           super#code_annotation fmt ca;
@@ -928,6 +930,12 @@ let location_contains_col loc col =
    later used to return a better choice. *)
 let apply_location_heuristics precise_col possible_locs loc =
   let col = loc.Lexing.pos_cnum - loc.Lexing.pos_bol in
+  Gui_parameters.debug ~dkey
+    "apply_location_heuristics (precise_col:%b): loc: %a, col: %d@\n\
+     possible_locs:@ %a"
+    precise_col Location.pretty (loc, loc) col
+    (Pretty_utils.pp_list ~sep:"@\n"
+       (Pretty_utils.pp_pair ~sep:" :: " Location.pretty Localizable.pretty)) possible_locs;
   (* Heuristic 1: we try to obtain a subset of localizables related to a given
      position, or a given column if [precise_col] is true.
      May result in an empty list. *)
@@ -978,7 +986,14 @@ let loc_to_localizable ?(precise_col=false) loc =
     let hfile = MappingLineLocalizable.find loc.Lexing.pos_fname in
     (* Find the localizable for this line *)
     let all = LineToLocalizable.find_all hfile loc.Lexing.pos_lnum in
-    apply_location_heuristics precise_col all loc
+    match apply_location_heuristics precise_col all loc with
+    | Some locz ->
+      Gui_parameters.feedback ~dkey "loc: %a -> locz: %a"
+        Location.pretty (loc,loc) Localizable.pretty locz;
+      Some locz
+    | None ->
+      Gui_parameters.feedback ~dkey "loc: %a -> NO locz" Location.pretty (loc,loc);
+      None
   with
   | Not_found ->
       Gui_parameters.debug ~once:true ~source:loc "no matching localizable found";

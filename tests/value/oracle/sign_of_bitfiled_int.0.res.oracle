@@ -3,12 +3,12 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   bf ∈ {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   bf.c ∈ {-1}
     .u ∈ {65535}
   int_inside_bitfield_is_unsigned ∈ {1}

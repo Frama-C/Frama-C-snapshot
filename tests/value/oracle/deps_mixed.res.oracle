@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   q ∈ {0}
   a ∈ {0}
@@ -13,9 +13,9 @@
   v ∈ [--..--]
   t[0] ∈ {{ &f }}
    [1] ∈ {{ &g }}
-tests/value/deps_mixed.i:20:[kernel] warning: out of bounds read. assert \valid_read(p+(int)q);
-tests/value/deps_mixed.i:22:[kernel] warning: accessing out of bounds index. assert 0 ≤ i0;
-tests/value/deps_mixed.i:22:[kernel] warning: accessing out of bounds index. assert i0 < 2;
+tests/value/deps_mixed.i:20:[value] warning: out of bounds read. assert \valid_read(p + (int)q);
+tests/value/deps_mixed.i:22:[value] warning: accessing out of bounds index. assert 0 ≤ i0;
+tests/value/deps_mixed.i:22:[value] warning: accessing out of bounds index. assert i0 < 2;
 [value] computing for function g <- main.
         Called from tests/value/deps_mixed.i:22.
 [value] Recording results for g
@@ -29,11 +29,11 @@ tests/value/deps_mixed.i:24:[value] Assigning imprecise value to __retres.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ NULL + {3} ; &a }}
   q ∈ {{ NULL + {2} ; &b }}
   r ∈ {2}

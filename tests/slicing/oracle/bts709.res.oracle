@@ -1,49 +1,49 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/bts709.c (with preprocessing)
-tests/slicing/bts709.c:36:[kernel] warning: Calling undeclared function assert. Old style K&R code?
+[kernel] Parsing tests/slicing/bts709.i (no preprocessing)
+tests/slicing/bts709.i:36:[kernel] warning: Calling undeclared function assert. Old style K&R code?
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   inp1 IN {0}
   var1 IN {0}
   var2 IN {0}
-tests/slicing/bts709.c:44:[value] entering loop for the first time
+tests/slicing/bts709.i:44:[value] entering loop for the first time
 [value] computing for function inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:45.
+        Called from tests/slicing/bts709.i:45.
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:53.
-tests/slicing/bts709.c:53:[kernel] warning: Neither code nor specification for function nondet_int, generating default assigns from the prototype
+        Called from tests/slicing/bts709.i:53.
+tests/slicing/bts709.i:53:[kernel] warning: Neither code nor specification for function nondet_int, generating default assigns from the prototype
 [value] using specification for function nondet_int
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:54.
+        Called from tests/slicing/bts709.i:54.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:55.
+        Called from tests/slicing/bts709.i:55.
 [value] Done for function nondet_int
 [value] Recording results for inputsOf_testcase_func
 [value] Done for function inputsOf_testcase_func
 [value] computing for function func <- main.
-        Called from tests/slicing/bts709.c:46.
+        Called from tests/slicing/bts709.i:46.
 [value] computing for function assert <- func <- main.
-        Called from tests/slicing/bts709.c:36.
-tests/slicing/bts709.c:36:[kernel] warning: Neither code nor specification for function assert, generating default assigns from the prototype
+        Called from tests/slicing/bts709.i:36.
+tests/slicing/bts709.i:36:[kernel] warning: Neither code nor specification for function assert, generating default assigns from the prototype
 [value] using specification for function assert
 [value] Done for function assert
 [value] Recording results for func
 [value] Done for function func
 [value] computing for function inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:45.
+        Called from tests/slicing/bts709.i:45.
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:53.
+        Called from tests/slicing/bts709.i:53.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:54.
+        Called from tests/slicing/bts709.i:54.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.c:55.
+        Called from tests/slicing/bts709.i:55.
 [value] Done for function nondet_int
 [value] Recording results for inputsOf_testcase_func
 [value] Done for function inputsOf_testcase_func
@@ -127,3 +127,5 @@ void inputsOf_testcase_func_slice_1(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts709.i (no preprocessing)

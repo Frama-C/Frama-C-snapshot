@@ -42,6 +42,7 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let size = function Empty -> 0 | Node(n,_,_,_) -> n
+  let is_empty = function Empty -> true | Node _ -> false
 
   let rec lookup n a = function
     | Empty -> raise Not_found

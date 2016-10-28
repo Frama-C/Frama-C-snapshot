@@ -43,13 +43,11 @@ let new_code_annotation annot =
 let fresh_code_annotation = AnnotId.next
 
 let new_predicate p =
-  { ip_id = PredicateId.next ();
-    ip_content = p.content; ip_loc = p.loc; ip_name = p.name }
+  { ip_id = PredicateId.next (); ip_content = p }
 
 let fresh_predicate_id = PredicateId.next
 
-let pred_of_id_pred p =
-  { name = p.ip_name; loc = p.ip_loc; content = p.ip_content }
+let pred_of_id_pred p = p.ip_content
 
 let refresh_predicate p = { p with ip_id = PredicateId.next () }
 
@@ -87,8 +85,7 @@ let refresh_behavior b =
       List.map (fun (k,p) -> (k, refresh_predicate p)) b.b_post_cond;
     b_assigns = refresh_assigns b.b_assigns;
     b_allocation = refresh_allocation b.b_allocation;
-    b_extended =
-      List.map (fun (s,n,p) -> (s,n,List.map refresh_predicate p)) b.b_extended
+    (* no need to refresh b_extended, it contains only named predicates. *)
   }
 
 let refresh_spec s =
@@ -102,7 +99,8 @@ let refresh_spec s =
 let refresh_code_annotation annot =
   let content =
     match annot.annot_content with
-      | AAssert _ | AInvariant _ | AAllocation _ | AVariant _ | APragma _ as c -> c
+      | AAssert _ | AInvariant _ | AAllocation _ | AVariant _ | APragma _
+      | AExtended _ as c -> c
       | AStmtSpec(l,spec) -> AStmtSpec(l, refresh_spec spec)
       | AAssigns(l,a) -> AAssigns(l, refresh_assigns a)
       
@@ -286,20 +284,20 @@ let rec is_exit_status t = match t.term_node with
 (* empty line for ocamldoc *)
 
 let unamed ?(loc=Cil_datatype.Location.unknown) p =
-  {content = p ; loc = loc; name = [] }
+  {pred_content = p ; pred_loc = loc; pred_name = [] }
 
 let ptrue = unamed Ptrue
 let pfalse = unamed Pfalse
 
-let pold ?(loc=Cil_datatype.Location.unknown) p = match p.content with
+let pold ?(loc=Cil_datatype.Location.unknown) p = match p.pred_content with
   | Ptrue | Pfalse -> p
-  | _ -> {p with content = Pat(p, old_label); loc = loc}
+  | _ -> {p with pred_content = Pat(p, old_label); pred_loc = loc}
 
 let papp ?(loc=Cil_datatype.Location.unknown) (p,lab,a) =
   unamed ~loc (Papp(p,lab,a))
 
 let pand ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
-  match p1.content, p2.content with
+  match p1.pred_content, p2.pred_content with
   | Ptrue, _ -> p2
   | _, Ptrue -> p1
   | Pfalse, _ -> p1
@@ -307,7 +305,7 @@ let pand ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
   | _, _ -> unamed ~loc (Pand (p1, p2))
 
 let por ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
-  match p1.content, p2.content with
+  match p1.pred_content, p2.pred_content with
   | Ptrue, _ -> p1
   | _, Ptrue -> p2
   | Pfalse, _ -> p2
@@ -315,7 +313,7 @@ let por ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
   | _, _ -> unamed ~loc (Por (p1, p2))
 
 let pxor ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
-  match p1.content, p2.content with
+  match p1.pred_content, p2.pred_content with
   | Ptrue, Ptrue -> unamed ~loc Pfalse
   | Ptrue, _ -> p1
   | _, Ptrue -> p2
@@ -323,33 +321,33 @@ let pxor ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
   | _, Pfalse -> p1
   | _,_ -> unamed ~loc (Pxor (p1,p2))
 
-let pnot ?(loc=Cil_datatype.Location.unknown) p2 = match p2.content with
-  | Ptrue -> {p2 with content = Pfalse; loc = loc }
-  | Pfalse ->  {p2 with content = Ptrue; loc = loc }
+let pnot ?(loc=Cil_datatype.Location.unknown) p2 = match p2.pred_content with
+  | Ptrue -> {p2 with pred_content = Pfalse; pred_loc = loc }
+  | Pfalse ->  {p2 with pred_content = Ptrue; pred_loc = loc }
   | Pnot p -> p
   | _ -> unamed ~loc (Pnot p2)
 
 let pands l = List.fold_right (fun p1 p2 -> pand (p1, p2)) l ptrue
 let pors l = List.fold_right (fun p1 p2 -> por (p1, p2)) l pfalse
 
-let plet ?(loc=Cil_datatype.Location.unknown) p = match p.content with
-  | (_, ({content = Ptrue} as p)) -> p
-  | (v, p) -> unamed ~loc (Plet (v, p))
+let plet ?(loc=Cil_datatype.Location.unknown) v p = match p.pred_content with
+  | Ptrue -> p
+  | _ -> unamed ~loc (Plet (v, p))
 
 let pimplies ?(loc=Cil_datatype.Location.unknown) (p1,p2) =
-  match p1.content, p2.content with
+  match p1.pred_content, p2.pred_content with
   | Ptrue, _ | _, Ptrue -> p2
-  | Pfalse, _ -> { name = p1.name; loc = loc; content = Ptrue }
+  | Pfalse, _ -> { pred_name = p1.pred_name; pred_loc = loc; pred_content = Ptrue }
   | _, _ -> unamed ~loc (Pimplies (p1, p2))
 
 let pif ?(loc=Cil_datatype.Location.unknown) (t,p2,p3) =
-  match (p2.content, p3.content) with
+  match (p2.pred_content, p3.pred_content) with
   | Ptrue, Ptrue  -> ptrue
   | Pfalse, Pfalse -> pfalse
   | _,_ -> unamed ~loc (Pif (t,p2,p3))
 
 let piff ?(loc=Cil_datatype.Location.unknown) (p2,p3) =
-  match p2.content, p3.content with
+  match p2.pred_content, p3.pred_content with
   | Pfalse, Pfalse -> ptrue
   | Ptrue, _  -> p3
   | _, Ptrue -> p2
@@ -362,13 +360,13 @@ let prel ?(loc=Cil_datatype.Location.unknown) (a,b,c) =
 let pforall ?(loc=Cil_datatype.Location.unknown) (l,p) = match l with
   | [] -> p
   | _ :: _ ->
-    match p.content with
+    match p.pred_content with
     | Ptrue -> p
     | _ -> unamed ~loc (Pforall (l,p))
 
 let pexists ?(loc=Cil_datatype.Location.unknown) (l,p) = match l with
   | [] -> p
-  | _ :: _ -> match p.content with
+  | _ :: _ -> match p.pred_content with
     | Pfalse -> p
     | _ -> unamed ~loc (Pexists (l,p))
 

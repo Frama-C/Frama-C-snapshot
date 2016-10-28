@@ -1,19 +1,19 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/loops.c (with preprocessing)
+[kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing an incomplete application starting at f2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-tests/slicing/loops.c:50:[value] entering loop for the first time
-tests/slicing/loops.c:56:[value] warning: assertion got status unknown.
-tests/slicing/loops.c:52:[kernel] warning: signed overflow. assert x1+1 ≤ 2147483647;
-tests/slicing/loops.c:54:[kernel] warning: signed overflow. assert x2+1 ≤ 2147483647;
+tests/slicing/loops.i:50:[value] entering loop for the first time
+tests/slicing/loops.i:56:[value] warning: assertion got status unknown.
+tests/slicing/loops.i:52:[value] warning: signed overflow. assert x1 + 1 ≤ 2147483647;
+tests/slicing/loops.i:54:[value] warning: signed overflow. assert x2 + 1 ≤ 2147483647;
 [value] Recording results for f2
 [value] done for function f2
 [from] Computing for function f2
@@ -28,7 +28,7 @@ tests/slicing/loops.c:54:[kernel] warning: signed overflow. assert x2+1 ≤ 2147
 [slicing] making slicing project 'Slicing'...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f2
-tests/slicing/loops.c:50:[pdg] warning: no final state. Probably unreachable...
+tests/slicing/loops.i:50:[pdg] warning: no final state. Probably unreachable...
 [pdg] done for function f2
 [slicing] applying all slicing requests...
 [slicing] applying 0 actions...
@@ -53,3 +53,5 @@ void f2(int c)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_2_loops.i (no preprocessing)

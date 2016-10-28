@@ -7,7 +7,7 @@ struct _Z6Point2 {
 };
 /*@
 logic _Bool _ZN6Point2Eeq{L}(struct _Z6Point2 *this, struct _Z6Point2 b) =
-  \at((_Bool)(this->x≡b.x ∧ this->y≡b.y),L);
+  \at((_Bool)(this->x ≡ b.x ∧ this->y ≡ b.y),L);
  */
 void _ZN6Point2EC1(struct _Z6Point2 *this)
 {

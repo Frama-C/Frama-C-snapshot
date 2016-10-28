@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/string_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] computing for function test_strcmp <- main.
+        Called from tests/libc/string_h.c:20.
+[value] computing for function strcmp <- test_strcmp <- main.
+        Called from tests/libc/string_h.c:5.
+[value] using specification for function strcmp
+share/libc/string.h:103:[value] function strcmp: precondition 'valid_string_s1' got status valid.
+share/libc/string.h:104:[value] function strcmp: precondition 'valid_string_s2' got status valid.
+tests/libc/string_h.c:5:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Done for function strcmp
+tests/libc/string_h.c:6:[value] warning: assertion got status unknown.
+[value] Recording results for test_strcmp
+[value] Done for function test_strcmp
+[value] computing for function test_strcat <- main.
+        Called from tests/libc/string_h.c:21.
+[value] computing for function strcat <- test_strcat <- main.
+        Called from tests/libc/string_h.c:13.
+[value] using specification for function strcat
+share/libc/string.h:249:[value] function strcat: precondition 'valid_string_src' got status valid.
+share/libc/string.h:250:[value] function strcat: precondition 'valid_string_dst' got status valid.
+tests/libc/string_h.c:13:[value] Cannot evaluate range bound strlen(dest) + strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+share/libc/string.h:251:[value] warning: function strcat: precondition 'room_string' got status unknown.
+tests/libc/string_h.c:13:[value] Cannot evaluate range bound strlen{Old}(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+tests/libc/string_h.c:13:[value] Cannot evaluate range bound strlen{Old}(dest)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+tests/libc/string_h.c:13:[value] Cannot evaluate range bound strlen{Old}(dest) + strlen{Old}(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+tests/libc/string_h.c:13:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Done for function strcat
+[value] Recording results for test_strcat
+[value] Done for function test_strcat
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function test_strcat:
+  string[0] ∈ [--..--]
+        [1..9] ∈ [--..--] or UNINITIALIZED
+[value:final-states] Values at end of function test_strcmp:
+  res ∈ {0}
+[value:final-states] Values at end of function main:
+  __retres ∈ {0}

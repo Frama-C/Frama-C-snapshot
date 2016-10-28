@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/buffer_overflow.i:15:[value] entering loop for the first time
-tests/value/buffer_overflow.i:18:[kernel] warning: accessing out of bounds index. assert loop_counter < 10;
+tests/value/buffer_overflow.i:18:[value] warning: accessing out of bounds index. assert loop_counter < 10;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

@@ -327,9 +327,6 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
       val singleton_tag : t -> int
     end)
 
- type t_bottom = [ `Bottom | `Map of t]
- type t_top_bottom = [ `Bottom | `Map of t | `Top ]
-
  module Cacheable = struct
    type t = Integer.t * V.t offsetmap
    let hash (i, t: t) = Integer.hash i + 37 * hash t
@@ -1198,12 +1195,6 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    ;;
  end
 
- let join_top_bottom m1 m2 = match m1, m2 with
-   | `Bottom, `Bottom -> `Bottom
-   | `Top, _ | _, `Top -> `Top
-   | (`Map _ as r), `Bottom | `Bottom, (`Map _ as r) -> r
-   | `Map m1, `Map m2 -> `Map (join m1 m2)
-
  let join_and_is_included t1 t2 =
    let r = join t1 t2 in r, equal r t2
 
@@ -1584,7 +1575,8 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
         else
           append_basic_itv ~min ~max ~v:V.bottom acc
      ) offsm m_empty
-     in `Map r
+     in
+     `Value r
  ;;
 
 
@@ -1756,7 +1748,7 @@ let update ?origin ~validity ~exact ~offsets ~size v t =
     let alarm, (_curr_off, r) =
       update_aux ?origin ~validity ~exact ~offsets ~size v Int.zero t
     in
-    alarm, `Map r
+    alarm, `Value r
   with Update_Result_is_bottom -> true, `Bottom
 
 (* High-level update function (roughly of type [Ival.t -> v -> offsetmap ->
@@ -1768,11 +1760,11 @@ let update_under ~validity ~exact ~offsets ~size v t =
   if Base.is_weak_validity validity ||
      update_aux_tr_offsets_approximates offsets size
   then
-    alarm, `Map t
+    alarm, `Value t
   else
     try
       let _, t = update_aux_tr_offsets ~exact ~offsets ~size v Int.zero t in
-      alarm, `Map t
+      alarm, `Value t
     with Update_Result_is_bottom -> true, `Bottom
 
 
@@ -1843,7 +1835,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
    let alarm, filtered_by_bound =
      Tr_offset.trim_by_validity offsets size validity
    in
-   if Int.(equal size zero) then alarm, `Map Empty
+   if Int.(equal size zero) then alarm, `Value Empty
    else
     let init = isotropic_interval size V.bottom in
     let result =
@@ -1866,7 +1858,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
                 let aligned_b = Integer.round_down_to_r ~max ~r ~modu:m in
                 Integer.max naive_next aligned_b
           done;
-          `Map !acc_tree
+          `Value !acc_tree
        | Tr_offset.Set s ->
          let m =
            List.fold_left
@@ -1875,10 +1867,10 @@ let update_under ~validity ~exact ~offsets ~size v t =
                join acc_tree t
              ) init s
          in
-         `Map m
+         `Value m
        | Tr_offset.Overlap(mn, mx, _origin) ->
            let v = find_imprecise_between (mn, mx) tree in
-           `Map (isotropic_interval size v)
+           `Value (isotropic_interval size v)
        | Tr_offset.Invalid ->
            `Bottom
     in
@@ -1972,7 +1964,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
          with d >= size. In this case, the write do not overlap, and
          could be done in one run in the offsetmap itself, using a zipper *)
       let res, alarm, success = Ival.fold_int aux offsets (dst, false, false) in
-      if success then alarm, `Map res else true, `Bottom
+      if success then alarm, `Value res else true, `Bottom
     with Not_less_than ->
       (* Value to paste, since we cannot be precise *)
       let v =
@@ -2004,7 +1996,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
 
   (** pastes [from] (of size [size]) at all [offsets] in [dst] *)
   let paste_slice ~validity ~exact ~from:src ~size ~offsets dst =
-    if Int.(equal size zero) then (* nothing to do *) false, `Map dst
+    if Int.(equal size zero) then (* nothing to do *) false, `Value dst
     else
       match offsets, src with
       (*Special case: [from] contains a single (aligned) binding [v], and [size]
@@ -2756,7 +2748,7 @@ end) = struct
     try
       match Base.valid_range validity with
       | Base.Invalid_range -> `Bottom
-      | Base.Valid_range None -> (* empty validity *) `Map m
+      | Base.Valid_range None -> (* empty validity *) `Value m
       | Base.Valid_range (Some _) ->
         let clip = clip_by_validity validity in
         let aux_itv itv m =
@@ -2765,7 +2757,7 @@ end) = struct
             add ~exact itv (v_size_mod v) m
           else m
         in
-        `Map (Int_Intervals.fold aux_itv itvs m)
+        `Value (Int_Intervals.fold aux_itv itvs m)
     with Int_Intervals.Error_Top ->
       update_imprecise_everywhere ~validity Origin.top v m
 
@@ -2974,6 +2966,9 @@ end) = struct
 
 end
 
+[@@@warning "-60"]
+(* The module below is template destined to be copy-pasted. We need to silence
+   the warning about unused modules. *)
 
 module Aux
   (V1 : module type of Offsetmap_lattice_with_isotropy)
@@ -2984,8 +2979,8 @@ module Aux
   module M2 = Make(V2)
 
  (* This function is there as a template for people wanting to write a fold-like
-    iterator on two offsetmaps simultaneously. [bounds o1 t1 = bounds o2 t2]
-    need not to hold; the function returns [empty] when the maps
+     iterator on two offsetmaps simultaneously. [bounds o1 t1 = bounds o2 t2]
+     need not to hold; the function returns [empty] when the maps
     have no overlap. Currently, this functor  is not exported. *)
  let _map_fold2 (type s) (type t) f join empty o1 (t1: s offsetmap) o2 (t2: t offsetmap) =
    let rec aux  (o1, t1) (o2, t2) =
@@ -3046,6 +3041,7 @@ module Aux
 
 end
 
+[@@@warning "+60"]
 
 (*
 Local Variables:

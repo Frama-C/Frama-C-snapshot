@@ -51,3 +51,4 @@ val gcc_x86_32: Cil_types.mach
 val x86_64: Cil_types.mach
 val gcc_x86_64: Cil_types.mach
 val ppc_32: Cil_types.mach
+val msvc_x86_64: Cil_types.mach

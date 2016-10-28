@@ -1,16 +1,16 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/bts335b.c (with preprocessing)
+[kernel] Parsing tests/slicing/bts335b.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/slicing/bts335b.c:20.
-tests/slicing/bts335b.c:16:[kernel] warning: signed overflow. assert z+1 ≤ 2147483647;
+        Called from tests/slicing/bts335b.i:20.
+tests/slicing/bts335b.i:16:[value] warning: signed overflow. assert z + 1 ≤ 2147483647;
 [value] computing for function g <- f <- main.
-        Called from tests/slicing/bts335b.c:17.
+        Called from tests/slicing/bts335b.i:17.
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
@@ -19,31 +19,31 @@ tests/slicing/bts335b.c:16:[kernel] warning: signed overflow. assert z+1 ≤ 214
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
-tests/slicing/bts335b.c:21:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+tests/slicing/bts335b.i:21:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] computing for function g <- main.
-        Called from tests/slicing/bts335b.c:22.
+        Called from tests/slicing/bts335b.i:22.
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
-tests/slicing/bts335b.c:22:[kernel] warning: signed overflow. assert -2147483648 ≤ r+tmp_0;
-                                   (tmp_0 from g(2, w, b, j))
-tests/slicing/bts335b.c:22:[kernel] warning: signed overflow. assert r+tmp_0 ≤ 2147483647;
-                                   (tmp_0 from g(2, w, b, j))
+tests/slicing/bts335b.i:22:[value] warning: signed overflow. assert -2147483648 ≤ r + tmp_0;
+                                  (tmp_0 from g(2, w, b, j))
+tests/slicing/bts335b.i:22:[value] warning: signed overflow. assert r + tmp_0 ≤ 2147483647;
+                                  (tmp_0 from g(2, w, b, j))
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
 [value] done for function main
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
-[from] call to g at tests/slicing/bts335b.c:17 (by f):
+[from] call to g at tests/slicing/bts335b.i:17 (by f):
   X FROM c; x
   Y FROM c; x
   \result FROM c; x
-[from] call to f at tests/slicing/bts335b.c:20 (by main):
+[from] call to f at tests/slicing/bts335b.i:20 (by main):
   X FROM c; x
   Y FROM c; x
   \result FROM c; x
-[from] call to g at tests/slicing/bts335b.c:22 (by main):
+[from] call to g at tests/slicing/bts335b.i:22 (by main):
   X FROM c; y
   Y FROM c; y
   \result FROM c; y
@@ -126,3 +126,5 @@ int main(int v, int w, int a, int b, int i, int j)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts335b.i (no preprocessing)

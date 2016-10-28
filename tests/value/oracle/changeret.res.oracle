@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   p ∈ {0}
@@ -20,7 +20,7 @@
         Called from tests/value/changeret.i:32.
 [value] computing for function g <- main2 <- main.
         Called from tests/value/changeret.i:27.
-tests/value/changeret.i:19:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/value/changeret.i:19:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main2
@@ -28,19 +28,19 @@ tests/value/changeret.i:19:[kernel] warning: out of bounds read. assert \valid_r
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   p ∈ {{ &y }}
   __retres ∈ {1}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   z ∈ {1}
   __retres ∈ {1}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   x ∈ {0}
   p ∈ {{ &y }}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   y ∈ {1}
   p ∈ {{ &y }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {0}
   y ∈ {1}
   p ∈ {{ &y }}

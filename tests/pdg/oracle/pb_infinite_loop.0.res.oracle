@@ -3,11 +3,11 @@
 [value] Analyzing a complete application starting at test_infinite_loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
 tests/pdg/pb_infinite_loop.c:20:[value] entering loop for the first time
-tests/pdg/pb_infinite_loop.c:23:[kernel] warning: signed overflow. assert i+1 ≤ 2147483647;
-tests/pdg/pb_infinite_loop.c:22:[kernel] warning: signed overflow. assert G+1 ≤ 2147483647;
+tests/pdg/pb_infinite_loop.c:23:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
+tests/pdg/pb_infinite_loop.c:22:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
 [value] Recording results for test_infinite_loop
 [value] done for function test_infinite_loop
 [pdg] computing for function test_infinite_loop

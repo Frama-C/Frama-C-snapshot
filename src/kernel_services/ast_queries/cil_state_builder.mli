@@ -36,6 +36,16 @@ module Stmt_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
 module Varinfo_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
   State_builder.Hashtbl with type key = Cil_types.varinfo
 			and type data = Data.t
+
+module Exp_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
+  State_builder.Hashtbl with type key = Cil_types.exp
+                         and type data = Data.t
+
+module Kernel_function_hashtbl
+    (Data:Datatype.S)(Info: State_builder.Info_with_size):
+  State_builder.Hashtbl with type key = Cil_types.kernel_function
+                         and type data = Data.t
+
 (*
 module Code_annotation_hashtbl
   (Data:Project.Datatype.S)(Info:State_builder.Info_with_size) :
