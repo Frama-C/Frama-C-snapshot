@@ -34,7 +34,7 @@ module Computer
     (* Transfer functions for statement on the abstract domain. *)
     (Transfer : Transfer_stmt.S with type state = Domain.t
                                  and type value = Domain.value
-                                 and type summary = Domain.summary)
+                                 and type return = Domain.return)
     (* Transfer functions for the logic on the abstract domain. *)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
@@ -42,7 +42,7 @@ module Computer
 
     val compute:
       kernel_function -> kinstr -> Domain.t ->
-      (Domain.t, Domain.summary, Domain.value) call_result
+      (Domain.t, Domain.return, Domain.value) call_result
       * Value_types.cacheable
 
   end

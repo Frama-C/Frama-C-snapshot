@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
 [value] computing for function Frama_C_float_interval <- main.
         Called from tests/float/precise_cos_sin.c:12.

@@ -88,9 +88,7 @@ end = struct
           | Declaration(_,_,arg,l) ->
             Declaration(Cil.empty_funspec(),v,arg,l)
       in
-      let kf =
-        { fundec = fundec; spec = Cil.empty_funspec(); return_stmt = None }
-      in
+      let kf = { fundec = fundec; spec = Cil.empty_funspec() } in
       Cil_datatype.Varinfo.Hashtbl.add tbl v kf; kf
 
   let rec can_skip keep_stmts stmt =
@@ -432,8 +430,8 @@ end = struct
         ChangeTo
           (Logic_const.new_code_annotation
              (AAssert ([],
-                       { name = []; loc = Lexing.dummy_pos,Lexing.dummy_pos;
-                         content = Ptrue})))
+                       { pred_name = []; pred_loc = Cil_datatype.Location.unknown;
+                         pred_content = Ptrue})))
       end
 
     method private process_call call_stmt call =
@@ -640,9 +638,7 @@ end = struct
 
     method private visit_pred p =
       Logic_const.new_predicate
-        { name = p.ip_name;
-          loc = p.ip_loc;
-          content = visitCilPredicate (self:>Cil.cilVisitor) p.ip_content }
+        (visitCilPredicate (self:>Cil.cilVisitor) p.ip_content)
 
     method private visit_identified_term t =
       let t' = visitCilTerm (self:>Cil.cilVisitor) t.it_content in
@@ -712,7 +708,8 @@ end = struct
 
       let new_term = match spec.spec_terminates with
         | None -> None
-        | Some p -> if  Info.fun_precond_visible finfo p.ip_content
+        | Some p ->
+          if Info.fun_precond_visible finfo p.ip_content
           then Some (self#visit_pred p)
           else None
       in

@@ -274,7 +274,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                  let new_align =
                    Integer.pos_rem (Integer.sub align start_o) env.rh_size
                  in
-                 let name = Pretty_utils.sfprintf "%a" Printer.pp_field field in
+                 let name = Format.asprintf "%a" Printer.pp_field field in
                  NamedField( name ,
                              new_bfinfo , field.ftype ,
                              new_align , new_start , new_stop ) :: acc

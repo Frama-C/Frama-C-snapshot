@@ -81,6 +81,9 @@ val imprecise_location : precise_location -> Locations.location
 val loc_bottom : precise_location
 val is_bottom_loc: precise_location -> bool
 
+val loc_top : precise_location
+val is_top_loc: precise_location -> bool
+
 val fold:
   (Locations.location -> 'a -> 'a) -> precise_location -> 'a -> 'a
 

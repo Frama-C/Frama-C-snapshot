@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
   c ∈ {0}
   u ∈ {0}
@@ -14,16 +14,16 @@
         Called from tests/value/call_simple.i:14.
 [value] Recording results for f
 [value] Done for function f
-tests/value/call_simple.i:15:[kernel] warning: signed overflow. assert ll+1 ≤ 2147483647;
+tests/value/call_simple.i:15:[value] warning: signed overflow. assert ll + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   X ∈ {68}
   u ∈ {0}
   a ∈ {0}
   i ∈ {{ &u }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   X ∈ {68}
   c ∈ [--..--]
   u ∈ {0}

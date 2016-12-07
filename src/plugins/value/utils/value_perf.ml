@@ -303,7 +303,7 @@ let caller_callee_callinfo = function
     | [] -> assert false
 ;;
 
-let start_doing callstack = 
+let start_doing_perf callstack =
   if Value_parameters.ValShowPerf.get()
   then begin
     let time = Sys.time() in
@@ -326,7 +326,7 @@ let start_doing callstack =
   end
 ;;
   
-let stop_doing callstack = 
+let stop_doing_perf callstack =
   if Value_parameters.ValShowPerf.get() 
   then begin
     let time = Sys.time() in
@@ -339,7 +339,7 @@ let stop_doing callstack =
   end
 ;;
 
-let reset() = 
+let reset_perf () =
   let reset_callinfo ci = 
     ci.Call_info.nb_calls <- 0;
     ci.Call_info.nb_effective_calls <- 0;
@@ -352,12 +352,123 @@ let reset() =
   Perf_by_callstack.reset perf
 ;;
 
+(* -------------------------------------------------------------------------- *)
+(* --- Flamegraphs                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+(* Set to [Some _] if option [-val-dump-flamegraph] is set and [main] is
+   currently being analyzed and the file is ok. Otherwise, set to [None]. *)
+let oc_flamegraph = ref None
+
+let stack_flamegraph = ref []
+(* Callstack for flamegraphs. The most recent function is at the top of the
+   list. The elements of the list are [(starting_time, self_total_time)].
+   [starting_time] is the time when we started analyzing the function.
+   [total_time] is the time spent so far in the function itself, _without the
+   callees_. [total_time] is updated from [starting_time] when we start a
+   callee, or when the analysis of the function ends. This stack is never
+   empty when an analysis is in progress. *)
+
+(* pretty-prints the functions in a Value callstack, starting by main (i.e.
+   in reverse order). *)
+let pretty_callstack oc l =
+  let rec aux oc = function
+    | [] -> () (* does not happen in theory *)
+    | [main, _] -> Printf.fprintf oc "%s" (Kernel_function.get_name main)
+    | (f, _) :: q ->
+      Printf.fprintf oc "%a;%s" aux q (Kernel_function.get_name f)
+  in
+  aux oc l
+
+(* update the [self_total_time] information for the function being analyzed,
+   assuming that the current time is [time] *)
+let update_self_total_time time =
+  match !stack_flamegraph with
+  | [] -> assert false
+  | (start_caller, total) :: q ->
+    let d = duration start_caller time in
+    stack_flamegraph := (start_caller, d +. total) :: q
+
+(* called when a new function is being analyzed *)
+let start_doing_flamegraph callstack =
+  match callstack with
+  | [] -> assert false
+  | [_] ->
+    (* Analysis of main *)
+    let file = Value_parameters.ValPerfFlamegraphs.get () in
+    if file <> "" then begin
+      try
+        (* Flamegraphs must be computed. Set up the stack and the output file *)
+        let oc = open_out file in
+        oc_flamegraph := Some oc;
+        stack_flamegraph := [ (Sys.time (), 0.) ]
+      with e ->
+        Value_parameters.error "cannot open flamegraph file: %s"
+          (Printexc.to_string e);
+        oc_flamegraph := None (* to be on the safe side  *)
+    end
+  | _ :: _ :: _ ->
+    if !oc_flamegraph <> None then
+      (* Flamegraphs are being computed. Update time spent in current function
+         so far, then push a slot for the analysis of the new function *)
+      let time = Sys.time () in
+      update_self_total_time time;
+      stack_flamegraph := (time, 0.) :: !stack_flamegraph;
+;;
+
+(* called when the analysis of a function ends. This function is at the top
+   of [callstack] *)
+let stop_doing_flamegraph callstack =
+  match !oc_flamegraph with
+  | None -> ()
+  | Some oc -> (* Flamegraphs are being recorded *)
+    let time = Sys.time() in
+    update_self_total_time time; (* update current function *)
+    match !stack_flamegraph with
+    | [] -> assert false
+    | (_, total) :: q ->
+      (* dump the total time (that we just updated) for the current function *)
+      Printf.fprintf oc "%a %.3f\n%!"
+        pretty_callstack callstack (total *. 1000.);
+      match q with
+      | [] -> stack_flamegraph := [] (* we are back to the main function *)
+      | (_, total_caller) :: q' ->
+        (* drop the current function from the flamegraph stack AND update
+           the 'current time' information, so that the time spent in the
+           callee is not counted. *)
+        stack_flamegraph := (time, total_caller) :: q'
+;;
+
+let reset_flamegraph () =
+  match !oc_flamegraph with
+  | None -> ()
+  | Some fd -> close_out fd; stack_flamegraph := []
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Exported interface                                                 --- *)
+(* -------------------------------------------------------------------------- *)
+
+let start_doing callgraph =
+  start_doing_perf callgraph;
+  start_doing_flamegraph callgraph;
+;;
+
+let stop_doing callgraph =
+  stop_doing_perf callgraph;
+  stop_doing_flamegraph callgraph;
+;;
+
+
+let reset () =
+  reset_perf ();
+  reset_flamegraph ();
+;;
+
+
 (* TODO: Output files with more graphical outputs, such as
 
-   Flame graph output: 
-   https://github.com/brendangregg/FlameGraph
-
-   Gprof2dot-like output: (directoly outputu the dot)
+   Gprof2dot-like output: (directoly output the dot)
    http://code.google.com/p/jrfonseca/wiki/Gprof2Dot
 
    The latter would be useful to see when imbricated loops multiply

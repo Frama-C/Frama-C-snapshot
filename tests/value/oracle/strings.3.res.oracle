@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main8
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -41,22 +41,22 @@
 [value] computing for function assigns <- main8.
         Called from tests/value/strings.i:127.
 [value] using specification for function assigns
-tests/value/strings.i:121:[value] warning: no \from part for clause 'assigns *(p+(0 .. s-1));' of function assigns
+tests/value/strings.i:121:[value] warning: no \from part for clause 'assigns *(p + (0 .. s - 1));' of function assigns
 [value] Done for function assigns
 [value] computing for function strcmp <- main8.
         Called from tests/value/strings.i:128.
-tests/value/strings.i:114:[kernel] warning: out of bounds read. assert \valid_read(tmp_0);
-                                      (tmp_0 from s2_0++)
+tests/value/strings.i:114:[value] warning: out of bounds read. assert \valid_read(tmp_0);
+                                     (tmp_0 from s2_0++)
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] Recording results for main8
 [value] done for function main8
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function strcmp:
+[value:final-states] Values at end of function strcmp:
   s1_0 ∈ {{ &long_chain + [0..29] }}
   s2_0 ∈ {{ &tc + [0..29] }}
   __retres ∈ [-223..121]
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   tc[0..29] ∈ [--..--]
   long_chain[0] ∈ {114}
             [1] ∈ {101}

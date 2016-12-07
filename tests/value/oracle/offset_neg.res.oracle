@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   mem[0] ∈ {0}
   addr ∈ {{ &mem[0] }}
   off ∈ {18446744073709551615}
@@ -15,15 +15,15 @@
         G[0..4] ∈ {0}
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
-tests/value/offset_neg.i:9:[kernel] warning: accessing out of bounds index. assert 0 ≤ (int)(-1);
-tests/value/offset_neg.i:9:[kernel] warning: accessing out of bounds index. assert (int)(-1) < 5;
+tests/value/offset_neg.i:9:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(-1);
+tests/value/offset_neg.i:9:[value] warning: accessing out of bounds index. assert (int)(-1) < 5;
 tests/value/offset_neg.i:9:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
 tests/value/offset_neg.i:9:[value] assertion 'Value,index_bound' got final status valid.
 tests/value/offset_neg.i:9:[value] assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Computing for function Frama_C_dump_each <-main

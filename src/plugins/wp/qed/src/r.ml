@@ -35,11 +35,17 @@ type maybe =
   | Unknown
 
 let is_zero = function
-  | "0" | "0.0" | "0." -> true
+  | "0" | "0.0" | "0." | ".0" -> true
   | _ -> false
 
-let eq a b = if a = b then Sure_true else Unknown
-let neq a b = if a = b then Sure_false else Unknown
+let zeq a b =
+  if is_zero a && is_zero b then Sure_true else Unknown
+
+let zneq a b =
+  if is_zero a && is_zero b then Sure_false else Unknown
+
+let eq a b = if a = b then Sure_true else zeq a b
+let neq a b = if a = b then Sure_false else zneq a b
 let lt a b = if a = b then Sure_false else Unknown
 let leq a b = if a = b then Sure_true else Unknown
 
@@ -54,3 +60,4 @@ let opp a =
   else
     ("-" ^ a)
 
+(**************************************************************************)

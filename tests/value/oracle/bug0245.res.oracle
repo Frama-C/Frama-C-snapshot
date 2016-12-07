@@ -3,23 +3,23 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   R ∈ {0}
   p ∈ {0}
   S ∈ {0}
   q ∈ {0}
 tests/value/bug0245.i:20:[value] warning: locals {u} escaping the scope of a block of main through p
 tests/value/bug0245.i:20:[value] warning: locals {v} escaping the scope of a block of main through q
-tests/value/bug0245.i:23:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&p);
-tests/value/bug0245.i:24:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&q);
+tests/value/bug0245.i:23:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&p);
+tests/value/bug0245.i:24:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&q);
 [value] Recording results for main
 [value] done for function main
 tests/value/bug0245.i:23:[value] assertion 'Value,dangling_pointer' got final status invalid.
 tests/value/bug0245.i:24:[value] assertion 'Value,dangling_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   R ∈ {0}
   p ∈ ESCAPINGADDR
   S ∈ {0}

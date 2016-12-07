@@ -57,7 +57,7 @@ class prover prv =
           begin
             state <- PS_nogoal ;
             button#set_relief false ;
-            button#set_icon None ;
+            button#set_icon `None ;
             button#set_enabled false ;
           end
       | DSP_goal (w,p) ->
@@ -69,7 +69,7 @@ class prover prv =
                 begin
                   state <- PS_click_to_play w ;
                   button#set_relief true ;
-                  button#set_icon (Some `MEDIA_PLAY) ;
+                  button#set_icon `MEDIA_PLAY ;
                 end
             | VCS.Computing kill ->
                 let me = match p with None -> false | Some p -> p=prv in
@@ -77,13 +77,13 @@ class prover prv =
                   begin
                     state <- PS_click_to_stop(w,kill) ;
                     button#set_relief true ;
-                    button#set_icon (Some `MEDIA_STOP) ;
+                    button#set_icon `MEDIA_STOP ;
                   end
                 else
                   begin
                     state <- PS_click_to_log w ;
                     button#set_relief false ;
-                    button#set_icon (Some `EXECUTE) ;
+                    button#set_icon `EXECUTE ;
                   end
             | _ ->
                 let me = match p with None -> false | Some p -> p=prv in
@@ -91,13 +91,13 @@ class prover prv =
                   begin
                     state <- PS_click_to_play w ;
                     button#set_relief true ;
-                    button#set_icon (Some (icon v)) ;
+                    button#set_icon (icon v) ;
                   end
                 else
                   begin
                     state <- PS_click_to_log w ;
                     button#set_relief false ;
-                    button#set_icon (Some (icon v)) ;
+                    button#set_icon (icon v) ;
                   end
 
           end
@@ -139,7 +139,7 @@ class pane () =
         hbox#pack ~expand:false goal#coerce ;
         hbox#pack ~padding:3 ~expand:true ~fill:true title#coerce ;
         let tabs = List.map (fun p -> p#widget) provers in
-        let rack = new Widget.hbox tabs in
+        let rack = Wbox.hgroup tabs in
         hbox#pack ~expand:false rack#coerce ;
         vbox#pack ~expand:false hbox#coerce ;
         vbox#pack ~expand:true ~fill:true text#coerce ;

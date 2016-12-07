@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
 [value] Called Frama_C_show_each_unreached()
@@ -63,9 +63,7 @@ tests/value/initialized_copy.i:108:[value] warning: assertion got status unknown
 [value] Recording results for f
 [value] Done for function f
 [value] Called Frama_C_show_each_unreached()
-tests/value/initialized_copy.i:135:[value] completely invalid value in evaluation of
-        argument a_6
-tests/value/initialized_copy.i:135:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_6);
+tests/value/initialized_copy.i:135:[value] warning: accessing uninitialized left-value. assert \initialized(&a_6);
 [value] computing for function f <- main.
         Called from tests/value/initialized_copy.i:143.
 [value] Recording results for f
@@ -76,7 +74,7 @@ tests/value/initialized_copy.i:135:[kernel] warning: accessing uninitialized lef
         a_7 ∈ {1} or UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
-tests/value/initialized_copy.i:151:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_8);
+tests/value/initialized_copy.i:151:[value] warning: accessing uninitialized left-value. assert \initialized(&a_8);
 [value] computing for function g <- main.
         Called from tests/value/initialized_copy.i:151.
 tests/value/initialized_copy.i:151:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
@@ -92,9 +90,9 @@ tests/value/initialized_copy.i:151:[kernel] warning: Neither code nor specificat
 [value] done for function main
 tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   w[0..9] ∈ {0; 12} or UNINITIALIZED
   __retres ∈ {0; 8} or UNINITIALIZED
 [from] Computing for function f

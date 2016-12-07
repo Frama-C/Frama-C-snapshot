@@ -8,7 +8,7 @@
 */
 
 /* -------------------------------------------------------------------------- */
-/* --- GOAL: Such as funvar is used for the two model, Store and Hoare    --- */
+/* --- GOAL: Such as funvar is used for the two model, Typed and Hoare    --- */
 /* --- the oracles of this test have to been unchanged by any change in   --- */
 /* --- funvar                                                             --- */
 /* ---  TODO verify the semantics of startof: is it normal                --- */

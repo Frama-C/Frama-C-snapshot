@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   C0 ∈ {0}
   C2 ∈ {2}
   CBP ∈ {2000000000}
@@ -21,7 +21,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   fic0 ∈ {0}
   fic1 ∈ {1.}
   fic2 ∈ {2.}

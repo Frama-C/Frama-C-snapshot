@@ -144,10 +144,12 @@ end
 (* --- Trivial Conditions                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
+let is_seq_empty = function { seq_list = [] } -> true | _ -> false
+
 let is_cond_true = function
   | Have p | Type p | When p | Core p | Init p -> F.is_ptrue p
   | Either [] -> No
-  | Either [{ seq_list=[] }] -> Yes
+  | Either cs when List.for_all is_seq_empty cs -> Yes
   | Branch(_,{ seq_list=[] },{ seq_list=[] }) -> Yes
   | Branch _ | Either _ -> Maybe
 

@@ -32,12 +32,6 @@ First you need to install OPAM, then you may install Frama-C using OPAM:
           for OPAM, such as `aspcud`, otherwise unexpected dependency errors
           may occur during installation.
 
-### Frama-C Requirements
-
-- OCaml 4.xx (incompatible with versions 4.02.2, 4.02.0 and 4.00.0)
-- A C compiler (gcc, clang, CompCert, etc.)
-- GNU Make
-
 ### Installing OPAM
 
 Several Linux distributions already include an `opam` package.
@@ -180,7 +174,8 @@ If you are using Fedora >= 13 then a Frama-C package is provided:
 
 ### Quick Start
 
-1. Install OCaml if not already installed.
+1. Install OCaml, OCamlfind and OCamlGraph if not already installed. Note
+   that OCaml >= 4.02.3 is needed in order to compile Frama-C
 
 2. (Optional) For the GUI, also install Gtk, GtkSourceView, GnomeCanvas and
    Lablgtk2 if not already installed. If possible, also install Zarith.
@@ -211,18 +206,16 @@ If you are using Fedora >= 13 then a Frama-C package is provided:
 #### Requirements
 
 - GNU make version >= 3.81
-- OCaml 4.x (except 4.02.2, 4.02.0 and 4.00.0)
+- OCaml >= 4.02.3
 - a C compiler with standard C and POSIX headers and libraries
+- [OCamlGraph][OCamlGraph] >= 1.8.5
+- [findlib][findlib] >= 1.6.1
 
 The Frama-C GUI also requires:
 - Gtk (>= 2.4)
 - GtkSourceView 2.x
 - GnomeCanvas 2.x
-- LablGtk >= 2.14.0 (and >= 2.18.2 if you use OCaml >= 4.02.1)
-
-If [OcamlGraph 1.8.5 or 1.8.6][OCamlGraph] is already installed,
-then it will be used by Frama-C.
-Otherwise the distributed local copy (file `ocamlgraph.tar.gz`) will be used.
+- LablGtk >= 2.18.2
 
 If [Zarith][Zarith] is installed, it will be used by Frama-C.
 Otherwise another equivalent but less efficient library will be used.
@@ -231,6 +224,7 @@ Plugins may have their own requirements.
 Consult their specific documentations for details.
 
 [OCamlGraph]: http://ocamlgraph.lri.fr
+[findlib]: http://projects.camlcity.org/projects/findlib.html
 [Zarith]: http://forge.ocamlcore.org/projects/zarith
 
 
@@ -289,7 +283,7 @@ Some Makefile targets of interest are:
 
 ##### Under Cygwin or MinGW
 
-Use: `make FRAMAC_TOP_SRCDIR="$(cygpath -a -m $PWD)"`
+Use: `make FRAMAC_ROOT_SRCDIR="$(cygpath -a -m $PWD)"`
 
 
 #### Installation

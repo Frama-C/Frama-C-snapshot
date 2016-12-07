@@ -55,7 +55,7 @@ let compute_assigns kf assigns return_used sclob ~with_formals ~per_behavior =
          and add them to the current state of the evaluation in acc *)
       let one_from_contents acc { it_content = t } =
         let r = Eval_terms.eval_term ~with_alarms env t in
-	Cvalue.V.join acc (Cvalue.V.topify_arith_origin r.Eval_terms.eover)
+	Cvalue.V.join acc (Cvalue.V.topify_leaf_origin r.Eval_terms.eover)
       in
       (* evaluation of the entire from clause *)
       let froms_contents =
@@ -295,50 +295,7 @@ let compute_assumes_and_requires_for_behavior kf ab b call_kinstr states =
   check_fct_preconditions_for_behavior kf ab ~per_behavior:true
     call_kinstr states_after_assumes b
 
-
-let compute_using_specification_single_behavior kf spec ~call_kinstr ~with_formals =
-  let ab = AB.create_from_spec with_formals spec in
-  let stateset =
-    Eval_annots.check_fct_preconditions kf ab call_kinstr with_formals in
-  let (with_formals,trace) = State_set.join stateset in
-  let return_used = match call_kinstr with
-    | Kglobal -> true
-    | Kstmt {skind = Instr (Call (lv, _, _, _))} ->
-      lv <> None || Value_util.postconditions_mention_result spec
-    | _ -> assert false
-  in
-  let sclob = Locals_scoping.bottom () in
-  let retres_vi, result_state =
-    let assigns = Ast_info.merge_assigns (AB.active_behaviors ab) in
-    compute_assigns kf assigns return_used sclob ~with_formals ~per_behavior:false
-  in
-  let result_states =
-    Eval_annots.check_fct_postconditions kf ab (Annotations.behaviors kf) Normal
-      ~result:retres_vi ~per_behavior:false ~pre_state:with_formals
-      (State_set.singleton (result_state,trace))
-  in
-  let aux state =
-    match retres_vi with
-    | None -> None, state
-    | Some vi ->
-      match state with
-      | Cvalue.Model.Bottom -> None, state
-      | Cvalue.Model.Top -> Warn.warn_top ()
-      | Cvalue.Model.Map _ ->
-        let retres_base = Base.of_varinfo vi in
-        let without_ret = Cvalue.Model.remove_base retres_base state in
-        match Cvalue.Model.find_base retres_base state with
-        | `Map m -> Some m, without_ret
-        | `Bottom (*tested above*) | `Top (*state is not top*)-> assert false
-  in
-  { Value_types.c_values = List.map aux (State_set.to_list result_states);
-    c_clobbered = sclob.Locals_scoping.clob;
-    c_cacheable = Value_types.Cacheable;
-    c_from = None;
-  }
-
-
-let compute_using_specification_multiple_behaviors kf spec ~call_kinstr ~with_formals =
+let compute_using_specification kf spec ~call_kinstr ~with_formals =
     let ab = AB.create_from_spec with_formals spec in
     let sclob = Locals_scoping.bottom () in
     let complete_bhvs_lists = ab.AB.funspec.spec_complete_behaviors in
@@ -360,11 +317,10 @@ let compute_using_specification_multiple_behaviors kf spec ~call_kinstr ~with_fo
        disjunction of states after the global requires clause. It is used
        in some places, but the actual disjunction is more precise and should be
        used when possible. *)
-    let (joined_state_after_global_requires,trace) =
+    let (joined_state_after_global_requires,_trace) =
       State_set.join states_after_global_requires in
     (* Notify user about inactive behaviors *)
-    Eval_annots.process_inactive_behaviors
-      kf ab (joined_state_after_global_requires,trace);
+    Eval_annots.process_inactive_behaviors kf call_kinstr ab;
     (* In order to know which behaviors will be considered by the analysis,
        we need to compute the \requires clause to eliminate empty behaviors,
        such as "assumes x < 0; requires x > 0;". Otherwise, we will later
@@ -395,7 +351,7 @@ let compute_using_specification_multiple_behaviors kf spec ~call_kinstr ~with_fo
          user. *)
       Eval_annots.process_inactive_postconds kf
         (Extlib.filter_map (fun (b,_st) -> List.mem b b_f)
-            (fun (b,st) -> AB.behavior_from_name ab b, (State_set.join st))
+            (fun (b,_st) -> AB.behavior_from_name ab b)
             bhv_states_after_requires);
       (* To obtain maximum precision, we consider behaviors according to
          these rules:
@@ -495,7 +451,7 @@ let compute_using_specification_multiple_behaviors kf spec ~call_kinstr ~with_fo
           let retres_base = Base.of_varinfo vi in
           let without_ret = Cvalue.Model.remove_base retres_base state in
           match Cvalue.Model.find_base retres_base state with
-          | `Map m -> Some m, without_ret
+          | `Value m -> Some m, without_ret
           | `Bottom (*tested above*) | `Top (*state is not top*)-> assert false
     in
     { Value_types.c_values = List.map aux (State_set.to_list final_states);

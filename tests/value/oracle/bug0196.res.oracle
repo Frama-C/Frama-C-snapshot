@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function fact <- main.
         Called from tests/value/bug0196.c:16.
@@ -11,17 +11,17 @@ tests/value/bug0196.c:7:[value] entering loop for the first time
 tests/value/bug0196.c:8:[value] assertion got status valid.
 tests/value/bug0196.c:11:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
 tests/value/bug0196.c:11:[value] warning: assertion got status unknown.
-tests/value/bug0196.c:10:[kernel] warning: signed overflow. assert r*tmp ≤ 2147483647;
-                                   (tmp from n--)
+tests/value/bug0196.c:10:[value] warning: signed overflow. assert r * tmp ≤ 2147483647;
+                                  (tmp from n--)
 [value] Recording results for fact
 [value] Done for function fact
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function fact:
+[value:final-states] Values at end of function fact:
   n ∈ {0}
   r ∈ [1..2147483647]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function fact
 [from] Done for function fact
@@ -54,10 +54,10 @@ int fact(int n)
       { /* sequence */
         tmp = n;
         n --;
-        /*@ assert Value: signed_overflow: r*tmp ≤ 2147483647; */
+        /*@ assert Value: signed_overflow: r * tmp ≤ 2147483647; */
         r *= tmp;
       }
-    /*@ assert r ≡ \at(r*n,before); */ ;
+    /*@ assert r ≡ \at(r * n,before); */ ;
   }
   while_0_break: ;
   return r;

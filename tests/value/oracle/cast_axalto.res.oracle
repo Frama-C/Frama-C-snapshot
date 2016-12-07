@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   my_tab ∈ {0}
   G[0] ∈ {77}
    [1] ∈ {88}
@@ -17,7 +17,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   p ∈ {{ (my_structure *)&G[1] }}
   G[0] ∈ {77}
    [1][bits 0 to 7] ∈ {1}
@@ -26,7 +26,7 @@
    [3] ∈ {100}
    [4] ∈ {99}
    [5..9] ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   my_tab ∈ {{ &G[1] }}
   G[0] ∈ {77}
    [1][bits 0 to 7] ∈ {1}

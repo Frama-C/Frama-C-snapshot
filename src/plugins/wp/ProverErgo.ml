@@ -454,7 +454,7 @@ open Task
 let try_prove ~pid ~gui ~file ~lines ~logout ~logerr =
   let ergo = new altergo ~pid ~gui ~file ~lines ~logout ~logerr in
   ergo#prove () >>> function
-  | Task.Timeout -> Task.return VCS.timeout
+  | Task.Timeout n -> Task.return (VCS.timeout n)
   | Task.Result r -> Task.call ergo#result r
   | st -> Task.status (Task.map (fun _ -> assert false) st)
 
@@ -477,10 +477,11 @@ let prove_prop ~pid ~mode ~model ~axioms ~prop =
   let title = Pretty_utils.to_string WpPropId.pretty pid in
   let lines = Model.with_model model
       (assemble_goal ~file ~id ~title ~axioms) prop in
-  Model.with_model model (fun () ->
-      let goal = cluster ~id ~title () in
-      Wp_parameters.print_generated (cluster_file goal)
-    ) ();
+  if Wp_parameters.has_print_generated () then
+    Model.with_model model (fun () ->
+        let goal = cluster ~id ~title () in
+        Wp_parameters.print_generated (cluster_file goal)
+      ) () ;
   if Wp_parameters.Generate.get ()
   then Task.return VCS.no_result
   else prove_file ~pid ~mode ~file ~lines ~logout ~logerr

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/div_mod.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 2 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_d7_div_0_x_ko : Unknown

@@ -195,10 +195,10 @@ val visitFramacFunspec: frama_c_visitor -> funspec -> funspec
 
 val visitFramacLogicType: frama_c_visitor -> logic_type -> logic_type
 
-val visitFramacPredicate: frama_c_visitor -> predicate -> predicate
+val visitFramacPredicateNode: frama_c_visitor -> predicate_node -> predicate_node
 
-val visitFramacPredicateNamed:
-  frama_c_visitor -> predicate named -> predicate named
+val visitFramacPredicate:
+  frama_c_visitor -> predicate -> predicate
 
 val visitFramacIdPredicate:
   frama_c_visitor -> identified_predicate -> identified_predicate
@@ -229,9 +229,7 @@ val visitFramacBehaviors:
 val visitFramacModelInfo: frama_c_visitor -> model_info -> model_info
 
 val visitFramacExtended:
-  frama_c_visitor ->
-  (string * int * identified_predicate list) ->
-  (string * int * identified_predicate list)
+  frama_c_visitor -> acsl_extension -> acsl_extension
 
 (*
 Local Variables:

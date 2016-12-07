@@ -25,14 +25,13 @@ open Locations
 
 let dkey_card = Value_parameters.register_category "cardinal"
 
-
 let compute () =
   (* Nothing to recompute when Value has already been computed. This boolean
      is automatically cleared when an option of Value changes, because they
      are registered as dependencies on [Db.Value.self] in {!Value_parameters}.*)
   if not (Db.Value.is_computed ()) then
     if Value_parameters.Eva.get ()
-    then Compute_functions.force_compute ()
+    then Analysis.force_compute ()
     else Eval_funs.force_compute ()
 
 let _self =
@@ -86,13 +85,15 @@ let display ?fmt kf =
             | _ -> ())
           (fun fmt -> Cvalue.Model.pretty_filter fmt values outs) in
       match fmt with
-      | None -> Value_parameters.printf ~header "%t" body
+      | None -> Value_parameters.printf
+                  ~dkey:Value_parameters.dkey_final_states ~header "%t" body
       | Some fmt -> Format.fprintf fmt "%t@.%t@," header body
     end
   with Kernel_function.No_Statement -> ()
 
 let display_results () =
-  if Db.Value.is_computed () && Value_parameters.verbose_atleast 1 then begin
+  if Db.Value.is_computed () && Value_parameters.verbose_atleast 1
+ then begin
     Value_parameters.result "====== VALUES COMPUTED ======";
     Callgraph.Uses.iter_in_rev_order display;
     Value_parameters.result "%t" Value_perf.display
@@ -105,7 +106,6 @@ let main () =
   if Value_parameters.ForceValues.get () then begin
     !Db.Value.compute ();
     Value_parameters.ForceValues.output display_results;
-    if Value_parameters.ReusedExprs.get () then Mem_lvalue.compute ();
   end
 
 let () = Db.Main.extend main
@@ -200,7 +200,7 @@ let find_deps_term_no_transitivity_state state t =
 let use_spec_instead_of_definition kf =
   not (Kernel_function.is_definition kf) ||
     Ast_info.is_frama_c_builtin (Kernel_function.get_name kf) ||
-    Builtins.overridden_by_builtin kf ||
+    Builtins.find_builtin_override kf <> None ||
     Kernel_function.Set.mem kf (Value_parameters.UsePrototype.get ()) ||
     Value_parameters.LoadFunctionState.mem kf
 
@@ -503,8 +503,8 @@ module Export (Eval : Eval) = struct
       | Int_Base.Top -> None
       | Int_Base.Value size ->
           match snd (Cvalue.Model.copy_offsetmap loc.Locations.loc size state) with
-            | `Top | `Bottom -> None
-            | `Map m -> Some m
+            | `Bottom -> None
+            | `Value m -> Some m
 
   let lval_to_offsetmap kinstr lv ~with_alarms =
     Valarms.start_stmt kinstr;
@@ -581,7 +581,7 @@ let compute_initial_state eva =
   if eva
   then
     Db.Value.initial_state_only_globals :=
-      Compute_functions.cvalue_initial_state
+      Analysis.cvalue_initial_state
   else
     Db.Value.initial_state_only_globals := fun () ->
       if snd (Globals.entry_point ())

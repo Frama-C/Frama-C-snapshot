@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v1 ∈ {0}
   UU ∈ {0}
   b0 ∈ {0}
@@ -21,17 +21,16 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   b0 ∈ {1}
   b1 ∈ {2}
   b2 ∈ {3}
   b3 ∈ {255}
   f ∈ {4278387200}
   G0 ∈ {65532}
-  G1[bits 0 to 15] ∈ {65532}
-    [bits 16 to 31] ∈ {0}
+  G1 ∈ {65532}
   G2 ∈ {-4}
-  G3# ∈ {65532}%16, bits 0 to 7 
+  G3 ∈ {252}
   data0{.full[bits 0 to 7]; .part.a} ∈ {0}
        {.full[bits 8 to 31]#; .part{.b#; .c#; .d#}} ∈
        {4278387201}%32, bits 8 to 31 

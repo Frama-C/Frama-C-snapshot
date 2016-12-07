@@ -5,7 +5,7 @@ tests/idct/ieee_1180_1990.c:101:[kernel] warning: Floating-point constant 3.1415
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   __FC_errno ∈ [--..--]
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
@@ -21,46 +21,8 @@ tests/idct/ieee_1180_1990.c:101:[kernel] warning: Floating-point constant 3.1415
   init_1 ∈ {1}
   mc1[0..7][0..7] ∈ {0}
   mc2[0..7][0..7] ∈ {0}
-  S___fc_stdin[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-              [--..--]
-              [0].[bits 80 to 95] ∈ UNINITIALIZED
-              [0].__fc_flags ∈ [--..--]
-              [0].__fc_inode ∈ {{ NULL ; &S___fc_inode_0_S___fc_stdin[0] }}
-              [0].__fc_real_data ∈
-              {{ NULL ; &S___fc_real_data_0_S___fc_stdin[0] }}
-              {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-              [--..--]
-              [1].[bits 80 to 95] ∈ UNINITIALIZED
-              [1].__fc_flags ∈ [--..--]
-              [1].__fc_inode ∈ {{ NULL ; &S___fc_inode_1_S___fc_stdin[0] }}
-              [1].__fc_real_data ∈
-              {{ NULL ; &S___fc_real_data_1_S___fc_stdin[0] }}
-              [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_inode_0_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_real_data_0_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_inode_1_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_real_data_1_S___fc_stdin[0..1] ∈ [--..--]
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
-  S___fc_inode_0_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_real_data_0_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_inode_1_S___fc_stdout[0..1] ∈ [--..--]
-  S___fc_real_data_1_S___fc_stdout[0..1] ∈ [--..--]
+  S___fc_stdin[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
 tests/idct/ieee_1180_1990.c:178:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:179:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:184:[value] entering loop for the first time
@@ -72,30 +34,32 @@ tests/idct/idct.c:88:[value] entering loop for the first time
 tests/idct/idct.c:125:[value] entering loop for the first time
 tests/idct/idct.c:126:[value] entering loop for the first time
 tests/idct/idct.c:128:[value] entering loop for the first time
-tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:131:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:141:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:143:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:145:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:147:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:129:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:131:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:141:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:143:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:145:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:147:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:150:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/idct.c:141:[value] warning: 2's complement assumed for overflow
 tests/idct/idct.c:159:[value] entering loop for the first time
 tests/idct/idct.c:160:[value] entering loop for the first time
 tests/idct/idct.c:162:[value] entering loop for the first time
 tests/idct/idct.c:163:[value] warning: 2's complement assumed for overflow
-tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[k][j]);
-tests/idct/idct.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:166:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:163:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[k][j]);
+tests/idct/idct.c:163:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:166:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/idct.c:176:[value] warning: 2's complement assumed for overflow
-tests/idct/idct.c:176:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:178:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:180:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
-tests/idct/idct.c:182:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:176:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:178:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:180:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:182:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/idct.c:185:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 [value] Recording results for idct
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:189:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:190:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:191:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m2[i][j]);
+tests/idct/ieee_1180_1990.c:191:[value] warning: accessing uninitialized left-value. assert \initialized(&m2[i][j]);
 [value] computing for function printf <- main.
         Called from tests/idct/ieee_1180_1990.c:195.
 [value] using specification for function printf
@@ -150,25 +114,25 @@ tests/idct/ieee_1180_1990.c:99:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:104:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:105:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:108:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:109:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/ieee_1180_1990.c:109:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/ieee_1180_1990.c:111:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:112:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:115:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
-tests/idct/ieee_1180_1990.c:116:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:117:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:119:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:121:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < tmp2[i][j]+0.5;
-tests/idct/ieee_1180_1990.c:122:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert tmp2[i][j]+0.5 < 2147483648;
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < tmp2[i][j]-0.5;
-tests/idct/ieee_1180_1990.c:124:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert tmp2[i][j]-0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:116:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
+tests/idct/ieee_1180_1990.c:116:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:117:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:119:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:121:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:122:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:122:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < tmp2[i][j] + 0.5;
+tests/idct/ieee_1180_1990.c:122:[value] warning: overflow in conversion from floating-point to integer.
+                 assert tmp2[i][j] + 0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:124:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:124:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < tmp2[i][j] - 0.5;
+tests/idct/ieee_1180_1990.c:124:[value] warning: overflow in conversion from floating-point to integer.
+                 assert tmp2[i][j] - 0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 [value] computing for function IEEE_1180_1990_idctf <- main.
@@ -178,43 +142,43 @@ tests/idct/ieee_1180_1990.c:139:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:145:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:146:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:149:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value. assert \initialized(&(*(m1+k))[j]);
-tests/idct/ieee_1180_1990.c:150:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
+tests/idct/ieee_1180_1990.c:150:[value] warning: accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
+tests/idct/ieee_1180_1990.c:150:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/ieee_1180_1990.c:152:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:153:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:156:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
-tests/idct/ieee_1180_1990.c:157:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:158:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:160:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:162:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < tmp2[i][j]+0.5;
-tests/idct/ieee_1180_1990.c:163:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert tmp2[i][j]+0.5 < 2147483648;
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < tmp2[i][j]-0.5;
-tests/idct/ieee_1180_1990.c:165:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert tmp2[i][j]-0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:157:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][k]);
+tests/idct/ieee_1180_1990.c:157:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:158:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:160:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:162:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:163:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:163:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < tmp2[i][j] + 0.5;
+tests/idct/ieee_1180_1990.c:163:[value] warning: overflow in conversion from floating-point to integer.
+                 assert tmp2[i][j] + 0.5 < 2147483648;
+tests/idct/ieee_1180_1990.c:165:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
+tests/idct/ieee_1180_1990.c:165:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < tmp2[i][j] - 0.5;
+tests/idct/ieee_1180_1990.c:165:[value] warning: overflow in conversion from floating-point to integer.
+                 assert tmp2[i][j] - 0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 [value] computing for function idct <- main.
         Called from tests/idct/ieee_1180_1990.c:214.
 tests/idct/idct.c:129:[value] warning: 2's complement assumed for overflow
-tests/idct/idct.c:129:[kernel] warning: accessing uninitialized left-value. assert \initialized(&(*(m1+k))[j]);
+tests/idct/idct.c:129:[value] warning: accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
 [value] Recording results for idct
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:215:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:216:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:218:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:218:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:219:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[0].pme[j][k]);
+tests/idct/ieee_1180_1990.c:218:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:218:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:219:[value] warning: accessing uninitialized left-value. assert \initialized(&res[0].pme[j][k]);
 tests/idct/ieee_1180_1990.c:220:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:230:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:231:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[0].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:231:[value] warning: accessing uninitialized left-value. assert \initialized(&res[0].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:219:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:231:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:233:[value] entering loop for the first time
@@ -234,12 +198,12 @@ tests/idct/ieee_1180_1990.c:234:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:239:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:240:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:242:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:242:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:243:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[3].pme[j][k]);
+tests/idct/ieee_1180_1990.c:242:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:242:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:243:[value] warning: accessing uninitialized left-value. assert \initialized(&res[3].pme[j][k]);
 tests/idct/ieee_1180_1990.c:244:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:254:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:255:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[3].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:255:[value] warning: accessing uninitialized left-value. assert \initialized(&res[3].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:243:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:255:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
@@ -262,12 +226,12 @@ tests/idct/ieee_1180_1990.c:260:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:261:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:262:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:264:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:264:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:265:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[1].pme[j][k]);
+tests/idct/ieee_1180_1990.c:264:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:264:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:265:[value] warning: accessing uninitialized left-value. assert \initialized(&res[1].pme[j][k]);
 tests/idct/ieee_1180_1990.c:266:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:276:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:277:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[1].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:277:[value] warning: accessing uninitialized left-value. assert \initialized(&res[1].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:265:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:277:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:279:[value] entering loop for the first time
@@ -278,12 +242,12 @@ tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:285:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:286:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:288:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:288:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:289:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[4].pme[j][k]);
+tests/idct/ieee_1180_1990.c:288:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:288:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:289:[value] warning: accessing uninitialized left-value. assert \initialized(&res[4].pme[j][k]);
 tests/idct/ieee_1180_1990.c:290:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:300:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:301:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[4].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:301:[value] warning: accessing uninitialized left-value. assert \initialized(&res[4].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:289:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:301:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
@@ -306,12 +270,12 @@ tests/idct/ieee_1180_1990.c:306:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:307:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:308:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:310:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:310:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:311:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[2].pme[j][k]);
+tests/idct/ieee_1180_1990.c:310:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:310:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:311:[value] warning: accessing uninitialized left-value. assert \initialized(&res[2].pme[j][k]);
 tests/idct/ieee_1180_1990.c:312:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:322:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:323:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[2].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:323:[value] warning: accessing uninitialized left-value. assert \initialized(&res[2].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:311:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:323:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:325:[value] entering loop for the first time
@@ -322,12 +286,12 @@ tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:331:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:332:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:334:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
-tests/idct/ieee_1180_1990.c:334:[kernel] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
-tests/idct/ieee_1180_1990.c:335:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[5].pme[j][k]);
+tests/idct/ieee_1180_1990.c:334:[value] warning: accessing uninitialized left-value. assert \initialized(&m3[j][k]);
+tests/idct/ieee_1180_1990.c:334:[value] warning: accessing uninitialized left-value. assert \initialized(&m4[j][k]);
+tests/idct/ieee_1180_1990.c:335:[value] warning: accessing uninitialized left-value. assert \initialized(&res[5].pme[j][k]);
 tests/idct/ieee_1180_1990.c:336:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:346:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:347:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[5].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:347:[value] warning: accessing uninitialized left-value. assert \initialized(&res[5].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:335:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:347:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
@@ -518,35 +482,32 @@ tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:350:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:354:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:355:[value] entering loop for the first time
-tests/idct/ieee_1180_1990.c:357:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
-tests/idct/ieee_1180_1990.c:368:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:357:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:368:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
 tests/idct/ieee_1180_1990.c:369:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:357:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:358:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
+tests/idct/ieee_1180_1990.c:358:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pmse[j][k]);
 tests/idct/ieee_1180_1990.c:368:[value] warning: 2's complement assumed for overflow
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
-tests/idct/ieee_1180_1990.c:369:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized(&tmp_5);
-                  (tmp_5 from (((res[i]).pme)[j])[k] <
-                  0?- res[i].pme[j][k]:res[i].pme[j][k])
+tests/idct/ieee_1180_1990.c:369:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:369:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
+tests/idct/ieee_1180_1990.c:369:[value] warning: accessing uninitialized left-value. assert \initialized(&res[i].pme[j][k]);
 tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for overflow
 [value] Recording results for main
 [value] done for function main
-[scope:rm_asserts] removing 13 assertion(s)
+[scope:rm_asserts] removing 16 assertion(s)
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function IEEE_1180_1990_rand:
+[value:final-states] Values at end of function IEEE_1180_1990_rand:
   i ∈ [0..2147483646]
   j ∈ [0..600]
   x ∈ [0.0000000000000000 .. 600.9999997201375663]
   randx ∈ [--..--]
   __retres ∈ [-300..300]
-[value] Values at end of function IEEE_1180_1990_mkbk:
+[value:final-states] Values at end of function IEEE_1180_1990_mkbk:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   M1[0..7][0..7] ∈ [--..--]
   randx ∈ [--..--]
-[value] Values at end of function IEEE_1180_1990_dctf:
+[value:final-states] Values at end of function IEEE_1180_1990_dctf:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   k ∈ {8} or UNINITIALIZED
@@ -557,7 +518,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   m2[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   mcos[0..7][0..7] ∈ [-1.0000000000000000*2^-1 .. 1.0000000000000000*2^-1]
   init ∈ {0}
-[value] Values at end of function IEEE_1180_1990_idctf:
+[value:final-states] Values at end of function IEEE_1180_1990_idctf:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
   k ∈ {8} or UNINITIALIZED
@@ -569,7 +530,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   mcos_0[0..7][0..7] ∈
         [-1.0000000000000000*2^-1 .. 1.0000000000000000*2^-1]
   init_0 ∈ {0}
-[value] Values at end of function idct:
+[value:final-states] Values at end of function idct:
   m2[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   m4[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   i ∈ {8}
@@ -584,7 +545,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   init_1 ∈ {0}
   mc1[0..7][0..7] ∈ [-8192..8192]
   mc2[0..7][0..7] ∈ [-8192..8192]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   res[0..5] ∈ [--..--] or UNINITIALIZED
   i ∈ {6}
   j ∈ {8}
@@ -607,23 +568,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   mc1[0..7][0..7] ∈ [-8192..8192]
   mc2[0..7][0..7] ∈ [-8192..8192]
   __retres ∈ {0; 1}
-  S___fc_stdout[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈
-               [--..--]
-               [0].[bits 80 to 95] ∈ [--..--] or UNINITIALIZED
-               [0].__fc_flags ∈ [--..--]
-               [0].__fc_inode ∈
-               {{ NULL + [--..--] ; &S___fc_inode_0_S___fc_stdout[0] }}
-               [0].__fc_real_data ∈
-               {{ NULL + [--..--] ; &S___fc_real_data_0_S___fc_stdout[0] }}
-               {[0].__fc_real_data_max_size; [1]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof}} ∈
-               [--..--]
-               [1].[bits 80 to 95] ∈ UNINITIALIZED
-               [1].__fc_flags ∈ [--..--]
-               [1].__fc_inode ∈
-               {{ NULL ; &S___fc_inode_1_S___fc_stdout[0] }}
-               [1].__fc_real_data ∈
-               {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
-               [1].__fc_real_data_max_size ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
 [from] Computing for function IEEE_1180_1990_rand
 [from] Done for function IEEE_1180_1990_rand
 [from] Computing for function IEEE_1180_1990_mkbk
@@ -888,7 +833,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'tmpfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 74)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 75)
             ensures
             \result ≡ \null ∨
             (\valid(\result) ∧ \fresh{Old, Here}(\result,sizeof(FILE)))
@@ -904,14 +849,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'tmpnam'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 78)
-            assigns \result, *(s+(..));
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 78)
-            assigns \result \from *(s+(..));
+[ Extern  ] Assigns (file share/libc/stdio.h, line 79)
+            assigns \result, *(s + (..));
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 79)
-            assigns *(s+(..)) \from \nothing;
+            assigns \result \from *(s + (..));
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 80)
+            assigns *(s + (..)) \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -921,14 +866,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fclose'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 87)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 88)
             ensures \result ≡ 0 ∨ \result ≡ -1
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 86)
-            assigns \result \from stream, stream->__fc_stdio_id;
+[ Extern  ] Froms (file share/libc/stdio.h, line 87)
+            assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -938,14 +883,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fflush'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 95)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 96)
             ensures \result ≡ 0 ∨ \result ≡ -1
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 94)
-            assigns \result \from stream, stream->__fc_stdio_id;
+[ Extern  ] Froms (file share/libc/stdio.h, line 95)
+            assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -955,16 +900,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 106)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 107)
             ensures
-            \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512-1])
+            \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512 - 1])
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 104)
+[ Extern  ] Froms (file share/libc/stdio.h, line 105)
             assigns \result
-              \from *(filename+(..)), *(mode+(..)), __p_fc_fopen;
+              \from *(filename + (..)), *(mode + (..)), __p_fc_fopen;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -974,7 +919,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fdopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 113)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 114)
             ensures
             \result ≡ \null ∨
             (\valid(\result) ∧ \fresh{Old, Here}(\result,sizeof(FILE)))
@@ -982,8 +927,8 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 112)
-            assigns \result \from fildes, *(mode+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 113)
+            assigns \result \from fildes, *(mode + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -993,10 +938,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'freopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 119)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 120)
             ensures \result ≡ \null ∨ \result ≡ \old(stream)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 118)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 119)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1007,10 +952,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'setbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 124)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 125)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 124)
+[ Extern  ] Froms (file share/libc/stdio.h, line 125)
             assigns *stream \from buf;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1021,10 +966,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'setvbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 128)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 129)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 128)
+[ Extern  ] Froms (file share/libc/stdio.h, line 129)
             assigns *stream \from buf, mode, size;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1035,11 +980,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 133)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 134)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 133)
-            assigns *stream \from stream->__fc_stdio_id;
+[ Extern  ] Froms (file share/libc/stdio.h, line 134)
+            assigns *stream \from stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1049,11 +994,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 138)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 139)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 138)
-            assigns *stream \from stream->__fc_stdio_id;
+[ Extern  ] Froms (file share/libc/stdio.h, line 139)
+            assigns *stream \from stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1063,11 +1008,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'printf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 144)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 145)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 144)
-            assigns *__fc_stdout \from *(format+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 145)
+            assigns *__fc_stdout \from *(format + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1077,7 +1022,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'scanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 149)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 150)
             assigns *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1088,8 +1033,8 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'snprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 154)
-            assigns *(s+(0 .. n-1));
+[ Extern  ] Assigns (file share/libc/stdio.h, line 155)
+            assigns *(s + (0 .. n - 1));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1099,8 +1044,8 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'sprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 160)
-            assigns *(s+(0 ..));
+[ Extern  ] Assigns (file share/libc/stdio.h, line 161)
+            assigns *(s + (0 ..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1110,11 +1055,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vfprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 170)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 171)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 170)
-            assigns *stream \from *(format+(..)), arg;
+[ Extern  ] Froms (file share/libc/stdio.h, line 171)
+            assigns *stream \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1124,11 +1069,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vfscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 175)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 176)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 175)
-            assigns *stream \from *(format+(..)), *stream;
+[ Extern  ] Froms (file share/libc/stdio.h, line 176)
+            assigns *stream \from *(format + (..)), *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1138,10 +1083,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 181)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 182)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 181)
+[ Extern  ] Froms (file share/libc/stdio.h, line 182)
             assigns *__fc_stdout \from arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1152,11 +1097,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 185)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 186)
             assigns *__fc_stdin;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 185)
-            assigns *__fc_stdin \from *(format+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 186)
+            assigns *__fc_stdin \from *(format + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1166,11 +1111,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vsnprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 190)
-            assigns *(s+(0 .. n-1));
+[ Extern  ] Assigns (file share/libc/stdio.h, line 191)
+            assigns *(s + (0 .. n - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 190)
-            assigns *(s+(0 .. n-1)) \from *(format+(..)), arg;
+[ Extern  ] Froms (file share/libc/stdio.h, line 191)
+            assigns *(s + (0 .. n - 1)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1180,11 +1125,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vsprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 196)
-            assigns *(s+(0 ..));
+[ Extern  ] Assigns (file share/libc/stdio.h, line 197)
+            assigns *(s + (0 ..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 196)
-            assigns *(s+(0 ..)) \from *(format+(..)), arg;
+[ Extern  ] Froms (file share/libc/stdio.h, line 197)
+            assigns *(s + (0 ..)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1194,7 +1139,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 207)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 208)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1205,19 +1150,19 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 213)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 214)
             ensures \result ≡ \null ∨ \result ≡ \old(s)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 211)
-            assigns *(s+(0 .. n-1)), *stream, \result;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 211)
-            assigns *(s+(0 .. n-1)) \from *stream;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 211)
-            assigns *stream \from *stream;
+[ Extern  ] Assigns (file share/libc/stdio.h, line 212)
+            assigns *(s + (0 .. n - 1)), *stream, \result;
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 212)
+            assigns *(s + (0 .. n - 1)) \from *stream;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 212)
+            assigns *stream \from *stream;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 213)
             assigns \result \from s, n, *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1228,7 +1173,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fputc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 218)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 219)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1239,11 +1184,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fputs'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 221)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 222)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 221)
-            assigns *stream \from *(s+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 222)
+            assigns *stream \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1253,13 +1198,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'getc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 225)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 226)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 225)
+[ Extern  ] Froms (file share/libc/stdio.h, line 226)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 225)
+[ Extern  ] Froms (file share/libc/stdio.h, line 226)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1273,7 +1218,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 228)
+[ Extern  ] Froms (file share/libc/stdio.h, line 229)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1284,16 +1229,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'gets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 233)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 234)
             ensures \result ≡ \old(s) ∨ \result ≡ \null
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 231)
-            assigns *(s+(..)), \result;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 231)
-            assigns *(s+(..)) \from *__fc_stdin;
+[ Extern  ] Assigns (file share/libc/stdio.h, line 232)
+            assigns *(s + (..)), \result;
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 232)
+            assigns *(s + (..)) \from *__fc_stdin;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 233)
             assigns \result \from s, __fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1304,10 +1249,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 237)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 238)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 237)
+[ Extern  ] Froms (file share/libc/stdio.h, line 238)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1318,10 +1263,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putchar'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 240)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 241)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 240)
+[ Extern  ] Froms (file share/libc/stdio.h, line 241)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1332,11 +1277,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'puts'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 243)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 244)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 243)
-            assigns *__fc_stdout \from *(s+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 244)
+            assigns *__fc_stdout \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1346,10 +1291,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ungetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 246)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 247)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 246)
+[ Extern  ] Froms (file share/libc/stdio.h, line 247)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1360,21 +1305,21 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fread'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 254)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 255)
             ensures \result ≤ \old(nmemb)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 255)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 256)
             ensures
-            \initialized((char *)\old(ptr)+(0 .. \result*\old(size)-1))
+            \initialized((char *)\old(ptr) + (0 .. \result * \old(size) - 1))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 252)
-            assigns *((char *)ptr+(0 .. nmemb*size-1)), \result;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 252)
-            assigns *((char *)ptr+(0 .. nmemb*size-1))
-              \from size, nmemb, *stream;
+[ Extern  ] Assigns (file share/libc/stdio.h, line 253)
+            assigns *((char *)ptr + (0 .. nmemb * size - 1)), \result;
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 253)
+            assigns *((char *)ptr + (0 .. nmemb * size - 1))
+              \from size, nmemb, *stream;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 254)
             assigns \result \from size, *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1385,17 +1330,17 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fwrite'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 266)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 267)
             ensures \result ≤ \old(nmemb)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 265)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 266)
             assigns *stream, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 265)
-            assigns *stream \from *((char *)ptr+(0 .. nmemb*size-1));
+[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+            assigns *stream \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 265)
-            assigns \result \from *((char *)ptr+(0 .. nmemb*size-1));
+[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+            assigns \result \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1405,10 +1350,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 273)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 274)
             assigns *pos;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 273)
+[ Extern  ] Froms (file share/libc/stdio.h, line 274)
             assigns *pos \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1419,10 +1364,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fseek'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 277)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 278)
             assigns *stream, __FC_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 277)
+[ Extern  ] Froms (file share/libc/stdio.h, line 278)
             assigns *stream \from offset, whence;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1433,10 +1378,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fsetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 281)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 282)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 281)
+[ Extern  ] Froms (file share/libc/stdio.h, line 282)
             assigns *stream \from *pos;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1447,13 +1392,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ftell'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 284)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 285)
             assigns \result, __FC_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 284)
+[ Extern  ] Froms (file share/libc/stdio.h, line 285)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 284)
+[ Extern  ] Froms (file share/libc/stdio.h, line 285)
             assigns __FC_errno \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1464,10 +1409,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'rewind'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 287)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 288)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 287)
+[ Extern  ] Froms (file share/libc/stdio.h, line 288)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1478,10 +1423,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'clearerr'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 290)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 291)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 290)
+[ Extern  ] Froms (file share/libc/stdio.h, line 291)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1495,7 +1440,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 293)
+[ Extern  ] Froms (file share/libc/stdio.h, line 294)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1509,7 +1454,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 296)
+[ Extern  ] Froms (file share/libc/stdio.h, line 297)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1520,10 +1465,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'flockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 299)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 300)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 299)
+[ Extern  ] Froms (file share/libc/stdio.h, line 300)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1534,10 +1479,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'funlockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 302)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 303)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 302)
+[ Extern  ] Froms (file share/libc/stdio.h, line 303)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1548,13 +1493,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ftrylockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 305)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 306)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 305)
+[ Extern  ] Froms (file share/libc/stdio.h, line 306)
             assigns \result \from \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 305)
+[ Extern  ] Froms (file share/libc/stdio.h, line 306)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1568,7 +1513,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 308)
+[ Extern  ] Froms (file share/libc/stdio.h, line 309)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1579,11 +1524,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'perror'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 311)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 312)
             assigns __fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 311)
-            assigns __fc_stdout \from __FC_errno, *(s+(..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 312)
+            assigns __fc_stdout \from __FC_errno, *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1593,13 +1538,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'getc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 314)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 315)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 314)
+[ Extern  ] Froms (file share/libc/stdio.h, line 315)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 314)
+[ Extern  ] Froms (file share/libc/stdio.h, line 315)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1613,7 +1558,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 316)
+[ Extern  ] Froms (file share/libc/stdio.h, line 317)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1624,10 +1569,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 318)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 319)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 318)
+[ Extern  ] Froms (file share/libc/stdio.h, line 319)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1638,10 +1583,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putchar_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 320)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 321)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 320)
+[ Extern  ] Froms (file share/libc/stdio.h, line 321)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1652,10 +1597,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'clearerr_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 323)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 324)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 323)
+[ Extern  ] Froms (file share/libc/stdio.h, line 324)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1669,7 +1614,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 325)
+[ Extern  ] Froms (file share/libc/stdio.h, line 326)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1683,7 +1628,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 327)
+[ Extern  ] Froms (file share/libc/stdio.h, line 328)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1697,7 +1642,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 329)
+[ Extern  ] Froms (file share/libc/stdio.h, line 330)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2311,6 +2256,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/idct.c, line 145)
+[ Partial ] Assertion 'Value,initialisation' (file tests/idct/idct.c, line 150)
+            assert Value: initialisation: \initialized(&tmp1[i][j]);
+            By RedundantAlarms, with pending:
+             - Assertion 'Value,initialisation' (file tests/idct/idct.c, line 145)
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/idct.c, line 163)
             assert Value: initialisation: \initialized(&tmp2[k][j]);
             tried with Value.
@@ -2333,8 +2282,12 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&tmp1[i][j]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/idct.c, line 180)
+[ Partial ] Assertion 'Value,initialisation' (file tests/idct/idct.c, line 185)
+            assert Value: initialisation: \initialized(&tmp1[i][j]);
+            By RedundantAlarms, with pending:
+             - Assertion 'Value,initialisation' (file tests/idct/idct.c, line 180)
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/idct.c, line 129)
-            assert Value: initialisation: \initialized(&(*(m1+k))[j]);
+            assert Value: initialisation: \initialized(&(*(m1 + k))[j]);
             tried with Value.
 
 --------------------------------------------------------------------------------
@@ -2366,20 +2319,20 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 117)
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j]+0.5;
+            assert Value: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
             tried with Value.
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 122)
-            assert Value: float_to_int: tmp2[i][j]+0.5 < 2147483648;
+            assert Value: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
             tried with Value.
 [ Partial ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 124)
             assert Value: initialisation: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 117)
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j]-0.5;
+            assert Value: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
             tried with Value.
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 124)
-            assert Value: float_to_int: tmp2[i][j]-0.5 < 2147483648;
+            assert Value: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
             tried with Value.
 
 --------------------------------------------------------------------------------
@@ -2387,7 +2340,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 150)
-            assert Value: initialisation: \initialized(&(*(m1+k))[j]);
+            assert Value: initialisation: \initialized(&(*(m1 + k))[j]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 150)
             assert Value: initialisation: \initialized(&tmp1[i][j]);
@@ -2414,20 +2367,20 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 158)
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j]+0.5;
+            assert Value: float_to_int: -2147483649 < tmp2[i][j] + 0.5;
             tried with Value.
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 163)
-            assert Value: float_to_int: tmp2[i][j]+0.5 < 2147483648;
+            assert Value: float_to_int: tmp2[i][j] + 0.5 < 2147483648;
             tried with Value.
 [ Partial ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 165)
             assert Value: initialisation: \initialized(&tmp2[i][j]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 158)
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
-            assert Value: float_to_int: -2147483649 < tmp2[i][j]-0.5;
+            assert Value: float_to_int: -2147483649 < tmp2[i][j] - 0.5;
             tried with Value.
 [    -    ] Assertion 'Value,float_to_int' (file tests/idct/ieee_1180_1990.c, line 165)
-            assert Value: float_to_int: tmp2[i][j]-0.5 < 2147483648;
+            assert Value: float_to_int: tmp2[i][j] - 0.5 < 2147483648;
             tried with Value.
 
 --------------------------------------------------------------------------------
@@ -2527,16 +2480,17 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[i].pme[j][k]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 368)
-[    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 369)
-            assert Value: initialisation: \initialized(&tmp_5);
-            tried with Value.
+[ Partial ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 369)
+            assert Value: initialisation: \initialized(&res[i].pme[j][k]);
+            By RedundantAlarms, with pending:
+             - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 368)
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
    113 Completely validated
-    13 Locally validated
+    16 Locally validated
    250 Considered valid
-    57 To be validated
-   433 Total
+    56 To be validated
+   435 Total
 --------------------------------------------------------------------------------

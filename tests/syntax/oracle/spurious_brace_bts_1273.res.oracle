@@ -1,5 +1,10 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/spurious_brace_bts_1273.i (no preprocessing)
-tests/syntax/spurious_brace_bts_1273.i:3:[kernel] user error: syntax error
-[kernel] user error: stopping on file "tests/syntax/spurious_brace_bts_1273.i" that has errors.
+[kernel] syntax error at tests/syntax/spurious_brace_bts_1273.i:3:
+         1     void foo() {
+         2     }
+         3     }
+               ^
+         4     
+         5     void main () {
 [kernel] Frama-C aborted: invalid user input.

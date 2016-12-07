@@ -29,14 +29,17 @@ open Lang
 open Lang.F
 
 val of_real : c_int -> unop
-val iconvert : c_int -> unop
-val irange : c_int -> term -> pred
+val convert : c_int -> unop (** Indenpendent from model *)
 
 val to_cint : lfun -> c_int (** Raises [Not_found] if not. *)
 val is_cint : lfun -> c_int (** Raises [Not_found] if not. *)
 
-type model = NoRange | Natural | Machine
+type model = Natural | Machine
 val configure : model -> unit
+val current : unit -> model
+
+val range : c_int -> term -> pred (** Dependent on model *)
+val downcast : c_int -> unop (** Dependent on model *)
 
 val iopp : c_int -> unop
 val iadd : c_int -> binop
@@ -71,8 +74,6 @@ val f_bit  : lfun
 
 val is_cint_simplifier: Conditions.simplifier
 (** Remove the [is_cint] in formulas that are
-    redondant with other conditions.
-*)
+    redondant with other conditions. *)
 
 val is_positive_or_null: term -> bool
-

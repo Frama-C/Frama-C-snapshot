@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s1[0] ∈ {97}
     [1] ∈ {98}
     [2] ∈ {97}
@@ -18,15 +18,15 @@
 [value] computing for function strchr <- main.
         Called from tests/value/threat_redundant.c:16.
 tests/value/threat_redundant.c:5:[value] entering loop for the first time
-tests/value/threat_redundant.c:5:[kernel] warning: out of bounds read. assert \valid_read(s);
+tests/value/threat_redundant.c:5:[value] warning: out of bounds read. assert \valid_read(s);
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function strchr:
+[value:final-states] Values at end of function strchr:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function strchr
 [from] Non-terminating function strchr (no dependencies)

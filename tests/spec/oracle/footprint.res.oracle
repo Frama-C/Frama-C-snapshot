@@ -12,10 +12,10 @@ struct V {
 };
 /*@
 logic set<char *>  footprint(struct S s) =
-  \union(s.x, (char *)s.y+(0 .. sizeof(int)-1));
+  \union(s.x, (char *)s.y + (0 .. sizeof(int) - 1));
  */
 /*@ requires
-      \valid(\union((char *)s+(0 .. sizeof(struct S)), footprint(*s)));
+      \valid(\union((char *)s + (0 .. sizeof(struct S)), footprint(*s)));
     assigns *footprint(*s);
  */
 int f(struct S *s)

@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 [wp] 34 goals scheduled
 [wp] [Alt-Ergo] Goal typed_ref_call_global_post : Valid
 [wp] [Qed] Goal typed_ref_call_global_assign_exit : Valid
@@ -47,10 +45,10 @@
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 reset                2     -           2       100%
-incr                 1      1 (8)      2       100%
+incr                 1      1 (7)      2       100%
 load                -       2 (8)      2       100%
 call_global          4      2 (11)     6       100%
 call_param           8     -           8       100%
 call_local           4      4 (12)     8       100%
-call_param_ref       4      2 (12)     6       100%
+call_param_ref       4      2 (11)     6       100%
 ----------------------------------------------------------

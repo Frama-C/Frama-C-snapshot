@@ -28,7 +28,6 @@ tests/wp_usage/caveat.i:41:[kernel] warning: parsing obsolete ACSL construct 'lo
    q
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function explicit
@@ -71,7 +70,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'observer':
-Let a = shift_S(global(P_a_90), 0).
+Let a = global(G_a_90).
 Let x = Mint_0[shiftfield_F1_S_f(a)].
 Let x_1 = Mint_0[shiftfield_F1_S_g(a)].
 Let x_2 = 1 + x.
@@ -80,8 +79,6 @@ Let x_4 = x + x_1.
 Assume {
   Type: is_sint32(r) /\ is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\
       is_sint32(x_3) /\ is_sint32(x_4).
-  (* Heap *)
-  Have: linked(Malloc_0).
   (* Pre-condition 'KO' *)
   Have: P_OBS(x, x_1, r).
 }

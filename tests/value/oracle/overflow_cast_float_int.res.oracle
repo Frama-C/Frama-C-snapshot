@@ -3,20 +3,20 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/overflow_cast_float_int.i:16:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert vf1 < 2147483648;
-tests/value/overflow_cast_float_int.i:20:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < -2147483649.5;
-tests/value/overflow_cast_float_int.i:24:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < dd;
+tests/value/overflow_cast_float_int.i:16:[value] warning: overflow in conversion from floating-point to integer.
+                 assert vf1 < 2147483648;
+tests/value/overflow_cast_float_int.i:20:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < -2147483649.5;
+tests/value/overflow_cast_float_int.i:24:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < dd;
 [value] Recording results for main
 [value] done for function main
 tests/value/overflow_cast_float_int.i:20:[value] assertion 'Value,float_to_int' got final status invalid.
 tests/value/overflow_cast_float_int.i:24:[value] assertion 'Value,float_to_int' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   vf1 ∈ [2147483520. .. 2147483648.] or UNINITIALIZED
   e ∈ [2147483520..2147483647] or UNINITIALIZED
   d ∈ {2147483647}
@@ -38,19 +38,19 @@ tests/value/overflow_cast_float_int.i:24:[value] assertion 'Value,float_to_int' 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/overflow_cast_float_int.i:16:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert vf1 < 2147483648;
-tests/value/overflow_cast_float_int.i:20:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < -2147483649.5;
-tests/value/overflow_cast_float_int.i:24:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -2147483649 < dd;
+tests/value/overflow_cast_float_int.i:16:[value] warning: overflow in conversion from floating-point to integer.
+                 assert vf1 < 2147483648;
+tests/value/overflow_cast_float_int.i:20:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < -2147483649.5;
+tests/value/overflow_cast_float_int.i:24:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -2147483649 < dd;
 [value] Recording results for main
 [value] done for function main
 tests/value/overflow_cast_float_int.i:16:[value] assertion 'Value,float_to_int' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   vf1 ∈ UNINITIALIZED
   e ∈ UNINITIALIZED
   d ∈ {2147483647}

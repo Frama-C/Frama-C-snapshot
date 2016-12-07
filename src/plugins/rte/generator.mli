@@ -26,6 +26,7 @@ module type S = sig
 end
 
 module Mem_access: S
+module Pointer_call: S
 module Div_mod: S
 module Shift: S
 module Signed_overflow: S
@@ -41,6 +42,7 @@ val precond_status: Db.RteGen.status_accessor
 val shift_status: Db.RteGen.status_accessor
 val div_mod_status: Db.RteGen.status_accessor
 val mem_access_status: Db.RteGen.status_accessor
+val pointer_call_status: Db.RteGen.status_accessor
 val float_to_int_status: Db.RteGen.status_accessor
 val signed_overflow_status: Db.RteGen.status_accessor
 val signed_downcast_status: Db.RteGen.status_accessor

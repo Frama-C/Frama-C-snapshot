@@ -1,5 +1,10 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/wstring_phase6.i (no preprocessing)
-tests/misc/wstring_phase6.i:9:[kernel] user error: syntax error
-[kernel] user error: stopping on file "tests/misc/wstring_phase6.i" that has errors.
+[kernel] syntax error at tests/misc/wstring_phase6.i:9:
+         7     printf( "%s\n", "123" "456" );
+         8     printf( "%ls\n", L"123" L"456" );
+         9     printf( "%ls\n", "123" L"456" );
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         10    printf( "%ls\n", L"123" "456" );
+         11    printf( "%ls\n", L"123" L"456" );
 [kernel] Frama-C aborted: invalid user input.

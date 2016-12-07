@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
   T[0..9] ∈ {0}
 [value] computing for function test_none <- main.
@@ -245,12 +245,14 @@ tests/value/behaviors1.i:445:[value] function f_123_comp_2345_comp_disj, behavio
 [value] using specification for function f
 [value] Done for function f
 tests/value/behaviors1.i:473:[value] Assigning imprecise value to p1.
-        The imprecision originates from Arithmetic {tests/value/behaviors1.i:473}
+        The imprecision originates from Library function
+        {tests/value/behaviors1.i:473}
 [value] computing for function f <- test_assigns <- main.
         Called from tests/value/behaviors1.i:474.
 [value] Done for function f
 tests/value/behaviors1.i:474:[value] Assigning imprecise value to p2.
-        The imprecision originates from Arithmetic {tests/value/behaviors1.i:474}
+        The imprecision originates from Library function
+        {tests/value/behaviors1.i:474}
 [value] computing for function f <- test_assigns <- main.
         Called from tests/value/behaviors1.i:475.
 [value] Done for function f
@@ -348,100 +350,100 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function test_123_comp_2345_comp_disj:
+[value:final-states] Values at end of function test_123_comp_2345_comp_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_123_comp_disj:
+[value:final-states] Values at end of function test_123_comp_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4; 5} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_123_comp_disj_2345_comp:
+[value:final-states] Values at end of function test_123_comp_disj_2345_comp:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_123_comp_disj_2345_disj:
+[value:final-states] Values at end of function test_123_comp_disj_2345_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4; 5} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_123_disj_2345_comp_disj:
+[value:final-states] Values at end of function test_123_disj_2345_comp_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_assigns:
+[value:final-states] Values at end of function test_assigns:
   p1 ∈
     {{ garbled mix of &{a}
-     (origin: Arithmetic {tests/value/behaviors1.i:473}) }}
+     (origin: Library function {tests/value/behaviors1.i:473}) }}
   p2 ∈
     {{ garbled mix of &{b}
-     (origin: Arithmetic {tests/value/behaviors1.i:474}) }}
+     (origin: Library function {tests/value/behaviors1.i:474}) }}
   p3 ∈ [--..--]
-[value] Values at end of function test_assigns2:
+[value:final-states] Values at end of function test_assigns2:
   T[0..4] ∈ [--..--]
    [5..9] ∈ {0}
   p ∈ {{ &T[0] }}
-[value] Values at end of function test_comp:
+[value:final-states] Values at end of function test_comp:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_comp_disj:
+[value:final-states] Values at end of function test_comp_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ {2; 4} or UNINITIALIZED
   c4 ∈ {2; 3; 4; 5} or UNINITIALIZED
-[value] Values at end of function test_disj:
+[value:final-states] Values at end of function test_disj:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ [1..2147483647] or UNINITIALIZED
   c4 ∈ [1..2147483647] or UNINITIALIZED
-[value] Values at end of function test_narrow:
+[value:final-states] Values at end of function test_narrow:
   r ∈ {100; 200; 300}
-[value] Values at end of function test_none:
+[value:final-states] Values at end of function test_none:
   a ∈ [--..--]
   b ∈ [--..--]
   c1 ∈ {4} or UNINITIALIZED
   c2 ∈ {4; 5} or UNINITIALIZED
   c3 ∈ [1..2147483647] or UNINITIALIZED
   c4 ∈ [1..2147483647] or UNINITIALIZED
-[value] Values at end of function test_promote:
+[value:final-states] Values at end of function test_promote:
   x ∈ [--..--]
   r ∈ {1}
-[value] Values at end of function test_small1:
+[value:final-states] Values at end of function test_small1:
   x ∈ {4}
-[value] Values at end of function test_small2:
+[value:final-states] Values at end of function test_small2:
   x ∈ {2; 4}
-[value] Values at end of function test_small3:
+[value:final-states] Values at end of function test_small3:
   r ∈ [0..1000]
-[value] Values at end of function test_small4:
+[value:final-states] Values at end of function test_small4:
   r ∈ [0..1000]
-[value] Values at end of function test_small5:
+[value:final-states] Values at end of function test_small5:
   r ∈ [--..--]
-[value] Values at end of function test_small6:
+[value:final-states] Values at end of function test_small6:
   a ∈ [--..--]
   p ∈ {{ &a }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0..4] ∈ [--..--]
    [5..9] ∈ {0}
   __retres ∈ {0}

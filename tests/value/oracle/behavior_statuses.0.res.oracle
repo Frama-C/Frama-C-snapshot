@@ -1,0 +1,93 @@
+[kernel] computing the AST
+[kernel] parsing
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing ./share/libc/__fc_builtin_for_normalization.i to Cabs
+[kernel] Parsing ./share/libc/__fc_builtin_for_normalization.i
+[kernel] Converting ./share/libc/__fc_builtin_for_normalization.i from Cabs to CIL
+[kernel] Parsing tests/value/behavior_statuses.i (no preprocessing)
+[kernel] Parsing tests/value/behavior_statuses.i to Cabs
+[kernel] Parsing tests/value/behavior_statuses.i
+[kernel] Converting tests/value/behavior_statuses.i from Cabs to CIL
+[kernel] cleaning unused parts
+[kernel] symbolic link
+[kernel] Pre-merging (0) ./share/libc/__fc_builtin_for_normalization.i
+[kernel] Pre-merging (1) tests/value/behavior_statuses.i
+[kernel] Final merging phase: ./share/libc/__fc_builtin_for_normalization.i
+[kernel] Final merging phase: tests/value/behavior_statuses.i
+[kernel] preparing the AST
+[kernel] First check done
+[kernel] register globals done
+[kernel:property_status] Frama-C kernel emits status unknown for property default behavior
+                         under 3 hypothesis
+[kernel:property_status] Frama-C kernel emits status unknown for property default behavior
+                         under 3 hypothesis
+[kernel:property_status] Frama-C kernel emits status unknown for property default behavior
+                         under 2 hypothesis
+[kernel:property_status] Frama-C kernel emits status unknown for property behavior t_null
+                         under 0 hypothesis
+[kernel:property_status] Frama-C kernel emits status unknown for property behavior t_not_null
+                         under 0 hypothesis
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[value] computing for function f <- main.
+        Called from tests/value/behavior_statuses.i:31.
+[kernel:property_status] Call Preconditions emits status unknown for property requires
+                         \valid_read(filename) under 2 hypothesis
+tests/value/behavior_statuses.i:15:[value] function f: precondition got status valid.
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(filename)' of f at stmt 4 under 0 hypothesis
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(filename)' of f at stmt 4 under 0 hypothesis
+[kernel:property_status] Call Preconditions emits status unknown for property requires \valid_read(t)
+                         under 2 hypothesis
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(t)' of f at stmt 4 under 0 hypothesis
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(t)' of f at stmt 4 under 0 hypothesis
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/value/behavior_statuses.i:32.
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(filename)' of f at stmt 5 under 0 hypothesis
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(filename)' of f at stmt 5 under 0 hypothesis
+tests/value/behavior_statuses.i:21:[value] function f, behavior t_not_null: precondition got status valid.
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(t)' of f at stmt 5 under 0 hypothesis
+[kernel:property_status] Value emits status VALID for property status of 'requires
+                         \valid_read(t)' of f at stmt 5 under 0 hypothesis
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function f:
+  __retres ∈ {1}
+[value:final-states] Values at end of function main:
+  t.t ∈ {1}
+  r1 ∈ {1}
+  r2 ∈ {1}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM \nothing
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          t; r1; r2; __retres
+[inout] Inputs for function main:
+          \nothing

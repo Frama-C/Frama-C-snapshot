@@ -1,6 +1,3 @@
-/* run.config
-   OPT: -check
- */
 char c=1;
 int y;
 

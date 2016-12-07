@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main_4
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 tests/value/for_loops.c:50:[value] entering loop for the first time
@@ -15,7 +15,7 @@ tests/value/for_loops.c:52:[value] entering loop for the first time
 [value] Recording results for main_4
 [value] done for function main_4
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main_4:
+[value:final-states] Values at end of function main_4:
   j ∈ {6}
   v ∈ [0..2147483647]
 [from] Computing for function main_4

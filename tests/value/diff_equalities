@@ -1,0 +1,454 @@
+diff tests/value/oracle/CruiseControl.0.res.oracle tests/value/oracle_equalities/CruiseControl.0.res.oracle
+972c972
+<        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {0; 1}
+---
+>        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {1}
+1010c1010
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._I0_ThrottleIn; ._O0_ThrottleOut} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn ∈
+1011a1012,1013
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._O0_ThrottleOut ∈
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+1025c1027
+<        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
+---
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+1210c1212
+<        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {0; 1}
+---
+>        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {1}
+1222c1224,1228
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._O0_Throttle; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I1_CruiseSpeed; ._I2_VehiculeSpeed} ∈
+>        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._O0_Throttle ∈
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl} ∈
+1240c1246
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L4_CruiseControl; ._L13_CruiseControl} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._L4_CruiseControl ∈
+1241a1248,1249
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._L13_CruiseControl ∈
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+1248c1256
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._I0_ThrottleIn; ._O0_ThrottleOut} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn ∈
+1249a1258,1259
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._O0_ThrottleOut ∈
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+1263c1273
+<        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
+---
+>        [-0.0000000000000000 .. 1.9999998807907104*2^127]
+diff tests/value/oracle/CruiseControl.1.res.oracle tests/value/oracle_equalities/CruiseControl.1.res.oracle
+974c974
+<        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {0; 1}
+---
+>        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {1}
+1012c1012
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._I0_ThrottleIn; ._O0_ThrottleOut} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn ∈
+1013a1014,1015
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._O0_ThrottleOut ∈
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+1027c1029
+<        [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+---
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+1211c1213
+<        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {0; 1}
+---
+>        [0]._C4_ThrottleCmd._I0_Regul_ON ∈ {1}
+1223c1225,1229
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._O0_Throttle; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I1_CruiseSpeed; ._I2_VehiculeSpeed} ∈
+>        [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._O0_Throttle ∈
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl} ∈
+1241c1247
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L4_CruiseControl; ._L13_CruiseControl} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._L4_CruiseControl ∈
+1242a1249,1250
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._L13_CruiseControl ∈
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+1249c1257
+<        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._I0_ThrottleIn; ._O0_ThrottleOut} ∈
+---
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn ∈
+1250a1259,1260
+>        [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._O0_ThrottleOut ∈
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+1264c1274
+<        [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+---
+>        [-0x0.0000000000000p-1022 .. 0x1.fffffe0000000p127]
+diff tests/value/oracle/addition.res.oracle tests/value/oracle_equalities/addition.res.oracle
+86,87d85
+< tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+< tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+307,308d304
+< tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+< tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+diff tests/value/oracle/alias.0.res.oracle tests/value/oracle_equalities/alias.0.res.oracle
+108,109c108,109
+<   t ∈ {1; 2; 4}
+<   u ∈ {2; 3; 4; 5}
+---
+>   t ∈ {4}
+>   u ∈ {5}
+115c115
+<   t2 ∈ {0; 3; 6}
+---
+>   t2 ∈ {6}
+diff tests/value/oracle/alias.1.res.oracle tests/value/oracle_equalities/alias.1.res.oracle
+79c79
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+81,82c81,82
+<   v2 ∈ {-1; 0; 1; 2; 3; 4}
+<   PTR1 ∈ {{ &p2{[0], [1], [2]} }}
+---
+>   v2 ∈ {0; 1; 2}
+>   PTR1 ∈ {{ &p2{[0], [1]} }}
+84c84
+<   PTR3 ∈ {{ &p2{[1], [2], [4]} }}
+---
+>   PTR3 ∈ {{ &p2{[1], [2]} }}
+104c104
+<   t2 FROM p2[0..2]; c
+---
+>   t2 FROM p2[0..1]; c
+diff tests/value/oracle/alias.2.res.oracle tests/value/oracle_equalities/alias.2.res.oracle
+73c73
+<   z ∈ {-5; -4; -3; -2; -1; 0; 1; 1000}
+---
+>   z ∈ {-2; -1; 0; 1000}
+diff tests/value/oracle/alias.3.res.oracle tests/value/oracle_equalities/alias.3.res.oracle
+67c67
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+diff tests/value/oracle/alias.4.res.oracle tests/value/oracle_equalities/alias.4.res.oracle
+80c80
+<   y ∈ {0; 3; 77}
+---
+>   y ∈ {77}
+diff tests/value/oracle/alias.5.res.oracle tests/value/oracle_equalities/alias.5.res.oracle
+166c166
+<   y ∈ {0; 3; 77}
+---
+>   y ∈ {77}
+diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_equalities/alias.6.res.oracle
+87c87
+<   x ∈ {0; 4; 33}
+---
+>   x ∈ {33}
+diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_equalities/backward_add_ptr.res.oracle
+11c11
+< [value] Called Frama_C_show_each_only_a({0; 1}, {{ &a }}, {0})
+---
+> [value] Called Frama_C_show_each_only_a({0}, {{ &a }}, {0})
+Only in tests/value/oracle: behavior_statuses.0.err.oracle
+Only in tests/value/oracle: behavior_statuses.0.res.oracle
+Only in tests/value/oracle: behavior_statuses.1.err.oracle
+Only in tests/value/oracle: behavior_statuses.1.res.oracle
+Only in tests/value/oracle_equalities: behavior_statuses.err.oracle
+Only in tests/value/oracle_equalities: behavior_statuses.res.oracle
+diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_equalities/bitfield.res.oracle
+68a69,70
+> [value] DUMPING EQ STATE of file tests/value/bitfield.i line 21
+>         Eqs:
+184a187,188
+> [value] DUMPING EQ STATE of file tests/value/bitfield.i line 143
+>         Eqs: {(e)(unsigned int)i = (l)s.a} {(e)(int)i = (l)s.c}
+diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_equalities/bitwise_pointer.res.oracle
+55c55
+<   x ∈ [0..9]
+---
+>   x ∈ {5}
+68c68
+<   x1 ∈ [0..9]
+---
+>   x1 ∈ {5}
+diff tests/value/oracle/call_simple.res.oracle tests/value/oracle_equalities/call_simple.res.oracle
+28c28
+<   c ∈ [--..--]
+---
+>   c ∈ [-2147483648..2147483646]
+diff tests/value/oracle/case_analysis.0.res.oracle tests/value/oracle_equalities/case_analysis.0.res.oracle
+19c19
+<   rq ∈ [-0.0000000000000000 .. 100.0000000000000000]
+---
+>   rq ∈ [0.0000000000000000 .. 100.0000000000000000]
+diff tests/value/oracle/case_analysis.1.res.oracle tests/value/oracle_equalities/case_analysis.1.res.oracle
+20c20
+<   rq ∈ [-0.0000000000000000 .. 100.0000000000000000]
+---
+>   rq ∈ [0.0000000000000000 .. 100.0000000000000000]
+diff tests/value/oracle/downcast.res.oracle tests/value/oracle_equalities/downcast.res.oracle
+663c663
+<   ux ∈ [--..--]
+---
+>   ux ∈ [0..65535]
+706c706
+<   ux ∈ [--..--]
+---
+>   ux ∈ [0..65535]
+diff tests/value/oracle/leaf.res.oracle tests/value/oracle_equalities/leaf.res.oracle
+42c42
+< [value] Called Frama_C_show_each_F([-2147483648..2147483647])
+---
+> [value] Called Frama_C_show_each_F({5})
+diff tests/value/oracle/library.res.oracle tests/value/oracle_equalities/library.res.oracle
+95d94
+< tests/value/library.i:31:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
+diff tests/value/oracle/modulo.res.oracle tests/value/oracle_equalities/modulo.res.oracle
+39a40,61
+> [value] Called Frama_C_show_each_1([-10..-1], [-9..-1], [-8..0])
+> [value] Called Frama_C_show_each_1([-10..-1], [1..9], [-8..0])
+> [value] Called Frama_C_show_each_1([1..10], [-9..-1], [0..8])
+> [value] Called Frama_C_show_each_1([1..10], [1..9], [0..8])
+> [value] Called Frama_C_show_each_1([1..9],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_1([-9..-1],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1([1..9],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_1([-9..-1],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1({-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {1; 2; 3; 4; 5; 6; 7},
+>                                    {-6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6})
+47a70,91
+> [value] Called Frama_C_show_each_2([-10..-1], [1..9], [-8..0])
+> [value] Called Frama_C_show_each_2([-10..-1], [-9..-1], [-8..0])
+> [value] Called Frama_C_show_each_2([1..10], [1..9], [0..8])
+> [value] Called Frama_C_show_each_2([1..10], [-9..-1], [0..8])
+> [value] Called Frama_C_show_each_2([-9..-1],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2([1..9],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_2([-9..-1],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2([1..9],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_2({-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {1; 2; 3; 4; 5; 6; 7},
+>                                    {-6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6})
+54a99,100
+> [value] Called Frama_C_show_each_3([-10..10], [-9..9], [-8..8])
+> [value] Called Frama_C_show_each_3([-9..9], [-8..8], [-7..7])
+diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_equalities/non_natural.res.oracle
+54a55,56
+> tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+> tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
+55a58,59
+> tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
+> tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+58a63
+> tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
+61a67
+> tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
+64a71
+> tests/value/non_natural.i:27:[kernel] more than 200(12500) elements to enumerate. Approximating.
+67a75
+> tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
+70a79
+> tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
+73a83
+> tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
+131a142
+> tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
+180,187d190
+< tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:27:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
+200,201d202
+< tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
+< tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+diff tests/value/oracle/origin.0.res.oracle tests/value/oracle_equalities/origin.0.res.oracle
+190,191c190
+<   pm2[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
+<      [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
+---
+>   pm2 ∈ {{ &a + {-4} ; &b + {-4} }}
+230,231c229
+<   pm2[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
+<      [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
+---
+>   pm2 ∈ {{ &a + {-4} ; &b + {-4} }}
+diff tests/value/oracle/plevel.res.oracle tests/value/oracle_equalities/plevel.res.oracle
+11a12
+> tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+15d15
+< tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+diff tests/value/oracle/pointer_comparison.1.res.oracle tests/value/oracle_equalities/pointer_comparison.1.res.oracle
+18d17
+< [value] Called Frama_C_show_each_5e({{ &x + {16} }})
+73d71
+< [value] Called Frama_C_show_each_5e({{ &x + {16} }})
+157d154
+< [value] Called Frama_C_show_each_5e({{ &x + {16} }})
+diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_equalities/precise_locations.res.oracle
+221d220
+< tests/value/precise_locations.i:49:[value] warning: signed overflow. assert t[j].f1[i] + 1 ≤ 2147483647;
+405,406d403
+< [    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+<             tried with Value.
+423,424c420,421
+<      8 To be validated
+<     12 Total
+---
+>      7 To be validated
+>     11 Total
+832d828
+< tests/value/precise_locations.i:49:[value] assertion 'Value,signed_overflow' got final status valid.
+1225,1226d1220
+< [  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+<             by Value (v2).
+1241c1235
+<     10 Completely validated
+---
+>      9 Completely validated
+1243c1237
+<     12 Total
+---
+>     11 Total
+diff tests/value/oracle/ptr_relation.0.res.oracle tests/value/oracle_equalities/ptr_relation.0.res.oracle
+24c24
+<   i ∈ {0; 77; 333}
+---
+>   i ∈ {77}
+diff tests/value/oracle/redundant_alarms.res.oracle tests/value/oracle_equalities/redundant_alarms.res.oracle
+11,12d10
+< tests/value/redundant_alarms.c:11:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+< tests/value/redundant_alarms.c:12:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+20d17
+< tests/value/redundant_alarms.c:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+42,43c39
+< [scope:rm_asserts] removing 3 assertion(s)
+< tests/value/redundant_alarms.c:12:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(p);
+---
+> [scope:rm_asserts] removing 2 assertion(s)
+85d80
+<   /*@ assert Value: initialisation: \initialized(p); */
+87d81
+<   /*@ assert Value: initialisation: \initialized(p); */
+104d97
+<   /*@ assert Value: initialisation: \initialized(&t[i]); */
+167d159
+<   int w;
+170,172d161
+<   *p = 1;
+<   z = *p + 1;
+<   w = *p + 2;
+diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_equalities/relation_reduction.res.oracle
+24,25d23
+< tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;
+< tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert y < 9;
+32,35c30,33
+<   R1 ∈ [-2147483648..2147483637]
+<   R2 ∈ [-2147483638..2147483647]
+<   R3 ∈ [--..--]
+<   R4 ∈ {0; 1; 2; 3; 4; 5}
+---
+>   R1 ∈ {0; 2}
+>   R2 ∈ {0; 12}
+>   R3 ∈ {0; 7}
+>   R4 ∈ {0; 2}
+46c44
+<   R4 FROM tab[0..8]; x (and SELF)
+---
+>   R4 FROM tab[0..5]; x (and SELF)
+51c49
+<           y; t; tab[0..8]
+---
+>           y; t; tab[0..5]
+diff tests/value/oracle/relation_shift.res.oracle tests/value/oracle_equalities/relation_shift.res.oracle
+25,26c25,26
+<         x ∈ [-2147483647..2147483647]
+<         y ∈ [-2147483648..2147483646]
+---
+>         x ∈ [-2147483647..2147483642]
+>         y ∈ [-2147483648..2147483645]
+43,44c43,44
+<   x ∈ [-2147483647..2147483647]
+<   y ∈ [-2147483648..2147483646]
+---
+>   x ∈ [-2147483647..2147483642]
+>   y ∈ [-2147483648..2147483645]
+diff tests/value/oracle/relations.res.oracle tests/value/oracle_equalities/relations.res.oracle
+51,52c51
+<   u[0] ∈ [-2147483648..2147483646]
+<    [1] ∈ [--..--]
+---
+>   u[0..1] ∈ [-2147483648..2147483646]
+58,61c57,60
+<   R1 ∈ [--..--]
+<   R2 ∈ [--..--]
+<   R3 ∈ [-2147483648..2147483646]
+<   R4 ∈ [--..--]
+---
+>   R1 ∈ {0; 3}
+>   R2 ∈ {0; 3}
+>   R3 ∈ {0; 2}
+>   R4 ∈ {0; 2}
+diff tests/value/oracle/relations2.res.oracle tests/value/oracle_equalities/relations2.res.oracle
+54c54
+<         n ∈ [0..512]
+---
+>         n ∈ [1..512]
+123d122
+< [value] Called Frama_C_show_each_NO2()
+diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2.res.oracle
+50a51
+> tests/value/struct2.i:78:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+52d52
+< tests/value/struct2.i:82:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
+76a77
+> tests/value/struct2.i:185:[value] assertion 'Value,index_bound' got final status valid.
+113,115c114,116
+<   tab3[0..1] ∈ [--..--]
+<   tab4[0] ∈ {0; 2}
+<       [1] ∈ {0}
+---
+>   tab3[0] ∈ {0; 1}
+>       [1] ∈ [--..--]
+>   tab4[0..1] ∈ {0}
+118c119,120
+<   tab6[0..1] ∈ {0; 2}
+---
+>   tab6[0] ∈ {0}
+>       [1] ∈ {2}
+189c191
+<                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
+---
+>                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_store/nonaliasing.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -23,7 +22,7 @@ Assume {
   (* Goal *)
   When: p != q.
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, p, 1).
   (* Pre-condition *)
@@ -47,7 +46,7 @@ Assume {
   (* Goal *)
   When: p != q.
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, p, 1).
   (* Pre-condition *)
@@ -71,7 +70,7 @@ Assume {
   Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_3) /\ is_sint32(x_4) /\
       is_sint32(x_5).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, p, 1).
   (* Pre-condition *)
@@ -93,7 +92,7 @@ Assume {
   Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3) /\
       is_sint32(m[q <- x_3][p]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, p, 1).
   (* Pre-condition *)

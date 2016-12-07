@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
 [value] computing for function g1 <- main1.

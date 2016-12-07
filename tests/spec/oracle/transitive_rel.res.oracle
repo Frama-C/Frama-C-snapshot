@@ -6,6 +6,6 @@ tests/spec/transitive_rel.c:16:[kernel] warning: Inconsistent relation chain.
  */
 /*@ predicate bound2(int x, int y, int z) = x ≤ y ≡ z;
  */
-/*@ predicate test(int x, int y, 𝔹 z) = (x≤y) ≡ z;
+/*@ predicate test(int x, int y, 𝔹 z) = (x ≤ y) ≡ z;
  */
 

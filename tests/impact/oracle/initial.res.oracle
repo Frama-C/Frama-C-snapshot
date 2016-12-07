@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}
@@ -41,7 +41,7 @@ tests/impact/initial.i:24:[pdg] warning: no final state. Probably unreachable...
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}
@@ -89,7 +89,7 @@ tests/impact/initial.i:57:[pdg] warning: no final state. Probably unreachable...
 [value] Analyzing a complete application starting at main3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x1 ∈ {0}
   x2 ∈ {0}
   y2 ∈ {0}

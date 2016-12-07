@@ -31,8 +31,6 @@ type v (** Type of the values stored in the offsetmap *)
 type widen_hint
 type alarm = bool (** [true] indicates that an alarm may have occurred *)
 include Datatype.S (** Datatype for the offsetmaps *)
-type t_bottom = [ `Bottom | `Map of t]
-type t_top_bottom = [ `Bottom | `Map of t | `Top ]
 
 
 (** {2 Pretty-printing} *)
@@ -152,8 +150,6 @@ val map2_on_values:
 
 include Lattice_type.Join_Semi_Lattice with type t := t
 
-val join_top_bottom: [< t_top_bottom] -> [<  t_top_bottom] -> [> t_top_bottom]
-
 val widen : widen_hint -> t -> t -> t
 (** [widen wh m1 m2] performs a widening step on [m2], assuming that
     [m1] was the previous state. The relation [is_included m1 m2] must hold *)
@@ -189,7 +185,7 @@ val find_imprecise_everywhere: t -> v
 val copy_slice:
   validity:Base.validity ->
   offsets:Ival.t -> size:Integer.t ->
-  t -> alarm * [`Map of t | `Bottom]
+  t -> alarm * t Bottom.or_bottom
 (** [copy_slice ~validity ~offsets ~size m] copies and merges the slices of
     [m] starting at offsets [offsets] and of  size [size]. Offsets invalid
     according to [validity] are removed. [size] must be strictly greater
@@ -213,7 +209,7 @@ val update :
   offsets:Ival.t ->
   size:Int.t ->
   v ->
-  t -> alarm * t_bottom
+  t -> alarm * t Bottom.or_bottom
 (** [update ?origin ~validity ~exact ~offsets ~size v m] writes [v],
     of size [size], each [offsets] in [m]; [m] must be of the size implied by
     [validity]. [~exact=true] results in a strong update, while
@@ -229,7 +225,7 @@ val update_under :
   offsets:Ival.t ->
   size:Int.t ->
   v ->
-  t -> alarm * t_bottom
+  t -> alarm * t Bottom.or_bottom
 (** Same as {!update}, except that no over-approximation on the set
     of offsets or on the value written occurs. In case of imprecision,
     [m] is not updated. *)
@@ -238,7 +234,7 @@ val update_under :
 val update_imprecise_everywhere:
   validity:Base.validity ->
   Origin.t -> v ->
-  t -> t_bottom
+  t -> t Bottom.or_bottom
 (** [update_everywhere ~validity o v m] computes the offsetmap resulting
     from imprecisely writing [v] potentially anywhere where [m] is valid
     according to [validity]. If a value becomes too imprecise, [o] is used
@@ -250,7 +246,7 @@ val paste_slice:
   from:t ->
   size:Int.t ->
   offsets:Ival.t ->
-  t -> alarm * t_bottom
+  t -> alarm * t Bottom.or_bottom
 
 
 (** {2 Shape} *)

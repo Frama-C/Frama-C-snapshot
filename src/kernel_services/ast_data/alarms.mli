@@ -122,7 +122,7 @@ val remove: ?filter:(alarm -> bool) -> ?kinstr:kinstr -> Emitter.t -> unit
     [filter a] is [true]. 
     @since Fluorine-20130401 *)
 
-val create_predicate: ?loc:location -> t -> predicate named
+val create_predicate: ?loc:location -> t -> predicate
 (** Generate the predicate corresponding to a given alarm. 
     @since Fluorine-20130401 *)
 

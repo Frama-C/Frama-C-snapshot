@@ -35,12 +35,6 @@ module ShowIndirectDeps: Parameter_sig.Bool
 (** Option -from-verify-assigns. *)
 module VerifyAssigns: Parameter_sig.Bool
 
-(** Option -experimental-path-deps *)
-module PathDeps: Parameter_sig.Bool
-
-(** Option -experimental-mem-deps *)
-module MemDeps: Parameter_sig.Bool
-
 
 (*
 Local Variables:

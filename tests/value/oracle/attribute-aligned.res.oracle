@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   S ∈ {0}
   A ∈ {0}
   B ∈ {0}
@@ -38,32 +38,32 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function ct:
+[value:final-states] Values at end of function ct:
   S ∈ {1}
   A ∈ {0}
-[value] Values at end of function dt:
+[value:final-states] Values at end of function dt:
   S ∈ {4}
   A ∈ {0}
-[value] Values at end of function pt:
+[value:final-states] Values at end of function pt:
   S ∈ {4}
   A ∈ {0}
-[value] Values at end of function qt:
+[value:final-states] Values at end of function qt:
   S ∈ {4}
   A ∈ {0}
   B ∈ {1}
-[value] Values at end of function rt:
+[value:final-states] Values at end of function rt:
   S ∈ {8}
   A ∈ {0}
   B ∈ {4}
-[value] Values at end of function st:
+[value:final-states] Values at end of function st:
   S ∈ {8}
   A ∈ {0}
   B ∈ {4}
-[value] Values at end of function tt:
+[value:final-states] Values at end of function tt:
   S ∈ {4}
   A ∈ {0}
   B ∈ {4}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   S ∈ {4}
   A ∈ {0}
   B ∈ {4}

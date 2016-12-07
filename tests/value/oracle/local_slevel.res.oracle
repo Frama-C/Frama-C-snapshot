@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   t[0..99] ∈ {0}
   vol ∈ [--..--]
@@ -136,13 +136,13 @@ tests/value/local_slevel.i:10:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   v ∈ {1} or UNINITIALIZED
   r ∈ [--..--]
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   t[0..99] ∈ [-1073741823..2147483647]
   i ∈ {100}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..99] ∈ [-1073741823..2147483647]
 [from] Computing for function main1
 [from] Done for function main1
@@ -386,7 +386,7 @@ void main(void)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   t[0..99] ∈ {0}
   vol ∈ [--..--]
@@ -519,11 +519,11 @@ tests/value/local_slevel.i:10:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   v ∈ {1} or UNINITIALIZED
   r ∈ [--..--]
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   t[0..99] ∈ [-1073741823..2147483647]
   i ∈ {100}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..99] ∈ [-1073741823..2147483647]

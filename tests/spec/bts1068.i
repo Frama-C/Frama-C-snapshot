@@ -136,3 +136,8 @@ case cons{L}: \forall list* l1,List<int>ll1; \valid{L}(l1) ==>
 model_10(l1->next,ll1) ==> model_10(l1,Cons(l1->element,ll1));
 }
 */
+
+/* Checks that the given name 'px' into the profile definition of the inductive
+   predicate 'Pind' does not impact the definition given for 'case P0'. */
+void* px;
+//@ inductive Pind(void* root, integer px) { case p0: Pind(px,0); }

@@ -1,0 +1,499 @@
+diff tests/value/oracle/alias.1.res.oracle tests/value/oracle_apron/alias.1.res.oracle
+79c79
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+diff tests/value/oracle/alias.2.res.oracle tests/value/oracle_apron/alias.2.res.oracle
+73c73
+<   z ∈ {-5; -4; -3; -2; -1; 0; 1; 1000}
+---
+>   z ∈ {-1; 1000}
+diff tests/value/oracle/alias.3.res.oracle tests/value/oracle_apron/alias.3.res.oracle
+67c67
+<   z ∈ {0; 1; 2}
+---
+>   z ∈ {0; 2}
+diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_apron/alias.6.res.oracle
+83c83
+<   t ∈ {4; 5; 6}
+---
+>   t ∈ {5}
+diff tests/value/oracle/array_degenerating_loop.res.oracle tests/value/oracle_apron/array_degenerating_loop.res.oracle
+11,12c11
+< tests/value/array_degenerating_loop.i:9:[value] warning: signed overflow. assert G + t[i] ≤ 2147483647;
+< [value] Called Frama_C_show_each([55..2147483647], [-2147483648..99])
+---
+> [value] Called Frama_C_show_each([55..155], [-2147483648..99])
+17c16
+<   G ∈ [55..2147483647]
+---
+>   G ∈ [55..155]
+Only in tests/value/oracle: behavior_statuses.0.err.oracle
+Only in tests/value/oracle: behavior_statuses.0.res.oracle
+Only in tests/value/oracle: behavior_statuses.1.err.oracle
+Only in tests/value/oracle: behavior_statuses.1.res.oracle
+Only in tests/value/oracle_apron: behavior_statuses.err.oracle
+Only in tests/value/oracle_apron: behavior_statuses.res.oracle
+diff tests/value/oracle/call_simple.res.oracle tests/value/oracle_apron/call_simple.res.oracle
+28c28
+<   c ∈ [--..--]
+---
+>   c ∈ [-2147483648..2147483646]
+diff tests/value/oracle/divneg.res.oracle tests/value/oracle_apron/divneg.res.oracle
+56c56
+<   vic ∈ {4294967295}
+---
+>   vic ∈ {-1}
+diff tests/value/oracle/downcast.res.oracle tests/value/oracle_apron/downcast.res.oracle
+45c45
+< [value] Called Frama_C_show_each([100000..2147483647],
+---
+> [value] Called Frama_C_show_each([100000..2147483502],
+124c124
+<   x_0 ∈ [100000..2147483647]
+---
+>   x_0 ∈ [100000..2147483502]
+diff tests/value/oracle/dur.res.oracle tests/value/oracle_apron/dur.res.oracle
+311c311
+<   V6 ∈ [--..--] or UNINITIALIZED
+---
+>   V6 ∈ [0..32767] or UNINITIALIZED
+diff tests/value/oracle/find_ivaltop.res.oracle tests/value/oracle_apron/find_ivaltop.res.oracle
+33,34c33,34
+<   j ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+<   X ∈ {1; 2; 3; 4; 5; 6; 7; 8}
+---
+>   j ∈ {7}
+>   X ∈ {8}
+40c40
+<   \result FROM t[0..7]
+---
+>   \result FROM t[7]
+45c45
+<           t[0..7]
+---
+>           t[7]
+diff tests/value/oracle/for_loops.1.res.oracle tests/value/oracle_apron/for_loops.1.res.oracle
+38,39c38
+< tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each_F([0..2147483647])
+---
+> [value] Called Frama_C_show_each_F([0..100])
+diff tests/value/oracle/for_loops.2.res.oracle tests/value/oracle_apron/for_loops.2.res.oracle
+33,34c33
+< tests/value/for_loops.c:42:[value] warning: signed overflow. assert w + T[j] ≤ 2147483647;
+< [value] Called Frama_C_show_each([0..2147483647])
+---
+> [value] Called Frama_C_show_each([0..1000])
+43c42
+<   w ∈ [0..2147483647]
+---
+>   w ∈ [0..1000]
+diff tests/value/oracle/gauges.res.oracle tests/value/oracle_apron/gauges.res.oracle
+32d31
+< tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
+56d54
+< tests/value/gauges.i:46:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
+96a95,96
+> [value] Called Frama_C_show_each({{ "outer" }})
+> [value] Called Frama_C_show_each({{ "inner" }})
+104c104
+< [value] Called Frama_C_show_each([0..2147483647])
+---
+> [value] Called Frama_C_show_each([15..2147483647])
+118d117
+< tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+159d157
+< tests/value/gauges.i:138:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+254d251
+< tests/value/gauges.i:218:[value] warning: signed overflow. assert -2147483648 ≤ n - 1;
+268,269c265
+< tests/value/gauges.i:238:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..2147483647])
+---
+> [value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..46])
+275,276c271
+< tests/value/gauges.i:249:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..2147483647])
+---
+> [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..49])
+282,283c277
+< tests/value/gauges.i:261:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..2147483647])
+---
+> [value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..65])
+289,290c283
+< tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..2147483647])
+---
+> [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..70])
+298,300c291
+< tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
+<                                  [0..2147483647])
+---
+> [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588}, [0..598])
+310c301
+<   l ∈ [4..2147483647]
+---
+>   l ∈ [4..101]
+315c306
+<   l ∈ [4..2147483647]
+---
+>   l ∈ [4..101]
+366c357
+<   n ∈ [-2147483648..99]
+---
+>   n ∈ [-2147483547..99]
+369c360
+<   i ∈ [0..2147483647]
+---
+>   i ∈ [10..2147483647]
+373c364
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..46]
+376c367
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..49]
+379c370
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..65]
+382c373
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..70]
+388c379
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..598]
+393c384
+<   k ∈ [0..2147483647]
+---
+>   k ∈ [15..2147483647]
+398c389
+<   i ∈ [0..2147483647]
+---
+>   i ∈ [0..21]
+diff tests/value/oracle/ghost.res.oracle tests/value/oracle_apron/ghost.res.oracle
+11d10
+< tests/value/ghost.i:17:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
+diff tests/value/oracle/initialized_copy.1.res.oracle tests/value/oracle_apron/initialized_copy.1.res.oracle
+21,24c21
+<         c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
+<            [bits 8 to 15] ∈ {2}
+<            [bits 16 to 23] ∈ {3}
+<            [bits 24 to 31] ∈ {4}
+---
+>         c_0 ∈ {67305985} or UNINITIALIZED
+26,29c23
+<         a_2[bits 0 to 7] ∈ {1} or UNINITIALIZED
+<            [bits 8 to 15] ∈ {2}
+<            [bits 16 to 23] ∈ {3}
+<            [bits 24 to 31] ∈ {4}
+---
+>         a_2 ∈ {67305985} or UNINITIALIZED
+diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_apron/local_slevel.res.oracle
+14,16c14,16
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1})
+< [value] Called Frama_C_show_each({-1}, {0}, {0; 1})
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1; 2})
+---
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+> [value] Called Frama_C_show_each({-1}, {0}, {0})
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+18c18
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3})
+20c20
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3; 4})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3; 4})
+22,27c22,23
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483647])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483647])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483648])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483648])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..4294967295])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..4294967295])
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
+> [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
+141c137
+<   r ∈ [--..--]
+---
+>   r ∈ [0..2147483647]
+397,399c393,395
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1})
+< [value] Called Frama_C_show_each({-1}, {0}, {0; 1})
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1; 2})
+---
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+> [value] Called Frama_C_show_each({-1}, {0}, {0})
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+401c397
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3})
+403c399
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3; 4})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3; 4})
+405,410c401,402
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483647])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483647])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483648])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483648])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..4294967295])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..4294967295])
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
+> [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
+524c516
+<   r ∈ [--..--]
+---
+>   r ∈ [0..2147483647]
+diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_apron/loop_wvar.1.res.oracle
+12d11
+< tests/value/loop_wvar.i:57:[value] warning: signed overflow. assert next + 1 ≤ 2147483647;
+23,24c22
+< [value] Called Frama_C_show_each([0..9], [0..17], [0..11])
+< [value] Called Frama_C_show_each([0..9], [0..18], [0..12])
+---
+> [value] Called Frama_C_show_each([0..9], [0..9], [0..9])
+33,34c31,32
+<   j ∈ [0..18]
+<   k ∈ [0..12]
+---
+>   j ∈ [0..17]
+>   k ∈ [0..11]
+37c35
+<   next ∈ [0..2147483647]
+---
+>   next ∈ [0..25]
+diff tests/value/oracle/memexec.res.oracle tests/value/oracle_apron/memexec.res.oracle
+26c26,29
+< tests/value/memexec.c:13:[value] Reusing old results for call to f11
+---
+> [value] computing for function f11 <- f1 <- main.
+>         Called from tests/value/memexec.c:13.
+> [value] Recording results for f11
+> [value] Done for function f11
+28c31,34
+< tests/value/memexec.c:16:[value] Reusing old results for call to f11
+---
+> [value] computing for function f11 <- f1 <- main.
+>         Called from tests/value/memexec.c:16.
+> [value] Recording results for f11
+> [value] Done for function f11
+30c36,39
+< tests/value/memexec.c:20:[value] Reusing old results for call to f11
+---
+> [value] computing for function f11 <- f1 <- main.
+>         Called from tests/value/memexec.c:20.
+> [value] Recording results for f11
+> [value] Done for function f11
+diff tests/value/oracle/modulo.res.oracle tests/value/oracle_apron/modulo.res.oracle
+39a40,61
+> [value] Called Frama_C_show_each_1([-10..-1], [-9..-1], [-8..0])
+> [value] Called Frama_C_show_each_1([-10..-1], [1..9], [-8..0])
+> [value] Called Frama_C_show_each_1([1..10], [-9..-1], [0..8])
+> [value] Called Frama_C_show_each_1([1..10], [1..9], [0..8])
+> [value] Called Frama_C_show_each_1([1..9],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_1([-9..-1],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1([1..9],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_1([-9..-1],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1({-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {1; 2; 3; 4; 5; 6; 7},
+>                                    {-6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6})
+47a70,91
+> [value] Called Frama_C_show_each_2([-10..-1], [1..9], [-8..0])
+> [value] Called Frama_C_show_each_2([-10..-1], [-9..-1], [-8..0])
+> [value] Called Frama_C_show_each_2([1..10], [1..9], [0..8])
+> [value] Called Frama_C_show_each_2([1..10], [-9..-1], [0..8])
+> [value] Called Frama_C_show_each_2([-9..-1],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2([1..9],
+>                                    {1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_2([-9..-1],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {-7; -6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2([1..9],
+>                                    {-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6; 7})
+> [value] Called Frama_C_show_each_2({-8; -7; -6; -5; -4; -3; -2; -1},
+>                                    {1; 2; 3; 4; 5; 6; 7},
+>                                    {-6; -5; -4; -3; -2; -1; 0})
+> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7; 8},
+>                                    {-7; -6; -5; -4; -3; -2; -1},
+>                                    {0; 1; 2; 3; 4; 5; 6})
+54a99,100
+> [value] Called Frama_C_show_each_3([-10..10], [-9..9], [-8..8])
+> [value] Called Frama_C_show_each_3([-9..9], [-8..8], [-7..7])
+diff tests/value/oracle/ptr_relation.1.res.oracle tests/value/oracle_apron/ptr_relation.1.res.oracle
+25c25
+<   j ∈ {-1; 0; 1}
+---
+>   j ∈ {0}
+diff tests/value/oracle/raz.res.oracle tests/value/oracle_apron/raz.res.oracle
+15c15
+<   i ∈ [0..2147483647]
+---
+>   i ∈ [0..10]
+diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_apron/relation_reduction.res.oracle
+24,25d23
+< tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;
+< tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert y < 9;
+32,34c30,32
+<   R1 ∈ [-2147483648..2147483637]
+<   R2 ∈ [-2147483638..2147483647]
+<   R3 ∈ [--..--]
+---
+>   R1 ∈ {0; 2}
+>   R2 ∈ {0; 12}
+>   R3 ∈ {0; 7}
+diff tests/value/oracle/relation_shift.res.oracle tests/value/oracle_apron/relation_shift.res.oracle
+21,22c21,22
+<         r1 ∈ [--..--]
+<         r2 ∈ [--..--]
+---
+>         r1 ∈ {2}
+>         r2 ∈ {7}
+25,27c25,27
+<         x ∈ [-2147483647..2147483647]
+<         y ∈ [-2147483648..2147483646]
+<         z ∈ [-2147483642..2147483647]
+---
+>         x ∈ [-2147483646..2147483642]
+>         y ∈ [-2147483648..2147483640]
+>         z ∈ [-2147483641..2147483647]
+39,40c39,40
+<   r1 ∈ [--..--]
+<   r2 ∈ [--..--]
+---
+>   r1 ∈ {2}
+>   r2 ∈ {7}
+43,45c43,45
+<   x ∈ [-2147483647..2147483647]
+<   y ∈ [-2147483648..2147483646]
+<   z ∈ [-2147483642..2147483647]
+---
+>   x ∈ [-2147483646..2147483642]
+>   y ∈ [-2147483648..2147483640]
+>   z ∈ [-2147483641..2147483647]
+diff tests/value/oracle/relations.res.oracle tests/value/oracle_apron/relations.res.oracle
+71,72c71,73
+<   e ∈ [--..--]
+<   f ∈ [--..--]
+---
+>   e ∈ {1}
+>   f[bits 0 to 7] ∈ {1; 4}
+>    [bits 8 to 31] ∈ [--..--]
+diff tests/value/oracle/relations2.res.oracle tests/value/oracle_apron/relations2.res.oracle
+22c22
+<         len ∈ [--..--]
+---
+>         len ∈ [0..1023]
+33c33
+< [value] Called Frama_C_show_each_end([0..4294967295], [0..64])
+---
+> [value] Called Frama_C_show_each_end([0..1023], [0..64])
+65,66d64
+< tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
+<                  assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
+115d112
+< tests/value/relations2.i:35:[value] warning: signed overflow. assert s + b3 ≤ 2147483647;
+130c127
+<   len ∈ [--..--]
+---
+>   len ∈ [0..1023]
+diff tests/value/oracle/struct2.res.oracle tests/value/oracle_apron/struct2.res.oracle
+63,64d62
+< tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(i + j);
+< tests/value/struct2.i:185:[value] warning: accessing out of bounds index. assert (int)(i + j) < 2;
+diff tests/value/oracle/test.0.res.oracle tests/value/oracle_apron/test.0.res.oracle
+24c24
+<   j ∈ [-1073741822..1]
+---
+>   j ∈ {-1; 0; 1}
+diff tests/value/oracle/unroll.res.oracle tests/value/oracle_apron/unroll.res.oracle
+13d12
+< tests/value/unroll.i:34:[value] warning: signed overflow. assert -2147483648 ≤ j - 1;
+26c25
+<   j ∈ [-2147483648..-123]
+---
+>   j ∈ {-238}
+diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_apron/unroll_simple.res.oracle
+9d8
+< tests/value/unroll_simple.i:11:[value] warning: signed overflow. assert -2147483648 ≤ j - 1;
+21c20
+<   j ∈ [-2147483648..-126]
+---
+>   j ∈ {-250}
+diff tests/value/oracle/usp.res.oracle tests/value/oracle_apron/usp.res.oracle
+18c18
+<         b ∈ {5; 4294967295}
+---
+>         b ∈ {-1; 5}
+diff tests/value/oracle/val9.res.oracle tests/value/oracle_apron/val9.res.oracle
+48,53c48,50
+<   a[bits 0 to 7] ∈ {1; 6}
+<    [bits 8 to 31]# ∈ {6}%32, bits 8 to 31 
+<   b[bits 0 to 7] ∈ {0; 1}
+<    [bits 8 to 31]# ∈ {0; 6}%32, bits 8 to 31 
+<   a7[bits 0 to 7] ∈ {1}
+<     [bits 8 to 31]# ∈ {97}%32, bits 8 to 31 
+---
+>   a ∈ {1; 6}
+>   b ∈ {0; 1}
+>   a7 ∈ {1}
+diff tests/value/oracle/widen_non_constant.res.oracle tests/value/oracle_apron/widen_non_constant.res.oracle
+27c27
+< [value] Called Frama_C_show_each_in([0..23], [1..23])
+---
+> [value] Called Frama_C_show_each_in([0..22], [1..23])
+42c42
+< [value] Called Frama_C_show_each_in([0..25], [1..23])
+---
+> [value] Called Frama_C_show_each_in([0..22], [1..23])
+58,60c58
+< [value] Called Frama_C_show_each_in([0..2147483647], [1..23])
+< tests/value/widen_non_constant.i:49:[value] warning: out of bounds read. assert \valid_read(p + j);
+< tests/value/widen_non_constant.i:45:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+---
+> [value] Called Frama_C_show_each_in([0..22], [1..23])
+81c79
+<   j ∈ {23; 24; 25; 26}
+---
+>   j ∈ {23; 24; 25}
+132c130
+<           N; B[0..25]
+---
+>           N; B[0..23]
+144c142
+<           N; A[0..23]; B[0..25]; C[0..23]
+---
+>           N; A[0..23]; B[0..23]; C[0..23]
+diff tests/value/oracle/widen_on_non_monotonic.res.oracle tests/value/oracle_apron/widen_on_non_monotonic.res.oracle
+21a22,23
+> tests/value/widen_on_non_monotonic.i:26:[value] entering loop for the first time
+> tests/value/widen_on_non_monotonic.i:21:[value] entering loop for the first time
+diff tests/value/oracle/with_comment.res.oracle tests/value/oracle_apron/with_comment.res.oracle
+10d9
+< tests/value/with_comment.i:21:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;

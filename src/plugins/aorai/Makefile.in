@@ -31,10 +31,10 @@
 # Do not use ?= to initialize both below variables
 # (fixed efficiency issue, see GNU Make manual, Section 8.11)
 ifndef FRAMAC_SHARE
-FRAMAC_SHARE  :=$(shell frama-c -journal-disable -print-path)
+FRAMAC_SHARE  :=$(shell frama-c-config -print-share-path)
 endif
 ifndef FRAMAC_LIBDIR
-FRAMAC_LIBDIR :=$(shell frama-c -journal-disable -print-libpath)
+FRAMAC_LIBDIR :=$(shell frama-c-config -print-libpath)
 endif
 PLUGIN_DIR ?=.
 
@@ -81,6 +81,7 @@ PLUGIN_NO_DEFAULT_TEST:=yes
 endif
 
 PLUGIN_TESTS_DIRS:=aorai
+PLUGIN_TESTS_LIB:=$(PLUGIN_DIR)/tests/aorai/Aorai_test.ml
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
@@ -88,7 +89,7 @@ include $(FRAMAC_SHARE)/Makefile.dynamic
 
 ifeq ("$(FRAMAC_INTERNAL)","yes")
 CONFIG_STATUS_DIR=$(FRAMAC_SRC)
-AORAI_WP_SHARE=-aorai-test-wp-share $(FRAMAC_TOP_SRCDIR)/src/plugins/wp/share
+AORAI_WP_SHARE=-aorai-test-wp-share $(FRAMAC_ROOT_SRCDIR)/src/plugins/wp/share
 else
 CONFIG_STATUS_DIR=.
 AORAI_WP_SHARE=
@@ -103,20 +104,11 @@ $(Aorai_DIR)/tests/test_config_prove: \
 	$(SED) -e 's!@AORAI_WP_SHARE@!$(AORAI_WP_SHARE)!' $< > $@
 	$(CHMOD_RO) $@
 
+Aorai_DEFAULT_TESTS: $(Aorai_DIR)/tests/aorai/Aorai_test.cmxs $(Aorai_DIR)/tests/aorai/Aorai_test.cmo
+
 $(Aorai_DIR)/Makefile: $(Aorai_DIR)/Makefile.in \
 			$(CONFIG_STATUS_DIR)/config.status
 	cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
-
-byte:: $(Aorai_DIR)/tests/aorai/Aorai_test.cmo
-opt:: $(Aorai_DIR)/tests/aorai/Aorai_test.cmxs
-
-ifeq ("$(FRAMAC_INTERNAL)","yes")
-$(Aorai_DIR)/tests/aorai/Aorai_test.cmo: bin/toplevel.byte$(EXE)
-$(Aorai_DIR)/tests/aorai/Aorai_test.cmxs: bin/toplevel.opt$(EXE)
-else
-$(Aorai_DIR)/tests/aorai/Aorai_test.cmo: $(Aorai_TARGET_CMO)
-$(Aorai_DIR)/tests/aorai/Aorai_test.cmxs: $(Aorai_TARGET_CMXS)
-endif
 
 headers::
 	$(SED) -e 's/This file is/Files in this archive are/' \

@@ -1,0 +1,57 @@
+diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.res.oracle
+106a107
+>                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
+108a110
+>                  {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
+146c148
+<   p11 ∈ [-2147483648..0]
+---
+>   p11 ∈ [-2147483648..0],0%4
+324a327
+>                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
+365c368
+<   p11 ∈ [-2147483648..0]
+---
+>   p11 ∈ [-2147483648..0],0%4
+Only in tests/value/oracle: behavior_statuses.0.err.oracle
+Only in tests/value/oracle: behavior_statuses.0.res.oracle
+Only in tests/value/oracle: behavior_statuses.1.err.oracle
+Only in tests/value/oracle: behavior_statuses.1.res.oracle
+Only in tests/value/oracle_bitwise: behavior_statuses.err.oracle
+Only in tests/value/oracle_bitwise: behavior_statuses.res.oracle
+diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise_or.res.oracle
+54c54
+<   uand4 ∈ [8..24]
+---
+>   uand4 ∈ {8; 16; 24}
+60,61c60,61
+<   v1 ∈ [0..0x1FFFE],0%2
+<   v2 ∈ [0..0x3FFFF]
+---
+>   v1 ∈ [0..0x1FFFC],0%4
+>   v2 ∈ [0..0x3FFFE],0%2
+diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.oracle
+63c63
+<   G ∈ [0..12]
+---
+>   G ∈ [2..12]
+79c79
+<   G ∈ [0..12]
+---
+>   G ∈ [2..12]
+diff tests/value/oracle/merge_bits.res.oracle tests/value/oracle_bitwise/merge_bits.res.oracle
+30,34c30
+< [value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
+<                                    [bits 8 to 15] ∈ {0}
+<                                    [bits 16 to 31]# ∈
+<                                    {-1879048176}%32, bits 0 to 15 
+<                                    This amounts to: {1048577})
+---
+> [value] Called Frama_C_show_each_F({1048577})
+39,41c35,36
+<   T[0] ∈ {1}
+<    [1] ∈ {0}
+<    [bits 16 to 47] ∈ {-1879048176}
+---
+>   T[bits 0 to 31] ∈ {1048577}
+>    [bits 32 to 47]# ∈ {-1879048176}%32, bits 16 to 31 

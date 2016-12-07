@@ -30,7 +30,7 @@ open Widget
 type field =
   [ `Compact (** Fixed size. Does not expand. *)
   | `Field   (** Single line field. Expands to the left. *)
-  | `Editor  (** Multiline field. Expands to both left and bottom. *)
+  | `Panel   (** Multiline field. Expands to both left and bottom. *)
   ]
 
 (** A form with various field types.
@@ -64,14 +64,17 @@ class form : unit ->
 
     method add_field : ?label:string -> ?field:field -> GObj.widget -> unit
     (** Inserts an entry in the form.
-        	Optional label is inserted in right column is specified.
-        	Default [field] is [`Field].
-        	Moves to next line. *)
-
-    method add_row : ?field:field -> GObj.widget -> unit
+        Optional label is inserted in right column is specified.
+        Default [field] is [`Field].
+        Moves to next line. *)
+      
+    method add_row :
+      ?field:field ->
+      ?xpadding:int ->
+      ?ypadding:int -> GObj.widget -> unit
     (** Inserts a wide entry in the form, spanning the two columns.
-        	Default [field] is [`Field].
-        	Moves to next line. *)
+        Default [field] is [`Field].
+        Moves to next line. *)
   end
 
 (** {2 Tabbed-pane} *)

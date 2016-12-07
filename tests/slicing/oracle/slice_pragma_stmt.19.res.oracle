@@ -1,13 +1,13 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/slice_pragma_stmt.c (with preprocessing)
+[kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at test6
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-tests/slicing/slice_pragma_stmt.c:136:[kernel] warning: signed overflow. assert c1+1 ≤ 2147483647;
+tests/slicing/slice_pragma_stmt.i:136:[value] warning: signed overflow. assert c1 + 1 ≤ 2147483647;
 [value] Recording results for test6
 [value] done for function test6
 [slicing] making slicing project 'Slicing'...
@@ -41,3 +41,5 @@ void test6(int c1, int c2)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_19_slice_pragma_stmt.i (no preprocessing)

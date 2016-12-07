@@ -70,11 +70,11 @@ struct
   let extract = function Some e -> e | None -> raise Not_found
 
   let pmatch p e =
-    let s = Array.create (size p) None in
+    let s = Array.make (size p) None in
     unify s p e ; Array.map extract s
 
   let pmatch_all ps es =
-    let s = Array.create (size_list ps) None in
+    let s = Array.make (size_list ps) None in
     unify_all s ps es ; Array.map extract s
 
   let rec pretty fmt = function

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts986.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -11,6 +10,6 @@
 
 Goal Assertion 'A' (file tests/wp_bts/bts986.i, line 12):
 Assume { (* Heap *) Have: linked(Malloc_0). }
-Prove: !valid_rw(Malloc_0[L_x_70 <- 0], shift_sint32(global(L_x_70), 0), 1).
+Prove: !valid_rw(Malloc_0[L_x_70 <- 0], global(L_x_70), 1).
 
 ------------------------------------------------------------

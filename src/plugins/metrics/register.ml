@@ -59,6 +59,14 @@ let value () =
 let main () =
   if Enabled.get () then Enabled.output syntactic;
   if ValueCoverage.get () then ValueCoverage.output value;
+  if LocalsSize.is_set () then begin
+    Ast.compute ();
+    Metrics_parameters.result "function\tlocals_size_no_temps\t\
+                               locals_size_with_temps\t\
+                               max_call_size_no_temps\t\
+                               max_call_size_with_temps";
+    LocalsSize.iter (fun kf -> Metrics_cilast.compute_locals_size kf)
+  end
 ;;
 
 (* Register main entry points *)

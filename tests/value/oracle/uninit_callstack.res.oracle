@@ -3,10 +3,10 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   x ∈ {0}
-tests/value/uninit_callstack.i:8:[kernel] warning: accessing uninitialized left-value. assert \initialized(p);
-                  stack: f :: tests/value/uninit_callstack.i:14 <- main
+tests/value/uninit_callstack.i:8:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+                 stack: f :: tests/value/uninit_callstack.i:14 <- main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

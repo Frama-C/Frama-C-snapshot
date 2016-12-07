@@ -22,151 +22,122 @@
 
 open Cil_types
 
-(* ********************************************************************** *)
-(** {type wto : Wto.partition with stmt}*)
-(* ********************************************************************** *)
+type wto = stmt Wto.partition
 
-type wto =
-| Nil
-| Node of stmt * wto
-| Component of wto * wto
 
 (* ********************************************************************** *)
-(** {Auxiliar functions} *)
+(** {Interface to the Wto module} *)
 (* ********************************************************************** *)
 
-(** Function succ to build the partition *)
-let succ stmt_to_ordered ordered_to_stmt f i =
-  let stmt = Ordered_stmt.to_stmt ordered_to_stmt i in
-  List.iter
-    (fun s ->
-      let ordered = Ordered_stmt.to_ordered stmt_to_ordered s in
-      f ordered)
-    (List.rev stmt.succs)
+module Scheduler = Wto.Make
+  (struct
+    include Cil_datatype.Stmt
+    let pretty fmt s = Format.pp_print_int fmt s.sid
+  end)
 
-(** Converts a partition to a wto *)
-let rec partition_to_wto ots = function
-  | Wto.Nil ->
-    Nil
-  | Wto.Node (i, p) ->
-    Node (Ordered_stmt.to_stmt ots i, partition_to_wto ots p)
-  | Wto.Component (p1, p2) ->
-    Component (partition_to_wto ots p1, partition_to_wto ots p2)
-
-
-(** Builds a wto from a kernel function *)
 let build_wto kf =
-  let first_stmt = Kernel_function.find_first_stmt kf in
-  let (stmt_to_ordered, ordered_to_stmt, _) = Ordered_stmt.get_conversion_tables kf in
-  let succ = succ stmt_to_ordered ordered_to_stmt in
-  let size = Array.length ordered_to_stmt in
-  let root = Ordered_stmt.to_ordered stmt_to_ordered first_stmt in
-  let partition = Wto.partition ~size ~succ ~root in
-  partition_to_wto ordered_to_stmt partition
-  
-
-(** Returns the depth of the statement
-    @raise Not_found if it is not in the given wto *)
-let get_depth stmt wto =
-  let rec aux i = function
-    | Nil -> raise Not_found
-    | Node (s, w) ->
-      if Cil_datatype.Stmt.equal stmt s then i
-      else aux i w
-    | Component (w1, w2) ->
-      try
-	aux (i + 1) w1
-      with Not_found ->
-	aux i w2
-  in aux 0 wto
+  let init = Kernel_function.find_first_stmt kf
+  and succs = fun stmt -> List.rev stmt.succs
+  in
+  Scheduler.partition ~init ~succs
 
 
 (* ********************************************************************** *)
-(** {Kernel functions state} *)
+(** {Datatype and State} *)
 (* ********************************************************************** *)
 
+(** {WTO as datatype} *)
+module WTO =
+  Datatype.Make
+    (struct
+       include Datatype.Serializable_undefined
+       type t = wto
+       let name = "Wto_statement.WTO"
+       let pretty = Scheduler.pretty_partition
+       let copy w = w
+       let reprs = [List.map (fun s -> Wto.Node s) Cil_datatype.Stmt.reprs]
+     end)
 
-(** {WTO as datatype input} *)
-module WTO_input : Datatype.Make_input with type t = wto =
-struct
-
-  include Datatype.Serializable_undefined
-
-  type t = wto
-
-  let name = "Wto_statement.WTO_input"
-
-  let rec pretty fmt = function
-    | Nil -> ()
-    | Node (s, Nil) ->
-      Format.fprintf fmt "%a" Cil_printer.pp_stmt s
-    | Node (s, w) ->
-      Format.fprintf fmt "%a " Cil_printer.pp_stmt s;
-      pretty fmt w
-    | Component (w1, w2) ->
-      Format.printf "(";
-      pretty fmt w1;
-      Format.printf ") ";
-      pretty fmt w2
-
-  let rec copy = function
-    | Nil -> Nil
-    | Node (s, w) -> Node (s, copy w)
-    | Component (w1, w2) -> Component (copy w1, copy w2)
-
-  let rec equal w1 w2 = match (w1 ,w2) with
-    | Nil, Nil ->
-      true
-    | Node (s1, w1), Node (s2, w2) ->
-      Cil_datatype.Stmt.equal s1 s2 && equal w1 w2
-    | Component (w1,w2), Component (w1', w2') ->
-      equal w1 w1' && equal w2 w2'
-    | _ -> false
-
-  let rec compare w1 w2 = match (w1 ,w2) with
-    | Nil, Nil ->
-      0
-    | Node (s1, w1), Node (s2, w2) ->
-      let cmp = Cil_datatype.Stmt.compare s1 s2 in
-      if cmp = 0 then compare w1 w2
-      else cmp
-    | Component (w1, w2), Component (w1', w2') ->
-      let cmp = compare w1 w1' in
-      if cmp = 0 then compare w2 w2'
-      else cmp
-    | Nil, _ -> -1
-    | Node _, Nil -> 1
-    | Node _, Component _ -> -1
-    | Component _, _ -> 1
-
-  let reprs = [Nil]
- 
-end
-
-module WTO = Datatype.Make(WTO_input)
-
-module KF_State =
+module WTOState =
   Kernel_function.Make_Table
     (WTO)
     (struct
       let size = 97
-      let name = "Wto_statement.KF_State"
+      let name = "Wto_statement.WTOState"
       let dependencies = [Ast.self]
      end)
 
 (** Returns the wto of a kernel function *)
-let wto_of_kf = KF_State.memo build_wto;;
+let wto_of_kf = WTOState.memo build_wto;;
 
-module Stmt_Depth =
-  Cil_state_builder.Stmt_hashtbl
-    (Datatype.Int)
+
+(* ********************************************************************** *)
+(** {WTO Indexes} *)
+(* ********************************************************************** *)
+
+type wto_index = stmt list
+
+module WTOIndex =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = wto_index
+      let reprs = [Cil_datatype.Stmt.reprs]
+      let name = "Wto_statement.WTOIndex"
+      let pretty =
+        Pretty_utils.pp_list ~sep:","
+          (fun fmt stmt -> Format.pp_print_int fmt stmt.sid)
+      let copy w = w
+     end)
+
+module StmtTable = Cil_datatype.Stmt.Hashtbl
+
+module WTOIndexState =
+  Kernel_function.Make_Table
+    (StmtTable.Make (WTOIndex))
     (struct
       let size = 97
-      let name = "__stmt_state__"
+      let name = "Wto_statement.WTOIndexState"
       let dependencies = [Ast.self]
      end)
 
-let depth_of_stmt = Stmt_Depth.memo (fun stmt ->
+let build_wto_index_table kf =
+  let table = StmtTable.create 17 in
+  let rec iter_wto index w =
+    List.iter (iter_element index) w
+  and iter_element index = function
+    | Wto.Node s ->
+      StmtTable.add table s index
+    | Wto.Component (h, w) ->
+      let new_index = h :: index in
+      iter_wto new_index (Wto.Node h :: w)
+  in
+  iter_wto [] (wto_of_kf kf);
+  table
+
+let get_wto_index_table = 
+  WTOIndexState.memo build_wto_index_table
+
+let wto_index_of_stmt stmt =
   let kf = Kernel_function.find_englobing_kf stmt in
-  let wto = wto_of_kf kf in
-  get_depth stmt wto);;
+  let table = get_wto_index_table kf in
+  try
+    StmtTable.find table stmt
+  with Not_found -> []
+
+let wto_index_diff index1 index2 =
+  let rec remove_common_prefix l1 l2 =
+    match l1, l2 with
+    | x :: l1, y :: l2 when Cil_datatype.Stmt.equal x y ->
+      remove_common_prefix l1 l2
+    | l1, l2 -> l1, l2
+  in
+  let l1 = List.rev index1
+  and l2 = List.rev index2
+  in
+  let left, entered = remove_common_prefix l1 l2 in
+  List.rev left, entered
+
+let wto_index_diff_of_stmt stmt1 stmt2 =
+  wto_index_diff (wto_index_of_stmt stmt1) (wto_index_of_stmt stmt2)
+

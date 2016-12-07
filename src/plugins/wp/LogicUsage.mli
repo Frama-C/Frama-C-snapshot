@@ -36,7 +36,7 @@ type logic_lemma = {
   lem_axiom : bool ;
   lem_types : string list ;
   lem_labels : logic_label list ;
-  lem_property : predicate named ;
+  lem_property : predicate ;
   lem_depends : logic_lemma list ; (** in reverse order *)
 }
 

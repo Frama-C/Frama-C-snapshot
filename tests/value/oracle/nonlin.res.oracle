@@ -3,21 +3,32 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
+  vs ∈ [--..--]
 tests/value/nonlin.c:10:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
 tests/value/nonlin.c:11:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
-tests/value/nonlin.c:11:[kernel] warning: signed overflow.
-                  assert (int)((int)z+17817)*(int)((int)z+17817) ≤ 2147483647;
+tests/value/nonlin.c:11:[value] warning: signed overflow.
+                 assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
+tests/value/nonlin.c:18:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
+tests/value/nonlin.c:18:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
+tests/value/nonlin.c:22:[value] warning: assertion got status unknown.
+tests/value/nonlin.c:23:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx'
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   z ∈ [-32768..28523]
   k ∈ [-2..1118367364]
   l ∈ [0..2147395600]
   x ∈ {8}
   p ∈ {{ &x + {32} }}
+  i1 ∈ [-32768..32767]
+  i2 ∈ [-32768..32767]
+  r ∈ [-2..2147614724]
+  t[0..100] ∈ {1} or UNINITIALIZED
+   [101] ∈ UNINITIALIZED
+  idx ∈ [0..10]
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -26,6 +37,6 @@ tests/value/nonlin.c:11:[kernel] warning: signed overflow.
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          z; k; l; x; p
+          z; k; l; x; p; i1; i2; r; t[0..100]; idx
 [inout] Inputs for function main:
-          v
+          v; vs

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   must_be_one ∈ {0}
   must_be_zero ∈ {0}
 [value] computing for function enum1_sgn1_inf_sgn0 <- main.
@@ -31,13 +31,13 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   y ∈ {2557891634}
-[value] Values at end of function enum1_sgn1_inf_sgn0:
+[value:final-states] Values at end of function enum1_sgn1_inf_sgn0:
   res ∈ {0}
-[value] Values at end of function enum1_sgn1_positif:
+[value:final-states] Values at end of function enum1_sgn1_positif:
   res ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   must_be_one ∈ {1}
   must_be_zero ∈ {0}
   res ∈ {8}

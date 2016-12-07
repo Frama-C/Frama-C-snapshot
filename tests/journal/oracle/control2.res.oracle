@@ -3,13 +3,13 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
 tests/journal/control2.c:12:[value] entering loop for the first time
-tests/journal/control2.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
 [from] Computing for function f
@@ -17,21 +17,21 @@ tests/journal/control2.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 21
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ [--..--]
   y ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-tests/journal/control2.c:13:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
-tests/journal/control2.c:13:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
-tests/journal/control2.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/journal/control2.c:13:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
+tests/journal/control2.c:13:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
 [from] Computing for function f
 [from] Done for function f
 [kernel] warning: ignoring source files specified on the command line while loading a global initial context.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ [--..--]
   y ∈ [--..--]
   i ∈ {4}

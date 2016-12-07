@@ -22,7 +22,7 @@
 
 open Eval
 
-module Make
+module MakeInternal
     (Value: Abstract_value.S)
     (Loc: Abstract_location.S)
 = struct
@@ -48,38 +48,15 @@ module Make
   let backward_location _ _ _ loc value = `Value (loc, value)
   let reduce_further _ _ _  = []
 
-  module Summary = Datatype.Unit
-  type summary = unit
+  module Return = Datatype.Unit
+  type return = unit
 
-  let call_return kf =
-    let returned_value =
-      try
-        let stmt = Kernel_function.find_return kf in
-        match stmt.Cil_types.skind with
-        | Cil_types.Return (None, _) -> None
-        | Cil_types.Return (Some _, _) ->
-          Some { v = `Value Value.top;
-                 initialized = false;
-                 escaping = true;
-               }
-        | _ -> assert false
-      with
-        Kernel_function.No_Statement ->
-        let vi = Kernel_function.get_vi kf in
-        let return_type = Cil.getReturnType vi.Cil_types.vtype in
-        let name = Kernel_function.get_name kf in
-        if Cil.isVoidType return_type
-        || (name >= "Frama_C_show" && name < "Frama_C_shox")
-        || (name >= "Frama_C_dump" && name < "Frama_C_dumq")
-        then None
-        else Some { v = `Value Value.top;
-                    initialized = false;
-                    escaping = true;
-                  }
-
+  let call_return _kf =
+    let top_value =
+      { v = `Value Value.top; initialized = false; escaping = true; }
     in
-    let return = { post_state = (); summary = (); returned_value } in
-    `Value [return]
+    let return = Some (top_value, ()) in
+    `Value [ { post_state = (); return; } ]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -87,7 +64,7 @@ module Make
   = struct
 
     type state = t
-    type summary = Summary.t
+    type return = Return.t
     type value = Value.t
     type location = Loc.location
     type valuation = Valuation.t
@@ -95,10 +72,14 @@ module Make
     let update _ _ = ()
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
-    let call_action _ _ _ _ = Compute (Continue (), true)
-    let summarize _ _ ~returned:_ _ = `Value ((), ())
-    let resolve_call _ _ ~assigned:_ _ ~pre:_ ~post:_ = `Value ()
+    let start_call _ _ _ _ = Compute (Continue (), true)
+    let make_return _ _ _ _ _ = ()
+    let finalize_call _ _ ~pre:_ ~post:_ = `Value ()
+    let assign_return _ _ _ _ _ _ _ = `Value ()
     let default_call _ call _ = call_return call.kf
+    let enter_loop _ _ = ()
+    let incr_loop_counter _ _ = ()
+    let leave_loop _ _ = ()
 
   end
 
@@ -112,8 +93,8 @@ module Make
 
   let compute_using_specification _ (kf, _) _ = call_return kf
 
-  let close_block _ _ ~body:_ _ = ()
-  let open_block  _ _ ~body:_ _ = ()
+  let enter_scope _ _ _ = ()
+  let leave_scope _ _ _ = ()
 
   let empty () = ()
   let initialize_var _ _ _ _ = ()
@@ -122,7 +103,17 @@ module Make
 
   let filter_by_bases _ _ = ()
   let reuse ~current_input:_ ~previous_output:_ = ()
+
+  let storage () = false
+
 end
+
+module Make
+    (Value: Abstract_value.S)
+    (Loc: Abstract_location.S)
+= Domain_builder.Complete (MakeInternal (Value) (Loc))
+
+
 
 
 (*

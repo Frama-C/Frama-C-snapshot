@@ -84,11 +84,13 @@ val typ_to_logic_type : typ -> logic_type
 
 (** {2 Predicates} *)
 
-val named_of_identified_predicate: identified_predicate -> predicate named
+(** @deprecated use Logic_const.pred_of_id_pred instead *)
+val predicate_of_identified_predicate: identified_predicate -> predicate
+  [@@ deprecated "Use Logic_const.pred_of_id_pred instead"]
 
 (** transforms \old and \at(,Old) into \at(,L) for L a label pointing
  to the given statement, creating one if needed. *)
-val translate_old_label: stmt -> predicate named -> predicate named
+val translate_old_label: stmt -> predicate -> predicate
 
 (** {2 Terms} *)
 
@@ -140,16 +142,16 @@ val numeric_coerce: logic_type -> term -> term
 (** {2 Predicates} *)
 
 (** \valid_index *)
-(* val mk_pvalid_index: ?loc:location -> term * term -> predicate named *)
+(* val mk_pvalid_index: ?loc:location -> term * term -> predicate *)
 
 (** \valid_range *)
-(* val mk_pvalid_range: ?loc:location -> term * term * term -> predicate named *)
+(* val mk_pvalid_range: ?loc:location -> term * term * term -> predicate *)
 
-val pointer_comparable: ?loc:location -> term -> term -> predicate named
+val pointer_comparable: ?loc:location -> term -> term -> predicate
 (** \pointer_comparable
     @since Fluorine-20130401 *)
 
-val points_to_valid_string: ?loc:location -> term -> predicate named
+val points_to_valid_string: ?loc:location -> term -> predicate
 (** \points_to_valid_string
     @since Neon-20140301 *)
 
@@ -204,7 +206,7 @@ val contains_result : term -> bool
 (** returns the body of the given predicate.
     @raise Not_found if the logic_info is not the definition of a predicate. *)
 val get_pred_body :
-  logic_info -> predicate named
+  logic_info -> predicate
 
 (** true if the term is \result or an offset of \result. *)
 val is_result : term -> bool
@@ -215,11 +217,11 @@ val lhost_c_type : term_lhost -> typ
 
 (** [true] if the predicate is Ptrue.
     @since Nitrogen-20111001 *)
-val is_trivially_true: predicate named -> bool
+val is_trivially_true: predicate -> bool
 
 (** [true] if the predicate is Pfalse
     @since Nitrogen-20111001 *)
-val is_trivially_false: predicate named -> bool
+val is_trivially_false: predicate -> bool
 
 (** {2 Structural equality between annotations} *)
 
@@ -251,16 +253,14 @@ val is_same_logic_info : logic_info -> logic_info -> bool
 val is_same_logic_body : logic_body -> logic_body -> bool
 val is_same_indcase :
   string * logic_label list * string list *
-  predicate named ->
+  predicate ->
   string * logic_label list * string list *
-  predicate named -> bool
+  predicate -> bool
 val is_same_tlval : term_lval -> term_lval -> bool
 val is_same_lhost : term_lhost -> term_lhost -> bool
 val is_same_offset : term_offset -> term_offset -> bool
+val is_same_predicate_node : predicate_node -> predicate_node -> bool
 val is_same_predicate : predicate -> predicate -> bool
-val is_same_named_predicate :
-  predicate named ->
-  predicate named -> bool
 val is_same_identified_predicate :
   identified_predicate -> identified_predicate -> bool
 val is_same_identified_term :
@@ -310,8 +310,7 @@ val compare_term: term -> term -> int
 
 (** {2 Merging contracts} *)
 
-val get_behavior_names : ('a, 'b, 'c) spec -> string list
-
+val get_behavior_names : spec -> string list
 
 (** Concatenates two assigns if both are defined, 
     returns WritesAny if one (or both) of them is WritesAny. 
@@ -385,6 +384,15 @@ val extract_contract :
 
 val constFoldTermToInt: ?machdep:bool -> term -> Integer.t option
 
+(**
+   A [cilVisitor] (by copy) that simplifies expressions of the type
+   [const int x = v], where [v] is an integer and [x] is a global variable.
+   Requires a mapping from [varinfo] to [init option]
+   (e.g. based on [Globals.Vars.find]).
+
+   @since Silicon-20161101
+*)
+class simplify_const_lval: (varinfo -> init option) -> Cil.cilVisitor
 
 (** {2 Type-checking hackery} *)
 

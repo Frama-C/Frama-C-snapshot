@@ -34,7 +34,6 @@ module type S = sig
   val top : t
   val is_included : t -> t -> bool
   val join : t -> t -> t
-  val join_and_is_included : t -> t -> t * bool
   val narrow : t -> t -> t or_bottom
 
   (** {3 Constructors } *)
@@ -43,9 +42,9 @@ module type S = sig
   val float_zeros: t
   val top_int : t
   val inject_int : typ -> Integer.t -> t
-
-  (** Creates all abstract values corresponding to the given type. *)
-  val all_values : typ -> t
+  val inject_address: varinfo -> t
+  (** Abstract address for the given varinfo. (With type "pointer to the type
+      of the variable" if the abstract values are typed.) *)
 
   (** {3 Forward Operations } *)
 
@@ -118,10 +117,15 @@ module type S = sig
   val resolve_functions :
     typ_pointer:typ -> t -> Kernel_function.Hptset.t Eval.or_top * bool
     (** [resolve_functions ~typ_pointer v] finds within [v] all the functions
-        with a type compatible with [typ_pointer]. This function is used
-        to resolve pointers calls. For consistency between analyses, the function
-        {!Eval_typ.compatible_functions} should be used to determine whether the
-        functions [v] may point to are compatible with [typ_pointer]. *)
+        with a type compatible with [typ_pointer]. The returned boolean
+        indicates the possibility of an alarm, i.e. that some of the values
+        represented by [v] do not correspond to functions, or to functions
+        with an incompatible type. It is always safe to return [`Top, true].
+
+        This function is used to resolve pointers calls. For consistency
+        between analyses, the function {!Eval_typ.compatible_functions}
+        should be used to determine whether the functions [v] may point to
+        are compatible with [typ_pointer]. *)
 
 end
 

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   outp ∈ {0}
   x ∈ {0}
@@ -43,9 +43,9 @@
   s3 ∈ {0}
 [value] computing for function main1 <- main.
         Called from tests/value/struct_array.i:56.
-tests/value/struct_array.i:35:[kernel] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/struct_array.i:35:[kernel] warning: accessing out of bounds index. assert v < 22;
-tests/value/struct_array.i:36:[kernel] warning: out of bounds write. assert \valid(outp);
+tests/value/struct_array.i:35:[value] warning: accessing out of bounds index. assert 0 ≤ v;
+tests/value/struct_array.i:35:[value] warning: accessing out of bounds index. assert v < 22;
+tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \valid(outp);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -96,12 +96,12 @@ tests/value/struct_array.i:50:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   outp ∈ {{ &x ; &y }}
   x ∈ {0; 5}
   y ∈ {0; 5}
   z1 ∈ {1}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   s1.a ∈ {1}
     .t[0] ∈ {2}
     .t[1] ∈ {3}
@@ -120,7 +120,7 @@ tests/value/struct_array.i:50:[value] assertion got status valid.
   s3.a ∈ {1}
     .t[0..6] ∈ [--..--]
     .b ∈ {9}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   outp ∈ {{ &x ; &y }}
   x ∈ {0; 5}
   y ∈ {0; 5}
@@ -226,7 +226,7 @@ tests/value/struct_array.i:50:[value] assertion got status valid.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   outp ∈ {0}
   x ∈ {0}
@@ -266,8 +266,8 @@ tests/value/struct_array.i:50:[value] assertion got status valid.
   s3 ∈ {0}
 [value] computing for function main1 <- main.
         Called from tests/value/struct_array.i:56.
-tests/value/struct_array.i:35:[kernel] warning: out of bounds read. assert \valid_read(&T[v].p);
-tests/value/struct_array.i:36:[kernel] warning: out of bounds write. assert \valid(outp);
+tests/value/struct_array.i:35:[value] warning: out of bounds read. assert \valid_read(&T[v].p);
+tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \valid(outp);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -310,12 +310,12 @@ tests/value/struct_array.i:50:[value] warning: assertion got status invalid (sto
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   outp ∈ {{ &x ; &y }}
   x ∈ {0; 5}
   y ∈ {0; 5}
   z1 ∈ {1}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   s1.a ∈ {1}
     .t[0] ∈ {2}
     .t[1] ∈ {3}
@@ -330,7 +330,7 @@ tests/value/struct_array.i:50:[value] warning: assertion got status invalid (sto
     .t[6] ∈ {8}
     .b ∈ {9}
   s3 ∈ [--..--]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   outp ∈ {{ &x ; &y }}
   x ∈ {0; 5}
   y ∈ {0; 5}

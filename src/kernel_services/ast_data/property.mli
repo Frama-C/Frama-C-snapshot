@@ -102,16 +102,16 @@ type identified_reachable = kernel_function option * kinstr * program_point
 and identified_axiomatic = string * identified_property list
 
 and identified_lemma = 
-    string * logic_label list * string list * predicate named * location
+    string * logic_label list * string list * predicate * location
 
 and identified_axiom = identified_lemma
 
 (** Specialization of a property at a given point. *)
 and identified_instance = kernel_function option * kinstr * identified_property
 
-and identified_type_invariant = string * typ * predicate named * location
+and identified_type_invariant = string * typ * predicate * location
 
-and identified_global_invariant = string * predicate named * location
+and identified_global_invariant = string * predicate * location
 
 and identified_property = private
   | IPPredicate of identified_predicate

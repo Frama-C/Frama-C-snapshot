@@ -1,12 +1,12 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/misc/log-file.i:9:[value] global initialization of volatile variable a ignored
+tests/misc/log-file.i:11:[value] warning: global initialization of volatile variable a ignored
 [value] Initial state computed
 [value] computing for function f <- main.
-Called from tests/misc/log-file.i:15.
+Called from tests/misc/log-file.i:17.
 [value] using specification for function f
 [value] Done for function f
-tests/misc/log-file.i:16:[value] entering loop for the first time
+tests/misc/log-file.i:18:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

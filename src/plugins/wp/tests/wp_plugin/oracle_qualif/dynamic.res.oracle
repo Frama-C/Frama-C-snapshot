@@ -5,7 +5,6 @@
 [wp] Computing dynamic calls.
 [wp] Dynamic call(s): 1.
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 4 goals scheduled
 [wp] [Alt-Ergo] Goal typed_call_stmt_calls_f1_f2 : Valid
@@ -17,5 +16,5 @@
      Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-call                 2      2 (83)     4       100%
+call                 2      2 (47)     4       100%
 ----------------------------------------------------------

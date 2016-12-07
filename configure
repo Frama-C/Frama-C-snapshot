@@ -642,13 +642,11 @@ OCAMLWIN32
 OCAMLLIB
 OCAMLVERSION
 OCAMLBEST
-OCAMLGRAPH_HOME
-OCAMLGRAPH_LOCAL
-OCAMLGRAPH_INCLUDE
 APRON_PATH
 HAS_APRON
 ZARITH_PATH
 HAS_ZARITH
+DEVELOPMENT
 VERBOSEMAKE
 HAS_USABLE_NATIVE_DYNLINK
 USABLE_NATIVE_DYNLINK
@@ -730,16 +728,12 @@ CYGPATH
 OTAGS
 OCAMLCP
 OCAMLMKTOP
-OCAMLDOCOPT
 OCAMLDOC
-OCAMLFIND
 OCAMLYACC
 OCAMLLEXDOTOPT
 OCAMLLEX
-OCAMLDEPDOTOPT
 OCAMLDEP
-OCAMLOPTDOTOPT
-OCAMLCDOTOPT
+OCAMLFIND
 OCAMLOPT
 OCAMLC
 MAKE
@@ -786,8 +780,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_verbosemake
-enable_local_ocamlgraph
-with_ocamlgraph
+enable_devel_mode
 enable_zarith
 with_cc
 enable_localmachdep
@@ -812,7 +805,9 @@ with_occurrence_static
 enable_pdg
 with_pdg_static
 enable_postdominators
+with_postdominators_static
 enable_rtegen
+with_rtegen_static
 enable_scope
 with_scope_static
 enable_slicing
@@ -1462,8 +1457,8 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-verbosemake    verbose makefile commands
-  --enable-local-ocamlgraph    force the user to use the local OcamlGraph version.
-  --disable-local-ocamlgraph   force the user to use an installed OCamlGraph version.
+  --enable-devel-mode    force the devel mode (warnings and warn-error).
+  --disable-devel-mode   force the distrib mode (no warnings and no warn-error).
 
   --enable-zarith=<dir> use ZArith library
   --enable-localmachdep    enable local machdep configuration
@@ -1503,9 +1498,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-ocamlgraph       set the directory where ocamlgraph library is to be
-                          found (default: search through ocamlfind or in OCaml
-                          standard library)
 specifies a custom C compiler and pre-processor
   --with-cpp             customize defaut preprocessor for Frama-C
   --with-all-static       link all plug-ins statically (default: no)
@@ -1521,6 +1513,9 @@ specifies a custom C compiler and pre-processor
   --with-occurrence-static
                           link occurrence statically (default: no)
   --with-pdg-static       link pdg statically (default: no)
+  --with-postdominators-static
+                          link postdominators statically (default: no)
+  --with-rtegen-static    link rtegen statically (default: no)
   --with-scope-static     link scope statically (default: no)
   --with-slicing-static   link slicing statically (default: no)
   --with-sparecode-static link sparecode statically (default: no)
@@ -2790,16 +2785,8 @@ OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLVERSION" >&5
 $as_echo "$OCAMLVERSION" >&6; }
 case $OCAMLVERSION in
-  0.*|1.*|2.*|3.*)
-     as_fn_error $? "Incompatible OCaml version; use 4.0+ (except 4.02.2, 4.02.0 and 4.00.0)." "$LINENO" 5;;
-   4.00.0)
-     as_fn_error $? "Incompatible OCaml version; use at least 4.00.1 instead." "$LINENO" 5;;
-   4.02.0)
-     as_fn_error $? "Incompatible OCaml version; use at least 4.02.1 instead." "$LINENO" 5;;
-   4.02.2)
-     as_fn_error $? "Incompatible OCaml version; use at least 4.02.3 instead." "$LINENO" 5;;
-   4.00.*|4.01.*)
-     OCAML_ANNOT_OPTION="-bin-annot";;
+  0.*|1.*|2.*|3.*|4.00.*|4.01.*|4.02.[012])
+     as_fn_error $? "Incompatible OCaml version; use 4.02.3+." "$LINENO" 5;;
    *)
      OCAML_ANNOT_OPTION="-bin-annot";;
 esac
@@ -2880,16 +2867,17 @@ else
    OBJ_SUFFIX=cmo;
 fi
 
-# checking for ocamlc.opt
-# Extract the first word of "ocamlc.opt", so it can be a program name with args.
-set dummy ocamlc.opt; ac_word=$2
+# checking for ocamlfind
+
+# Extract the first word of "ocamlfind", so it can be a program name with args.
+set dummy ocamlfind; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLCDOTOPT+:} false; then :
+if ${ac_cv_prog_OCAMLFIND+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$OCAMLCDOTOPT"; then
-  ac_cv_prog_OCAMLCDOTOPT="$OCAMLCDOTOPT" # Let the user override the test.
+  if test -n "$OCAMLFIND"; then
+  ac_cv_prog_OCAMLFIND="$OCAMLFIND" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -2898,7 +2886,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLCDOTOPT="ocamlc.opt"
+    ac_cv_prog_OCAMLFIND="ocamlfind"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -2906,88 +2894,52 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_OCAMLCDOTOPT" && ac_cv_prog_OCAMLCDOTOPT="no"
+  test -z "$ac_cv_prog_OCAMLFIND" && ac_cv_prog_OCAMLFIND="no"
 fi
 fi
-OCAMLCDOTOPT=$ac_cv_prog_OCAMLCDOTOPT
-if test -n "$OCAMLCDOTOPT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLCDOTOPT" >&5
-$as_echo "$OCAMLCDOTOPT" >&6; }
+OCAMLFIND=$ac_cv_prog_OCAMLFIND
+if test -n "$OCAMLFIND"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLFIND" >&5
+$as_echo "$OCAMLFIND" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-if test "$OCAMLCDOTOPT" != no ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking ocamlc.opt version and standard library" >&5
-$as_echo_n "checking ocamlc.opt version and standard library... " >&6; }
-        TMPVERSION=`$OCAMLCDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-        if test "$TMPVERSION" != "$OCAMLVERSION" \
-                -o `$OCAMLCDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: differs from ocamlc; ocamlc.opt discarded." >&5
-$as_echo "differs from ocamlc; ocamlc.opt discarded." >&6; }
-        else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
-$as_echo "ok" >&6; }
-            OCAMLC=$OCAMLCDOTOPT
-        fi
-fi
-
-# checking for ocamlopt.opt
-if test "$OCAMLOPT" != no ; then
-    # Extract the first word of "ocamlopt.opt", so it can be a program name with args.
-set dummy ocamlopt.opt; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLOPTDOTOPT+:} false; then :
-  $as_echo_n "(cached) " >&6
+if test "$OCAMLFIND" != no ; then
+        OCAMLC="$OCAMLFIND ocamlc"
+        OCAMLOPT="$OCAMLFIND ocamlopt"
 else
-  if test -n "$OCAMLOPTDOTOPT"; then
-  ac_cv_prog_OCAMLOPTDOTOPT="$OCAMLOPTDOTOPT" # Let the user override the test.
+        as_fn_error $? "Cannot find ocamlfind." "$LINENO" 5
+fi
+
+###################################################
+# Select devel compilation (warnings, warn-error) #
+###################################################
+
+# It is herited by the plugins
+
+if test -e ".for_devel"; then
+   DEFAULT_DEVEL_MODE=yes
 else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLOPTDOTOPT="ocamlopt.opt"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
+   DEFAULT_DEVEL_MODE=no
+fi
 
-  test -z "$ac_cv_prog_OCAMLOPTDOTOPT" && ac_cv_prog_OCAMLOPTDOTOPT="no"
-fi
-fi
-OCAMLOPTDOTOPT=$ac_cv_prog_OCAMLOPTDOTOPT
-if test -n "$OCAMLOPTDOTOPT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLOPTDOTOPT" >&5
-$as_echo "$OCAMLOPTDOTOPT" >&6; }
+# Check whether --enable-devel-mode was given.
+if test "${enable_devel_mode+set}" = set; then :
+  enableval=$enable_devel_mode; DEVELOPMENT=$enableval
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  DEVELOPMENT=$DEFAULT_DEVEL_MODE
 fi
 
 
-    if test "$OCAMLOPTDOTOPT" != no ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking ocamlc.opt version and standard library" >&5
-$as_echo_n "checking ocamlc.opt version and standard library... " >&6; }
-        TMPVER=`$OCAMLOPTDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-        if test "$TMPVER" != "$OCAMLVERSION" \
-                -o `$OCAMLOPTDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: differs from ocamlc; ocamlopt.opt discarded." >&5
-$as_echo "differs from ocamlc; ocamlopt.opt discarded." >&6; }
-        else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
-$as_echo "ok" >&6; }
-            OCAMLOPT=$OCAMLOPTDOTOPT
-        fi
-    fi
+if test "$DEVELOPMENT" = "yes" ; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: Development mode: warnings and warn-errors are activated" >&5
+$as_echo "$as_me: Development mode: warnings and warn-errors are activated" >&6;}
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: Distribution mode: all warnings are deactivated" >&5
+$as_echo "$as_me: Distribution mode: all warnings are deactivated" >&6;}
 fi
 
 ##############################################
@@ -3038,47 +2990,7 @@ fi
 if test "$OCAMLDEP" = no ; then
         as_fn_error $? "Cannot find ocamldep." "$LINENO" 5
 else
-    # Extract the first word of "ocamldep.opt", so it can be a program name with args.
-set dummy ocamldep.opt; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLDEPDOTOPT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$OCAMLDEPDOTOPT"; then
-  ac_cv_prog_OCAMLDEPDOTOPT="$OCAMLDEPDOTOPT" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLDEPDOTOPT="ocamldep.opt"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_OCAMLDEPDOTOPT" && ac_cv_prog_OCAMLDEPDOTOPT="no"
-fi
-fi
-OCAMLDEPDOTOPT=$ac_cv_prog_OCAMLDEPDOTOPT
-if test -n "$OCAMLDEPDOTOPT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLDEPDOTOPT" >&5
-$as_echo "$OCAMLDEPDOTOPT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$OCAMLDEPDOTOPT" != no ; then
-        OCAMLDEP=$OCAMLDEPDOTOPT
-    fi
+        OCAMLDEP="$OCAMLFIND ocamldep"
 fi
 
 # ocamllex
@@ -3209,48 +3121,6 @@ if test "$OCAMLYACC" = no ; then
         as_fn_error $? "Cannot find ocamlyacc." "$LINENO" 5
 fi
 
-# Extract the first word of "ocamlfind", so it can be a program name with args.
-set dummy ocamlfind; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLFIND+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$OCAMLFIND"; then
-  ac_cv_prog_OCAMLFIND="$OCAMLFIND" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLFIND="ocamlfind"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_OCAMLFIND" && ac_cv_prog_OCAMLFIND="no"
-fi
-fi
-OCAMLFIND=$ac_cv_prog_OCAMLFIND
-if test -n "$OCAMLFIND"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLFIND" >&5
-$as_echo "$OCAMLFIND" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "$OCAMLFIND" = no ; then
-   	as_fn_error $? "Cannot find ocamlfind." "$LINENO" 5
-fi
-
 #################################################
 # Check for other (optional) tools/libraries    #
 #################################################
@@ -3299,48 +3169,7 @@ if test "$OCAMLDOC" = no ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ocamldoc discarded not present" >&5
 $as_echo "ocamldoc discarded not present" >&6; }
 else
-  # Extract the first word of "ocamldoc.opt", so it can be a program name with args.
-set dummy ocamldoc.opt; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLDOCOPT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$OCAMLDOCOPT"; then
-  ac_cv_prog_OCAMLDOCOPT="$OCAMLDOCOPT" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLDOCOPT="ocamldoc.opt"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_OCAMLDOCOPT" && ac_cv_prog_OCAMLDOCOPT="no"
-fi
-fi
-OCAMLDOCOPT=$ac_cv_prog_OCAMLDOCOPT
-if test -n "$OCAMLDOCOPT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLDOCOPT" >&5
-$as_echo "$OCAMLDOCOPT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  # Strange quantic segfault with native ocamldoc in version 4.00.0
-  if test "$OCAMLDOCOPT" != no -a "$OCAMLVERSION" != 4.00.0; then
-     OCAMLDOC=$OCAMLDOCOPT;
-  fi
+        OCAMLDOC="$OCAMLFIND ocamldoc"
 fi
 
 # Extract the first word of "ocamlmktop", so it can be a program name with args.
@@ -3384,6 +3213,8 @@ fi
 if test "$OCAMLMKTOP" = no ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Cannot find ocamlmktop: toplevels cannot be built." >&5
 $as_echo "Cannot find ocamlmktop: toplevels cannot be built." >&6; }
+else
+        OCAMLMKTOP="$OCAMLFIND ocamlmktop"
 fi
 
 # ocamlcp
@@ -3427,6 +3258,8 @@ fi
 
 if test "$OCAMLCP" = no ; then
   as_fn_error $? "Cannot find ocamlcp." "$LINENO" 5
+else
+        OCAMLCP="$OCAMLFIND ocamlcp"
 fi
 
 # Extract the first word of "otags", so it can be a program name with args.
@@ -3471,241 +3304,29 @@ fi
 # ocamlgraph #
 ##############
 
-OCAMLGRAPH_LOCAL=""
-OCAMLGRAPH_HOME=$OCAMLLIB/ocamlgraph
-OCAMLGRAPH_EXISTS=no
-OCAMLGRAPH_INCLUDE=
-OCAMLGRAPH_CUSTOM=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ocamlgraph" >&5
+$as_echo_n "checking for ocamlgraph... " >&6; }
 
-# allow local ocamlgraph
-# Check whether --enable-local-ocamlgraph was given.
-if test "${enable_local_ocamlgraph+set}" = set; then :
-  enableval=$enable_local_ocamlgraph; ENABLE_LOCAL_OCAMLGRAPH=$enableval
-else
-  ENABLE_LOCAL_OCAMLGRAPH=auto
+OCAMLGRAPH=$($OCAMLFIND query ocamlgraph -format %v)
+if test -z "$OCAMLGRAPH" ; then
+  as_fn_error $? "Cannot find ocamlgraph via ocamlfind \
+(requires ocamlgraph 1.8.5 or higher)." "$LINENO" 5
 fi
-
-
-
-# Check whether --with-ocamlgraph was given.
-if test "${with_ocamlgraph+set}" = set; then :
-  withval=$with_ocamlgraph; OCAMLGRAPH_HOME=$withval
-         OCAMLGRAPH_CUSTOM=yes
-fi
-
-
-if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
-  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
-
-    # check if any ocamlgraph is installed in the right place
-    as_ac_File=`$as_echo "ac_cv_file_$OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" >&5
-$as_echo_n "checking for $OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph"
-fi
-
-
-    if test "$OCAMLGRAPH_EXISTS" = "no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
-      as_fn_error $? "unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
-        Please give an appropriate value, or use default OCamlGraph library" "$LINENO" 5;
-    fi
-  else
-    OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
-                            | tr -d '\r\n');
-    if test "$OCAMLGRAPH_HOME" != ""; then
-       OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
-       OCAMLGRAPH_EXISTS="yes";
-    else
-       { $as_echo "$as_me:${as_lineno-$LINENO}: no package ocamlgraph in ocamlfind" >&5
-$as_echo "$as_me: no package ocamlgraph in ocamlfind" >&6;}
-    fi;
-  fi
-
-
-  ocamlgraph_error() {
-    if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
-    as_fn_error $? "Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
-      Frama-C. Please provide another location or use default OCamlGraph" "$LINENO" 5;
-    else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&6;}
-    OCAMLGRAPH_EXISTS=no
-    OCAMLGRAPH_INCLUDE=
-    :;
-    fi
-  }
-
-  # if any, check if it is a compatible version
-  if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-    test_ocamlgraph_version='print_string Graph.Version.version;;'
-    echo $test_ocamlgraph_version > test_ocamlgraph.ml
-    if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
-         test_ocamlgraph.ml 2> /dev/null; \
-    then
-      OCAMLGRAPH_VERSION=`./test_ocamlgraph`
-      case $OCAMLGRAPH_VERSION in
-      1.8.1 | 1.8.1+dev \
+case $OCAMLGRAPH in
+      0.* | 1.[01234567].* \
+      | 1.8.0 | 1.8.0+dev \
+      | 1.8.1 | 1.8.1+dev \
       | 1.8.2 | 1.8.2+dev \
       | 1.8.3 | 1.8.3+dev \
       | 1.8.4 | 1.8.4+dev)
-        ocamlgraph_error;;
-      1.8.5 | 1.8.6)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&6;};;
-      1.8.*)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.5 found: should be compatible, but no warranty.
-           Consider using --enable-local-ocamlgraph." >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.5 found: should be compatible, but no warranty.
-           Consider using --enable-local-ocamlgraph." >&6;};;
-      *) ocamlgraph_error;;
-      esac
-      if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
-        if test "$OCAMLBEST" = "opt"; then
-          if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
-            test_ocamlgraph.ml 2> /dev/null; \
-          then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is ok" >&5
-$as_echo "$as_me: OcamlGraph native version is ok" >&6;}
-          else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is not ok" >&5
-$as_echo "$as_me: OcamlGraph native version is not ok" >&6;}
-            ocamlgraph_error
-          fi
-        else
-          ocamlgraph_error
-        fi
-      fi
-    else
-      ocamlgraph_error
-    fi
-    rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
-  fi
-fi; # ENABLE_LOCAL_OCAMLGRAPH != yes
-
-# revert back to local version of ocamlgraph
-if test "$OCAMLGRAPH_EXISTS" = "no"; then
-  if test "$ENABLE_LOCAL_OCAMLGRAPH" != "no"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: switching to OcamlGraph provided by Frama-C" >&5
-$as_echo "$as_me: switching to OcamlGraph provided by Frama-C" >&6;}
-    OCAMLGRAPH_LOCAL=ocamlgraph
-    OCAMLGRAPH_HOME=
-
-    as_ac_File=`$as_echo "ac_cv_file_$OCAMLGRAPH_LOCAL" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $OCAMLGRAPH_LOCAL" >&5
-$as_echo_n "checking for $OCAMLGRAPH_LOCAL... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$OCAMLGRAPH_LOCAL"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  OCAMLGRAPH_EXISTS=yes
-fi
-
-    if test "$OCAMLGRAPH_EXISTS" = "no"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ocamlgraph.tar.gz" >&5
-$as_echo_n "checking for ocamlgraph.tar.gz... " >&6; }
-if ${ac_cv_file_ocamlgraph_tar_gz+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "ocamlgraph.tar.gz"; then
-  ac_cv_file_ocamlgraph_tar_gz=yes
-else
-  ac_cv_file_ocamlgraph_tar_gz=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_ocamlgraph_tar_gz" >&5
-$as_echo "$ac_cv_file_ocamlgraph_tar_gz" >&6; }
-if test "x$ac_cv_file_ocamlgraph_tar_gz" = xyes; then :
-  OCAMLGRAPH_EXISTS=yes
-fi
-
-      if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-        # ocamlgraph.tar.gz exists, but no directory ocamlgraph
-        { $as_echo "$as_me:${as_lineno-$LINENO}: unarchiving ocamlgraph.tar.gz" >&5
-$as_echo "$as_me: unarchiving ocamlgraph.tar.gz" >&6;}
-        tar zxf ocamlgraph.tar.gz
-      else
-        # neither directory ocamlgraph, nor ocamlgraph.tar.gz exists
-        # broken distrib indeed
-        as_fn_error $? "cannot find OcamlGraph in the current directory.
-   Quite strange: would your Frama-C distribution be corrupted?
-   Anyway:
-   1. download the latest version from http://ocamlgraph.lri.fr/download
-   2. install it by './configure && make && make install'
-   3. rerun ./configure here" "$LINENO" 5
-      fi
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ocamlgraph.tar.gz" >&5
-$as_echo_n "checking for ocamlgraph.tar.gz... " >&6; }
-if ${ac_cv_file_ocamlgraph_tar_gz+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "ocamlgraph.tar.gz"; then
-  ac_cv_file_ocamlgraph_tar_gz=yes
-else
-  ac_cv_file_ocamlgraph_tar_gz=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_ocamlgraph_tar_gz" >&5
-$as_echo "$ac_cv_file_ocamlgraph_tar_gz" >&6; }
-if test "x$ac_cv_file_ocamlgraph_tar_gz" = xyes; then :
-  OCAMLGRAPH_TAR=yes
-fi
-
-      if test "$OCAMLGRAPH_TAR" = "yes"; then
-        # both directory ocamlgraph and ocamlgraph.tar.gz exist at the same time
-        # untar only if the tar is newer than the directory
-        if test ocamlgraph.tar.gz -nt ocamlgraph; then
-          { $as_echo "$as_me:${as_lineno-$LINENO}: find a newer OcamlGraph version: OcamlGraph updated!" >&5
-$as_echo "$as_me: find a newer OcamlGraph version: OcamlGraph updated!" >&6;}
-          rm -rf ocamlgraph
-          tar zxf ocamlgraph.tar.gz
-        fi
-      fi
-    fi
-
-    # Anyway reconfigure OcamlGraph while reconfiguring Frama-C
-    { $as_echo "$as_me:${as_lineno-$LINENO}: configuring ocamlgraph..." >&5
-$as_echo "$as_me: configuring ocamlgraph..." >&6;}
-    (cd $OCAMLGRAPH_LOCAL && ./configure > /dev/null)
-  else # --disable-local-ocamlgraph
-    as_fn_error $? "cannot find a compatible OCamlGraph version on your system \
-and usage of local version explicitely prohibited by \
---disable-local-ocamlgraph option.
-Please consider allowing local compilation of ocamlgraph \
-or use --with-ocamlgraph to explicitely \
-point to an appropriate installation directory." "$LINENO" 5
-  fi
-fi
+        as_fn_error $? "found $OCAMLGRAPH: requires 1.8.5 or higher." "$LINENO" 5;;
+      1.8.5 | 1.8.6 | 1.8.7)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; };;
+      *)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $OCAMLGRAPH: should work" >&5
+$as_echo "found $OCAMLGRAPH: should work" >&6; };;
+esac
 
 # zarith
 ########
@@ -6921,8 +6542,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_POSTDOMINATORS=no
+
+
+# Check whether --with-postdominators-static was given.
+if test "${with_postdominators_static+set}" = set; then :
+  withval=$with_postdominators_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_POSTDOMINATORS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} postdominators"
+     DYNAMIC_POSTDOMINATORS=yes
+   else
+     DYNAMIC_POSTDOMINATORS=no
+   fi
 
 
 
@@ -7016,8 +6655,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_RTEGEN=no
+
+
+# Check whether --with-rtegen-static was given.
+if test "${with_rtegen_static+set}" = set; then :
+  withval=$with_rtegen_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_RTEGEN=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} rtegen"
+     DYNAMIC_RTEGEN=yes
+   else
+     DYNAMIC_RTEGEN=no
+   fi
 
 
 
@@ -7825,6 +7482,8 @@ fi
 
 
 
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
@@ -8067,6 +7726,9 @@ fi
 
 
 
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
@@ -8089,9 +7751,9 @@ fi
 #                                                                        #
 ##########################################################################
 
-########################################
-# E-ACSL as a standard Frama-C plug-in #
-########################################
+##############################################
+# LoopAnalysis as a standard Frama-C plug-in #
+##############################################
 
 
 
@@ -8225,6 +7887,9 @@ echo "loop_analysis... $ENABLE"
          if test "$ENABLE_LOOP_ANALYSIS" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/loop_analysis";
          fi
+
+
+
 
 
 
@@ -8420,6 +8085,9 @@ echo "nonterm... $ENABLE"
 
 
 
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
@@ -8593,6 +8261,9 @@ echo "obfuscator... $ENABLE"
 
 
 
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/print_api" >&5
 $as_echo_n "checking for src/plugins/print_api... " >&6; }
 if ${ac_cv_file_src_plugins_print_api+:} false; then :
@@ -8698,6 +8369,9 @@ echo "print_api... $ENABLE"
                       if test "$ENABLE_PRINT_API" != "no"; then
                          EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/print_api";
                       fi
+
+
+
 
 
 
@@ -8864,6 +8538,9 @@ echo "report... $ENABLE"
          if test "$ENABLE_REPORT" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/report";
          fi
+
+
+
 
 
 
@@ -9095,6 +8772,12 @@ echo "security_slicing... $ENABLE"
 
 
 
+
+
+
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
@@ -9253,6 +8936,9 @@ echo "variadic... $ENABLE"
          if test "$ENABLE_VARIADIC" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/variadic";
          fi
+
+
+
 
 
 
@@ -9454,6 +9140,7 @@ fi
          if test "$ENABLE_WP" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/wp";
          fi
+
 
 
 
@@ -10361,8 +10048,6 @@ compute_dependency
 ############################
 
 EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
-
-
 
 
 

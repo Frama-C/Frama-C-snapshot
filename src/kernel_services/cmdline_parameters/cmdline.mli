@@ -384,6 +384,11 @@ val last_project_created_by_copy: (unit -> string option) ref
 
 val load_all_plugins: (unit -> unit) ref
 
+val add_loading_failures: string -> unit
+(** Add a package to the list of ocamlfind packages that have failed to be
+    loaded.
+    @since Silicon-20161101 *)
+
 (**/**)
 
 (*

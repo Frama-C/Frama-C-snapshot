@@ -1,3 +1,4 @@
+
 ###############################################################################
 # Preliminary notes:                                                          #
 # ------------------                                                          #
@@ -19,6 +20,16 @@
 #   <Model>: memory model
 #   <Prover>: prover
 ###############################################################################
+
+################################
+Plugin WP 1.1 Silicon_20161101
+################################
+
+ - WP          [2016/04/08] Unified variable usage for all models
+ - WP          [2016/10/06] Simplification of arithmetics models
+ - WP          [2016/10/06] Use kernel options -warn-xxx in cint model
+ - WP          [2016/10/06] Use cint and cfloat models by default
+ - WP          [2016/10/06] Fix -wp-rte with respect to models and kernel options
 
 ################################
 Plugin WP 1.0 Aluminium_20160502

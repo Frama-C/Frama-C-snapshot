@@ -27,7 +27,6 @@
 
 #include "caml/mlvalues.h"
 #include "caml/alloc.h"
-#include "caml/bigarray.h"
 #include "caml/fail.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -83,24 +82,35 @@ value c_trunc(value d)
   return caml_copy_double(trunc(Double_val(d)));
 }
 
+/* NOTE: The single-precision functions below (expf, logf, etc.) need the
+   'volatile' modifier due to odd behaviors detected in Ubuntu 12.04
+   (precise32), with gcc 4.6.3 and glibc 2.15.
+   In those machines, the absence of volatile leads gcc to optimize the
+   call to a double-precision result and, despite the use of 'float' and
+   casts (which should force the result to be truncated to 32 bits),
+   the 64-bit result is propagated back to OCaml, leading to non-zero bits
+   beyond the 32-bit range, which cause FRange.check_representability to fail,
+   leading to errors in tests/float/math_builtins.c.
+   This behavior has not been observed in more recent distributions. */
+
 value c_expf(value d)
 {
   float f = Double_val(d);
-  float res = expf(f);
+  volatile float res = expf(f); // see remarks above
   return caml_copy_double(res);
 }
 
 value c_logf(value d)
 {
   float f = Double_val(d);
-  float res = logf(f);
+  volatile float res = logf(f); // see remarks above
   return caml_copy_double(res);
 }
 
 value c_log10f(value d)
 {
   float f = Double_val(d);
-  float res = log10f(f);
+  volatile float res = log10f(f); // see remarks above
   return caml_copy_double(res);
 }
 
@@ -108,14 +118,14 @@ value c_powf(value x, value y)
 {
   float fx = Double_val(x);
   float fy = Double_val(y);
-  float res = powf(fx, fy);
+  volatile float res = powf(fx, fy); // see remarks above
   return caml_copy_double(res);
 }
 
 value c_sqrtf(value d)
 {
   float f = Double_val(d);
-  float res = sqrtf(f);
+  volatile float res = sqrtf(f); // see remarks above
   return caml_copy_double(res);
 }
 

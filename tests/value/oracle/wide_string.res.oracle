@@ -3,16 +3,16 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/value/wide_string.c:16:[kernel] warning: accessing out of bounds index. assert 4 < 4;
-tests/value/wide_string.c:19:[kernel] warning: accessing out of bounds index. assert 4 < 4;
+tests/value/wide_string.c:16:[value] warning: accessing out of bounds index. assert 4 < 4;
+tests/value/wide_string.c:19:[value] warning: accessing out of bounds index. assert 4 < 4;
 [value] Recording results for main
 [value] done for function main
 tests/value/wide_string.c:16:[value] assertion 'Value,index_bound' got final status invalid.
 tests/value/wide_string.c:19:[value] assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ "bar" }}
   q ∈ {{ L"foO" }}
   __retres ∈ {0}

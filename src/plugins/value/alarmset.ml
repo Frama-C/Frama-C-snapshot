@@ -88,8 +88,8 @@ end
 module D = Alarms.Map.Make (Status)
 
 let pretty fmt = function
-  | Just m
-  | AllBut m -> D.pretty fmt m
+  | Just m   -> Format.fprintf fmt "Just %a" D.pretty m
+  | AllBut m -> Format.fprintf fmt "AllBut %a" D.pretty m
 
 let none = Just M.empty
 let all = AllBut M.empty
@@ -198,7 +198,7 @@ let local_printer: Printer.extensible_printer =
       match ca.annot_content with
       | AAssert(_, p) ->
         (* ignore the ACSL name *)
-        Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate p.content;
+        Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate_node p.pred_content;
         (* print temporary variables information *)
         if not (Cil_datatype.Varinfo.Set.is_empty temporaries) then begin
           Format.fprintf fmt "@ @[(%t)@]" self#pp_temporaries
@@ -292,8 +292,13 @@ let warn warn_mode alarm status = match alarm with
 
   | Alarms.Overflow (kind, _, _, _) ->
     do_warn warn_mode.others alarm status
-      (Format.sprintf "%s overflow"
-         (if kind = Alarms.Signed then "signed" else "unsigned"))
+      (Format.sprintf "%s"
+         (match kind with
+          | Alarms.Signed -> "signed overflow"
+          | Alarms.Unsigned -> "unsigned overflow"
+          | Alarms.Signed_downcast -> "signed downcast"
+          | Alarms.Unsigned_downcast -> "unsigned downcast"
+         ))
 
   | Alarms.Float_to_int _ ->
     do_warn warn_mode.others alarm status

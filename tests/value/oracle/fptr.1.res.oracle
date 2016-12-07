@@ -3,8 +3,10 @@
 [value] Analyzing a complete application starting at main_uninit
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   R ∈ {77}
+  v ∈ [--..--]
+  n ∈ {0}
   X ∈ {77}
   XH ∈ {0}
   XHH ∈ {0}
@@ -37,7 +39,20 @@ tests/value/fptr.i:66:[value] entering loop for the first time
 [value] Called Frama_C_show_each_F({{ NULL + [0..4294967295] ; &h ; &hh }})
 [value] computing for function f <- main_uninit.
         Called from tests/value/fptr.i:68.
-tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible type. assert \valid_function(ptr);
+tests/value/fptr.i:9:[value] warning: pointer to function with incompatible type. assert \valid_function(ptr);
+[value] computing for function hh <- f <- main_uninit.
+        Called from tests/value/fptr.i:9.
+[value] Recording results for hh
+[value] Done for function hh
+[value] computing for function h <- f <- main_uninit.
+        Called from tests/value/fptr.i:9.
+[value] Recording results for h
+[value] Done for function h
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each_F({{ NULL + [0..4294967295] ; &h ; &hh }})
+[value] computing for function f <- main_uninit.
+        Called from tests/value/fptr.i:68.
 [value] computing for function hh <- f <- main_uninit.
         Called from tests/value/fptr.i:9.
 [value] Recording results for hh
@@ -51,29 +66,20 @@ tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible typ
 [value] Recording results for main_uninit
 [value] done for function main_uninit
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   X ∈ {1}
   XH ∈ {1}
-[value] Values at end of function hh:
+[value:final-states] Values at end of function hh:
   X ∈ {2}
   XHH ∈ {1}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   R ∈ {1; 2}
+  n ∈ {0; 1; 2}
   X ∈ {1; 2}
   XH ∈ {0; 1}
   XHH ∈ {0; 1}
-[value] Values at end of function main_uninit:
-  R ∈ {1; 2; 77}
-  X ∈ {1; 2; 77}
-  XH ∈ {0; 1}
-  XHH ∈ {0; 1}
-  GLOBAL[0] ∈ {{ &h }}
-        [1] ∈ {{ &hh }}
-        [2] ∈ [--..--]
-        [3..9] ∈ {0}
-  G ∈ {0; 1; 2}
-  i ∈ {3}
-  j ∈ [--..--]
+[value:final-states] Values at end of function main_uninit:
+  NON TERMINATING FUNCTION
 [from] Computing for function h
 [from] Done for function h
 [from] Computing for function hh
@@ -81,6 +87,7 @@ tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible typ
 [from] Computing for function f
 [from] Done for function f
 [from] Computing for function main_uninit
+[from] Non-terminating function main_uninit (no dependencies)
 [from] Done for function main_uninit
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
@@ -94,23 +101,19 @@ tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible typ
   \result FROM y
 [from] Function f:
   R FROM ptr
+  n FROM i
   X FROM ptr
   XH FROM ptr (and SELF)
   XHH FROM ptr (and SELF)
   \result FROM ptr
 [from] Function main_uninit:
-  R FROM \nothing (and SELF)
-  X FROM \nothing (and SELF)
-  XH FROM \nothing (and SELF)
-  XHH FROM \nothing (and SELF)
-  GLOBAL[0..2] FROM \nothing
-  G FROM \nothing (and SELF)
+  NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h:
           X; XH
 [inout] Out (internal) for function hh:
           X; XHH
 [inout] Out (internal) for function f:
-          R; X; XH; XHH
+          R; n; X; XH; XHH
 [inout] Out (internal) for function main_uninit:
-          R; X; XH; XHH; GLOBAL[0..2]; G; i; j
+          R; n; X; XH; XHH; GLOBAL[0..2]; G; i; j

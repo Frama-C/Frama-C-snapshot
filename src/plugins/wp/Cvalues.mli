@@ -64,6 +64,9 @@ val equal_array : Matrix.matrix -> term -> term -> pred
 
 (** {2 C and ACSL Constants} *)
 
+val ainf : term option (** Array lower-bound, ie `Some(0)` *)
+val asup : int -> term option (** Array upper-bound, ie `Some(n-1)` *)
+
 val constant : constant -> term
 val logic_constant : logic_constant -> term
 val constant_exp : exp -> term
@@ -74,6 +77,7 @@ val constant_term : Cil_types.term -> term
 val map_sloc : ('a -> 'b) -> 'a Memory.sloc -> 'b Memory.sloc
 val map_value : ('a -> 'b) -> 'a Memory.value -> 'b Memory.value
 val map_logic : ('a -> 'b) -> 'a Memory.logic -> 'b Memory.logic
+val plain : logic_type -> term -> 'a Memory.logic
 
 (** {2 ACSL Utilities} *)
 
@@ -117,7 +121,7 @@ sig
   val union : logic_type -> logic list -> logic
   val inter : logic_type -> logic list -> logic
   val subset : logic_type -> logic -> logic_type -> logic -> pred
-
+  
   (** {3 Regions} *)
 
   type region = loc sloc list

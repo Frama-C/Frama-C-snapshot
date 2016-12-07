@@ -9,7 +9,7 @@ let print_status () =
       (fun kf ->
 	 Kernel.log "kf = %s" (Kernel_function.get_name kf) ;
 	 List.iter
-	   (fun (s, _, getter) -> Kernel.log "%s = %b" s (getter kf))
+	   (fun (s, _, getter) -> Kernel.log "- %s = %b" s (getter kf))
 	   rte_state_getter_list);
     Kernel.log "================================"
 

@@ -15,7 +15,7 @@ tests/value/postcond_leaf.c:48:[kernel] warning: No code nor implicit assigns cl
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ [--..--]
 tests/value/postcond_leaf.c:77:[kernel] warning: No code nor implicit assigns clause for function f1, generating default assigns from the prototype
 [value] using specification for function f1
@@ -51,15 +51,15 @@ tests/value/postcond_leaf.c:71:[value] warning: function k: this postcondition e
                  or some assigns/from clauses are incomplete (or incorrect).
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h1:
+[value:final-states] Values at end of function h1:
   
-[value] Values at end of function h2:
+[value:final-states] Values at end of function h2:
   
-[value] Values at end of function h3:
+[value:final-states] Values at end of function h3:
   
-[value] Values at end of function h4:
+[value:final-states] Values at end of function h4:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [report] Computing properties status...
 

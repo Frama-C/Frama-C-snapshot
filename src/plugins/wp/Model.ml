@@ -403,3 +403,15 @@ end
 
 module S = D
 type t = S.t
+
+
+let run_once_for_each_ast ~name f =
+  let module B = State_builder.False_ref(struct
+      let name = "run_once_for_each_ast_"^name
+      let dependencies = [Ast.self]
+    end) in
+  fun () ->
+    if not (B.get ()) then begin
+      B.set true;
+      f ()
+    end

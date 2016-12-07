@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at call_in_loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   G1 ∈ [--..--]
   G2 ∈ [--..--]
@@ -11,7 +11,7 @@
 tests/pdg/simple_call.c:51:[value] entering loop for the first time
 [value] computing for function call <- call_in_loop.
         Called from tests/pdg/simple_call.c:52.
-tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 2147483647;
+tests/pdg/simple_call.c:45:[value] warning: signed overflow. assert G + y ≤ 2147483647;
 [value] Recording results for call
 [value] Done for function call
 [value] computing for function call <- call_in_loop.
@@ -26,8 +26,8 @@ tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 214
         Called from tests/pdg/simple_call.c:52.
 [value] Recording results for call
 [value] Done for function call
-tests/pdg/simple_call.c:52:[kernel] warning: signed overflow. assert a+tmp ≤ 2147483647;
-                                   (tmp from call(i, c))
+tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 2147483647;
+                                  (tmp from call(i, c))
 [value] computing for function call <- call_in_loop.
         Called from tests/pdg/simple_call.c:52.
 [value] Recording results for call

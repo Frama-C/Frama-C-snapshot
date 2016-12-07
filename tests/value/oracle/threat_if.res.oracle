@@ -3,13 +3,13 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   l ∈ {0}
   m ∈ {0}
   i ∈ {0}
   X ∈ {-992}
-tests/value/threat_if.i:14:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/threat_if.i:14:[value] warning: out of bounds write. assert \valid(p);
 [value] computing for function printf <- main.
         Called from tests/value/threat_if.i:18.
 tests/value/threat_if.i:18:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
@@ -18,7 +18,7 @@ tests/value/threat_if.i:18:[kernel] warning: Neither code nor specification for 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ NULL ; &l }}
   l ∈ {0; 1}
   G ∈ {-126}

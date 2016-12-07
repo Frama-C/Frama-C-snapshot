@@ -103,38 +103,39 @@ type typing_context = {
   pre_state:Lenv.t;
   post_state:termination_kind list -> Lenv.t;
   assigns_env: Lenv.t;
-  type_predicate:Lenv.t -> Logic_ptree.lexpr -> predicate named;
+  type_predicate:Lenv.t -> Logic_ptree.lexpr -> predicate;
   type_term:Lenv.t -> Logic_ptree.lexpr -> term;
   type_assigns:
     accept_formal:bool -> 
     Lenv.t -> Logic_ptree.lexpr assigns -> identified_term assigns;
-  error: 'a. location -> ('a,Format.formatter,unit) format -> 'a;
+  error: 'a 'b. location -> ('a,Format.formatter,unit,'b) format4 -> 'a;
 }
 
 (** [register_behavior_extension name f] registers a typing function [f] to 
-    be used to type clause with name [name]. 
-    This function may change the funbehavior in place. 
+    be used to type clause with name [name].
     Here is a basic example:
-    let foo_typer ~typing_context ~loc bhv ps =
+    let count = ref 0 in
+    let foo_typer ~typing_context ~loc ps =
     match ps with p::[] ->
-      bhv.b_extended <- ("FOO",42,
-			 [Logic_const.new_predicate 
-                                (typing_context.type_predicate 
+      ("FOO",
+       Ext_preds
+	[
+             (typing_context.type_predicate 
 				 (typing_context.post_state [Normal]) 
 				 p)])
-      ::bhv.b_extended
+      | [] -> let id = !count in incr count; ("FOO", Ext_id id)
       | _ -> typing_context.error loc "expecting a predicate after keyword FOO"
     let () = register_behavior_extension "FOO" foo_typer
 
     @plugin development guide
 
     @since Carbon-20101201
+    @modify Silicon-20161101 change type of the function
 *)
 val register_behavior_extension:
   string ->
-  (typing_context:typing_context -> loc:location -> funbehavior -> 
-    Logic_ptree.lexpr list -> unit)
-  -> unit
+  (typing_context:typing_context -> loc:location ->
+    Logic_ptree.lexpr list -> acsl_extension_kind) -> unit
 
 module Make
   (C :
@@ -187,7 +188,7 @@ sig
   (** type-checks a term. *)
   val term : Lenv.t -> Logic_ptree.lexpr -> term
 
-  val predicate : Lenv.t -> Logic_ptree.lexpr -> predicate named
+  val predicate : Lenv.t -> Logic_ptree.lexpr -> predicate
 
   (** [code_annot loc behaviors rt annot] type-checks an in-code annotation.
     @param loc current location

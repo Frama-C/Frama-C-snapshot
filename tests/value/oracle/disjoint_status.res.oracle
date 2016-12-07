@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
 tests/value/disjoint_status.i:13:[value] warning: function main: precondition got status unknown.
 tests/value/disjoint_status.i:14:[value] warning: function main: precondition got status unknown.
@@ -24,9 +24,9 @@ tests/value/disjoint_status.i:6:[value] function f: postcondition 'PostTrue' got
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {0}
 [from] Computing for function f
 [from] Done for function f
@@ -53,10 +53,10 @@ tests/value/disjoint_status.i:6:[value] function f: postcondition 'PostTrue' got
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Post-condition 'PostTrue'
-            by Value.
 [  Valid  ] Pre-condition 'ReqTrue'
             by Call Preconditions.
+[  Valid  ] Post-condition 'PostTrue'
+            by Value.
 [    -    ] Assertion 'A1' (file tests/value/disjoint_status.i, line 8)
             tried with Value.
 [  Valid  ] Assertion 'A2' (file tests/value/disjoint_status.i, line 9)

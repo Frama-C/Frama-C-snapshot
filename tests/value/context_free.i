@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -lib-entry -main f -absolute-valid-range 0x200-0x199 -value-msg-key initial_state -journal-disable
+   OPT: -val @VALUECONFIG@ -lib-entry -main f -absolute-valid-range 0x200-0x199 -value-msg-key initial-state -journal-disable
 */
 
 

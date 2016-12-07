@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..1] ∈ {0}
   u[0..1] ∈ {0}
   p ∈ {0}
@@ -11,18 +11,18 @@
   r ∈ {0}
   A ∈ {0}
   offs ∈ {0}
-tests/value/reduce_valid.i:9:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/reduce_valid.i:9:[value] warning: out of bounds write. assert \valid(p);
 [value] Called Frama_C_show_each_ici({0})
-tests/value/reduce_valid.i:17:[kernel] warning: out of bounds write. assert \valid(q);
+tests/value/reduce_valid.i:17:[value] warning: out of bounds write. assert \valid(q);
 tests/value/reduce_valid.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
-tests/value/reduce_valid.i:24:[kernel] warning: out of bounds read. assert \valid_read(r+offs);
+tests/value/reduce_valid.i:24:[value] warning: out of bounds read. assert \valid_read(r + offs);
 [value] Called Frama_C_show_each_r({{ &t }})
-tests/value/reduce_valid.i:26:[kernel] warning: accessing out of bounds index. assert (int)((int)h+1) < 2;
+tests/value/reduce_valid.i:26:[value] warning: accessing out of bounds index. assert (int)((int)h + 1) < 2;
 [value] Recording results for main
 [value] done for function main
 tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0] ∈ {4}
    [1] ∈ {3}
   u[0] ∈ {0}

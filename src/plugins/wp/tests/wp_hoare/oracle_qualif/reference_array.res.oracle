@@ -3,10 +3,8 @@
 [kernel] Parsing tests/wp_hoare/reference_array.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
-[wp] 38 goals scheduled
+[wp] 36 goals scheduled
 [wp] [Alt-Ergo] Goal typed_ref_add_1_5_post : Valid
 [wp] [Qed] Goal typed_ref_add_1_5_assign_exit : Valid
 [wp] [Qed] Goal typed_ref_add_1_5_assign_normal : Valid
@@ -27,13 +25,11 @@
 [wp] [Qed] Goal typed_ref_calls_on_array_dim_2_call_load_1_5_pre : Valid
 [wp] [Qed] Goal typed_ref_calls_on_array_dim_2_call_reset_1_5_pre : Valid
 [wp] [Qed] Goal typed_ref_calls_on_array_dim_2_call_add_1_5_pre : Valid
-[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_todo_Pload : Unknown
-[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_todo_Preset : Unknown
-[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_todo_Padd : Unknown
-[wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_assign_exit_part1 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_assign_exit_part2 : Unknown
-[wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_assign_normal_part1 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_assign_normal_part2 : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_Pload : Valid
+[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_Preset : Valid
+[wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_post_Padd : Valid
+[wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_assign_normal : Valid
 [wp] [Alt-Ergo] Goal typed_ref_calls_on_array_dim_2_to_1_call_load_5_pre : Valid
 [wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_call_reset_5_pre : Valid
 [wp] [Qed] Goal typed_ref_calls_on_array_dim_2_to_1_call_add_5_pre : Valid
@@ -45,15 +41,15 @@
 [wp] [Qed] Goal typed_ref_reset_1_5_assign_exit : Valid
 [wp] [Qed] Goal typed_ref_reset_1_5_assign_normal : Valid
 [wp] [Qed] Goal typed_ref_reset_1_5_call_reset_5_pre : Valid
-[wp] Proved goals:   33 / 38
+[wp] Proved goals:   36 / 36
      Qed:            23 
-     Alt-Ergo:       10  (unknown: 5)
+     Alt-Ergo:       13
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 reset_1_5            3      1 (17)     4       100%
 load_1_5             3      1 (15)     4       100%
 add_1_5              3      1 (15)     4       100%
-calls_on_array_dim_1   5    3 (10)     8       100%
-calls_on_array_dim_2_to_1   4    1 (25)  10   50.0%
-calls_on_array_dim_2   5    3 (13)     8       100%
+calls_on_array_dim_1   5    3 (9)      8       100%
+calls_on_array_dim_2_to_1   4    4 (69)   8    100%
+calls_on_array_dim_2   5    3 (12)     8       100%
 ----------------------------------------------------------

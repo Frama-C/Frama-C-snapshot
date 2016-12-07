@@ -1,7 +1,27 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+share/libc/__fc_builtin_for_normalization.i:34:[kernel] New global node introducing identifier Frama_C_bzero(24)
+[kernel] First occurrence of Frama_C_bzero
+share/libc/__fc_builtin_for_normalization.i:43:[kernel] New global node introducing identifier Frama_C_copy_block(40)
+[kernel] First occurrence of Frama_C_copy_block
 [kernel] Parsing tests/syntax/syntactic_hook.i (no preprocessing)
+tests/syntax/syntactic_hook.i:5:[kernel] New global node introducing identifier f(69)
+[kernel] First occurrence of f
+tests/syntax/syntactic_hook.i:7:[kernel] New global node introducing identifier h(72)
+[kernel] First occurrence of h
 tests/syntax/syntactic_hook.i:9:[kernel] warning: [SH]: definition of h does not use exactly the same prototype as declared on line 7
+tests/syntax/syntactic_hook.i:9:[kernel] New global node introducing identifier h(72)
+[kernel] New occurrence of existing identifier h
+tests/syntax/syntactic_hook.i:11:[kernel] New global node introducing identifier k(79)
+[kernel] First occurrence of k
+tests/syntax/syntactic_hook.i:13:[kernel] New global node introducing identifier k(79)
+[kernel] New occurrence of existing identifier k
+tests/syntax/syntactic_hook.i:15:[kernel] New global node introducing identifier main(85)
+[kernel] First occurrence of main
+tests/syntax/syntactic_hook.i:17:[kernel] New global node introducing identifier t(89)
+[kernel] First occurrence of t
 tests/syntax/syntactic_hook.i:17:[kernel] warning: [SH]: definition of local function t
+:0:[kernel] New global node introducing identifier g(91)
+[kernel] First occurrence of g
 tests/syntax/syntactic_hook.i:21:[kernel] warning: Calling undeclared function g. Old style K&R code?
 tests/syntax/syntactic_hook.i:21:[kernel] warning: [SH]: implicit declaration for prototype g
 tests/syntax/syntactic_hook.i:22:[kernel] Dropping side-effect in sizeof. Nothing to worry, this is by the book.

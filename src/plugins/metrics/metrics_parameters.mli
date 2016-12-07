@@ -46,6 +46,10 @@ module OutputFile: Parameter_sig.String
 module SyntacticallyReachable: Parameter_sig.Kernel_function_set
 (** Set of functions for which we compute the functions they may call *)
 
+module LocalsSize: Parameter_sig.Kernel_function_set
+(** Compute and print the total size of local variables for all functions in
+    this set (option -metrics-locals-size) *)
+
 module Libc: Parameter_sig.Bool
 
 (*

@@ -3,8 +3,10 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   R ∈ {77}
+  v ∈ [--..--]
+  n ∈ {0}
   X ∈ {77}
   XH ∈ {0}
   XHH ∈ {0}
@@ -19,10 +21,10 @@
         Called from tests/value/fptr.i:43.
 [value] Recording results for retint
 [value] Done for function retint
-tests/value/fptr.i:44:[kernel] warning: pointer to function with incompatible type.
-                  assert \valid_function((int (*)())(&retshort));
-tests/value/fptr.i:45:[kernel] warning: pointer to function with incompatible type.
-                  assert \valid_function((short (*)())(&retint));
+tests/value/fptr.i:44:[value] warning: pointer to function with incompatible type.
+                 assert \valid_function((int (*)())(&retshort));
+tests/value/fptr.i:45:[value] warning: pointer to function with incompatible type.
+                 assert \valid_function((short (*)())(&retint));
 tests/value/fptr.i:50:[value] entering loop for the first time
 [value] Called Frama_C_show_each_F({{ &h }})
 [value] computing for function f <- main.
@@ -33,6 +35,7 @@ tests/value/fptr.i:50:[value] entering loop for the first time
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
+[value] Called Frama_C_show_each({0})
 [value] Called Frama_C_show_each_F({{ &h ; &hh }})
 [value] computing for function f <- main.
         Called from tests/value/fptr.i:52.
@@ -46,10 +49,11 @@ tests/value/fptr.i:50:[value] entering loop for the first time
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
+[value] Called Frama_C_show_each({0; 1})
 [value] Called Frama_C_show_each_F({{ NULL ; &h ; &hh }})
 [value] computing for function f <- main.
         Called from tests/value/fptr.i:52.
-tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible type. assert \valid_function(ptr);
+tests/value/fptr.i:9:[value] warning: pointer to function with incompatible type. assert \valid_function(ptr);
 [value] computing for function hh <- f <- main.
         Called from tests/value/fptr.i:9.
 [value] Recording results for hh
@@ -60,7 +64,21 @@ tests/value/fptr.i:9:[kernel] warning: pointer to function with incompatible typ
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-tests/value/fptr.i:56:[kernel] warning: division by zero. assert (int)(c&64) ≢ 0;
+[value] Called Frama_C_show_each({0; 1; 2})
+[value] Called Frama_C_show_each_F({{ NULL ; &h ; &hh }})
+[value] computing for function f <- main.
+        Called from tests/value/fptr.i:52.
+[value] computing for function hh <- f <- main.
+        Called from tests/value/fptr.i:9.
+[value] Recording results for hh
+[value] Done for function hh
+[value] computing for function h <- f <- main.
+        Called from tests/value/fptr.i:9.
+[value] Recording results for h
+[value] Done for function h
+[value] Recording results for f
+[value] Done for function f
+tests/value/fptr.i:56:[value] warning: division by zero. assert (int)(c & 64) ≢ 0;
 [value] computing for function hh <- main.
         Called from tests/value/fptr.i:56.
 [value] Recording results for hh
@@ -74,23 +92,25 @@ tests/value/fptr.i:56:[kernel] warning: division by zero. assert (int)(c&64) ≢
 tests/value/fptr.i:44:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   X ∈ {0; 1}
   XH ∈ {0; 1}
-[value] Values at end of function hh:
+[value:final-states] Values at end of function hh:
   X ∈ {0; 2}
   XHH ∈ {0; 1}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   R ∈ {1; 2}
+  n ∈ {1; 2; 3}
   X ∈ {1; 2}
   XH ∈ {0; 1}
   XHH ∈ {0; 1}
-[value] Values at end of function retint:
+[value:final-states] Values at end of function retint:
   __retres ∈ {42}
-[value] Values at end of function retshort:
+[value:final-states] Values at end of function retshort:
   __retres ∈ {12}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   R ∈ {1; 2; 77}
+  n ∈ {0; 1; 2; 3}
   X ∈ {0; 1; 2; 77}
   XH ∈ {0; 1}
   XHH ∈ {0; 1}
@@ -129,6 +149,7 @@ tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final statu
   \result FROM y
 [from] Function f:
   R FROM ptr
+  n FROM i
   X FROM ptr
   XH FROM ptr (and SELF)
   XHH FROM ptr (and SELF)
@@ -138,12 +159,13 @@ tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final statu
 [from] Function retshort:
   \result FROM \nothing
 [from] Function main:
-  R FROM GLOBAL[2] (and SELF)
-  X FROM GLOBAL[2]; c (and SELF)
-  XH FROM GLOBAL[2]; c (and SELF)
-  XHH FROM GLOBAL[2]; c (and SELF)
+  R FROM v; GLOBAL[2] (and SELF)
+  n FROM v (and SELF)
+  X FROM v; GLOBAL[2]; c (and SELF)
+  XH FROM v; GLOBAL[2]; c (and SELF)
+  XHH FROM v; GLOBAL[2]; c (and SELF)
   GLOBAL[0..1] FROM \nothing
-  G FROM GLOBAL[2] (and SELF)
+  G FROM v; GLOBAL[2] (and SELF)
   TA FROM c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h:
@@ -151,10 +173,10 @@ tests/value/fptr.i:45:[value] assertion 'Value,function_pointer' got final statu
 [inout] Out (internal) for function hh:
           X; XHH
 [inout] Out (internal) for function f:
-          R; X; XH; XHH
+          R; n; X; XH; XHH
 [inout] Out (internal) for function retint:
           __retres
 [inout] Out (internal) for function retshort:
           __retres
 [inout] Out (internal) for function main:
-          R; X; XH; XHH; GLOBAL[0..1]; G; TA; in; pin; sh; psh; tmp; i; p; tmp_0
+          R; n; X; XH; XHH; GLOBAL[0..1]; G; TA; in; pin; sh; psh; tmp; i; p; tmp_0

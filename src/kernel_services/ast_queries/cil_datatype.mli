@@ -26,9 +26,24 @@
 open Cil_types
 open Datatype
 
+(** Auxiliary module for datatypes that can be pretty-printed. For those that
+    do not have this signature, module {!Printer} must be used. *)
+module type S_with_pretty = sig
+  include S 
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+module type S_with_collections_pretty = sig
+  include S_with_collections 
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+
+
 (**************************************************************************)
 (** {3 Localisations} *)
 (**************************************************************************)
+
 
 (** Single position in a file.
     @since Nitrogen-20111001 *)
@@ -36,7 +51,7 @@ module Position: S_with_collections with type t = Lexing.position
 
 (** Cil locations. *)
 module Location: sig
-  include S_with_collections with type t = location
+  include S_with_collections_pretty with type t = location
   val unknown: t
   val pretty_long : t Pretty_utils.formatter
     (** Pretty the location under the form [file <f>, line <l>], without
@@ -44,9 +59,6 @@ module Location: sig
         [<dir/f>:<l>] *)
   val pretty_line: t Pretty_utils.formatter
   (** Prints only the line of the location *)
-
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Localisation: Datatype.S with type t = localisation
@@ -62,12 +74,9 @@ module Cabs_file: S with type t = Cabs.file
     Sorted by alphabetic order. *)
 (**************************************************************************)
 
-module Block: sig
-  include S with type t = block
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-(**/**)
-end
+module Block: S_with_pretty with type t = block
+(* Blocks cannot compared or hashed, so collections are not available *)
+
 module Compinfo: S_with_collections with type t = compinfo
 module Enuminfo: S_with_collections with type t = enuminfo
 module Enumitem: S_with_collections with type t = enumitem
@@ -80,31 +89,19 @@ module Wide_string: S_with_collections with type t = int64 list
 (**
    @since Oxygen-20120901 
 *)
-module Constant: sig
-  include S_with_collections with type t = constant
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-  (**/**)
-end
+module Constant: S_with_collections_pretty with type t = constant
 
 (** Note that the equality is based on eid. For structural equality, use
     {!ExpStructEq} *)
 module Exp: sig
-  include S_with_collections with type t = exp
+  include S_with_collections_pretty with type t = exp
   val dummy: exp (** @since Nitrogen-20111001 *)
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-  (**/**)
 end
 
 module ExpStructEq: S_with_collections with type t = exp
 
-module Fieldinfo: sig
-  include S_with_collections with type t = fieldinfo
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-  (**/**)
-end
+module Fieldinfo: S_with_collections_pretty with type t = fieldinfo
+
 module File: S with type t = file
 
 module Global: sig
@@ -115,10 +112,8 @@ end
 module Initinfo: S with type t = initinfo
 
 module Instr: sig
-  include S with type t = instr
+  include S_with_pretty with type t = instr
   val loc: t -> location
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Kinstr: sig
@@ -133,11 +128,7 @@ module Label: S_with_collections with type t = label
 
 (** Note that the equality is based on eid (for sub-expressions). 
     For structural equality, use {!LvalStructEq} *)
-module Lval: sig
-  include S_with_collections with type t = lval
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Lval: S_with_collections_pretty with type t = lval
 
 (**
    @since Oxygen-20120901 
@@ -146,18 +137,14 @@ module LvalStructEq: S_with_collections with type t = lval
 
 (** Same remark as for Lval. 
     For structural equality, use {!OffsetStructEq}. *) 
-module Offset: sig
-  include S_with_collections with type t = offset
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Offset: S_with_collections_pretty with type t = offset
 
 (** @since Oxygen-20120901 *)
 module OffsetStructEq: S_with_collections with type t = offset
 
 module Stmt_Id:  Hptmap.Id_Datatype with type t = stmt
 module Stmt: sig
-  include S_with_collections with type t = stmt
+  include S_with_collections_pretty with type t = stmt
   module Hptset: sig
     include Hptset.S with type elt = stmt
                      and type 'a shape = 'a Hptmap.Shape(Stmt_Id).t
@@ -167,41 +154,23 @@ module Stmt: sig
   val pretty_sid: Format.formatter -> t -> unit
     (** Pretty print the sid of the statement
         @since Nitrogen-20111001 *)
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
-module Attribute: sig
-  include S_with_collections with type t = attribute
-(**/**)
-val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Attribute: S_with_collections_pretty with type t = attribute
+module Attributes: S_with_collections with type t = attributes
 
-module Attributes: sig
-  include S_with_collections with type t = attributes
-(**/**)
-end
-
-(**/**)
-val pretty_typ_ref: (Format.formatter -> Cil_types.typ -> unit) ref
-(**/**)
 
 (** Types, with comparison over struct done by key and unrolling of typedefs. *)
-module Typ: sig
-  include S_with_collections with type t = typ
-end
+module Typ: S_with_collections_pretty with type t = typ
 
 (** Types, with comparison over struct done by name and no unrolling. *)
-module TypByName: sig
-  include S_with_collections with type t = typ
-end
+module TypByName: S_with_collections_pretty with type t = typ
 
 (** Types, with comparison over struct done by key and no unrolling
     @since Fluorine-20130401 
  *)
-module TypNoUnroll: sig
-  include S_with_collections with type t = typ
-end
+module TypNoUnroll: S_with_collections_pretty with type t = typ
+
 
 module Typeinfo: S_with_collections with type t = typeinfo
 
@@ -209,14 +178,14 @@ module Varinfo_Id: Hptmap.Id_Datatype
 
 (** @plugin development guide *)
 module Varinfo: sig
-  include S_with_collections with type t = varinfo
+  include S_with_collections_pretty with type t = varinfo
   module Hptset: sig
     include Hptset.S with type elt = varinfo
                      and type 'a shape = 'a Hptmap.Shape(Varinfo_Id).t
     val self: State.t
   end
   val dummy: t
-  val pretty_ref: (Format.formatter -> t -> unit) ref
+  (**/**)
   val internal_pretty_code_ref:
     (Type.precedence -> Format.formatter -> t -> unit) ref
 end
@@ -228,7 +197,7 @@ module Kf: sig
 
   (**/**)
   val set_formal_decls: (varinfo -> varinfo list -> unit) ref
-(**/**)
+  (**/**)
 end
 
 (**************************************************************************)
@@ -239,10 +208,8 @@ end
 module Builtin_logic_info: S_with_collections with type t = builtin_logic_info
 
 module Code_annotation: sig
-  include S_with_collections with type t = code_annotation
+  include S_with_collections_pretty with type t = code_annotation
   val loc: t -> location option
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Funbehavior: S with type t = funbehavior
@@ -262,51 +229,28 @@ module Logic_ctor_info: S_with_collections with type t = logic_ctor_info
 module Logic_info: S_with_collections with type t = logic_info
 module Logic_constant: S_with_collections with type t = logic_constant
 
-module Logic_label: S_with_collections with type t = logic_label
+module Logic_label: S_with_collections_pretty with type t = logic_label
 
-(**/**)
-val pretty_logic_type_ref: (Format.formatter -> logic_type -> unit) ref
-(**/**)
 (** Logic_type. See the various [Typ*] modules for the distinction between
     those modules *)
-module Logic_type: S_with_collections with type t = logic_type
-module Logic_type_ByName: S_with_collections with type t = logic_type
-module Logic_type_NoUnroll: S_with_collections with type t = logic_type
+module Logic_type: S_with_collections_pretty with type t = logic_type
+module Logic_type_ByName: S_with_collections_pretty with type t = logic_type
+module Logic_type_NoUnroll: S_with_collections_pretty with type t = logic_type
 
 module Logic_type_info: S_with_collections with type t = logic_type_info
 
-module Logic_var: sig
-  include S_with_collections with type t = logic_var
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Logic_var: S_with_collections_pretty with type t = logic_var
 
 (** @since Oxygen-20120901 *)
-module Model_info: sig
-  include S_with_collections with type t = model_info
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Model_info: S_with_collections_pretty with type t = model_info
 
-module Term: sig
-  include S_with_collections with type t = term
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Term: S_with_collections_pretty with type t = term
 
 module Term_lhost: S_with_collections with type t = term_lhost
-module Term_offset: sig
-  include S_with_collections with type t = term_offset
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
-module Term_lval: sig
-  include S_with_collections with type t = term_lval
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
-end
+module Term_offset: S_with_collections_pretty with type t = term_offset
+module Term_lval: S_with_collections_pretty with type t = term_lval
 
-module Predicate_named: S with type t = predicate named
+module Predicate: S with type t = predicate
 module Identified_predicate: 
   S_with_collections with type t = identified_predicate
 (** @since Neon-20140301 *)

@@ -1,0 +1,45 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/coverage.c (with preprocessing)
+[kernel] Parsing share/libc/string.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_random_counter ∈ {0}
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+[value] computing for function strlen <- main.
+        Called from tests/libc/coverage.c:9.
+share/libc/string.h:91:[value] function strlen: precondition 'valid_string_src' got status valid.
+share/libc/string.c:77:[value] entering loop for the first time
+share/libc/string.c:78:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:93:[value] warning: function strlen: postcondition got status unknown.
+[value] Recording results for strlen
+[value] Done for function strlen
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function strlen:
+  i ∈ {6}
+[value:final-states] Values at end of function main:
+  s ∈ {{ "blabli" }}
+  l ∈ {6}
+[metrics] Value coverage statistics
+          =========================
+          Syntactically reachable functions = 1 (out of 1)
+          Semantically reached functions = 1
+          Coverage estimation = 100.0%
+[metrics] Statements analyzed by Value
+          ----------------------------
+          4 stmts in analyzed functions, 4 stmts analyzed (100.0%)
+          main: 4 stmts out of 4 (100.0%)
+[metrics] Value coverage statistics
+          =========================
+          Syntactically reachable functions = 2 (out of 70)
+          Semantically reached functions = 2
+          Coverage estimation = 100.0%
+[metrics] Statements analyzed by Value
+          ----------------------------
+          10 stmts in analyzed functions, 10 stmts analyzed (100.0%)
+          main: 4 stmts out of 4 (100.0%)
+          strlen: 6 stmts out of 6 (100.0%)

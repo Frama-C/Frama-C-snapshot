@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at f2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   q ∈ {0}
   G ∈ {0}
 [value] Recording results for f2
 [value] done for function f2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   p ∈ {{ &G + {1} }}
   G[bits 0 to 7] ∈ {3}
    [bits 8 to 31] ∈ {0}

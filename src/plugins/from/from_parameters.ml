@@ -62,20 +62,6 @@ let () =
     (fun _ new_ ->
       if new_ then ForceCallDeps.set true)
 
-module PathDeps =
-False
-    (struct
-       let option_name = "-experimental-path-deps"
-       let help = "experimental"
-     end)
-
-module MemDeps =
-False
-    (struct
-       let option_name = "-experimental-mem-deps"
-       let help = "experimental"
-     end)
-
 
 
 (*

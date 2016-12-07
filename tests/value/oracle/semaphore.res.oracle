@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Sa ∈ {0}
   Sb ∈ {0}
 tests/value/semaphore.i:28:[value] entering loop for the first time
@@ -58,9 +58,9 @@ tests/value/semaphore.i:34:[kernel] warning: Neither code nor specification for 
 [value] Recording results for g
 [value] done for function g
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   c ∈ {12}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   c ∈ {-26; -1}
 [from] Computing for function f
 [from] Computing for function P <-f

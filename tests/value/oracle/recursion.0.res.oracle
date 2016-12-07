@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   x ∈ [--..--]
   c ∈ [--..--]
@@ -18,7 +18,7 @@ tests/value/recursion.i:8:[value] warning: detected recursive call (ff <- ff :: 
 [value] user error: Degeneration occurred:
                     results are not correct for lines of code that can be reached from the degeneration point.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function ff:
+[value:final-states] Values at end of function ff:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION

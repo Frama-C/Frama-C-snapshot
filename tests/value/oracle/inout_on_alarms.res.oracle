@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   t[0..9] ∈ {0}
   p ∈ {0}
@@ -11,19 +11,19 @@
   c ∈ [--..--]
 [value] computing for function f <- main.
         Called from tests/value/inout_on_alarms.i:37.
-tests/value/inout_on_alarms.i:17:[kernel] warning: accessing out of bounds index. assert p->i < 10;
+tests/value/inout_on_alarms.i:17:[value] warning: accessing out of bounds index. assert p->i < 10;
 tests/value/inout_on_alarms.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/value/inout_on_alarms.i:40.
-tests/value/inout_on_alarms.i:21:[kernel] warning: accessing out of bounds index. assert i < 10;
+tests/value/inout_on_alarms.i:21:[value] warning: accessing out of bounds index. assert i < 10;
 tests/value/inout_on_alarms.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h <- main.
         Called from tests/value/inout_on_alarms.i:44.
-tests/value/inout_on_alarms.i:26:[kernel] warning: accessing uninitialized left-value. assert \initialized(q);
+tests/value/inout_on_alarms.i:26:[value] warning: accessing uninitialized left-value. assert \initialized(q);
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for main
@@ -32,13 +32,13 @@ tests/value/inout_on_alarms.i:17:[value] assertion 'Value,index_bound' got final
 tests/value/inout_on_alarms.i:21:[value] assertion 'Value,index_bound' got final status invalid.
 tests/value/inout_on_alarms.i:26:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   NON TERMINATING FUNCTION
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   NON TERMINATING FUNCTION
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {12}
   p ∈ {{ &S[8] }}
   S[0..7] ∈ {0}

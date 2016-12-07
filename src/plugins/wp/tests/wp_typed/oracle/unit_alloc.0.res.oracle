@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_typed/unit_alloc.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -28,7 +27,7 @@ Prove: true.
 
 Goal Post-condition (file tests/wp_typed/unit_alloc.i, line 33) in 'h':
 Assume { (* Heap *) Have: linked(Malloc_0). }
-Prove: !valid_rw(Malloc_0[P_x_87 <- 0], shift_sint32(global(P_x_87), 0), 1).
+Prove: !valid_rw(Malloc_0[P_x_87 <- 0], global(P_x_87), 1).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -41,9 +40,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 21):
-Assume { (* Heap *) Have: linked(Malloc_0) /\ (region(p.base) <= 0). }
-Prove: valid_rw(Malloc_0[P_x_71 <- 1][L_y_72 <- 1][L_z_74 <- 1],
-         shift_sint32(global(L_y_72), 0), 1).
+Assume { (* Heap *) Have: (region(p.base) <= 0) /\ linked(Malloc_0). }
+Prove: valid_rw(Malloc_0[L_y_72 <- 1], global(L_y_72), 1).
 
 ------------------------------------------------------------
 
@@ -53,14 +51,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 24):
-Let m = Malloc_0[P_x_71 <- 1][L_y_72 <- 1][L_z_74 <- 1].
-Let a = shift_sint32(global(L_y_72), 0).
+Let a = global(L_y_72).
 Assume {
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(p.base) <= 0).
+  Have: (region(p.base) <= 0) /\ linked(Malloc_0).
   (* Assertion *)
-  Have: valid_rw(m, a, 1).
+  Have: valid_rw(Malloc_0[L_y_72 <- 1], a, 1).
 }
-Prove: !valid_rw(m[L_y_72 <- 0][L_z_74 <- 0], a, 1).
+Prove: !valid_rw(Malloc_0[L_y_72 <- 0], a, 1).
 
 ------------------------------------------------------------

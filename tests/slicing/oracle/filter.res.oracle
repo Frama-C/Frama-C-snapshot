@@ -1,26 +1,26 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/filter.c (with preprocessing)
+[kernel] Parsing tests/slicing/filter.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
 [value] computing for function bts806 <- main.
-        Called from tests/slicing/filter.c:42.
+        Called from tests/slicing/filter.i:42.
 [value] Recording results for bts806
 [value] Done for function bts806
 [value] computing for function unspec <- main.
-        Called from tests/slicing/filter.c:43.
+        Called from tests/slicing/filter.i:43.
 [value] computing for function f <- unspec <- main.
-        Called from tests/slicing/filter.c:36.
-tests/slicing/filter.c:36:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+        Called from tests/slicing/filter.i:36.
+tests/slicing/filter.i:36:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for unspec
 [value] Done for function unspec
-tests/slicing/filter.c:43:[kernel] warning: signed overflow. assert r+tmp_0 ≤ 2147483647;
-                                   (tmp_0 from unspec())
+tests/slicing/filter.i:43:[value] warning: signed overflow. assert r + tmp_0 ≤ 2147483647;
+                                  (tmp_0 from unspec())
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...
@@ -95,3 +95,5 @@ int main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_filter.i (no preprocessing)

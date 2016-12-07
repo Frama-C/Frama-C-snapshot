@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   AutoTest[0..999] ∈ [--..--]
   X ∈ [--..--]
   T[0] ∈ {{ NULL ; &S_0_T[0] }}
@@ -27,7 +27,7 @@ tests/value/reading_null.i:24:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   X ∈ [--..--]
   count ∈ {10}
 [from] Computing for function main

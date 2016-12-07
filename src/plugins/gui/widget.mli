@@ -24,9 +24,19 @@
 
 class type widget =
   object
+    method set_visible : bool -> unit
     method set_enabled : bool -> unit
     method coerce : GObj.widget
+    method widget : widget
   end
+
+class type action =
+  object
+    inherit widget
+    method set_tooltip : string -> unit
+  end
+
+class type t = widget
 
 class type ['a] signal =
   object
@@ -68,58 +78,72 @@ class type ['a] selector =
 
 type align = [`Left | `Right | `Center]
 type style = [`Label | `Descr | `Title]
+type color = [ GDraw.color | `NORMAL ]
 
-class label : ?style:style -> ?text:string -> ?align:align -> unit ->
+(** Default: [~style:`Label ~align:`Left] *)
+class label : ?style:style -> ?align:align -> ?width:int -> ?text:string -> unit ->
   object
     inherit widget
     method set_text : string -> unit
+    method set_fg : color -> unit
+    method set_bg : color -> unit
   end
 
 (** {2 Icons} *)
 
-type icon = [ GtkStock.id | `Share of string ]
+type icon = [ GtkStock.id | `Share of string | `None ]
 
 val default_icon : unit -> GdkPixbuf.pixbuf
 val shared_icon : string -> GdkPixbuf.pixbuf
 val gimage : icon -> GMisc.image
 
-(** {2 Buttons} *)
-
-class button : ?label:string -> ?icon:icon -> ?tooltip:string -> unit ->
+class image : icon ->
   object
     inherit widget
+    method set_icon : icon -> unit
+  end
+
+(** {2 Buttons} *)
+
+class button : ?align:align -> ?icon:icon -> ?label:string -> ?tooltip:string -> unit ->
+  object
+    inherit action
     inherit [unit] signal
-    method set_icon : icon option -> unit
+    method set_icon : icon -> unit
     method set_label : string -> unit
     method set_relief : bool -> unit
     method default : unit -> unit
   end
 
-class toggle : ?label:string -> ?icon:icon -> ?tooltip:string -> unit ->
+class toggle : ?align:align -> ?icon:icon -> ?label:string -> ?border:bool -> ?tooltip:string ->
+  unit ->
   object
-    inherit widget
+    inherit action
     inherit [bool] selector
-    method set_icon : icon option -> unit
+    method set_icon : icon -> unit
     method set_label : string -> unit
     method set_relief : bool -> unit
   end
 
 class checkbox : label:string -> ?tooltip:string -> unit ->
   object
-    inherit widget
+    inherit action
     inherit [bool] selector
   end
 
 class switch : ?tooltip:string -> unit ->
   object
-    inherit widget
+    inherit action
     inherit [bool] selector
   end
 
 (** {2 Groups} *)
 
 (** A group is not a widget ; it creates interconnected toggle or radio buttons,
-    each switching to a peculiar value. *)
+    each switching to a peculiar value. 
+
+    Use [Wbox.hgroup] and [Wbox.vgroup] to pack several buttons into a dongle.
+*)
 class ['a] group : 'a ->
   object
     inherit ['a] selector
@@ -129,27 +153,27 @@ class ['a] group : 'a ->
       value:'a -> unit -> widget
   end
 
-(** Compact vertical box, typically used for packing radio buttons from a {!group}. *)
-class vbox : widget list -> widget
-
-(** Compact horizontal box, typically used for packing toggle buttons from a {!group}. *)
-class hbox : widget list -> widget
-
 (** {2 Selectors} *)
 
 class spinner :
   ?min:int -> ?max:int -> ?step:int -> value:int ->
   ?tooltip:string -> unit ->
   object
-    inherit widget
+    inherit action
     inherit [int] selector
   end
 
 class ['a] menu :
-  default:'a -> render:('a -> string) -> ?items:'a list -> unit ->
+  default:'a ->
+  ?options:('a * string) list ->
+  ?render:('a -> string) ->
+  ?items:'a list ->
+  unit ->
   object
-    inherit widget
+    inherit action
     inherit ['a] selector
+    method set_options : ('a * string) list -> unit
+    method set_render : ('a -> string) -> unit
     method set_items : 'a list -> unit
     method get_items : 'a list
   end
@@ -166,6 +190,6 @@ class popup : unit ->
     method add_separator : unit
     (** Inserts a separator.
         Consecutives and trailing separators are eliminated. *)
-    method popup : unit -> unit
+    method run : unit -> unit
     (** Run the menu. *)
   end

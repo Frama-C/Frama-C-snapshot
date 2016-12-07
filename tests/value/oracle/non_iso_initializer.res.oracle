@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G0 ∈ {42}
   G1 ∈ {21}
   G2 ∈ {63}
@@ -11,7 +11,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G3 ∈ {105}
 [from] Computing for function main
 [from] Done for function main

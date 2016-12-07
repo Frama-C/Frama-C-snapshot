@@ -1,34 +1,41 @@
 /* run.config
+   OPT:
    OPT: -wp-model +ref
 */
 
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model +ref -wp-timeout 2 -wp-prop qed_ok
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model +ref -wp-timeout 2 -wp-prop qed_ko
+   OPT:
+   OPT: -wp-model +ref
 */
 
-//@ requires qed_ok:\valid(r); ensures qed_ok:*r == 1 ; assigns qed_ok:*r ;
+/*@ requires \valid(r);
+    ensures *r == 1 ; 
+    assigns *r ; */
 void f(int *r) { *r = 1 ; }
 
-//@ requires qed_ko:\valid(r); ensures qed_ok:*r == 1 ; assigns qed_ok:*r ;
-void f_ko(int *r) { *r = 1 ; }
-
-// Pre-condition of f should never hold
-//@ ensures qed_ok:\result == 1 ;
-int wrong(int * q)
+// Pre-condition of f holds only when q is used ByRef 
+/*@ 
+  ensures \result == 1 ;
+*/
+int wrong_without_ref(int * q)
 {
-  f_ko(q) ;
+  f(q) ;
   return *q ;
 }
 
-//@ requires \valid(p) ; ensures qed_ok:\result == 1 ;
-int correct(int * p)
+// Pre-condition of f always holds
+/*@ 
+  requires \valid(q);
+  ensures \result == 1 ;
+*/
+int pointer(int * q)
 {
-  f(p) ;
-  return *p ;
+  f(q) ;
+  return *q ;
 }
 
-//@ ensures qed_ok:\result == 1 ;
+// Pre-condition of f always holds
+//@ ensures \result == 1 ;
 int local()
 {
   int u ;
@@ -36,9 +43,20 @@ int local()
   return u ;
 }
 
-//@ ensures qed_ok:\result == 1 ;
+// Pre-condition of f always holds
+//@ ensures \result == 1 ;
 int formal(int v)
 {
   f(&v) ;
   return v ;
+}
+
+int g ;
+
+// Pre-condition of f always holds
+//@ ensures \result == 1 ;
+int global(void)
+{
+  f(&g) ;
+  return g ;
 }

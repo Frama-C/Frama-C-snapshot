@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   e ∈ [--..--]
   G ∈ [--..--]
   c ∈ [--..--]
@@ -22,8 +22,8 @@ tests/spec/behavior_assert.c:24:[value] function g, behavior be: postcondition g
 [value] Done for function g
 [value] computing for function h2 <- main.
         Called from tests/spec/behavior_assert.c:92.
-tests/spec/behavior_assert.c:64:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
-tests/spec/behavior_assert.c:65:[kernel] warning: signed overflow. assert c+2 ≤ 2147483647;
+tests/spec/behavior_assert.c:64:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+tests/spec/behavior_assert.c:65:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;
 [value] computing for function h1 <- h2 <- main.
         Called from tests/spec/behavior_assert.c:73.
 [value] computing for function abs <- h1 <- h2 <- main.
@@ -46,22 +46,22 @@ tests/spec/behavior_assert.c:86:[value] warning: assertion got status invalid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function abs:
+[value:final-states] Values at end of function abs:
   __retres ∈ [0..11]
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ {3}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   G ∈ {3}
   i ∈ {3}
-[value] Values at end of function h1:
+[value:final-states] Values at end of function h1:
   r ∈ [1..11]
   r2 ∈ [0..11]
-[value] Values at end of function h2:
+[value:final-states] Values at end of function h2:
   a ∈ {-4; -2; -1; 3}
   b ∈ [1..11]
-[value] Values at end of function k:
+[value:final-states] Values at end of function k:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {3}
 [from] Computing for function abs
 [from] Done for function abs

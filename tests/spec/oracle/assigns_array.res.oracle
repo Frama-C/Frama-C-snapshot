@@ -25,7 +25,7 @@ int Tab[10];
     
     behavior foo:
       assumes reset ≢ 0;
-      assigns Tab[0 .. n-1];
+      assigns Tab[0 .. n - 1];
     
     behavior bar:
       assumes reset ≡ 0;

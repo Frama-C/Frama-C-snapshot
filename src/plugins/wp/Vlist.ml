@@ -142,13 +142,14 @@ let rewrite_repeat s n =
     | _ -> raise Not_found
   else raise Not_found
 
-let () =
-  begin
+let once_for_each_ast = Model.run_once_for_each_ast ~name:"Vlist" (fun () ->
     F.set_builtin_2 f_nth rewrite_nth ;
     F.set_builtin_2 f_cons rewrite_cons ;
     F.set_builtin_2 f_repeat rewrite_repeat ;
     F.set_builtin_1 f_length rewrite_length ;
-  end
+  )
+
+let configure () = once_for_each_ast ()
 
 (* -------------------------------------------------------------------------- *)
 (* --- Typing                                                             --- *)

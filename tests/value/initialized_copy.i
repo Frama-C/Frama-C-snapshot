@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +"-val-warn-copy-indeterminate @all -then -main main2 -then -val-warn-copy-indeterminate=-main2"
-   STDOPT: 
+   STDOPT: +" -then -main main2 -then -val-warn-copy-indeterminate=-main2"
+   STDOPT: +" -val-warn-copy-indeterminate=-@all"
 */
 
 int w[10];

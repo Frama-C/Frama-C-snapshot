@@ -17,7 +17,7 @@ void reset(int *p)
   return;
 }
 
-/*@ assigns *(t+(0 .. n-1)); */
+/*@ assigns *(t + (0 .. n - 1)); */
 void reset_array1(int *t, int n)
 {
   int i;
@@ -29,7 +29,7 @@ void reset_array1(int *t, int n)
   return;
 }
 
-/*@ assigns *(t+(0 .. n-1)); */
+/*@ assigns *(t + (0 .. n - 1)); */
 void reset_array2(int *t, int n)
 {
   int i;
@@ -41,7 +41,7 @@ void reset_array2(int *t, int n)
   return;
 }
 
-/*@ assigns *(t+{i | int i; 0 ≤ i < n}); */
+/*@ assigns *(t + {i | int i; 0 ≤ i < n}); */
 void reset_array3(int *t, int n)
 {
   int i;

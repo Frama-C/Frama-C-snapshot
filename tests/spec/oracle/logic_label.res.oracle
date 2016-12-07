@@ -21,7 +21,7 @@ int g(int i)
 
 /*@ predicate modified{L1, L2}(int x) = \at(x,L1) ≢ \at(x,L2);
  */
-/*@ logic ℤ diff{L1, L2}(ℤ x) = \at(x,L1)-\at(x,L2);
+/*@ logic ℤ diff{L1, L2}(ℤ x) = \at(x,L1) - \at(x,L2);
 
 */
 int h(void)
@@ -35,10 +35,10 @@ int h(void)
   return __retres;
 }
 
-/*@ logic ℤ foo{L}(ℤ x) = x+1;
+/*@ logic ℤ foo{L}(ℤ x) = x + 1;
 
 */
-/*@ assigns *(x+(0 .. foo{Old}(0))); */
+/*@ assigns *(x + (0 .. foo{Old}(0))); */
 int u(int *x)
 {
   int __retres;
@@ -59,14 +59,14 @@ void labels_in_stmt_annot(void)
 {
   X ++;
   /*@ requires X > \at(X,Pre);
-      ensures X ≡ \old(X)+1;
-      ensures X ≡ \at(X,Pre)+2;
+      ensures X ≡ \old(X) + 1;
+      ensures X ≡ \at(X,Pre) + 2;
       ensures X ≡ \at(X,Post);
   */
   X ++;
   /*@ ensures X ≡ \at(X,Here); */
   X ++;
-  /*@ assert X ≡ \at(X,Pre)+3; */ ;
+  /*@ assert X ≡ \at(X,Pre) + 3; */ ;
   return;
 }
 

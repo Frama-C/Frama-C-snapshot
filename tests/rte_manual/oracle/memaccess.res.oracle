@@ -15,7 +15,7 @@ int main(void)
   /*@ assert rte: index_bound: i < 10; */
   /*@ assert rte: mem_access: \valid_read(p); */
   tab[i] = *p;
-  /*@ assert rte: mem_access: \valid(p+1); */
+  /*@ assert rte: mem_access: \valid(p + 1); */
   /*@ assert rte: index_bound: j < 10; */
   *(p + 1) = tab[j];
   __retres = 0;

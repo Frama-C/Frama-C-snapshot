@@ -24,28 +24,12 @@
 module type Domain = sig
   include Datatype.S_with_collections
 
-  type summary
-  module Summary : Datatype.S with type t = summary
+  type return
+  module Return : Datatype.S with type t = return
 
   val filter_by_bases: Base.Hptset.t -> t -> t
   val reuse: current_input:t -> previous_output:t -> t
 end
-
-(* Reference filled in by the callwise-inout callback *)
-module ResultFromCallback =
-  State_builder.Option_ref(Datatype.Pair(Value_types.Callstack)(Inout_type))
-    (struct
-      let dependencies = [Db.Value.self]
-      let name = "Mem_exec2.ResultFromCallback"
-    end)
-
-let register_callback () =
-  if Value_parameters.MemExecAll.get () then
-    Db.Operational_inputs.Record_Inout_Callbacks.extend_once
-      (fun (_stack, _inout as v) ->
-         ResultFromCallback.set v)
-
-let () = Cmdline.run_after_configuring_stage register_callback
 
 
 module SaveCounter =
@@ -60,9 +44,7 @@ let cleanup_ref = ref (fun () -> ())
 
 (* TODO: it would be great to clear also the tables within the plugins. Export
    self and add dependencies *)
-let cleanup_results () =
-  ResultFromCallback.clear ();
-  !cleanup_ref ()
+let cleanup_results () = !cleanup_ref ()
 
 exception TooImprecise
 
@@ -90,8 +72,8 @@ module Make
 
   module CallOutput =
     Datatype.List
-      (Datatype.Triple
-         (Domain) (Domain.Summary) (Datatype.Option (ReturnedValue)))
+      (Datatype.Pair (Domain)
+         (Datatype.Option (Datatype.Pair (ReturnedValue) (Domain.Return) )))
 
   module StoredResult =
     Datatype.Pair
@@ -128,38 +110,37 @@ module Make
 
   let result_to_output result =
     let open Eval in
-    let return = result.returned_value in
-    let returned_value = match return with
+    let return = match result.return with
       | None -> None
-      | Some return ->
-        let value = match return.v with
+      | Some (value, return) ->
+        let v = match value.v with
           | `Bottom -> None
           | `Value v -> Some v
         in
-        Some (value, return.initialized, return.escaping)
+        Some ((v, value.initialized, value.escaping), return)
     in
-    result.post_state, result.summary, returned_value
+    result.post_state, return
 
   let output_to_result output =
     let open Eval in
-    let post_state, summary, return = output in
-    let returned_value = match return with
+    let post_state, return = output in
+    let return = match return with
       | None -> None
-      | Some (value, initialized, escaping) ->
+      | Some ((value, initialized, escaping), return) ->
         Some
-          { v = (match value with None -> `Bottom | Some v -> `Value v);
-            initialized;
-            escaping;
-          }
+          ({ v = (match value with None -> `Bottom | Some v -> `Value v);
+               initialized;
+               escaping;
+             },
+           return)
     in
-    {post_state; summary; returned_value}
+    {post_state; return}
 
   let map_to_outputs f =
     List.map
       (fun ((state: Domain.t),
-            (summary: Domain.Summary.t),
-            (value : ReturnedValue.t option)) ->
-        (f state, summary, value))
+            (return : (ReturnedValue.t * Domain.Return.t) option)) ->
+        (f state, return))
 
 
   (** [diff_base_full_zone bases zones] remove from the set of bases [bases]
@@ -197,10 +178,10 @@ module Make
       | Locations.Zone.Top _ -> bases (* Never happens anyway *)
 
   let store_computed_call kf input_state args
-      (call_result: (Domain.t, Domain.Summary.t, Value.t) Eval.call_result) =
-    match ResultFromCallback.get_option () with
+      (call_result: (Domain.t, Domain.Return.t, Value.t) Eval.call_result) =
+    match Transfer_stmt.current_kf_inout () with
     | None -> ()
-    | Some (_stack, inout) ->
+    | Some inout ->
       try
         let output_bases = bases inout.Inout_type.over_outputs_if_termination
         and input_bases = bases inout.Inout_type.over_inputs in
@@ -261,11 +242,10 @@ module Make
         in
         Domain.Hashtbl.add hkb state_input
           (outputs, call_number);
-        ResultFromCallback.clear ()
       with
       | TooImprecise
       | Kernel_function.No_Statement
-      | Not_found -> ResultFromCallback.clear ()
+      | Not_found -> ()
 
 
   exception Result_found of CallOutput.t * int

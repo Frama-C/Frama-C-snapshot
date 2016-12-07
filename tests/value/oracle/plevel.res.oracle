@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..0xFFFE] ∈ {0}
   i ∈ [--..--]
 tests/value/plevel.i:11:[value] warning: assertion got status unknown.
@@ -13,7 +13,7 @@ tests/value/plevel.i:21:[kernel] more than 40(65) locations to update in array. 
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..0xFF] ∈ {0}
    [0x100..0x120] ∈ {0; 1}
    [0x121..0x1FF] ∈ {0}

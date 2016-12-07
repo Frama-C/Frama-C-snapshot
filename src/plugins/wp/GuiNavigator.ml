@@ -299,10 +299,10 @@ class behavior
         popup_target <- Some (w,p) ;
         match p with
         | None
-        | Some (Qed|Why3ide) -> popup_qed#popup ()
-        | Some Coq -> popup_coq#popup ()
-        | Some AltErgo -> popup_ergo#popup ()
-        | Some (Why3 _) -> popup_why3#popup ()
+        | Some (Qed|Why3ide) -> popup_qed#run ()
+        | Some Coq -> popup_coq#run ()
+        | Some AltErgo -> popup_ergo#run ()
+        | Some (Why3 _) -> popup_why3#run ()
       end
 
     (* -------------------------------------------------------------------------- *)
@@ -373,7 +373,7 @@ let make (main : main_window_extension_points) =
     (* -------------------------------------------------------------------------- *)
 
     let filter = new Widget.group (`All :> filter) in
-    let switch = new Widget.hbox [
+    let switch = Wbox.hgroup [
       filter#add_toggle ~label:"All" ~tooltip:"All goals" ~value:`All () ;
       filter#add_toggle ~label:"Module"
         ~tooltip:"Goals of current function or axiomatics" ~value:`Module () ;
@@ -383,7 +383,7 @@ let make (main : main_window_extension_points) =
     let prev = new Widget.button ~icon:`GO_BACK ~tooltip:"Previous goal" () in
     let next = new Widget.button ~icon:`GO_FORWARD ~tooltip:"Next goal" () in
     let index = new Widget.button ~icon:`INDEX ~tooltip:"List of goals" () in
-    let navigation = new Widget.hbox [
+    let navigation = Wbox.hgroup [
       (prev :> widget) ;
       (index :> widget) ;
       (next :> widget) ;

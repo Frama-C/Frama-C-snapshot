@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/bitwise_float.c:1:[value] warning: function main: precondition got status unknown.
 [value] Called Frama_C_show_each_x([1028443341..1084227584])
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {0; 2}
 [from] Computing for function main
 [from] Done for function main

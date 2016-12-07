@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   b1 ∈ [--..--]
   b2 ∈ [--..--]
@@ -53,8 +53,8 @@ tests/value/initialized.c:38:[value] warning: assertion got status unknown.
 [value] Done for function g1
 [value] computing for function g2 <- main.
         Called from tests/value/initialized.c:154.
-tests/value/initialized.c:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&b4)+(int)(&b4);
-tests/value/initialized.c:50:[kernel] warning: signed overflow. assert (int)(&b4)+(int)(&b4) ≤ 2147483647;
+tests/value/initialized.c:50:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&b4) + (int)(&b4);
+tests/value/initialized.c:50:[value] warning: signed overflow. assert (int)(&b4) + (int)(&b4) ≤ 2147483647;
 tests/value/initialized.c:50:[value] Assigning imprecise value to t[6].
         The imprecision originates from Arithmetic {tests/value/initialized.c:50}
 tests/value/initialized.c:51:[value] Assigning imprecise value to t[7].
@@ -133,8 +133,8 @@ tests/value/initialized.c:80:[value] warning: assertion got status unknown.
 [value] computing for function g3 <- main.
         Called from tests/value/initialized.c:155.
 tests/value/initialized.c:89:[value] warning: assertion got status unknown.
-tests/value/initialized.c:93:[kernel] warning: accessing uninitialized left-value. assert \initialized(&r2);
-tests/value/initialized.c:96:[kernel] warning: accessing uninitialized left-value. assert \initialized(&x3);
+tests/value/initialized.c:93:[value] warning: accessing uninitialized left-value. assert \initialized(&r2);
+tests/value/initialized.c:96:[value] warning: accessing uninitialized left-value. assert \initialized(&x3);
 [value] computing for function f <- g3 <- main.
         Called from tests/value/initialized.c:98.
 tests/value/initialized.c:11:[value] entering loop for the first time
@@ -149,7 +149,7 @@ tests/value/initialized.c:8:[value] warning: function f: postcondition got statu
 [value] Done for function g3
 [value] computing for function g4 <- main.
         Called from tests/value/initialized.c:156.
-tests/value/initialized.c:104:[kernel] warning: accessing uninitialized left-value. assert \initialized(&y);
+tests/value/initialized.c:104:[value] warning: accessing uninitialized left-value. assert \initialized(&y);
 [value] Recording results for g4
 [value] Done for function g4
 [value] computing for function g5 <- main.
@@ -181,14 +181,14 @@ tests/value/initialized.c:148:[value] assertion got status valid.
 tests/value/initialized.c:93:[value] assertion 'Value,initialisation' got final status invalid.
 tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   t1[0] ∈ UNINITIALIZED
     [1..2] ∈ {1; 2} or UNINITIALIZED
     [3..4] ∈ UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
     [1..248] ∈ [1..248] or UNINITIALIZED
     [249] ∈ UNINITIALIZED
-[value] Values at end of function g1:
+[value:final-states] Values at end of function g1:
   Frama_C_entropy_source ∈ [--..--]
   t1[0..19] ∈ {1}
   t2[0..3] ∈ {2} or UNINITIALIZED
@@ -203,7 +203,7 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
   t6[0..19] ∈ {6} or UNINITIALIZED
   i ∈ {7; 8; 9}
   j ∈ {4; 5; 6; 7}
-[value] Values at end of function g2:
+[value:final-states] Values at end of function g2:
   t{[0]; [1][bits 0 to 23]#} ∈
    {0x11223344} or UNINITIALIZED repeated %32, bits 0 to 55 
    [1][bits 24 to 31]# ∈ {0x11223344}%32, bits 24 to 31 
@@ -229,7 +229,7 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
    {0x11111111; 0x22222222} or UNINITIALIZED
    [13][bits 24 to 31] ∈ {0}
   p_0 ∈ {{ &t + {7} }}
-[value] Values at end of function g3:
+[value:final-states] Values at end of function g3:
   r1 ∈ {2}
   x1 ∈ {1}
   x2 ∈ UNINITIALIZED
@@ -241,14 +241,14 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
   t2[0] ∈ UNINITIALIZED
     [1..248] ∈ [1..248]
     [249] ∈ UNINITIALIZED
-[value] Values at end of function g4:
+[value:final-states] Values at end of function g4:
   NON TERMINATING FUNCTION
-[value] Values at end of function g6:
+[value:final-states] Values at end of function g6:
   i6 ∈ UNINITIALIZED
-[value] Values at end of function g5:
+[value:final-states] Values at end of function g5:
   v ∈ UNINITIALIZED
   p ∈ {{ &v1 ; &v2 }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   i6 ∈ UNINITIALIZED
   __retres ∈ {0}

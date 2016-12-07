@@ -277,6 +277,15 @@ module V = struct
   let compare_min_int = compare_bound Ival.compare_min_int
   let compare_max_int = compare_bound Ival.compare_max_int
 
+  open Bottom.Type
+
+  let backward_mult_int_left ~right ~result =
+    try
+      let right = project_ival right in
+      let result = project_ival result in
+      Ival.backward_mult_int_left ~right ~result >>-: Extlib.opt_map inject_ival
+    with Not_based_on_null -> `Value None
+
   let backward_rel_int_left op l r =
     let open Abstract_interp.Comp in
     match l with
@@ -429,16 +438,17 @@ module V = struct
   let cast ~size ~signed v =
     let integer_part, pointer_part = split Base.null v in
     let integer_part' = Ival.cast ~size ~signed ~value:integer_part in
-    let pointer_part', ok = 
+    (* ok_garbled indicates that we do _not_ create a (new) garbled mix *)
+    let pointer_part', ok_garbled =
       if Int.ge size (Int.of_int (Bit_utils.sizeofpointer ())) ||
         is_bottom pointer_part || is_imprecise pointer_part
       then pointer_part, true
       else topify_arith_origin pointer_part, false      
     in
-    if ok && integer_part' == integer_part then
-      v, true
+    if ok_garbled && integer_part' == integer_part then
+      v (* both pointer and integer part are unchanged *), true
     else
-      (join (inject_ival integer_part') pointer_part'), ok
+      join (inject_ival integer_part') pointer_part', ok_garbled
 
  let cast_float_to_int ~signed ~size v =
    try
@@ -726,7 +736,10 @@ module V_Or_Uninitialized = struct
   let mask_init = 2
   let mask_noesc = 1
 
+  (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+  [@@@ warning "-3"]
   external get_flags : t -> int = "caml_obj_tag" "noalloc"
+  [@@@ warning "+3"]
 
   let is_initialized v = (get_flags v land mask_init) <> 0
   let is_noesc v = (get_flags v land mask_noesc) <> 0
@@ -787,6 +800,7 @@ module V_Or_Uninitialized = struct
 
   let bottom = C_init_noesc V.bottom
   let top = C_uninit_esc V.top
+  let top_opt = Some top
 
   let is_bottom = equal bottom
 
@@ -877,8 +891,6 @@ module V_Or_Uninitialized = struct
        end)
      : Datatype.S with type t := t)
 
-  module Top_Param = Base.SetLattice
-
   let is_isotropic t = V.is_isotropic (get_v t)
 
   let extract_bits ~topify ~start ~stop ~size t =
@@ -953,6 +965,9 @@ module V_Or_Uninitialized = struct
     | C_init_noesc(v) -> vcard v
     | C_uninit_noesc(v) | C_init_esc(v) -> Integer.add Integer.one (vcard v)
     | C_uninit_esc(v) -> Integer.add Integer.two (vcard v)
+
+  let bottom_is_strict = true
+
 end
 
 module V_Offsetmap = struct
@@ -1014,7 +1029,6 @@ module V_Offsetmap = struct
   let narrow x y =
     try `Value (OffsetmapNarrow.narrow x y)
     with NarrowReturnsBottom -> `Bottom
-
   
 end
 
@@ -1034,7 +1048,7 @@ module Default_offsetmap = struct
     let aux validity v =
       match V_Offsetmap.size_from_validity validity with
       | `Bottom -> `Bottom
-      | `Value size -> `Map (V_Offsetmap.create_isotropic ~size v)
+      | `Value size -> `Value (V_Offsetmap.create_isotropic ~size v)
     in
     match base with
     | Base.Allocated (_, validity) ->
@@ -1049,13 +1063,13 @@ module Default_offsetmap = struct
       aux validity V_Or_Uninitialized.bottom
     | Base.String (id,lit) ->
       try
-        `Map (StringOffsetmaps.find id)
+        `Value (StringOffsetmaps.find id)
       with Not_found ->
         let o = V_Offsetmap.from_cstring lit in
         StringOffsetmaps.add id o;
-        `Map o
+        `Value o
 
-  let default_contents = `Bottom
+  let default_contents = Lmap.Bottom
   (* this works because, currently:
      - during the analysis, we merge maps with the same variables (all locals
        are explicitely present)
@@ -1073,6 +1087,8 @@ module Model = struct
 
   include
     Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap)(Default_offsetmap)
+
+  include Make_Narrow(V_Or_Uninitialized)
 
   let find_unspecified ?(conflate_bottom=true) state loc =
     find ~conflate_bottom state loc

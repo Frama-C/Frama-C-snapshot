@@ -6,16 +6,18 @@ tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   f ∈ {3.1400001049041748}
   d ∈ {2.7099999999999999}
   stdtod_bug ∈ {1.8254370818746401}
   fr[0..0x3] ∈ {0}
   dr[0..0x7] ∈ {0}
+[value] user error: type long double not implemented. Using double instead
+[value] Called Frama_C_show_each([0..0xFF])
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   fr[0] ∈ {0x40}
     [0x1] ∈ {0x48}
     [0x2] ∈ {0xF5}
@@ -29,3 +31,4 @@ tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370
     [0x6] ∈ {0x47}
     [0x7] ∈ {0xAE}
   i ∈ {0x8}
+  x ∈ {1.0000000000000000}

@@ -27,13 +27,14 @@ open Locations
 
 type v (** type of the values associated to a location *)
 type offsetmap (** type of the maps associated to a base *)
-type offsetmap_top_bottom = [ `Map of offsetmap | `Bottom | `Top ]
 type widen_hint_base (** widening hints for each base *)
 
 type map (** Maps from {!Base.t} to {!offsetmap} *)
 type lmap = private Bottom | Top | Map of map
 
 include Datatype.S_with_collections with type t = lmap
+
+include Lattice_type.With_Error_Top
 
 val pretty: Format.formatter -> t -> unit
 val pretty_debug: Format.formatter -> t -> unit
@@ -63,7 +64,13 @@ val is_reachable : t -> bool
 val join : t -> t -> t
 val is_included : t -> t -> bool
 
-val narrow : t -> t -> t
+module Make_Narrow(X: sig
+    include Lattice_type.With_Top with type t := v
+    include Lattice_type.With_Narrow with type t := v
+    val bottom_is_strict: bool
+  end): sig
+  val narrow : t -> t -> t
+end
 
 (** Bases that must be widening in priority, plus widening hints for each
     base. *)
@@ -76,20 +83,24 @@ val widen : widen_hint-> t -> t -> t
 
 val find:
   ?conflate_bottom:bool -> t -> location -> bool * v
+(** @raise Error_Top when the location or the state are Top, and there
+    is no Top value in the type {!v}. *)
 
+val copy_offsetmap :
+  Location_Bits.t -> Integer.t -> t ->
+  bool * offsetmap Bottom.or_bottom
 (** [copy_offsetmap alarms loc size m] returns the superposition of the
     ranges of [size] bits starting at [loc] within [m]. [size] must be strictly
     greater than zero. Return [None] if all pointed adresses are invalid in [m].
     The boolean returned indicates that the location may be invalid.
-    @raise Error_Top if [m] is [Top]. *)
-val copy_offsetmap :
-  Location_Bits.t -> Integer.t -> t ->
-  bool * [ `Bottom | `Map of offsetmap | `Top ]
 
-val find_base : Base.t -> t -> offsetmap_top_bottom
+    @raise Error_Top when the location or the state are Top, and there
+    is no Top value in the type {!v}. *)
+
+val find_base : Base.t -> t -> offsetmap Bottom.Top.or_top_bottom
 (** @raise Not_found if the varid is not present in the map. *)
 
-val find_base_or_default : Base.t -> t -> offsetmap_top_bottom
+val find_base_or_default : Base.t -> t -> offsetmap Bottom.Top.or_top_bottom
 (** Same as [find_base], but return the default values for bases
     that are not currently present in the map. Prefer the use of this function
     to [find_base], unless you explicitely want to see if the base is bound. *)
@@ -128,7 +139,8 @@ val paste_offsetmap :
   t -> bool * t
 
 val add_base :  Base.t -> offsetmap -> t -> t
-(** No effect on [Top] or [Bottom] *)
+(** [add_base b o m] adds base [b] bound to [o], replacing any
+    previous bindings of [b]. No effect on [Top] or [Bottom]. *)
 
 val add_new_base:
   Base.t -> size:Integer.t -> v -> size_v:Integer.t -> t -> t

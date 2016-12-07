@@ -30,42 +30,6 @@ open Cil_types
 open Cil_datatype
 
 (* -------------------------------------------------------------------------- *)
-(* --- Global Status                                                      --- *)
-(* -------------------------------------------------------------------------- *)
-
-let rte_find rte_st kf =
-  let status =
-    try
-      let _, _, f = !rte_st () in f
-    with Failure _ ->
-      Wp_parameters.warning ~once:true "RTE plugin not present";
-      (fun _ -> false)
-  in status kf
-
-let rte_precond_status    = rte_find Db.RteGen.get_precond_status
-let rte_signedOv_status   = rte_find Db.RteGen.get_signedOv_status
-let rte_divMod_status     = rte_find Db.RteGen.get_divMod_status
-let rte_memAccess_status  = rte_find Db.RteGen.get_memAccess_status
-let rte_unsignedOv_status = rte_find Db.RteGen.get_unsignedOv_status
-let _rte_signed_downCast_status = rte_find Db.RteGen.get_signed_downCast_status (* Seems unused *)
-
-let rte_wp =
-  [
-    "valid pointer dereferencing" , rte_memAccess_status;
-    "division by zero" , rte_divMod_status;
-    "signed overflow" , rte_signedOv_status;
-    "unsigned overflow" , rte_unsignedOv_status;
-  ]
-
-let missing_rte kf =
-  List.map
-    (fun (name, _) -> name)
-    (List.filter (fun (_, rte) -> not (rte kf)) rte_wp)
-
-let compute_rte_for kf =
-  !Db.RteGen.do_all_rte kf
-
-(* -------------------------------------------------------------------------- *)
 (* --- Selection of relevant assigns and postconditions                   --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -113,8 +77,7 @@ let wp_unreachable =
 
 let set_unreachable pid =
   let emit p =
-    debug
-      "unreachable annotation %a@." Property.pretty p;
+    debug "unreachable annotation %a@." Property.pretty p;
     Property_status.emit wp_unreachable ~hyps:[] p Property_status.True in
   let pids = match WpPropId.property_of_id pid with
     | Property.IPBehavior(kf, kinstr, active, bhv) ->
@@ -122,8 +85,8 @@ let set_unreachable pid =
         (Property.ip_post_cond_of_behavior kf kinstr active bhv) @
         (Property.ip_requires_of_behavior kf kinstr bhv)
     | p ->
-        Wp_parameters.result "[WP:unreachability] Goal %a : Valid" WpPropId.pp_propid pid ;
-        [p]
+        Wp_parameters.result "[CFG] Goal %a : Valid (Unreachable)"
+          WpPropId.pp_propid pid ; [p]
   in
   List.iter emit pids
 
@@ -147,7 +110,7 @@ let create_proof p =
   let n = WpPropId.subproofs p in
   {
     target = WpPropId.property_of_id p ;
-    proved = Array.create n Noproof ;
+    proved = Array.make n Noproof ;
     dependencies = Property.Set.empty ;
   }
 
@@ -589,7 +552,7 @@ let add_terminates acc spec = (* TODO *)
   let _ = match spec.spec_terminates with None -> ()
                                         | Some p ->
                                             Wp_parameters.warning ~once:true "Ignored 'terminates' specification:@, %a@."
-                                              Printer.pp_predicate_named
+                                              Printer.pp_predicate
                                               (Logic_const.pred_of_id_pred p)
   in acc
 
@@ -785,7 +748,7 @@ let get_call_annots config v s fct =
   match fct with
 
   | Cil2cfg.Static kf ->
-      let precond = not (rte_precond_status config.kf) in
+      let precond = not (WpRTE.is_precond_generated config.kf) in
       add_call_annots config s kf l_post precond empty
 
   | Cil2cfg.Dynamic _ ->
@@ -973,6 +936,7 @@ let get_stmt_annots config v s =
             (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
             b_list;
         add_stmt_spec_annots config v s b_list spec acc
+    | AExtended _ -> acc
   in
   let before_acc = WpStrategy.empty_acc in
   let after_acc = WpStrategy.empty_acc in
@@ -1134,7 +1098,7 @@ let add_global_annotations annots =
 (* ------------------------------------------------------------------------ *)
 
 let string_of_active active =
-  Pretty_utils.sfprintf "%a"
+  Format.asprintf "%a"
     (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "_%s" s))
     (Datatype.String.Set.elements active)
 
@@ -1153,7 +1117,7 @@ let behavior_name_of_config config =
 let build_bhv_strategy config =
   let annots = get_behavior_annots config in
   let annots = add_global_annotations annots in
-  let desc = Pretty_utils.sfprintf "%a" pp_strategy_info config in
+  let desc = Format.asprintf "%a" pp_strategy_info config in
   let new_loops = Wp_parameters.Invariants.get() in
   WpStrategy.mk_strategy desc config.cfg (behavior_name_of_config config)
     new_loops WpStrategy.SKannots annots
@@ -1290,21 +1254,19 @@ let process_unreached_annots cfg =
     | Cil2cfg.VblkIn _ | Cil2cfg.VblkOut _ | Cil2cfg.Vend -> acc
   in
   let annots = List.fold_left do_node [] unreached in
-  debug
-    "found %d unreachable annotations@." (List.length annots) ;
+  debug "found %d unreachable annotations@." (List.length annots) ;
   List.iter (fun pid -> set_unreachable pid) annots
 
 (*----------------------------------------------------------------------------*)
 (* Everything must go through here.                                           *)
 (*----------------------------------------------------------------------------*)
 
-let get_cfg kf =
-  if Wp_parameters.RTE.get () then compute_rte_for kf ;
+let get_cfg kf model =
+  if Wp_parameters.RTE.get () then WpRTE.generate kf model ;
   let cfg = Cil2cfg.get kf in
-  let _ = process_unreached_annots cfg in
-  cfg
+  let _ = process_unreached_annots cfg in cfg
 
-let build_configs assigns kf behaviors ki property =
+let build_configs assigns kf model behaviors ki property =
   debug "[get_strategies] for behaviors names: %a@."
     (Wp_error.pp_string_list ~sep:" " ~empty:"<none>")
     (match behaviors with [] -> ["<all>"] | _ :: _ as l -> l) ;
@@ -1317,7 +1279,7 @@ let build_configs assigns kf behaviors ki property =
         debug
           "[get_strategies] select stmt %d properties@." s.sid
   in
-  let cfg = get_cfg kf in
+  let cfg = get_cfg kf model in
   let def_annot_bhv, bhvs = find_behaviors kf cfg ki behaviors in
   if bhvs <> [] then debug "[get_strategies] %d behaviors" (List.length bhvs);
   let mk_bhv_config bhv = { kf = kf;
@@ -1329,8 +1291,8 @@ let build_configs assigns kf behaviors ki property =
                             def_annots_info = def_annot_bhv }
   in List.map mk_bhv_config bhvs
 
-let get_strategies assigns kf behaviors ki property =
-  let configs = build_configs assigns kf behaviors ki property in
+let get_strategies assigns kf model behaviors ki property =
+  let configs = build_configs assigns kf model behaviors ki property in
   let rec add_stgs l = match l with [] -> [] | config::tl ->
     let stg = build_bhv_strategy config in
     stg::(add_stgs tl)
@@ -1340,21 +1302,20 @@ let get_strategies assigns kf behaviors ki property =
 (* Public functions to build the strategies                                   *)
 (*----------------------------------------------------------------------------*)
 
-let get_precond_strategies p =
+let get_precond_strategies ~model p =
   debug "[get_precond_strategies] %s@."
     (Property.Names.get_prop_name_id p);
   match p with
   | Property.IPPredicate (Property.PKRequires b, kf, Kglobal, _) ->
       let strategies =
         if WpStrategy.is_main_init kf then
-          get_strategies NoAssigns kf [b.b_name] None (IdProp p)
+          get_strategies NoAssigns kf model [b.b_name] None (IdProp p)
         else []
       in
       let call_sites = Kernel_function.find_syntactic_callsites kf in
       let add_call_pre_stategy acc (kf_caller, stmt) =
         let asked = CallPre (stmt, Some p) in
-        let strategies = get_strategies NoAssigns kf_caller [] None asked in
-        strategies @ acc
+        get_strategies NoAssigns kf_caller model [] None asked @ acc
       in
       if call_sites = [] then
         (Wp_parameters.warning ~once:true
@@ -1365,7 +1326,7 @@ let get_precond_strategies p =
   | _ ->
       invalid_arg "[get_precond_strategies] not a function precondition"
 
-let get_call_pre_strategies stmt =
+let get_call_pre_strategies ~model stmt =
   debug
     "[get_call_pre_strategies] on statement %a@." Stmt.pretty_sid stmt;
   match stmt.skind with
@@ -1380,12 +1341,12 @@ let get_call_pre_strategies stmt =
         | Some _kf_called ->
             let kf_caller = Kernel_function.find_englobing_kf stmt in
             let asked = CallPre (stmt, None) in
-            get_strategies NoAssigns kf_caller [] None asked
+            get_strategies NoAssigns kf_caller model [] None asked
       in strategies
   | _ -> Wp_parameters.warning
            "[get_call_pre_strategies] this is not a call statement"; []
 
-let get_id_prop_strategies ?(assigns=WithAssigns) p =
+let get_id_prop_strategies ~model ?(assigns=WithAssigns) p =
   debug "[get_id_prop_strategies] %s@."
     (Property.Names.get_prop_name_id p);
   match p with
@@ -1393,16 +1354,16 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
       let bhvs = match ca.annot_content with
         | AAssert (l, _) | AInvariant (l, _, _) | AAssigns (l, _) -> l
         | _ -> []
-      in get_strategies assigns kf bhvs None (IdProp p)
+      in get_strategies assigns kf model bhvs None (IdProp p)
   | Property.IPAssigns (kf, _, Property.Id_loop _, _)
   (*loop assigns: belongs to the default behavior *)
   | Property.IPDecrease (kf,_,_,_) ->
       (* any variant property is attached to the default behavior of
        * the function, NOT to a statement behavior *)
       let bhvs = [ Cil.default_behavior_name ] in
-      get_strategies assigns kf bhvs None (IdProp p)
+      get_strategies assigns kf model bhvs None (IdProp p)
   | Property.IPPredicate (Property.PKRequires _, _kf, Kglobal, _p) ->
-      get_precond_strategies p
+      get_precond_strategies model p
   | _ ->
       let strategies = match Property.get_kf p with
         | None -> Wp_parameters.warning
@@ -1413,9 +1374,10 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
             let bhv = match Property.get_behavior p with
               | None -> Cil.default_behavior_name
               | Some fb -> fb.b_name
-            in get_strategies assigns kf [bhv] ki (IdProp p)
+            in get_strategies assigns kf model [bhv] ki (IdProp p)
       in strategies
 
-let get_function_strategies ?(assigns=WithAssigns) ?(bhv=[]) ?(prop=[]) kf =
+let get_function_strategies ~model
+    ?(assigns=WithAssigns) ?(bhv=[]) ?(prop=[]) kf =
   let prop = match prop with [] -> AllProps | _ -> NamedProp prop in
-  get_strategies assigns kf bhv None prop
+  get_strategies assigns kf model bhv None prop

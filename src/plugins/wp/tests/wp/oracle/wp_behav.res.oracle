@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 tests/wp/wp_behav.c:172:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
 [wp] warning: Missing RTE guards
 tests/wp/wp_behav.c:176:[wp] warning: Missing assigns clause (assigns 'everything' instead)
@@ -220,7 +219,7 @@ Assume {
   (* Pre-condition *)
   Have: n_1 <= 9.
   (* Invariant 'qed_ok' *)
-  Have: forall i_2 : Z. ((i_2 < i) -> ((0 <= i_2) -> (0 = T[i_2]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) -> (0 = T[i_2]))).
   (* Then *)
   Have: i < n.
 }
@@ -245,7 +244,7 @@ Assume {
   (* Pre-condition for 'b1' *)
   Have: 0 < n_1.
   (* Invariant 'qed_ok' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) -> (0 = T[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) -> (0 = T[i_1]))).
   (* Else *)
   Have: n <= i.
 }

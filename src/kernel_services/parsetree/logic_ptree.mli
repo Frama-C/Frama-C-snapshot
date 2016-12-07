@@ -24,8 +24,6 @@
 
 (* Logic parse trees *)
 
-open Cil_types
-
 (** logic constants. *)
 type constant =
     IntConstant of string (** integer constant *)
@@ -38,8 +36,8 @@ type logic_type =
   | LTvoid (** C void *)
   | LTinteger (** mathematical integers. *)
   | LTreal (** mathematical real. *)
-  | LTint of ikind (** C integral type.*)
-  | LTfloat of fkind (** C floating-point type *)
+  | LTint of Cil_types.ikind (** C integral type.*)
+  | LTfloat of Cil_types.fkind (** C floating-point type *)
   | LTarray of logic_type * constant option (** C array *)
   | LTpointer of logic_type (** C pointer *)
   | LTenum of string (** C enum *)
@@ -47,7 +45,9 @@ type logic_type =
   | LTunion of string (** C union *)
   | LTnamed of string * logic_type list (** declared logic type. *)
   | LTarrow of logic_type list * logic_type
-  | LTattribute of logic_type * attribute (* Only const and volatile can appear here *)
+  | LTattribute of logic_type * Cil_types.attribute (* Only const and volatile can appear here *)
+
+type location = Cil_types.location
 
 (** quantifier-bound variables *)
 type quantifiers = (logic_type * string) list
@@ -246,9 +246,75 @@ and decl_node =
 
 and deps = lexpr Cil_types.deps (** C locations. *)
 
-(** specification of a C function. *)
-type spec = (lexpr, lexpr, lexpr) Cil_types.spec
-type code_annot = (lexpr, lexpr, lexpr, lexpr) Cil_types.code_annot
+type extension = string * lexpr list
+
+(** Behavior in a specification. This type shares the name of its constructors
+    with {!Cil_types.behavior}. *)
+type behavior = {
+  mutable b_name : string; (** name of the behavior. *)
+  mutable b_requires : lexpr list; (** require clauses. *)
+  mutable b_assumes : lexpr list; (** assume clauses. *)
+  mutable b_post_cond : (Cil_types.termination_kind * lexpr) list; (** post-condition. *)
+  mutable b_assigns : lexpr Cil_types.assigns; (** assignments. *)
+  mutable b_allocation : lexpr Cil_types.allocation; (** frees, allocates. *)
+  mutable b_extended : extension list (** extensions *)
+}
+
+(** Function or statement contract. This type shares the name of its
+    constructors with {!Cil_types.spec}. *)
+type spec = {
+  mutable spec_behavior : behavior list;
+  (** behaviors *)
+
+  mutable spec_variant : lexpr Cil_types.variant option;
+  (** variant for recursive functions. *)
+
+  mutable spec_terminates: lexpr option;
+  (** termination condition. *)
+
+  mutable spec_complete_behaviors: string list list;
+  (** list of complete behaviors.
+      It is possible to have more than one set of complete behaviors *)
+
+  mutable spec_disjoint_behaviors: string list list;
+  (** list of disjoint behaviors.
+     It is possible to have more than one set of disjoint behaviors *)
+}
+
+(** all annotations that can be found in the code. This type shares the name of 
+    its constructors with {!Cil_types.code_annotation_node}. *)
+type code_annot =
+  | AAssert of string list * lexpr
+  (** assertion to be checked. The list of strings is the list of
+      behaviors to which this assertion applies. *)
+
+  | AStmtSpec of string list * spec
+  (** statement contract
+      (potentially restricted to some enclosing behaviors). *)
+
+  | AInvariant of string list * bool * lexpr
+  (** loop/code invariant. The list of strings is the list of behaviors to which
+      this invariant applies.  The boolean flag is true for normal loop
+      invariants and false for invariant-as-assertions. *)
+
+  | AVariant of lexpr Cil_types.variant
+  (** loop variant. Note that there can be at most one variant associated to a
+      given statement *)
+
+  | AAssigns of string list * lexpr Cil_types.assigns
+  (** loop assigns.  (see [b_assigns] in the behaviors for other assigns).  At
+      most one clause associated to a given (statement, behavior) couple.  *)
+
+  | AAllocation of string list * lexpr Cil_types.allocation
+  (** loop allocation clause.  (see [b_allocation] in the behaviors for other
+      allocation clauses).
+      At most one clause associated to a given (statement, behavior) couple.
+      @since Oxygen-20120901 when [b_allocation] has been added.  *)
+
+  | APragma of lexpr Cil_types.pragma (** pragma. *)
+  | AExtended of string list * extension
+    (** extension in a loop annotation.
+        @since Silicon-20161101 *)
 
 (** assignment performed by a C function. *)
 type assigns = lexpr Cil_types.assigns
@@ -283,12 +349,10 @@ type ext_decl =
 
 type ext_function = 
   | Ext_spec of spec * location (* function spec *)
-  | Ext_loop_spec of string * annot * location (* loop annotation or
-			   code annotation relative to the loop body. *)
-  | Ext_stmt_spec of string * annot * location (* code annotation. *)
+  | Ext_stmt of string list * annot * location (* loop/code annotation. *)
   | Ext_glob of ext_decl
 
-type ext_module = string * ext_decl list * ((string * location) * ext_function list) list
+type ext_module = string option * ext_decl list * ((string * location) option * ext_function list) list
 
 type ext_spec = ext_module list
 (*

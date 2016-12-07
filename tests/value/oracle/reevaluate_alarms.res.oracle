@@ -3,22 +3,22 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   S ∈ {0}
   T[0..4] ∈ {0}
   n ∈ {1}
 [value] computing for function loop <- main.
         Called from tests/value/reevaluate_alarms.i:34.
 tests/value/reevaluate_alarms.i:13:[value] entering loop for the first time
-tests/value/reevaluate_alarms.i:14:[kernel] warning: signed overflow. assert S+i ≤ 2147483647;
-tests/value/reevaluate_alarms.i:14:[kernel] warning: out of bounds write. assert \valid(tmp);
-                                       (tmp from p++)
+tests/value/reevaluate_alarms.i:14:[value] warning: signed overflow. assert S + i ≤ 2147483647;
+tests/value/reevaluate_alarms.i:14:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from p++)
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function compute_n <- main.
         Called from tests/value/reevaluate_alarms.i:36.
 tests/value/reevaluate_alarms.i:19:[value] entering loop for the first time
-tests/value/reevaluate_alarms.i:20:[kernel] warning: signed overflow. assert n*i ≤ 2147483647;
+tests/value/reevaluate_alarms.i:20:[value] warning: signed overflow. assert n * i ≤ 2147483647;
 [value] Recording results for compute_n
 [value] Done for function compute_n
 [value] computing for function init_p <- main.
@@ -27,7 +27,7 @@ tests/value/reevaluate_alarms.i:20:[kernel] warning: signed overflow. assert n*i
 [value] Done for function init_p
 [value] computing for function initialized_p <- main.
         Called from tests/value/reevaluate_alarms.i:41.
-tests/value/reevaluate_alarms.i:30:[kernel] warning: accessing uninitialized left-value. assert \initialized(p);
+tests/value/reevaluate_alarms.i:30:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 [value] Recording results for initialized_p
 [value] Done for function initialized_p
 [value] computing for function init_p <- main.
@@ -41,20 +41,20 @@ tests/value/reevaluate_alarms.i:30:[kernel] warning: accessing uninitialized lef
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function compute_n:
+[value:final-states] Values at end of function compute_n:
   n ∈ [1..2147483647]
   i ∈ {6}
-[value] Values at end of function init_p:
+[value:final-states] Values at end of function init_p:
   x ∈ {0} or UNINITIALIZED
   y ∈ {0} or UNINITIALIZED
-[value] Values at end of function initialized_p:
+[value:final-states] Values at end of function initialized_p:
   x ∈ {1}
-[value] Values at end of function loop:
+[value:final-states] Values at end of function loop:
   S ∈ [0..2147483647]
   T[0..4] ∈ [0..2147483647]
   i ∈ {5}
   p ∈ {{ &T + [0..--],0%4 }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   S ∈ [0..2147483647]
   T[0..4] ∈ [0..2147483647]
   n ∈ [1..2147483647]
@@ -144,7 +144,7 @@ tests/value/reevaluate_alarms.i:30:[kernel] warning: accessing uninitialized lef
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   S ∈ {0}
   T[0..4] ∈ {0}
   n ∈ {1}
@@ -179,15 +179,15 @@ tests/value/reevaluate_alarms.i:14:[value] assertion 'Value,mem_access' got fina
 tests/value/reevaluate_alarms.i:20:[value] assertion 'Value,signed_overflow' got final status valid.
 tests/value/reevaluate_alarms.i:30:[value] assertion 'Value,initialisation' got final status valid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function compute_n:
+[value:final-states] Values at end of function compute_n:
   n ∈ {120}
   i ∈ {6}
-[value] Values at end of function init_p:
+[value:final-states] Values at end of function init_p:
   x ∈ {0}
   y ∈ {0} or UNINITIALIZED
-[value] Values at end of function initialized_p:
+[value:final-states] Values at end of function initialized_p:
   x ∈ {1}
-[value] Values at end of function loop:
+[value:final-states] Values at end of function loop:
   S ∈ {10}
   T[0] ∈ {0}
    [1] ∈ {1}
@@ -196,7 +196,7 @@ tests/value/reevaluate_alarms.i:30:[value] assertion 'Value,initialisation' got 
    [4] ∈ {10}
   i ∈ {5}
   p ∈ {{ &T[5] }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   S ∈ {10}
   T[0] ∈ {0}
    [1] ∈ {1}

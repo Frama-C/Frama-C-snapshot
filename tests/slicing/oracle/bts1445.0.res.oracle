@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
 tests/slicing/bts1445.i:8:[value] entering loop for the first time
 [value] Recording results for main
@@ -32,3 +32,5 @@ void main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts1445.i (no preprocessing)

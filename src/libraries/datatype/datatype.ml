@@ -146,7 +146,7 @@ end
 let valid_varname s =
   let r = Str.regexp "[^A-Za-z0-9_]+" in
   let s = Str.global_replace r "__" s in
-  String.uncapitalize s
+  Transitioning.String.uncapitalize_ascii s
 
 let check f fname tname fstr =
   assert
@@ -269,7 +269,10 @@ end
 
 let is_module_name s =
   let l = Str.split (Str.regexp "\\.") s in
-  List.for_all(fun x -> String.length x > 0 && x.[0] = Char.uppercase x.[0]) l
+  List.for_all
+    (fun x ->
+       String.length x > 0 &&
+       x.[0] = Transitioning.Char.uppercase_ascii x.[0]) l
 
 module Make(X: Make_input) = struct
 
@@ -374,7 +377,7 @@ module Polymorphic2(P: Polymorphic2_input) = struct
     let res, first = instantiate ty1 ty2 in
     if first && name <> "" then begin
       let ml_name = 
-	Type.sfprintf
+	Format.asprintf
 	  "Datatype.%s %a %a" 
 	  name
 	  (fun fmt ty -> Type.pp_ml_name ty Type.Call fmt)
@@ -501,7 +504,7 @@ struct
     let res, first = instantiate ty1 ty2 ty3 in
     if first && name <> "" then begin
       let ml_name = 
-	Type.sfprintf
+	Format.asprintf
 	  "Datatype.%s %a %a %a" 
 	  name
 	  (fun fmt ty -> Type.pp_ml_name ty Type.Call fmt)
@@ -648,7 +651,7 @@ struct
     let res, first = instantiate ty1 ty2 ty3 ty4 in
     if first && name <> "" then begin
       let ml_name = 
-	Type.sfprintf
+	Format.asprintf
 	  "Datatype.%s %a %a %a %a" 
 	  name
 	  (fun fmt ty -> Type.pp_ml_name ty Type.Call fmt)
@@ -772,6 +775,11 @@ module Pair_arg = struct
   let mk_mem_project mem1 mem2 f (x1, x2) = mem1 f x1 && mem2 f x2
 end
 
+(** warning is unsound in that case:
+    http://caml.inria.fr/mantis/view.php?id=7314#c16232
+*)
+[@@@ warning "-60"]
+
 module rec Pair_name: sig val name: 'a Type.t -> 'b Type.t -> string end =
 struct
   let name ty1 ty2 =
@@ -793,6 +801,8 @@ end =
      evaluate the recursive modules *)
     include Polymorphic2(struct include Pair_arg include Pair_name end)
   end
+
+[@@@ warning "+60"]
 
 module Pair = Poly_pair.Make
 
@@ -901,7 +911,7 @@ module Polymorphic_gen(P: Polymorphic_input) = struct
     let res, first = instantiate ty in
     if first && name <> "" then begin
       let ml_name = 
-	Type.sfprintf
+	Format.asprintf
 	  "Datatype.%s %a" 
 	  name
 	  (fun fmt ty -> Type.pp_ml_name ty Type.Call fmt)
@@ -1242,7 +1252,6 @@ module Poly_array =
 	with Early_exit _ -> true
      end)
 
-module Caml_array = Array
 module Array = Poly_array.Make
 
 let array (type typ) (ty: typ Type.t) =
@@ -1704,7 +1713,7 @@ end
 module Make_with_collections(X: Make_input) =
   With_collections
     (Make(X))
-    (struct let module_name = String.capitalize X.name end)
+    (struct let module_name = Transitioning.String.capitalize_ascii X.name end)
 
 (* ****************************************************************************)
 (** {2 Predefined datatype} *)
@@ -1723,7 +1732,7 @@ module Simple_type
   end) =
 struct
 
-  let module_name = "Datatype." ^ String.capitalize X.name
+  let module_name = "Datatype." ^ Transitioning.String.capitalize_ascii X.name
 
   include With_collections
   (Make(struct
@@ -1868,7 +1877,7 @@ module String =
       type t = string
       let name = "string"
       let reprs = [ "" ]
-      let copy = String.copy
+      let copy = Extlib.id (* immutable strings do not need copy. *)
       let compare = String.compare
       let equal : string -> string -> bool = (=)
       let pretty fmt s = Format.fprintf fmt "%S" s
@@ -1922,8 +1931,6 @@ module Integer =
      end)
 let integer = Integer.ty
 
-module Big_int = Integer
-
 (* ****************************************************************************)
 (** {3 Triple} *)
 (* ****************************************************************************)
@@ -1967,6 +1974,11 @@ module Triple_arg = struct
     mem1 f x1 && mem2 f x2 && mem3 f x3
 end
 
+(** warning is unsound in that case:
+    http://caml.inria.fr/mantis/view.php?id=7314#c16232
+*)
+[@@@ warning "-60"]
+
 module rec Triple_name: sig 
   val name: 'a Type.t -> 'b Type.t -> 'c Type.t -> string 
 end =
@@ -1989,6 +2001,8 @@ end =
   (* Split the functor argument in 2 modules such that OCaml is able to safely
      evaluate the recursive modules *)
   Polymorphic3(struct include Triple_arg include Triple_name end)
+
+[@@@warning "+60"]
 
 module Triple = Poly_triple.Make
 
@@ -2070,6 +2084,11 @@ module Quadruple_arg = struct
     mem1 f x1 && mem2 f x2 && mem3 f x3 && mem4 f x4
 end
 
+(** warning is unsound in that case:
+    http://caml.inria.fr/mantis/view.php?id=7314#c16232
+*)
+[@@@ warning "-60"]
+
 module rec Quadruple_name: sig 
   val name: 'a Type.t -> 'b Type.t -> 'c Type.t -> 'd Type.t -> string 
 end =
@@ -2096,6 +2115,8 @@ end =
     include Polymorphic4
       (struct include Quadruple_arg include Quadruple_name end)
   end
+
+[@@@ warning "+60"]
 
 module Quadruple = Poly_quadruple.Make
 

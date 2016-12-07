@@ -60,11 +60,6 @@ let call ~loc lval callee args =
   let instr = Call (lval, (Cil.evar ~loc callee), args, loc) in
   Cil.mkStmtOneInstr ~valid_sid:true instr
 
-let read ~loc exp =
-  let empty_block =  {battrs = []; blocals = []; bstmts = []} in
-  let stmtkind = If (exp, empty_block, empty_block, loc) in
-  Cil.mkStmt ~valid_sid:true stmtkind
-
 
 (* --- Logic builders --- *)
 

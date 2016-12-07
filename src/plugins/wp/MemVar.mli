@@ -26,7 +26,7 @@
 
 open Cil_types
 
-type param = NotUsed | ByValue | ByRef | InContext | InHeap
+type param = NotUsed | ByValue | ByRef | InContext | InArray | InHeap
 
 module type VarUsage =
 sig

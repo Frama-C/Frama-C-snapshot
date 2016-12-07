@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   vol ∈ [--..--]
   str ∈ {{ "abc" }}
   x ∈ {0}
@@ -43,23 +43,23 @@ tests/value/tricky_logic.i:53:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   x ∈ {4}
   y ∈ {5}
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   
-[value] Values at end of function g4:
+[value:final-states] Values at end of function g4:
   s.i1 ∈ {3}
    .i2 ∈ {2} or UNINITIALIZED
   x_0 ∈ {1}
-[value] Values at end of function f4:
+[value:final-states] Values at end of function f4:
   p ∈ {{ &z }}
   q ∈ {{ &x }}
   s.i1 ∈ {1} or UNINITIALIZED
    .i2 ∈ {2} or UNINITIALIZED
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {2; 3}
   y ∈ {5}
 [from] Computing for function f1

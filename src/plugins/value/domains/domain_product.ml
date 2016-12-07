@@ -49,6 +49,10 @@ module Make
       (struct let module_name = name end)
   type state = t
 
+  let pretty fmt (left, right) =
+    Format.fprintf fmt
+      "@[<v>(@[%a@]@ ,@  @[%a@])@]" Left.pretty left Right.pretty right
+
   let structure = Abstract_domain.Node (Left.structure, Right.structure)
 
   let top = Left.top, Right.top
@@ -127,20 +131,22 @@ module Make
 
   let merge_return _kf left right =
     let post_state = left.post_state, right.post_state
-    and summary = left.summary, right.summary
-    and returned_value =
-      match left.returned_value, right.returned_value with
+    and return =
+      match left.return, right.return with
       | None, None            -> None
-      | Some left, Some right -> Some (merge_values left right)
-      | Some x, None
-      | None, Some x -> Some x (* TODO! *)
+      | Some (left_value, left_return), Some (right_value, right_return) ->
+        let value = merge_values left_value right_value
+        and return = left_return, right_return in
+        Some (value, return)
+      | Some _, None -> None
+      | None, Some _ -> None (* TODO! *)
         (*
         Format.printf "Function %a@." Kernel_function.pretty kf;
         Value_parameters.abort ~current:true ~once:true
           "Return value present in right domain and not in left domain."
         *)
     in
-    { post_state; returned_value; summary }
+    { post_state; return; }
 
   let merge_results kf left_list right_list =
     List.fold_left
@@ -152,8 +158,8 @@ module Make
 
 
 
-  module Summary = Datatype.Pair (Left.Summary) (Right.Summary)
-  type summary = Summary.t
+  module Return = Datatype.Pair (Left.Return) (Right.Return)
+  type return = Return.t
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -162,7 +168,7 @@ module Make
   = struct
 
     type state = t
-    type summary = Summary.t
+    type return = Return.t
     type value = Value.t
     type location = Left.location
     type valuation = Valuation.t
@@ -224,21 +230,24 @@ module Make
       Right_Transfer.assume stmt expr positive valuation right >>-: fun right ->
       left, right
 
-    let summarize kf stmt ~returned (left, right) =
-      Left_Transfer.summarize kf stmt ~returned left
-      >>- fun (left_summary, left_state) ->
-      Right_Transfer.summarize kf stmt ~returned right
-      >>-: fun (right_summary, right_state) ->
-      (left_summary, right_summary), (left_state, right_state)
+    let make_return kf stmt assign valuation (left, right) =
+      Left_Transfer.make_return kf stmt assign valuation left,
+      Right_Transfer.make_return kf stmt assign valuation right
 
-    let resolve_call stmt call ~assigned valuation ~pre ~post =
+    let finalize_call stmt call ~pre ~post =
       let pre_left, pre_right = pre
-      and (left_summary, right_summary), (left_state, right_state) = post in
-      Left_Transfer.resolve_call stmt call ~assigned valuation
-        ~pre:pre_left ~post:(left_summary, left_state)
+      and left_state, right_state = post in
+      Left_Transfer.finalize_call stmt call ~pre:pre_left ~post:left_state
       >>- fun left ->
-      Right_Transfer.resolve_call stmt call ~assigned valuation
-        ~pre:pre_right ~post:(right_summary, right_state)
+      Right_Transfer.finalize_call stmt call ~pre:pre_right ~post:right_state
+      >>-: fun right ->
+      left, right
+
+    let assign_return stmt lv kf return assign valuation (left, right) =
+      let left_return, right_return = return in
+      Left_Transfer.assign_return stmt lv kf left_return assign valuation left
+      >>- fun left ->
+      Right_Transfer.assign_return stmt lv kf right_return assign valuation right
       >>-: fun right ->
       left, right
 
@@ -247,9 +256,9 @@ module Make
       Right_Transfer.default_call stmt call right >>-: fun right_result ->
       merge_results call.kf left_result right_result
 
-    let call_action stmt call valuation (left, right) =
-      let left_action = Left_Transfer.call_action stmt call valuation left
-      and right_action = Right_Transfer.call_action stmt call valuation right in
+    let start_call stmt call valuation (left, right) =
+      let left_action = Left_Transfer.start_call stmt call valuation left
+      and right_action = Right_Transfer.start_call stmt call valuation right in
       match left_action, right_action with
       | Compute (left_init, b), Compute (right_init, b') ->
         Compute (merge_init left_init right_init, b && b')
@@ -274,7 +283,18 @@ module Make
           merge_results call.kf left_result right_result
         in
         Result (result, c2)
-      | _, _ -> assert false
+
+    let enter_loop stmt (left, right) =
+      Left_Transfer.enter_loop stmt left,
+      Right_Transfer.enter_loop stmt right
+
+    let incr_loop_counter stmt (left, right) =
+      Left_Transfer.incr_loop_counter stmt left,
+      Right_Transfer.incr_loop_counter stmt right
+
+    let leave_loop stmt (left, right) =
+      Left_Transfer.leave_loop stmt left,
+      Right_Transfer.leave_loop stmt right
 
   end
 
@@ -319,13 +339,10 @@ module Make
     Left.reduce_by_predicate left positive pred,
     Right.reduce_by_predicate right positive pred
 
-
-  let close_block fundec block ~body (left, right) =
-    Left.close_block fundec block ~body left,
-    Right.close_block fundec block ~body right
-  let open_block fundec block ~body (left, right) =
-    Left.open_block fundec block ~body left,
-    Right.open_block fundec block ~body right
+  let enter_scope kf vars (left, right) =
+    Left.enter_scope kf vars left, Right.enter_scope kf vars right
+  let leave_scope kf vars (left, right) =
+    Left.leave_scope kf vars left, Right.leave_scope kf vars right
 
 
   let empty () = Left.empty (), Right.empty ()
@@ -346,6 +363,55 @@ module Make
       ~current_input:(fst current_input) ~previous_output:(fst previous_output),
     Right.reuse
       ~current_input:(snd current_input) ~previous_output:(snd previous_output)
+
+
+  let merge_callstack_tbl left_tbl right_tbl =
+    let open Value_types in
+    let tbl = Callstack.Hashtbl.create 7 in
+    let merge callstack left =
+      try
+        let right = Callstack.Hashtbl.find right_tbl callstack in
+        Callstack.Hashtbl.replace tbl callstack (left, right)
+      with
+        Not_found -> ()
+    in
+    Callstack.Hashtbl.iter merge left_tbl;
+    Some tbl
+
+  module Store = struct
+    let register_initial_state callstack (left, right) =
+      Left.Store.register_initial_state callstack left;
+      Right.Store.register_initial_state callstack right
+    let register_state_before_stmt callstack stmt (left, right) =
+      Left.Store.register_state_before_stmt callstack stmt left;
+      Right.Store.register_state_before_stmt callstack stmt right
+    let register_state_after_stmt callstack stmt (left, right) =
+      Left.Store.register_state_after_stmt callstack stmt left;
+      Right.Store.register_state_after_stmt callstack stmt right
+
+    let get_initial_state kf =
+      Left.Store.get_initial_state kf >>- fun left ->
+      Right.Store.get_initial_state kf >>-: fun right ->
+      left, right
+    let get_initial_state_by_callstack kf =
+      let left_tbl = Left.Store.get_initial_state_by_callstack kf
+      and right_tbl = Right.Store.get_initial_state_by_callstack kf in
+      match left_tbl, right_tbl with
+      | Some left, Some right -> merge_callstack_tbl left right
+      | _, _ -> None
+
+    let get_stmt_state stmt =
+      Left.Store.get_stmt_state stmt >>- fun left ->
+      Right.Store.get_stmt_state stmt >>-: fun right ->
+      left, right
+    let get_stmt_state_by_callstack ~after stmt =
+      let left_tbl = Left.Store.get_stmt_state_by_callstack ~after stmt
+      and right_tbl = Right.Store.get_stmt_state_by_callstack ~after stmt in
+      match left_tbl, right_tbl with
+      | Some left, Some right -> merge_callstack_tbl left right
+      | _, _ -> None
+
+  end
 
 end
 

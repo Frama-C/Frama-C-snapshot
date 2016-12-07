@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..4] ∈ {0}
   u[0..4] ∈ {0}
   v ∈ [--..--]
@@ -90,25 +90,25 @@ tests/value/reduce_by_valid.i:165:[value] assertion got status valid.
 [value] Done for function main9
 [value] computing for function main10 <- main.
         Called from tests/value/reduce_by_valid.i:269.
-tests/value/reduce_by_valid.i:176:[kernel] warning: out of bounds write. assert \valid((int *)p);
+tests/value/reduce_by_valid.i:176:[value] warning: out of bounds write. assert \valid((int *)p);
 [value] Called Frama_C_show_each_main10_1({{ &t_0 + [0..36] }})
 tests/value/reduce_by_valid.i:178:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:181:[kernel] warning: out of bounds write. assert \valid((int *)p+2);
+tests/value/reduce_by_valid.i:181:[value] warning: out of bounds write. assert \valid((int *)p + 2);
 [value] Called Frama_C_show_each_main10_2({{ &t_0 + [-8..28] }})
 tests/value/reduce_by_valid.i:183:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:186:[kernel] warning: out of bounds write. assert \valid((int *)(p+2));
+tests/value/reduce_by_valid.i:186:[value] warning: out of bounds write. assert \valid((int *)(p + 2));
 [value] Called Frama_C_show_each_main10_3({{ &t_0 + [-2..34] }})
 tests/value/reduce_by_valid.i:188:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:197:[kernel] warning: out of bounds write. assert \valid(&((struct s_1 *)p)->b);
+tests/value/reduce_by_valid.i:197:[value] warning: out of bounds write. assert \valid(&((struct s_1 *)p)->b);
 [value] Called Frama_C_show_each_main10_4({{ &t_0 + [-4..32] }})
 tests/value/reduce_by_valid.i:200:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:203:[kernel] warning: out of bounds write. assert \valid(&((struct s_1 *)p+2)->b);
+tests/value/reduce_by_valid.i:203:[value] warning: out of bounds write. assert \valid(&((struct s_1 *)p + 2)->b);
 [value] Called Frama_C_show_each_main10_4({{ &t_0 + [-20..16] }})
 tests/value/reduce_by_valid.i:206:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:210:[kernel] warning: out of bounds write. assert \valid((char *)q);
+tests/value/reduce_by_valid.i:210:[value] warning: out of bounds write. assert \valid((char *)q);
 [value] Called Frama_C_show_each({{ &u_0 + [0..79] }})
 tests/value/reduce_by_valid.i:213:[value] assertion got status valid.
-tests/value/reduce_by_valid.i:216:[kernel] warning: out of bounds write. assert \valid((char *)q+2);
+tests/value/reduce_by_valid.i:216:[value] warning: out of bounds write. assert \valid((char *)q + 2);
 [value] Called Frama_C_show_each({{ &u_0 + [-2..77] }})
 tests/value/reduce_by_valid.i:219:[value] assertion got status valid.
 [value] Recording results for main10
@@ -132,23 +132,23 @@ tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   t[0..2] ∈ {0}
    [3] ∈ {0; 1}
    [4] ∈ {1}
   p ∈ {{ &t{[0], [1]} }}
   q ∈ {{ &t[1] }}
-[value] Values at end of function main10:
+[value:final-states] Values at end of function main10:
   t_0[0..39] ∈ [--..--] or UNINITIALIZED
   p ∈ {{ &t_0 + [-20..16] }}
   u_0[0..19]# ∈ {1} or UNINITIALIZED repeated %8 
   q ∈ {{ &u_0 + [-2..77] }}
-[value] Values at end of function main11:
+[value:final-states] Values at end of function main11:
   p ∈ {{ &TU + [40..200] }}
   off ∈ [0..100]
   len ∈ [50..100]
   q ∈ {{ &TC + [10..298],2%4 }}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   u[0].a ∈ {0; 1}
    [0].b ∈ {0; 2; 4}
    [1].a ∈ {0; 1; 3}
@@ -163,37 +163,37 @@ tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
   q ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b, [4].b} }}
   r ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b} }}
   s ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b} }}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   p ∈ {{ (int *)&t{[0], [1], [2], [3], [4]} }}
   q ∈ {{ (int *)&c2 }}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   c1 ∈ [--..--]
   c2 ∈ [--..--]
   c3 ∈ [--..--]
   c4 ∈ [--..--]
   p ∈ {{ (int *)&t }}
   q ∈ {{ &u[0] }}
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   q ∈ {{ &y }}
   p ∈ {0}
   r ∈ {{ &y }} or UNINITIALIZED
-[value] Values at end of function main6:
+[value:final-states] Values at end of function main6:
   S_f1_0_S_vs[0] ∈ {1}
              [1] ∈ [--..--]
-[value] Values at end of function main7:
+[value:final-states] Values at end of function main7:
   p ∈ {{ &t7_2 + [20..38996],0%4 }}
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   tp[0] ∈ {{ &t8_1[0] }}
     [1] ∈ {{ &t8_1 + [0..17179869180],0%4 }}
     [2] ∈ {{ &t8_2 + [0..17179869180],0%4 }}
     [3] ∈ {{ &t8_1 + [0..17179869180],0%4 ; &t8_2 + [0..17179869180],0%4 }}
   p ∈ {{ &tp[0] }}
-[value] Values at end of function main9:
+[value:final-states] Values at end of function main9:
   tc[0..58] ∈ {1} or UNINITIALIZED
     [59..98] ∈ UNINITIALIZED
     [99..157] ∈ {2} or UNINITIALIZED
   p ∈ {{ &tc + [-8..50] }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..2] ∈ {0}
    [3] ∈ {0; 1}
    [4] ∈ {1}

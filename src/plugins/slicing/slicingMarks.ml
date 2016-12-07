@@ -187,7 +187,7 @@ module MarkPair = struct
       Mark.pretty m.SlicingInternals.m1 Mark.pretty m.SlicingInternals.m2
 
   let to_string m =
-    Pretty_utils.sfprintf "%a" pretty m
+    Format.asprintf "%a" pretty m
 
   let minus ma mb =
     { SlicingInternals.m1 = Mark.minus ma.SlicingInternals.m1 mb.SlicingInternals.m1;

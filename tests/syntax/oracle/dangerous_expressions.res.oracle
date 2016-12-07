@@ -4,8 +4,10 @@
 int f(int * /*[10]*/ t, int n, int *ptr)
 {
   int __retres;
-  if (*(t + n)) ;
-  if (*ptr) ;
+  int tmp;
+  int tmp_3;
+  tmp = *(t + n);
+  tmp_3 = *ptr;
   __retres = 65;
   return __retres;
 }
@@ -14,8 +16,9 @@ int main(void)
 {
   int __retres;
   int *p;
+  int tmp;
   p = (int *)0;
-  if (*p) ;
+  tmp = *p;
   __retres = 0;
   return __retres;
 }

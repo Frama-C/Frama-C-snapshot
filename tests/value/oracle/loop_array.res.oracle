@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..9999] ∈ {0}
   U[0..9999] ∈ {0}
 tests/value/loop_array.i:5:[value] entering loop for the first time
@@ -12,7 +12,7 @@ tests/value/loop_array.i:12:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0..4] ∈ {0; 2}
    [5] ∈ {0}
    [6..9999] ∈ {0; 7}

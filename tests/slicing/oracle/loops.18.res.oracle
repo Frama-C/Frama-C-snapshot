@@ -1,21 +1,21 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/loops.c (with preprocessing)
+[kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing an incomplete application starting at stop_f2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   C1 ∈ [--..--]
   C2 ∈ [--..--]
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-tests/slicing/loops.c:82:[value] entering loop for the first time
-tests/slicing/loops.c:82:[kernel] warning: signed overflow. assert c+10 ≤ 2147483647;
-tests/slicing/loops.c:88:[value] warning: assertion got status unknown.
+tests/slicing/loops.i:82:[value] entering loop for the first time
+tests/slicing/loops.i:82:[value] warning: signed overflow. assert c + 10 ≤ 2147483647;
+tests/slicing/loops.i:88:[value] warning: assertion got status unknown.
 [value] computing for function stop <- stop_f2.
-        Called from tests/slicing/loops.c:89.
-tests/slicing/loops.c:89:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+        Called from tests/slicing/loops.i:89.
+tests/slicing/loops.i:89:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
 [value] Recording results for stop_f2
@@ -60,3 +60,5 @@ void stop_f2(int c)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_18_loops.i (no preprocessing)

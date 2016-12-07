@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   TT[0] ∈ {1}
     [1] ∈ {2}
     [2] ∈ {3}
@@ -28,7 +28,7 @@ tests/value/val9.i:27:[value] entering loop for the first time
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   TT[0][bits 0 to 7]# ∈ [0..8]%32, bits 0 to 7 
     [bits 8 to 39]# ∈ [0..8] repeated %32, bits 8 to 39 
     [bits 40 to 71]# ∈ [0..8] repeated %32, bits 8 to 39 

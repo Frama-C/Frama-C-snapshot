@@ -1,19 +1,19 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/top2.c (with preprocessing)
+[kernel] Parsing tests/slicing/top2.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   tab[0] ∈ {0}
      [1] ∈ {7}
   G ∈ {0}
   X ∈ {0}
   S ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/slicing/top2.c:24.
-tests/slicing/top2.c:16:[kernel] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/slicing/top2.c:16:[kernel] warning: accessing out of bounds index. assert i < 2;
+        Called from tests/slicing/top2.i:24.
+tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert 0 ≤ i;
+tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert i < 2;
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -54,3 +54,5 @@ void main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_top2.i (no preprocessing)

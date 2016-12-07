@@ -65,27 +65,27 @@ val term_lvals_of_term: term -> term_lval list
   (** @return the list of all the term lvals of a given term.
       Purely syntactic function. *)
 
-val precondition : funspec -> predicate named
+val precondition : funspec -> predicate
   (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
       @since Carbon-20101201 *)
 
-val behavior_assumes : funbehavior -> predicate named
+val behavior_assumes : funbehavior -> predicate
   (** Builds the conjonction of the [b_assumes].
       @since Nitrogen-20111001 *)
                                         
-val behavior_precondition : funbehavior -> predicate named
+val behavior_precondition : funbehavior -> predicate
   (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
       @since Carbon-20101201 *)
 
-val behavior_postcondition : funbehavior -> termination_kind -> predicate named
+val behavior_postcondition : funbehavior -> termination_kind -> predicate
   (** Builds the postcondition from [b_assumes] and [b_post_cond] clauses. 
       @modify Boron-20100401 added termination kind as filtering argument. *)
 
-val disjoint_behaviors : funspec -> string list -> predicate named
+val disjoint_behaviors : funspec -> string list -> predicate
   (** Builds the [disjoint_behaviors] property for the behavior names.
       @since Nitrogen-20111001 *)
 
-val complete_behaviors : funspec -> string list -> predicate named
+val complete_behaviors : funspec -> string list -> predicate
   (** Builds the [disjoint_behaviors] property for the behavior names.
       @since Nitrogen-20111001 *)
 

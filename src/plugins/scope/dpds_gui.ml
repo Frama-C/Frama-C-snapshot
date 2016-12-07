@@ -70,14 +70,14 @@ let get_annot_opt localizable = match localizable with
 let get_lval_opt main_ui kf_opt localizable =
   match localizable with
     | Pretty_source.PLval (Some _kf, (Kstmt _stmt), lv) ->
-        let lv_txt = Pretty_utils.sfprintf "%a" Printer.pp_lval lv in
+        let lv_txt = Format.asprintf "%a" Printer.pp_lval lv in
         Some (lv_txt, lv)
     | PTermLval (Some _kf, Kstmt _stmt, _, tlv) -> begin
         try
           let lv =
             !Db.Properties.Interp.term_lval_to_lval ~result:None tlv
           in
-          let lv_txt = Pretty_utils.sfprintf "%a" Printer.pp_term_lval tlv in
+          let lv_txt = Format.asprintf "%a" Printer.pp_term_lval tlv in
           Some (lv_txt, lv)
         with Invalid_argument _ -> None
       end
@@ -296,7 +296,7 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
           let msg = match undef with
             | None -> ""
             | Some undef ->
-                Pretty_utils.sfprintf "[Show Defs] notice that %a %s"
+                Format.asprintf "[Show Defs] notice that %a %s"
                   pretty_zone undef
                   "may not be defined by this function at this point"
           in
@@ -350,7 +350,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
           | Some (_kf, stmt) ->
               let z = !Db.Scope.get_zones zones stmt in
               let txt =
-                Pretty_utils.sfprintf "[zones] needed before stmt %d = %a"
+                Format.asprintf "[zones] needed before stmt %d = %a"
                   stmt.sid pretty_zone z
               in txt
     with Not_found -> ""
@@ -418,7 +418,7 @@ let callbacks funct main_ui (kf, stmt, localizable) =
     if msg <> "" then add_msg main_ui msg
   in
   let set_txt x =
-    let txt = Pretty_utils.sfprintf
+    let txt = Format.asprintf
       "[dependencies] for %s before stmt %d in %a"
       x stmt.sid Kernel_function.pretty kf
     in

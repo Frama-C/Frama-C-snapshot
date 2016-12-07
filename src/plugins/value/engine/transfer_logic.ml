@@ -54,7 +54,8 @@ let msg_status status ?current ?once ?source fmt =
     if Value_parameters.ValShowProgress.get ()
     then Value_parameters.result ?current ?once ?source fmt
     else Value_parameters.result ?current ?once ?source ~level:2 fmt
-  else Value_parameters.warning ?current ?once ?source fmt
+  else
+    Value_util.alarm_report ?current ?once ?source fmt
 
 
 module Make
@@ -160,7 +161,7 @@ module Make
   exception Does_not_improve
 
   let rec fold_on_disjunction f p acc =
-    match p.content with
+    match p.pred_content with
     | Por (p1,p2 ) -> fold_on_disjunction f p2 (fold_on_disjunction f p1 acc)
     | _ -> f p acc
 
@@ -217,7 +218,7 @@ module Make
 
   let emit_message_and_status kind kf behavior active property named_pred status =
     let pp_header = pp_header kf in
-    let source = fst named_pred.Cil_types.loc in
+    let source = fst named_pred.Cil_types.pred_loc in
     match kind with
     | Precondition | Postcondition PostBody ->
       msg_status status ~once:true ~source
@@ -235,7 +236,7 @@ module Make
       let pp_behavior_inactive fmt =
         Format.fprintf fmt ",@ the behavior@ was@ inactive"
       in
-      if status = Alarmset.False && named_pred.content <> Pfalse then
+      if status = Alarmset.False && named_pred.pred_content <> Pfalse then
         Value_parameters.warning ~once:true ~source
           "@[%a:@ this postcondition@ evaluates to@ false@ in this@ context.\
            @ If it is valid,@ either@ a precondition@ was not@ verified@ \
@@ -248,36 +249,6 @@ module Make
          overwite the "considered valid" status of the kernel. *)
       if postk = PostUseSpec then
         emit_status property (conv_status status)
-
-  (* Emits informative messages about inactive behaviors, and emits a valid
-     status for requires and ensures that have not been evaluated. *)
-  let process_inactive_behavior kf behavior =
-    let emitted = ref false in
-    (* We emit a valid status for every requires and ensures of the behavior. *)
-    List.iter (fun (tk, _ as post) ->
-        if tk = Normal then begin
-          emitted := true;
-          if post_kind kf <> PostLeaf then
-            let ip = Property.ip_of_ensures kf Kglobal behavior post in
-            emit_status ip Property_status.True;
-        end
-      ) behavior.b_post_cond;
-    List.iter (fun pre ->
-        emitted := true;
-        let ip = Property.ip_of_requires kf Kglobal behavior pre in
-        emit_status ip Property_status.True;
-      ) behavior.b_requires;
-    if !emitted then
-      Value_parameters.result ~once:true ~current:true ~level:2
-        "%a: assumes got status invalid; behavior not evaluated.%t"
-        (pp_header kf) behavior Value_util.pp_callstack
-
-  let _process_inactive_behaviors kf ab =
-    List.iter
-      (fun b ->
-         if ab.ActiveBehaviors.is_active b = Alarmset.False then
-           process_inactive_behavior kf b
-      ) ab.ActiveBehaviors.funspec.spec_behavior
 
   (* Emits informative messages about behavior postconditions not evaluated
      because the _requires_ of the behavior are invalid. *)
@@ -300,7 +271,7 @@ module Make
       ) inactive_post_state_list
 
   let warn_inactive kf b pre_post ip =
-    let source = fst ip.ip_loc in
+    let source = fst ip.ip_content.pred_loc in
     Value_parameters.result ~once:true ~source ~level:2
       "%a: assumes got status invalid; %a not evaluated.%t"
       (pp_header kf) b pp_p_kind pre_post Value_util.pp_callstack
@@ -331,8 +302,8 @@ module Make
     let pp_header = pp_header kf in
     let limit = Value_util.get_slevel kf in
     let aux_pred states pred =
-      let pr = Logic_utils.named_of_identified_predicate pred in
-      let source = fst pr.Cil_types.loc in
+      let pr = Logic_const.pred_of_id_pred pred in
+      let source = fst pr.Cil_types.pred_loc in
       if States.is_empty states then
         (Value_parameters.result ~once:true ~source ~level:2
            "%a: no state left in which to evaluate %a, status%a not \
@@ -404,22 +375,12 @@ module Make
       This may result in splitting [states] if the precondition contains
       disjunctions. *)
   let check_fct_preconditions_for_behavior kf ab ~per_behavior call_ki states b =
-    let build_prop pre =
-      let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
-      match call_ki with
-      | Kglobal -> (* status of the main function. We update the global
-                      status, and pray that there is no recursion.
-                      TODO: check what the WP does.*)
-        ip_precondition
-      | Kstmt stmt ->
-        (* choose the copy of the precondition on the call point [stmt]. *)
-        Statuses_by_call.setup_precondition_proxy kf ip_precondition;
-        Statuses_by_call.precondition_at_call kf ip_precondition stmt
-    in
     let build_env pre = Domain.env_pre_f ~pre () in
     let refine = refine_active ab b per_behavior in
     let k = Precondition in
-    eval_and_reduce kf b refine k b.b_requires states build_prop build_env
+    if refine = None then Eval_annots.process_inactive_behavior kf call_ki b;
+    let ip = Eval_annots.ip_from_precondition kf call_ki b in
+    eval_and_reduce kf b refine k b.b_requires states ip build_env
 
   (*  Check the precondition of [kf]. This may result in splitting [init_state]
       into multiple states if the precondition contains disjunctions. *)
@@ -437,7 +398,8 @@ module Make
     match ca.annot_content with
     | AAssert _ ->  "assertion"
     | AInvariant _ ->  "loop invariant"
-    | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ ->
+    | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ 
+    | AExtended _ ->
       assert false (* currently not treated by Value *)
 
   (* location of the given code annotation. If unknown, use the location of the
@@ -527,8 +489,8 @@ module Make
         if record then begin
           let text = code_annotation_text code_annot in
           Value_parameters.result ~once:true ~source ~level:2
-            "no state left in which to evaluate %s, status not \
-             computed.%t" (String.lowercase text) Value_util.pp_callstack;
+            "no state left in which to evaluate %s, status not computed.%t"
+            (Transitioning.String.lowercase_ascii text) Value_util.pp_callstack;
         end;
         states
       ) else
@@ -539,7 +501,7 @@ module Make
     | AInvariant (behav, true, p) -> aux code_annot behav p
     | APragma _
     | AInvariant (_, false, _)
-    | AVariant _ | AAssigns _ | AAllocation _
+    | AVariant _ | AAssigns _ | AAllocation _ | AExtended _
     | AStmtSpec _ (*TODO*) -> states
 
 end

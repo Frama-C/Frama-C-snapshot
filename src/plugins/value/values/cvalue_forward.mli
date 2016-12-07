@@ -60,11 +60,6 @@ val do_promotion:
     qualifier [volatile]. *)
 val make_volatile: ?typ:typ -> V.t -> V.t
 
-(** If needed, cast the given abstract value to the given size. Useful
-    to handle bitfield. The type given as argument must be the type of
-    the l-value the abstract value is written into, which is of size [size]. *)
-val cast_lval_if_bitfield: typ -> V.t -> V.t
-
 val eval_float_constant: exp -> float -> fkind -> string option -> V.t Eval.evaluated
 
 val offsetmap_matches_type: typ -> Cvalue.Model.offsetmap -> bool

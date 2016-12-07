@@ -29,17 +29,10 @@
 __BEGIN_DECLS
 
 struct __fc_FILE {
-  unsigned int __fc_stdio_id;
-  fpos_t       __fc_position;
-  char         __fc_error;
-  char         __fc_eof;
-  int          __fc_flags; // O_RDONLY 1 | O_RDWR 2 | O_WRONLY 3 + more flags.
-  struct stat* __fc_inode;
-  unsigned char * __fc_real_data;
-  int          __fc_real_data_max_size;
+  unsigned int __fc_FILE_id;
+  unsigned int __fc_FILE_data;
 };
 typedef struct __fc_FILE FILE;
 
 __END_DECLS
 #endif
-

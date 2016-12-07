@@ -85,8 +85,21 @@ long double strtold(const char * restrict nptr,
      char ** restrict endptr);
 
 /* TODO: See ISO C 7.20.1.4 to complete these specifications */
-/*@ assigns \result \from nptr[0..], base; 
-    assigns *endptr \from nptr, nptr[0..], base; 
+/*@
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+    ensures \initialized(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
 long int strtol(
      const char * restrict nptr,
@@ -143,6 +156,7 @@ void srand48 (long int seed);
 void srand(unsigned int seed);
 
 /* ISO C: 7.20.3.1 */
+//@ requires nmemb * size <= __FC_SIZE_MAX;
 void *calloc(size_t nmemb, size_t size);
 
 /*@ ghost extern int __fc_heap_status __attribute__((FRAMA_C_MODEL)); */
@@ -155,11 +169,11 @@ void *calloc(size_t nmemb, size_t size);
  
 /*@ allocates \result;
   @ assigns __fc_heap_status \from size, __fc_heap_status;
-  @ assigns \result \from size, __fc_heap_status;
+  @ assigns \result \from indirect:size, indirect:__fc_heap_status;
   @ behavior allocation:
   @   assumes is_allocable(size);
   @   assigns __fc_heap_status \from size, __fc_heap_status;
-  @   assigns \result \from size, __fc_heap_status;
+  @   assigns \result \from indirect:size, indirect:__fc_heap_status;
   @   ensures \fresh(\result,size);
   @ behavior no_allocation:
   @   assumes !is_allocable(size);
@@ -186,16 +200,6 @@ void *malloc(size_t size);
   @ disjoint behaviors;
   @*/
 void free(void *p);
-
-#ifdef FRAMA_C_MALLOC_POSITION
-#define __FRAMA_C_STRINGIFY(x) #x
-#define __FRAMA_C_XSTRINGIFY(x) __FRAMA_C_STRINGIFY(x)
-#define FRAMA_C_LOCALIZE_WARNING (" file " __FILE__ " line " __FRAMA_C_XSTRINGIFY(__LINE__))
-#define malloc(x) (__Frama_C_malloc_at_pos(x,__FILE__ "_function_" __func__ "_line_" __FRAMA_C_XSTRINGIFY(__LINE__)))
-#define free(x) (__Frama_C_free_at_pos(x,FRAMA_C_LOCALIZE_WARNING))
-void *__Frama_C_malloc_at_pos(size_t size,const char* file);
-void __Frama_C_free_at_pos(void* ptr,const char* pos);
-#endif
 
 /*@
    requires ptr == \null || \freeable(ptr);

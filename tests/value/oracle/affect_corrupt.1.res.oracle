@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NULL[rbits 0 to 31] ∈ [--..--]
   p ∈ {0}
   r ∈ {77}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   r ∈ [--..--]
 [from] Computing for function main
 [from] Done for function main

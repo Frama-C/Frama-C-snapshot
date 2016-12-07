@@ -1,5 +1,5 @@
 /* run.config
-OPT: -semantic-const-folding -check
+OPT: -semantic-const-folding
 */
 
 enum E { A, B, C, D };

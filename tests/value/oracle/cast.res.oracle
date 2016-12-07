@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
   K ∈ {0}
@@ -56,10 +56,10 @@ tests/value/cast.i:50:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function any_int_4:
+[value:final-states] Values at end of function any_int_4:
   i_0 ∈ [--..--]
   __retres ∈ [-536870912..536870911]
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   G ∈ [0..12]
   H ∈ [-536870912..536870911]
   K ∈ [-10..20]
@@ -70,12 +70,12 @@ tests/value/cast.i:50:[value] entering loop for the first time
   e ∈ [-128..126],0%2
   uc ∈ [--..--]
   ull ∈ {1}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   min ∈ {130}
   max ∈ {135}
   i_0 ∈ [136..2147483647]
   G_0 ∈ {-126; -125; -124; -123; -122; -121} or UNINITIALIZED
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ [0..12]
   H ∈ [-536870912..536870911]
   K ∈ [-10..20]

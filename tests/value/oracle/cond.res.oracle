@@ -4,7 +4,7 @@ tests/value/cond.i:34:[kernel] warning: Calling undeclared function unknf. Old s
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   x ∈ {0}
   y ∈ {0}
@@ -20,8 +20,8 @@ tests/value/cond.i:34:[kernel] warning: Calling undeclared function unknf. Old s
   p ∈ {0}
   z ∈ {0}
   R ∈ {0}
-tests/value/cond.i:14:[kernel] warning: out of bounds read. assert \valid_read(argv);
-tests/value/cond.i:14:[kernel] warning: out of bounds read. assert \valid_read(*argv);
+tests/value/cond.i:14:[value] warning: out of bounds read. assert \valid_read(argv);
+tests/value/cond.i:14:[value] warning: out of bounds read. assert \valid_read(*argv);
 [value] computing for function f <- main.
         Called from tests/value/cond.i:20.
 [value] Recording results for f
@@ -40,9 +40,9 @@ tests/value/cond.i:34:[kernel] warning: Neither code nor specification for funct
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ [-128..0]
   y ∈ [-10..32767]
   i ∈ {1; 2; 3; 4; 5; 6; 7}

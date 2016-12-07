@@ -186,7 +186,7 @@ let idx = function
   | SInt64 -> 7
 
 let imemo f =
-  let m = Array.create 8 None in
+  let m = Array.make 8 None in
   fun i ->
     let k = idx i in
     match m.(k) with
@@ -198,12 +198,18 @@ let fdx = function
   | Float64 -> 1
 
 let fmemo f =
-  let m = Array.create 2 None in
+  let m = Array.make 2 None in
   fun z ->
     let k = fdx z in
     match m.(k) with
     | Some r -> r
     | None -> let r = f z in m.(k) <- Some r ; r
+
+let iiter f =
+  List.iter f [UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
+
+let fiter f =
+  List.iter f [Float32;Float64]
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
@@ -301,130 +307,6 @@ let object_of typ =
   | TNamed _  ->
       WpLog.fatal "non-unrolled named type (%a)" Printer.pp_typ typ
 
-let object_of_pointed = function
-    C_int _ | C_float _ | C_comp _ as o ->
-      Wp_parameters.fatal
-        "object_of_pointed called on non-pointer %a@." pp_object o
-  | C_array info -> object_of info.arr_element
-  | C_pointer typ -> object_of typ
-
-
-let object_of_array_elem = function
-  | C_array arr -> object_of arr.arr_element
-  | o -> Wp_parameters.fatal ~current:true
-           "object_of_array_elem called on non-array %a." pp_object o
-
-let rec object_of_logic_type t =
-  match Logic_utils.unroll_type t with
-  | Ctype ty -> object_of ty
-  | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
-  | t -> Wp_parameters.fatal ~current:true
-           "@[<hov 2>c-object of logic type@ (%a)@]"
-           Printer.pp_logic_type t
-
-let rec object_of_logic_pointed t =
-  match Logic_utils.unroll_type t with
-  | Ctype ty -> object_of_pointed (object_of ty)
-  | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
-  | t -> Wp_parameters.fatal ~current:true
-           "@[<hov 2>pointed of logic type@ (%a)@]"
-           Printer.pp_logic_type t
-
-let no_infinite_array = function
-  | C_array {arr_flat = None} -> false
-  | _ -> true
-
-let array_dim arr =
-  match arr.arr_flat with
-  | Some f -> object_of f.arr_cell , f.arr_dim - 1
-  | None ->
-      let rec collect_dim arr n =
-        match object_of arr.arr_element with
-        | C_array arr -> collect_dim arr (succ n)
-        | te -> te,n
-      in collect_dim arr 1
-
-let rec array_dimensions a =
-  let te = object_of a.arr_element in
-  let d = match a.arr_flat with None -> None | Some f -> Some f.arr_size in
-  match te with
-  | C_array a -> let te,ds = array_dimensions a in te , d::ds
-  | _ -> te , [d]
-
-let array_size typ =
-  match object_of typ with
-  | C_array { arr_flat=Some { arr_size=s } } -> Some s
-  | C_array { arr_flat=None } when Wp_parameters.ExternArrays.get () -> Some max_int
-  | _ -> None
-
-let dimension_of_object = function
-  | C_int _ | C_float _ | C_pointer _ | C_comp _ | C_array { arr_flat=None } -> None
-  | C_array { arr_flat=Some a } -> Some (a.arr_dim , a.arr_cell_nbr)
-
-let int64_max a b =
-  if Int64.compare a b < 0 then b else a
-
-let sizeof_defined = function
-  | C_array { arr_flat = None } -> false
-  | _ -> true
-
-let rec sizeof_object = function
-  | C_int i -> i_bytes i
-  | C_float f -> f_bytes f
-  | C_pointer _ty -> i_bytes (c_ptr())
-  | C_comp cinfo ->
-      let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
-      (Cil.bitsSizeOf ctype / 8)
-  | C_array ainfo ->
-      match ainfo.arr_flat with
-      | Some a ->
-          let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
-          let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
-          (Cil.bitsSizeOf ctype / 8)
-      | None ->
-          if WpLog.ExternArrays.get () then
-            max_int
-          else
-            WpLog.fatal ~current:true "Sizeof unknown-size array"
-
-let sizeof_typ t = Cil.bitsSizeOf t / 8
-
-let field_offset fd =
-  let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
-  let offset = Field(fd,NoOffset) in
-  fst (Cil.bitsOffset ctype offset) / 8
-
-(* Conforms to C-ISO 6.3.1.8        *)
-(* If same sign => greater rank.    *)
-(* If different:                    *)
-(* Case 1:                          *)
-(*   rank(unsigned) >= rank(signed) *)
-(*   then convert to unsigned       *)
-(* Case 2:                          *)
-(*   domain(unsigned) contains      *)
-(*   domain(signed)                 *)
-(*   then convert to signed         *)
-(* Otherwise:                       *)
-(*   both are converted to unsiged  *)
-(*                                  *)
-(* Case 2 is actually the negative  *)
-(* of Case 1, and both simplifies   *)
-(* into converting to the operand   *)
-(* with greater rank, whatever      *)
-(* their sign.                      *)
-
-let i_convert t1 t2 = if i_bits t1 < i_bits t2 then t2 else t1
-let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
-
-let promote a1 a2 =
-  match a1 , a2 with
-  | C_int i1 , C_int i2 -> C_int (i_convert i1 i2)
-  | C_float f1 , C_float f2 -> C_float (f_convert f1 f2)
-  | C_int _ , C_float _ -> a2
-  | C_float _ , C_int _ -> a1
-  | _ -> WpLog.not_yet_implemented
-           "promotion between arithmetics and pointer types"
-
 (* ------------------------------------------------------------------------ *)
 (* --- Comparable                                                       --- *)
 (* ------------------------------------------------------------------------ *)
@@ -494,6 +376,153 @@ let () =
     cmp := compare ;
   end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Accessor Utilities                                                 --- *)
+(* -------------------------------------------------------------------------- *)
+
+let object_of_pointed = function
+    C_int _ | C_float _ | C_comp _ as o ->
+      Wp_parameters.fatal
+        "object_of_pointed called on non-pointer %a@." pp_object o
+  | C_array info -> object_of info.arr_element
+  | C_pointer typ -> object_of typ
+
+
+let object_of_array_elem = function
+  | C_array arr -> object_of arr.arr_element
+  | o -> Wp_parameters.fatal ~current:true
+           "object_of_array_elem called on non-array %a." pp_object o
+
+let rec object_of_logic_type t =
+  match Logic_utils.unroll_type t with
+  | Ctype ty -> object_of ty
+  | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
+  | t -> Wp_parameters.fatal ~current:true
+           "@[<hov 2>c-object of logic type@ (%a)@]"
+           Printer.pp_logic_type t
+
+let rec object_of_logic_pointed t =
+  match Logic_utils.unroll_type t with
+  | Ctype ty -> object_of_pointed (object_of ty)
+  | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
+  | t -> Wp_parameters.fatal ~current:true
+           "@[<hov 2>pointed of logic type@ (%a)@]"
+           Printer.pp_logic_type t
+
+let array_dim arr =
+  match arr.arr_flat with
+  | Some f -> object_of f.arr_cell , f.arr_dim - 1
+  | None ->
+      let rec collect_dim arr n =
+        match object_of arr.arr_element with
+        | C_array arr -> collect_dim arr (succ n)
+        | te -> te,n
+      in collect_dim arr 1
+
+let rec array_dimensions a =
+  let te = object_of a.arr_element in
+  let d = match a.arr_flat with None -> None | Some f -> Some f.arr_size in
+  match te with
+  | C_array a -> let te,ds = array_dimensions a in te , d::ds
+  | _ -> te , [d]
+
+let dimension_of_object = function
+  | C_int _ | C_float _ | C_pointer _ | C_comp _ | C_array { arr_flat=None } -> None
+  | C_array { arr_flat=Some a } -> Some (a.arr_dim , a.arr_cell_nbr)
+
+let no_infinite_array = function
+  | C_array {arr_flat = None} -> false
+  | _ -> true
+
+let is_comp obj c = match obj with
+  | C_comp c0 -> Compinfo.equal c c0
+  | _ -> false
+
+let is_array obj ~elt = match obj with
+  | C_array { arr_element = e } -> equal (object_of e) elt
+  | _ -> false
+
+let array_size = function
+  | { arr_flat = Some { arr_size=s } } -> Some s
+  | { arr_flat = None } ->
+      if Wp_parameters.ExternArrays.get () then Some max_int else None
+        
+let get_array_size = function
+  | C_array a -> array_size a
+  | _ -> None
+
+let get_array = function
+  | C_array a -> Some( object_of a.arr_element, array_size a )
+  | _ -> None
+
+(* -------------------------------------------------------------------------- *)
+(* --- Sizeof                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let int64_max a b =
+  if Int64.compare a b < 0 then b else a
+
+let sizeof_defined = function
+  | C_array { arr_flat = None } -> false
+  | _ -> true
+
+let rec sizeof_object = function
+  | C_int i -> i_bytes i
+  | C_float f -> f_bytes f
+  | C_pointer _ty -> i_bytes (c_ptr())
+  | C_comp cinfo ->
+      let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
+      (Cil.bitsSizeOf ctype / 8)
+  | C_array ainfo ->
+      match ainfo.arr_flat with
+      | Some a ->
+          let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
+          let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
+          (Cil.bitsSizeOf ctype / 8)
+      | None ->
+          if WpLog.ExternArrays.get () then
+            max_int
+          else
+            WpLog.fatal ~current:true "Sizeof unknown-size array"
+
+let sizeof_typ t = Cil.bitsSizeOf t / 8
+
+let field_offset fd =
+  let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
+  let offset = Field(fd,NoOffset) in
+  fst (Cil.bitsOffset ctype offset) / 8
+
+(* Conforms to C-ISO 6.3.1.8        *)
+(* If same sign => greater rank.    *)
+(* If different:                    *)
+(* Case 1:                          *)
+(*   rank(unsigned) >= rank(signed) *)
+(*   then convert to unsigned       *)
+(* Case 2:                          *)
+(*   domain(unsigned) contains      *)
+(*   domain(signed)                 *)
+(*   then convert to signed         *)
+(* Otherwise:                       *)
+(*   both are converted to unsiged  *)
+(*                                  *)
+(* Case 2 is actually the negative  *)
+(* of Case 1, and both simplifies   *)
+(* into converting to the operand   *)
+(* with greater rank, whatever      *)
+(* their sign.                      *)
+
+let i_convert t1 t2 = if i_bits t1 < i_bits t2 then t2 else t1
+let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
+
+let promote a1 a2 =
+  match a1 , a2 with
+  | C_int i1 , C_int i2 -> C_int (i_convert i1 i2)
+  | C_float f1 , C_float f2 -> C_float (f_convert f1 f2)
+  | C_int _ , C_float _ -> a2
+  | C_float _ , C_int _ -> a1
+  | _ -> WpLog.not_yet_implemented
+           "promotion between arithmetics and pointer types"
+
 let merge a b =
   match a,b with
   | C_int i, C_int i' -> if sub_c_int i' i then a else b
@@ -501,8 +530,8 @@ let merge a b =
   | _ -> assert (equal a b) ; a
 
 let rec basename = function
-  | C_int i -> Pretty_utils.sfprintf "%a" pp_int i
-  | C_float f -> Pretty_utils.sfprintf "%a" pp_float f
+  | C_int i -> Format.asprintf "%a" pp_int i
+  | C_float f -> Format.asprintf "%a" pp_float f
   | C_pointer _ -> "pointer"
   | C_comp c -> c.cname
   | C_array a ->
@@ -511,17 +540,24 @@ let rec basename = function
       | None -> te ^ "_array"
       | Some f -> te ^ "_" ^ string_of_int f.arr_size
 
+let is_atomic = function
+  | TVoid _ | TInt _ | TFloat _ | TNamed _ -> true
+  | _ -> false
+
 let rec pretty fmt = function
   | C_int i -> pp_int fmt i
   | C_float f -> pp_float fmt f
-  | C_pointer ty -> Format.fprintf fmt "%a*" Printer.pp_typ ty
   | C_comp c -> Format.pp_print_string fmt c.cname
+  | C_pointer ty ->
+      if is_atomic ty then
+        Format.fprintf fmt "%a*" Printer.pp_typ ty
+      else
+        Format.fprintf fmt "(%a)*" Printer.pp_typ ty
   | C_array a ->
       let te = object_of a.arr_element in
       match a.arr_flat with
       | None -> Format.fprintf fmt "%a[]" pretty te
       | Some f -> Format.fprintf fmt "%a[%d]" pretty te f.arr_size
-
 
 module C_object = Datatype.Make(struct
     type t = c_object

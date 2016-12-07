@@ -41,50 +41,50 @@ module Dfs = Graph.Traverse.Dfs(G)
 
 (* We use the following encoding to store the directives in the AST: *)
 type local_slevel =
-  | LMerge (* encoded as 'Pfalse' *)
-  | LDefault (* encoded as 'Ptrue' *)
-  | LLocal of int (* encoded as 'Prel (=, i, i)' *)
+  | LMerge (* encoded as '"merge"' *)
+  | LDefault (* encoded as '"default"' *)
+  | LLocal of int (* encoded as 'Const i' *)
 
-let retrieve_annot lp =
-  match lp with
-  | [{ip_content = Prel (_, {term_node = TConst (Integer (i, _))}, _)}] ->
+let retrieve_annot lt =
+  match lt with
+  | [{term_node = TConst (Integer (i, _))}] ->
     LLocal (Integer.to_int i)
-  | [{ip_content = Ptrue}] -> LDefault
-  | [{ip_content = Pfalse}] -> LMerge
+  | [{term_node = TConst (LStr "default")}] -> LDefault
+  | [{term_node = TConst (LStr "merge")}] -> LMerge
   | _ -> LDefault (* be kind. Someone is bound to write a visitor that will
                      simplify our term into something unrecognizable... *)
 
 let () = Logic_typing.register_behavior_extension "slevel"
-  (fun ~typing_context:_ ~loc bhv args ->
+  (fun ~typing_context:_ ~loc args ->
     let abort () =
       Value_parameters.abort ~source:(fst loc) "Invalid slevel directive"
     in
     let open Logic_ptree in
     let p = match args with
-    | [{lexpr_node = PLvar "default"}] ->
-      Logic_const.(new_predicate ptrue)
-    | [{lexpr_node = PLvar "merge"}] ->
-      Logic_const.(new_predicate pfalse)
+    | [{lexpr_node = PLvar ("default" | "merge" as s)}] ->
+      Logic_const.tstring s
     | [{lexpr_node = PLconstant (IntConstant i)}] ->
       begin
         try
           let i = int_of_string i in
           if i < 0 then abort ();
-          let i = Logic_const.tinteger i in
-          Logic_const.(new_predicate (prel (Req, i, i)))
+          Logic_const.tinteger i
         with Failure _ -> abort ()
       end
     | _ -> abort ()
     in
-    bhv.b_extended <- ("slevel", 0, [p]) :: bhv.b_extended;
-  )
+    Ext_terms [p]
+)
 
 let () = Cil_printer.register_behavior_extension "slevel"
-  (fun _pp fmt (_, lp) ->
-    match retrieve_annot lp with
-    | LDefault -> Format.pp_print_string fmt "default"
-    | LMerge -> Format.pp_print_string fmt "merge"
-    | LLocal i -> Format.pp_print_int fmt i
+  (fun _pp fmt lp ->
+    match lp with
+    | Ext_id _ | Ext_preds _ -> assert false
+    | Ext_terms lt ->
+      match retrieve_annot lt with
+      | LDefault -> Format.pp_print_string fmt "default"
+      | LMerge -> Format.pp_print_string fmt "merge"
+      | LLocal i -> Format.pp_print_int fmt i
   )
 
 type slevel =
@@ -116,7 +116,8 @@ let extract_slevel_directive s =
     match l with
     | [] -> None
     | {annot_content =
-        AStmtSpec (_, { spec_behavior = [{b_extended = ["slevel", _, lp]}]})}
+        AStmtSpec (_, { spec_behavior =
+                          [{b_extended = ["slevel", Ext_terms lp]}]})}
       :: _ -> Some (retrieve_annot lp)
     | _ :: q -> find_one q
   in

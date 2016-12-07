@@ -10,7 +10,7 @@ let check_expr_term check fct s e =
   in
   let term =
     match e with
-      | (_, { ip_content = Papp(_,_,[l;_]) }) -> l
+      | (_, { ip_content = { pred_content = Papp(_,_,[l;_]) } }) -> l
       | _ -> Kernel.fatal "Unexpected ensures %a" Printer.pp_post_cond e
   in
   let term' = Logic_utils.expr_to_term ~cast:false exp in
@@ -44,8 +44,7 @@ let treat_fct check fct =
       (Pretty_utils.pp_list ~sep:"@\n@\n" Printer.pp_stmt) stmts
       (Pretty_utils.pp_list ~sep:"@\n@\n" Printer.pp_post_cond) ensures;
   List.iter2 (check_expr_term check fct) stmts ensures;
-  Visitor.visitFramacFileSameGlobals
-    (new Filecheck.check "check_expr_to_term") (Ast.get())
+  Filecheck.check_ast "check_expr_to_term"
 
 let compute () =
   let main = Globals.Functions.find_by_name "main" in

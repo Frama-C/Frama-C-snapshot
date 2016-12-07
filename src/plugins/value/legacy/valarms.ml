@@ -44,7 +44,7 @@ let local_printer: Printer.extensible_printer = object (self)
     match ca.annot_content with
     | AAssert(_, p) ->  
       (* ignore the ACSL name *) 
-      Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate p.content;
+      Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate_node p.pred_content;
       (* print temporary variables information *)
       if not (Cil_datatype.Varinfo.Set.is_empty temporaries) then begin
         Format.fprintf fmt "@ @[(%t)@]" self#pp_temporaries

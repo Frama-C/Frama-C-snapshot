@@ -4,7 +4,7 @@ tests/float/cond_cast_int_to_float.c:18:[kernel] warning: Floating-point constan
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/float/cond_cast_int_to_float.c:15:[value] warning: function main: precondition got status unknown.
 [value] computing for function assert <- main.
@@ -60,7 +60,7 @@ tests/float/cond_cast_int_to_float.c:3:[value] function assert: precondition got
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function main
 [from] Computing for function assert <-main

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   x2 ∈ {0}
   x9[0..5][0..1] ∈ {0}
@@ -12,7 +12,7 @@ tests/value/ulongvslonglong.i:14:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {1}
   x2 ∈ {2793414595}
   x9[0..5][0..1] ∈ {0; 1}

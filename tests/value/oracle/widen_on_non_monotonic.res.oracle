@@ -5,7 +5,7 @@ tests/value/widen_on_non_monotonic.i:58:[kernel] warning: Calling undeclared fun
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -19,16 +19,15 @@ tests/value/widen_on_non_monotonic.i:58:[kernel] warning: Calling undeclared fun
         Called from tests/value/widen_on_non_monotonic.i:71.
 tests/value/widen_on_non_monotonic.i:25:[value] entering loop for the first time
 tests/value/widen_on_non_monotonic.i:23:[value] entering loop for the first time
-tests/value/widen_on_non_monotonic.i:26:[value] entering loop for the first time
-tests/value/widen_on_non_monotonic.i:27:[kernel] warning: signed overflow. assert -2147483648 ≤ b-1;
+tests/value/widen_on_non_monotonic.i:27:[value] warning: signed overflow. assert -2147483648 ≤ b - 1;
 [value] Recording results for main1
 [value] Done for function main1
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main1
 [from] Non-terminating function main1 (no dependencies)

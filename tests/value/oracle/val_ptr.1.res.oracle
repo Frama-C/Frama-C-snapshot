@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at f1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -21,7 +21,7 @@ tests/value/val_ptr.i:34:[value] entering loop for the first time
 [value] Recording results for f1
 [value] done for function f1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   p ∈ {{ &T[0] }}
 [from] Computing for function f1
 [from] Done for function f1

@@ -68,7 +68,7 @@ module Prune: Parameter_sig.Bool
 module Clean: Parameter_sig.Bool
 module Filter: Parameter_sig.Bool
 module Bits: Parameter_sig.Bool
-module QedChecks : Parameter_sig.Bool
+module QedChecks : Parameter_sig.String_set
 module Split: Parameter_sig.Bool
 module Invariants: Parameter_sig.Bool
 module DynCall : Parameter_sig.Bool
@@ -125,6 +125,7 @@ val get_includes: unit -> string list
 val make_output_dir: string -> unit
 
 (** {2 Debugging Categories} *)
+val has_print_generated: unit -> bool
 val print_generated: string -> unit
 (** print the given file if the debugging category
     "print-generated" is set *)

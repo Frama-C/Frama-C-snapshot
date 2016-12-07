@@ -47,8 +47,8 @@ int main(void)
         assigns b;
   */
   b = f(a,& c);
-  /*@ assert rte: signed_overflow: -2147483648 ≤ b+c; */
-  /*@ assert rte: signed_overflow: b+c ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ b + c; */
+  /*@ assert rte: signed_overflow: b + c ≤ 2147483647; */
   __retres = b + c;
   return __retres;
 }

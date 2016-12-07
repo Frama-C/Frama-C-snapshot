@@ -65,11 +65,7 @@ let basename def name =
    'Null<phi>' Null value for type <phi>
 *)
 let avoid_leading_backlash s =
-  if s.[0]='\\' then
-    let s = String.copy s in
-    s.[0]<-'_';
-    s
-  else s
+  String.mapi (fun i c -> if i = 0 && c = '\\' then '_' else c) s
 
 let comp_id c =
   let prefix = if c.cstruct then 'S' else 'U' in
@@ -613,21 +609,22 @@ struct
         let mem_project _ _ = false
       end)
 
-  module STATE =
-    State_builder.Register(DATA)
-      (struct
-        type t = T.state
-        let create = T.create
-        let clear = T.clr_state
-        let get = T.get_state
-        let set = T.set_state
-        let clear_some_projects _ _ = false
-      end)
-      (struct
-        let name = "Wp.Qed"
-        let dependencies = []
-        let unique_name = name
-      end)
+  include
+    (State_builder.Register(DATA)
+       (struct
+         type t = T.state
+         let create = T.create
+         let clear = T.clr_state
+         let get = T.get_state
+         let set = T.set_state
+         let clear_some_projects _ _ = false
+       end)
+       (struct
+         let name = "Wp.Qed"
+         let dependencies = [Ast.self]
+         let unique_name = name
+       end)
+     : sig end)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term API                                                           --- *)
@@ -640,37 +637,34 @@ struct
   (* --- Term Checking                                                      --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let do_checks = ref false
-  let iter_checks f = T.iter_checks
-      (fun ~qed ~raw -> f ~qed ~raw ~goal:(T.check_unit ~qed ~raw))
+  module Check =
+  struct
+    let refs = Hashtbl.create 8
+    let empty = ref true
+    let register c =
+      let r = ref false in
+      Hashtbl.add refs c r ; r
 
-  let e_add a b =
-    let r = T.e_add a b in
-    if !do_checks then T.check (Add[a;b]) r else r
-  let e_sum xs =
-    let r = T.e_sum xs in
-    if !do_checks then T.check (Add xs) r else r
-  let e_times k x =
-    let r = T.e_times k x in
-    if !do_checks then T.check (Times(k,x)) r else r
-  let e_opp x =
-    let r = T.e_opp x in
-    if !do_checks then T.check (Times(Z.minus_one,x)) r else r
-  let e_leq a b =
-    let r = T.e_leq a b in
-    if !do_checks then T.check (Leq(a,b)) r else r
-  let e_lt a b =
-    let r = T.e_lt a b in
-    if !do_checks then T.check (Lt(a,b)) r else r
-  let e_eq a b =
-    let r = T.e_eq a b in
-    if !do_checks then T.check (Eq(a,b)) r else r
-  let e_neq a b =
-    let r = T.e_neq a b in
-    if !do_checks then T.check (Neq(a,b)) r else r
-  let e_fun f xs =
-    let r = T.e_fun f xs in
-    if !do_checks then T.check (Fun(f,xs)) r else r
+    let reset () =
+      Hashtbl.iter (fun _ r -> r := false) refs ; empty := true
+
+    let set c =
+      try (Hashtbl.find refs c) := true ; empty := false
+      with Not_found ->
+        Wp_parameters.warning "[Lang] unknown check '%s'" c
+
+    let iter f =
+      T.iter_checks
+        (fun ~qed ~raw -> f ~qed ~raw ~goal:(T.check_unit ~qed ~raw))
+
+    let is_set () = !empty
+  end
+
+  let e_imply =
+    let c = Check.register "e_imply" in
+    fun a b ->
+      let r = T.e_imply a b in
+      if !c then T.check (Imply(a,b)) r else r
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Extensions                                                    --- *)

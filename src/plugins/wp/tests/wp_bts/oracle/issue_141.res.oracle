@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/issue_141.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [rte] annotating function f
 [rte] annotating function main
 tests/wp_bts/issue_141.i:18:[wp] warning: calculus failed on strategy

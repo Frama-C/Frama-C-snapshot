@@ -4,41 +4,41 @@ tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid
 [value] Analyzing an incomplete application starting at sort4_4
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
 tests/value/sort4.i:25:[value] warning: function sort4_4: precondition got status unknown.
-tests/value/sort4.i:29:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:29:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:29:[kernel] warning: out of bounds write. assert \valid(t+1);
-tests/value/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+3);
-tests/value/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:30:[kernel] warning: out of bounds write. assert \valid(t+2);
-tests/value/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+3);
-tests/value/sort4.i:30:[kernel] warning: out of bounds write. assert \valid(t+3);
-tests/value/sort4.i:31:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:31:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:31:[kernel] warning: out of bounds write. assert \valid(t+2);
-tests/value/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+3);
-tests/value/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:32:[kernel] warning: out of bounds write. assert \valid(t+1);
-tests/value/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+3);
-tests/value/sort4.i:32:[kernel] warning: out of bounds write. assert \valid(t+3);
-tests/value/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+1);
-tests/value/sort4.i:33:[kernel] warning: out of bounds write. assert \valid(t+1);
-tests/value/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+2);
-tests/value/sort4.i:33:[kernel] warning: out of bounds write. assert \valid(t+2);
+tests/value/sort4.i:29:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:29:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:29:[value] warning: out of bounds write. assert \valid(t + 1);
+tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 3);
+tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:30:[value] warning: out of bounds write. assert \valid(t + 2);
+tests/value/sort4.i:30:[value] warning: out of bounds read. assert \valid_read(t + 3);
+tests/value/sort4.i:30:[value] warning: out of bounds write. assert \valid(t + 3);
+tests/value/sort4.i:31:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:31:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:31:[value] warning: out of bounds write. assert \valid(t + 2);
+tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 3);
+tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:32:[value] warning: out of bounds write. assert \valid(t + 1);
+tests/value/sort4.i:32:[value] warning: out of bounds read. assert \valid_read(t + 3);
+tests/value/sort4.i:32:[value] warning: out of bounds write. assert \valid(t + 3);
+tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 1);
+tests/value/sort4.i:33:[value] warning: out of bounds write. assert \valid(t + 1);
+tests/value/sort4.i:33:[value] warning: out of bounds read. assert \valid_read(t + 2);
+tests/value/sort4.i:33:[value] warning: out of bounds write. assert \valid(t + 2);
 tests/value/sort4.i:26:[value] warning: function sort4_4: postcondition got status unknown.
 [value] Recording results for sort4_4
 [value] done for function sort4_4
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function sort4_4:
+[value:final-states] Values at end of function sort4_4:
   tmp ∈ [-2147483647..2147483647] or UNINITIALIZED
   S_t[0..3] ∈ [--..--]
 [from] Computing for function sort4_4

@@ -25,7 +25,7 @@
 (* ************************************************************************* *)
 
 val get_selection_context: ?is_set:bool -> unit -> State_selection.t
-(** Selection of all the parameters which may have an impact on some
+(** Selection of all the parameters that may have an impact on some
     analysis. *)
 
 val get_selection: ?is_set:bool -> unit -> State_selection.t
@@ -67,6 +67,8 @@ sig
 end
 
 (**/**)
+
+val collections: State.Set.t ref
 
 (*
 Local Variables:

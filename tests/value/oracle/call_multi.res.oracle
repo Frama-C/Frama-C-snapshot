@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function uppol2 <- main.
         Called from tests/value/call_multi.c:29.
@@ -37,11 +37,11 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function uppol2:
+[value:final-states] Values at end of function uppol2:
   wd2 ∈ {0}
   wd4 ∈ {-128; 128}
   apl2 ∈ {-128; 128}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {256}
 [from] Computing for function uppol2
 [from] Computing for function printf <-uppol2

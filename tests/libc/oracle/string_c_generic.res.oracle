@@ -1,0 +1,314 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/string_c_generic.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_random_counter ∈ {0}
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:56.
+share/libc/string.h:208:[value] function strcpy: precondition 'valid_string_src' got status valid.
+tests/libc/string_c_generic.c:56:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+share/libc/string.h:209:[value] warning: function strcpy: precondition 'room_string' got status unknown.
+share/libc/string.c:173:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:212:[value] warning: function strcpy: postcondition got status unknown.
+share/libc/string.h:213:[value] function strcpy: postcondition got status valid.
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:57.
+share/libc/string.h:103:[value] function strcmp: precondition 'valid_string_s1' got status valid.
+share/libc/string.h:104:[value] function strcmp: precondition 'valid_string_s2' got status valid.
+share/libc/string.c:96:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:106:[value] warning: function strcmp: postcondition got status unknown.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:58.
+tests/libc/string_c_generic.c:58:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:59.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:60.
+tests/libc/string_c_generic.c:60:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:61.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:62.
+tests/libc/string_c_generic.c:62:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:63.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:65.
+tests/libc/string_c_generic.c:65:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:66.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:67.
+tests/libc/string_c_generic.c:67:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:68.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:69.
+tests/libc/string_c_generic.c:69:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:70.
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function memset <- main.
+        Called from tests/libc/string_c_generic.c:72.
+share/libc/string.h:81:[value] function memset: precondition got status valid.
+share/libc/string.c:84:[value] entering loop for the first time
+share/libc/string.c:87:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:84:[value] warning: function memset: postcondition got status unknown.
+share/libc/string.h:85:[value] function memset: postcondition got status valid.
+[value] Recording results for memset
+[value] Done for function memset
+[value] computing for function strncpy <- main.
+        Called from tests/libc/string_c_generic.c:73.
+share/libc/string.h:218:[value] function strncpy: precondition 'valid_string_src' got status valid.
+share/libc/string.h:219:[value] function strncpy: precondition 'room_nstring' got status valid.
+tests/libc/string_c_generic.c:73:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.c:183:[value] entering loop for the first time
+share/libc/string.h:222:[value] function strncpy: postcondition got status valid.
+share/libc/string.h:223:[value] function strncpy: postcondition got status valid.
+share/libc/string.c:185:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:226:[value] warning: function strncpy, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:229:[value] warning: function strncpy, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+[value] Recording results for strncpy
+[value] Done for function strncpy
+[value] computing for function memcmp <- main.
+        Called from tests/libc/string_c_generic.c:74.
+share/libc/string.h:35:[value] function memcmp: precondition got status valid.
+share/libc/string.h:36:[value] function memcmp: precondition got status valid.
+share/libc/string.c:115:[value] entering loop for the first time
+share/libc/string.c:117:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:38:[value] warning: function memcmp: postcondition got status unknown.
+[value] Recording results for memcmp
+[value] Done for function memcmp
+[value] computing for function strncpy <- main.
+        Called from tests/libc/string_c_generic.c:78.
+tests/libc/string_c_generic.c:78:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Recording results for strncpy
+[value] Done for function strncpy
+[value] computing for function strncmp <- main.
+        Called from tests/libc/string_c_generic.c:82.
+share/libc/string.h:110:[value] function strncmp: precondition 'valid_string_s1' got status valid.
+share/libc/string.h:111:[value] function strncmp: precondition 'valid_string_s2' got status valid.
+share/libc/string.c:101:[value] entering loop for the first time
+share/libc/string.c:107:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:113:[value] warning: function strncmp: postcondition got status unknown.
+[value] Recording results for strncmp
+[value] Done for function strncmp
+[value] computing for function strncmp <- main.
+        Called from tests/libc/string_c_generic.c:83.
+[value] Recording results for strncmp
+[value] Done for function strncmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:85.
+tests/libc/string_c_generic.c:85:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strncat <- main.
+        Called from tests/libc/string_c_generic.c:86.
+share/libc/string.h:261:[value] function strncat: precondition 'valid_string_src' got status valid.
+share/libc/string.h:262:[value] function strncat: precondition 'valid_string_dst' got status valid.
+tests/libc/string_c_generic.c:86:[value] Cannot evaluate range bound strlen(dest)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+tests/libc/string_c_generic.c:86:[value] Cannot evaluate range bound strlen(dest) + n
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+share/libc/string.h:263:[value] warning: function strncat: precondition 'room_string' got status unknown.
+tests/libc/string_c_generic.c:86:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] computing for function strlen <- strncat <- main.
+        Called from share/libc/string.c:156.
+share/libc/string.h:91:[value] function strlen: precondition 'valid_string_src' got status valid.
+share/libc/string.c:78:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:93:[value] warning: function strlen: postcondition got status unknown.
+[value] Recording results for strlen
+[value] Done for function strlen
+share/libc/string.h:266:[value] function strncat: postcondition got status valid.
+share/libc/string.c:164:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:272:[value] warning: function strncat, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:278:[value] warning: function strncat, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+[value] Recording results for strncat
+[value] Done for function strncat
+[value] computing for function strcmp <- main.
+        Called from tests/libc/string_c_generic.c:88.
+share/libc/string.c:93:[value] entering loop for the first time
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] computing for function strcpy <- main.
+        Called from tests/libc/string_c_generic.c:90.
+tests/libc/string_c_generic.c:90:[value] Cannot evaluate range bound strlen(src)
+        (unsupported ACSL construct: logic functions or predicates). Approximating
+share/libc/string.c:170:[value] entering loop for the first time
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strchr <- main.
+        Called from tests/libc/string_c_generic.c:91.
+share/libc/string.h:123:[value] function strchr: precondition 'valid_string_src' got status valid.
+tests/libc/string_c_generic.c:91:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:127:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:128:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.c:194:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:129:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:130:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:131:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:134:[value] warning: function strchr, behavior not_found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:136:[value] function strchr, behavior default: postcondition got status valid.
+[value] Recording results for strchr
+[value] Done for function strchr
+[value] computing for function strchr <- main.
+        Called from tests/libc/string_c_generic.c:92.
+tests/libc/string_c_generic.c:92:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.c:192:[value] entering loop for the first time
+share/libc/string.h:127:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:129:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:130:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:134:[value] function strchr, behavior not_found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+[value] Recording results for strchr
+[value] Done for function strchr
+[value] computing for function strrchr <- main.
+        Called from tests/libc/string_c_generic.c:93.
+share/libc/string.h:140:[value] function strrchr: precondition 'valid_string_src' got status valid.
+tests/libc/string_c_generic.c:93:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] computing for function strlen <- strrchr <- main.
+        Called from share/libc/string.c:200.
+share/libc/string.c:77:[value] entering loop for the first time
+[value] Recording results for strlen
+[value] Done for function strlen
+share/libc/string.h:144:[value] function strrchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:145:[value] function strrchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:146:[value] function strrchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:149:[value] warning: function strrchr, behavior not_found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:151:[value] function strrchr, behavior default: postcondition got status valid.
+[value] Recording results for strrchr
+[value] Done for function strrchr
+[value] computing for function strrchr <- main.
+        Called from tests/libc/string_c_generic.c:94.
+tests/libc/string_c_generic.c:94:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] computing for function strlen <- strrchr <- main.
+        Called from share/libc/string.c:200.
+[value] Recording results for strlen
+[value] Done for function strlen
+share/libc/string.c:200:[value] entering loop for the first time
+share/libc/string.h:144:[value] warning: function strrchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:145:[value] warning: function strrchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:146:[value] warning: function strrchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:149:[value] function strrchr, behavior not_found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+[value] Recording results for strrchr
+[value] Done for function strrchr
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function memcmp:
+  p1 ∈ {{ (unsigned char const *)&b }}
+  p2 ∈ {{ "abc\000\000\000\000" }}
+  __retres ∈ {0}
+[value:final-states] Values at end of function memset:
+  p ∈ {{ (unsigned char *)&b }}
+  b[0..31] ∈ {120}
+[value:final-states] Values at end of function strchr:
+  ch ∈ {98; 101}
+  i ∈ {3; 20}
+  __retres ∈ {{ NULL ; &b[3] }}
+[value:final-states] Values at end of function strcmp:
+  i ∈ {0; 1; 2; 3; 6}
+  __retres ∈ {0}
+[value:final-states] Values at end of function strcpy:
+  i ∈ {0; 1; 2; 3; 20}
+  b[0] ∈ {97}
+   [1] ∈ {97; 98}
+   [2] ∈ {97; 98; 99}
+   [3] ∈ {0; 97; 98; 99}
+   [4] ∈ {0; 97; 98; 99} or UNINITIALIZED
+   [5] ∈ {0; 98; 99} or UNINITIALIZED
+   [6..7] ∈ {0; 99} or UNINITIALIZED
+   [8..9] ∈ {0; 100; 120} or UNINITIALIZED
+   [10..12] ∈ {0; 48; 120} or UNINITIALIZED
+   [13..14] ∈ {0; 49; 120} or UNINITIALIZED
+   [15] ∈ {0; 50; 120} or UNINITIALIZED
+   [16] ∈ {0; 50; 97; 120}
+   [17] ∈ {0; 50; 98; 120}
+   [18] ∈ {0; 50; 99; 120}
+   [19] ∈ {0; 51; 120}
+   [20..30] ∈ {0; 120} or UNINITIALIZED
+   [31] ∈ {120} or UNINITIALIZED
+[value:final-states] Values at end of function strlen:
+  i ∈ {3; 20}
+[value:final-states] Values at end of function strncat:
+  dest_len ∈ {3}
+  i ∈ {3}
+  b[0] ∈ {97}
+   [1] ∈ {98}
+   [2] ∈ {99}
+   [3] ∈ {49}
+   [4] ∈ {50}
+   [5] ∈ {51}
+   [6..7] ∈ {0}
+   [8..30] ∈ {0; 120}
+   [31] ∈ {120}
+[value:final-states] Values at end of function strncmp:
+  __retres ∈ {-1; 0}
+[value:final-states] Values at end of function strncpy:
+  i ∈ [3..2147483647]
+  b[0] ∈ {97}
+   [1] ∈ {98}
+   [2] ∈ {99}
+   [3] ∈ {0; 120}
+   [4..7] ∈ {0}
+   [8..30] ∈ {0; 120}
+   [31] ∈ {120}
+[value:final-states] Values at end of function strrchr:
+  ch ∈ {98; 101}
+  __retres ∈ {{ NULL ; &b[5] }}
+[value:final-states] Values at end of function main:
+  b[0..2] ∈ {97}
+   [3] ∈ {98}
+   [4] ∈ {97}
+   [5] ∈ {98}
+   [6..7] ∈ {99}
+   [8..9] ∈ {100}
+   [10..12] ∈ {48}
+   [13..14] ∈ {49}
+   [15..18] ∈ {50}
+   [19] ∈ {51}
+   [20] ∈ {0}
+   [21..30] ∈ {0; 120}
+   [31] ∈ {120}
+  s ∈ {0}
+  i ∈ {0}
+  __retres ∈ {0}

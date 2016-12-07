@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Y ∈ {0}
   Z ∈ {0}
   U ∈ {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Y ∈ [--..--]
   Z ∈ {4}
 [from] Computing for function main

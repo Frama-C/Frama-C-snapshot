@@ -48,6 +48,5 @@
    ls6
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] No proof obligations

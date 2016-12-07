@@ -3,10 +3,10 @@
 tests/float/const2.i:1:[kernel] warning: Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/float/const2.i:2:[kernel] warning: non-finite float value. assert \is_finite(1e40f);
+tests/float/const2.i:2:[value] warning: non-finite float value. assert \is_finite(1e40f);
 tests/float/const2.i:2:[value] Evaluation of initializer '1e40f' failed
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NOT ACCESSIBLE
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   str1[0] ∈ {97}
       [1] ∈ {98}
@@ -16,24 +16,24 @@
       [4] ∈ {0}
   s1 ∈ {0}
   s2[0..7] ∈ {0}
-tests/value/pointer_comp.c:37:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(&s2[9]), (void *)0);
-tests/value/pointer_comp.c:38:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)(&s2[9]), (void *)(&s2[9]));
-tests/value/pointer_comp.c:41:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)(&str1), (void *)(&str2));
-tests/value/pointer_comp.c:42:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)(&s2));
-tests/value/pointer_comp.c:43:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void (*)())(&f), (void (*)())(&g));
-tests/value/pointer_comp.c:46:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)0);
-tests/value/pointer_comp.c:47:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(&s1+1), (void *)0);
-tests/value/pointer_comp.c:48:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(&s2[8]), (void *)0);
-tests/value/pointer_comp.c:50:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void (*)())(&f), (void (*)())0);
-tests/value/pointer_comp.c:51:[kernel] warning: pointer comparison. assert \pointer_comparable((void (*)())p, (void (*)())0);
+tests/value/pointer_comp.c:37:[value] warning: pointer comparison. assert \pointer_comparable((void *)(&s2[9]), (void *)0);
+tests/value/pointer_comp.c:38:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)(&s2[9]), (void *)(&s2[9]));
+tests/value/pointer_comp.c:41:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)(&str1), (void *)(&str2));
+tests/value/pointer_comp.c:42:[value] warning: pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)(&s2));
+tests/value/pointer_comp.c:43:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void (*)())(&f), (void (*)())(&g));
+tests/value/pointer_comp.c:46:[value] warning: pointer comparison. assert \pointer_comparable((void *)(&s1), (void *)0);
+tests/value/pointer_comp.c:47:[value] warning: pointer comparison. assert \pointer_comparable((void *)(&s1 + 1), (void *)0);
+tests/value/pointer_comp.c:48:[value] warning: pointer comparison. assert \pointer_comparable((void *)(&s2[8]), (void *)0);
+tests/value/pointer_comp.c:50:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void (*)())(&f), (void (*)())0);
+tests/value/pointer_comp.c:51:[value] warning: pointer comparison. assert \pointer_comparable((void (*)())p, (void (*)())0);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {0; 1}
   p ∈ {{ &f ; &g }}
 [from] Computing for function main
@@ -107,7 +107,8 @@ void main(void)
   */
   i = & s1 > (struct s *)0;
   /*@ assert
-      Value: ptr_comparison: \pointer_comparable((void *)(&s1+1), (void *)0);
+      Value: ptr_comparison:
+        \pointer_comparable((void *)(&s1 + 1), (void *)0);
   */
   i = & s1 + 1 > (struct s *)0;
   /*@ assert

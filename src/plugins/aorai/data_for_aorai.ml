@@ -29,6 +29,8 @@ open Cil_types
 open Promelaast
 open Logic_simplification
 
+exception Empty_automaton
+
 module Aorai_state =
   Datatype.Make_with_collections(
     struct
@@ -1520,7 +1522,7 @@ let setCData () =
   variables_from_c:=
     Globals.Vars.fold
     (fun v _ lv ->
-      Pretty_utils.sfprintf "%a" Cil_datatype.Varinfo.pretty v :: lv)
+      Format.asprintf "%a" Cil_datatype.Varinfo.pretty v :: lv)
     []
 
 (** Return the list of all function name observed in the C file, except ignored functions. *)
@@ -2014,6 +2016,8 @@ let removeUnusedTransitionsAndStates () =
   let reached_states = Post_state.fold reached reached_states in
   let reached_states = Loop_init_state.fold reached reached_states in
   let reached_states = Loop_invariant_state.fold reached reached_states in
+  if Aorai_state.Set.is_empty reached_states then
+    raise Empty_automaton;
   (* Step 2 : computation of translation tables *)
   let state_list =
     List.sort 
@@ -2110,8 +2114,17 @@ let get_cenum_option name =
       used_enuminfo
       None
 
-let func_enum_type () = TEnum(Hashtbl.find used_enuminfo listOp,[])
-let status_enum_type () = TEnum(Hashtbl.find used_enuminfo listStatus,[])
+let func_enum_type () =
+  try TEnum(Hashtbl.find used_enuminfo listOp,[])
+  with Not_found ->
+    Aorai_option.fatal
+      "Enum type indicating current function (%s) is unknown" listOp
+
+let status_enum_type () =
+  try TEnum(Hashtbl.find used_enuminfo listStatus,[])
+  with Not_found ->
+    Aorai_option.fatal
+      "Enum type indicating current event (%s) is unknown" listStatus
 
 let func_to_cenum func =
   try

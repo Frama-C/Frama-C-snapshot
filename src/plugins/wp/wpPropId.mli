@@ -224,9 +224,9 @@ type axiom_info = prop_id * LogicUsage.logic_lemma
 val mk_axiom_info : LogicUsage.logic_lemma -> axiom_info
 val pp_axiom_info : Format.formatter -> axiom_info -> unit
 
-type pred_info = (prop_id * Cil_types.predicate named)
+type pred_info = (prop_id * Cil_types.predicate)
 
-val mk_pred_info : prop_id -> Cil_types.predicate named -> pred_info
+val mk_pred_info : prop_id -> Cil_types.predicate -> pred_info
 val pred_info_id : pred_info -> prop_id
 val pp_pred_of_pred_info : Format.formatter -> pred_info -> unit
 val pp_pred_info : Format.formatter -> pred_info -> unit

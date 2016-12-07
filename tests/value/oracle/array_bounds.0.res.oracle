@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
   s.a ∈ {1}
    .T[0] ∈ {0}
@@ -40,11 +40,11 @@ tests/value/array_bounds.i:14:[value] entering loop for the first time
 [value] Called Frama_C_show_each([0..11])
 [value] Called Frama_C_show_each([0..11])
 tests/value/array_bounds.i:19:[value] entering loop for the first time
-tests/value/array_bounds.i:20:[kernel] warning: accessing out of bounds index. assert j < 12;
+tests/value/array_bounds.i:20:[value] warning: accessing out of bounds index. assert j < 12;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   s.a ∈ {9}
    .T[0] ∈ {0}
    .T[1] ∈ {1}

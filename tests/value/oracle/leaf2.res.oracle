@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   H ∈ {0}
   I ∈ {0}
@@ -12,16 +12,18 @@
 tests/value/leaf2.i:6:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
-tests/value/leaf2.i:7:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)G, (void *)((int)(-1)));
+tests/value/leaf2.i:7:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)G, (void *)((int)(-1)));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈
-   {{ garbled mix of &{I} (origin: Arithmetic {tests/value/leaf2.i:6}) }}
+   {{ garbled mix of &{I}
+    (origin: Library function {tests/value/leaf2.i:6}) }}
   H ∈
-   {{ garbled mix of &{I} (origin: Arithmetic {tests/value/leaf2.i:6}) }}
+   {{ garbled mix of &{I}
+    (origin: Library function {tests/value/leaf2.i:6}) }}
 [from] Computing for function main
 [from] Computing for function f <-main
 [from] Done for function f

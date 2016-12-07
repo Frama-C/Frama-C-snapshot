@@ -47,13 +47,6 @@ val v_of_offsetmap:
   with_alarms:CilE.warn_mode ->
   typ:Cil_types.typ -> V_Offsetmap.t -> V.t
 
-
-
-val reinterpret_int:
-  with_alarms:CilE.warn_mode -> Cil_types.ikind -> V.t -> V.t
-(** Read the given value value as an int of the given [ikind]. Warn if the
-    value contains an address. *)
-
 val reinterpret_float:
   with_alarms:CilE.warn_mode -> Cil_types.fkind -> V.t -> V.t
 (** Read the given value value as a float int of the given [fkind]. Warn if the
@@ -142,7 +135,7 @@ val add_binding_unspecified :
 val copy_offsetmap :
   with_alarms:CilE.warn_mode ->
   Locations.Location_Bits.t -> Integer.t -> Model.t ->
-  [ `Bottom | `Map of V_Offsetmap.t | `Top ]
+  V_Offsetmap.t Bottom.or_bottom
 (** Tempory. Re-export of [Cvalue.Model.copy_offsetmap] with a [with_alarms]
     argument *)
 

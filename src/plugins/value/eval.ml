@@ -85,14 +85,14 @@ type reductness =
 
 (* Right values with 'undefined' and 'escaping addresses' flags. *)
 type 'a flagged_value = {
-  v: 'a;
+  v: 'a or_bottom;
   initialized: bool;
   escaping: bool;
 }
 
 (* Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
-  value : 'a or_bottom flagged_value;  (* The resulting abstract value *)
+  value : 'a flagged_value;  (* The resulting abstract value *)
   origin: 'origin option;   (* The origin of the abstract value *)
   reductness : reductness;  (* The state of reduction. *)
   val_alarms : Alarmset.t   (* The emitted alarms during the evaluation. *)
@@ -119,49 +119,71 @@ module type Valuation = sig
   val add : t -> exp -> (value, origin) record_val -> t
   val fold : (exp -> (value, origin) record_val -> 'a -> 'a) -> t -> 'a -> 'a
   val find_loc : t -> lval -> loc record_loc or_top
-  val filter :
-    (exp -> (value, origin) record_val -> bool) ->
-    (lval -> loc record_loc -> bool) ->
-    t -> t
+  val remove : t -> exp -> t
+  val remove_loc : t -> lval -> t
 end
 
-
-module Clear_Valuation
-    (Valuation : Valuation)
-= struct
-
-  exception Found
-
-  let is_subexpr sub expr =
-    if Cil_datatype.Exp.equal expr sub
-    then true
+(* Returns the list of the subexpressions of [expr] that contain [subexpr],
+   without [subexpr] itself. *)
+let compute_englobing_subexpr ~subexpr ~expr =
+  let merge = Extlib.merge_opt (fun _ -> (@)) () in
+  (* Returns [Some] of the list of subexpressions of [expr] that contain
+     [subexpr], apart from [expr] and [subexpr] themself, or [None] if [subexpr]
+     does not appear in [expr]. *)
+  let rec compute expr =
+    if Cil_datatype.ExpStructEq.equal expr subexpr
+    then Some []
     else
-      let vis = object
-        inherit Visitor.frama_c_inplace
-        method! vexpr e =
-          if Cil_datatype.ExpStructEq.equal e sub then raise Found;
-          Cil.DoChildren
-      end
+      let sublist = match expr.enode with
+        | UnOp (_, e, _)
+        | CastE (_, e)
+        | Info (e, _) -> compute e
+        | BinOp (_, e1, e2, _) ->
+           merge (compute e1) (compute e2)
+        | Lval (host, offset) ->
+           merge (compute_host host) (compute_offset offset)
+        | _ -> None
       in
-      try ignore (Visitor.visitFramacExpr vis expr); false
-      with Found -> true
+      Extlib.opt_map (fun l -> expr :: l) sublist
+  and compute_host = function
+    | Var _ -> None
+    | Mem e -> compute e
+  and compute_offset offset = match offset with
+    | NoOffset -> None
+    | Field (_, offset) -> compute_offset offset
+    | Index (index, offset) ->
+      merge (compute index) (compute_offset offset)
+  in
+  Extlib.opt_conv [] (compute expr)
 
-  let is_sublval sub lval =
-    let vis = object
-      inherit Visitor.frama_c_inplace
-      method! vexpr e =
-        if Cil_datatype.ExpStructEq.equal e sub then raise Found;
-        Cil.DoChildren
-    end
+module Englobing =
+  Datatype.Pair_with_collections (Cil_datatype.Exp) (Cil_datatype.Exp)
+    (struct  let module_name = "Subexpressions" end)
+module SubExprs = Datatype.List (Cil_datatype.Exp)
+
+module EnglobingSubexpr =
+  State_builder.Hashtbl (Englobing.Hashtbl) (SubExprs)
+    (struct
+      let name = "Englobing_subexpressions"
+      let size = 32
+      let dependencies = [ Ast.self ]
+    end)
+
+let compute_englobing_subexpr ~subexpr ~expr=
+  EnglobingSubexpr.memo
+    (fun (expr, subexpr) -> compute_englobing_subexpr ~subexpr ~expr)
+    (expr, subexpr)
+
+module Clear_Valuation (Valuation : Valuation) = struct
+  let clear_englobing_exprs valuation ~expr ~subexpr =
+    let englobing = compute_englobing_subexpr ~subexpr ~expr in
+    let remove valuation expr =
+      let valuation = Valuation.remove valuation expr in
+      match expr.enode with
+      | Lval lval -> Valuation.remove_loc valuation lval
+      | _ -> valuation
     in
-    try ignore (Visitor.visitFramacLval vis lval); false
-    with Found -> true
-
-  let clear_expr valuation expr =
-    Valuation.filter
-      (fun e _ -> not (is_subexpr expr e))
-      (fun lv _ -> not (is_sublval expr lv))
-      valuation
+    List.fold_left remove valuation englobing
 end
 
 
@@ -175,22 +197,14 @@ type 'loc left_value = {
   ltyp: typ;
 }
 
-(* Copy of values. *)
-type 'value copied =
-  | Determinate of 'value flagged_value
-  | Exact of ('value or_bottom) flagged_value
-
 (* Assigned values. *)
 type 'value assigned =
   | Assign of 'value
-  | Copy of lval * 'value copied
+  | Copy of lval * 'value flagged_value
 
 let value_assigned = function
   | Assign v -> `Value v
-  | Copy (_, copied) ->
-    match copied with
-    | Determinate v -> `Value v.v
-    | Exact v -> v.v
+  | Copy (_, copied) -> copied.v
 
 
 (* -------------------------------------------------------------------------- *)
@@ -210,14 +224,13 @@ type 'value call = {
 }
 
 
-type ('state, 'summary, 'value) return = {
+type ('state, 'return, 'value) return_state = {
   post_state: 'state;
-  returned_value: 'value or_bottom flagged_value option;
-  summary: 'summary;
+  return: ('value flagged_value * 'return) option;
 }
 
-type ('state, 'summary, 'value) call_result =
-  ('state, 'summary, 'value) return list or_bottom
+type ('state, 'return, 'value) call_result =
+  ('state, 'return, 'value) return_state list or_bottom
 
 (* Initialization of a dataflow analysis, by definig the initial value of
     each statement. *)
@@ -227,9 +240,8 @@ type 't init =
   | Custom of (stmt * 't) list
 
 (* Action to perform on a call site. *)
-type ('state, 'summary, 'value) action =
+type ('state, 'summary, 'value) call_action =
   | Compute of 'state init * bool
-  | Recall  of 'state init
   | Result  of ('state, 'summary, 'value) call_result * Value_types.cacheable
 
 exception InvalidCall

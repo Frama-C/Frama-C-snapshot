@@ -43,7 +43,6 @@ module Make_without_cardinal
      val e: bool
      val f : K.t -> V.t -> bool
      val compose : bool -> bool -> bool
-     val default:bool
   end)
   (L: sig val v : (K.t * V.t) list list end)
   =
@@ -307,7 +306,7 @@ struct
 
   let is_included =
     let name =
-      Pretty_utils.sfprintf "Map_Lattice(%s)(%s).is_included" K.name V.name
+      Format.asprintf "Map_Lattice(%s)(%s).is_included" K.name V.name
     in
     let decide_fst _ _ = false in
     let decide_snd _ _ = true in
@@ -350,7 +349,7 @@ struct
 
   let intersects =
     let name =
-      Pretty_utils.sfprintf "Map_Lattice(%s)(%s).intersects" K.name V.name
+      Format.asprintf "Map_Lattice(%s)(%s).intersects" K.name V.name
     in
     let map_intersects =
       M.symmetric_binary_predicate
@@ -487,7 +486,6 @@ module Make
      val e: bool
      val f : K.t -> V.t -> bool
      val compose : bool -> bool -> bool
-     val default:bool
   end)
   (L: sig val v : (K.t * V.t) list list end)
   =

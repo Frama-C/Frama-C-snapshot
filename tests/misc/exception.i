@@ -13,6 +13,14 @@ struct my_exn2 bar;
 
 int x = 42;
 
+int f (int c) {
+  return c;
+}
+
+int g(int c) {
+  return f(c);
+}
+
 int f1 (int c) {
   return c;
 }

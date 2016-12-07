@@ -3,11 +3,12 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/value/call_2.i:15:[kernel] warning: non-finite float value. assert \is_finite(f);
-tests/value/call_2.i:15:[kernel] warning: signed overflow. assert -2147483648 ≤ i+j;
-tests/value/call_2.i:15:[kernel] warning: signed overflow. assert i+j ≤ 2147483647;
+tests/value/call_2.i:15:[value] warning: accessing uninitialized left-value. assert \initialized(&z);
+tests/value/call_2.i:15:[value] warning: non-finite float value. assert \is_finite(f);
+tests/value/call_2.i:15:[value] warning: signed overflow. assert -2147483648 ≤ i + j;
+tests/value/call_2.i:15:[value] warning: signed overflow. assert i + j ≤ 2147483647;
 [value] computing for function ff <- main.
         Called from tests/value/call_2.i:15.
 [value] Called Frama_C_show_each([-2147483648..2147483647],
@@ -18,11 +19,11 @@ tests/value/call_2.i:15:[kernel] warning: signed overflow. assert i+j ≤ 214748
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function ff:
+[value:final-states] Values at end of function ff:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-  z ∈ {1} or UNINITIALIZED
+  z ∈ {1}
   p ∈ {{ (int *)&f }}
 [from] Computing for function ff
 [from] Done for function ff

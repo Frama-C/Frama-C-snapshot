@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   t1[0..5] ∈ {0}
@@ -12,12 +12,12 @@ tests/value/eval_separated.c:5:[value] assertion got status valid.
 tests/value/eval_separated.c:6:[value] assertion got status valid.
 tests/value/eval_separated.c:8:[value] assertion got status valid.
 tests/value/eval_separated.c:9:[value] assertion got status valid.
-tests/value/eval_separated.c:11:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&q)+(int)(&q);
-tests/value/eval_separated.c:11:[kernel] warning: signed overflow. assert (int)(&q)+(int)(&q) ≤ 2147483647;
+tests/value/eval_separated.c:11:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&q) + (int)(&q);
+tests/value/eval_separated.c:11:[value] warning: signed overflow. assert (int)(&q) + (int)(&q) ≤ 2147483647;
 tests/value/eval_separated.c:11:[value] Assigning imprecise value to q.
         The imprecision originates from Arithmetic {tests/value/eval_separated.c:11}
-tests/value/eval_separated.c:12:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&r)+(int)(&r);
-tests/value/eval_separated.c:12:[kernel] warning: signed overflow. assert (int)(&r)+(int)(&r) ≤ 2147483647;
+tests/value/eval_separated.c:12:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&r) + (int)(&r);
+tests/value/eval_separated.c:12:[value] warning: signed overflow. assert (int)(&r) + (int)(&r) ≤ 2147483647;
 tests/value/eval_separated.c:12:[value] Assigning imprecise value to r.
         The imprecision originates from Arithmetic {tests/value/eval_separated.c:12}
 tests/value/eval_separated.c:13:[value] warning: assertion got status unknown.
@@ -43,7 +43,7 @@ tests/value/eval_separated.c:45:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &t1 + [-8589934592..8589934588],0%4 }}
   q ∈
    {{ garbled mix of &{q}

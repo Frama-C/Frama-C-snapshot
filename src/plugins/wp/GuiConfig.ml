@@ -156,7 +156,9 @@ class dp_button ~(available:provers) ~(enabled:provers) =
   let button = new Widget.menu ~default:AltErgo ~render ~items () in
   object(self)
     method coerce = button#coerce
+    method widget = (self :> Widget.t)
     method set_enabled = button#set_enabled
+    method set_visible = button#set_visible
 
     method private import =
       match Wp_parameters.Provers.get () with

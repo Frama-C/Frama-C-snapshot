@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   e ∈ {0}
 [value] computing for function f <- main.
         Called from tests/spec/shifts.c:19.
@@ -15,10 +15,10 @@ tests/spec/shifts.c:9:[value] function f, behavior b: postcondition got status v
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   e ∈ {168}
   y ∈ {168}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   e ∈ {168}
   __retres ∈ {0}
 [from] Computing for function f

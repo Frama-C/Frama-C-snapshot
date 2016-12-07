@@ -28,7 +28,7 @@ type value = Main_values.CVal.t
 type location = Main_locations.PLoc.location
 
 val find_right_value:
-  Cil_types.typ -> Cvalue.V_Offsetmap.t -> value or_bottom flagged_value
+  Cil_types.typ -> Cvalue.V_Offsetmap.t -> value flagged_value
 
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
@@ -38,15 +38,15 @@ module Transfer
 
     include Abstract_domain.Transfer
       with type state = Cvalue.Model.t
-       and type summary = Cvalue.V_Offsetmap.t option
+       and type return = Cvalue.V_Offsetmap.t option
        and type value := value
        and type location := location
        and type valuation := Valuation.t
 
 
-    val call_action:
+    val start_call:
       Cil_types.stmt -> value call -> Valuation.t -> state ->
-      (state, summary, value) action * Base.SetLattice.t
+      (state, return, value) call_action * Base.SetLattice.t
 
   end
 

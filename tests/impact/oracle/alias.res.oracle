@@ -4,15 +4,15 @@
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   P ∈ [--..--]
   c ∈ [--..--]
 tests/impact/alias.i:7:[value] warning: function f: precondition got status unknown.
-tests/impact/alias.i:11:[kernel] warning: out of bounds write. assert \valid(y);
-tests/impact/alias.i:12:[kernel] warning: out of bounds read. assert \valid_read(x+1);
-tests/impact/alias.i:13:[kernel] warning: out of bounds write. assert \valid(y);
-tests/impact/alias.i:15:[kernel] warning: out of bounds read. assert \valid_read(x+1);
-tests/impact/alias.i:18:[kernel] warning: out of bounds read. assert \valid_read(y);
+tests/impact/alias.i:11:[value] warning: out of bounds write. assert \valid(y);
+tests/impact/alias.i:12:[value] warning: out of bounds read. assert \valid_read(x + 1);
+tests/impact/alias.i:13:[value] warning: out of bounds write. assert \valid(y);
+tests/impact/alias.i:15:[value] warning: out of bounds read. assert \valid_read(x + 1);
+tests/impact/alias.i:18:[value] warning: out of bounds read. assert \valid_read(y);
 [value] Recording results for f
 [value] done for function f
 tests/impact/alias.i:18:[value] assertion 'Value,mem_access' got final status invalid.

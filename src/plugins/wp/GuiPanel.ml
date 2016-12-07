@@ -37,12 +37,12 @@ let reload_callback = ref (fun () -> ())
 let on_reload f = reload_callback := f
 let reload () = !reload_callback ()
 
-module Rte_generated =
+module Wp_rte_generated =
   Kernel_function.Make_Table
     (Datatype.Unit)
     (struct
       let name = "GuiSource.Rte_generated"
-      let size = 7
+      let size = 8
       let dependencies = [ Ast.self ]
     end)
 
@@ -52,14 +52,14 @@ let kf_of_selection = function
   | S_prop ip -> Property.get_kf ip
   | S_call s -> Some s.s_caller
 
-let rte_generated s =
+let wp_rte_generated s =
   match kf_of_selection s with
   | None -> false
   | Some kf ->
       if Wp_parameters.RTE.get () then
-        let mem = Rte_generated.mem kf in
+        let mem = Wp_rte_generated.mem kf in
         if not mem then
-          Rte_generated.add kf () ;
+          Wp_rte_generated.add kf () ;
         not mem
       else false
 
@@ -72,11 +72,11 @@ let run_and_prove
       begin
         match selection with
         | S_none -> raise Stop
-        | S_fun kf -> Register.wp_compute_kf (Some kf) [] []
-        | S_prop ip -> Register.wp_compute_ip ip
-        | S_call s -> Register.wp_compute_call s.s_stmt
+        | S_fun kf -> VC.(command (generate_kf kf))
+        | S_prop ip -> VC.(command (generate_ip ip))
+        | S_call s -> VC.(command (generate_call s.s_stmt))
       end ;
-      if rte_generated selection then
+      if wp_rte_generated selection then
         main#redisplay ()
       else
         reload ()

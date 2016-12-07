@@ -505,29 +505,25 @@ module Forwards(T : ForwardsTransfer) = struct
       check_initial_stmts sources;
       let worklist = init_worklist sources in
       (* the reference "change" tracks wether something has been computed *)
-      let rec process_wto change = function
-        (* End of wto, do nothing *)
-        | Wto_statement.Nil -> ()
-
+      let rec process_wto change wto =
+        List.iter (process_element change) wto
+      and process_element change = function
         (* Some statement, process it and mark as changed if necessary *)
-        | Wto_statement.Node (stmt, wto) ->
-            if ForwardWorklist.mem worklist stmt then begin
-              ForwardWorklist.clear worklist stmt;
-              processStmt worklist stmt;
-              change := true;
-            end;
-            process_wto change wto
-
+        | Wto.Node (stmt) ->
+          if ForwardWorklist.mem worklist stmt then begin
+            ForwardWorklist.clear worklist stmt;
+            processStmt worklist stmt;
+            change := true;
+          end
         (* Component, iterate until it reached a fixpoint *)
-        | Wto_statement.Component (component, wto) ->
-            let component_change = ref true in
-            while !component_change do
-              component_change := false;
-              process_wto component_change component;
-              if !component_change then
-                change := true
-            done;
-            process_wto change wto
+        | Wto.Component (stmt, wto) ->
+          let component_change = ref true in
+          while !component_change do
+            component_change := false;
+            process_wto component_change (Wto.Node stmt :: wto);
+            if !component_change then
+              change := true
+          done
       in
       process_wto (ref false) strategy
 

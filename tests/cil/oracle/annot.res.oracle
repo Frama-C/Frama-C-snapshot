@@ -13,7 +13,7 @@ int fact(int n)
               n --;
               r *= tmp;
             }
-    /*@ assert r ≡ \at(r*n,before); */ ;
+    /*@ assert r ≡ \at(r * n,before); */ ;
   }
   return r;
 }

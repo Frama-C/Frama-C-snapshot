@@ -253,7 +253,7 @@ module PrintProject = struct
           | Other -> (`Fillcolor color_soft_green)
         in color ::[`Shape `Ellipse]
     |  Action (_, crit) ->
-        let label = Pretty_utils.sfprintf "%a" SlicingActions.print_crit crit in
+        let label = Format.asprintf "%a" SlicingActions.print_crit crit in
         let attrib = [] in
         let attrib = (`Label label)::attrib in
         let attrib = (`Fillcolor color_soft_pink)::attrib in

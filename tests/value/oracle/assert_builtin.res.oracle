@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
 tests/value/assert_builtin.i:6:[value] warning: Frama_C_assert: unknown
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification for function Frama_C_assert, generating default assigns from the prototype
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main
 [from] Computing for function Frama_C_assert <-main
@@ -18,6 +18,8 @@ tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification 
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_assert:
+  NO EFFECTS
 [from] Function main:
   \result FROM t[0..9]; c
 [from] ====== END OF DEPENDENCIES ======

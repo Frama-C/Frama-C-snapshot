@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 18 goals scheduled
 [wp] [Qed] Goal typed_f_post_qed_ok_E0 : Valid

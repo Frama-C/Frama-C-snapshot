@@ -35,19 +35,22 @@ let from_unichar n =
   let write_unichar s ~pos c =
     let len = utf8_storage_len c in
     if len = 1 then
-      String.unsafe_set s pos (Char.unsafe_chr c)
+      Bytes.unsafe_set s pos (Char.unsafe_chr c)
     else begin
-      String.unsafe_set s pos (Char.unsafe_chr (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
+      Bytes.unsafe_set
+        s pos
+        (Char.unsafe_chr
+           (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
       for i = 1 to len-1 do
-	String.unsafe_set s (pos+i)
-	  (Char.unsafe_chr (((c lsr ((len-1-i)*6)) land 0x3f) lor 0x80))
+        Bytes.unsafe_set s (pos+i)
+          (Char.unsafe_chr (((c lsr ((len-1-i)*6)) land 0x3f) lor 0x80))
       done ;
     end ;
     len
   in
-  let s = String.create 6 in
+  let s = Bytes.create 6 in
   let len = write_unichar s ~pos:0 n in
-  String.sub s 0 len
+  Bytes.sub s 0 len |> Bytes.to_string
 
 
 let forall =  from_unichar 0x2200

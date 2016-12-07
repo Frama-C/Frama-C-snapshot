@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f_valid <- main.
         Called from tests/value/assigns_from_direct.i:14.
@@ -50,17 +50,17 @@ tests/value/assigns_from_direct.i:57:[value] warning: function f_invalid_all: \f
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f_invalid_address:
+[value:final-states] Values at end of function f_invalid_address:
   y ∈ {3}
-[value] Values at end of function f_invalid_all:
+[value:final-states] Values at end of function f_invalid_all:
   y ∈ {3}
-[value] Values at end of function f_invalid_condition:
+[value:final-states] Values at end of function f_invalid_condition:
   y ∈ {3}
-[value] Values at end of function f_invalid_direct:
+[value:final-states] Values at end of function f_invalid_direct:
   y ∈ {3}
-[value] Values at end of function f_valid:
+[value:final-states] Values at end of function f_valid:
   y ∈ {3}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {3}
   y ∈ {3}
 [from] Computing for function f_invalid_address

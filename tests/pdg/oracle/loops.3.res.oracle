@@ -3,10 +3,10 @@
 [value] Analyzing an incomplete application starting at infinite2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   after ∈ [--..--]
 tests/pdg/loops.c:75:[value] entering loop for the first time
-tests/pdg/loops.c:76:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
+tests/pdg/loops.c:76:[value] warning: signed overflow. assert s + 2 ≤ 2147483647;
 [value] Recording results for infinite2
 [value] done for function infinite2
 [pdg] computing for function infinite2

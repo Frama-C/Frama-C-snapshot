@@ -216,33 +216,21 @@
       | _ -> assert false
 
   (* Update lexer buffer. *)
-  let update_newline_loc lexbuf =
+  let update_line_loc lexbuf line =
     let pos = lexbuf.Lexing.lex_curr_p in
     lexbuf.Lexing.lex_curr_p <-
       { pos with
-	Lexing.pos_lnum = pos.Lexing.pos_lnum + 1;
+	Lexing.pos_lnum = line;
 	Lexing.pos_bol = pos.Lexing.pos_cnum;
       }
 
-  (* Update lexer buffer. *)
-  let update_line_loc lexbuf line absolute chars =
-    let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <-
-      { pos with
-	Lexing.pos_lnum =
-          if absolute then line else pos.Lexing.pos_lnum + line;
-	Lexing.pos_bol = pos.Lexing.pos_cnum - chars;
-      }
+  let update_newline_loc lexbuf =
+    update_line_loc lexbuf (lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum + 1)
 
-  (* Update lexer buffer. *)
   let update_file_loc lexbuf file =
    let pos = lexbuf.Lexing.lex_curr_p in
     lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = file }
 
-  (* Update lexer buffer. *)
-  let update_bol_loc lexbuf bol =
-    let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_bol = bol}
 }
 
 let space = [' ' '\t' '\012' '\r' '@' ]
@@ -420,7 +408,7 @@ and hash = parse
                        "Bad line number in preprocessed file: %s"  s;
                      (-1)
                  in
-                 update_line_loc lexbuf (lineno - 1) true 0;
+                 update_line_loc lexbuf (lineno - 1);
                   (* A file name may follow *)
 		  file lexbuf }
 | "line"        { hash lexbuf } (* MSVC line number info *)
@@ -446,11 +434,13 @@ and endline = parse
 |	_			{ endline lexbuf}
 
 {
-  let copy_lexbuf dest_lexbuf src_loc =
-    update_file_loc dest_lexbuf src_loc.pos_fname;
-    update_line_loc dest_lexbuf src_loc.pos_lnum true 0;
-    let bol = src_loc.Lexing.pos_cnum - src_loc.Lexing.pos_bol in
-    update_bol_loc dest_lexbuf (-bol)
+  let set_initial_location dest_lexbuf src_loc =
+    Lexing.(
+      dest_lexbuf.lex_curr_p <- 
+        { src_loc with
+          pos_bol = src_loc.pos_bol - src_loc.pos_cnum;
+          pos_cnum = 0; };
+    )
 
   let parse_from_location f (loc, s : Lexing.position * string) =
     let output = 
@@ -458,7 +448,7 @@ and endline = parse
       else Kernel.error ~once:false
     in
     let lb = from_string s in
-    copy_lexbuf lb loc;
+    set_initial_location lb loc;
     try
       let res = f token lb in
       lb.Lexing.lex_curr_p, res

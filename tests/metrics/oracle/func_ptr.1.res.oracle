@@ -38,11 +38,11 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           
           Functions syntactically unreachable from foobar: 3
           --------------------------------------------------
-          <tests/metrics/func_ptr.c>: foo; main; exit;
+          <tests/metrics/func_ptr.c>: exit; foo; main;
 [value] Analyzing a complete application starting at foobar
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
 [value] computing for function baz <- foobar.
@@ -59,5 +59,5 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
 [metrics] Statements analyzed by Value
           ----------------------------
           5 stmts in analyzed functions, 5 stmts analyzed (100.0%)
-          foobar: 4 stmts out of 4 (100.0%)
           baz: 1 stmts out of 1 (100.0%)
+          foobar: 4 stmts out of 4 (100.0%)

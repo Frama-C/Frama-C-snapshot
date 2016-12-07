@@ -21,13 +21,13 @@ typedef struct S T;
 model struct S { ℤ z }; */
 /*@
 model T { ℤ t }; */
-/*@ type invariant t_invariant(T t) = t.t ≡ t.z*2;
+/*@ type invariant t_invariant(T t) = t.t ≡ t.z * 2;
  */
 /*@ ensures (*\old(s)).z ≡ \result;
     assigns *s; */
 extern int f(struct S *s);
 
-/*@ type invariant sum(struct S s) = s.z ≡ s.x+s.y;
+/*@ type invariant sum(struct S s) = s.z ≡ s.x + s.y;
  */
 void main(void)
 {
@@ -45,8 +45,12 @@ void main(void)
       /*@ assert s.y ≢ 0; */ ;
     else goto _LAND;
   }
-  else 
-    _LAND: if (s.x == 1) ;
+  else {
+    _LAND: {
+             int tmp_2;
+             tmp_2 = s.x == 1;
+           }
+  }
   /*@ assert s.z ≢ 0; */ ;
   return;
 }
@@ -56,9 +60,9 @@ model double { ℝ exact }; */
 /*@
 model double { ℝ round };
 */
-/*@ ensures \result ≡ (double)(\old(x)+\old(y));
-    ensures \result.exact ≡ \old(x.exact)+\old(y.exact);
-    ensures \result ≡ \result.exact+\result.round;
+/*@ ensures \result ≡ (double)(\old(x) + \old(y));
+    ensures \result.exact ≡ \old(x.exact) + \old(y.exact);
+    ensures \result ≡ \result.exact + \result.round;
  */
 extern double add(double x, double y);
 

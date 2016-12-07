@@ -3,35 +3,57 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main_and_or_rel <- main.
-        Called from tests/value/bitwise.i:29.
+        Called from tests/value/bitwise.i:44.
 tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [value] Recording results for main_and_or_rel
 [value] Done for function main_and_or_rel
 [value] computing for function main_bitwise <- main.
-        Called from tests/value/bitwise.i:30.
+        Called from tests/value/bitwise.i:45.
 [value] Recording results for main_bitwise
 [value] Done for function main_bitwise
+[value] computing for function main_bug1 <- main.
+        Called from tests/value/bitwise.i:46.
+[value] Recording results for main_bug1
+[value] Done for function main_bug1
+[value] computing for function main_bug2 <- main.
+        Called from tests/value/bitwise.i:47.
+[value] Called Frama_C_show_each_then()
+[value] Called Frama_C_show_each_else()
+[value] Recording results for main_bug2
+[value] Done for function main_bug2
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main_and_or_rel:
+[value:final-states] Values at end of function main_and_or_rel:
   x ∈ [20..40]
   r1 ∈ [17..63] or UNINITIALIZED
   r2 ∈ [20..40] or UNINITIALIZED
   r3 ∈ [24..37] or UNINITIALIZED
-[value] Values at end of function main_bitwise:
+[value:final-states] Values at end of function main_bitwise:
   i ∈ {5}
   j ∈ {4294967290}
   k ∈ {-6}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main_bug1:
+  msb ∈ {6}
+  lsb ∈ {3}
+  par ∈ {5}
+  p1 ∈ {5}
+  p2 ∈ {0}
+[value:final-states] Values at end of function main_bug2:
+  t ∈ {1; 2}
+[value:final-states] Values at end of function main:
   
 [from] Computing for function main_and_or_rel
 [from] Done for function main_and_or_rel
 [from] Computing for function main_bitwise
 [from] Done for function main_bitwise
+[from] Computing for function main_bug1
+[from] Done for function main_bug1
+[from] Computing for function main_bug2
+[from] Done for function main_bug2
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -39,6 +61,10 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [from] Function main_and_or_rel:
   NO EFFECTS
 [from] Function main_bitwise:
+  NO EFFECTS
+[from] Function main_bug1:
+  NO EFFECTS
+[from] Function main_bug2:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
@@ -51,6 +77,14 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
           i; j; k
 [inout] Inputs for function main_bitwise:
           \nothing
+[inout] Out (internal) for function main_bug1:
+          msb; lsb; par; p1; p2
+[inout] Inputs for function main_bug1:
+          \nothing
+[inout] Out (internal) for function main_bug2:
+          t; tmp
+[inout] Inputs for function main_bug2:
+          v
 [inout] Out (internal) for function main:
           \nothing
 [inout] Inputs for function main:

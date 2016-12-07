@@ -4,20 +4,20 @@
 [value] Computing initial state
 tests/value/qualified_arrays.i:9:[value] warning: global initialization of volatile variable f ignored
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   volatile_tab_120_2[0..1][0..119] ∈ [--..--]
   p_first_volatile ∈ {{ &volatile_tab_120_2[0][0] }}
   f ∈ [--..--]
   x ∈ {{ &f.x }}
 tests/value/qualified_arrays.i:13:[value] function main: precondition got status valid.
 tests/value/qualified_arrays.i:14:[value] function main: precondition got status valid.
-tests/value/qualified_arrays.i:17:[kernel] warning: out of bounds write. assert \valid(&p_first_volatile);
+tests/value/qualified_arrays.i:17:[value] warning: out of bounds write. assert \valid(&p_first_volatile);
 tests/value/qualified_arrays.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
 tests/value/qualified_arrays.i:17:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)

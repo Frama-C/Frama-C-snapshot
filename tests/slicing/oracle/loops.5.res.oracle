@@ -1,25 +1,25 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/loops.c (with preprocessing)
+[kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing a complete application starting at test_infinite_loop_4
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
   C1 ∈ {1}
   C2 ∈ {1}
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-tests/slicing/loops.c:125:[value] entering loop for the first time
-tests/slicing/loops.c:141:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data2;
-tests/slicing/loops.c:141:[kernel] warning: signed overflow. assert G+data2 ≤ 2147483647;
-tests/slicing/loops.c:126:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data1;
-tests/slicing/loops.c:126:[kernel] warning: signed overflow. assert G+data1 ≤ 2147483647;
-tests/slicing/loops.c:129:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data;
-tests/slicing/loops.c:129:[kernel] warning: signed overflow. assert G+no_data ≤ 2147483647;
-tests/slicing/loops.c:132:[value] entering loop for the first time
-tests/slicing/loops.c:133:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data;
-tests/slicing/loops.c:133:[kernel] warning: signed overflow. assert G+no_data ≤ 2147483647;
+tests/slicing/loops.i:125:[value] entering loop for the first time
+tests/slicing/loops.i:141:[value] warning: signed overflow. assert -2147483648 ≤ G + data2;
+tests/slicing/loops.i:141:[value] warning: signed overflow. assert G + data2 ≤ 2147483647;
+tests/slicing/loops.i:126:[value] warning: signed overflow. assert -2147483648 ≤ G + data1;
+tests/slicing/loops.i:126:[value] warning: signed overflow. assert G + data1 ≤ 2147483647;
+tests/slicing/loops.i:129:[value] warning: signed overflow. assert -2147483648 ≤ G + no_data;
+tests/slicing/loops.i:129:[value] warning: signed overflow. assert G + no_data ≤ 2147483647;
+tests/slicing/loops.i:132:[value] entering loop for the first time
+tests/slicing/loops.i:133:[value] warning: signed overflow. assert -2147483648 ≤ G + no_data;
+tests/slicing/loops.i:133:[value] warning: signed overflow. assert G + no_data ≤ 2147483647;
 [value] Recording results for test_infinite_loop_4
 [value] done for function test_infinite_loop_4
 [from] Computing for function test_infinite_loop_4
@@ -57,3 +57,5 @@ void test_infinite_loop_4(int ctrl1, int ctrl2, int data1, int data2)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_5_loops.i (no preprocessing)

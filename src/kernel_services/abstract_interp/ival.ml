@@ -645,12 +645,10 @@ let widen (bitsize,wh) t1 t2 =
             let module ISet = Datatype.Integer.Set in
             ISet.union wh (ISet.of_list limits)
           in
-
           let (mn2,mx2,r2,m2) = min_max_r_mod t2 in
           let (mn1,mx1,r1,m1) = min_max_r_mod t1 in
           let new_mod = Int.pgcd (Int.pgcd m1 m2) (Int.abs (Int.sub r1 r2)) in
           let new_rem = Int.rem r1 new_mod in
-          
           let new_min = if bound_compare mn1 mn2 = 0 then mn2 else
             match mn2 with
               | None -> None
@@ -777,8 +775,7 @@ let compute_r_common r1 m1 r2 m2 =
 
 	  Thus k1*m1 = k2*m2 is a multiple of m1 and m2, i.e. is a multiple
 	  of ppcm(m1,m2). Thus x = y mod ppcm(m1,m2). *)
-       let ppcm = Int.divexact (Int.mul m1 m2) pgcd in
-
+       let ppcm = Integer.ppcm m1 m2 in
        (* x may be bigger than the ppcm, we normalize it. *)
        (Int.rem x ppcm, ppcm)
 ;;
@@ -2076,10 +2073,7 @@ let cast ~size ~signed ~value =
       in
       inject_range low high
   in
-(*  Format.printf "Cast with size:%d signed:%b to %a@\n"
-    size
-    signed
-    pretty result; *)
+  (* If sharing is no longer preserved, please change Cvalue.V.cast *)
   if equal result value then value else result
 
 let cast_float ~rounding_mode v =
@@ -2191,6 +2185,68 @@ let interp_boolean ~contains_zero ~contains_non_zero =
   | false, true -> one
   | false, false -> bottom
 
+
+module Infty = struct
+  let lt0 = function
+    | None -> true
+    | Some a -> Int.lt a Int.zero
+
+  let div a b = match a with
+    | None -> None
+    | Some a -> match b with
+      | None -> Some Int.zero
+      | Some b -> Some (Int.div a b)
+
+  let neg = function
+    | Some a -> Some (Int.neg a)
+    | None -> None
+end
+
+let backward_mult_pos_left min_right max_right result =
+  let min_res, max_res = min_and_max result in
+  let min_left =
+    Infty.div min_res (if Infty.lt0 min_res then Some min_right else max_right)
+  and max_left =
+    Infty.div max_res (if Infty.lt0 max_res then max_right else Some min_right)
+  in
+  inject_range min_left max_left
+
+let backward_mult_neg_left min_right max_right result =
+  backward_mult_pos_left (Integer.neg max_right) (Infty.neg min_right) (neg_int result)
+
+let backward_mult_int_left ~right ~result =
+  match min_and_max right with
+  | None, None -> `Value None
+  | Some a, Some b when a > b -> `Bottom
+
+  | Some a, Some b when a = Int.zero && b = Int.zero ->
+    if contains_zero result then `Value None else `Bottom
+
+  | Some a, max when a > Int.zero ->
+    `Value (Some (backward_mult_pos_left a max result))
+
+  | Some a, max when a >= Int.zero ->
+    if contains_zero result
+    then `Value None
+    else `Value (Some (backward_mult_pos_left Int.one max result))
+
+  | min, Some b when b < Int.zero ->
+    `Value (Some (backward_mult_neg_left min b result))
+
+  | min, Some b when b = Int.zero ->
+    if contains_zero result
+    then `Value None
+    else `Value (Some (backward_mult_neg_left min Int.minus_one result))
+
+  | min, max ->
+    if contains_zero result
+    then `Value None
+    else
+      `Value (Some (join
+                      (backward_mult_pos_left Int.one max result)
+                      (backward_mult_neg_left min Int.one result)))
+
+
 let backward_le_int max v =
   match v with
   | Float _ -> v
@@ -2273,17 +2329,21 @@ let rec extract_bits ~start ~stop ~size v =
       inject_ps
         (Array.fold_left
            (fun acc elt -> add_ps acc (Int.extract_bits ~start ~stop elt))
-	   empty_ps
-	   s)
-  | Float f ->
+           empty_ps
+           s)
+  | Float f -> begin
       let l, u =
-	if Int.equal size big_int_64
-	then 
-	  Fval.bits_of_float64 ~signed:true f
-	else 
-	  Fval.bits_of_float32 ~signed:true f
+        if Int.equal size big_int_64 then
+          let l, u = Fval.bits_of_float64 ~signed:true f in
+          Some l, Some u
+        else if Int.equal size big_int_32 then
+          let l, u = Fval.bits_of_float32 ~signed:true f in
+          Some l, Some u
+        else (* long double *)
+          None, None
       in
-      extract_bits ~start ~stop ~size (inject_range (Some l) (Some u))	    
+      extract_bits ~start ~stop ~size (inject_range l u)
+    end
   | Top(_,_,_,_) as d ->
     try
       let dived = scale_div ~pos:true (Int.two_power start) d in

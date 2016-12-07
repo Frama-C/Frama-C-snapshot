@@ -1156,6 +1156,16 @@ and catch_binder =
           the matched varinfo into the principal one. 
           Semantics is by value (i.e. the varinfo is bound to a copy of the
           caught object).
+
+          This clause is a declaration point for the varinfo(s)
+          mentioned in it. More precisely, for
+          [Catch_exn(v_0,[(v_1, b_1),..., (v_n, b_n)])],
+          the [v_i] must be referenced in the [slocals] of the
+          enclosing [fundec], and _must not_ appear in any [blocals]
+          of some block. The scope of v_0 is all the [b_i] and
+          the corresponding block in the [catch_binder * block list] of the 
+          [TryCatch] node the binder belongs to. The scope of the other [v_i]
+          is the corresponding [b_i].
        *)
   | Catch_all (** default catch clause: all exceptions are caught. *)
 
@@ -1327,7 +1337,7 @@ and term_node =
   | Tunion of term list (** union of terms. *)
   | Tinter of term list (** intersection of terms. *)
   | Tcomprehension of
-      term * quantifiers * predicate named option
+      term * quantifiers * predicate option
   (** set defined in comprehension ({t \{ t[i] | integer i; 0 <= i < 5\}}) *)
   | Trange of term option * term option (** range of integers. *)
   | Tlet of logic_info * term (** local binding *)
@@ -1390,9 +1400,9 @@ and logic_body =
   | LBreads of identified_term list
   (** read accesses performed by a function. *)
   | LBterm of term (** direct definition of a function. *)
-  | LBpred of predicate named (** direct definition of a predicate. *)
+  | LBpred of predicate (** direct definition of a predicate. *)
   | LBinductive of
-      (string * logic_label list * string list * predicate named) list
+      (string * logic_label list * string list * predicate) list
 	(** inductive definition *)
 
 (** Description of a logic type.
@@ -1457,24 +1467,24 @@ and relation =
 
 
 (** predicates *)
-and predicate =
+and predicate_node =
   | Pfalse (** always-false predicate. *)
   | Ptrue (** always-true predicate. *)
   | Papp of logic_info * (logic_label * logic_label) list * term list
       (** application of a predicate. *)
   | Pseparated of term list
   | Prel of relation * term * term (** comparison of two terms. *)
-  | Pand of predicate named * predicate named (** conjunction *)
-  | Por of predicate named * predicate named  (** disjunction. *)
-  | Pxor of predicate named * predicate named (** logical xor. *)
-  | Pimplies of predicate named * predicate named (** implication. *)
-  | Piff of predicate named * predicate named (** equivalence. *)
-  | Pnot of predicate named                   (** negation. *)
-  | Pif of term * predicate named * predicate named  (** conditional *)
-  | Plet of logic_info * predicate named (** definition of a local variable *)
-  | Pforall of quantifiers * predicate named (** universal quantification. *)
-  | Pexists of quantifiers * predicate named (** existential quantification. *)
-  | Pat of predicate named * logic_label
+  | Pand of predicate * predicate (** conjunction *)
+  | Por of predicate * predicate  (** disjunction. *)
+  | Pxor of predicate * predicate (** logical xor. *)
+  | Pimplies of predicate * predicate (** implication. *)
+  | Piff of predicate * predicate (** equivalence. *)
+  | Pnot of predicate                   (** negation. *)
+  | Pif of term * predicate * predicate  (** conditional *)
+  | Plet of logic_info * predicate (** definition of a local variable *)
+  | Pforall of quantifiers * predicate (** universal quantification. *)
+  | Pexists of quantifiers * predicate (** existential quantification. *)
+  | Pat of predicate * logic_label
   (** predicate refers to a particular program point. *)
   | Pvalid_read of logic_label * term   (** the given locations are valid for reading. *)
   | Pvalid of logic_label * term   (** the given locations are valid. *)
@@ -1494,10 +1504,15 @@ and predicate =
 (** predicate with an unique identifier.  Use [Logic_const.new_predicate] to
     create fresh predicates *)
 and identified_predicate = {
-  mutable ip_name: string list; (** names given to the predicate if any.*)
-  ip_loc: location; (** location in the source code. *)
   ip_id: int; (** identifier *)
   ip_content: predicate; (** the predicate itself*)
+}
+
+(** predicates with a location and an optional list of names *)
+and predicate = {
+  pred_name : string list; (** list of given names *)
+  pred_loc : location;     (** position in the source code. *)
+  pred_content : predicate_node;(** content *)
 }
 
 (*  Polymorphic types shared with parsed trees (Logic_ptree) *)
@@ -1524,22 +1539,16 @@ and 'locs assigns =
   | Writes of 'locs from list
     (** list of locations that can be written. Empty list means \nothing. *)
 
-(** object that can be named (in particular predicates). *)
-and 'a named = { 
-  name : string list; (** list of given names *)
-  loc : location;     (** position in the source code. *)
-  content : 'a;       (** content *)
-}
-
-(** Function contract. Type shared with Logic_ptree. *)
-and ('term,'pred,'locs) spec = {
-  mutable spec_behavior : ('pred,'locs) behavior list;
+(** Function or statement contract. This type shares the name of its
+    constructors with {!Logic_ptree.spec}. *)
+and spec = {
+  mutable spec_behavior : behavior list;
   (** behaviors *)
 
-  mutable spec_variant : 'term variant option;
+  mutable spec_variant : term variant option;
   (** variant for recursive functions. *)
 
-  mutable spec_terminates: 'pred option;
+  mutable spec_terminates: identified_predicate option;
   (** termination condition. *)
 
   mutable spec_complete_behaviors: string list list;
@@ -1551,20 +1560,8 @@ and ('term,'pred,'locs) spec = {
      It is possible to have more than one set of disjoint behaviors *)
 }
 
-(** Behavior of a function. Type shared with Logic_ptree.
-    @since Oxygen-20120901 [b_allocation] has been added.
-    @since Carbon-20101201 [b_requires] has been added.
-    @modify Boron-20100401 [b_ensures] is replaced by [b_post_cond].
-    Old [b_ensures] represent the [Normal] case of [b_post_cond]. *)
-and ('pred,'locs) behavior = {
-  mutable b_name : string; (** name of the behavior. *)
-  mutable b_requires : 'pred list; (** require clauses. *)
-  mutable b_assumes : 'pred list; (** assume clauses. *)
-  mutable b_post_cond : (termination_kind * 'pred) list; (** post-condition. *)
-  mutable b_assigns : 'locs assigns; (** assignments. *)
-  mutable b_allocation : 'locs allocation; (** frees, allocates. *)
-  mutable b_extended : (string * int * 'pred list) list
-(** Grammar extensions.
+
+(** extension to standard ACSL clause.
     Each extension is associated to a keyword. An extension
     can be registered through the following functions:
     - {!Logic_typing.register_behavior_extension} for parsing and type-checking
@@ -1573,6 +1570,29 @@ and ('pred,'locs) behavior = {
     - {!Cil.register_behavior_extension} for visiting an extended clause
 
     @plugin development guide *)
+and acsl_extension = string * acsl_extension_kind
+
+and acsl_extension_kind =
+  | Ext_id of int (** id used internally by the extension itself. *)
+  | Ext_terms of term list
+  | Ext_preds of predicate list
+    (** a list of predicates, the most common case of for extensions *)
+
+(** Behavior of a function or statement. This type shares the name of its
+    constructors with {!Logic_ptree.behavior}.
+    @since Oxygen-20120901 [b_allocation] has been added.
+    @since Carbon-20101201 [b_requires] has been added.
+    @modify Boron-20100401 [b_ensures] is replaced by [b_post_cond].
+    Old [b_ensures] represent the [Normal] case of [b_post_cond]. *)
+and behavior = {
+  mutable b_name : string; (** name of the behavior. *)
+  mutable b_requires : identified_predicate list; (** require clauses. *)
+  mutable b_assumes : identified_predicate list; (** assume clauses. *)
+  mutable b_post_cond : (termination_kind * identified_predicate) list
+      (** post-condition. *);
+  mutable b_assigns : identified_term assigns; (** assignments. *)
+  mutable b_allocation : identified_term allocation; (** frees, allocates. *)
+  mutable b_extended : acsl_extension list (** extensions *)
 }
 
 (** kind of termination a post-condition applies to. See ACSL manual. *)
@@ -1603,52 +1623,55 @@ and 'term pragma =
   | Impact_pragma of 'term impact_pragma
 
 (** all annotations that can be found in the code.
-    Type shared with Logic_ptree. *)
-and ('term, 'pred, 'spec_pred, 'locs) code_annot =
-  | AAssert of string list * 'pred
+    This type shares the name of its constructors with
+    {!Logic_ptree.code_annot}. *)
+and code_annotation_node =
+  | AAssert of string list * predicate
   (** assertion to be checked. The list of strings is the list of
       behaviors to which this assertion applies. *)
 
-  | AStmtSpec of string list * ('term, 'spec_pred, 'locs) spec
+  | AStmtSpec of string list * spec
   (** statement contract
       (potentially restricted to some enclosing behaviors). *)
 
-  | AInvariant of string list * bool * 'pred
+  | AInvariant of string list * bool * predicate
   (** loop/code invariant. The list of strings is the list of behaviors to which
       this invariant applies.  The boolean flag is true for normal loop
       invariants and false for invariant-as-assertions. *)
                                          
-  | AVariant of 'term variant
+  | AVariant of term variant
   (** loop variant. Note that there can be at most one variant associated to a
       given statement *)
 
-  | AAssigns of string list * 'locs assigns
+  | AAssigns of string list * identified_term assigns
   (** loop assigns.  (see [b_assigns] in the behaviors for other assigns).  At
       most one clause associated to a given (statement, behavior) couple.  *)
 
-  | AAllocation of string list * 'locs allocation
+  | AAllocation of string list * identified_term allocation
   (** loop allocation clause.  (see [b_allocation] in the behaviors for other
       allocation clauses).
       At most one clause associated to a given (statement, behavior) couple.
       @since Oxygen-20120901 when [b_allocation] has been added.  *)
 
-  | APragma of 'term pragma (** pragma. *)
+  | APragma of term pragma (** pragma. *)
+  | AExtended of string list * acsl_extension
+    (** extension in a loop annotation.
+        @since Silicon-20161101 *)
 
 (** function contract. *)
-and funspec = (term, identified_predicate, identified_term) spec
+
+and funspec = spec
 
 (** code annotation with an unique identifier.
     Use [Logic_const.new_code_annotation] to create new code annotations with
     a fresh id. *)
 and code_annotation = { 
   annot_id: int; (** identifier. *) 
-  annot_content :
-  (term, predicate named, identified_predicate, identified_term) code_annot;
-      (** content of the annotation. *)
+  annot_content : code_annotation_node; (** content of the annotation. *)
 }
 
 (** behavior of a function. *)
-and funbehavior = (identified_predicate,identified_term) behavior
+and funbehavior = behavior
 
 (** global annotations, not attached to a statement or a function. *)
 and global_annotation =
@@ -1660,7 +1683,7 @@ and global_annotation =
   | Dtype of logic_type_info * location (** declaration of a logic type. *)
   | Dlemma of
       string * bool * logic_label list * string list *
-        predicate named * location
+        predicate * location
   (** definition of a lemma. The boolean flag is [true] if the property should
       be taken as an axiom and [false] if it must be proved.  *)
   | Dinvariant of logic_info * location
@@ -1694,12 +1717,11 @@ type cil_function =
           optional, to distinguish [void f()] ([None]) from
           [void f(void)] ([Some []]). *)
 
-(** Except field [fundec], do not use the other fields directly.
-    Prefer to use {!Kernel_function.find_return}, {!Annotations.funspec},
-    [Annotations.add_*] or [Annotations.remove_*]. *)
+(** Only field [fundec] can be used directly. Use {!Annotations.funspec},
+    [Annotations.add_*] and [Annotations.remove_*] to query or modify field
+    [spec]. *)
 type kernel_function = {
   mutable fundec : cil_function;
-  mutable return_stmt : stmt option;
   mutable spec : funspec;
 }
 

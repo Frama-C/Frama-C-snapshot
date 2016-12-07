@@ -82,8 +82,8 @@ end)
 
 let default_alarm_report ki alarm str =
   Alarm_cache.memo (fun (_ki,_alarm) ->
-    Kernel.warning ~current:true "%s" str
-  ) (ki,alarm)
+      Value_util.alarm_report ~current:true "%s" str
+    ) (ki,alarm)
 ;;
 
 let new_alarm ki alarm property annot str =

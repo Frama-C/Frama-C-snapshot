@@ -148,7 +148,7 @@ let popcount = Z.popcount
   let divexact = Z.divexact
   let div_rem = Z.div_rem
 
-  let c_div u v =
+  let _c_div u v =
     let bad_div = div u v in
     if (lt u zero) && not (is_zero (rem u v))
     then
@@ -157,11 +157,34 @@ let popcount = Z.popcount
       else succ bad_div
     else bad_div
 
+  let _c_div u v =
+    let res = _c_div u v in
+    let res2 = Z.div u v in
+    if not (equal res res2) then
+      failwith (Printf.sprintf "division of %a %a c_div %a div %a" 
+        Z.sprint u
+        Z.sprint v
+        Z.sprint res
+        Z.sprint res2)
+    else res2
 
+  let c_div = Z.div
 
-  let c_rem u v =
+  let _c_rem u v =
     sub u (mul v (c_div u v))
 
+  let _c_rem u v =
+    let res = _c_rem u v in
+    let res2 = Z.rem u v in
+    if not (equal res res2) then
+      failwith (Printf.sprintf "division of %a %a c_rem %a rem %a"
+        Z.sprint u
+        Z.sprint v
+        Z.sprint res
+        Z.sprint res2)
+    else res2
+
+  let c_rem = Z.rem
 
   let cast ~size ~signed ~value =
     if (not signed) 
@@ -186,18 +209,15 @@ let popcount = Z.popcount
 
   let is_even v = is_zero (logand one v)
 
-  (** [pgcd u 0] is allowed and returns [u] *)
   let pgcd u v =
-    let r =
-      if is_zero v
-      then u
-      else Z.gcd u v in
-      r
+    if is_zero v then abs u (* Zarith raises an exception on zero arguments *)
+    else if is_zero u then abs v
+    else Z.gcd u v
 
   let ppcm u v =
     if u = zero || v = zero
     then zero
-    else native_div (mul u v) (pgcd u v)
+    else Z.lcm u v
 
   let min = Z.min
   let max = Z.max

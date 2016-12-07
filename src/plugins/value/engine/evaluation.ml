@@ -61,6 +61,12 @@ open Eval
    The backward evaluation also propagates the reduction stemming from an if
    statement, where the condition may be reduced to zero or non-zero. *)
 
+(* An expression is deemed volatile if it contains an access to a volatile
+   location. The forward evaluation computes this synctatically, by checking
+   for volatile qualifiers on sub-lvalues and intermediate types. A 'volatile'
+   flag is propagated through the expression. This flag prevents the update of
+   the value computed by the initial forward evaluation. *)
+
 (* When a backward reduction has been successfully performed, the domain may
    initiate new reductions, via the reduce_further function.
    A fuel level is used in the same way as for the forward evaluation to
@@ -84,11 +90,18 @@ let less_fuel_than n = function
 
 type reduction_kind = | Neither | Forward | Backward
 
+let update_reduction reduction b = match reduction with
+  | Neither -> if b then Neither else Forward
+  | x -> x
+
 (* Some information about a forward evaluation. *)
 type forward_report = {
-  fuel: fuel;           (* The fuel used for the evaluation. *)
+  fuel: fuel;                (* The fuel used for the evaluation. *)
   reduction: reduction_kind; (* Whether a reduction has occur, which may be
                                 propagated to the sub-terms. *)
+  volatile: bool;         (* If true, the expression may contain an access
+                             to a volatile location, and thus cannot be safely
+                             reduced. *)
 }
 
 (* Parameters of the evaluation of the location of a left value. *)
@@ -98,13 +111,13 @@ type loc_report = {
 }
 
 (* If a value is cached by an external source, we assume that it was
-   computed with infty fuel and that possible reduction have been
-   propagated backward. *)
-let extern_report = { fuel = Infty; reduction = Neither }
+   computed with infty fuel, that possible reduction have been
+   propagated backward, and that the expression cannot be volatile. *)
+let extern_report = { fuel = Infty; reduction = Neither; volatile = false }
 
 (* Report used when the cache is filled with a dummy value to avoid evaluation
    loops. *)
-let dummy_report = { fuel = Loop; reduction = Neither }
+let dummy_report = { fuel = Loop; reduction = Neither; volatile = false }
 
 let no_fuel = -1
 let root_fuel () = Value_parameters.OracleDepth.get ()
@@ -134,13 +147,18 @@ module type S = sig
                                 and type origin = origin
                                 and type loc = loc
   val evaluate :
-    ?valuation:Valuation.t -> ?indeterminate:bool -> ?reduction:bool ->
+    ?valuation:Valuation.t -> ?reduction:bool ->
     state -> exp -> (Valuation.t * value) evaluated
+  val copy_lvalue :
+    ?valuation:Valuation.t ->
+    state -> lval -> (Valuation.t * value flagged_value) evaluated
   val lvaluate :
     ?valuation:Valuation.t -> for_writing:bool ->
     state -> lval -> (Valuation.t * loc * typ) evaluated
   val reduce:
     ?valuation:Valuation.t -> state -> exp -> bool -> Valuation.t evaluated
+  val assume:
+    ?valuation:Valuation.t -> state -> exp -> value -> Valuation.t or_bottom
 
   val loc_size: loc -> Int_Base.t
   val reinterpret: exp -> typ -> value -> value evaluated
@@ -157,64 +175,57 @@ end
 
 let return t = `Value t, Alarmset.none
 
-(* Returns an over-approximation of the alarms that may occur in the dereference
-   of the left-value [lval] of type [typ]. *)
-let alarms_of_dereference lval typ =
-  let indeterminate_alarms =
-    Alarmset.add
-      (Alarms.Dangling lval) (Alarmset.singleton (Alarms.Uninitialized lval))
-  in
-  match typ with
-  | TFloat (fkind, _) ->
-    let expr = Cil.dummy_exp (Cil_types.Lval lval) in
-    Alarmset.add (Alarms.Is_nan_or_infinite (expr, fkind)) indeterminate_alarms
-  | _ -> indeterminate_alarms
-
 (* Intersects [alarms] with the only possible alarms from the dereference of
    the left-value [lval] of type [typ].
    Usefull if the abstract domain returns a non-closed AllBut alarmset for
    some lvalues. *)
 let close_dereference_alarms lval typ alarms =
-  let closed_alarms = alarms_of_dereference lval typ in
-  match Alarmset.inter alarms closed_alarms with
-  | `Inconsistent -> Value_parameters.abort ~current:true ~once:true
-                       "Inconsistent status of alarms: unsound states."
-  | `Value alarms -> alarms
+  let init_alarm = Alarms.Uninitialized lval
+  and escap_alarm = Alarms.Dangling lval in
+  let init_status = Alarmset.find init_alarm alarms
+  and escap_status = Alarmset.find escap_alarm alarms in
+  let reduced = init_status <> Alarmset.True || escap_status <> Alarmset.True in
+  let closed_alarms = Alarmset.add' init_alarm init_status Alarmset.none in
+  let closed_alarms = Alarmset.add' escap_alarm escap_status closed_alarms in
+  match typ with
+  | TFloat (fkind, _) ->
+    let expr = Cil.dummy_exp (Cil_types.Lval lval) in
+    let nan_inf_alarm = Alarms.Is_nan_or_infinite (expr, fkind) in
+    let nan_inf_status = Alarmset.find nan_inf_alarm alarms in
+    Alarmset.add' nan_inf_alarm nan_inf_status closed_alarms, reduced
+  | _ -> closed_alarms, reduced
 
 let define_value value =
   { v = `Value value; initialized = true; escaping = false }
 
-(* [v] and [alarms] must be the value and the alarms from the evaluation of
-   the lvalue [lval].
-   In indeterminate mode, remove the alarms about the initialization and the
+(* [record] and [alarms] must be the value and the alarms resulting from the
+   evaluation of the lvalue [lval].
+   This function removes the alarms about the initialization and the
    escaping of [lval], and sets accordingly the initialized and escaping flags
    of the computed value. *)
-let determinize_lval indeterminate lval v alarms =
+let indeterminate_copy lval result alarms =
   let init_alarm = Alarms.Uninitialized lval
   and escap_alarm = Alarms.Dangling lval in
   let initialized = Alarmset.find init_alarm alarms = Alarmset.True
   and escaping = not (Alarmset.find escap_alarm alarms = Alarmset.True) in
   let alarms =
-    if indeterminate
-    then
-      Alarmset.add' escap_alarm Alarmset.True
-        (Alarmset.add' init_alarm Alarmset.True alarms)
+    if not (initialized)
+    then Alarmset.add' init_alarm Alarmset.True alarms
     else alarms
   in
-  let value =
-    if indeterminate
-    then { v; initialized; escaping }
-    else { v; initialized = true; escaping = false }
+  let alarms =
+    if escaping
+    then Alarmset.add' escap_alarm Alarmset.True alarms
+    else alarms
   in
-  let reductness =
-    if indeterminate || (initialized && not escaping)
-    then Unreduced
-    else Reduced
+  let reductness = Unreduced in
+  let v, origin = match result with
+    | `Bottom -> `Bottom, None
+    | `Value (v, origin) -> `Value v, Some origin
   in
-  let to_reduce = not (Alarmset.is_empty alarms) in
-  if value.v = `Bottom && initialized && not escaping
-  then `Bottom, alarms
-  else `Value (value, reductness, to_reduce), alarms
+  let value = { v; initialized; escaping } in
+  let record = { value; origin; reductness; val_alarms = alarms} in
+  record, alarms
 
 
 module type Value = sig
@@ -222,11 +233,16 @@ module type Value = sig
   val reduce : t -> t
 end
 
+module type Queries = sig
+  include Abstract_domain.Queries
+  include Datatype.S with type t = state
+end
+
 module Make
     (Value : Value)
     (Loc : Abstract_location.S with type value = Value.t)
-    (Domain : Abstract_domain.Queries with type value = Value.t
-                                       and type location = Loc.location)
+    (Domain : Queries with type value = Value.t
+                       and type location = Loc.location)
 = struct
 
   type state = Domain.state
@@ -278,9 +294,8 @@ module Make
     let add_loc' (cache:t) lval record =
       let s, t = cache in s, LCache.add lval record t
 
-    let filter f_exp f_lv (s, t) =
-      ECache.filter (fun exp (record, _) -> f_exp  exp record) s,
-      LCache.filter (fun lval (record, _) -> f_lv lval record) t
+    let remove (s, t) expr = ECache.remove expr s, t
+    let remove_loc (s, t) lval = s, LCache.remove lval t
   end
 
   (* Imperative cache for the evaluator. A reference is mandatory here, because
@@ -298,16 +313,24 @@ module Make
     { value = flagged_top; origin = None;
       reductness = Dull; val_alarms = Alarmset.all }
 
+  (* Updates the abstractions stored in the cache for the expression [expr]
+     with the given record, report and value. [kind] is the type of the
+     reduction (forward or backward). *)
   let reduce_expr_recording kind expr (record, report) value =
-    let red = record.reductness in
-    let reductness =
-      if red = Unreduced && kind <> Neither then Reduced else red
-    in
-    (* TODO: allow to reduce initialized and escaping flags? *)
-    let record = { record with value = define_value value; reductness } in
-    let report = { report with reduction = kind } in
-    cache := Cache.add' !cache expr (record, report)
+    (* Avoids reduction of volatile expressions. *)
+    if report.volatile then ()
+    else
+      let red = record.reductness in
+      let reductness =
+        if red = Unreduced && kind <> Neither then Reduced else red
+      in
+      (* TODO: allow to reduce initialized and escaping flags? *)
+      let record = { record with value = define_value value; reductness } in
+      let report = { report with reduction = kind } in
+      cache := Cache.add' !cache expr (record, report)
 
+  (* Updates the abstractions stored in the cache for the expression [expr]
+     with the value [value]. [kind] is the type of the reduction.*)
   let reduce_expr_value kind expr value =
     let record, report = Cache.find' !cache expr in
     reduce_expr_recording kind expr (record, report) value
@@ -316,16 +339,17 @@ module Make
     let v = record.value.v >>-: Value.reduce in
     { record with value = {record.value with v = v} }
 
-  (* Returns the cached evaluation if it exists;
-     call [coop_forward_eval] and caches its result otherwise. *)
-  let rec forward_eval ?(indeterminate=false) fuel state expr =
+  (* Returns the cached value and alarms for the evaluation if it exists;
+     call [coop_forward_eval] and caches its result otherwise.
+     Also returns a boolean indicating whether the expression is volatile.  *)
+  let rec root_forward_eval fuel state expr =
     (* Search in the cache for the result of a previous computation. *)
     try
       let record, report = Cache.find' !cache expr in
       (* If the record was computed with more fuel than [fuel], return it. *)
       if report.fuel = Loop then fuel_consumed := true;
       if less_fuel_than fuel report.fuel
-      then record.value.v, record.val_alarms
+      then (record.value.v >>-: fun v -> v, report.volatile), record.val_alarms
       else raise Not_found
     (* If no result found, evaluate the expression. *)
     with Not_found ->
@@ -335,42 +359,42 @@ module Make
       (* Fill the cache to avoid loops in the use of the oracle. *)
       cache := Cache.add' !cache expr (top_record, dummy_report);
       (* Evaluation of [expr]. *)
-      let result, alarms = coop_forward_eval ~indeterminate fuel state expr in
+      let result, alarms = coop_forward_eval fuel state expr in
       let value =
-        result >>- fun (record, reduced) ->
+        result >>- fun (record, reduction, volatile) ->
         (* Put the alarms in the record. *)
         let record = { record with val_alarms = alarms } in
         (* Inter-reduction of the value (in case of a reduced product). *)
         let record = reduce_value record in
         (* Cache the computed result with an appropriate report. *)
         let fuel = if !fuel_consumed then Finite fuel else Infty in
-        let reduction = if reduced then Forward else Neither in
-        let report = {fuel; reduction} in
+        let report = {fuel; reduction; volatile} in
         cache := Cache.add' !cache expr (record, report);
-        record.value.v
+        record.value.v >>-: fun v -> v, volatile
       in
       (* Reset the flag fuel_consumed. *)
       fuel_consumed := previous_fuel_consumed || !fuel_consumed;
       value, alarms
 
-  (* Asks the abstract domain for the abstract value of [expr],
-     and performs the narrowing with the value computed by
-     [internal_forward_eval].
-     Also returns:
-     - the state of reduction of the value provided by the domain (Reduced if
-     the value computed by the internal evaluation is more precise than that
-     given by the domain);
-     - a boolean indicating the need of a backward reduction from [expr]
-     (true if the computed value has been reduced thanks to the domain or the
-     emitted alarms). *)
-  and coop_forward_eval ~indeterminate fuel state expr =
+  and forward_eval fuel state expr = root_forward_eval fuel state expr >>=: fst
+
+  (* The functions below returns, along with the computed value (when it is not
+     bottom):
+     - the state of reduction of the current expression: Neither if it has
+       not been reduced, Forward otherwise.
+     - a boolean indicating whether the expression is volatile. *)
+
+  (* Asks the abstract domain for abstractions (value and alarms) of [expr],
+     and performs the narrowing with the abstractions computed by
+     [internal_forward_eval].  *)
+  and coop_forward_eval fuel state expr =
     match expr.enode with
-    | Lval lval -> eval_lval ~indeterminate fuel state lval
+    | Lval lval -> eval_lval fuel state lval
     | BinOp _ | UnOp _ | CastE _ -> begin
         let intern_value, alarms = internal_forward_eval fuel state expr in
         let oracle =
           if fuel > 0
-          then forward_eval ~indeterminate:false (pred fuel) state
+          then forward_eval (pred fuel) state
           else fun _ -> fuel_consumed := true; `Value Value.top, Alarmset.all
         in
         let domain_value, alarms' = Domain.extract_expr oracle state expr in
@@ -382,86 +406,93 @@ module Make
             "Inconsistent status of alarms: unsound states."
         | `Value alarms ->
           let v =
-            intern_value >>- fun (intern_value, to_reduce) ->
+            intern_value >>- fun (intern_value, reduction, volatile) ->
             domain_value >>- fun (domain_value, origin) ->
             Value.narrow intern_value domain_value >>-: fun result ->
             let reductness =
               if Value.equal domain_value result then Unreduced
               else if Value.(equal domain_value top) then Created else Reduced
             in
-            let to_reduce = not (Value.equal intern_value result) || to_reduce
+            let reduction =
+              update_reduction reduction (Value.equal intern_value result)
             and origin = Some origin
             and value = define_value result in
             (* The proper alarms will be set in the record by forward_eval. *)
             {value; origin; reductness; val_alarms = Alarmset.all},
-            to_reduce
+            reduction, volatile
           in
           v, alarms
       end
     | _ ->
-      internal_forward_eval fuel state expr >>=: fun (value, to_reduce) ->
+      internal_forward_eval fuel state expr
+      >>=: fun (value, reduction, volatile) ->
       let value = define_value value
       and origin = None
       and reductness = Dull in
-      {value; origin; reductness; val_alarms = Alarmset.all}, to_reduce
+      {value; origin; reductness; val_alarms = Alarmset.all},
+      reduction, volatile
 
   (* Reinterpret the abstract value computed by [recursive_forward_eval]
-     according to the type of [expr].
-     Also returns a boolean indicating if the value has been reduced. *)
+     according to the type of [expr]. *)
   and internal_forward_eval fuel state expr =
-    recursive_forward_eval fuel state expr >>= fun (value, to_reduce) ->
+    recursive_forward_eval fuel state expr
+    >>= fun (value, reduction, volatile) ->
     (* TODO: the functions called above should respect the destination type.
        Calling reinterpret should be useless *)
     let v, a = Value.reinterpret expr (Cil.typeOf expr) value in
-    (v, a) >>=: fun v -> v, not (Alarmset.is_empty a) || to_reduce
+    (v, a) >>=: fun v ->
+    let reduction = update_reduction reduction (Alarmset.is_empty a) in
+    v, reduction, volatile
 
-  (* Recursive descent in the sub-expressions.
-     Return the abstract value of the expression and a boolean that indicates
-     whether this value could have been reduced by alarms. *)
+  (* Recursive descent in the sub-expressions. *)
   and recursive_forward_eval fuel state expr =
-    let process (v, a) = (v, a) >>=: fun v -> v, not (Alarmset.is_empty a) in
+    let compute_reduction (v, a) volatile =
+      (v, a) >>=: fun v ->
+      let reduction = if Alarmset.is_empty a then Neither else Forward in
+      v, reduction, volatile
+    in
     match expr.enode with
     | Info (e, _) -> internal_forward_eval fuel state e
 
     | Const c ->
       begin match c with
         | CEnum {eival = e} ->
-          forward_eval fuel state e >>=: fun value -> value, false
-        | _ -> Value.constant expr c >>=: fun value -> value, false
+          forward_eval fuel state e >>=: fun value -> value, Neither, false
+        | _ -> Value.constant expr c >>=: fun value -> value, Neither, false
       end
 
     | Lval _lval -> assert false
 
     | AddrOf v | StartOf v ->
       lval_to_loc fuel ~for_writing:false ~reduction:false state v
-      >>=: fun (loc, _) ->
-      Loc.to_value loc, false
+      >>=: fun (loc, _, _) ->
+      Loc.to_value loc, Neither, false
 
     | UnOp (op, e, _typ) ->
-      forward_eval fuel state e >>= fun v ->
+      root_forward_eval fuel state e >>= fun (v, volatile) ->
       let context = (e, expr)
       and typ = Cil.unrollType (Cil.typeOf e) in
       let v = Value.forward_unop ~context typ op v in
-      process v
+      compute_reduction v volatile
 
     | BinOp (op, e1, e2, typ) ->
       let context = (e1, e2, expr, typ) in
-      forward_eval fuel state e1 >>= fun v1 ->
-      forward_eval fuel state e2 >>= fun v2 ->
+      root_forward_eval fuel state e1 >>= fun (v1, volatile1) ->
+      root_forward_eval fuel state e2 >>= fun (v2, volatile2) ->
       let typ_e1 = Cil.unrollType (Cil.typeOf e1) in
       let v = Value.forward_binop ~context typ_e1 op v1 v2 in
-      process v
+      compute_reduction v (volatile1 || volatile2)
 
     | CastE (dst_typ, e) ->
-      forward_eval fuel state e >>= fun value ->
+      root_forward_eval fuel state e >>= fun (value, volatile) ->
       let src_typ = Cil.typeOf e in
       let v = Value.do_promotion ~src_typ ~dst_typ e value in
-      process v
+      compute_reduction v volatile
 
     | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ ->
       match Cil.constFoldToInt expr with
-      | Some v -> return (Value.inject_int (Cil.typeOf expr) v, false)
-      | _      -> return (Value.top_int, false)
+      | Some v -> return (Value.inject_int (Cil.typeOf expr) v, Neither, false)
+      | _      -> return (Value.top_int, Neither, false)
 
 
   (* ------------------------------------------------------------------------
@@ -472,47 +503,51 @@ module Make
      result in the cache. If the result is already in the cache, the computation
      is avoided, unless if it may reduce the cache.
      If [reduction] is false, don't reduce the location and the offset by their
-     valid parts, and don't emit alarms about their validity. *)
+     valid parts, and don't emit alarms about their validity.
+     If the location is not bottom, the function also returns the typ of the
+     lvalue, and a boolean indicating that the lvalue contains a sub-expression
+     with volatile qualifier (in its host or offset). *)
   and lval_to_loc fuel ~for_writing ~reduction state lval =
     let compute () =
       let res, alarms =
         reduced_lval_to_loc fuel ~for_writing ~reduction state lval
       in
       let res =
-        res >>-: fun (loc, typ_offs, reduced) ->
-        let red = if reduced then Forward else Neither in
+        res >>-: fun (loc, typ_offs, red, volatile) ->
         let record = { loc; typ = typ_offs; loc_alarms = alarms }
-        and report = { fuel = Finite fuel; reduction = red }
+        and report = { fuel = Finite fuel; reduction = red; volatile }
         and loc_report = { for_writing; with_reduction = reduction } in
         cache := Cache.add_loc' !cache lval (record, (report, loc_report));
-        (loc, typ_offs)
+        (loc, typ_offs, volatile)
       in
       res, alarms
     in
     match Cache.find_loc' !cache lval with
-    | `Value (record, (forward_report, loc_report)) ->
+    | `Value (record, (report, loc_report)) ->
       if
         already_precise_loc_report ~for_writing ~reduction loc_report
-        && less_fuel_than fuel forward_report.fuel
-      then `Value (record.loc, record.typ), record.loc_alarms
+        && less_fuel_than fuel report.fuel
+      then `Value (record.loc, record.typ, report.volatile), record.loc_alarms
       else compute ()
     | `Top -> compute ()
 
   (* If [reduction] is false, don't reduce the location and the offset by their
      valid parts, and don't emit alarms about their validity. *)
   and reduced_lval_to_loc fuel ~for_writing ~reduction state lval =
-    let eval = internal_lval_to_loc fuel ~for_writing ~reduction state lval in
+    internal_lval_to_loc fuel ~for_writing ~reduction state lval
+    >>= fun (loc, typ, volatile) ->
     if not reduction
-    then eval >>=: fun (loc, typ) -> loc, typ, false
+    then `Value (loc, typ, Neither, volatile), Alarmset.none
     else
-      eval >>= fun (loc, typ) ->
       let bitfield = Cil.isBitfield lval in
       Loc.reduce_loc_by_validity ~for_writing ~bitfield lval loc
       >>=: fun valid_loc ->
-      let reduced = not (Loc.equal_loc valid_loc loc) in
-      valid_loc, typ, reduced
+      let reduction = if Loc.equal_loc valid_loc loc then Neither else Forward in
+      valid_loc, typ, reduction, volatile
 
-  (* Internal evaluation of a lvalue to an abstract location. *)
+  (* Internal evaluation of a lvalue to an abstract location.
+     Combination of the evaluation of the right part of an lval (an host) with
+     an offset, to obtain a location *)
   and internal_lval_to_loc fuel ~for_writing ~reduction state lval =
     let host, offset = lval in
     let typ = match host with
@@ -520,25 +555,30 @@ module Make
       | Mem x -> Cil.typeOf_pointed (Cil.typeOf x)
     in
     eval_offset fuel ~reduce_valid_index:reduction typ state offset
-    >>= fun (offs, typ_offs) ->
+    >>= fun (offs, typ_offs, offset_volatile) ->
     if for_writing && Value_util.is_const_write_invalid typ_offs
     then
       `Bottom,
       Alarmset.singleton (Alarms.Memory_access (lval, Alarms.For_writing))
     else
-      eval_host fuel state typ_offs offs host >>=: fun loc ->
-      loc, typ_offs
+      eval_host fuel state typ_offs offs host >>=: fun (loc, host_volatile) ->
+      loc, typ_offs, offset_volatile || host_volatile
 
-  (* Combination of the evaluation of the right part of an lval (an host) with
-     an offset, to obtain a location *)
+  (* Host evaluation. Also returns a boolean which is true if the host
+     contains a volatile sub-expression. *)
   and eval_host fuel state typ_offset offs = function
-    | Var host -> Loc.forward_variable typ_offset host offs, Alarmset.none
+    | Var host ->
+      (Loc.forward_variable typ_offset host offs >>-: fun loc -> loc, false),
+      Alarmset.none
     | Mem x ->
-      forward_eval fuel state x >>=. fun loc_lv ->
-      Loc.forward_pointer typ_offset loc_lv offs
+      root_forward_eval fuel state x >>=. fun (loc_lv, volatile) ->
+      Loc.forward_pointer typ_offset loc_lv offs >>-: fun loc ->
+      loc, volatile
 
+  (* Offset evaluation. Also returns a boolean which is true if the offset
+     contains a volatile sub-expression. *)
   and eval_offset fuel ~reduce_valid_index typ state = function
-    | NoOffset               -> return (Loc.no_offset, typ)
+    | NoOffset               -> return (Loc.no_offset, typ, false)
     | Index (index_expr, remaining) ->
       let typ_pointed, array_size = match Cil.unrollType typ with
         | TArray (t, size, _, _) -> t, size
@@ -546,8 +586,8 @@ module Make
                  "Got type '%a'" Printer.pp_typ t
       in
       eval_offset fuel ~reduce_valid_index typ_pointed state remaining >>=
-      fun (roffset, typ_offs) ->
-      forward_eval fuel state index_expr >>= fun index ->
+      fun (roffset, typ_offs, remaining_volatile) ->
+      root_forward_eval fuel state index_expr >>= fun (index, volatile) ->
       let valid_index =
         if not (Kernel.SafeArrays.get ()) || not reduce_valid_index
         then `Value index, Alarmset.none
@@ -571,35 +611,47 @@ module Make
           | Cil.LenOfArray -> `Value index, Alarmset.none (* unknown array size *)
       in
       valid_index >>=: fun index ->
-      Loc.forward_index typ_pointed index roffset, typ_offs
+      Loc.forward_index typ_pointed index roffset, typ_offs,
+      remaining_volatile || volatile
     | Field (fi, remaining) ->
-      let attrs = Cil.filter_qualifier_attributes (Cil.typeAttrs typ)  in
+      let attrs = Cil.filter_qualifier_attributes (Cil.typeAttrs typ) in
       let typ_fi = Cil.typeAddAttributes attrs fi.ftype in
       eval_offset fuel ~reduce_valid_index typ_fi state remaining
-      >>=: fun (r, typ_res) ->
+      >>=: fun (r, typ_res, volatile) ->
       let off = Loc.forward_field typ fi r in
-      off, typ_res
+      off, typ_res, volatile
 
   and eval_lval ?(indeterminate=false) fuel state lval =
     (* Computes the location of [lval]. *)
     lval_to_loc fuel ~for_writing:false ~reduction:true state lval
-    >>= fun (loc, typ_lv) ->
+    >>= fun (loc, typ_lv, volatile_expr) ->
+    (* the lvalue is volatile:
+       - if it has qualifier volatile (lval_to_loc propagates qualifiers
+         in the proper way through offsets)
+       - if it contains a sub-expression which is volatile (volatile_expr)
+    *)
+    let volatile = volatile_expr || Cil.typeHasQualifier "volatile" typ_lv in
     (* Find the value of the location, if not bottom. *)
     let oracle =
       if fuel > 0
-      then forward_eval ~indeterminate (pred fuel) state
+      then forward_eval (pred fuel) state
       else fun _ -> fuel_consumed := true; `Value Value.top, Alarmset.all
     in
     let v, alarms = Domain.extract_lval oracle state lval typ_lv loc in
-    let alarms = close_dereference_alarms lval typ_lv alarms in
-    determinize_lval indeterminate lval (v >>-: fst) alarms
-    >>=: fun (value, reductness, to_reduce) ->
-    let origin = match v with
-      | `Bottom -> None
-      | `Value (_, o) -> Some o
-    in
-    (* The proper alarms will be set in the record by forward_eval. *)
-    {value; origin; reductness; val_alarms = Alarmset.all}, to_reduce
+    let alarms, reduced = close_dereference_alarms lval typ_lv alarms in
+    if indeterminate
+    then
+      let record, alarms = indeterminate_copy lval v alarms in
+      `Value (record, Neither, volatile), alarms
+    else
+      let reduction = if Alarmset.is_empty alarms then Neither else Forward in
+      (v, alarms) >>=: fun (value, origin) ->
+      let value = define_value value
+      and origin = Some origin
+      and reductness = if reduced then Reduced else Unreduced in
+      (* The proper alarms will be set in the record by forward_eval. *)
+      {value; origin; reductness; val_alarms = Alarmset.all},
+      reduction, volatile
 
 
   (* ------------------------------------------------------------------------
@@ -671,15 +723,18 @@ module Make
     evaluate_for_reduction state expr >>- fun (record, report) ->
     (* Reduction of [expr] by [value]. *)
     let reduce kind value =
-      let value = Value.reduce value in
-      reduce_expr_recording kind expr (record, report) value;
-      (* If enough fuel, asks the domain for more reductions. *)
-      if fuel > 0
-      then
-        let reduce (expr, v) =
-          ignore (backward_eval (pred fuel) state expr (Some v))
-        in
-        List.iter reduce (Domain.reduce_further state expr value)
+      (* Avoids reduction of volatile expressions. *)
+      if report.volatile then ()
+      else
+        let value = Value.reduce value in
+        reduce_expr_recording kind expr (record, report) value;
+        (* If enough fuel, asks the domain for more reductions. *)
+        if fuel > 0
+        then
+          let reduce (expr, v) =
+            ignore (backward_eval (pred fuel) state expr (Some v))
+          in
+          List.iter reduce (Domain.reduce_further state expr value)
     in
     record.value.v >>- fun old_value ->
     (* Determines the need of a backward reduction. *)
@@ -795,7 +850,8 @@ module Make
       >>- fun (loc, new_value) ->
       Value.narrow new_value value >>-: fun value ->
       let b = not (Loc.equal_loc record.loc loc) in
-      if b
+      (* Avoids useless reductions and reductions of volatile expressions. *)
+      if b && not (fst report).volatile
       then
         let record = { record with loc } in
         let report = { (fst report) with reduction = Backward }, snd report in
@@ -818,7 +874,7 @@ module Make
         let reduce_valid_index = true in
         let typ_lval = Cil.typeOf_pointed (Cil.typeOf expr) in
         fst (eval_offset no_fuel ~reduce_valid_index typ_lval state offset)
-        >>- fun (loc_offset, _) ->
+        >>- fun (loc_offset, _, _) ->
         find_val expr >>- fun value ->
         Loc.backward_pointer value loc_offset location
         >>- fun (pointer_value, loc_offset) ->
@@ -834,7 +890,7 @@ module Make
       find_val exp >>- fun v ->
       let typ_pointed = Cil.typeOf_array_elem typ in
       fst (eval_offset no_fuel ~reduce_valid_index:true typ_pointed state remaining)
-      >>- fun (rem, _) ->
+      >>- fun (rem, _, _) ->
       Loc.backward_index typ_pointed v rem loc_offset >>- fun (v', rem') ->
       let reduced_v = if Value.is_included v v' then None else Some v' in
       backward_eval fuel state exp reduced_v >>- fun _ ->
@@ -872,7 +928,9 @@ module Make
       let new_value =
         match expr.enode with
         | Lval lval -> second_eval_lval state lval value
-        | _ -> fst (internal_forward_eval no_fuel state expr) >>-: fst
+        | _ ->
+          fst (internal_forward_eval no_fuel state expr)
+          >>-: fun (v, _, _) -> v
       in
       new_value >>- fun evaled ->
       let evaled = Value.reduce evaled in
@@ -897,7 +955,7 @@ module Make
           let for_writing = false
           and reduction = true in
           fst (reduced_lval_to_loc no_fuel ~for_writing ~reduction state lval)
-          >>-: fun (loc, _, _) ->
+          >>-: fun (loc, _, _, _) ->
           (* TODO: Loc.narrow *)
           let record = { record with loc } in
           let reduction =
@@ -908,7 +966,7 @@ module Make
         else `Value ()
       in
       evaloc >>- fun () ->
-      fst (eval_lval no_fuel state lval) >>- fun (record, _) ->
+      fst (eval_lval no_fuel state lval) >>- fun (record, _, _) ->
       record.value.v
 
   and recursive_descent state expr =
@@ -964,7 +1022,7 @@ module Make
     | Lval (Var v,  off) ->
       let reduce_valid_index = true in
       let eval, _ = eval_offset no_fuel ~reduce_valid_index v.vtype state off in
-      eval >>- fun (offset, _) ->
+      eval >>- fun (offset, _, _) ->
       if Loc.offset_cardinal_zero_or_one offset
       then
         (* no variable in offset can be influential. Check the
@@ -984,7 +1042,7 @@ module Make
     | Lval (Mem e, off) ->
       let t = Cil.typeOf_pointed (Cil.typeOf e) in
       let eval, _ = eval_offset no_fuel ~reduce_valid_index:true t state off in
-      eval >>- fun (offset, _) ->
+      eval >>- fun (offset, _, _) ->
       if Loc.offset_cardinal_zero_or_one offset
       then
         find_val e >>- fun contents ->
@@ -1035,15 +1093,17 @@ module Make
         then Cvalue.V.contains_zero v
         else Cvalue.V.is_included Cvalue.V.singleton_zero v
     in
-    let enumerate expr =
-      match Cache.find !cache expr with
+    let enumerate subexpr =
+      match Cache.find !cache subexpr with
       | `Top -> `Value ()
       | `Value record ->
         record.value.v >>- fun v ->
-        let cleared_cache = Clear.clear_expr !cache expr in
+        let cleared_cache =
+          Clear.clear_englobing_exprs !cache ~expr:cond ~subexpr
+        in
         let process sub_cvalue acc =
           let subvalue = set_cvalue sub_cvalue v in
-          if condition_may_still_be_true cleared_cache expr record subvalue
+          if condition_may_still_be_true cleared_cache subexpr record subvalue
           then Bottom.join Value.join (`Value subvalue) acc else acc
         in
         let cvalue = get_cvalue v in
@@ -1055,7 +1115,7 @@ module Make
           in
           let value = { record.value with v = `Value value } in
           let record = { record with value; reductness } in
-          cache := Cache.add !cache expr record
+          cache := Cache.add !cache subexpr record
     in
     match influentials with
     | [] -> `Value ()
@@ -1082,11 +1142,9 @@ module Make
 
   module Valuation = Cache
 
-  let evaluate
-      ?(valuation=Cache.empty) ?(indeterminate=false) ?(reduction=true)
-      state expr =
+  let evaluate ?(valuation=Cache.empty) ?(reduction=true) state expr =
     cache := valuation;
-    let value, alarms = forward_eval ~indeterminate (root_fuel ()) state expr in
+    let value, alarms = forward_eval (root_fuel ()) state expr in
     let result =
       value >>- fun value ->
       if not reduction || Alarmset.is_empty alarms
@@ -1098,10 +1156,30 @@ module Make
     in
     result, alarms
 
+  let copy_lvalue ?(valuation=Cache.empty) state lval =
+    let expr = Cil.dummy_exp (Lval lval)
+    and fuel = root_fuel () in
+    try
+      let record, report = Cache.find' valuation expr in
+      if less_fuel_than fuel report.fuel
+      then `Value (valuation, record.value), record.val_alarms
+      else raise Not_found
+    with Not_found ->
+      cache := valuation;
+      eval_lval ~indeterminate:true fuel state lval
+      >>=: fun (record, _, volatile) ->
+      let record = reduce_value record in
+      (* Cache the computed result with an appropriate report. *)
+      let report =
+        { fuel = Finite (root_fuel ()); reduction = Neither; volatile }
+      in
+      let valuation = Cache.add' !cache expr (record, report) in
+      valuation, record.value
+
   let lvaluate ?(valuation=Cache.empty) ~for_writing state lval =
     cache := valuation;
     lval_to_loc (root_fuel ()) ~for_writing ~reduction:true state lval
-    >>=. fun (_, typ) ->
+    >>=. fun (_, typ, _) ->
     backward_lval (backward_fuel ()) state lval >>-: fun _ ->
     match Cache.find_loc !cache lval with
     | `Value record -> !cache, record.loc, typ
@@ -1135,15 +1213,22 @@ module Make
     let aux state expr =
       (* Generate [e == 0] *)
       let expr = normalize_as_cond expr (not positive) in
-      forward_eval (root_fuel ()) state expr >>=. fun _ ->
+      root_forward_eval (root_fuel ()) state expr >>=. fun (_v, volatile) ->
       (* Reduce by [(e == 0) == 0] *)
       backward_eval (backward_fuel ()) state expr (Some Value.zero)
       >>- fun () ->
       try second_forward_eval state expr
-      with Not_Exact_Reduction -> reduce_by_enumeration state expr false
+      with Not_Exact_Reduction ->
+        (* Avoids reduce_by_cond_enumerate on volatile expressions. *)
+        if volatile then `Value () else reduce_by_enumeration state expr false
     in
     cache := valuation;
     aux state expr >>=: fun () ->
+    !cache
+
+  let assume ?valuation:(valuation=Cache.empty) state expr value =
+    cache := valuation;
+    backward_eval (backward_fuel ()) state expr (Some value) >>-: fun _ ->
     !cache
 
 
@@ -1177,7 +1262,7 @@ module Make
       let reduce kf =
         cache := valuation;
         let vi_f = Kernel_function.get_vi kf in
-        let value = Loc.to_value (Loc.eval_varinfo vi_f) in
+        let value = Value.inject_address vi_f in
         backward_eval 0 state v (Some value) >>- fun () ->
         try second_forward_eval state v >>-: fun () -> !cache
         with Not_Exact_Reduction ->
@@ -1232,7 +1317,7 @@ module Make
         List.fold_left process_one_state ([], false, []) states
       in
       let process_one_value (acc, states) i =
-        let value = Value.inject_int typ i in
+        let value = Value.reduce (Value.inject_int typ i) in
         let eq, mess, neq = match_expected_value value states in
         (i, eq, mess) :: acc, neq
       in

@@ -20,34 +20,44 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Functions manipulating filepaths. *)
+(** Functions manipulating filepaths.
+    In these functions, references to the present working directory refer
+    to the result given by function Sys.getcwd. *)
 
 (** returns an absolute path leading to the given file.
-    @modified Aluminium-20160501 optional base. *)
+    @modify Aluminium-20160501 optional base. *)
 val normalize: ?base:string -> string -> string
 
-(** returns an absolute path or a (strict) relative path of file to base.
-    The default base is working directory.
+(** [relativize base file] returns a (strict) relative path of [file]
+    w.r.t. [base], if [base] is a prefix of [file]; otherwise,
+    returns [file] unchanged.
+    The default base is the present working directory.
     @since Aluminium-20160501 *)
 val relativize: ?base:string -> string -> string
 
-(** returns true if the file is strictly relative to base.
+(** returns true if the file is strictly relative to [base]
+    (that is, it is prefixed by [base]), or to the present working directory
+    if no base is specified.
     @since Aluminium-20160501 *)
 val is_relative: ?base:string -> string -> bool
 
-(** Normalize a filename: make it relative if it is "close" to the
-    current working directory and results in a shorter path and replace
-    known prefixes by symbolic names. Note that the result of this function
-    does not necessarily represent a valid file name. Use
-    {!Sysutil.absolutize_filename} if you want to obtain the absolute path
-    of a given file.
+(** Pretty-print a path according to these rules:
+    - relative filenames are kept, except for leading './', which are stripped;
+    - absolute filenames are relativized if their prefix is included in the
+      present working directory; also, symbolic names are resolved,
+      i.e. the result may be prefixed by known aliases (e.g. FRAMAC_SHARE).
+      See {!add_symbolic_dir} for more details.
+    Therefore, the result of this function may not designate a valid name
+    in the filesystem.
 
     @since Neon-20140301
 *)
 val pretty: string -> string
 
 (** [add_symbolic_dir name dir] indicates that the (absolute) path [dir] must
-    be replaced by [name] in the normalized version. *)
+    be replaced by [name] when pretty-printing paths.
+    This alias ensures that system-dependent paths such as FRAMAC_SHARE are
+    printed identically in different machines. *)
 val add_symbolic_dir: string -> string -> unit
 
 (*

@@ -64,6 +64,7 @@ val bound_sub : term option -> term option -> term option
 
 val pp_bound : Format.formatter -> term option -> unit
 val pp_vset : Format.formatter -> vset -> unit
+val pretty : Format.formatter -> set -> unit
 
 (** {3 Maping}
     These operations computes different kinds of [{f x y with x in A, y in B}].

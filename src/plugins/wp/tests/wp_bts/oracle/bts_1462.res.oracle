@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_1462.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function local
@@ -35,7 +34,7 @@ Prove: true.
 
 Goal Assertion 'for_value' (file tests/wp_bts/bts_1462.i, line 5):
 Assume { Type: is_sint32(c). }
-Prove: (1 = c) \/ (2 <= c) \/ (c <= 0).
+Prove: (1 = c) \/ (c <= 0) \/ (2 <= c).
 
 ------------------------------------------------------------
 
@@ -46,7 +45,7 @@ Assume {
   (* Goal *)
   When: (-1) != i.
   (* Assertion 'for_value' *)
-  Have: (1 = c) \/ (2 <= c) \/ (c <= 0).
+  Have: (1 = c) \/ (c <= 0) \/ (2 <= c).
   Have: 2 != c.
   (* Invariant 'C' *)
   Have: ((0 = c) -> ((0 = i) -> (0 = x))).

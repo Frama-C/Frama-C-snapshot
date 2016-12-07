@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_1382.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
 tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
@@ -42,7 +41,7 @@ Assume {
   (* Call Effects *)
   Have: havoc(Mchar_0, Mchar_1, shift_sint8(w_1, 0), 4).
 }
-Prove: w = shift_sint32(global(G_dest_87), 0).
+Prove: w = global(G_dest_87).
 
 ------------------------------------------------------------
 
@@ -69,6 +68,6 @@ Assume {
   (* Call Effects *)
   Have: havoc(Mchar_0, Mchar_1, a, 4).
 }
-Prove: included(a, 4, shift_sint32(global(G_dest_87), 0), 1).
+Prove: included(a, 4, global(G_dest_87), 1).
 
 ------------------------------------------------------------

@@ -1,0 +1,178 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/symbolic_locs.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  t[0..9] ∈ {0}
+  u[0..9] ∈ [--..--]
+[value] computing for function main2_kill_direct <- main.
+        Called from tests/value/symbolic_locs.i:72.
+tests/value/symbolic_locs.i:29:[value] warning: assertion got status unknown.
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 32
+        v ∈ [--..--]
+        t[0..8] ∈ {0; 4}
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ [0..8]
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 34
+        v ∈ [--..--]
+        t[0..1] ∈ {0; 4}
+         [2] ∈ {1}
+         [3..8] ∈ {0; 4}
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ [0..8]
+        =END OF DUMP==
+[value] Recording results for main2_kill_direct
+[value] Done for function main2_kill_direct
+[value] computing for function main3_kill_indirect <- main.
+        Called from tests/value/symbolic_locs.i:73.
+tests/value/symbolic_locs.i:41:[value] warning: assertion got status unknown.
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 44
+        v ∈ [--..--]
+        t[0..1] ∈ {0; 4}
+         [2] ∈ {0; 1; 4}
+         [3..8] ∈ {0; 4}
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ [0..8]
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 46
+        v ∈ [--..--]
+        t[0..1] ∈ {0; 4}
+         [2] ∈ {0; 1; 4}
+         [3..8] ∈ {0; 4}
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ {8}
+        =END OF DUMP==
+[value] Recording results for main3_kill_indirect
+[value] Done for function main3_kill_indirect
+[value] computing for function main4_scope_right <- main.
+        Called from tests/value/symbolic_locs.i:74.
+tests/value/symbolic_locs.i:51:[value] warning: assertion got status unknown.
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 55
+        v ∈ [--..--]
+        t[0..1] ∈ {{ NULL + {0; 4} ; (int)&x }}
+         [2] ∈ {{ NULL + {0; 1; 4} ; (int)&x }}
+         [3..8] ∈ {{ NULL + {0; 4} ; (int)&x }}
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ [0..8]
+        x ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/value/symbolic_locs.i:55:[value] warning: locals {x} escaping the scope of a block of main4_scope_right through t
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 57
+        v ∈ [--..--]
+        t[0..1] ∈ {0; 4} or ESCAPINGADDR
+         [2] ∈ {0; 1; 4} or ESCAPINGADDR
+         [3..8] ∈ {0; 4} or ESCAPINGADDR
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        i ∈ [0..8]
+        =END OF DUMP==
+[value] Recording results for main4_scope_right
+[value] Done for function main4_scope_right
+[value] computing for function main5_scope_lv <- main.
+        Called from tests/value/symbolic_locs.i:75.
+tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 65
+        v ∈ [--..--]
+        t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        z ∈ {1}
+        i ∈ [0..8]
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 67
+        v ∈ [--..--]
+        t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        z ∈ {1}
+        =END OF DUMP==
+[value] Recording results for main5_scope_lv
+[value] Done for function main5_scope_lv
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 76
+        v ∈ [--..--]
+        t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        =END OF DUMP==
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main2_kill_direct:
+  t[0..1] ∈ {0; 4}
+   [2] ∈ {1}
+   [3..8] ∈ {0; 4}
+   [9] ∈ {0}
+  i ∈ [0..8]
+[value:final-states] Values at end of function main3_kill_indirect:
+  t[0..1] ∈ {0; 4}
+   [2] ∈ {0; 1; 4}
+   [3..8] ∈ {0; 4}
+   [9] ∈ {0}
+  i ∈ {8}
+[value:final-states] Values at end of function main4_scope_right:
+  t[0..1] ∈ {0; 4} or ESCAPINGADDR
+   [2] ∈ {0; 1; 4} or ESCAPINGADDR
+   [3..8] ∈ {0; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  i ∈ [0..8]
+[value:final-states] Values at end of function main5_scope_lv:
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  z ∈ {1}
+[value:final-states] Values at end of function main:
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+[from] Computing for function main2_kill_direct
+[from] Computing for function Frama_C_dump_each <-main2_kill_direct
+[from] Done for function Frama_C_dump_each
+[from] Done for function main2_kill_direct
+[from] Computing for function main3_kill_indirect
+[from] Done for function main3_kill_indirect
+[from] Computing for function main4_scope_right
+[from] Done for function main4_scope_right
+[from] Computing for function main5_scope_lv
+[from] Done for function main5_scope_lv
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2_kill_direct:
+  t{[0..1]; [3..8]} FROM v (and SELF)
+   [2] FROM \nothing
+[from] Function main3_kill_indirect:
+  t[0..8] FROM v (and SELF)
+[from] Function main4_scope_right:
+  t[0..8] FROM v (and SELF)
+[from] Function main5_scope_lv:
+  t[0..8] FROM v (and SELF)
+[from] Function main:
+  t[0..8] FROM v (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2_kill_direct:
+          t[0..8]; i
+[inout] Inputs for function main2_kill_direct:
+          v
+[inout] Out (internal) for function main3_kill_indirect:
+          t[0..8]; i
+[inout] Inputs for function main3_kill_indirect:
+          v
+[inout] Out (internal) for function main4_scope_right:
+          t[0..8]; i
+[inout] Inputs for function main4_scope_right:
+          v
+[inout] Out (internal) for function main5_scope_lv:
+          t[0..8]; z; i
+[inout] Inputs for function main5_scope_lv:
+          v
+[inout] Out (internal) for function main:
+          t[0..8]
+[inout] Inputs for function main:
+          v

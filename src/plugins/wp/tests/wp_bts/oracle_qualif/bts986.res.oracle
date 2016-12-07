@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts986.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_f_assert_A : Valid
@@ -12,5 +11,5 @@
      Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-f                   -       1 (15)     1       100%
+f                   -       1 (11)     1       100%
 ----------------------------------------------------------

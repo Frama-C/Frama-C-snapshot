@@ -42,6 +42,9 @@
 (****************************************************************************)
 
 let dkey = Kernel.register_category "dataflows"
+let dkeyscc = Kernel.register_category "dataflows_scc"
+
+
 
 open Ordered_stmt;;
 open Cil_types;;
@@ -91,6 +94,9 @@ module type CONSULTABLE_WORKLIST = sig
   val in_worklist: ordered_stmt -> bool
 
 end
+
+(** {2 Examples of use} *)
+[@@@ warning "-60"]
 
 (* Worklist for a "rapid" framework. Just iterate over all statements
    until none has changed. *)
@@ -154,6 +160,8 @@ module Simple_forward_worklist(Fenv:FUNCTION_ENV):CONSULTABLE_WORKLIST = struct
   let in_worklist ord = Bitvector.mem w.bv ord
 end
 ;;
+
+[@@@ warning "+60"]
 
 type direction = Forward | Backward;;
 
@@ -220,7 +228,8 @@ struct
        initial [next]. *)
   let current_scc = ref (Fenv.connected_component !next);;
 
-  Kernel.debug ~dkey "First statement %d, first scc %d" !next !current_scc;;
+  Kernel.debug ~dkey:dkeyscc
+    "First statement %d, first scc %d" !next !current_scc;;
 
     (* We normally iterate using the ordered_stmt order. The only
        exception is when we have to restart iteration on the current
@@ -247,7 +256,7 @@ struct
 
     (* Remove i from the worklist, set up next for the next call, and return i.  *)
     let select i =
-      Kernel.debug ~dkey "Selecting %d" i;
+      Kernel.debug ~dkey:dkeyscc "Selecting %d" i;
       Workqueue.clear i;
       next := get_next i;
       Some i
@@ -255,8 +264,9 @@ struct
 
     (* We reached the end of the current scc, and we need to further iterate on it. *)
     let select_restart_scc i =
-      Kernel.debug ~dkey "Restarting to %d in same scc %d (current_scc = %d)"
-	i (Fenv.connected_component i) !current_scc;
+      Kernel.debug ~dkey:dkeyscc
+        "Restarting to %d in same scc %d (current_scc = %d)"
+        i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) == !current_scc);
       must_restart_scc := None;
       select i
@@ -264,8 +274,8 @@ struct
 
     (* We reached the end of the current scc, and we can switch to the next. *)
     let select_new_scc i =
-      Kernel.debug ~dkey "Changing to %d in scc %d  (current_scc = %d)"
-	i (Fenv.connected_component i) !current_scc;
+      Kernel.debug ~dkey:dkeyscc "Changing to %d in scc %d  (current_scc = %d)"
+        i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) != !current_scc);
       current_scc := Fenv.connected_component i;
       must_restart_scc := None;
@@ -274,8 +284,9 @@ struct
 
     (* We did not reach the end of the current scc. *)
     let select_same_scc i =
-      Kernel.debug ~dkey "Continuing to %d in scc %d  (current_scc = %d)"
-	i (Fenv.connected_component i) !current_scc;
+      Kernel.debug ~dkey:dkeyscc
+        "Continuing to %d in scc %d  (current_scc = %d)"
+        i (Fenv.connected_component i) !current_scc;
       assert((Fenv.connected_component i) == !current_scc);
       select i
     in
@@ -376,9 +387,10 @@ module Simple_backward(Fenv:FUNCTION_ENV)(P:BACKWARD_MONOTONE_PARAMETER) = struc
 
   let after = Array.make Fenv.nb_stmts P.bottom;;
   List.iter (fun (stmt,state) ->
-    let ord = Fenv.to_ordered stmt in
-    after.(ord) <- state;
-    W.insert ord) P.init;;
+      let ord = Fenv.to_ordered stmt in
+      after.(ord) <- state;
+      W.insert ord
+    ) P.init;;
 
   let rec loop () =
     match W.extract() with
@@ -386,26 +398,36 @@ module Simple_backward(Fenv:FUNCTION_ENV)(P:BACKWARD_MONOTONE_PARAMETER) = struc
     | Some(ord) ->
       let stmt = Fenv.to_stmt ord in
       let before_state = P.transfer_stmt stmt after.(ord) in
-      Kernel.debug ~dkey "before_state = %a" P.pretty before_state;
+      Kernel.debug ~dkey "backward: %d before_state = %a"
+        stmt.sid P.pretty before_state;
       let to_update = List.map Fenv.to_ordered stmt.preds in
-    let update_f upd =
-      let join =
-	(* If we know that we already have to recompute before.(ord), we
-	   can omit the inclusion testing, and only perform the join. The
-	   rationale is that querying the worklist is cheap, while
-	   inclusion testing can be costly. *)
-	if W.in_worklist upd
-	then P.join after.(upd) before_state
-	else
-	  let (join,is_included) =
-	    P.join_and_is_included after.(upd) before_state in
-	  if is_included then W.insert upd;
-	  join
+      let update_f upd =
+        let join =
+          (* If we know that we already have to recompute before.(ord), we
+             can omit the inclusion testing, and only perform the join. The
+             rationale is that querying the worklist is cheap, while
+             inclusion testing can be costly. *)
+          if W.in_worklist upd
+          then P.join after.(upd) before_state
+          else
+            (* compute join and check inclusion between computed state
+               ([before_state]) and stored state for [upd] ([after.(upd)]) *)
+            let (join,is_included) =
+              P.join_and_is_included before_state after.(upd)
+            in
+            Kernel.debug ~dkey "%a + %a -> %b, %a"
+              P.pretty after.(upd)
+              P.pretty before_state
+              is_included P.pretty join;
+            if not is_included then W.insert upd;
+            join
+        in
+        Kernel.debug ~dkey "backward: updating %d,  %a"
+          (Fenv.to_stmt upd).sid  P.pretty join;
+        after.(upd) <- join
       in
-      after.(upd) <- join
-    in
-    List.iter update_f to_update;
-    loop()
+      List.iter update_f to_update;
+      loop()
   ;;
 
   loop();;
@@ -491,7 +513,7 @@ struct
   let do_stmt ord =
     let cur_state = P.get_before ord  in
     let stmt = Fenv.to_stmt ord in
-    Kernel.debug ~dkey "doing stmt %d" stmt.sid;
+    Kernel.debug ~dkey "forward: doing stmt %d" stmt.sid;
     CurrentLoc.set (Cil_datatype.Stmt.loc stmt);
     let l = P.transfer_stmt stmt cur_state in
     List.iter update_before l
@@ -523,9 +545,6 @@ struct
     let post_states = List.map snd (P.transfer_stmt stmt (pre_state stmt)) in
     List.fold_left P.join P.bottom post_states
 end
-
-module Simple_forward_generic_storage(Fenv:FUNCTION_ENV)(P:FORWARD_MONOTONE_PARAMETER_GENERIC_STORAGE) =
-  Forward_monotone_generic_storage(Fenv)(P)(Forward_connected_component_worklist(Fenv));;
 
 (****************************************************************)
 (* Edge-based forward dataflow with array-based storage. Should be

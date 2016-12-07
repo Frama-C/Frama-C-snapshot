@@ -214,7 +214,7 @@ module EL = struct
       | Enone -> "----" | Ethen -> "then" | Eelse -> "else"
       | Eback -> "back" | EbackThen -> "then-back" | EbackElse -> "else-back"
       | Ecase [] -> "default"
-      | Ecase l -> Pretty_utils.sfprintf "case(%a)"
+      | Ecase l -> Format.asprintf "case(%a)"
                      (Pretty_utils.pp_list ~sep:", " Printer.pp_exp) l
       | Enext -> "(next)"
     in Format.fprintf fmt "%s" txt
@@ -1112,8 +1112,6 @@ end
 
 module Mloop = WeiMaoZouChen (LoopInfo)
 
-module HEloop = HE (struct type t = Nset.t end)
-
 let set_back_edge e =
   let info = CFG.E.label e in
   match !info with
@@ -1238,7 +1236,7 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
   let graph_attributes _t = []
 
   let pretty_raw_stmt s =
-    let s = Pretty_utils.sfprintf "%a" Printer.pp_stmt s in
+    let s = Format.asprintf "%a" Printer.pp_stmt s in
     let s' = if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s in
     String.escaped s'
 
@@ -1251,12 +1249,12 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
     let label = match node_type n with
       | Vstart -> "Start" | Vend -> "End" | Vexit -> "Exit"
       | VfctIn -> "FctIn" | VfctOut -> "FctOut"
-      | VblkIn (bk,_) -> Pretty_utils.sfprintf "BLOCKin <%a>" pp_bkind bk
-      | VblkOut (bk,_) -> Pretty_utils.sfprintf "BLOCKout <%a>" pp_bkind bk
+      | VblkIn (bk,_) -> Format.asprintf "BLOCKin <%a>" pp_bkind bk
+      | VblkOut (bk,_) -> Format.asprintf "BLOCKout <%a>" pp_bkind bk
       | Vcall _ -> Format.sprintf "CALL"
       | Vtest (true, s, e) ->
-          Pretty_utils.sfprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
-      | Vtest (false, s, _e) -> Pretty_utils.sfprintf "IFout <%d>" s.sid
+          Format.asprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
+      | Vtest (false, s, _e) -> Format.asprintf "IFout <%d>" s.sid
       | Vstmt s | Vloop (_, s) | Vswitch (s, _) ->
           begin match s.skind with
             | Instr _ -> Format.sprintf "INSTR <%d>\n%s" s.sid (pretty_raw_stmt s)
@@ -1338,10 +1336,10 @@ let export ~file ?pp_edge_fun cfg =
        let edge_txt = match pp_edge_fun with
          | None ->
              (fun e -> match  (edge_type e) with
-                | Ecase (_::_) -> Pretty_utils.sfprintf "%a" EL.pretty (edge_type e)
+                | Ecase (_::_) -> Format.asprintf "%a" EL.pretty (edge_type e)
                 | _ -> ""
              )
-         | Some pp -> (fun e -> Pretty_utils.sfprintf "%a" pp e)
+         | Some pp -> (fun e -> Format.asprintf "%a" pp e)
        in
        let module P = Printer (struct let edge_txt = edge_txt end) in
        let module GPrint = Graph.Graphviz.Dot(P) in

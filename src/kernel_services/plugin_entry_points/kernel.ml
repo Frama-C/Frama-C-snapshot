@@ -96,13 +96,6 @@ module String
       include X 
      end)
 
-module EmptyString(X: Input_with_arg) =
-  P.Empty_string
-    (struct
-      let () = Parameter_customize.set_module_name X.module_name 
-      include X 
-     end)
-
 module String_set(X: Input_with_arg) =
   P.String_set
     (struct
@@ -365,7 +358,7 @@ module Time =
 let () = Parameter_customize.is_invisible ()
 let () = Parameter_customize.set_negative_option_name "-do-not-collect-messages"
 let () = Parameter_customize.do_not_projectify ()
-module Collect_messages = (* TODO: remove in Silicium *)
+module Collect_messages = (* TODO: remove in Silicon *)
   Bool
     (struct
       let module_name = "Collect_messages"
@@ -820,6 +813,15 @@ module WarnDecimalFloat =
   end)
 let () = WarnDecimalFloat.set_possible_values ["none"; "once"; "all"]
 
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module C11 =
+  False(struct
+    let option_name = "-c11"
+    let help = "allow C11 constructs (experimental; partial support only)"
+    let module_name = "C11"
+  end)
+
 (* ************************************************************************* *)
 (** {2 Customizing Normalization} *)
 (* ************************************************************************* *)
@@ -1227,6 +1229,7 @@ module Remove_projects =
       let help = "remove the given projects <p1>, ..., <pn>. \
 @all_but_current removes all projects but the current one."
       let default = Project.Datatype.Set.empty
+      let dependencies = []
      end)
 
 let _ =
@@ -1258,6 +1261,9 @@ let () =
 (* ************************************************************************* *)
 (** {2 Others options} *)
 (* ************************************************************************* *)
+
+[@@@warning "-60"]
+(* Warning this three options are parsed and used directly from Cmdline *)
 
 let () = Parameter_customize.set_negative_option_name ""
 let () = Parameter_customize.set_cmdline_stage Cmdline.Early
@@ -1294,6 +1300,8 @@ module Deterministic =
        let option_name = "-deterministic"
        let help = ""
      end)
+
+[@@@warning "+60"]
 
 (* ************************************************************************* *)
 (** {2 Checks} *)

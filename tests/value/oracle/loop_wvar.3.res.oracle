@@ -1,16 +1,16 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
+tests/value/loop_wvar.i:38:[kernel] warning: invalid pragma '12'. Ignoring loop annotation
 [value] Analyzing a complete application starting at main_err2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/loop_wvar.i:39:[value] entering loop for the first time
-tests/value/loop_wvar.i:39:[kernel] warning: could not interpret loop pragma relative to widening variables
 [value] Recording results for main_err2
 [value] done for function main_err2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main_err2:
+[value:final-states] Values at end of function main_err2:
   n ∈ {13}
   i ∈ [13..2147483647]
   j ∈ [7..55],3%4 or UNINITIALIZED

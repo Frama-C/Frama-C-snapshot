@@ -319,6 +319,54 @@ struct
     | Bind(_,_,p) -> 3 + p.size
 
   (* -------------------------------------------------------------------------- *)
+  (* --- Symbols                                                            --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type t = term
+  let equal = (==)
+
+  let is_atomic e =
+    match e.repr with
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> true
+    | _ -> false
+
+  let is_simple e =
+    match e.repr with
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ | Fun(_,[]) -> true
+    | _ -> false
+
+  let is_closed e = Vars.is_empty e.vars
+
+  let is_prop e = match e.sort with
+    | Sprop | Sbool -> true
+    | _ -> false
+
+  let is_int e = match e.sort with
+    | Sint -> true
+    | _ -> false
+
+  let is_real e = match e.sort with
+    | Sreal -> true
+    | _ -> false
+
+  let is_arith e = match e.sort with
+    | Sreal | Sint -> true
+    | _ -> false
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Recursion Breakers                                                 --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let cached_not = ref (fun _ -> assert false)
+  let extern_not = ref (fun _ -> assert false)
+  let extern_ite = ref (fun _ -> assert false)
+  let extern_eq = ref (fun _ -> assert false)
+  let extern_neq = ref (fun _ -> assert false)
+  let extern_leq = ref (fun _ -> assert false)
+  let extern_lt = ref (fun _ -> assert false)
+  let extern_fun = ref (fun _ -> assert false)
+
+  (* -------------------------------------------------------------------------- *)
   (* --- Comparison                                                         --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -365,35 +413,47 @@ struct
       | Leq(a1,b1) , Leq(a2,b2)
       | Div(a1,b1) , Div(a2,b2)
       | Mod(a1,b1) , Mod(a2,b2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = phi a1 a2 in
           if cmp <> 0 then cmp else phi b1 b2
-      | Eq _ , _ -> (-1)
+      | Fun(f,xs) , Fun(g,ys) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
+          let cmp = Fun.compare f g in
+          if cmp <> 0 then cmp else
+            Hcons.compare_list phi xs ys
+      | Fun (_,[]) , _ -> (-1)  (* (a) as a variable *)
+      | _ , Fun (_,[]) -> 1
+      | Eq _ , _ -> (-1)        (* (b) equality *)
       |  _ , Eq _ -> 1
-      | Neq _ , _ -> (-1)
+      | Neq _ , _ -> (-1)       (* (c) other comparison *)
       |  _ , Neq _ -> 1
       | Lt _ , _ -> (-1)
       |  _ , Lt _ -> 1
       | Leq _ , _ -> (-1)
       |  _ , Leq _ -> 1
-
-      | Fun(f,xs) , Fun(g,ys) ->
-          let cmp = Fun.compare f g in
-          if cmp <> 0 then cmp else
-            Hcons.compare_list phi xs ys
-      | Fun _ , _ -> (-1)
+      | Fun _ , _ -> (-1)       (* (d) predicate *)
       | _ , Fun _ -> 1
 
-      | Times(a,x) , Times(b,y) ->
-          let cmp = Z.compare a b in
+      | Times(a1,x) , Times(a2,y) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
+          let cmp = Z.compare a1 a2 in
           if cmp <> 0 then cmp else phi x y
       | Times _ , _ -> (-1)
       | _ , Times _ -> 1
 
-      | Not x , Not y -> phi x y
+      | Not x , Not y ->           
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
+            phi x y
       | Not _ , _ -> (-1)
       |  _ , Not _ -> 1
 
       | Imply(h1,p1) , Imply(h2,p2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           Hcons.compare_list phi (p1::h1) (p2::h2)
       | Imply _ , _ -> (-1)
       |  _ , Imply _ -> 1
@@ -401,8 +461,11 @@ struct
       | Add xs , Add ys
       | Mul xs , Mul ys
       | And xs , And ys
-      | Or xs , Or ys -> Hcons.compare_list phi xs ys
-
+      | Or xs , Or ys ->           
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
+            Hcons.compare_list phi xs ys
+              
       | Add _ , _ -> (-1)
       | _ , Add _ -> 1
       | Mul _ , _ -> (-1)
@@ -417,6 +480,8 @@ struct
       |  _ , Mod _ -> 1
 
       | If(a1,b1,c1) , If(a2,b2,c2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = phi a1 a2 in
           if cmp <> 0 then cmp else
             let cmp = phi b1 b2 in
@@ -425,12 +490,16 @@ struct
       |  _ , If _ -> 1
 
       | Aget(a1,b1) , Aget(a2,b2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = phi a1 a2 in
           if cmp <> 0 then cmp else phi b1 b2
       | Aget _ , _ -> (-1)
       |  _ , Aget _ -> 1
 
       | Aset(a1,k1,v1) , Aset(a2,k2,v2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = phi a1 a2 in
           if cmp <> 0 then cmp else
             let cmp = phi k1 k2 in
@@ -439,22 +508,30 @@ struct
       |  _ , Aset _ -> 1
 
       | Rget(r1,f1) , Rget(r2,f2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = phi r1 r2 in
           if cmp <> 0 then cmp else Field.compare f1 f2
       | Rget _ , _ -> (-1)
       |  _ , Rget _ -> 1
 
       | Rdef fxs , Rdef gys ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           Hcons.compare_list (cmp_field phi) fxs gys
       | Rdef _ , _ -> (-1)
       |  _ , Rdef _ -> 1
 
       | Apply(a,xs) , Apply(b,ys) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           Hcons.compare_list phi (a::xs) (b::ys)
       | Apply _ , _ -> (-1)
       | _ , Apply _ -> 1
 
       | Bind(q1,t1,p1) , Bind(q2,t2,p2) ->
+          let cmp = cmp_size a b in
+          if cmp <> 0 then cmp else
           let cmp = cmp_bind q1 q2 in
           if cmp <> 0 then cmp else
             let cmp = phi p1 p2 in
@@ -463,14 +540,32 @@ struct
 
     let rec compare a b =
       if a == b then 0 else
-        let cmp = cmp_size a b in
-        if cmp <> 0 then cmp else
-          cmp_struct compare a b
+        cmp_struct compare a b
 
   end
 
   let weigth e = e.size
-  let compare = COMPARE.compare
+  let atom_min a b = if 0 < COMPARE.compare a b then b else a
+
+  let compare a b =
+    if a == b then 0
+    else
+      let a' = if is_prop a then !extern_not a else a in
+      let b' = if is_prop b then !extern_not b else b in
+      if a == b' || a' == b
+      then COMPARE.compare a b
+      else COMPARE.compare (atom_min a a') (atom_min b b')
+
+  exception Absorbant
+
+  let compare_raising_absorbant a b =
+    if a == b then 0
+    else
+      let a' = if is_prop a then (let na = !extern_not a in if na == b then raise Absorbant; na) else a in
+      let b' = if is_prop b then (let nb = !extern_not b in if nb == a then raise Absorbant; nb) else b in
+      if a == b' || a' == b
+      then COMPARE.compare a b
+      else COMPARE.compare (atom_min a a') (atom_min b b')
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Hconsed                                                           --- *)
@@ -543,12 +638,9 @@ struct
   let state = ref (empty ())
   let get_state () = !state
   let set_state st = state := st
-  let clr_state st =
-    begin
-      C.clear st.cache ;
-      st.checks <- Tmap.empty ;
-    end
-  let release () = clr_state !state
+  let release () =
+      C.clear !state.cache ;
+      !state.checks <- Tmap.empty
 
   let clock = ref true
   let constants = ref Tset.empty
@@ -561,6 +653,18 @@ struct
       let add s c = W.add s.weak c ; s.kid <- max s.kid (succ c.id) in
       Tset.iter (add s) !constants ; s
     end
+
+  let clr_state st =
+    st.kid <- 0 ;
+    W.clear st.weak;
+    C.clear st.cache;
+    st.checks <- Tmap.empty;
+    st.builtins_fun <- BUILTIN.empty ;
+    st.builtins_eq  <- BUILTIN.empty ;
+    st.builtins_leq <- BUILTIN.empty ;
+    let add s c = W.add s.weak c ; s.kid <- max s.kid (succ c.id) in
+    Tset.iter (add st) !constants
+
 
   (* -------------------------------------------------------------------------- *)
   (* --- Hconsed insertion                                                  --- *)
@@ -663,14 +767,16 @@ struct
   let c_and = function
     | [] -> e_true
     | [x] -> x
-    | xs -> insert(And(List.sort compare xs))
+    | xs -> insert(And(xs))
 
   let c_or = function
     | [] -> e_false
     | [x] -> x
-    | xs -> insert(Or(List.sort compare xs))
+    | xs -> insert(Or(xs))
 
-  let c_imply hs p = insert(Imply(List.sort compare hs,p))
+  let c_imply hs p = match hs with
+    | [] -> p
+    | hs -> insert(Imply(hs,p))
 
   let c_not x = insert(Not x)
 
@@ -755,15 +861,6 @@ struct
                        | _ -> raise Not_found))
     | _ -> (match b.repr with | Fun(g,_) -> simplify g b a | _ -> raise Not_found)
 
-
-  let cached_not = ref (fun _ -> assert false)
-  let extern_not = ref (fun _ -> assert false)
-  let extern_ite = ref (fun _ -> assert false)
-  let extern_eq = ref (fun _ -> assert false)
-  let extern_neq = ref (fun _ -> assert false)
-  let extern_leq = ref (fun _ -> assert false)
-  let extern_lt = ref (fun _ -> assert false)
-  let extern_fun = ref (fun _ -> assert false)
 
   let builtin_cmp cmp a b =
     try
@@ -941,41 +1038,6 @@ struct
   let e_funraw = c_fun
   let e_fun = e_fungen
   let () = extern_fun := e_fun
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- Symbols                                                            --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  type t = term
-  let equal = (==)
-
-  let is_atomic e =
-    match e.repr with
-    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> true
-    | _ -> false
-
-  let is_simple e =
-    match e.repr with
-    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ | Fun(_,[]) -> true
-    | _ -> false
-
-  let is_closed e = Vars.is_empty e.vars
-
-  let is_prop e = match e.sort with
-    | Sprop | Sbool -> true
-    | _ -> false
-
-  let is_int e = match e.sort with
-    | Sint -> true
-    | _ -> false
-
-  let is_real e = match e.sort with
-    | Sreal -> true
-    | _ -> false
-
-  let is_arith e = match e.sort with
-    | Sreal | Sint -> true
-    | _ -> false
 
   (* -------------------------------------------------------------------------- *)
   (* --- Ground & Arithmetics                                               --- *)
@@ -1178,8 +1240,6 @@ struct
     | False -> Logic.Yes
     | _ -> Logic.Maybe
 
-  exception Absorbant
-
   let rec fold_and acc xs =
     match xs with
     | [] -> acc
@@ -1188,7 +1248,7 @@ struct
         | False  -> raise Absorbant
         | True   -> fold_and acc others
         | And xs -> fold_and (fold_and acc xs) others
-        | _      -> fold_and ((x,e_not x)::acc) others
+        | _      -> fold_and (x::acc) others
 
   let rec fold_or acc xs =
     match xs with
@@ -1198,56 +1258,146 @@ struct
         | True  -> raise Absorbant
         | False -> fold_or acc others
         | Or xs -> fold_or (fold_or acc xs) others
-        | _     -> fold_or ((x,e_not x)::acc) others
+        | _     -> fold_or (x::acc) others
 
-  (* an atom is (t,not t) *)
-
-  let atom_eq a b = fst a == fst b
-  let atom_opp a b = fst a == snd b || snd a == fst a
-
-  let compare_atom (x1,nx1) (x2,nx2) =
-    Pervasives.compare (min x1.id nx1.id) (min x2.id nx2.id)
-
-  let rec fact_atom acc ms =
-    match acc , ms with
-    | a::_ , b::qs when atom_eq a b -> fact_atom acc qs
-    | a::_ , b::_ when atom_opp a b -> raise Absorbant
-    | _ , b::qs -> fact_atom (b::acc) qs
-    | _ , [] -> acc
+  let rec check_conjugate = function
+    | []  -> ()
+    | a::b::_ when a == e_not b -> raise Absorbant
+    | _::qs  -> check_conjugate qs
 
   let conjunction ts =
     try
       let ms = fold_and [] ts in
-      let ms = fact_atom [] (List.sort compare_atom ms) in
-      c_and (List.map fst ms)
+      let ms = List.sort_uniq compare_raising_absorbant ms in
+      c_and ms
     with Absorbant -> e_false
 
   let disjunction ts =
     try
       let ms = fold_or [] ts in
-      let ms = fact_atom [] (List.sort compare_atom ms) in
-      c_or (List.map fst ms)
+      let ms = List.sort_uniq compare_raising_absorbant ms in
+      c_or ms
     with Absorbant -> e_true
 
-  let rec implication a b =
-    match a.repr , b.repr with
-    | True , _ -> b
-    | False , _ -> e_true
-    | _ , True -> e_true
-    | _ , False -> e_not a
-    | Not p , Not q -> implication q p
-    | And ts , _ ->
-        if List.memq b ts then e_true else
-          let c = e_not b in
-          begin
-            match List.filter (fun t -> t != c) ts with
-            | [] -> b
-            | ts -> c_imply ts b
+  module Consequence =
+  struct
+    type p = CONJ | DISJ
+    type t = { mutable modif : bool ; polarity : p }
+
+    let mark w = w.modif <- true ; w
+    
+    let rec gen w hs ts =
+      match hs with
+      | [] -> ts
+      | h :: hws ->
+          match w.polarity with
+          | CONJ -> aux w ~absorb:(e_not h) ~filter:h hws ts
+          | DISJ -> aux w ~absorb:h ~filter:(e_not h) hws ts
+
+    and aux w ~absorb ~filter hws ts =
+      match ts with
+      | [] -> ts
+      | t :: tws ->
+          if absorb == t then raise Absorbant ;
+          let cmp = compare filter t in
+          if cmp < 0
+          then gen w hws ts else
+          if cmp > 0
+          then t :: aux (mark w) ~absorb ~filter hws tws
+          else gen (mark w) hws tws
+
+    let filter polarity hs ts =
+      let w = { modif = false ; polarity } in
+      let ws = gen w hs ts in
+      if w.modif then ws else ts
+    
+  end
+  
+  let consequence_and = Consequence.(filter CONJ)
+  let consequence_or  = Consequence.(filter DISJ)
+          
+  let merge hs hs0 = List.sort_uniq compare_raising_absorbant (hs@hs0)
+                     
+  let rec implication hs b = match b.repr with
+    | Imply(hs0,b0) -> implication_imply hs b hs0 b0
+    | And bs -> implication_and [] hs b bs
+    | Or bs  -> implication_or  [] hs b bs
+    | _ -> c_imply hs b
+  and implication_and hs0 hs b0 bs = try
+      let hs'= merge hs0 hs in
+      try 
+	match consequence_and hs bs with
+	| []  -> e_true (* [And hs] implies [b0] *)
+	| [b] -> implication hs' b
+	| bs' -> c_imply hs' (if bs'==bs then b0 else c_and bs')
+      with Absorbant -> implication_false hs' (* [And hs] implies [Not b0] *)
+    with Absorbant -> e_true (* [False = And (hs@hs0)] *)
+  and implication_or hs0 hs b0 bs = try
+      let hs'= merge hs0 hs in
+      match consequence_or hs bs with
+      | []  -> implication_false hs' (* [And hs] implies [Not b0] *)
+      | [b] -> implication hs' b
+      | bs' -> c_imply hs' (if bs'==bs then b0 else c_or bs')
+    with Absorbant -> e_true (* [False = And (hs@hs0)] or [And hs] implies [b] *)
+  and implication_imply hs b hs0 b0 = try
+      match consequence_and hs [b0] with
+      | [] -> e_true (* [And hs] implies [b0] *)
+      | _ -> try
+            match consequence_and hs0 hs with
+            | [] -> b (* [And hs0] implies [And hs] *)
+            | hs ->
+                match b0.repr with
+                | And bs -> implication_and hs0 hs b0 bs
+                | Or bs  -> implication_or  hs0 hs b0 bs
+                | _ -> c_imply (merge hs0 hs) b0
+          with Absorbant -> e_true (* [False = And (hs@hs0)] *)
+    with Absorbant -> (* [And hs] implies [Not b0] *)
+      try implication_false (merge hs hs0)
+      with Absorbant -> e_true  (* [False = And (hs@hs0)] *)
+  and implication_false hs =
+    e_not (c_and hs)
+
+  let rec consequence_aux hs x = match x.repr with
+    | And xs -> begin try 
+          match consequence_and hs xs with
+          | [] -> e_true
+          | [x] -> consequence_aux hs x
+          | hs -> if hs==xs then x else c_and hs
+        with Absorbant -> e_false
+      end
+    | Or xs -> begin try 
+          match consequence_and hs xs with
+          | [] -> e_false
+          | [x] -> consequence_aux hs x
+          | hs -> if hs==xs then x else c_or hs
+        with Absorbant -> e_true
+      end
+    | Not x -> e_not (consequence_aux hs x)
+    | Imply (xs, b) -> begin
+        let b' = consequence_aux hs b in
+        match b'.repr with
+        | True -> b'
+        | _ -> begin try
+              let xs' = consequence_and hs xs in
+              match b==b', xs==xs', xs' with
+              | true,  true,  _  -> x
+              | _,     false, [] -> b'
+              | true,  false, _  -> c_imply xs' b'
+              | false, _,     _  -> implication xs' b'
+           with Absorbant -> e_false
           end
-    | _ ->
-        if a == b then e_true else
-          let c = e_not b in
-          if c == a then b else c_imply [a] b
+       end
+    | _ -> x
+      
+  let rec consequence h x = 
+    let not_x = e_not x in
+    match h.repr with
+    | True -> x
+    | False -> (* what_ever *) x
+    | _ when h == x     -> e_true
+    | _ when h == not_x -> e_false
+    | And hs -> consequence_aux hs x
+    | _      -> consequence_aux [h] x
 
   type structural =
     | S_equal        (* equal constants or constructors *)
@@ -1419,11 +1569,40 @@ struct
     | [t] -> t
     | ts -> conjunction ts
 
+  let rec imply1 a b =
+    match a.repr , b.repr with
+    | _ , False -> e_not a
+    | Not p , Not q -> imply1 q p
+    | _  when a == b -> e_true
+    | _  when a == e_not b -> b
+    | _, _ -> implication [a] b
+                
+  let imply2 hs b =
+    match b.repr with
+    | And bs -> implication_and [] hs b bs
+    | _ -> try
+          match consequence_and hs [b] with
+          | [] -> e_true (* [And hs] implies [b] *)
+          | _  -> 
+              match b.repr with
+              | Or bs -> implication_or [] hs b bs
+              | Imply(hs0,b0) -> implication_imply hs b hs0 b0
+              | _ -> c_imply hs b
+        with Absorbant -> implication_false hs (* [And hs] implies [Not b] *)
+
   let e_imply hs p =
     match p.repr with
-    | Imply(hs',p') -> implication (e_and (hs @ hs')) p'
-    | _ -> implication (e_and hs) p
-
+    | True -> e_true
+    | _ -> 
+        try
+          let hs = fold_and [] hs in
+          let hs = List.sort_uniq compare_raising_absorbant hs in
+          match hs with
+          | []  -> p
+          | [a] -> imply1 a p
+          | _   -> imply2 hs p
+        with Absorbant -> e_true
+          
   let () = cached_not := function
       | And xs -> e_or (List.map e_not xs)
       | Or  xs -> e_and (List.map e_not xs)

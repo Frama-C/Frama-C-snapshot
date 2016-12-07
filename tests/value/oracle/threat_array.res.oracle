@@ -3,18 +3,18 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   p ∈ {0}
 tests/value/threat_array.i:5:[value] warning: assertion got status unknown.
 tests/value/threat_array.i:7:[value] assertion got status valid.
 tests/value/threat_array.i:12:[value] assertion got status valid.
-tests/value/threat_array.i:15:[kernel] warning: accessing out of bounds index. assert 0 ≤ c;
-tests/value/threat_array.i:15:[kernel] warning: accessing out of bounds index. assert c < 10;
+tests/value/threat_array.i:15:[value] warning: accessing out of bounds index. assert 0 ≤ c;
+tests/value/threat_array.i:15:[value] warning: accessing out of bounds index. assert c < 10;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0..9] ∈ {0; 4}
   p ∈ {{ (int (*)[10])&T[5] }}
 [from] Computing for function main

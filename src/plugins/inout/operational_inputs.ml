@@ -621,10 +621,12 @@ module Callwise = struct
         | Value_types.NormalStore ((states, _after_states), _) ->
             let kf = fst (List.hd call_stack) in
             let inout =
-              if !Db.Value.no_results (Kernel_function.get_definition kf) then
-                top
+              try
+                if !Db.Value.no_results (Kernel_function.get_definition kf) then
+                  top
               else
                 compute_call_from_value_states kf (Lazy.force states)
+              with Kernel_function.No_Definition -> top
             in
             Db.Operational_inputs.Record_Inout_Callbacks.apply
               (call_stack, inout);
@@ -710,7 +712,7 @@ module FunctionWise = struct
         (let s = ref "" in
          Stack.iter
            (fun kf -> s := !s^" <-"^
-             (Pretty_utils.sfprintf "%a" Kernel_function.pretty kf))
+             (Format.asprintf "%a" Kernel_function.pretty kf))
            call_stack;
          !s);
       let r = compute_internal_using_cfg kf in

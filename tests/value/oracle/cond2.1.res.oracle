@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at un_1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Gx ∈ [--..--]
   Gy ∈ [--..--]
   px ∈ {0}
@@ -16,21 +16,21 @@
   t ∈ {0}
   u ∈ {0}
 tests/value/cond2.i:52:[value] entering loop for the first time
-tests/value/cond2.i:52:[kernel] warning: signed overflow. assert x+2 ≤ 2147483647;
+tests/value/cond2.i:52:[value] warning: signed overflow. assert x + 2 ≤ 2147483647;
 tests/value/cond2.i:53:[value] entering loop for the first time
-tests/value/cond2.i:53:[kernel] warning: signed overflow. assert y+2 ≤ 2147483647;
+tests/value/cond2.i:53:[value] warning: signed overflow. assert y + 2 ≤ 2147483647;
 tests/value/cond2.i:59:[value] entering loop for the first time
-tests/value/cond2.i:59:[kernel] warning: signed overflow. assert x+4 ≤ 2147483647;
+tests/value/cond2.i:59:[value] warning: signed overflow. assert x + 4 ≤ 2147483647;
 tests/value/cond2.i:60:[value] entering loop for the first time
-tests/value/cond2.i:60:[kernel] warning: signed overflow. assert y+4 ≤ 2147483647;
+tests/value/cond2.i:60:[value] warning: signed overflow. assert y + 4 ≤ 2147483647;
 tests/value/cond2.i:66:[value] entering loop for the first time
-tests/value/cond2.i:66:[kernel] warning: out of bounds write. assert \valid(px);
+tests/value/cond2.i:66:[value] warning: out of bounds write. assert \valid(px);
 tests/value/cond2.i:67:[value] entering loop for the first time
-tests/value/cond2.i:67:[kernel] warning: out of bounds write. assert \valid(py);
+tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
 [value] Recording results for un_1
 [value] done for function un_1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function un_1:
+[value:final-states] Values at end of function un_1:
   px ∈ {{ &T + [0..384],0%16 }}
   py ∈ {{ &T + [4..388],4%16 }}
   x ∈ [0..2147483646],0%2

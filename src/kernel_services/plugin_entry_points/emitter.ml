@@ -22,7 +22,6 @@
 
 (* Modules [Hashtbl] and [Kernel] are not usable here. Thus use above modules
    instead. *)
-module Output = Project_skeleton.Output
 
 (**************************************************************************)
 (** {2 Datatype} *)
@@ -120,7 +119,7 @@ module Usable_emitter = struct
       tuning_parameters = get_params e.tuning_values }
 
   let get_name e = e.u_name
-  let get_unique_name e = Pretty_utils.sfprintf "%a" pretty e
+  let get_unique_name e = Format.asprintf "%a" pretty e
 
   let correctness_parameters e = 
     Datatype.String.Map.fold (fun p _ acc -> p :: acc) e.correctness_values []
@@ -215,7 +214,7 @@ let distinct_parameters get_them tuning e =
   let name = e.u_name in
   let values = get_them e in
   let get e s =
-    Pretty_utils.sfprintf
+    Format.asprintf
       "%t"
       (fun fmt -> Usable_emitter.pretty_parameter fmt ~tuning e s)
   in

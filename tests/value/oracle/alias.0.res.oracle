@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -69,16 +69,16 @@
         Called from tests/value/alias.i:47.
 [value] Recording results for f
 [value] Done for function f
-tests/value/alias.i:82:[kernel] warning: signed overflow. assert -2147483648 ≤ p3[1]-vol;
-tests/value/alias.i:82:[kernel] warning: signed overflow. assert p3[1]-vol ≤ 2147483647;
+tests/value/alias.i:82:[value] warning: signed overflow. assert -2147483648 ≤ p3[1] - vol;
+tests/value/alias.i:82:[value] warning: signed overflow. assert p3[1] - vol ≤ 2147483647;
 [value] Called Frama_C_show_each_d0([-2147483648..2147483647])
-tests/value/alias.i:84:[kernel] warning: signed overflow. assert -2147483648 ≤ p3[1]-vol;
-tests/value/alias.i:84:[kernel] warning: signed overflow. assert p3[1]-vol ≤ 2147483647;
+tests/value/alias.i:84:[value] warning: signed overflow. assert -2147483648 ≤ p3[1] - vol;
+tests/value/alias.i:84:[value] warning: signed overflow. assert p3[1] - vol ≤ 2147483647;
 [value] Called Frama_C_show_each_d2([-2147483648..2147483647])
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   A ∈ {516}
   B ∈ {4}

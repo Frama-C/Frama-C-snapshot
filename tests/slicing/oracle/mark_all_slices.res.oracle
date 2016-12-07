@@ -1,9 +1,9 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/mark_all_slices.c (with preprocessing)
+[kernel] Parsing tests/slicing/mark_all_slices.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -13,39 +13,39 @@
   C2 ∈ {0}
   D2 ∈ {0}
 [value] computing for function fA <- main.
-        Called from tests/slicing/mark_all_slices.c:23.
+        Called from tests/slicing/mark_all_slices.i:23.
 [value] computing for function all <- fA <- main.
-        Called from tests/slicing/mark_all_slices.c:17.
+        Called from tests/slicing/mark_all_slices.i:17.
 [value] Recording results for all
 [value] Done for function all
 [value] Recording results for fA
 [value] Done for function fA
 [value] computing for function fB <- main.
-        Called from tests/slicing/mark_all_slices.c:24.
+        Called from tests/slicing/mark_all_slices.i:24.
 [value] computing for function all <- fB <- main.
-        Called from tests/slicing/mark_all_slices.c:18.
+        Called from tests/slicing/mark_all_slices.i:18.
 [value] Recording results for all
 [value] Done for function all
 [value] Recording results for fB
 [value] Done for function fB
 [value] computing for function fC <- main.
-        Called from tests/slicing/mark_all_slices.c:25.
+        Called from tests/slicing/mark_all_slices.i:25.
 [value] computing for function all <- fC <- main.
-        Called from tests/slicing/mark_all_slices.c:19.
+        Called from tests/slicing/mark_all_slices.i:19.
 [value] Recording results for all
 [value] Done for function all
 [value] Recording results for fC
 [value] Done for function fC
 [value] computing for function fD <- main.
-        Called from tests/slicing/mark_all_slices.c:26.
+        Called from tests/slicing/mark_all_slices.i:26.
 [value] computing for function all <- fD <- main.
-        Called from tests/slicing/mark_all_slices.c:20.
+        Called from tests/slicing/mark_all_slices.i:20.
 [value] Recording results for all
 [value] Done for function all
 [value] Recording results for fD
 [value] Done for function fD
 [value] computing for function all <- main.
-        Called from tests/slicing/mark_all_slices.c:27.
+        Called from tests/slicing/mark_all_slices.i:27.
 [value] Recording results for all
 [value] Done for function all
 [value] Recording results for main

@@ -3,17 +3,18 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
-tests/value/context_width.i:10:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(p+2), (void *)0);
-tests/value/context_width.i:12:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(p+1), (void *)(&a));
-tests/value/context_width.i:15:[kernel] warning: out of bounds write. assert \valid(p+1);
-tests/value/context_width.i:16:[kernel] warning: out of bounds write. assert \valid(p+2);
+tests/value/context_width.i:10:[value] warning: pointer comparison. assert \pointer_comparable((void *)(p + 2), (void *)0);
+tests/value/context_width.i:12:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)(p + 1), (void *)(&a));
+tests/value/context_width.i:15:[value] warning: out of bounds write. assert \valid(p + 1);
+tests/value/context_width.i:16:[value] warning: out of bounds write. assert \valid(p + 2);
 tests/value/context_width.i:17:[value] warning: assertion got status invalid (stopping propagation).
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   S_p[0] ∈ {1}
      [1] ∈ {2}
      [2] ∈ {3}
@@ -36,18 +37,18 @@ void main(int *p)
     if (! (p + 1 == (int *)0)) 
       /*@ assert
           Value: ptr_comparison:
-            \pointer_comparable((void *)(p+2), (void *)0);
+            \pointer_comparable((void *)(p + 2), (void *)0);
       */
       if (! (p + 2 == (int *)0)) ;
     /*@ assert
         Value: ptr_comparison:
-          \pointer_comparable((void *)(p+1), (void *)(&a));
+          \pointer_comparable((void *)(p + 1), (void *)(&a));
     */
     if (p + 1 == & a) ;
     *p = 1;
-    /*@ assert Value: mem_access: \valid(p+1); */
+    /*@ assert Value: mem_access: \valid(p + 1); */
     *(p + 1) = 2;
-    /*@ assert Value: mem_access: \valid(p+2); */
+    /*@ assert Value: mem_access: \valid(p + 2); */
     *(p + 2) = 3;
   }
   else 
@@ -59,17 +60,18 @@ void main(int *p)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
-tests/value/context_width.i:10:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(p+2), (void *)0);
-tests/value/context_width.i:12:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)(p+1), (void *)(&a));
-tests/value/context_width.i:15:[kernel] warning: out of bounds write. assert \valid(p+1);
+tests/value/context_width.i:10:[value] warning: pointer comparison. assert \pointer_comparable((void *)(p + 2), (void *)0);
+tests/value/context_width.i:12:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)(p + 1), (void *)(&a));
+tests/value/context_width.i:15:[value] warning: out of bounds write. assert \valid(p + 1);
 tests/value/context_width.i:15:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
 tests/value/context_width.i:15:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Non-terminating function main (no dependencies)
@@ -91,16 +93,16 @@ void main(int *p)
     if (! (p + 1 == (int *)0)) 
       /*@ assert
           Value: ptr_comparison:
-            \pointer_comparable((void *)(p+2), (void *)0);
+            \pointer_comparable((void *)(p + 2), (void *)0);
       */
       if (! (p + 2 == (int *)0)) ;
     /*@ assert
         Value: ptr_comparison:
-          \pointer_comparable((void *)(p+1), (void *)(&a));
+          \pointer_comparable((void *)(p + 1), (void *)(&a));
     */
     if (p + 1 == & a) ;
     *p = 1;
-    /*@ assert Value: mem_access: \valid(p+1); */
+    /*@ assert Value: mem_access: \valid(p + 1); */
     *(p + 1) = 2;
     *(p + 2) = 3;
   }

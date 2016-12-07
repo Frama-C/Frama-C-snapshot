@@ -71,6 +71,8 @@ struct
     let hash = id
   end
 
+  module HVertex = Hashtbl.Make(G.V)
+
   module Edge = struct
     type t = edge
     let default = Inter_functions
@@ -107,13 +109,12 @@ struct
 
   type service = Maybe_fresh of node vertex | In_service of node vertex
 
-  module Vertices = struct 
-    module H = Hashtbl.Make(G.V)
-    let vertices : (node vertex * service) H.t = H.create 7
-    let find = H.find vertices
-    let add = H.add vertices
-    let replace = H.replace vertices
-    let clear () = H.clear vertices
+  module Vertices = struct
+    let vertices : (node vertex * service) HVertex.t = HVertex.create 7
+    let find = HVertex.find vertices
+    let add = HVertex.add vertices
+    let replace = HVertex.replace vertices
+    let clear () = HVertex.clear vertices
   end
 
   let edge_invariant src dst = function
@@ -129,7 +130,7 @@ Src:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b)"
           (G.V.name dst.node)
           (G.V.name dst.root.node)
           dst.is_root
-    | Inter_services | Both -> 
+    | Inter_services | Both ->
       if not (src.is_root && dst.is_root) then
 	Kernel.failure
           "Correctness bug when computing services.\n\
@@ -240,26 +241,38 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
     let find node =
       try fst (Vertices.find node) with Not_found -> assert false
     in
+    (* the original graph may contain several edges from [caller] to [callee]
+       (one per callsite). We must visit them only once. Hence the table
+       [visited].*)
+    let visited = HVertex.create 7 in
     G.iter_vertex
       (fun node ->
-         let v = find node in
-         G.iter_succ
-           (fun node' ->
-              let succ = find node' in
+        let v = find node in
+        HVertex.reset visited;
+        G.iter_succ
+          (fun node' ->
+            let succ = find node' in
+            if not (HVertex.mem visited succ.node) then begin
+              HVertex.add visited succ.node ();
               Service_graph.add_labeled_edge callg v Inter_functions succ;
               let src_root = v.root in
               let dst_root = succ.root in
               if not (Vertex.equal src_root dst_root) then begin
-                Service_graph.add_labeled_edge callg src_root Inter_services dst_root
-                (* JS: no need of a `service_to_function' edge since
-                   it is not possible to have an edge starting from a
-                   not-a-root vertex and going to another service.
+                Service_graph.add_labeled_edge
+                  callg
+                  src_root
+                  Inter_services
+                  dst_root
+              (* JS: no need of a 'service_to_function' edge since
+                 it is not possible to have an edge starting from a
+                 no-root vertex and going to another service.
 
-                   no need of a `function_to_service' edge since the only
-                   possible edges between two services go to a root. *)
-              end)
-           g
-           node)
+                 no need of a 'function_to_service' edge too since the only
+                 possible edges between two services go to a root. *)
+              end
+            end)
+          g
+          node)
       g
 
   let compute g initial_roots =

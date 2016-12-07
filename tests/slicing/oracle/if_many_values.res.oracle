@@ -1,14 +1,14 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/if_many_values.c (with preprocessing)
+[kernel] Parsing tests/slicing/if_many_values.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   r ∈ {1}
 [value] Semantic level unrolling superposing up to 100 states
-tests/slicing/if_many_values.c:8:[value] entering loop for the first time
-tests/slicing/if_many_values.c:11:[kernel] warning: signed overflow. assert r+1 ≤ 2147483647;
+tests/slicing/if_many_values.i:8:[value] entering loop for the first time
+tests/slicing/if_many_values.i:11:[value] warning: signed overflow. assert r + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...
@@ -41,3 +41,5 @@ int main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_if_many_values.i (no preprocessing)

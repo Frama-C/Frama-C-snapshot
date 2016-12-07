@@ -42,7 +42,7 @@ val narrow: t -> t -> t;;
 
 (** Create a trace, or add an element at the end of a trace.  *)
 val initial: kernel_function -> t;;
-val add_disjunction: Property.t -> predicate named -> t -> t;;
+val add_disjunction: Property.t -> predicate -> t -> t;;
 val add_statement: stmt -> t -> t;;
 
 (** Set to false to set all traces to top. *)

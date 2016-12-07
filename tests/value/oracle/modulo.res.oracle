@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -50,20 +50,20 @@ tests/value/modulo.i:50:[value] loop invariant got status valid.
 [value] computing for function pgcd3 <- main.
         Called from tests/value/modulo.i:153.
 tests/value/modulo.i:59:[value] warning: function pgcd3: precondition got status unknown.
-tests/value/modulo.i:63:[kernel] warning: division by zero. assert b_0 ≢ 0;
+tests/value/modulo.i:63:[value] warning: division by zero. assert b_0 ≢ 0;
 [value] Called Frama_C_show_each_3([-10..10], [-10..10], [-9..9])
 [value] Recording results for pgcd3
 [value] Done for function pgcd3
 [value] computing for function main2 <- main.
         Called from tests/value/modulo.i:155.
-tests/value/modulo.i:9:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i;
-tests/value/modulo.i:9:[kernel] warning: signed overflow. assert 4*i ≤ 2147483647;
-tests/value/modulo.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i;
-tests/value/modulo.i:10:[kernel] warning: signed overflow. assert 4*i ≤ 2147483647;
+tests/value/modulo.i:9:[value] warning: signed overflow. assert -2147483648 ≤ 4 * i;
+tests/value/modulo.i:9:[value] warning: signed overflow. assert 4 * i ≤ 2147483647;
+tests/value/modulo.i:10:[value] warning: signed overflow. assert -2147483648 ≤ 4 * i;
+tests/value/modulo.i:10:[value] warning: signed overflow. assert 4 * i ≤ 2147483647;
 tests/value/modulo.i:11:[value] warning: assertion got status unknown.
 tests/value/modulo.i:13:[value] warning: assertion got status unknown.
-tests/value/modulo.i:27:[kernel] warning: division by zero. assert G ≢ 0;
-tests/value/modulo.i:29:[kernel] warning: division by zero. assert L ≢ 0;
+tests/value/modulo.i:27:[value] warning: division by zero. assert G ≢ 0;
+tests/value/modulo.i:29:[value] warning: division by zero. assert L ≢ 0;
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function simultaneous_congruences <- main.
@@ -76,8 +76,8 @@ tests/value/modulo.i:82:[value] entering loop for the first time
 [value] computing for function shift_modulo <- main.
         Called from tests/value/modulo.i:157.
 tests/value/modulo.i:100:[value] warning: assertion got status unknown.
-tests/value/modulo.i:103:[kernel] warning: signed overflow. assert (int)((int)(i*12)+5)<<25 ≤ 2147483647;
-tests/value/modulo.i:104:[kernel] warning: signed overflow. assert (int)((int)(i*13)+7)<<25 ≤ 2147483647;
+tests/value/modulo.i:103:[value] warning: signed overflow. assert (int)((int)(i * 12) + 5) << 25 ≤ 2147483647;
+tests/value/modulo.i:104:[value] warning: signed overflow. assert (int)((int)(i * 13) + 7) << 25 ≤ 2147483647;
 [value] Recording results for shift_modulo
 [value] Done for function shift_modulo
 [value] computing for function extract_bits_modulo <- main.
@@ -95,7 +95,7 @@ tests/value/modulo.i:146:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function extract_bits_modulo:
+[value:final-states] Values at end of function extract_bits_modulo:
   i ∈ [0..10]
   aa1 ∈ [1291..32011],1291%3072
   ptr1 ∈ {{ (unsigned char *)&aa1 }}
@@ -113,7 +113,7 @@ tests/value/modulo.i:146:[value] warning: assertion got status unknown.
   ptr4 ∈ {{ (unsigned char *)&aa4 }}
   m4 ∈ [16..126]
   n4 ∈ {0}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   A ∈ {0}
   B ∈ {-3; 1}
   C ∈ {1}
@@ -132,27 +132,27 @@ tests/value/modulo.i:146:[value] warning: assertion got status unknown.
   P ∈ {0}
   Q ∈ [-8..8]
   i ∈ [0..100]
-[value] Values at end of function pgcd1:
+[value:final-states] Values at end of function pgcd1:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value] Values at end of function pgcd2:
+[value:final-states] Values at end of function pgcd2:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value] Values at end of function pgcd3:
+[value:final-states] Values at end of function pgcd3:
   a_0 ∈ [-10..10]
   b_0 ∈ {0}
-[value] Values at end of function pos_rem:
+[value:final-states] Values at end of function pos_rem:
   n ∈ [-1..72]
   j ∈ [-128..127]
   k ∈ [0..135]
   l ∈ [-128..127]
-[value] Values at end of function shift_modulo:
+[value:final-states] Values at end of function shift_modulo:
   i ∈ [0..10]
   r ∈ [20..500],20%48
   s ∈ [5..125],5%12
   q ∈ {5; 17; 29; 41; 53}
   t ∈ {7; 20; 33; 46; 59}
-[value] Values at end of function simultaneous_congruences:
+[value:final-states] Values at end of function simultaneous_congruences:
   n1 ∈ [98..436207493],98%195
   n2 ∈ [98..436207493],98%195
   n3 ∈ [98..436207493],98%195
@@ -161,7 +161,7 @@ tests/value/modulo.i:146:[value] warning: assertion got status unknown.
   o1 ∈ [11..268435451],11%24
   o2 ∈ [11..268435451],11%24
   o3 ∈ [11..268435451],11%24
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   A ∈ {0}
   B ∈ {-3; 1}
   C ∈ {1}

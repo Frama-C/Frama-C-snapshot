@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -check tests/misc/bts0525-2.i
+   OPT: tests/misc/bts0525-2.i
 */
 typedef enum {E3=2, E4} T_EN2 ;
 typedef enum {E1=2, E2} T_EN1 ;

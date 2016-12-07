@@ -26,6 +26,7 @@
 
 class type computer =
   object
+    method model : Model.t
     method lemma : bool
     method add_strategy : WpStrategy.strategy -> unit
     method add_lemma : LogicUsage.logic_lemma -> unit
@@ -49,9 +50,11 @@ let compute_ip cc ip =
       cc#compute
 
   | Property.IPBehavior (kf,_,_,b)  ->
+      let model = cc#model in
       let bhv = [b.Cil_types.b_name] in
+      let assigns = WpAnnot.WithAssigns in
       List.iter cc#add_strategy
-        (WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ~bhv kf) ;
+        (WpAnnot.get_function_strategies ~model ~assigns ~bhv kf) ;
       cc#compute
   | Property.IPComplete _
   | Property.IPDisjoint _
@@ -61,8 +64,10 @@ let compute_ip cc ip =
   | Property.IPDecrease _
   | Property.IPPredicate _
     ->
+      let model = cc#model in
+      let assigns = WpAnnot.WithAssigns in
       List.iter cc#add_strategy
-        (WpAnnot.get_id_prop_strategies ~assigns:WpAnnot.WithAssigns ip) ;
+        (WpAnnot.get_id_prop_strategies ~model ~assigns ip) ;
       cc#compute
 
   | Property.IPFrom _
@@ -97,8 +102,10 @@ let iter_fct phi = function
   | F_List fs -> Cil_datatype.Kf.Set.iter phi fs
 
 let add_kf cc ?bhv ?prop kf =
+  let model = cc#model in
+  let assigns = WpAnnot.WithAssigns in
   List.iter cc#add_strategy
-    (WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ?bhv ?prop kf)
+    (WpAnnot.get_function_strategies ~model ~assigns ?bhv ?prop kf)
 
 let compute_kf cc ?kf ?bhv ?prop () =
   begin
@@ -135,5 +142,6 @@ let compute_selection cc ?(fct=F_All) ?bhv ?prop () =
 (* -------------------------------------------------------------------------- *)
 
 let compute_call cc stmt =
-  List.iter cc#add_strategy (WpAnnot.get_call_pre_strategies stmt) ;
+  let model = cc#model in
+  List.iter cc#add_strategy (WpAnnot.get_call_pre_strategies ~model stmt) ;
   cc#compute

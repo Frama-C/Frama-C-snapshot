@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {4}
@@ -21,7 +21,7 @@ tests/value/interpol.c:10:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   d ∈ {-64; -32; -16; -8; -4; -2; -1} or UNINITIALIZED
   i ∈ {7}
 [from] Computing for function main

@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp/wp_inv_in_loop.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 tests/wp/wp_inv_in_loop.c:185:[wp] warning: Missing assigns clause (assigns 'everything' instead)
 [wp] 1 goal scheduled
 [wp] [Qed] Goal typed_ref_goto_natural_loop_without_inv_post_qed_ko : Valid

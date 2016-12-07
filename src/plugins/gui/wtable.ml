@@ -338,7 +338,7 @@ class ['a] gtree_model (m : 'a treemodel) =
       GtkTree.TreePath.create ks
 
     method custom_value (_:Gobject.g_type) (_:'a) ~column:(_:int) : Gobject.basic
-      = Format.eprintf "Value ?@." ; assert false
+      = Format.eprintf "Wtable.custom_value@." ; assert false
 
     method custom_iter_children r =
       let node = match r with None -> true | Some f -> m#has_child f in

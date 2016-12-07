@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   base0 ∈ {7}
   base1 ∈ {1}
   base2 ∈ {2}
@@ -20,7 +20,7 @@ tests/value/pointer_loop.i:13:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   base1 ∈ {1; 3; 4}
   base2 ∈ {2; 3; 4}
   Ctrl_p ∈ {{ NULL ; &base1 ; &base2 }}

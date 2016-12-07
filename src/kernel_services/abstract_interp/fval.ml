@@ -34,7 +34,10 @@ module F = struct
       are also considered, e.g. "if x < 0.0" is equivalent to "if x < -0.0",
       which is also equivalent to "F.compare x (-0.0) < 0".
       This 'compare' operator distinguishes -0. and 0. *)
+  (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+  [@@@ warning "-3"]
   external compare : float -> float -> int = "float_compare_total" "noalloc"
+  [@@@ warning "+3"]
   let equal f1 f2 = compare f1 f2 = 0
 
   (* The Caml version of compare below is fine but the C version above is
@@ -79,7 +82,10 @@ module F = struct
 
   (* works but allocates:
      let is_negative f = Int64.bits_of_float f < Int64.zero *)
-  external is_negative : float -> bool = "float_is_negative" "noalloc"
+(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+[@@@ warning "-3"]
+ external is_negative : float -> bool = "float_is_negative" "noalloc"
+[@@@ warning "+3"]
 
   let zero_of_same_sign f =
     if is_negative f then minus_zero else zero
@@ -123,6 +129,22 @@ module F = struct
       let d = x -. y in y +. h *. d
     else
       (x +. y) *. h
+
+  (* assumption: [0. <= x <= y]. returns the median of the range [x..y]
+     in number of double values. *)
+  let split_positive x y =
+    let ix = Int64.bits_of_float x in
+    let iy = Int64.bits_of_float y in
+    Int64.(float_of_bits (add ix (div (sub iy ix) 2L)))
+
+  (* assumption: [x <= y] *)
+  let _split x y =
+    match is_negative x, is_negative y with
+    | false, false -> split_positive x y
+    | true, true -> -. (split_positive (-.x) (-.y))
+    | true, false -> minus_zero
+    | false, true -> assert false
+
 
   let le_ieee = ((<=) : float -> float -> bool)
   let lt_ieee = ((<) : float -> float -> bool)
@@ -232,8 +254,6 @@ module F = struct
 
   let classify_float = Pervasives.classify_float
 end
-
-module F_Set = Set.Make(F) (* Uses our really total compare function *)
 
 type float_kind = Float32 | Float64
 
@@ -693,22 +713,6 @@ let sqrtf = sqrt' F.sqrtf
 let minus_one_one = inject F.minus_one F.one
 let minus_pi_pi = inject F.m_minus_pi F.m_pi
 
-let cos (FRange.I(b, e)) =
-  if F.equal b e then begin
-    Floating_point.set_round_nearest_even ();
-    let c = F.cos b in
-    inject c c
-  end
-  else minus_one_one
-
-let sin (FRange.I(b, e)) =
-  if F.equal b e then begin
-    Floating_point.set_round_nearest_even ();
-    let c = F.sin b in
-    inject c c
-  end
-  else minus_one_one
-
 let atan2 (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
   Floating_point.set_round_nearest_even ();
   let res =
@@ -949,7 +953,7 @@ let pow' pow_f fkind (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
 let pow = pow' F.pow Float64
 let powf = pow' F.powf Float32
 
-let cos_precise (FRange.I(b, e)) =
+let cos (FRange.I(b, e)) =
   Floating_point.set_round_nearest_even ();
   if F.equal b e
   then
@@ -976,7 +980,7 @@ let cos_precise (FRange.I(b, e)) =
     else minus_one_one
   end
 
-let sin_precise (FRange.I(b, e)) =
+let sin (FRange.I(b, e)) =
   Floating_point.set_round_nearest_even ();
   if F.equal b e
   then let c = F.sin b in inject c c

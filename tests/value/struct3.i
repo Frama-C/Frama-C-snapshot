@@ -1,3 +1,7 @@
+/* run.config*
+   STDOPT: +"-value-msg-key garbled-mix"
+*/
+
 struct st1 {
  int a;
  int *b;
@@ -19,7 +23,7 @@ struct st2 tab_s2[2];
 struct st2 tab_s3[2];
 struct st2 tab_s4[2];
 
-struct st2 s1,s2,s4,s5,s6;
+struct st2 s1,s2;
 struct st1 s8,s7;
 
 volatile int v;
@@ -36,4 +40,8 @@ void main () {
   s1.d[9] = 2;
 
   if (v) s1.d[10] = 2;
+
+  s2 = s1; // Creates a garbled mix internally; make sure not to log it
+
+  s2.a = s2.c + (int) s2.c; // creates a garbled mix in the struct
 }

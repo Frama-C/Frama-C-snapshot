@@ -94,7 +94,7 @@ endif
 $(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
 	$(PRINT_CP) $(patsubst %_INSTALL_DOC,%,$@) Documentation
 	$(MKDIR) $(DOC_DIR)/$(@:%_INSTALL_DOC=%)
-	$(CP) $(patsubst %,"%", \
+	$(CP) $(patsubst %,"%",\
 	         $(wildcard $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.css \
 	                    $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.html \
                             $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.png)) \
@@ -125,7 +125,7 @@ ifneq (,$(HAS_TESTS_DIR)$(PLUGIN_INTERNAL_TEST)$(PLUGIN_NO_TEST))
 $(PLUGIN_NAME)_TESTS:
 
 else
-PTESTS_DEP:=$(PLUGIN_DIR)/Makefile
+PTESTS_DEP:=$(PLUGIN_DIR)/Makefile $(FRAMAC_SHARE)/Makefile.dynamic
 
 plugins_ptests_config: $(PLUGIN_DIR)/tests/ptests_config
 
@@ -146,13 +146,16 @@ $(PLUGIN_DIR)/tests/ptests_config: $(PTESTS_DEP)
 	if test "$(FRAMAC_INTERNAL)" = "no"; then \
 	  $(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR):$(PLUGIN_INSTALL_DIR)" >> $$@; \
 	  $(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR):$(PLUGIN_INSTALL_DIR)/gui" >> $$@; \
-	  $(ECHO) "OCAMLPATH=$(FRAMAC_PLUGINDIR):$(OCAMLPATH)" >> $$@; \
+          $(ECHO) "OCAMLFIND_IGNORE_DUPS_IN=$(PLUGIN_INSTALL_DIR)" >> $$@; \
         else \
 	  $(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR)" >> $$@; \
 	  $(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR)" >> $$@; \
         fi
 	$(ECHO) "OCAMLRUNPARAM=" >> $$@
 	$(CHMOD_RO) $$@
+
+# OCAMLFIND_IGNORE_DUPS_IN in external mode allows to ignore a previous
+# installation of the currently tested plugin.
 
 # $(PLUGIN_NAME)_DEFAULT_TESTS allows plugins to define rules that at
 # the same time depend on $(PLUGIN_NAME)_DEFAULT_TESTS and
@@ -175,7 +178,7 @@ external_tests: $(PLUGIN_NAME)_TESTS
 endif
 ################################################
 
-PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) $(OCAMLGRAPH_INCLUDE)
+PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES)
 PLUGIN_BFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_BFLAGS)
 PLUGIN_OFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_OFLAGS)
 ifeq ($(FRAMAC_INTERNAL),yes)
@@ -208,32 +211,24 @@ gui:: $(TARGETS_GUI)
 # do not define additional targets if you come from the Frama-C Makefile
 ifneq ($(FRAMAC_INTERNAL),yes)
 
-##########
-# Zarith #
-##########
-
-ifeq ($(HAS_ZARITH),yes)
-ZARITH_INCLUDES= -I $(ZARITH_PATH)
-endif
-
 ##################
 # Static Linking #
 ##################
 
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_TOP_CMO)
 	$(PRINT_LINKING) $@
-	$(OCAMLC) $(PLUGIN_LINK_BFLAGS) $(DYN_BLINKFLAGS) $(ZARITH_INCLUDES) \
+	$(OCAMLC) $(PLUGIN_LINK_BFLAGS) $(DYN_BLINKFLAGS) \
 	  -o $@ $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
-	  $(patsubst %boot.cmo, \
-	    $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO) %boot.cmo, \
+	  $(patsubst %boot.cmo,\
+	    $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO) %boot.cmo,\
 	    $(DYN_ALL_BATCH_CMO))
 
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_TOP_CMX)
 	$(PRINT_LINKING) $@
-	$(OCAMLOPT) $(PLUGIN_LINK_OFLAGS) $(DYN_OLINKFLAGS) $(ZARITH_INCLUDES) \
+	$(OCAMLOPT) $(PLUGIN_LINK_OFLAGS) $(DYN_OLINKFLAGS) \
 	  -o $@ $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
-	  $(patsubst %boot.cmx, \
-	    $(PLUGIN_EXTRA_OPT) $(TARGET_TOP_CMX) %boot.cmx, \
+	  $(patsubst %boot.cmx,\
+	    $(PLUGIN_EXTRA_OPT) $(TARGET_TOP_CMX) %boot.cmx,\
             $(DYN_ALL_BATCH_CMX))
 
 static.byte:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)

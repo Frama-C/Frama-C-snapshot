@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp/wp_inv_in_loop.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 tests/wp/wp_inv_in_loop.c:99:[wp] warning: Missing assigns clause (assigns 'everything' instead)
 tests/wp/wp_inv_in_loop.c:169:[wp] warning: calculus failed on strategy
@@ -104,7 +103,7 @@ Assume {
       Type: is_sint32(x) /\ is_sint32(x_2).
       Have: (10 = n) /\ (10 = n_2).
       (* Invariant for 'n_neg' *)
-      Have: (10 = n) /\ (x <= 9) /\ (0 = (x % 2)).
+      Have: (10 = n) /\ (0 = (x % 2)) /\ (x <= 9).
       Have: non_natural_loop_0 = x_2.
     Case:
       Have: n_1 = n_2.
@@ -137,7 +136,7 @@ Assume {
       Type: is_sint32(x_1) /\ is_sint32(x_3).
       Have: (10 = n) /\ (10 = n_2).
       (* Invariant for 'n_neg' *)
-      Have: (10 = n) /\ (x_1 <= 9) /\ (0 = (x_1 % 2)).
+      Have: (10 = n) /\ (0 = (x_1 % 2)) /\ (x_1 <= 9).
       Have: x = x_3.
     Case:
       Have: n_1 = n_2.
@@ -249,19 +248,13 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (1/3):
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (1/2):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (2/3):
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (2/2):
 Effect at line 87
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (3/3):
-Effect at line 91
 Prove: true.
 
 ------------------------------------------------------------
@@ -284,19 +277,13 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (1/3):
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (1/2):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (2/3):
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (2/2):
 Effect at line 68
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (3/3):
-Effect at line 73
 Prove: true.
 
 ------------------------------------------------------------

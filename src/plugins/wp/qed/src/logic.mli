@@ -340,6 +340,8 @@ sig
 
   (** {3 Specific Patterns} *)
 
+  val consequence : term -> term -> term
+  (** Kowning [h], [consequence h a] returns [b] such that [h -> (a<->b)] *)
   val literal : term -> bool * term
   val congruence_eq : term -> term -> (term * term) list option
   (** If [congruence_eq a b] returns [[ai,bi]], [a=b] is equivalent to [And{ai=bi}]. *)

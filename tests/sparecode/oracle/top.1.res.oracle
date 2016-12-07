@@ -5,7 +5,7 @@
 [value] Analyzing a complete application starting at main_call_top
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function main_top <- main_call_top.
         Called from tests/sparecode/top.i:26.
@@ -50,7 +50,7 @@ tests/sparecode/top.i:10:[kernel] warning: Neither code nor specification for fu
 [value] Analyzing a complete application starting at main_call_top
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function main_top <- main_call_top.
         Called from tests/sparecode/top.i:26.

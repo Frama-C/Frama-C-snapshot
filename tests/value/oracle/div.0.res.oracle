@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
   Y ∈ {0}
   Z1 ∈ {0}
@@ -26,32 +26,32 @@
    [3..4] ∈ {0}
   p ∈ {0}
 tests/value/div.i:14:[value] entering loop for the first time
-tests/value/div.i:14:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
-tests/value/div.i:17:[kernel] warning: signed overflow. assert c+2 ≤ 2147483647;
-tests/value/div.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ X-1;
-tests/value/div.i:16:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
-tests/value/div.i:32:[kernel] warning: division by zero. assert Z2 ≢ 0;
-tests/value/div.i:33:[kernel] warning: division by zero. assert Z2 ≢ 0;
-tests/value/div.i:33:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&Z2)/Z2;
-tests/value/div.i:33:[kernel] warning: signed overflow. assert (int)(&Z2)/Z2 ≤ 2147483647;
+tests/value/div.i:14:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+tests/value/div.i:17:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;
+tests/value/div.i:17:[value] warning: signed overflow. assert -2147483648 ≤ X - 1;
+tests/value/div.i:16:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
+tests/value/div.i:32:[value] warning: division by zero. assert Z2 ≢ 0;
+tests/value/div.i:33:[value] warning: division by zero. assert Z2 ≢ 0;
+tests/value/div.i:33:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&Z2) / Z2;
+tests/value/div.i:33:[value] warning: signed overflow. assert (int)(&Z2) / Z2 ≤ 2147483647;
 tests/value/div.i:33:[value] Assigning imprecise value to b.
         The imprecision originates from Arithmetic {tests/value/div.i:33}
-tests/value/div.i:34:[kernel] warning: division by zero. assert (int)(&X+2) ≢ 0;
-tests/value/div.i:34:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&X+2));
-tests/value/div.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+2);
-tests/value/div.i:34:[kernel] warning: signed overflow. assert 100/(int)(&X+2) ≤ 2147483647;
+tests/value/div.i:34:[value] warning: division by zero. assert (int)(&X + 2) ≢ 0;
+tests/value/div.i:34:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&X + 2));
+tests/value/div.i:34:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 2);
+tests/value/div.i:34:[value] warning: signed overflow. assert 100 / (int)(&X + 2) ≤ 2147483647;
 tests/value/div.i:34:[value] Assigning imprecise value to d2.
         The imprecision originates from Arithmetic {tests/value/div.i:34}
-tests/value/div.i:35:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+1);
-tests/value/div.i:35:[kernel] warning: signed overflow. assert 100/(int)(&X+1) ≤ 2147483647;
+tests/value/div.i:35:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 1);
+tests/value/div.i:35:[value] warning: signed overflow. assert 100 / (int)(&X + 1) ≤ 2147483647;
 tests/value/div.i:35:[value] Assigning imprecise value to d1.
         The imprecision originates from Arithmetic {tests/value/div.i:35}
-tests/value/div.i:36:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X);
-tests/value/div.i:36:[kernel] warning: signed overflow. assert 100/(int)(&X) ≤ 2147483647;
+tests/value/div.i:36:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X);
+tests/value/div.i:36:[value] warning: signed overflow. assert 100 / (int)(&X) ≤ 2147483647;
 tests/value/div.i:36:[value] Assigning imprecise value to d0.
         The imprecision originates from Arithmetic {tests/value/div.i:36}
-tests/value/div.i:37:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&X));
-tests/value/div.i:37:[kernel] warning: signed overflow. assert -((int)(&X)) ≤ 2147483647;
+tests/value/div.i:37:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&X));
+tests/value/div.i:37:[value] warning: signed overflow. assert -((int)(&X)) ≤ 2147483647;
 tests/value/div.i:37:[value] Assigning imprecise value to e.
         The imprecision originates from Arithmetic {tests/value/div.i:37}
 [value] Recording results for main
@@ -59,7 +59,7 @@ tests/value/div.i:37:[value] Assigning imprecise value to e.
 tests/value/div.i:34:[value] assertion 'Value,division_by_zero' got final status valid.
 [scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   X ∈ [--..--]
   Y ∈ [-126..333],9%27
   Z1 ∈ [-42..111],3%9

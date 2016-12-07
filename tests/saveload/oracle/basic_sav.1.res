@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/saveload/basic.i:18:[value] assertion got status valid.
 tests/saveload/basic.i:19:[value] entering loop for the first time
-tests/saveload/basic.i:19:[kernel] warning: signed overflow. assert -2147483648 ≤ i-1;
+tests/saveload/basic.i:19:[value] warning: signed overflow. assert -2147483648 ≤ i - 1;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ [-2147483648..9]
   j ∈ {5}
   __retres ∈ {0}

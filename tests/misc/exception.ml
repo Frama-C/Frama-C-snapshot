@@ -1,3 +1,4 @@
+open Cabs
 open Cil_types
 
 let rec init_exn exn init acc =
@@ -63,10 +64,13 @@ let add_catch my_exn my_exn2 f =
   let exn_field = Field (List.hd my_exn.cfields, NoOffset) in
   let exn2_field = Field (List.hd my_exn2.cfields, NoOffset) in
   let loc = Cil_datatype.Location.unknown in
+  let real_locals = f.sbody.blocals in
   let v1 = Cil.makeLocalVar f "exn" exn_type in
   let v2 = Cil.makeLocalVar f "y" Cil.intType in
   let v3 = Cil.makeLocalVar f "exn_aux" exn_type in
   let v4 = Cil.makeLocalVar f "exn2" exn_type2 in
+  let v5 = Cil.makeLocalVar f "not_thrown" Cil.doubleType in
+  f.sbody.blocals <- real_locals;
   let id_block =
     Cil.mkBlock [Cil.mkStmtOneInstr (Set (Cil.var v1, Cil.evar ~loc v3, loc))]
   in
@@ -89,18 +93,23 @@ let add_catch my_exn my_exn2 f =
                        loc))];
              Catch_exn (v2,[]),
              Cil.mkBlock
-               [ Cil.mkStmt (Return (Some (Cil.evar ~loc v2),loc))]],
+               [ Cil.mkStmt (Return (Some (Cil.evar ~loc v2),loc))];
+             Catch_exn (v5,[]),
+             Cil.mkBlock
+               [ Cil.mkStmt (Return (Some (Cil.mone ~loc), loc))];
+             Catch_all, Cil.mkBlock [ Cil.mkStmt (Throw (None, loc)) ]
+           ],
            loc))
   in
   f.sbody <- Cil.mkBlock [ catch_stmt ]
 
 let change_body my_exn my_exn2 glob f =
   match f.svar.vname with
-    | "f1" -> add_my_exn my_exn f
-    | "f2" -> add_int_exn f
-    | "f3" -> add_int_ptr_exn glob f
-    | "f4" -> add_my_exn my_exn2 f
-    | "h" -> add_catch my_exn my_exn2 f
+    | "f1" -> add_my_exn my_exn f; File.must_recompute_cfg f
+    | "f2" -> add_int_exn f; File.must_recompute_cfg f
+    | "f3" -> add_int_ptr_exn glob f; File.must_recompute_cfg f
+    | "f4" -> add_my_exn my_exn2 f; File.must_recompute_cfg f
+    | "h" -> add_catch my_exn my_exn2 f; File.must_recompute_cfg f
     | _ -> ()
 
 let add_exn ast =
@@ -120,6 +129,50 @@ let add_exn ast =
     | _ -> ()
   in
   List.iter treat_glob ast.globals
+
+let loc = Cil_datatype.Location.unknown
+let stmt stmt_node = { stmt_ghost = false; stmt_node }
+let var v = { expr_loc = loc; expr_node = VARIABLE v }
+
+let mk_exn_cabs b =
+    { blabels = []; Cabs.battrs = [];
+      Cabs.bstmts =
+     [ stmt
+         (IF (var "c",
+              stmt (THROW (Some (var "x"),loc)),
+              stmt (BLOCK (b,loc,loc)),loc))] }
+
+let mk_catch_cabs b =
+  { blabels = []; Cabs.battrs = [];
+    Cabs.bstmts =
+      [ stmt
+        (TRY_CATCH
+          (stmt (BLOCK (b,loc,loc)),
+           [Some ([SpecType Tint],("x",JUSTBASE,[],loc)),
+            stmt (
+              RETURN (
+                { expr_loc = loc; expr_node = CONSTANT (CONST_INT "3")}, loc));
+            None,
+            stmt (
+              RETURN (
+                { expr_loc = loc; expr_node = CONSTANT (CONST_INT "4")}, loc))],
+           loc))]}
+
+let add_exn_cabs (f,l) =
+  let treat_one_global (b,d) =
+    let d =
+      match d with
+      | FUNDEF (s,(t,("f",dt,a,l)),b,l1,l2) ->
+        FUNDEF (s,(t,("f",dt,a,l)), mk_exn_cabs b,l1,l2)
+      | FUNDEF (s,(t,("g",dt,a,l)),b,l1,l2) ->
+        FUNDEF (s,(t,("g",dt,a,l)), mk_catch_cabs b,l1,l2)
+      | _ -> d
+    in
+    b,d
+  in
+  (f, List.map treat_one_global l)
+
+let () = Frontc.add_syntactic_transformation add_exn_cabs
 
 let add_exn_cat = File.register_code_transformation_category "add_exn"
 

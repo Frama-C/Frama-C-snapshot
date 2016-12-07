@@ -30,7 +30,7 @@ let dkey = Klog.register_category "dynlink"
 let error ~name ~message ~details =
   Klog.error "cannot load plug-in '%s': %s%t" name message
     (fun fmt ->
-       if details <> "" && Klog.verbose_atleast 2 then
+       if details <> "" then
          Format.fprintf fmt "@\nDetails: %s" details)
 
 (* -------------------------------------------------------------------------- *)
@@ -83,6 +83,7 @@ let dynlib_module name file =
     dynlib_init () ;
     Dynlib.loadfile file ;
   with error ->
+    Cmdline.add_loading_failures name;
     dynlib_error name error
 
 (* -------------------------------------------------------------------------- *)
@@ -210,11 +211,14 @@ let load_packages pkgs =
          pkgs)
   with
   | Findlib.No_such_package(pkg,details) ->
-      Klog.error "[findlib] package '%s' not found (%s)" pkg details
+    Cmdline.add_loading_failures pkg;
+    Klog.error "[findlib] package '%s' not found (%s)" pkg details
   | Findlib.Package_loop pkg ->
-      Klog.error "[findlib] cyclic dependencies for package '%s'" pkg
+    Cmdline.add_loading_failures pkg;
+    Klog.error "[findlib] cyclic dependencies for package '%s'" pkg
   | ArchiveError msg ->
-      Klog.error "[findlib] %s" msg
+    Cmdline.add_loading_failures "unknown package";
+    Klog.error "[findlib] %s" msg
 
 (* -------------------------------------------------------------------------- *)
 (* --- Load Objects                                                       --- *)
@@ -232,7 +236,7 @@ let load_script base =
     else
       Format.fprintf fmt "%s -c" Config.ocamlc ;
     Format.fprintf fmt " -w Ly -warn-error A -I %s" Config.libdir ;
-    if !Config.is_gui then Format.pp_print_string fmt " -I +lablgtk" ;
+    if !Config.is_gui then Format.pp_print_string fmt " -package lablgtk2" ;
     List.iter (fun p -> Format.fprintf fmt " -I %s" p) !load_path ;
     Format.fprintf fmt " %s.ml" base ;
     Format.pp_print_flush fmt () ;
@@ -314,7 +318,9 @@ let load_module m =
             | None ->
                 if is_package m && mem_package m then load_packages [m]
                 else
-                  let fc = "frama-c-" ^ String.lowercase m in
+                  let fc =
+                    "frama-c-" ^ Transitioning.String.lowercase_ascii m
+                  in
                   if mem_package fc then load_packages [fc]
                   else Klog.error "package or module '%s' not found" m
       end

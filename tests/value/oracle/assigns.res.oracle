@@ -4,7 +4,7 @@ tests/value/assigns.i:31:[kernel] warning: parsing obsolete ACSL construct 'logi
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   G ∈ {0}
   T[0..99] ∈ {0}
@@ -44,14 +44,14 @@ tests/value/assigns.i:48:[value] entering loop for the first time
 [value] computing for function f <- main1 <- main.
         Called from tests/value/assigns.i:49.
 [value] Done for function f
-tests/value/assigns.i:51:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&T);
-tests/value/assigns.i:51:[kernel] warning: signed overflow. assert 2*(int)(&T) ≤ 2147483647;
+tests/value/assigns.i:51:[value] warning: signed overflow. assert -2147483648 ≤ 2 * (int)(&T);
+tests/value/assigns.i:51:[value] warning: signed overflow. assert 2 * (int)(&T) ≤ 2147483647;
 [value] computing for function g <- main1 <- main.
         Called from tests/value/assigns.i:51.
 [value] using specification for function g
 [value] Done for function g
-tests/value/assigns.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&t3);
-tests/value/assigns.i:52:[kernel] warning: signed overflow. assert 2*(int)(&t3) ≤ 2147483647;
+tests/value/assigns.i:52:[value] warning: signed overflow. assert -2147483648 ≤ 2 * (int)(&t3);
+tests/value/assigns.i:52:[value] warning: signed overflow. assert 2 * (int)(&t3) ≤ 2147483647;
 [value] computing for function h <- main1 <- main.
         Called from tests/value/assigns.i:52.
 [value] using specification for function h
@@ -74,7 +74,6 @@ tests/value/assigns.i:56:[value] warning: cannot interpret 'from' clause 'assign
 tests/value/assigns.i:56:[value] warning: cannot interpret assigns Tpost[\at(k,Post)] in function assigns_post
                  (no environment to evaluate \at(_,Post)); effects will be ignored
 [value] Done for function assigns_post
-tests/value/assigns.i:57:[value] warning: locals escaping the scope of main1 through x
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -109,7 +108,7 @@ tests/value/assigns.i:82:[kernel] warning: Neither code nor specification for fu
 [value] using specification for function ff2_bis
 tests/value/assigns.i:64:[value] warning: no 'assigns \result \from ...' clause specified for function ff2_bis
 [value] Done for function ff2_bis
-tests/value/assigns.i:84:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&x));
+tests/value/assigns.i:84:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&x));
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
@@ -135,7 +134,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   T[0..99] ∈ [--..--]
   Tpost[0..17] ∈ {0}
        [18] ∈ [--..--]
@@ -146,7 +145,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
   t2[0..99999] ∈ [--..--]
   t3[0..99999] ∈ [--..--]
   x ∈ {{ ANYTHING }}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   y1 ∈ [--..--]
   y2 ∈ [--..--]
   y3 ∈ [--..--]
@@ -154,7 +153,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
   p ∈ {{ NULL + [--..--] ; &alloced_return_ff2 + [0..2147483644],0%4 }}
   q ∈ {{ NULL + [--..--] ; &alloced_return_ff2_bis + [0..2147483644],0%4 }}
   __retres ∈ {1}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   t_main4{[0..998]; [999].f1} ∈ [--..--]
          [999].f2 ∈ {0}
   u_main4[0].f1 ∈ [--..--]
@@ -357,7 +356,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
          [98].f2 ∈ {0}
          [99].f1 ∈ [--..--]
          [99].f2 ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0..99] ∈ [--..--]
   Tpost[0..17] ∈ {0}
        [18] ∈ [--..--]
@@ -367,7 +366,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
    [6..9] ∈ {0}
   t2[0..99999] ∈ [--..--]
   t3[0..99999] ∈ [--..--]
-  x ∈ {{ ANYTHING }} or ESCAPINGADDR
+  x ∈ {{ ANYTHING }}
   y1 ∈ [--..--]
   y2 ∈ [--..--]
   y3 ∈ [--..--]
@@ -862,8 +861,8 @@ struct __anonstruct_ts_1 {
 typedef struct __anonstruct_ts_1 ts;
 int volatile v;
 int G;
-/*@ assigns *(s+(..));
-    assigns *(s+(..)) \from *(s+(..)); */
+/*@ assigns *(s + (..));
+    assigns *(s + (..)) \from *(s + (..)); */
 extern void F1(char *s);
 
 char T[100];
@@ -871,23 +870,25 @@ char Tpost[100];
 ts t[10];
 int t2[100000];
 int t3[100000];
-/*@ assigns *(p+(0 .. 3));
-    assigns *(p+(0 .. 3)) \from *(p+(4 .. 7)); */
+/*@ assigns *(p + (0 .. 3));
+    assigns *(p + (0 .. 3)) \from *(p + (4 .. 7));
+ */
 extern void f(char *p);
 
-/*@ assigns t2[(unsigned char)len+1 .. (unsigned char)len+1];
-    assigns t2[(unsigned char)len+1 .. (unsigned char)len+1] \from \nothing;
+/*@ assigns t2[(unsigned char)len + 1 .. (unsigned char)len + 1];
+    assigns t2[(unsigned char)len + 1 .. (unsigned char)len + 1]
+      \from \nothing;
  */
 extern void g(int len);
 
-/*@ assigns *(p+(..));
-    assigns *(p+(..)) \from \nothing; */
+/*@ assigns *(p + (..));
+    assigns *(p + (..)) \from \nothing; */
 extern void h(int *p);
 
 /*@ logic int foo(int p) ;
  */
-/*@ assigns *(p+(0 .. foo(*p)));
-    assigns *(p+(0 .. foo(*p))) \from \nothing;
+/*@ assigns *(p + (0 .. foo(*p)));
+    assigns *(p + (0 .. foo(*p))) \from \nothing;
  */
 extern void j(int *p);
 
@@ -909,11 +910,11 @@ void main1(void)
       i ++;
     }
   }
-  /*@ assert Value: signed_overflow: -2147483648 ≤ 2*(int)(&T); */
-  /*@ assert Value: signed_overflow: 2*(int)(&T) ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: -2147483648 ≤ 2 * (int)(&T); */
+  /*@ assert Value: signed_overflow: 2 * (int)(&T) ≤ 2147483647; */
   g(2 * (int)(& T));
-  /*@ assert Value: signed_overflow: -2147483648 ≤ 2*(int)(&t3); */
-  /*@ assert Value: signed_overflow: 2*(int)(&t3) ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: -2147483648 ≤ 2 * (int)(&t3); */
+  /*@ assert Value: signed_overflow: 2 * (int)(&t3) ≤ 2147483647; */
   h((int *)(2 * (int)(& t3)));
   j((int *)(& T[9]));
   assigns_post(18);
@@ -969,11 +970,12 @@ int main2(void)
 
 int t_main3_1[7][8];
 int t_main3_2[3][4][5];
-/*@ assigns \result, (*a)[0 .. 7], (*(b+(0 .. 2)))[0 .. 3][0 .. 4];
-    assigns \result \from (*a)[0 .. 7], (*(b+(0 .. 2)))[0 .. 3][0 .. 4];
-    assigns (*a)[0 .. 7] \from (*a)[0 .. 7], (*(b+(0 .. 2)))[0 .. 3][0 .. 4];
-    assigns (*(b+(0 .. 2)))[0 .. 3][0 .. 4]
-      \from (*a)[0 .. 7], (*(b+(0 .. 2)))[0 .. 3][0 .. 4];
+/*@ assigns \result, (*a)[0 .. 7], (*(b + (0 .. 2)))[0 .. 3][0 .. 4];
+    assigns \result \from (*a)[0 .. 7], (*(b + (0 .. 2)))[0 .. 3][0 .. 4];
+    assigns (*a)[0 .. 7]
+      \from (*a)[0 .. 7], (*(b + (0 .. 2)))[0 .. 3][0 .. 4];
+    assigns (*(b + (0 .. 2)))[0 .. 3][0 .. 4]
+      \from (*a)[0 .. 7], (*(b + (0 .. 2)))[0 .. 3][0 .. 4];
  */
 extern int main3(int (*a)[8], int (* /*[3]*/ b)[4][5]);
 

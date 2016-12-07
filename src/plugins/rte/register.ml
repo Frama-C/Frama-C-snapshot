@@ -55,6 +55,8 @@ let () =
   nojournal_register
     Db.RteGen.get_signed_downCast_status Generator.signed_downcast_status;
   nojournal_register Db.RteGen.get_memAccess_status Generator.mem_access_status;
+  nojournal_register
+    Db.RteGen.get_pointerCall_status Generator.pointer_call_status;
   nojournal_register 
     Db.RteGen.get_unsignedOv_status Generator.unsigned_overflow_status;
   nojournal_register

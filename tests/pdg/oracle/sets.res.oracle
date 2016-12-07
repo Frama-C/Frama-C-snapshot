@@ -3,14 +3,14 @@
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   b ∈ [--..--]
   c ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]
   z ∈ [--..--]
   t ∈ [--..--]
-tests/pdg/sets.c:15:[kernel] warning: signed overflow. assert b+y ≤ 2147483647;
+tests/pdg/sets.c:15:[value] warning: signed overflow. assert b + y ≤ 2147483647;
 [value] Recording results for f
 [value] done for function f
 [inout] InOut (internal) for function f:

@@ -26,7 +26,7 @@
 #include "features.h"
 __BEGIN_DECLS
 
-extern int Frama_C_entropy_source;
+extern volatile int Frama_C_entropy_source __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
 
 /*@ requires \valid(p + (0 .. l-1));
     assigns p[0 .. l-1] \from Frama_C_entropy_source;

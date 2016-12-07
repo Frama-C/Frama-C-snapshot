@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at inout_11_3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Xt ∈ {0}
   Xs ∈ {0}
   Xs_I ∈ {0}
@@ -22,6 +22,7 @@
       [7] ∈ {40}
   I5_nt ∈ {0}
 tests/value/inout.i:37:[value] entering loop for the first time
+tests/value/inout.i:42:[value] warning: accessing uninitialized left-value. assert \initialized(&r);
 [value] Recording results for inout_11_3
 [value] done for function inout_11_3
 [from] Computing for function inout_11_3

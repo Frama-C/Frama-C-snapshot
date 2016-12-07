@@ -34,6 +34,8 @@ val warning : ('a,Format.formatter,unit) format -> 'a
 
 (** {2 Styling} *)
 
+val set_enabled : #GObj.widget -> bool -> unit
+val set_visible : #GObj.widget -> bool -> unit
 val set_tooltip : #GObj.widget -> string option -> unit
 val set_small_font : #GObj.widget -> unit
 val set_bold_font : #GObj.widget -> unit
@@ -80,8 +82,23 @@ class ['a] selector : 'a ->
     method send : ('a -> unit) -> unit -> unit
   end
 
-class coerce : #GObj.widget ->
+class type widget =
   object
+    method set_visible : bool -> unit
     method set_enabled : bool -> unit
     method coerce : GObj.widget
+    method widget : widget
+  end
+
+class layout :
+  object
+    inherit widget
+    method populate : #widget -> unit
+  end
+
+class gobj_widget : #GObj.widget -> widget
+class gobj_action : #GObj.widget ->
+  object
+    inherit widget
+    method set_tooltip : string -> unit
   end

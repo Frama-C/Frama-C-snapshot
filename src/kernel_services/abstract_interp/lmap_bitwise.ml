@@ -131,7 +131,7 @@ struct
            ~validity ~exact:true range V.default to_bottom
           with
           | `Bottom -> assert false
-          | `Map m -> m
+          | `Value m -> m
         end
       | Base.Unknown _ | Base.Empty | Base.Variable _ -> assert false
     else
@@ -278,7 +278,7 @@ struct
        let offsm = find_or_default base m in
        match LOffset.add_binding_intervals ~validity ~exact offs v offsm with
        | `Bottom -> m
-       | `Map new_offsetmap -> LBase.add base new_offsetmap m
+       | `Value new_offsetmap -> LBase.add base new_offsetmap m
      with Invalid_base -> m
    in
    match loc, m with
@@ -296,7 +296,7 @@ struct
        in
        match new_offsetmap with
        | `Bottom -> m
-       | `Map new_offsetmap -> LBase.add base new_offsetmap m
+       | `Value new_offsetmap -> LBase.add base new_offsetmap m
      with Invalid_base -> m
    in
    match loc.loc, m with
@@ -361,7 +361,7 @@ struct
    else LBase.generic_join ~symmetric ~idempotent ~cache ~decide
 
  let is_included_map =
-   let name = Pretty_utils.sfprintf "Lmap_bitwise(%s).is_included" V.name in
+   let name = Format.asprintf "Lmap_bitwise(%s).is_included" V.name in
    let decide_fst b offs1 = LOffset.is_included offs1 (default_offsetmap b) in
    let decide_snd b offs2 = LOffset.is_included (default_offsetmap b) offs2 in
    let decide_both _ offs1 offs2 = LOffset.is_included offs1 offs2 in

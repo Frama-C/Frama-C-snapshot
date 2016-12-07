@@ -111,8 +111,8 @@ let check_funspec_abrupt_clauses fname spec =
           Errorloc.parse_error ~source:loc
             "Specification of function %s can only contain ensures or \
                  exits post-conditions" fname)
-	bhv.Cil_types.b_post_cond)
-    spec.Cil_types.spec_behavior
+	bhv.Logic_ptree.b_post_cond)
+    spec.Logic_ptree.spec_behavior
 
 let applyPointer (ptspecs: attribute list list) (dt: decl_type)
        : decl_type =

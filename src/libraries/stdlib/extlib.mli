@@ -284,13 +284,15 @@ val make_unique_name:
 (** {2 Performance} *)
 (* ************************************************************************* *)
 
+(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+[@@@ warning "-3"]
 external getperfcount: unit -> int = "getperfcount" "noalloc"
 external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
+external address_of_value: 'a -> int = "address_of_value" "noalloc"
+[@@@ warning "+3"]
 
 val time: ?msg:string -> ('a -> 'b) -> 'a -> 'b
 val time1024: ?msg:string -> ('a -> 'b) -> 'a -> 'b
-
-external address_of_value: 'a -> int = "address_of_value" "noalloc"
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -349,6 +351,10 @@ val usleep: int -> unit
 (** Use this function instead of [Pervasives.compare], as this makes
     it easier to find incorrect uses of the latter *)
 external compare_basic: 'a -> 'a -> int = "%compare"
+
+(** Case-insensitive string comparison. Only ISO-8859-1 accents are handled.
+    @since Silicon-20161101 *)
+val compare_ignore_case: string -> string -> int
 
 (*
 Local Variables:

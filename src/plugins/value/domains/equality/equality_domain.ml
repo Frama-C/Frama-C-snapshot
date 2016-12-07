@@ -23,6 +23,17 @@
 open Cil_types
 open Eval
 
+type call_init_state =
+  | ISCaller
+  | ISFormals
+  | ISEmpty
+
+let call_init_state () = ISEmpty
+
+(* Handle calls to functions with only a specification as if nothing was
+   written. Unsafe. *)
+let unsafe_spec_calls = false
+
 module type S = sig
   include Abstract_domain.Internal
   val key : t Abstract_domain.key
@@ -35,34 +46,148 @@ end
 
 let dkey = Value_parameters.register_category "d-eq"
 
+module type InternalDatatype = sig
+  include Datatype.S_with_collections
+  include Abstract_domain.Lattice with type state = t
+  module Store: Abstract_domain.Store with type state := state
+  val structure : t Abstract_domain.structure
+  val key : t Abstract_domain.key
+  type equalities
+  val project : t -> equalities
+end
+
 let counter = ref 0
 
-module Make
-    (Atom : Equality_term.Atom)
+open Hcexprs
+
+module Atom = struct
+
+  include HCE
+
+  module Deps = struct
+    include Datatype.Pair(HCEToZone)(BaseToHCESet)
+    (* Map from expression to its dependencies, and inverse map from the
+       bases of the dependencies to the expressions *)
+
+    let empty = HCEToZone.empty, BaseToHCESet.empty
+
+    let join (m1, i1) (m2, i2) =
+      HCEToZone.inter m1 m2, BaseToHCESet.inter i1 i2
+
+    let is_included (m1, _) (m2, _) =
+      HCEToZone.is_included m1 m2
+
+    let concat (m1, i1) (m2, i2) =
+      HCEToZone.union m1 m2, BaseToHCESet.union i1 i2
+
+    let intersects (m, i: t) z =
+      let aux_e e acc =
+        let z_e = HCEToZone.find_default e m in
+        if Locations.Zone.intersects z z_e then
+          e :: acc
+        else acc
+      in
+      let aux_base b _ acc =
+        let set = BaseToHCESet.find_default b i in
+        HCESet.fold aux_e set acc
+      in
+      (* TODO: a recursive descent would be much more effective *)
+      Locations.Zone.fold_topset_ok aux_base z []
+
+    let add e z (m, i : t) =
+      let aux_base b _ acc =
+        let set = BaseToHCESet.find_default b i in
+        let set = HCESet.add e set in
+        BaseToHCESet.add b set acc
+      in
+      let i = Locations.Zone.fold_topset_ok aux_base z i in
+      let m = HCEToZone.add e z m in
+      (m, i : t)
+
+    let remove e (m, i as state : t) =
+      try
+        let z = HCEToZone.find e m in
+        let aux_base b _ i =
+          let s = BaseToHCESet.find_default b i in
+          let s = HCESet.remove e s in
+          if HCESet.is_empty s then
+            BaseToHCESet.remove b i
+          else
+            BaseToHCESet.add b s i
+        in
+        let i = Locations.Zone.fold_topset_ok aux_base z i in
+        let m = HCEToZone.remove e m in
+        (m, i)
+      with Not_found -> (* cannot find [e] in [m] *)
+        state
+
+  end
+end
+
+(* Make datatypes independent from the value abstraction. *)
+module MakeDatatype
     (Equality : Equality_sig.S_with_collections with type elt = Atom.t)
+= struct
+
+  module Internal = struct
+
+    incr counter;;
+    let name = Equality.Set.name ^ "domain_(" ^ string_of_int !counter ^ ")"
+
+    include Datatype.Triple_with_collections
+        (Equality.Set)
+        (Atom.Deps)
+        (Locations.Zone) (* memory zones that have been overwritten since
+                            the beginning of the function. Not used when the
+                            state of the caller is used as initial state. *)
+        (struct let module_name = name end)
+
+    type state = t
+
+    let key = Structure.Key_Domain.create_key "equality_domain"
+    let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
+
+    type equalities = Equality.Set.t
+    let project (t, _, _) = t
+
+    let pretty fmt (eqs, _, _) =
+      Format.fprintf fmt "@[<v>Eqs: %a@]" Equality.Set.pretty eqs
+
+    let top = Equality.Set.empty, Atom.Deps.empty, Locations.Zone.top
+    let is_included (a, _, y) (b, _, z) =
+      Equality.Set.subset b a && Locations.Zone.is_included y z
+    let join (e1, d1, z1) (e2, d2, z2) =
+      Equality.Set.inter e1 e2, Atom.Deps.join d1 d2, Locations.Zone.join z1 z2
+    let join_and_is_included a b =
+      join a b, is_included a b
+
+    (* TODO *)
+    let widen _kf _stmt a b = join a b
+
+    let storage = Value_parameters.EqualityStorage.get
+
+  end
+
+  include Internal
+  module Store = Domain_store.Make (Internal)
+
+end
+
+module MakeDomain
+    (Equality : Equality_sig.S_with_collections with type elt = Atom.t)
+    (Internal: InternalDatatype with type t = Equality.Set.t *
+                                            Atom.Deps.t *
+                                            Locations.Zone.t)
     (Value : Abstract_value.External)
 = struct
 
-  incr counter;;
-  let name = Equality.Set.name ^ "domain_(" ^ string_of_int !counter ^ ")"
+  include Internal
 
-  include Datatype.Triple_with_collections
-      (Equality.Set)
-      (Atom.Lmap_Bitwise)
-      (Locations.Zone)
-      (struct let module_name = name end)
-
-  let key = Structure.Key_Domain.create_key "equality_domain"
-  let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
-
-  let project (t, _, _) = t
-
-  type state = Equality.Set.t * Atom.Lmap_Bitwise.t * Locations.Zone.t
   type value = Value.t
   type location = Precise_locs.precise_location
   type origin = unit
-  type summary = unit
-  module Summary = Datatype.Unit
+  type return = unit
+  module Return = Datatype.Unit
 
   let pretty fmt (eqs, _, _) =
     Format.fprintf fmt "@[<v>Eqs: %a@]" Equality.Set.pretty eqs
@@ -70,36 +195,47 @@ module Make
   let pretty_debug fmt (eqs, deps, modified) =
     Format.fprintf fmt
       "@[<v>@[<hov 2>Eqs: %a@]@.@[<hov 2>Deps: %a@]@.@[<hov 2>Changed: %a@]@]"
-      Equality.Set.pretty eqs Atom.Lmap_Bitwise.pretty deps
+      Equality.Set.pretty eqs Atom.Deps.pretty deps
       Locations.Zone.pretty modified
 
-  let empty = Equality.Set.empty, Atom.Lmap_Bitwise.empty, Locations.Zone.bottom
-  let top = Equality.Set.empty, Atom.Lmap_Bitwise.empty, Locations.Zone.top
-  let is_included (a, _, y) (b, _, z) =
-    Equality.Set.subset b a && Locations.Zone.is_included y z
+  (* let pretty = pretty_debug *)
+
+  let rec fold_tree f t acc =
+    match t with
+    | Equality_sig.Empty -> acc
+    | Equality_sig.Leaf v -> f v acc
+    | Equality_sig.Node (t1, t2) -> fold_tree f t2 (fold_tree f t1 acc)
+
+  let empty = Equality.Set.empty, Atom.Deps.empty, Locations.Zone.bottom
+  let top = Equality.Set.empty, Atom.Deps.empty, Locations.Zone.top
+  let is_included (a, m, y) (b, n, z) =
+    Equality.Set.subset b a && Atom.Deps.is_included m n
+    && Locations.Zone.is_included y z
   let join (e1, d1, z1) (e2, d2, z2) =
-    Equality.Set.inter e1 e2, Atom.Lmap_Bitwise.join d1 d2, Locations.Zone.join z1 z2
-  let union (e1, d1, z1) (e2, d2, z2) =
-    Equality.Set.union e1 e2, Atom.Lmap_Bitwise.join d1 d2, Locations.Zone.join z1 z2
+    let e' = Equality.Set.inter e1 e2 in
+    let z' = Locations.Zone.join z1 z2 in
+    let removed1 = Equality.Set.elements_only_left e1 e' in
+    let removed2 = Equality.Set.elements_only_left e2 e' in
+    let d1' = fold_tree Atom.Deps.remove removed1 d1 in
+    let d2' = fold_tree Atom.Deps.remove removed2 d2 in
+    let d' = Atom.Deps.join d1' d2' in
+    e', d', z'
+
+  let concat (e1, d1, z1) (e2, d2, z2) =
+    Equality.Set.union e1 e2, Atom.Deps.concat d1 d2, Locations.Zone.join z1 z2
+
   let join_and_is_included a b =
     join a b, is_included a b
 
   (* TODO *)
   let widen _kf _stmt a b = join a b
 
-  let atom_to_expr atom = match Atom.get atom with
-    | Equality_term.Exp e -> Some e
-    | Equality_term.Lvalue lv -> Some (Cil.dummy_exp (Lval lv))
-    | _ -> None
-
   let reduce_further (equalities, _, _) expr value =
     let atom = Atom.of_exp expr in
     match Equality.Set.find_option atom equalities with
     | Some equality ->
       Equality.fold
-        (fun atom acc -> match atom_to_expr atom with
-           | Some e -> (e, value) :: acc
-           | None -> acc)
+        (fun atom acc -> (Atom.to_exp atom, value) :: acc)
         equality []
     | None -> []
 
@@ -114,11 +250,9 @@ module Make
       let aux_eq atom (accv, accalarms as acc) =
         if Atom.equal atom atom_src then acc (* avoid trivial recursion *)
         else
-          match atom_to_expr atom with
-          | Some e ->
-            let v', alarms = oracle e in
-            Bottom.narrow Value.narrow accv v', alarms_inter accalarms alarms
-          | None -> acc
+          let e = Atom.to_exp atom in
+          let v', alarms = oracle e in
+          Bottom.narrow Value.narrow accv v', alarms_inter accalarms alarms
       in
       Equality.fold aux_eq equality (`Value Value.top, Alarmset.none)
       >>=: fun v -> (v, ())
@@ -132,151 +266,197 @@ module Make
     let atom_lv = Atom.of_lval lval in
     coop_eval oracle equalities atom_lv
 
-  let kill zone (equalities, deps, modified_zone) =
-    match Atom.Lmap_Bitwise.find deps zone with
-    | Atom.Lattice_Set.Top -> top (* never happens in practice *)
-    | Atom.Lattice_Set.Set atoms ->
-      let equalities = Atom.Hptset.fold Equality.Set.remove atoms equalities in
-      let deps =
-        Atom.Lmap_Bitwise.add_binding ~reducing:true ~exact:true
-          deps zone Atom.Lattice_Set.bottom
+  (* Type of operation to perform on the 'modified field' when performing a
+     kill operation. AddAsModified means that the location has been written,
+     and should be added to 'modified'. RemovedFromModified means that
+     the variable should be removed instead, for example because it goes
+     out of scope. *)
+  type kill_type = AddAsModified | RemoveFromModified
+
+  let kill kt zone (equalities, deps, modified_zone) =
+    if Locations.Zone.(equal zone top) then
+      top
+    else
+      let atoms = Atom.Deps.intersects deps zone in
+      let equalities' = List.fold_right Equality.Set.remove atoms equalities in
+      let disappeared =
+        Equality.Set.elements_only_left equalities equalities'
       in
-      let modified_zone = Locations.Zone.join modified_zone zone in
-      equalities, deps, modified_zone
+      let deps' = fold_tree Atom.Deps.remove disappeared deps in
+      (* In ISCaller mode, this field is useless. So we do not
+         compute it at all. *)
+      let modified_zone' =
+        if call_init_state () = ISCaller then modified_zone
+        else
+          match kt with
+          | AddAsModified -> Locations.Zone.join modified_zone zone
+          | RemoveFromModified -> Locations.Zone.diff modified_zone zone
+      in
+      let s' = equalities', deps', modified_zone' in
+      s'
+
+  (* assume that [vars] go out of scope, and remove them from the list of
+     equalities *)
+  let unscope state vars =
+    let aux_vi zones vi =
+      let z = Locations.zone_of_varinfo vi in
+      Locations.Zone.join z zones
+    in
+    let zone = List.fold_left aux_vi Locations.Zone.bottom vars in
+    kill RemoveFromModified zone state
+
+  let top_return =
+    let top_value =
+      { v = `Value Value.top; initialized = false; escaping = true; }
+    in
+    Some (top_value, ())
 
   let approximate_call kf state =
     let post_state =
       let name = Kernel_function.get_name kf in
-      if Ast_info.is_frama_c_builtin name
+      if Ast_info.is_frama_c_builtin name ||
+         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
       then state
-      else if name = "free"
-      then top
-      else
-        try
-          let spec = Annotations.funspec ~populate:false kf in
-          let assigns behavior = match behavior.b_assigns with
-            | Writes []            -> false
-            | Writes [(l, _)]      -> not (Logic_utils.is_result l.it_content)
-            | Writes _ | WritesAny -> true
-          in
-          if List.exists assigns spec.spec_behavior
-          then top
-          else state
-        with
-          Annotations.No_funspec _ -> top
+      else if unsafe_spec_calls then state else top
     in
-    `Value [{ post_state; summary = (); returned_value = None }]
+    `Value [{ post_state; return = top_return }]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation
-       with type loc = Precise_locs.precise_location)
+       with type value = Value.t
+        and type loc = Precise_locs.precise_location)
   = struct
 
     type state = t
     type value = Value.t
     type location = Precise_locs.precise_location
-    type summary = unit
+    type return = unit
     type valuation = Valuation.t
 
+    let find_loc valuation = fun lval ->
+      match Valuation.find_loc valuation lval with
+      | `Top -> assert false (* TODO *)
+      | `Value record -> record.loc
 
     let update _valuation state = state
 
-
-    let add_atom atom zone deps =
-      let dep = Atom.Lattice_Set.inject_singleton atom in
-      Atom.Lmap_Bitwise.add_binding ~reducing:true ~exact:false deps zone dep
-
-
-    let rec zone_of_expr valuation expr =
-      let rec process expr = match expr.enode with
-      | Lval lval -> zone_of_lval valuation lval
-      | UnOp (_, e, _) | CastE (_, e) | Info (e, _) -> process e
-      | BinOp (_, e1, e2, _) -> Locations.Zone.join (process e1) (process e2)
-      | StartOf lv | AddrOf lv -> zone_of_lval valuation lv
-      | _ -> Locations.Zone.bottom
-      in
-      process expr
-
-    and zone_of_lval valuation (lhost, offset as lval) =
-      let l = match Valuation.find_loc valuation lval with
-        | `Top -> assert false (* TODO *)
-        | `Value record -> record.loc
-      in
-      let z = Locations.enumerate_bits (Precise_locs.imprecise_location l) in
-      Locations.Zone.join z
-        (Locations.Zone.join
-           (zone_of_lhost valuation lhost) (zone_of_offset valuation offset))
-
-    and zone_of_lhost valuation = function
-      | Var _ -> Locations.Zone.bottom
-      | Mem e -> zone_of_expr valuation e
-
-    and zone_of_offset valuation = function
-      | NoOffset -> Locations.Zone.bottom
-      | Field (_, o) -> zone_of_offset valuation o
-      | Index (e, o) ->
-        Locations.Zone.join
-          (zone_of_expr valuation e) (zone_of_offset valuation o)
-
     let get_cvalue = Value.get Main_values.cvalue_key
-    let extract_value = function
-      | Assign v -> `Value v
-      | Copy (_, c) -> match c with
-        | Determinate v -> `Value v.v
-        | Exact v -> v.v
 
     let is_singleton = match get_cvalue with
       | None -> fun _ -> false
       | Some get ->
-        fun a -> match extract_value a with
-          | `Bottom -> true
-          | `Value v -> Cvalue.V.cardinal_zero_or_one (get v)
+        function
+        | `Bottom -> true
+        | `Value v -> Cvalue.V.cardinal_zero_or_one (get v)
 
-    let assign _stmt left_value right_expr value valuation state =
-      let left_loc = Precise_locs.imprecise_location left_value.lloc in
-      let left_zone = Locations.enumerate_bits left_loc in
-      let state = kill left_zone state in
-      let right_zone = zone_of_expr valuation right_expr in
-      if
-        Locations.Zone.intersects left_zone right_zone
-        || Eval_typ.lval_contains_volatile left_value.lval
-        || Eval_typ.expr_contains_volatile right_expr
-        || Eval_typ.is_bitfield left_value.ltyp
-        || (is_singleton value
-            && Locations.cardinal_zero_or_one left_loc)
-      then `Value state
+    let expr_cardinal_zero_or_one valuation e =
+      match Valuation.find valuation e with
+      | `Top -> false (* should not happen *)
+      | `Value { value = { v } } -> is_singleton v
+
+    let expr_is_cardinal_zero_or_one_loc valuation e =
+      match e.enode with
+      | Lval lv -> begin
+          let loc = Valuation.find_loc valuation lv in
+          match loc with
+          | `Top -> false (* should not happen *)
+          | `Value loc -> Precise_locs.cardinal_zero_or_one loc.loc
+        end
+      | _ -> false (* TODO: handle upcasts *)
+
+    (* Auxiliary function for [assign]. The assignment takes place, unless
+       some the of the expressions involved are volatile. [{left,right}_zone]
+       are the dependencies of the corresponding lval/expr. *)
+    let assign_eq left_lval left_zone right_expr right_zone state =
+      if Eval_typ.lval_contains_volatile left_lval ||
+         Eval_typ.expr_contains_volatile right_expr
+      then state
       else
-        let (equalities, deps, modified_zone) = state in
-        let lterm = Atom.of_lval left_value.lval in
+        let (equalities, deps, modified_zone: t) = state in
+        let lterm = Atom.of_lval left_lval in
         let rterm = Atom.of_exp right_expr in
         let equalities = Equality.Set.unite lterm rterm equalities in
         (* Add the zone dependencies of the two atoms. *)
-        let left_zone = zone_of_lval valuation left_value.lval in
-        let deps = add_atom lterm left_zone deps in
-        let deps = add_atom rterm right_zone deps in
-        `Value (equalities, deps, modified_zone)
+        let deps = Atom.Deps.add lterm left_zone deps in
+        let deps = Atom.Deps.add rterm right_zone deps in
+        (equalities, deps, modified_zone: t)
+
+    let assign _stmt left_value right_expr value valuation state =
+      let open Locations in
+      let left_loc = Precise_locs.imprecise_location left_value.lloc in
+      let direct_left_zone = Locations.enumerate_bits left_loc in
+      let state = kill AddAsModified direct_left_zone state in
+      let indirect_left_zone =
+        Value_util.indirect_zone_of_lval (find_loc valuation) left_value.lval
+      and right_zone = Value_util.zone_of_expr (find_loc valuation) right_expr in
+      (* After an assignment lv = e, the equality [lv == eq] holds iff the value
+         of [e] and the location of [lv] are not modified by the assignment,
+         i.e. iff the dependencies of [e] and of the lhost and offset of [lv]
+         do not intersect the assigned location.
+         Moreover, the domain do not store the equality when the abstract
+         location of [lv] and the abstract value of [e] are singleton, as in
+         this case, the main cvalue domain is able to infer the equality. *)
+      if (Zone.intersects direct_left_zone right_zone) ||
+         (Zone.intersects direct_left_zone indirect_left_zone) ||
+         (is_singleton (Eval.value_assigned value) &&
+          Locations.cardinal_zero_or_one left_loc)
+      then
+        `Value state
+      else
+        (* left_zone contains all dependencies of [left_value] *)
+        let left_zone = Zone.join direct_left_zone indirect_left_zone in
+        `Value (assign_eq left_value.lval left_zone right_expr right_zone state)
+
+    (* Add the equalities between the formals of a function and the actuals
+       at the call. *)
+    let assign_formals valuation call state =
+      let assign_formal state arg =
+        if is_singleton (Eval.value_assigned arg.avalue) then
+          state
+        else
+          let left_value = Var arg.formal, NoOffset in
+          let left_zone = Locations.zone_of_varinfo arg.formal in
+          let right_zone =
+            Value_util.zone_of_expr (find_loc valuation) arg.concrete
+          in
+          assign_eq left_value left_zone arg.concrete right_zone state
+      in
+      List.fold_left assign_formal state call.arguments
 
     let assume _stmt expr positive valuation (eqs, deps, modified_zone as state)  =
       match positive, expr.enode with
       | true,  BinOp (Eq, e1, e2, _)
       | false, BinOp (Ne, e1, e2, _) ->
-        let a1 = Atom.of_exp e1 in
-        let a2 = Atom.of_exp e2 in
-        let eqs = Equality.Set.unite a1 a2 eqs in
-        let z1 = zone_of_expr valuation e1 in
-        let z2 = zone_of_expr valuation e2 in
-        let deps = add_atom a1 z1 deps in
-        let deps = add_atom a2 z2 deps in
-        `Value (eqs, deps, modified_zone)
+        if Eval_typ.expr_contains_volatile e1
+        || Eval_typ.expr_contains_volatile e2
+        || (expr_is_cardinal_zero_or_one_loc valuation e1 &&
+            expr_cardinal_zero_or_one valuation e2)
+        || (expr_is_cardinal_zero_or_one_loc valuation e2 &&
+            expr_cardinal_zero_or_one valuation e1)
+        then `Value state
+        else
+          let a1 = Atom.of_exp e1 in
+          let a2 = Atom.of_exp e2 in
+          let eqs = Equality.Set.unite a1 a2 eqs in
+          let z1 = Value_util.zone_of_expr (find_loc valuation) e1 in
+          let z2 = Value_util.zone_of_expr (find_loc valuation) e2 in
+          let deps = Atom.Deps.add a1 z1 deps in
+          let deps = Atom.Deps.add a2 z2 deps in
+          `Value (eqs, deps, modified_zone)
       | _ -> `Value state
 
-    let call_action _stmt _call _valuation _state =
-      Compute (Continue empty, true)
+    let start_call _stmt call valuation state =
+      let state =
+        match call_init_state () with
+        | ISCaller  -> assign_formals valuation call state
+        | ISFormals -> assign_formals valuation call empty
+        | ISEmpty   -> empty
+      in
+      Compute (Continue state, true)
 
-    let summarize _kf _stmt ~returned:_ state = `Value ((), state)
+    let make_return _kf _stmt _assign _valuation _state = ()
 
-    let resolve_call _stmt call ~assigned _valuation ~pre ~post =
-      let state = snd post in
+    let finalize_call _stmt call ~pre ~post =
       let kf = call.kf in
       let name = Kernel_function.get_name kf in
       if  Ast_info.is_frama_c_builtin name then begin
@@ -287,21 +467,37 @@ module Make
           Value_parameters.result "DUMPING EQ STATE \
                                    of file %s line %d@.%a"
             (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-            pretty state;
+            pretty post;
         end;
       end;
-      let state = match assigned with
-        | None -> state
-        | Some (loc, _) ->
-          let loc = Precise_locs.imprecise_location loc.lloc in
-          kill (Locations.enumerate_bits loc) state
-      in
-      let (_, _, modif) = state in
-      let pre' = kill modif pre in
-      `Value (union pre' state)
+      (* remove equalities involving formals, that will no longer be in scope.
+         equalities on locals have already been removed. *)
+      let post = unscope post (Kernel_function.get_formals kf) in
+      (* now we compute the state which is sent back to the caller *)
+      if call_init_state () = ISCaller then
+        `Value post (* [pre] was the state inferred in the caller, and it
+                       has been updated during the analysis of [kf] into
+                       [post]. Send all the equalities back to the caller. *)
+      else
+        (* [pre] contains the equalities from the caller, but [post] was
+           computed starting from an essentially empty state. We must
+           restore the equalities of [pre]. *)
+        let (_, _, modif) = post in
+        (* Invalidate the equalities that are no longer true. *)
+        let pre' = kill AddAsModified modif pre in
+        (* then merge the two sets of equalities *)
+        `Value (concat pre' post)
+
+    let assign_return _stmt lv _kf () _value _valuation state =
+      let loc = Precise_locs.imprecise_location lv.lloc in
+      `Value (kill AddAsModified (Locations.enumerate_bits loc) state)
 
     let default_call _stmt call state =
       approximate_call call.kf state
+
+    let enter_loop _ state = state
+    let incr_loop_counter _ state = state
+    let leave_loop _ state = state
 
   end
 
@@ -316,19 +512,8 @@ module Make
   let eval_predicate _ _ = Alarmset.Unknown
   let reduce_by_predicate state _ _ = state
 
-  let close_block fundec block ~body state =
-    let zones = List.map Locations.zone_of_varinfo block.blocals in
-    let zone = List.fold_left Locations.Zone.join Locations.Zone.bottom zones in
-    let zone =
-      if body
-      then
-        let formals_zones = List.map Locations.zone_of_varinfo fundec.sformals in
-        List.fold_left Locations.Zone.join zone formals_zones
-      else zone
-    in
-    kill zone state
-
-  let open_block _fundec _block ~body:_ state = state
+  let enter_scope _kf _vars state = state
+  let leave_scope _kf vars state = unscope state vars
 
   let empty () = empty
   let initialize_var state _ _ _ = state
@@ -339,3 +524,21 @@ module Make
   let reuse ~current_input:_ ~previous_output:state = state
 
 end
+
+
+module MakeInternal
+    (Equality : Equality_sig.S_with_collections with type elt = Atom.t)
+    (Value : Abstract_value.External)
+= struct
+  module Internal = MakeDatatype (Equality)
+  include MakeDomain (Equality) (Internal) (Value)
+end
+
+
+(* Default Instantiation. *)
+module Name = struct let module_name = "eq" end
+module Equality = Equality.Make (Atom) (HCESet) (Name)
+module Internal = MakeDatatype (Equality)
+
+module Make (Value : Abstract_value.External) =
+  MakeDomain (Equality) (Internal) (Value)

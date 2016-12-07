@@ -99,6 +99,16 @@ val block_top_addresses_of_locals:
     to the given blocks. Only the offsetmaps bound to the variables in the
     clobbered set are treated. *)
 
+val state_top_addresses:
+  Cil_types.fundec -> clobbered_set -> Cil_types.varinfo list ->
+  Cvalue.Model.t -> Cvalue.Model.t
+(** [state_top_addresses kf clob l state] topifies all references to the
+    variables in [l]. For efficiency reasons, only the variables referenced
+    in [clob]. Indeed, by construction, [clob] should be an over-approximation
+    of the variables that may contain a reference to [l].
+
+    This function is the one that should be used in Eva. *)
+
 
 (*
 Local Variables:

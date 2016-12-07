@@ -8,7 +8,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i2 ∈ [--..--]
   i3 ∈ [--..--]
   i4 ∈ [--..--]
@@ -194,52 +194,52 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   i2 ∈ {0; 5}
   __retres ∈ {0; 5; 7}
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   i3 ∈ {0; 5}
   res1 ∈ {-2; 7}
   res2 ∈ {-2; 7}
-[value] Values at end of function f4:
+[value:final-states] Values at end of function f4:
   i4 ∈ {0; 5}
   __retres ∈ {4; 7}
-[value] Values at end of function f5:
+[value:final-states] Values at end of function f5:
   i5 ∈ {0; 5}
   res ∈ {-2; 7}
-[value] Values at end of function f6:
+[value:final-states] Values at end of function f6:
   i ∈ [-5..5]
-[value] Values at end of function f7:
+[value:final-states] Values at end of function f7:
   v7 ∈ {0; 1}
   __retres ∈ {{ NULL ; &v }}
-[value] Values at end of function f8:
+[value:final-states] Values at end of function f8:
   x ∈ {-1; 4}
   __retres ∈ {{ NULL ; &x }}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   x ∈ [0..2147483649]
   r ∈ {0; 1}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   i2 ∈ {0; 5}
   r ∈ {0; 5; 7}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   i3 ∈ {0; 5}
   r ∈ {-2; 7}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   i4 ∈ {0; 5}
   r ∈ {4; 7}
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   i5 ∈ {0; 5}
   r ∈ {-2; 7}
-[value] Values at end of function main6:
+[value:final-states] Values at end of function main6:
   
-[value] Values at end of function main7:
+[value:final-states] Values at end of function main7:
   v7 ∈ {0; 1}
   p ∈ {{ NULL ; &v }}
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   x ∈ {-1; 4}
   pf ∈ {{ &f8 }}
   p ∈ {{ NULL ; &x }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i2 ∈ {0; 5}
   i3 ∈ {0; 5}
   i4 ∈ {0; 5}
@@ -401,7 +401,7 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i2 ∈ [--..--]
   i3 ∈ [--..--]
   i4 ∈ [--..--]
@@ -575,52 +575,52 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   i2 ∈ {0; 5}
   __retres ∈ {0; 5; 7}
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   i3 ∈ {0; 5}
   res1 ∈ {-2; 7}
   res2 ∈ {-2; 7}
-[value] Values at end of function f4:
+[value:final-states] Values at end of function f4:
   i4 ∈ {0; 5}
   __retres ∈ {4; 7}
-[value] Values at end of function f5:
+[value:final-states] Values at end of function f5:
   i5 ∈ {0; 5}
   res ∈ {-2; 7}
-[value] Values at end of function f6:
+[value:final-states] Values at end of function f6:
   i ∈ [-5..5]
-[value] Values at end of function f7:
+[value:final-states] Values at end of function f7:
   v7 ∈ {0; 1}
   __retres ∈ {{ NULL ; &v }}
-[value] Values at end of function f8:
+[value:final-states] Values at end of function f8:
   x ∈ {-1; 4}
   __retres ∈ {{ NULL ; &x }}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   x ∈ [0..2147483649]
   r ∈ {0; 1}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   i2 ∈ {0; 5}
   r ∈ {0; 5; 7}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   i3 ∈ {0; 5}
   r ∈ {-2; 7}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   i4 ∈ {0; 5}
   r ∈ {4; 7}
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   i5 ∈ {0; 5}
   r ∈ {-2; 7}
-[value] Values at end of function main6:
+[value:final-states] Values at end of function main6:
   
-[value] Values at end of function main7:
+[value:final-states] Values at end of function main7:
   v7 ∈ {0; 1}
   p ∈ {{ NULL ; &v }}
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   x ∈ {-1; 4}
   pf ∈ {{ &f8 }}
   p ∈ {{ NULL ; &x }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i2 ∈ {0; 5}
   i3 ∈ {0; 5}
   i4 ∈ {0; 5}

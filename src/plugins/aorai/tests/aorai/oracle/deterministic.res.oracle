@@ -112,7 +112,7 @@ void g_pre_func(int x)
     if (x == 5) aorai_CurStates_tmp = S5;
   if (3 == aorai_CurStates) 
     if (x == 4) aorai_CurStates_tmp = S4;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -163,7 +163,7 @@ void g_post_func(void)
   aorai_CurStates_tmp = aorai_CurStates;
   if (4 == aorai_CurStates) aorai_CurStates_tmp = S3;
   if (5 == aorai_CurStates) aorai_CurStates_tmp = S1;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -227,7 +227,7 @@ void f_pre_func(int x)
   aorai_CurStates_tmp = aorai_CurStates;
   if (1 == aorai_CurStates) 
     if (x == 4) aorai_CurStates_tmp = S3;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -275,7 +275,7 @@ void f_post_func(int res)
   if (1 == aorai_CurStates) 
     if (X == 5) 
       if (res == 0) aorai_CurStates_tmp = S2;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -347,7 +347,7 @@ void real_main_pre_func(int c)
     if (c == 0) aorai_CurStates_tmp = S2;
   if (0 == aorai_CurStates) 
     if (c != 0) aorai_CurStates_tmp = S1;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -392,7 +392,7 @@ void real_main_post_func(int res)
   aorai_CurOperation = op_real_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (2 == aorai_CurStates) aorai_CurStates_tmp = Sf;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -452,7 +452,7 @@ void main_pre_func(int c)
   aorai_CurOperation = op_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (7 == aorai_CurStates) aorai_CurStates_tmp = S0;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -497,7 +497,7 @@ void main_post_func(int res)
   aorai_CurOperation = op_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (6 == aorai_CurStates) aorai_CurStates_tmp = Sf;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 

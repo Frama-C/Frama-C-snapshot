@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
 [value] computing for function f <- main.
@@ -30,7 +30,7 @@ tests/impact/variadic.i:12:[kernel] warning: Neither code nor specification for 
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
 [value] computing for function g1 <- main1.
@@ -60,7 +60,7 @@ tests/impact/variadic.i:30:[impact] warning: skipping impact within imprecisely 
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
 [value] computing for function g2 <- main2.
@@ -86,7 +86,7 @@ tests/impact/variadic.i:37:[impact] warning: skipping impact within imprecisely 
 [value] Analyzing a complete application starting at main3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
 [value] computing for function aux3 <- main3.
@@ -131,7 +131,7 @@ tests/impact/variadic.i:37:[impact] warning: skipping impact within imprecisely 
 [value] Analyzing a complete application starting at main4
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   z ∈ {0}
 [value] computing for function aux4bis <- main4.

@@ -113,8 +113,8 @@ and token_hex = parse
   let pretty fmt cst =
     begin
       if cst.sign = Neg then Format.pp_print_char fmt '-' ;
-      Format.pp_print_char fmt '.' ;
       Format.pp_print_string fmt cst.man ;
+      Format.pp_print_char fmt '.' ;
       Format.pp_print_string fmt cst.com ;
       Format.pp_print_char fmt (match cst.base with Dec -> 'e' | Hex -> 'p') ;
       Format.pp_print_int fmt cst.exp ;

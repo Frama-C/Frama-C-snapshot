@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
@@ -25,7 +23,7 @@ Assume {
     Have: 0 = Mint_0[a_1].
     Have: f = a_1.
   }
-  Else { Have: f = shift_sint32(global(L_i_72), 0). }
+  Else { Have: f = global(L_i_72). }
 }
 Prove: f = a.
 
@@ -33,12 +31,12 @@ Prove: f = a.
 
 Goal Post-condition 'P_addr' in 'f':
 Let a = shift_A4_sint32(global(G_G_67), 0).
-Let a_1 = shift_sint32(a, 1).
 Let x = Mint_0[shift_sint32(a, 0)].
+Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 = Mint_0[a_1]) /\ (0 != x).
+  When: (0 != x) /\ (0 = Mint_0[a_1]).
   (* Heap *)
   Have: linked(Malloc_0).
   If v <= 3
@@ -48,7 +46,7 @@ Assume {
     Have: 0 = Mint_0[a_2].
     Have: f = a_2.
   }
-  Else { Have: f = shift_sint32(global(L_i_72), 0). }
+  Else { Have: f = global(L_i_72). }
 }
 Prove: f = a_1.
 
@@ -75,12 +73,12 @@ Assume {
     (* Else *)
     Have: 0 = Mint_0[shift_sint32(a, v)].
     If 4 <= v
-    Then { Have: f2_0 = shift_sint32(global(L_i_77), 0). }
+    Then { Have: f2_0 = global(L_i_77). }
     Else { Have: f2_0 = shift_sint32(a, v). }
   }
   Else {
     If 4 <= v
-    Then { Have: f2_0 = shift_sint32(global(L_i_77), 0). }
+    Then { Have: f2_0 = global(L_i_77). }
     Else { Have: f2_0 = shift_sint32(a, v). }
   }
 }
@@ -90,12 +88,12 @@ Prove: f2_0 = a.
 
 Goal Post-condition 'P_addr_shift' in 'f2':
 Let a = shift_A4_sint32(global(G_G_67), 0).
-Let a_1 = shift_sint32(a, 1).
 Let x = Mint_0[shift_sint32(a, 0)].
+Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 = Mint_0[a_1]) /\ (0 != x).
+  When: (0 != x) /\ (0 = Mint_0[a_1]).
   (* Heap *)
   Have: linked(Malloc_0).
   If (4 * v) <= 15
@@ -103,12 +101,12 @@ Assume {
     (* Else *)
     Have: 0 = Mint_0[shift_sint32(a, v)].
     If 4 <= v
-    Then { Have: f2_0 = shift_sint32(global(L_i_77), 0). }
+    Then { Have: f2_0 = global(L_i_77). }
     Else { Have: f2_0 = shift_sint32(a, v). }
   }
   Else {
     If 4 <= v
-    Then { Have: f2_0 = shift_sint32(global(L_i_77), 0). }
+    Then { Have: f2_0 = global(L_i_77). }
     Else { Have: f2_0 = shift_sint32(a, v). }
   }
 }
@@ -137,12 +135,12 @@ Assume {
     (* Else *)
     Have: 0 = Mint_0[shift_sint32(a, v)].
     If 4 <= v
-    Then { Have: g = shift_sint32(global(L_i_82), 0). }
+    Then { Have: g = global(L_i_82). }
     Else { Have: g = shift_sint32(a, v). }
   }
   Else {
     If 4 <= v
-    Then { Have: g = shift_sint32(global(L_i_82), 0). }
+    Then { Have: g = global(L_i_82). }
     Else { Have: g = shift_sint32(a, v). }
   }
 }
@@ -152,12 +150,12 @@ Prove: g = a.
 
 Goal Post-condition 'P_addr_addr_shift' in 'g':
 Let a = shift_A4_sint32(global(G_G_67), 0).
-Let a_1 = shift_sint32(a, 1).
 Let x = Mint_0[shift_sint32(a, 0)].
+Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 = Mint_0[a_1]) /\ (0 != x).
+  When: (0 != x) /\ (0 = Mint_0[a_1]).
   (* Heap *)
   Have: linked(Malloc_0).
   If (16 * v) <= 63
@@ -165,12 +163,12 @@ Assume {
     (* Else *)
     Have: 0 = Mint_0[shift_sint32(a, v)].
     If 4 <= v
-    Then { Have: g = shift_sint32(global(L_i_82), 0). }
+    Then { Have: g = global(L_i_82). }
     Else { Have: g = shift_sint32(a, v). }
   }
   Else {
     If 4 <= v
-    Then { Have: g = shift_sint32(global(L_i_82), 0). }
+    Then { Have: g = global(L_i_82). }
     Else { Have: g = shift_sint32(a, v). }
   }
 }

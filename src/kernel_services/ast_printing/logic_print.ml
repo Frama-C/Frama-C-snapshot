@@ -460,6 +460,9 @@ let print_pragma fmt p =
     | Slice_pragma p -> fprintf fmt "slice@ pragma@ %a;" print_slice_pragma p
     | Impact_pragma p -> fprintf fmt "impact@ pragma@ %a;" print_impact_pragma p
 
+let print_extension fmt (name, ext) =
+  fprintf fmt "%s %a" name (pp_list ~sep:",@ " print_lexpr) ext
+
 let print_code_annot fmt ca =
   let print_behaviors fmt bhvs =
     (pp_list ~pre:"for@ " ~sep:",@ " ~suf:":@ " pp_print_string) fmt bhvs
@@ -467,10 +470,10 @@ let print_code_annot fmt ca =
   match ca with
       AAssert(bhvs,e) ->
         fprintf fmt "%aassert@ %a;" print_behaviors bhvs print_lexpr e
-    | AStmtSpec (bhvs,s) -> 
-	fprintf fmt "%a%a" 
-	  print_behaviors bhvs 
-	  print_spec s
+    | AStmtSpec (bhvs,s) ->
+      fprintf fmt "%a%a"
+        print_behaviors bhvs
+        print_spec s
     | AInvariant (bhvs,loop,e) ->
         fprintf fmt "%a%ainvariant@ %a;"
           print_behaviors bhvs (pp_cond loop) "loop@ " print_lexpr e
@@ -480,7 +483,8 @@ let print_code_annot fmt ca =
     | AAllocation (bhvs,fa) ->
         fprintf fmt "%a%a" print_behaviors bhvs (print_allocation ~isloop:true) fa
     | APragma p -> print_pragma fmt p
-
+    | AExtended (bhvs,e) ->
+      fprintf fmt "%aloop %a" print_behaviors bhvs print_extension e
 (*
 Local Variables:
 compile-command: "make -C ../../.."

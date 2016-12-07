@@ -3,10 +3,9 @@
 [kernel] Parsing tests/wp_plugin/unsupported_init.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 tests/wp_plugin/unsupported_init.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
-              (r1: \initialized(Y+(0 .. 99)))
+              (r1: \initialized(Y + (0 .. 99)))
 [wp] 2 goals scheduled
 [wp] [Qed] Goal typed_f_assert_a1 : Valid
 [wp] [Alt-Ergo] Goal typed_f_call_cp_pre_r1 : Unknown (Degenerated)

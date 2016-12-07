@@ -22,22 +22,16 @@
 
 (** Evaluation of non-linear expressions. *)
 
-open Cil_types
-open Eval
-
+(** Same functionalities as Eva.
+    For expressions in which some l-values appear multiple times, proceed
+    by disjunction on their abstract value, in order to gain precision. *)
 module Make
     (Value : Abstract_value.External)
     (Eva: Evaluation.S with type value = Value.t)
-  : sig
-
-    (** Same functionality as Eva.evaluate.
-        For expressions in which some l-values appear multiple times, proceed
-        by disjunction on their abstract value, in order to gain precision. *)
-    val evaluate :
-      ?valuation:Eva.Valuation.t -> ?indeterminate:bool -> ?reduction:bool ->
-      Eva.state -> exp -> (Eva.Valuation.t * Value.t) evaluated
-
-  end
+  : Evaluation.S with type value = Value.t
+                  and type origin = Eva.origin
+                  and type loc = Eva.loc
+                  and type state = Eva.state
 
 
 (*

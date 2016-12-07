@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   u[0..10] ∈ {0}
   maybe ∈ [--..--]
@@ -34,88 +34,88 @@
         Called from tests/value/reduce_index.i:11.
 [value] Recording results for f1_aux
 [value] Done for function f1_aux
-tests/value/reduce_index.i:11:[kernel] warning: accessing out of bounds index. assert 0 ≤ c1;
-tests/value/reduce_index.i:11:[kernel] warning: accessing out of bounds index. assert c1 < 10;
+tests/value/reduce_index.i:11:[value] warning: accessing out of bounds index. assert 0 ≤ c1;
+tests/value/reduce_index.i:11:[value] warning: accessing out of bounds index. assert c1 < 10;
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
         Called from tests/value/reduce_index.i:131.
-tests/value/reduce_index.i:17:[kernel] warning: accessing out of bounds index. assert 0 ≤ c2;
-tests/value/reduce_index.i:17:[kernel] warning: accessing out of bounds index. assert c2 < 10;
+tests/value/reduce_index.i:17:[value] warning: accessing out of bounds index. assert 0 ≤ c2;
+tests/value/reduce_index.i:17:[value] warning: accessing out of bounds index. assert c2 < 10;
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
         Called from tests/value/reduce_index.i:132.
-tests/value/reduce_index.i:21:[kernel] warning: accessing out of bounds index. assert 0 ≤ c3;
-tests/value/reduce_index.i:21:[kernel] warning: accessing out of bounds index. assert c3 < 10;
+tests/value/reduce_index.i:21:[value] warning: accessing out of bounds index. assert 0 ≤ c3;
+tests/value/reduce_index.i:21:[value] warning: accessing out of bounds index. assert c3 < 10;
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
         Called from tests/value/reduce_index.i:133.
-tests/value/reduce_index.i:27:[kernel] warning: accessing out of bounds index. assert 0 ≤ c4;
-tests/value/reduce_index.i:27:[kernel] warning: accessing out of bounds index. assert c4 < 10;
+tests/value/reduce_index.i:27:[value] warning: accessing out of bounds index. assert 0 ≤ c4;
+tests/value/reduce_index.i:27:[value] warning: accessing out of bounds index. assert c4 < 10;
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
         Called from tests/value/reduce_index.i:134.
-tests/value/reduce_index.i:35:[kernel] warning: accessing out of bounds index. assert 0 ≤ c5;
-tests/value/reduce_index.i:35:[kernel] warning: accessing out of bounds index. assert c5 < 10;
+tests/value/reduce_index.i:35:[value] warning: accessing out of bounds index. assert 0 ≤ c5;
+tests/value/reduce_index.i:35:[value] warning: accessing out of bounds index. assert c5 < 10;
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
         Called from tests/value/reduce_index.i:135.
-tests/value/reduce_index.i:42:[kernel] warning: accessing out of bounds index. assert 0 ≤ c6;
-tests/value/reduce_index.i:42:[kernel] warning: accessing out of bounds index. assert c6 < 11;
-tests/value/reduce_index.i:42:[kernel] warning: accessing out of bounds index. assert c6 < 10;
+tests/value/reduce_index.i:42:[value] warning: accessing out of bounds index. assert 0 ≤ c6;
+tests/value/reduce_index.i:42:[value] warning: accessing out of bounds index. assert c6 < 11;
+tests/value/reduce_index.i:42:[value] warning: accessing out of bounds index. assert c6 < 10;
 [value] Recording results for f6
 [value] Done for function f6
 [value] computing for function f7 <- main.
         Called from tests/value/reduce_index.i:136.
-tests/value/reduce_index.i:48:[kernel] warning: accessing out of bounds index. assert 0 ≤ c7;
-tests/value/reduce_index.i:48:[kernel] warning: accessing out of bounds index. assert c7 < 10;
+tests/value/reduce_index.i:48:[value] warning: accessing out of bounds index. assert 0 ≤ c7;
+tests/value/reduce_index.i:48:[value] warning: accessing out of bounds index. assert c7 < 10;
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
         Called from tests/value/reduce_index.i:137.
-tests/value/reduce_index.i:64:[kernel] warning: out of bounds write. assert \valid(&p8->f1);
+tests/value/reduce_index.i:64:[value] warning: out of bounds write. assert \valid(&p8->f1);
 [value] Recording results for f8
 [value] Done for function f8
 [value] computing for function f9 <- main.
         Called from tests/value/reduce_index.i:138.
-tests/value/reduce_index.i:72:[kernel] warning: accessing out of bounds index. assert 0 ≤ c9;
-tests/value/reduce_index.i:72:[kernel] warning: accessing out of bounds index. assert c9 < 10;
+tests/value/reduce_index.i:72:[value] warning: accessing out of bounds index. assert 0 ≤ c9;
+tests/value/reduce_index.i:72:[value] warning: accessing out of bounds index. assert c9 < 10;
 [value] Recording results for f9
 [value] Done for function f9
 [value] computing for function f10 <- main.
         Called from tests/value/reduce_index.i:139.
-tests/value/reduce_index.i:86:[kernel] warning: accessing out of bounds index. assert 0 ≤ c10;
-tests/value/reduce_index.i:86:[kernel] warning: accessing out of bounds index. assert c10 < 7;
+tests/value/reduce_index.i:86:[value] warning: accessing out of bounds index. assert 0 ≤ c10;
+tests/value/reduce_index.i:86:[value] warning: accessing out of bounds index. assert c10 < 7;
 [value] Recording results for f10
 [value] Done for function f10
 [value] computing for function f11 <- main.
         Called from tests/value/reduce_index.i:140.
-tests/value/reduce_index.i:93:[kernel] warning: accessing out of bounds index. assert 0 ≤ c11;
-tests/value/reduce_index.i:93:[kernel] warning: accessing out of bounds index. assert c11 < 7;
-tests/value/reduce_index.i:93:[kernel] warning: out of bounds write. assert \valid(&(*p7)[c11]);
+tests/value/reduce_index.i:93:[value] warning: accessing out of bounds index. assert 0 ≤ c11;
+tests/value/reduce_index.i:93:[value] warning: accessing out of bounds index. assert c11 < 7;
+tests/value/reduce_index.i:93:[value] warning: out of bounds write. assert \valid(&(*p7)[c11]);
 [value] Recording results for f11
 [value] Done for function f11
 [value] computing for function f12 <- main.
         Called from tests/value/reduce_index.i:141.
-tests/value/reduce_index.i:100:[kernel] warning: accessing out of bounds index. assert 0 ≤ c12;
-tests/value/reduce_index.i:100:[kernel] warning: accessing out of bounds index. assert c12 < 4;
+tests/value/reduce_index.i:100:[value] warning: accessing out of bounds index. assert 0 ≤ c12;
+tests/value/reduce_index.i:100:[value] warning: accessing out of bounds index. assert c12 < 4;
 [value] Recording results for f12
 [value] Done for function f12
 [value] computing for function pointer_index <- main.
         Called from tests/value/reduce_index.i:143.
-tests/value/reduce_index.i:110:[kernel] warning: out of bounds read. assert \valid_read(p+k1);
-tests/value/reduce_index.i:113:[kernel] warning: out of bounds read. assert \valid_read(p+k2);
-tests/value/reduce_index.i:116:[kernel] warning: out of bounds read. assert \valid_read(p+k3);
-tests/value/reduce_index.i:119:[kernel] warning: out of bounds read. assert \valid_read(p+k4);
+tests/value/reduce_index.i:110:[value] warning: out of bounds read. assert \valid_read(p + k1);
+tests/value/reduce_index.i:113:[value] warning: out of bounds read. assert \valid_read(p + k2);
+tests/value/reduce_index.i:116:[value] warning: out of bounds read. assert \valid_read(p + k3);
+tests/value/reduce_index.i:119:[value] warning: out of bounds read. assert \valid_read(p + k4);
 [value] Recording results for pointer_index
 [value] Done for function pointer_index
 [value] computing for function null_index <- main.
         Called from tests/value/reduce_index.i:144.
-tests/value/reduce_index.i:126:[kernel] warning: out of bounds write. assert \valid((int *)0+nulli);
+tests/value/reduce_index.i:126:[value] warning: out of bounds write. assert \valid((int *)0 + nulli);
 tests/value/reduce_index.i:126:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for null_index
 [value] Done for function null_index
@@ -123,48 +123,48 @@ tests/value/reduce_index.i:126:[kernel] warning: all target addresses were inval
 [value] done for function main
 tests/value/reduce_index.i:126:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f10:
+[value:final-states] Values at end of function f10:
   c10 ∈ {0; 1; 2; 3; 4; 5; 6}
   ti_7[0..6] ∈ {0; 10}
   p7 ∈ {{ &ti_7 }}
-[value] Values at end of function f11:
+[value:final-states] Values at end of function f11:
   c11 ∈ {0; 1; 2; 3}
   ti_4[0..3] ∈ {0; 11}
   p4 ∈ {{ &ti_4 }}
   p7 ∈ {{ (ti7 *)&ti_4 }}
-[value] Values at end of function f12:
+[value:final-states] Values at end of function f12:
   c12 ∈ {0; 1; 2; 3}
   ti_7[0..3] ∈ {0; 10; 12}
       [4..6] ∈ {0; 10}
   p7 ∈ {{ &ti_7 }}
   p4 ∈ {{ (ti4 *)&ti_7 }}
-[value] Values at end of function f1_aux:
+[value:final-states] Values at end of function f1_aux:
   __retres ∈ {1}
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   t[0..9] ∈ {0; 1}
   c1 ∈ [0..9]
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   c2 ∈ [0..9]
   __retres ∈ {0; 1}
-[value] Values at end of function f3:
+[value:final-states] Values at end of function f3:
   c3 ∈ [0..9]
   __retres ∈ {0}
-[value] Values at end of function f4:
+[value:final-states] Values at end of function f4:
   c4 ∈ [0..9]
   __retres ∈ {0}
-[value] Values at end of function f5:
+[value:final-states] Values at end of function f5:
   c5 ∈ [0..9]
   c ∈ {0; 1}
   __retres ∈ {0}
-[value] Values at end of function f6:
+[value:final-states] Values at end of function f6:
   t[0..9] ∈ {0; 1}
   u[0..10] ∈ {0; 1}
   c6 ∈ [0..9]
-[value] Values at end of function f7:
+[value:final-states] Values at end of function f7:
   t[0..9] ∈ {0; 1}
   u[0..10] ∈ {0; 1}
   c7 ∈ [0..9]
-[value] Values at end of function f8:
+[value:final-states] Values at end of function f8:
   c8 ∈ [--..--]
   ts[0].f1 ∈ {0; 1}
     [0].f2 ∈ {0; 2}
@@ -188,7 +188,7 @@ tests/value/reduce_index.i:126:[value] assertion 'Value,mem_access' got final st
     [9].f2 ∈ {0; 2}
   p8 ∈ {{ &ts + [0..72],0%8 }}
   __retres ∈ {0}
-[value] Values at end of function f9:
+[value:final-states] Values at end of function f9:
   c9 ∈ [0..9]
   ts[0].f1 ∈ {0; 1}
     [0].f2 ∈ {0; 2}
@@ -211,16 +211,16 @@ tests/value/reduce_index.i:126:[value] assertion 'Value,mem_access' got final st
     [9].f1 ∈ {0; 1}
     [9].f2 ∈ {0; 2}
   __retres ∈ {0}
-[value] Values at end of function null_index:
+[value:final-states] Values at end of function null_index:
   NON TERMINATING FUNCTION
-[value] Values at end of function pointer_index:
+[value:final-states] Values at end of function pointer_index:
   k1 ∈ [0..10]
   k2 ∈ [-1..8]
   k3 ∈ [-2..7]
   k4 ∈ [-3..7]
   p ∈ {{ &u[3] }}
   l ∈ {0; 1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..9] ∈ {0; 1}
   u[0..10] ∈ {0; 1}
   c1 ∈ [0..9]
@@ -406,7 +406,7 @@ tests/value/reduce_index.i:126:[value] assertion 'Value,mem_access' got final st
 [inout] Inputs for function f2:
           t[0..9]; c2
 [inout] Out (internal) for function f3:
-          c3; __retres
+          c3; tmp; __retres
 [inout] Inputs for function f3:
           t[0..9]; c3
 [inout] Out (internal) for function f4:

@@ -5,7 +5,7 @@ tests/value/CruiseControl.c:577:[kernel] warning: Floating-point constant 8.113 
 [value] Analyzing an incomplete application starting at CruiseControl
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   ZeroSpeed ∈ {0}
   SpeedInc ∈ {2.0000000000000000}
   SpeedMax ∈ {150.0000000000000000}
@@ -34,14 +34,15 @@ tests/value/CruiseControl.c:577:[kernel] warning: Floating-point constant 8.113 
         Called from tests/value/CruiseControl.c:525.
 [value] computing for function ThrottleRegulation <- ThrottleCmd <- CruiseControl.
         Called from tests/value/CruiseControl.c:242.
-tests/value/CruiseControl.c:172:[kernel] warning: non-finite float value.
-                  assert \is_finite((float)(_C_->_L1_CruiseControl-_C_->_L2_CruiseControl));
-tests/value/CruiseControl.c:175:[kernel] warning: non-finite float value.
-                  assert \is_finite((float)(_C_->_L3_CruiseControl*_C_->_L6_CruiseControl));
-tests/value/CruiseControl.c:194:[kernel] warning: non-finite float value.
-                  assert \is_finite((float)(_C_->_L16_CruiseControl+_C_->_L18_CruiseControl));
-tests/value/CruiseControl.c:199:[kernel] warning: non-finite float value.
-                  assert \is_finite((float)(_C_->ProportionnalAction+_C_->IntegralAction));
+tests/value/CruiseControl.c:172:[value] warning: non-finite float value.
+                 assert \is_finite((float)(_C_->_L1_CruiseControl - _C_->_L2_CruiseControl));
+tests/value/CruiseControl.c:175:[value] warning: non-finite float value.
+                 assert \is_finite((float)(_C_->_L3_CruiseControl * _C_->_L6_CruiseControl));
+tests/value/CruiseControl.c:194:[value] warning: non-finite float value.
+                 assert
+                 \is_finite((float)(_C_->_L16_CruiseControl + _C_->_L18_CruiseControl));
+tests/value/CruiseControl.c:199:[value] warning: non-finite float value.
+                 assert \is_finite((float)(_C_->ProportionnalAction + _C_->IntegralAction));
 [value] computing for function SaturateThrottle <- ThrottleRegulation <- 
                                 ThrottleCmd <- CruiseControl.
         Called from tests/value/CruiseControl.c:202.
@@ -55,7 +56,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
 [value] Recording results for CruiseControl
 [value] done for function CruiseControl
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function CruiseSpeedMgt:
+[value:final-states] Values at end of function CruiseSpeedMgt:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -281,7 +282,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function CruiseStateMgt:
+[value:final-states] Values at end of function CruiseStateMgt:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -499,7 +500,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function DetectPedalsPressed:
+[value:final-states] Values at end of function DetectPedalsPressed:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -687,7 +688,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function DetectSpeedLimits:
+[value:final-states] Values at end of function DetectSpeedLimits:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -879,7 +880,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function SaturateThrottle:
+[value:final-states] Values at end of function SaturateThrottle:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1117,7 +1118,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function ThrottleRegulation:
+[value:final-states] Values at end of function ThrottleRegulation:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1355,7 +1356,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function ThrottleCmd:
+[value:final-states] Values at end of function ThrottleCmd:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]
@@ -1575,7 +1576,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
        [-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]
        [1]._C4_ThrottleCmd{._C0_ThrottleRegulation._C0_SaturateThrottle._L13_CruiseControl; ._M_condact_2_CruiseControl} ∈
        [--..--]
-[value] Values at end of function CruiseControl:
+[value:final-states] Values at end of function CruiseControl:
   __retres ∈ {1}
   S__C_[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel} ∈
        [--..--]

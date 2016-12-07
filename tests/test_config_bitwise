@@ -1,0 +1,2 @@
+MACRO: VALUECONFIG -eva-bitwise-domain -no-val-malloc-returns-null
+OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

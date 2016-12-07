@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   u ∈ {0}
   v ∈ {0}
   k ∈ {0}
@@ -250,43 +250,43 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   k ∈ {0}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   u ∈ {0}
   k ∈ {3}
-[value] Values at end of function main10:
+[value:final-states] Values at end of function main10:
   t10[0..13] ∈ {3} or UNINITIALIZED
      [14..37] ∈ {3}
      [38..49] ∈ {3} or UNINITIALIZED
   i ∈ {50}
-[value] Values at end of function main11:
+[value:final-states] Values at end of function main11:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3..8] ∈ {0}
    [9] ∈ {0; 3}
-[value] Values at end of function main12:
+[value:final-states] Values at end of function main12:
   __retres ∈ {{ &t[0] }}
-[value] Values at end of function main13:
+[value:final-states] Values at end of function main13:
   
-[value] Values at end of function main14:
+[value:final-states] Values at end of function main14:
   t[0..1] ∈ {0}
    [2..38] ∈ [0..38]
    [39..99] ∈ {0}
   i ∈ {39}
-[value] Values at end of function main15:
+[value:final-states] Values at end of function main15:
   a[0..2] ∈ {0}
    [3] ∈ {2}
    [4] ∈ {3}
    [5] ∈ {4}
    [6..9] ∈ {0}
-[value] Values at end of function main16:
+[value:final-states] Values at end of function main16:
   t[0] ∈ {0}
    [1] ∈ [0..19]
    [2..38] ∈ [0..38]
    [39..99] ∈ {0}
   i ∈ {20}
-[value] Values at end of function main17:
+[value:final-states] Values at end of function main17:
   t17[0][bits 0 to 7] ∈ [0..9]
      [0][bits 8 to 31] ∈ {0}
      [1][bits 0 to 7] ∈ [0..9]
@@ -308,20 +308,20 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
      [9][bits 0 to 7] ∈ [0..9]
      [9][bits 8 to 31] ∈ {0}
   j ∈ [10..2147483647]
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   a[0..2] ∈ {0}
    [3] ∈ {2}
    [4] ∈ {3}
    [5] ∈ {4}
    [6..9] ∈ {0}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   a[0..2] ∈ {0; 3}
    [3] ∈ {2; 3}
    [4] ∈ {3}
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3] ∈ {2; 3}
@@ -329,7 +329,7 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3] ∈ {2; 3}
@@ -337,26 +337,26 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
    [5] ∈ {3; 4}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value] Values at end of function main6_right:
+[value:final-states] Values at end of function main6_right:
   a[0..1] ∈ {0; 3}
    [2] ∈ {3}
    [3..5] ∈ {0}
    [6] ∈ {3}
    [7..9] ∈ {0; 3}
-[value] Values at end of function main6_wrong:
+[value:final-states] Values at end of function main6_wrong:
   a[0..1] ∈ {0; 3}
    [2..6] ∈ {0}
    [7..9] ∈ {0; 3}
-[value] Values at end of function main7:
+[value:final-states] Values at end of function main7:
   a[0..1] ∈ {0; 3}
    [2..8] ∈ {0}
    [9] ∈ {0; 3}
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   c_0 ∈ {4}
   d ∈ {4} or UNINITIALIZED
-[value] Values at end of function main9:
+[value:final-states] Values at end of function main9:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   u ∈ {0}
   k ∈ {3}
   a[0..1] ∈ {0; 3}

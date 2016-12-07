@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function foo <- main.
         Called from tests/value/strings_cond.i:8.
@@ -19,9 +19,9 @@ tests/value/strings_cond.i:4:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function foo:
+[value:final-states] Values at end of function foo:
   s ∈ {{ "Bla" + {3} }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function foo
 [from] Computing for function Frama_C_dump_each <-foo

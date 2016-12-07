@@ -5,8 +5,8 @@
 int f(float v)
 {
   int i;
-  /*@ assert rte: float_to_int: v+3.0f < 2147483648; */
-  /*@ assert rte: float_to_int: -2147483649 < v+3.0f; */
+  /*@ assert rte: float_to_int: v + 3.0f < 2147483648; */
+  /*@ assert rte: float_to_int: -2147483649 < v + 3.0f; */
   i = (int)(v + 3.0f);
   return i;
 }

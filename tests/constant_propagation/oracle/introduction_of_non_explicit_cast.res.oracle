@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
@@ -49,30 +49,30 @@ tests/constant_propagation/introduction_of_non_explicit_cast.c:81:[value] assert
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function add3:
+[value:final-states] Values at end of function add3:
   __retres ∈ [--..--]
-[value] Values at end of function init:
+[value:final-states] Values at end of function init:
   x ∈ {5}
   y ∈ {7}
   z ∈ {12}
   zero ∈ {0}
   sept ∈ {7}
   z1 ∈ {12}
-[value] Values at end of function test_ptr:
+[value:final-states] Values at end of function test_ptr:
   x ∈ {7}
   p ∈ {{ &x }}
   s ∈ {{ &x + {1} }}
   decal ∈ {1}
   __retres ∈ {{ &x }}
-[value] Values at end of function test_struct:
+[value:final-states] Values at end of function test_struct:
   s1{.a; .b} ∈ {1}
   s2{.a; .b} ∈ {1}
   s.a ∈ {1}
    .b ∈ {0}
-[value] Values at end of function test_struct_ptr:
+[value:final-states] Values at end of function test_struct_ptr:
   q ∈ {{ &s1.b }}
   __retres ∈ {{ &s1.a }}
-[value] Values at end of function test_tab:
+[value:final-states] Values at end of function test_tab:
   TAB[0..3] ∈ {0}
      [4][bits 0 to 15]# ∈ {13} repeated %8 
      [4][bits 16 to 31]# ∈ {13}%32, bits 16 to 31 
@@ -84,9 +84,9 @@ tests/constant_propagation/introduction_of_non_explicit_cast.c:81:[value] assert
   r ∈ {{ &TAB[4] }}
   q ∈ {{ (char *)&TAB[4] }}
   decal ∈ {4}
-[value] Values at end of function test_ull:
+[value:final-states] Values at end of function test_ull:
   ull ∈ {18446744073709551615}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {7}
   y ∈ {7}
   z ∈ [--..--]

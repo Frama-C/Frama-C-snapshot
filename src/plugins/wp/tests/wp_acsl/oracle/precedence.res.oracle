@@ -21,7 +21,6 @@ tests/wp_acsl/precedence.i:175:[kernel] warning: R is not a logic variable. Igno
 tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Ignoring code annotation
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function bitwise
@@ -173,25 +172,25 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_and_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((p = q) /\ (0 != r)) <-> ((0 != p) <-> ((0 != q) /\ (0 != r))).
+Prove: ((0 != p) <-> ((0 != q) /\ (0 != r))) <-> ((0 != r) /\ (p = q)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_and_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((q = r) /\ (0 != p)) <-> ((0 != r) <-> ((0 != p) /\ (0 != q))).
+Prove: ((0 != r) <-> ((0 != p) /\ (0 != q))) <-> ((0 != p) /\ (q = r)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_nonassoc_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((p = q) <-> (0 != r)) <-> ((p = q) /\ (q = r)).
+Prove: ((0 != r) <-> (p = q)) <-> ((p = q) /\ (q = r)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_nonassoc_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((q = r) <-> (0 != p)) <-> ((p = q) /\ (q = r)).
+Prove: ((0 != p) <-> (q = r)) <-> ((p = q) /\ (q = r)).
 
 ------------------------------------------------------------
 
@@ -207,13 +206,13 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_and_neq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != r) /\ (p != q)) <-> (!((0 != p) <-> ((0 != q) /\ (0 != r)))).
+Prove: (!((0 != p) <-> ((0 != q) /\ (0 != r)))) <-> ((0 != r) /\ (p != q)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_and_neq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != p) /\ (q != r)) <-> (!((0 != r) <-> ((0 != p) /\ (0 != q)))).
+Prove: (!((0 != r) <-> ((0 != p) /\ (0 != q)))) <-> ((0 != p) /\ (q != r)).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -331,14 +330,14 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_ite_equiv' in 'predicate':
-Prove: ((((P_P <-> P_Q) -> P_R)) /\ (((!(P_P <-> P_Q)) -> P_S))) <->
-    (P_P <-> (((P_Q -> P_R)) /\ (((!P_Q) -> P_S)))).
+Prove: (P_P <-> (((P_Q -> P_R)) /\ (((!P_Q) -> P_S)))) <->
+    ((((P_P <-> P_Q) -> P_R)) /\ (((!(P_P <-> P_Q)) -> P_S))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_ite_equiv' in 'predicate':
-Prove: (((P_P -> P_Q)) /\ (((!P_P) -> (P_R <-> P_S)))) <->
-    (P_S <-> (((P_P -> P_Q)) /\ (((!P_P) -> P_R)))).
+Prove: (P_S <-> (((P_P -> P_Q)) /\ (((!P_P) -> P_R)))) <->
+    (((P_P -> P_Q)) /\ (((!P_P) -> (P_R <-> P_S)))).
 
 ------------------------------------------------------------
 
@@ -372,9 +371,9 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_forall_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: ((((forall i : Z. P_Px(i)) -> P_Qx(x))) /\
-        (((!(forall i : Z. P_Px(i))) -> P_Rx(x)))) <->
-    (forall i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))).
+Prove: (forall i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))) <->
+    ((((forall i : Z. P_Px(i)) -> P_Qx(x))) /\
+     (((!(forall i : Z. P_Px(i))) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
@@ -419,9 +418,9 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_exists_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: ((((exists i : Z. P_Px(i)) -> P_Qx(x))) /\
-        (((!(exists i : Z. P_Px(i))) -> P_Rx(x)))) <->
-    (exists i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))).
+Prove: (exists i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))) <->
+    ((((exists i : Z. P_Px(i)) -> P_Qx(x))) /\
+     (((!(exists i : Z. P_Px(i))) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
@@ -721,11 +720,12 @@ axiomatic PredXY {
         (\let x = \old(a); \let x = \old(b); Pxy(x, x)) ⇔
         (\let x = \old(b); Pxy(x, x));
     ensures
-      scope_let: (\let x = \old(a); \let x = x+1; Px(x)) ⇔ Px(\old(a)+1);
+      scope_let:
+        (\let x = \old(a); \let x = x + 1; Px(x)) ⇔ Px(\old(a) + 1);
     ensures
       scope_let:
-        (\let x = \old(x); \let y = x+1; Pxy(x, y)) ⇔
-        Pxy(\old(x), \old(x)+1);
+        (\let x = \old(x); \let y = x + 1; Pxy(x, y)) ⇔
+        Pxy(\old(x), \old(x) + 1);
     ensures
       ko: l_assoc_naming:
         (P ⇒ Q) ∧ (¬P ⇒ (R: S)) ⇔ (P ⇒ (Q: R)) ∧ (¬P ⇒ S);
@@ -762,19 +762,19 @@ void predicate(int x, int a, int b)
     ensures
       ko: r_precedence_and_eq:
         \old(p) ≡ \old(q) ∧ \old(r) ≢ 0 ⇔
-        (\old(p)≢0) ≡ (\old(q)≢0 ∧ \old(r)≢0);
+        (\old(p) ≢ 0) ≡ (\old(q) ≢ 0 ∧ \old(r) ≢ 0);
     ensures
       ko: l_precedence_and_eq:
         \old(p) ≢ 0 ∧ \old(q) ≡ \old(r) ⇔
-        (\old(p)≢0 ∧ \old(q)≢0) ≡ (\old(r)≢0);
+        (\old(p) ≢ 0 ∧ \old(q) ≢ 0) ≡ (\old(r) ≢ 0);
     ensures
       ko: l_nonassoc_eq:
         \old(p) ≡ \old(q) ≡ \old(r) ⇔
-        (\old(p)≡\old(q)) ≡ (\old(r)≢0);
+        (\old(p) ≡ \old(q)) ≡ (\old(r) ≢ 0);
     ensures
       ko: r_nonassoc_eq:
         \old(p) ≡ \old(q) ≡ \old(r) ⇔
-        (\old(p)≢0) ≡ (\old(q)≡\old(r));
+        (\old(p) ≢ 0) ≡ (\old(q) ≡ \old(r));
     ensures
       r_precedence_neq_and:
         \old(p) ≢ \old(q) ∧ R ⇔ \old(p) ≢ \old(q) ∧ R;
@@ -784,11 +784,11 @@ void predicate(int x, int a, int b)
     ensures
       ko: r_precedence_and_neq:
         \old(p) ≢ \old(q) ∧ \old(r) ≢ 0 ⇔
-        (\old(p)≢0) ≢ (\old(q)≢0 ∧ \old(r)≢0);
+        (\old(p) ≢ 0) ≢ (\old(q) ≢ 0 ∧ \old(r) ≢ 0);
     ensures
       ko: l_precedence_and_neq:
         \old(p) ≢ 0 ∧ \old(q) ≢ \old(r) ⇔
-        (\old(p)≢0 ∧ \old(q)≢0) ≢ (\old(r)≢0);
+        (\old(p) ≢ 0 ∧ \old(q) ≢ 0) ≢ (\old(r) ≢ 0);
  */
 void comparison(int p, int q, int r)
 {
@@ -797,61 +797,67 @@ void comparison(int p, int q, int r)
 
 /*@ ensures
       r_precedence_and_xor:
-        ((\old(p)&\old(q))^\old(r)) ≡ ((\old(p)&\old(q))^\old(r));
+        ((\old(p) & \old(q)) ^ \old(r)) ≡ ((\old(p) & \old(q)) ^ \old(r));
     ensures
       l_precedence_and_xor:
-        (\old(p)^(\old(q)&\old(r))) ≡ (\old(p)^(\old(q)&\old(r)));
+        (\old(p) ^ (\old(q) & \old(r))) ≡ (\old(p) ^ (\old(q) & \old(r)));
     ensures
       ko: l_precedence_xor_and:
-        ((\old(p)&\old(q))^\old(r)) ≡ (\old(p)&(\old(q)^\old(r)));
+        ((\old(p) & \old(q)) ^ \old(r)) ≡ (\old(p) & (\old(q) ^ \old(r)));
     ensures
       ko: r_precedence_xor_and:
-        (\old(p)^(\old(q)&\old(r))) ≡ ((\old(p)^\old(q))&\old(r));
+        (\old(p) ^ (\old(q) & \old(r))) ≡ ((\old(p) ^ \old(q)) & \old(r));
     ensures
       r_precedence_xor_or:
-        ((\old(p)^\old(q))|\old(r)) ≡ ((\old(p)^\old(q))|\old(r));
+        ((\old(p) ^ \old(q)) | \old(r)) ≡ ((\old(p) ^ \old(q)) | \old(r));
     ensures
       l_precedence_xor_or:
-        (\old(p)|(\old(q)^\old(r))) ≡ (\old(p)|(\old(q)^\old(r)));
+        (\old(p) | (\old(q) ^ \old(r))) ≡ (\old(p) | (\old(q) ^ \old(r)));
     ensures
       ko: l_precedence_or_xor:
-        ((\old(p)^\old(q))|\old(r)) ≡ (\old(p)^(\old(q)|\old(r)));
+        ((\old(p) ^ \old(q)) | \old(r)) ≡ (\old(p) ^ (\old(q) | \old(r)));
     ensures
       ko: r_precedence_or_xor:
-        (\old(p)|(\old(q)^\old(r))) ≡ ((\old(p)|\old(q))^\old(r));
+        (\old(p) | (\old(q) ^ \old(r))) ≡ ((\old(p) | \old(q)) ^ \old(r));
     ensures
       r_precedence_or_implies:
-        (~(\old(p)|\old(q))|\old(r)) ≡ (~(\old(p)|\old(q))|\old(r));
+        (~(\old(p) | \old(q)) | \old(r)) ≡ (~(\old(p) | \old(q)) | \old(r));
     ensures
       l_precedence_or_implies:
-        (~\old(p)|(\old(q)|\old(r))) ≡ (~\old(p)|(\old(q)|\old(r)));
+        (~\old(p) | (\old(q) | \old(r))) ≡ (~\old(p) | (\old(q) | \old(r)));
     ensures
       ko: l_precedence_implies_or:
-        (~(\old(p)|\old(q))|\old(r)) ≡ (\old(p)|(~\old(q)|\old(r)));
+        (~(\old(p) | \old(q)) | \old(r)) ≡ (\old(p) | (~\old(q) | \old(r)));
     ensures
       ok: r_precedence_implies_or:
-        (~\old(p)|(\old(q)|\old(r))) ≡ ((~\old(p)|\old(q))|\old(r));
+        (~\old(p) | (\old(q) | \old(r))) ≡ ((~\old(p) | \old(q)) | \old(r));
     ensures
       ok: since:
-        ((~\old(p)|\old(q))|\old(r)) ≡ ((~\old(p)|\old(q))|\old(r));
+        ((~\old(p) | \old(q)) | \old(r)) ≡ ((~\old(p) | \old(q)) | \old(r));
     ensures
       r_assoc_implies:
-        (~\old(p)|(~\old(q)|\old(r))) ≡ (~\old(p)|(~\old(q)|\old(r)));
+        (~\old(p) | (~\old(q) | \old(r))) ≡
+        (~\old(p) | (~\old(q) | \old(r)));
     ensures
       ko: l_assoc_implies:
-        (~\old(p)|(~\old(q)|\old(r))) ≡ (~(~\old(p)|\old(q))|\old(r));
+        (~\old(p) | (~\old(q) | \old(r))) ≡
+        (~(~\old(p) | \old(q)) | \old(r));
     ensures
       r_precedence_implies_equiv:
-        (~(~\old(p)|\old(q))^\old(r)) ≡ (~(~\old(p)|\old(q))^\old(r));
+        (~(~\old(p) | \old(q)) ^ \old(r)) ≡
+        (~(~\old(p) | \old(q)) ^ \old(r));
     ensures
       l_precedence_implies_equiv:
-        (~\old(p)^(~\old(q)|\old(r))) ≡ (~\old(p)^(~\old(q)|\old(r)));
+        (~\old(p) ^ (~\old(q) | \old(r))) ≡
+        (~\old(p) ^ (~\old(q) | \old(r)));
     ensures
       ko: r_precedence_equiv_implies:
-        (~(~\old(p)|\old(q))^\old(r)) ≡ (~\old(p)|(~\old(q)^\old(r)));
+        (~(~\old(p) | \old(q)) ^ \old(r)) ≡
+        (~\old(p) | (~\old(q) ^ \old(r)));
     ensures
       ko: l_precedence_equiv_implies:
-        (~\old(p)^(~\old(q)|\old(r))) ≡ (~(~\old(p)^\old(q))|\old(r));
+        (~\old(p) ^ (~\old(q) | \old(r))) ≡
+        (~(~\old(p) ^ \old(q)) | \old(r));
  */
 void bitwise(int p, int q, int r)
 {
@@ -860,10 +866,10 @@ void bitwise(int p, int q, int r)
 
 /*@ ensures
       r_precedence_equiv_Pand:
-        (~\old(p)^\old(q)) ≢ 0 ∧ R ⇔ (~\old(p)^\old(q)) ≢ 0 ∧ R;
+        (~\old(p) ^ \old(q)) ≢ 0 ∧ R ⇔ (~\old(p) ^ \old(q)) ≢ 0 ∧ R;
     ensures
       l_precedence_equiv_Pand:
-        P ∧ (~\old(q)^\old(r)) ≢ 0 ⇔ P ∧ (~\old(q)^\old(r)) ≢ 0;
+        P ∧ (~\old(q) ^ \old(r)) ≢ 0 ⇔ P ∧ (~\old(q) ^ \old(r)) ≢ 0;
  */
 void predicate_bitwise(int p, int q, int r)
 {

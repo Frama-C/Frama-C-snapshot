@@ -52,12 +52,10 @@ int access_bits(FLOAT X )
   rbits1 = x0;
   return 0;
 }
-void split_alarm();
 
-main()
-{
-  nonlin_f();
+volatile float v;
 
+void other() {
   i = Frama_C_float_interval(-133.0,142.0);
   s = Frama_C_float_interval(-133.0,142.0);
   r = 1 + t[(int)(i*i+2.0)];
@@ -70,13 +68,22 @@ main()
 
   x = Frama_C_interval(0,42);
   y = (1 / x) * x;
-
-  split_alarm();
 }
 
-extern float ff;
-
 void split_alarm() { // No alarm with sufficient subdivide-float-var
-  //@ requires -8 <= ff <= 15;
+  float ff = v;
   double d = 1 / ((double)ff * ff + 0.000000001);
+}
+
+void norm() {
+  float v1 = v;
+  float v2 = v;
+  double square = (double)v1*v1+(double)v2*v2;
+}
+
+void main() {
+  nonlin_f();
+  other ();
+  split_alarm();
+  norm();
 }

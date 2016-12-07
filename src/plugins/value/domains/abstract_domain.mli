@@ -22,7 +22,69 @@
 
 (** Abstract domains of the analysis. *)
 
+(** An abstract domain is a collection of abstract states propagated through
+    the control flow graph by a dataflow analysis. At a program point, they
+    are abstractions of the set of possible concrete states that may arise
+    during any execution of the program.
+
+    In EVA, different abstract domains may communicate through alarms, values
+    and locations.
+    Alarms report undesirable behaviors that may occur during an execution
+    of the program. They are defined in {!Alarmset}, while values and locations
+    depend on the domain.
+    Values are numerical and non-relational abstractions of the set of the
+    possible values of expressions at a program point. Locations are similar
+    abstractions for memory locations. The main values and locations used
+    in the analyzer are respectively available in {!Main_values} and
+    {!Main_locations}. Values and locations abstractions are extensible, should
+    a domain requires new abstractions. Their signature are in
+    {!Abstract_value.S} and {!Abstract_location.S}.
+
+    Lvalues and expressions are cooperatively evaluated into locations and
+    values using all the information provided by all domains. These computed
+    values and locations are then available for the domain transformers which
+    model the action of statements on abstract states.
+    However, a domain could ignore this mechanism; its values and locations
+    should then be the unit type.
+
+
+    This file gathers the definition of the module types for an abstract
+    domain.
+
+    The module type {!S} requires all the functions to be implemented to define
+    the abstract semantics of a domain, divided in three categories:
+    - {!Lattice} gives a semi-lattice structure to the abstract states;
+    - {!Queries} extracts information from a state, by giving a value to an
+      expression.
+    - {!Transfer} are the transfer functions of the domain for assignments,
+      assumptions and function calls. It is a functor from a {!Valuation}
+      module, which are maps containing all locations and values computed by
+      the evaluation of the expressions involved in the considered statement.
+
+    The module type {!S_with_Structure} is {!S}, plus a special OCaml value
+    describing the internal structure of the domain and identifying it.
+    This structure enables automatic accessors to the domain when
+    combined to others. See {!Structure} for details.
+    {!S_with_Structure} is the interface to implement in order to introduce
+    a now domain in EVA.
+
+    The module type {!Internal} contains some other functionnalities needed by
+    the analyzer, but that can be automatically generated from the previous
+    one. The functor {!Domain_builder.Complete} produces an {!Internal} module
+    from a {!S_with_Structure} one.
+
+    {!Internal} modules can then be lifted on more general values and locations
+    through {!Domain_lift.Make}, and be combined through {!Domain_product.Make}.
+
+    Finally, {!External} is the type of the final modules built and used by EVA.
+    It contains the generic accessors to specific domains, described in
+    {!Interface}.
+*)
+
+(* The types of the Cil AST. *)
 open Cil_types
+
+(* Definition of the types frequently used in EVA. *)
 open Eval
 
 
@@ -44,7 +106,8 @@ module type Lattice = sig
 end
 
 
-(** Queries for values stored by a domain about expressions or locations.
+(** Extraction of information: queries for values or locations inferred by a
+    domain about expressions and lvalues.
     Used in the evaluation of expressions and lvalues. *)
 module type Queries = sig
 
@@ -102,79 +165,99 @@ end
 module type Transfer = sig
 
   type state
-  type summary
+  type return
   type value
   type location
   type valuation
 
   (** [update valuation t] updates the state [t] by the values of expressions
-      and the locations of lvalues cached in [valuation]. *)
+      and the locations of lvalues stored in [valuation]. *)
   val update : valuation -> state -> state
 
-  (** [assign lv expr v valuation state] is the transfer function for the
-      assignment [lv = expr] in [state]. It must return the state where the
-      assignment has been performed. [v] is the value corresponding to
-      the already-evaluated expression [exp].
-      [valuation] is a cache of all sub-expressions and locations computed
-      for the evaluation of [lval] and [expr]; it can also be used to reduce
-      the state. *)
+  (** [assign kinstr lv expr v valuation state] is the transfer function for the
+      assignment [lv = expr] for [state]. It must return the state where the
+      assignment has been performed.
+      - [kinstr] is the statement of the assignment, or Kglobal for the
+        initialization of a global variable.
+      - [v] carries the value being assigned to [lv], i.e. the value of the
+        expression [expr]. [v] also denotes the kind of assignement: Assign for
+        the default assignment of the value, or Copy for the exact copy of a
+        location if the right expresssion [expr] is a lvalue.
+      - [valuation] is a cache of all sub-expressions and locations computed
+        for the evaluation of [lval] and [expr]; it can also be used to reduce
+        the state. *)
   val assign :
     kinstr -> location left_value -> exp -> value assigned ->
     valuation -> state -> state or_bottom
 
   (** Transfer function for an assumption.
-      [assume exp bool valuation state] returns a state in which the boolean
-      expression [exp] evaluates to [bool].
-      [valuation] is a cache of all sub-expressions and locations computed
-      for the evaluation and the reduction of [expr]; it can also be used
-      to reduce the state *)
+      [assume stmt expr bool valuation state] returns a state in which the
+      boolean expression [expr] evaluates to [bool].
+      - [stmt] is the statement of the assumption.
+      - [valuation] is a cache of all sub-expressions and locations computed
+        for the evaluation and the reduction of [expr]; it can also be used
+        to reduce the state *)
   val assume : stmt -> exp -> bool -> valuation -> state -> state or_bottom
 
   (** Decision on a function call:
-      [call_action stmt call valuation state] decides on the analysis of
-      the called function; see {eval.mli} for details on the action type,
-      which described the analysis.
-      [stmt] is the statement of the call, [call] represents the call
-      (the called function and the arguments) and [state] the state before
-      the call.*)
-  val call_action:
+      [start_call stmt call valuation state] decides on the analysis of
+      a call site. It returns either an initial state for a standard dataflow
+      analysis of the called function, or a direct result for the entire call.
+      See {!Eval.call_action} for details.
+      - [stmt] is the statement of the call site;
+      - [call] represents the call: the called function and the arguments;
+      - [state] is the abstract state before the call;
+      - [valuation] is a cache for all values and locations computed during
+        the evaluation of the function and its arguments. *)
+  val start_call:
     stmt -> value call -> valuation -> state ->
-    (state, summary, value) action
+    (state, return, value) call_action
 
-  (** [summarize kf stmt ~returned_lv state] returns a summary of the
-      state [state] at the end of the function [kf]. This summary will be
-      used at the call site for the analysis of the calling function.
-      [stmt] is the return statement of [kf], and [returned_lv] is None if no
-      value is returned, or represents the return lvalue, its type and
-      its location (see {Eval.mli} for details). *)
-  val summarize:
-    kernel_function ->
-    stmt ->
-    returned:(location left_value * value copied) option ->
-    state -> (summary * state) or_bottom
+  (** [finalize_call stmt call ~pre ~post] computes the state after a function
+      call, given the state [pre] before the call, and the state [post] at the
+      end of the called function.
+      - [stmt] is the statement of the call site;
+      - [call] represents the function call and its arguments.
+      - [pre] and [post] are the states before and at the end of the call
+      respectively.
+  *)
+  val finalize_call:
+    stmt -> value call -> pre:state -> post:state -> state or_bottom
 
-  (** [resolve_call stmt ~assigned_lv call valuation ~pre_state ~post_state]
-      compute the state after the statement [stmt] where the lvalue
-      [assigned] is assigned to the result of the call [call].
+  (** [make_return kf stmt assigned valuation state] makes an abstraction of the
+      return value of the function [kf].
+      [stmt] is the return statement of [kf] and [state] the state of the
+      domain at this statement. [assigned] represents the value of the lvalue
+      being returned, and [valuation] is the valuation resulting from its
+      evaluation.
+      The return abstraction computed by this function can then be used for
+      the assignment at the call site. *)
+  val make_return:
+    kernel_function -> stmt -> value assigned -> valuation -> state -> return
+
+  (** [assign_return stmt lv kf return value valuation state] models on states
+      the effect of the assignment of the return value of a called function at
+      the call site.
       - [stmt] is the statement of the call;
-      - [assigned_lv] is None if no variable is assigned, or is the assigned
-        lvalue, its type and its location (see {Eval.mli} for details);
-      - [call] represents the function call and its arguments;
-      - [pre_state] is the state before the call;
-      - [post_state] is the state at the end of the called function, and
-        the summary computed by the [summarize] function above. *)
-  val resolve_call:
-    stmt ->
-    value call ->
-    assigned:(location left_value * value copied) option ->
-    valuation ->
-    pre:state ->
-    post:summary * state
-    -> state or_bottom
+      - [lv] is the lvalue being assigned, with its type and location;
+      - [kf] is the called function, whose return is assigned;
+      - [return] is an abstraction of this return, computed by make_return;
+      - [value] is a value abstraction for this return, computed by a standard
+        evaluation in the called function [kf];
+      - [valuation] results from the evaluation of the location of [lv];
+      - [state] is the state before the assignment, but after the call. *)
+  val assign_return:
+    stmt -> location left_value ->
+    kernel_function -> return -> value assigned ->
+    valuation -> state -> state or_bottom
 
   val default_call:
     stmt -> value call -> state ->
-    (state, summary, value) call_result
+    (state, return, value) call_result
+
+  val enter_loop: stmt -> state -> state
+  val incr_loop_counter: stmt -> state -> state
+  val leave_loop: stmt -> state -> state
 
 end
 
@@ -188,8 +271,8 @@ module type Logic = sig
   val env_annot: pre:state -> here:state -> unit -> eval_env
   val env_pre_f: pre:state -> unit -> eval_env
   val env_post_f: pre:state -> post:state -> result:varinfo option ->  unit -> eval_env
-  val eval_predicate: eval_env -> predicate named -> Alarmset.status
-  val reduce_by_predicate: eval_env -> bool -> predicate named -> eval_env
+  val eval_predicate: eval_env -> predicate -> Alarmset.status
+  val reduce_by_predicate: eval_env -> bool -> predicate -> eval_env
 end
 
 (** Results of an evaluation: the results of all intermediate calculation (the
@@ -216,11 +299,13 @@ module type S = sig
   (** {3 Queries } *)
   include Queries with type state := t
 
-  (** Summary of the analysis of a function. Useful at a call site. *)
-  type summary
+  (** Abstraction of the return value of a function.
+      Allows information to flow from the return statement of a called function
+      to the assignment of the call site. *)
+  type return
 
   (** Datatypes *)
-  module Summary : Datatype.S with type t = summary
+  module Return : Datatype.S with type t = return
 
   (** {3 Transfer Functions } *)
 
@@ -231,7 +316,7 @@ module type S = sig
                              and type origin = origin
                              and type loc = location)
     : Transfer with type state = t
-                and type summary = summary
+                and type return = return
                 and type value = value
                 and type location = location
                 and type valuation = Valuation.t
@@ -242,20 +327,20 @@ module type S = sig
   (* TODO: revise this signature. *)
   val compute_using_specification:
     kinstr -> kernel_function * funspec -> t ->
-    (t, summary, value) call_result
+    (t, return, value) call_result
 
   include Logic with type state := t
 
   (** {3 Miscellaneous } *)
 
   (** Scoping: abstract transformers for entering and exiting blocks.
-      [fundec] is the englobing function, and [body] is true if the block is
-      the body of [fundec]. (Otherwise, the block delimits an inner scope of
-      [fundec].) The interpreter assumes the locals of the block enter or
-      leave the scope when these two functions are called, and the variables
-      [block.blocals] should be added or removed from the abstract state here.*)
-  val open_block : fundec -> block -> body:bool -> t -> t
-  val close_block: fundec -> block -> body:bool -> t -> t
+      [kf] is the englobing function, and the variables of the list [vars]
+      should be added or removed from the abstract state here.
+      Note that the formals of a function enter the scope through the transfer
+      function {!Transfer.start_call}, but leave it through a
+      call to {!leave_scope}. *)
+  val enter_scope: kernel_function -> varinfo list -> t -> t
+  val leave_scope: kernel_function -> varinfo list -> t -> t
 
   (** Initialization *)
   val empty: unit -> t
@@ -287,7 +372,7 @@ type 'a structure = 'a Structure.Key_Domain.structure =
       let structure = Leaf key;;]
 
    Then, the key should be exported by the domain, to allow the use of the
-   functions defined in the {!External} interface below.
+   functions defined in the {!Interface} interface below.
 
    A compound domain may use the {!Node} constructor to provide a separate
    access to each of its parts.
@@ -295,10 +380,9 @@ type 'a structure = 'a Structure.Key_Domain.structure =
    A domain can also use the {!Void} constructor to prevent access to itself.
 *)
 
-(** Internal implementation of a domain. *)
-module type Internal = sig
+(** Structure of a domain. *)
+module type S_with_Structure = sig
   include S
-
   (** A structure matching the type of the domain. *)
   val structure : t structure
 end
@@ -308,8 +392,8 @@ end
     When a generic domain is a combination of several domains, these functions
     allow interacting with its subparts. Note that their behavior is undefined
     if the overall domain contains several times the same domain. *)
-module type External = sig
-  include S
+module type Interface = sig
+  type t
 
   (** Tests whether a key belongs to the domain. *)
   val mem : 'a key -> bool
@@ -328,6 +412,36 @@ module type External = sig
         has been replaced by [d].
       - otherwise, [set key _] is the identity function. *)
   val set : 'a key -> 'a -> t -> t
+end
+
+(** Automatic storage of the states computed during the analysis. *)
+module type Store = sig
+  type state
+  val register_initial_state: Value_types.callstack -> state -> unit
+  val register_state_before_stmt: Value_types.callstack -> stmt -> state -> unit
+  val register_state_after_stmt: Value_types.callstack -> stmt -> state -> unit
+
+  val get_initial_state: kernel_function -> state or_bottom
+  val get_initial_state_by_callstack:
+    kernel_function -> state Value_types.Callstack.Hashtbl.t option
+
+  val get_stmt_state: stmt -> state or_bottom
+  val get_stmt_state_by_callstack:
+    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t option
+end
+
+(** Full implementation of domains. Automatically built by
+    {!Domain_builder.Complete} from an {!S_with_Structure} domain. *)
+module type Internal = sig
+  include S_with_Structure
+  module Store: Store with type state := state
+end
+
+(** Final interface of domains, as generated and used by EVA, with generic
+    accessors for domains. *)
+module type External = sig
+  include Internal
+  include Interface with type t := state
 end
 
 

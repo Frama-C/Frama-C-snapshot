@@ -70,6 +70,13 @@ val register_incompatible_decl_hook:
 val register_different_decl_hook:
   (Cil_types.varinfo -> Cil_types.varinfo -> unit) -> unit
 
+val register_new_global_hook: (Cil_types.varinfo -> bool -> unit) -> unit
+(** Hook called when a new global is created. The varinfo [vi] is the one
+    corresponding to the global, while the boolean is [true] iff [vi] was
+    already existing (it is [false] if this is the first declaration/definition
+    of [vi] in the file).
+    @since Silicon-20161101
+ *)
 
 (** new hook called when encountering a definition of a local function. The hook
     take as argument the varinfo of the local function.

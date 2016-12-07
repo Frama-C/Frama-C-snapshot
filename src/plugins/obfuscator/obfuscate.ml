@@ -130,9 +130,12 @@ class visitor = object
       Cil.SkipChildren
     else begin
       Identified_predicate.Hashtbl.add id_pred_visited p ();
-      p.ip_name <- 
-	List.map (Dictionary.fresh Obfuscator_kind.Predicate) p.ip_name;
-      Cil.DoChildren
+      let names = p.ip_content.pred_name in
+      let names' =
+        List.map (Dictionary.fresh Obfuscator_kind.Predicate) names
+      in
+      let p' = { p with ip_content = { p.ip_content with pred_name = names'}} in
+      Cil.ChangeDoChildrenPost (p', Extlib.id)
     end
 
   method! vterm t = 

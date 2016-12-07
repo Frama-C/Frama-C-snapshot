@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   ptr ∈ {0}
   q ∈ {0}
   s_q ∈ {0}
@@ -16,7 +16,7 @@ tests/value/assert_ptr.i:12:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   ptr ∈ {{ NULL ; &a }}
   q ∈ {{ (int **)&s_q }}
   s_q ∈ {{ (int)&a }}

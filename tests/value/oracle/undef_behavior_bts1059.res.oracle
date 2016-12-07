@@ -21,16 +21,16 @@ tests/value/undef_behavior_bts1059.i:23:[kernel] warning: Unspecified sequence w
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
-tests/value/undef_behavior_bts1059.i:15:[kernel] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
-tests/value/undef_behavior_bts1059.i:23:[kernel] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
+tests/value/undef_behavior_bts1059.i:15:[value] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
+tests/value/undef_behavior_bts1059.i:23:[value] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
 [value] Recording results for main
 [value] done for function main
 tests/value/undef_behavior_bts1059.i:15:[value] assertion 'Value,separation' got final status invalid.
 tests/value/undef_behavior_bts1059.i:23:[value] assertion 'Value,separation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   a ∈ {1}
   b ∈ {2}
   __retres ∈ {0}

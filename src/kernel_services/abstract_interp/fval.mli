@@ -169,9 +169,7 @@ val subdiv_float_interval : size:int -> t -> t * t
 val neg : t -> t
 
 val cos : t -> t
-val cos_precise : t -> t
 val sin : t -> t
-val sin_precise : t -> t
 
 val atan2: t -> t -> builtin_res
 (** Returns atan2(y,x). Does not emit any alarms. *)

@@ -61,6 +61,7 @@ rule token = parse
 
 and string buffer = parse
   | '"' { () }
+  | "\\\\" { Buffer.add_char buffer '\\' ; string buffer lexbuf }
   | "\\n" { Buffer.add_char buffer '\n' ; string buffer lexbuf }
   | "\\t" { Buffer.add_char buffer '\t' ; string buffer lexbuf }
   | "\\r" { Buffer.add_char buffer '\r' ; string buffer lexbuf }
@@ -173,7 +174,8 @@ let rec pp fmt v = let open Format in
 and pp_entry fmt (a,v) = Format.fprintf fmt "@[<hov 2>%S: %a@]" a pp v
 
 let dump_string f s =
-  f "\"" ; f (String.escaped s) ; f "\""
+  let quote = "\"" in
+  f quote ; f (String.escaped s) ; f quote
     
 let rec dump f = function
   | Null -> f "null"
@@ -233,16 +235,25 @@ let bool = function
   | _ -> invalid "bool"
 
 let int = function
+  | Null -> 0
   | Int n -> n
   | Float f -> (try int_of_float f with _ -> invalid "int")
   | Number s | String s -> (try int_of_string s with _ -> invalid "int")
   | _ -> invalid "int"
 
 let float = function
+  | Null -> 0.0
   | Float f -> f
   | Int n -> (try float_of_int n with _ -> invalid "float")
   | Number s | String s -> (try float_of_string s with _ -> invalid "float")
   | _ -> invalid "float"
+
+let string = function
+  | Null -> ""
+  | Int n -> string_of_int n
+  | Float f -> string_of_float f
+  | Number s | String s -> s
+  | _ -> invalid "string"
 
 let list = function
   | Null -> []
@@ -263,5 +274,12 @@ let fold f v w = match v with
   | Null -> w
   | Assoc fs -> List.fold_left (fun w (e,v) -> f e v w) w fs
   | _ -> invalid "fold"
+
+let of_bool b = if b then True else False
+let of_int k = Int k
+let of_float f = Float f
+let of_list xs = Array xs
+let of_array xs = Array (Array.to_list xs)
+let of_fields m = Assoc m
 
 }

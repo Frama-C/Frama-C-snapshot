@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..14] ∈ {0}
   p ∈ {{ &t[0] }}
   x ∈ {0}
@@ -15,7 +15,7 @@ tests/value/separated.i:22:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   x ∈ {1}
   __retres ∈ {0}
 [from] Computing for function main

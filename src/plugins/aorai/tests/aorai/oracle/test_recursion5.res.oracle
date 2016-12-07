@@ -146,16 +146,18 @@ void isPresentRec_post_func(int res)
 
 /*@ requires
       1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ IgnoreFoo ∧ 0 ≡ WillDoFoo;
-    requires \valid(t+(0 .. max));
+    requires \valid(t + (0 .. max));
     requires max ≥ 0;
     requires 0 ≤ i ≤ max;
-    decreases max-i;
+    decreases max - i;
     ensures (\old(i) ≤ \result ≤ \old(max)) ∨ \result ≡ -1;
     ensures
-      \old(i) ≤ \result ≤ \old(max) ⇒ *(\old(t)+\result) ≡ \old(val);
+      \old(i) ≤ \result ≤ \old(max) ⇒
+      *(\old(t) + \result) ≡ \old(val);
     ensures
       \result ≡ -1 ⇒
-      (∀ ℤ j; \old(i) ≤ j ≤ \old(max) ⇒ *(\old(t)+j) ≢ \old(val));
+      (∀ ℤ j;
+         \old(i) ≤ j ≤ \old(max) ⇒ *(\old(t) + j) ≢ \old(val));
     
     behavior Buchi_property_behavior:
       ensures
@@ -290,13 +292,14 @@ void isPresent_post_func(int res)
 
 /*@ requires
       1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ IgnoreFoo ∧ 0 ≡ WillDoFoo;
-    requires \valid(t+(0 .. max));
+    requires \valid(t + (0 .. max));
     requires max ≥ 0;
     ensures (0 ≤ \result ≤ \old(max)) ∨ \result ≡ -1;
-    ensures 0 ≤ \result ≤ \old(max) ⇒ *(\old(t)+\result) ≡ \old(val);
+    ensures
+      0 ≤ \result ≤ \old(max) ⇒ *(\old(t) + \result) ≡ \old(val);
     ensures
       \result ≡ -1 ⇒
-      (∀ ℤ i; 0 ≤ i ≤ \old(max) ⇒ *(\old(t)+i) ≢ \old(val));
+      (∀ ℤ i; 0 ≤ i ≤ \old(max) ⇒ *(\old(t) + i) ≢ \old(val));
     
     behavior Buchi_property_behavior:
       ensures

@@ -23,7 +23,9 @@
 (** Signature for {!Equality} module, that implements equalities
     over ordered types *)
 
-type 't or_void = [ `Value of 't | `Void ]
+type 'a trivial = Trivial | NonTrivial of 'a
+
+type 'a tree = Empty | Leaf of 'a | Node of 'a tree * 'a tree
 
 (** Representation of an equality between a set of elements.
     The signatures is roughly a subset of Ocaml's [Set.S].
@@ -34,7 +36,7 @@ module type S = sig
 
   type elt (** The type of the equality elements. *)
 
-  val pair : elt -> elt -> t or_void
+  val pair : elt -> elt -> t trivial
   (** The equality between two elements. *)
 
   val mem: elt -> t -> bool
@@ -43,16 +45,16 @@ module type S = sig
   val add: elt -> t -> t
   (** [add x s] returns the equality between all elements of [s] and [x]. *)
 
-  val remove: elt -> t -> t or_void
+  val remove: elt -> t -> t trivial
   (** [remove x s] returns the equality between all elements of [s], except [x]. *)
 
   val union: t -> t -> t
   (** Union. *)
 
-  val inter: t -> t -> t or_void
+  val inter: t -> t -> t trivial
   (** Intersection. *)
 
-  val intersect : t -> t -> bool
+  val intersects : t -> t -> bool
   (** [intersect s s'] = true iff the two equalities both involve the same
       element. *)
 
@@ -75,20 +77,16 @@ module type S = sig
   (** [exists p s] checks if at least one element of the equality
       satisfies the predicate [p]. *)
 
-  val filter: (elt -> bool) -> t -> t or_void
+  val filter: (elt -> bool) -> t -> t trivial
   (** [filter p s] returns the equality between all elements in [s]
       that satisfy predicate [p]. *)
 
   val cardinal: t -> int
   (** Return the number of elements of the equality. *)
 
-  val elements: t -> elt list
-  (** Return the list of all elements of the given equality. *)
-
   val choose: t -> elt
   (** Return the representative of the equality. *)
 
-  val subst : (elt -> elt option) -> t -> t or_void
 end
 
 
@@ -140,17 +138,11 @@ module type Set = sig
   (** [contains elt set] = true iff [elt] belongs to an equality of [set]. *)
   val contains : element -> t -> bool
 
-  val diff : t -> t -> t
-
-  val subst : (element -> element option) -> t -> t
-
   val deep_fold : (equality -> element -> 'a -> 'a) -> t -> 'a -> 'a
-
-  (** [terms set] return the list of elements of equality of [set]. *)
-  val terms : t -> element list
 
   val cardinal : t -> int
 
+  val elements_only_left: t -> t -> element tree
 end
 
 

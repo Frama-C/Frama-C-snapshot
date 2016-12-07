@@ -5,7 +5,7 @@
 [value] Analyzing a complete application starting at main_top_not_used
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function main_top <- main_top_not_used.
         Called from tests/sparecode/top.i:32.

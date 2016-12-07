@@ -45,7 +45,8 @@ struct
     let module Updated = X(Cur) in
     set_printer (module Updated: PrinterClass)
 
-  let printer () = match !printer_ref with
+  let printer () : Printer_api.extensible_printer_type =
+    match !printer_ref with
     | None ->
       let module Printer = (val !printer_class_ref: PrinterClass) in
       let p = new Printer.printer in
@@ -100,8 +101,8 @@ struct
   let pp_term fmt x = (printer ())#term fmt x
   let pp_model_field fmt x = (printer())#model_field fmt x
   let pp_term_offset fmt x = (printer ())#term_offset fmt x
+  let pp_predicate_node fmt x = (printer ())#predicate_node fmt x
   let pp_predicate fmt x = (printer ())#predicate fmt x
-  let pp_predicate_named fmt x = (printer ())#predicate_named fmt x
   let pp_identified_predicate fmt x = (printer ())#identified_predicate fmt x
   let pp_code_annotation fmt x = (printer ())#code_annotation fmt x
   let pp_funspec fmt x = (printer ())#funspec fmt x

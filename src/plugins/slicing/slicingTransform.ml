@@ -296,8 +296,7 @@ module Visibility (SliceName : sig
   let fun_precond_visible ff_opt p =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_precond_visible] %a ?"
-      Printer.pp_predicate_named
-      { name = []; loc = Cil_datatype.Location.unknown; content = p };
+      Printer.pp_predicate p;
     let visible = match ff_opt with
       | Isrc _ -> true
       | Iproto -> true
@@ -317,8 +316,7 @@ module Visibility (SliceName : sig
   let fun_postcond_visible ff_opt p =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_postcond_visible] %a ?"
-      Printer.pp_predicate_named
-      { name = []; loc = Cil_datatype.Location.unknown; content = p };
+      Printer.pp_predicate p;
     let visible = match ff_opt with
       | Isrc _ -> true
       | Iproto -> true

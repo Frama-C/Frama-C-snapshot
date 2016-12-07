@@ -122,14 +122,14 @@ type reductness =
 (** Right values with 'undefined' and 'escaping addresses' flags. *)
 (* TODO: find a better name. *)
 type 'a flagged_value = {
-  v: 'a;
+  v: 'a or_bottom;
   initialized: bool;
   escaping: bool;
 }
 
 (** Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
-  value: 'a or_bottom flagged_value;  (** The resulting abstract value *)
+  value: 'a flagged_value;  (** The resulting abstract value *)
   origin: 'origin option;   (** The origin of the abstract value *)
   reductness : reductness;  (** The state of reduction. *)
   val_alarms : Alarmset.t   (** The emitted alarms during the evaluation. *)
@@ -156,14 +156,15 @@ module type Valuation = sig
   val add : t -> exp -> (value, origin) record_val -> t
   val fold : (exp -> (value, origin) record_val -> 'a -> 'a) -> t -> 'a -> 'a
   val find_loc : t -> lval -> loc record_loc or_top
-  val filter :
-    (exp -> (value, origin) record_val -> bool) ->
-    (lval -> loc record_loc -> bool) ->
-    t -> t
+  val remove : t -> exp -> t
+  val remove_loc : t -> lval -> t
 end
 
 module Clear_Valuation (Valuation: Valuation) : sig
-  val clear_expr : Valuation.t -> exp -> Valuation.t
+  (** Removes from the valuation all the subexpressions of [expr] that contain
+      [subexpr], except [subexpr] itself. *)
+  val clear_englobing_exprs :
+    Valuation.t -> expr:exp -> subexpr:exp -> Valuation.t
 end
 
 
@@ -177,24 +178,14 @@ type 'loc left_value = {
   ltyp: typ;
 }
 
-(** Copy of values. *)
-type 'value copied =
-  | Determinate of 'value flagged_value
-  (** Determinates the right value before the copy:
-      the copied value is initialized, and without escaping addresses. *)
-  | Exact of 'value or_bottom flagged_value
-  (** Exact copy of the right value, with possible indeterminateness
-      (then, the value can be bottom). *)
-
 (** Assigned values. *)
 type 'value assigned =
   | Assign of 'value
   (** Default assignment of a value. *)
-  | Copy of lval * 'value copied
-  (** Used when the right expression of an assignment is a left value.
-      Copy the location of the lvalue [lval], that contains the value
-      [value copied]. The copy can remove or not the possible indeterminateness
-      of the value (according to the parameters of the analysis). *)
+  | Copy of lval * 'value flagged_value
+  (** Copy of the location of the lvalue [lval], that contains the value
+      [value copied]. The value is copied exactly, with possible
+      indeterminateness. *)
 
 (* Extract the assigned value from a [value assigned]. *)
 val value_assigned : 'value assigned -> 'value or_bottom
@@ -203,26 +194,32 @@ val value_assigned : 'value assigned -> 'value or_bottom
 (**                       {2 Interprocedural Analysis }                       *)
 (* -------------------------------------------------------------------------- *)
 
+
+(** Argument of a function call. *)
 type 'value argument = {
-  formal: varinfo;
-  concrete: exp;
-  avalue: 'value assigned;
+  formal: varinfo;          (** The formal argument of the called function. *)
+  concrete: exp;            (** The concrete argument at the call site *)
+  avalue: 'value assigned;  (** The value of the concrete argument. *)
 }
 
+(** A function call. *)
 type 'value call = {
-  kf: kernel_function;
-  arguments: 'value argument list;
-  rest: (exp * 'value assigned) list
+  kf: kernel_function;                (** The called function. *)
+  arguments: 'value argument list;    (** The arguments of the call. *)
+  rest: (exp * 'value assigned) list  (** Extra-arguments. *)
 }
 
-type ('state, 'summary, 'value) return = {
+(** Abstraction of the return of a function:
+    - the state at the end of the function;
+    - two abstractions of the return value, if any. *)
+type ('state, 'return, 'value) return_state = {
   post_state: 'state;
-  returned_value: 'value or_bottom flagged_value option;
-  summary: 'summary;
+  return: ('value flagged_value * 'return) option;
 }
 
-type ('state, 'summary, 'value) call_result =
-  ('state, 'summary, 'value) return list or_bottom
+(** Result of a call: disjunctive list of abstractions of the function return. *)
+type ('state, 'return, 'value) call_result =
+  ('state, 'return, 'value) return_state list or_bottom
 
 (** Initialization of a dataflow analysis, by definig the initial value of
     each statement. *)
@@ -237,15 +234,12 @@ type 't init =
       statements are initialized to bottom. *)
 
 (** Action to perform on a call site. *)
-type ('state, 'summary, 'value) action =
+type ('state, 'summary, 'value) call_action =
   | Compute of 'state init * bool
   (** Analyze the called function with the given initialization. If the summary
       of a previous analysis for this initialization has been cached, it will
       be used without re-computation.
       The second boolean indicates whether the result must be cached. *)
-  | Recall of 'state init
-  (** Do not run the analysis of the function, but use the summary for this
-      initialization if it exists. Otherwise, [default_call] is called. *)
   | Result of ('state, 'summary, 'value) call_result * Value_types.cacheable
   (** Direct computation of the result. *)
 

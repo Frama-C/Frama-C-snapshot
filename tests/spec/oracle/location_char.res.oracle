@@ -1,0 +1,95 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/location_char.c (with preprocessing)
+[kernel] Predicate x ≤ 0:
+         start line 9, char 26
+         end line 9, char 30
+[kernel] Term x:
+         start line 9, char 26
+         end line 9, char 27
+[kernel] Term x:
+         start line 9, char 26
+         end line 9, char 27
+[kernel] Term 0:
+         start line 9, char 29
+         end line 9, char 30
+[kernel] Predicate y ≤ 0 ∧ x ≡ y:
+         start line 11, char 13
+         end line 12, char 19
+[kernel] Predicate y ≤ 0:
+         start line 11, char 13
+         end line 11, char 19
+[kernel] Term y:
+         start line 11, char 13
+         end line 11, char 14
+[kernel] Term y:
+         start line 11, char 13
+         end line 11, char 14
+[kernel] Term 0:
+         start line 11, char 18
+         end line 11, char 19
+[kernel] Predicate x ≡ y:
+         start line 12, char 13
+         end line 12, char 19
+[kernel] Term x:
+         start line 12, char 13
+         end line 12, char 14
+[kernel] Term y:
+         start line 12, char 18
+         end line 12, char 19
+[kernel] Predicate x ≤ 0:
+         start line 6, char 13
+         end line 6, char 19
+[kernel] Term x:
+         start line 6, char 13
+         end line 6, char 14
+[kernel] Term x:
+         start line 6, char 13
+         end line 6, char 14
+[kernel] Term 0:
+         start line 6, char 18
+         end line 6, char 19
+[kernel] Predicate \result ≡ \old(x):
+         start line 7, char 12
+         end line 7, char 24
+[kernel] Term \result:
+         start line 7, char 12
+         end line 7, char 19
+[kernel] Term \old(x):
+         start line 7, char 23
+         end line 7, char 24
+[kernel] Term x:
+         start line 7, char 23
+         end line 7, char 24
+[kernel] Predicate outer.inner.a ≡ 0:
+         start line 37, char 36
+         end line 37, char 54
+[kernel] Term outer.inner.a:
+         start line 37, char 36
+         end line 37, char 49
+[kernel] Term outer.inner.a:
+         start line 37, char 36
+         end line 37, char 49
+[kernel] Term 0:
+         start line 37, char 53
+         end line 37, char 54
+[kernel] Predicate outer.b ≡ outer.inner.a ∧ 0 ≢ 1:
+         start line 38, char 29
+         end line 40, char 23
+[kernel] Predicate outer.b ≡ outer.inner.a:
+         start line 38, char 29
+         end line 39, char 21
+[kernel] Term outer.b:
+         start line 38, char 29
+         end line 38, char 36
+[kernel] Term outer.inner.a:
+         start line 39, char 8
+         end line 39, char 21
+[kernel] Predicate 0 ≢ 1:
+         start line 40, char 17
+         end line 40, char 23
+[kernel] Term 0:
+         start line 40, char 17
+         end line 40, char 18
+[kernel] Term 1:
+         start line 40, char 22
+         end line 40, char 23

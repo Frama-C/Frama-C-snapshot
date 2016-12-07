@@ -191,3 +191,40 @@ let ppc_32 = {
   has__builtin_va_list = true;
   __thread_is_keyword = true;
 }
+
+let msvc_x86_64 = {
+  version          = "MSVC - X86-64bits mode";
+  compiler         = "msvc";
+  sizeof_short     = 2;
+  sizeof_int       = 4;
+  sizeof_long      = 4;
+  sizeof_longlong  = 8;
+  sizeof_ptr       = 8;
+  sizeof_float     = 4;
+  sizeof_double    = 8;
+  sizeof_longdouble  = 8;
+  sizeof_void      = 0;
+  sizeof_fun       = 0; (* sizeof(f) results in a compilation error *)
+  size_t = "unsigned long long"; (* defined as 'unsigned __int64' *)
+  wchar_t = "unsigned short";
+  ptrdiff_t = "long long"; (* defined as '__int64' *)
+  alignof_short = 2;
+  alignof_int = 4;
+  alignof_long = 4;
+  alignof_longlong = 8;
+  alignof_ptr = 8;
+  alignof_float = 4;
+  alignof_double = 8;
+  alignof_longdouble = 8;
+  alignof_str = 1; (* __alignof("a") results in compilation error C2059:
+                      syntax error: 'string' *)
+  alignof_fun = 8;
+  alignof_aligned= 1; (* MSVC does not seem to have an 'align' attribute
+                         equivalent to GCC's *)
+  char_is_unsigned = false;
+  const_string_literals = true;
+  little_endian = true;
+  underscore_name = false ;
+  has__builtin_va_list = false;
+  __thread_is_keyword = false;
+}

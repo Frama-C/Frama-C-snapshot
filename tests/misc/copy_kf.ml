@@ -39,20 +39,17 @@ let replace_call def proto =
   let body = Kernel_function.get_definition def in
   ignore (Visitor.visitFramacFunction vis body)
 
-let check name =
-  Visitor.visitFramacFileSameGlobals (new Filecheck.check name) (Ast.get())
-
 let main () =
   let kff = clone "f" in
-  check "clone-f";
+  Filecheck.check_ast "clone-f";
   Kernel.feedback "After cloning f:@\n%t"
     (fun fmt -> File.pretty_ast ~fmt ());
   let kfg = clone "g" in
-  check "clone-g";
+  Filecheck.check_ast "clone-g";
   Kernel.feedback "After cloning g:@\n%t"
     (fun fmt -> File.pretty_ast ~fmt ());
   replace_call kff kfg;
-  check "stmt-replace";
+  Filecheck.check_ast "stmt-replace";
   Kernel.feedback "After replacement:@\n%t"
     (fun fmt -> File.pretty_ast ~fmt ())
 

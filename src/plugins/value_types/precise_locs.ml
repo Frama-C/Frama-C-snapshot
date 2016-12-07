@@ -257,6 +257,12 @@ let loc_bottom = {
 }
 let is_bottom_loc pl = pl.loc = PLBottom
 
+let loc_top = {
+  loc = PLLoc Location_Bits.top;
+  size = Int_Base.top;
+}
+let is_top_loc pl = equal_loc loc_top pl
+
 let rec fold_offset f po acc =
   match po with
     | POBottom -> f Ival.bottom acc

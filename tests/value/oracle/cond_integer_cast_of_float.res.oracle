@@ -4,7 +4,7 @@ tests/value/cond_integer_cast_of_float.i:79:[kernel] warning: Floating-point con
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   b ∈ {0}
   f1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
@@ -101,7 +101,7 @@ tests/value/cond_integer_cast_of_float.i:113:[value] warning: assertion got stat
 [value] Analyzing a complete application starting at mainbis
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   b ∈ {0}
   f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   f2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]

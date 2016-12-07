@@ -48,10 +48,6 @@ module Make
     Left.is_included l1 l2 && Right.is_included r1 r2
   let join (l1, r1) (l2, r2) =
     Left.join l1 l2, Right.join r1 r2
-  let join_and_is_included (l1, r1) (l2, r2) =
-    let left,  b1 = Left.join_and_is_included l1 l2
-    and right, b2 = Right.join_and_is_included r1 r2 in
-    (left, right), b1 && b2
   let narrow (l1, r1) (l2, r2) =
     Left.narrow l1 l2 >>- fun left ->
     Right.narrow r1 r2 >>-: fun right ->
@@ -61,8 +57,7 @@ module Make
   let float_zeros = Left.float_zeros, Right.float_zeros
   let top_int = Left.top_int, Right.top_int
   let inject_int typ i = Left.inject_int typ i, Right.inject_int typ i
-
-  let all_values typ = Left.all_values typ, Right.all_values typ
+  let inject_address vi = Left.inject_address vi, Right.inject_address vi
 
   let constant expr constant =
     Left.constant expr constant >>= fun left ->
@@ -97,7 +92,7 @@ module Make
       | _, `Top              -> set1
       | `Value s1, `Value s2 -> `Value (Kernel_function.Hptset.inter s1 s2)
     in
-    set, b1 || b2
+    set, b1 && b2
 
   let reduce (orig_left, orig_right) left right = match left, right with
     | None, None            -> None

@@ -3,21 +3,21 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   s2 ∈ {0}
   x ∈ {0}
   y ∈ {0}
-tests/value/volatilestruct.c:33:[kernel] warning: signed overflow. assert -2147483648 ≤ &x-p->f4.f1;
-tests/value/volatilestruct.c:33:[kernel] warning: signed overflow. assert &x-p->f4.f1 ≤ 2147483647;
-tests/value/volatilestruct.c:33:[kernel] warning: signed overflow. assert (int)(&x-p->f4.f1)+1 ≤ 2147483647;
-tests/value/volatilestruct.c:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &y-p->f4.f2;
-tests/value/volatilestruct.c:34:[kernel] warning: signed overflow. assert &y-p->f4.f2 ≤ 2147483647;
-tests/value/volatilestruct.c:34:[kernel] warning: signed overflow. assert (int)(&y-p->f4.f2)+3 ≤ 2147483647;
+tests/value/volatilestruct.c:33:[value] warning: signed overflow. assert -2147483648 ≤ &x - p->f4.f1;
+tests/value/volatilestruct.c:33:[value] warning: signed overflow. assert &x - p->f4.f1 ≤ 2147483647;
+tests/value/volatilestruct.c:33:[value] warning: signed overflow. assert (int)(&x - p->f4.f1) + 1 ≤ 2147483647;
+tests/value/volatilestruct.c:34:[value] warning: signed overflow. assert -2147483648 ≤ &y - p->f4.f2;
+tests/value/volatilestruct.c:34:[value] warning: signed overflow. assert &y - p->f4.f2 ≤ 2147483647;
+tests/value/volatilestruct.c:34:[value] warning: signed overflow. assert (int)(&y - p->f4.f2) + 3 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &s2 }}
   s2.f4.f1 ∈ {{ &x + [--..--] }}
     .f4.f2 ∈ {{ &y + [--..--] }}
@@ -43,7 +43,7 @@ tests/value/volatilestruct.c:34:[kernel] warning: signed overflow. assert (int)(
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   s2 ∈ {0}
   x ∈ {0}
@@ -53,7 +53,7 @@ tests/value/volatilestruct.c:34:[value] warning: 2's complement assumed for over
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   p ∈ {{ &s2 }}
   s2.f4.f1 ∈ {{ &x + [--..--] }}
     .f4.f2 ∈ {{ &y + [--..--] }}

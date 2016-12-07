@@ -77,11 +77,14 @@ let compare_annotations la1 la2 =
   | AAllocation _, AAllocation _ -> total_order
   | AAllocation _, _ -> -1
 
-  | AVariant _, APragma _ -> -1
+  | AVariant _, (APragma _ | AExtended _) -> -1
   | AVariant _, AVariant _ -> total_order
   | AVariant _, _ -> 1
+  | APragma _, AExtended _ -> -1
   | APragma _, APragma _ -> total_order
   | APragma _, _ -> 1
+  | AExtended _, AExtended _ -> total_order
+  | AExtended _, _ -> 1
 
 (* All annotations are extracted from module [Annotations].
    Generated global annotations are inserted before
@@ -283,14 +286,15 @@ let () = Cil_datatype.Exp.pretty_ref := pp_exp
 let () = Cil_datatype.Varinfo.pretty_ref := pp_varinfo
 let () = Cil_datatype.Lval.pretty_ref := pp_lval
 let () = Cil_datatype.Offset.pretty_ref := pp_offset
-let () = Cil_datatype.pretty_typ_ref := pp_typ
+let () = Cil_datatype.Typ.pretty_ref := pp_typ
 let () = Cil_datatype.Attribute.pretty_ref := pp_attribute
 let () = Cil_datatype.Stmt.pretty_ref := pp_stmt
 let () = Cil_datatype.Block.pretty_ref := pp_block
 let () = Cil_datatype.Instr.pretty_ref := pp_instr
 let () = Cil_datatype.Logic_var.pretty_ref := pp_logic_var
 let () = Cil_datatype.Model_info.pretty_ref := pp_model_info
-let () = Cil_datatype.pretty_logic_type_ref := pp_logic_type
+let () = Cil_datatype.Logic_label.pretty_ref := pp_logic_label
+let () = Cil_datatype.Logic_type.pretty_ref := pp_logic_type
 let () = Cil_datatype.Term.pretty_ref := pp_term
 let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
 let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -43,27 +43,27 @@
 tests/value/strings.i:39:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
-tests/value/strings.i:39:[kernel] warning: out of bounds read. assert \valid_read(p-4);
+tests/value/strings.i:39:[value] warning: out of bounds read. assert \valid_read(p - 4);
 [value] computing for function u <- main1.
         Called from tests/value/strings.i:42.
 [value] Done for function u
-tests/value/strings.i:42:[kernel] warning: out of bounds read. assert \valid_read(p+12);
+tests/value/strings.i:42:[value] warning: out of bounds read. assert \valid_read(p + 12);
 [value] computing for function u <- main1.
         Called from tests/value/strings.i:44.
 [value] Done for function u
 [value] computing for function u <- main1.
         Called from tests/value/strings.i:48.
 [value] Done for function u
-tests/value/strings.i:48:[kernel] warning: out of bounds read. assert \valid_read(p-4);
+tests/value/strings.i:48:[value] warning: out of bounds read. assert \valid_read(p - 4);
 [value] Call to builtin bzero(({{ (unsigned char *)&a }},{10}))
 [value] computing for function u <- main1.
         Called from tests/value/strings.i:53.
 [value] Done for function u
 [value] computing for function strcpy <- main1.
         Called from tests/value/strings.i:53.
-tests/value/strings.i:21:[kernel] warning: out of bounds write.
-                  assert \valid(tmp_unroll_46);
-                  (tmp_unroll_46 from ldst++)
+tests/value/strings.i:21:[value] warning: out of bounds write.
+                 assert \valid(tmp_unroll_46);
+                 (tmp_unroll_46 from ldst++)
 tests/value/strings.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for strcpy
 [value] Done for function strcpy
@@ -77,12 +77,12 @@ tests/value/strings.i:21:[value] assertion 'Value,mem_access' got final status i
 tests/value/strings.i:39:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function strcpy:
+[value:final-states] Values at end of function strcpy:
   NON TERMINATING FUNCTION
-[value] Values at end of function strlen:
+[value:final-states] Values at end of function strlen:
   s ∈ {{ &s1[6] }}
   l ∈ {5}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2] ∈ {108}
@@ -114,6 +114,8 @@ tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status i
 [from] Done for function main1
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_bzero:
+  a[0..9] FROM \nothing
 [from] Function strcpy:
   NON TERMINATING - NO EFFECTS
 [from] Function strlen:

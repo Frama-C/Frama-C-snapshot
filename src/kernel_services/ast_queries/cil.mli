@@ -993,6 +993,13 @@ val dummyInstr: instr
     @plugin development guide *)
 val dummyStmt: stmt
 
+(** Make a statement equivalent to a pure expression, 'exp;'. Despite doing
+    nothing, this statement implies that it is valid to read 'exp' and
+    therefore has consequences on program verification.
+    The statement is build as 'tmp = exp;' where tmp is a new fresh
+    variable. *)
+val mkPureExpr: ?ghost:bool -> fundec:fundec -> ?loc:location -> exp -> stmt
+
 (** Make a while loop. Can contain Break or Continue *)
 val mkWhile: guard:exp -> body:stmt list -> stmt list
 
@@ -1213,14 +1220,14 @@ type 'a visitAction =
 
 val mk_behavior :
   ?name:string ->
-  ?assumes:('a list) ->
-  ?requires:('a list) ->
-  ?post_cond:((termination_kind * 'a) list) ->
-  ?assigns:('b Cil_types.assigns ) ->
-  ?allocation:('b  Cil_types.allocation option) ->
-  ?extended:((string * int * 'a list) list) ->
+  ?assumes:identified_predicate list ->
+  ?requires:identified_predicate list ->
+  ?post_cond:(termination_kind * identified_predicate) list ->
+  ?assigns:identified_term Cil_types.assigns ->
+  ?allocation:identified_term  Cil_types.allocation ->
+  ?extended:acsl_extension list ->
   unit ->
-  ('a, 'b) Cil_types.behavior
+  Cil_types.behavior
 (** @since Carbon-20101201
     returns a dummy behavior with the default name [Cil.default_behavior_name].
     invariant: [b_assumes] must always be
@@ -1229,11 +1236,11 @@ val mk_behavior :
 val default_behavior_name: string
   (** @since Carbon-20101201  *)
 
-val is_default_behavior: ('a,'b) behavior -> bool
+val is_default_behavior: behavior -> bool
 val find_default_behavior: funspec -> funbehavior option
   (** @since Carbon-20101201  *)
 
-val find_default_requires: ('a, 'b) behavior list -> 'a list
+val find_default_requires: behavior list -> identified_predicate list
   (** @since Carbon-20101201  *)
 
 (* ************************************************************************* *)
@@ -1645,15 +1652,9 @@ class type cilVisitor = object
 
   method videntified_predicate:
     identified_predicate -> identified_predicate visitAction
-  (**
-     @since Fluorine-20130401 
-     the child of an identified predicate is treated as a predicate named:
-     if you wish to modify names, you only have to override vpredicate_named,
-     not both videntified_predicate and vpredicate_named.
-  *)
 
+  method vpredicate_node: predicate_node -> predicate_node visitAction
   method vpredicate: predicate -> predicate visitAction
-  method vpredicate_named: predicate named -> predicate named visitAction
   method vbehavior: funbehavior -> funbehavior visitAction
   method vspec: funspec -> funspec visitAction
   method vassigns:
@@ -1698,11 +1699,12 @@ end
     @plugin development guide
 
     @since Sodium-20150201
+    @modify Silicon-20161101
 *)
 val register_behavior_extension:
   string ->
-  (cilVisitor -> (int * identified_predicate list) ->
-   (int * identified_predicate list) visitAction) -> unit
+  (cilVisitor -> acsl_extension_kind -> (acsl_extension_kind) visitAction)
+  -> unit
 
 (**/**)
 class internal_genericCilVisitor:
@@ -1845,10 +1847,9 @@ val visitCilBehaviors: cilVisitor -> funbehavior list -> funbehavior list
 
 (** visit an extended clause of a behavior.
     @since Nitrogen-20111001
+    @modify Silicon-20161101
  *)
-val visitCilExtended: 
-  cilVisitor -> (string * int * identified_predicate list) 
-  -> (string * int * identified_predicate list)
+val visitCilExtended: cilVisitor -> acsl_extension -> acsl_extension
 
 val visitCilModelInfo: cilVisitor -> model_info -> model_info
 
@@ -1857,9 +1858,9 @@ val visitCilLogicType: cilVisitor -> logic_type -> logic_type
 val visitCilIdPredicate:
   cilVisitor -> identified_predicate -> identified_predicate
 
-val visitCilPredicate: cilVisitor -> predicate -> predicate
+val visitCilPredicateNode: cilVisitor -> predicate_node -> predicate_node
 
-val visitCilPredicateNamed: cilVisitor -> predicate named -> predicate named
+val visitCilPredicate: cilVisitor -> predicate -> predicate
 
 val visitCilPredicates:
   cilVisitor -> identified_predicate list -> identified_predicate list
@@ -2135,7 +2136,7 @@ val lmone : ?loc:location -> unit -> term
 val lconstant : ?loc:location -> Integer.t -> term
 
 (** Bind all free variables with an universal quantifier *)
-val close_predicate : predicate named -> predicate named
+val close_predicate : predicate -> predicate
 
 (** extract [varinfo] elements from an [exp] *)
 val extract_varinfos_from_exp : exp -> Varinfo.Set.t
@@ -2148,7 +2149,7 @@ val extract_free_logicvars_from_term : term -> Logic_var.Set.t
 
 (** extract [logic_var] elements from a [predicate] *)
 val extract_free_logicvars_from_predicate :
-  predicate named -> Logic_var.Set.t
+  predicate -> Logic_var.Set.t
 
 (** extract [logic_label] elements from a [code_annotation] *)
 val extract_labels_from_annot:
@@ -2159,7 +2160,7 @@ val extract_labels_from_term: term -> Cil_datatype.Logic_label.Set.t
 
 (** extract [logic_label] elements from a [pred] *)
 val extract_labels_from_pred: 
-  predicate named -> Cil_datatype.Logic_label.Set.t 
+  predicate -> Cil_datatype.Logic_label.Set.t 
 
 (** extract [stmt] elements from [logic_label] elements *)
 val extract_stmts_from_labels:

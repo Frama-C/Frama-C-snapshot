@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   R ∈ {77}
   G ∈ {0}
   pG ∈ {0}
@@ -23,17 +23,17 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f0:
+[value:final-states] Values at end of function f0:
   G ∈ {77}
   F0 ∈ {77}
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   G ∈ {77}
   F0 ∈ {77}
   F1 ∈ {77}
   H ∈ {77}
   ph ∈ {{ &G }}
   __retres ∈ {77}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {77}
   pG ∈ {{ &G }}
   F0 ∈ {77}

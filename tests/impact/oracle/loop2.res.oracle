@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   t[0..9] ∈ [--..--]
   u[0..9] ∈ [--..--]
@@ -74,7 +74,7 @@ tests/impact/loop2.i:25:[value] entering loop for the first time
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
   t[0..9] ∈ [--..--]
   u[0..9] ∈ [--..--]

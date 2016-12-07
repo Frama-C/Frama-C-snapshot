@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function main1 <- main.
         Called from tests/value/loopinv.c:51.
@@ -86,29 +86,29 @@ tests/value/loopinv.c:42:[value] warning: loop invariant got status unknown.
 [value] Called Frama_C_show_each([0..98], [0..50])
 [value] Called Frama_C_show_each([0..99], [0..51])
 [value] Called Frama_C_show_each([0..99], [0..52])
-tests/value/loopinv.c:45:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+tests/value/loopinv.c:45:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] Called Frama_C_show_each([0..99], [0..2147483647])
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function init:
+[value:final-states] Values at end of function init:
   p ∈ {{ &t1 + [4..284],0%4 ; &t2 + [4..40],0%4 }}
   t1[0] ∈ UNINITIALIZED
     [1..71] ∈ {1} or UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
     [1..10] ∈ {1} or UNINITIALIZED
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   t1[0] ∈ UNINITIALIZED
     [1..71] ∈ {1} or UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
     [1..10] ∈ {1} or UNINITIALIZED
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   j ∈ [0..2147483647]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [report] Computing properties status...
 

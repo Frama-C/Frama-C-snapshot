@@ -99,7 +99,7 @@ let get_backtrace () =
   let current_src_string =
     try
       let src = Log.get_current_source() in
-      Pretty_utils.sfprintf "Current source was: %s:%d@."
+      Format.asprintf "Current source was: %s:%d@."
         (Filepath.pretty src.Lexing.pos_fname) src.Lexing.pos_lnum
     with Not_found -> "Current source was not set\n"
   in
@@ -229,7 +229,7 @@ let catch_toplevel_run ~f ~at_normal_exit ~on_error =
     (* write again on stdout *)
     Log.set_output
       ~isatty:(Unix.isatty Unix.stdout)
-      (Pervasives.output stdout)
+      (Pervasives.output_substring stdout)
       (fun () -> Pervasives.flush stdout);
     cleanup ();
   with
@@ -976,7 +976,8 @@ let plugin_help shortname =
             | g :: l ->
                 let print_group newline (s, o) =
                   if newline then Format.pp_print_newline fmt ();
-                  Format.fprintf fmt "@[*** %s@]@\n@\n" (String.uppercase s);
+                  Format.fprintf fmt "@[*** %s@]@\n@\n"
+                    (Transitioning.String.uppercase_ascii s);
                   ignore (print_options !o)
                 in
                 print_group false g;
@@ -1006,21 +1007,30 @@ let help () =
     end ;
   raise Exit
 
+(** reverse dependency to dynamic.ml *)
+let loading_failures = Queue.create ()
+let add_loading_failures s = Queue.add s loading_failures
 let list_plugins () =
   Log.print_on_output
     begin fun fmt ->
-      let order p1 p2 = String.compare 
-          (String.lowercase p1.Plugin.name) 
-          (String.lowercase p2.Plugin.name) in
+      let order p1 p2 =
+        Extlib.compare_ignore_case p1.Plugin.name p2.Plugin.name
+      in
       let plugins = List.sort order (Plugin.all_plugins ()) in
       List.iter
         (fun p ->
            if p.Plugin.name <> "" then
              print_helpline fmt
-               (String.capitalize p.Plugin.name)
+               (Transitioning.String.capitalize_ascii p.Plugin.name)
                (Printf.sprintf "%s (-%s-h)" p.Plugin.help p.Plugin.short)
                "")
         plugins ;
+      if not (Queue.is_empty loading_failures) then begin
+        Kernel_log.abort
+          "@[The following packages failed to load:@ %a@]"
+          (Pretty_utils.pp_iter Queue.iter ~sep:",@ " Format.pp_print_string)
+          loading_failures;
+      end;
     end ;
   raise Exit
 

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
         Called from tests/value/bts0506.i:47.
@@ -49,27 +49,27 @@ tests/value/bts0506.i:24:[kernel] warning: Neither code nor specification for fu
 tests/value/bts0506.i:27:[kernel] warning: Neither code nor specification for function f4, generating default assigns from the prototype
 [value] using specification for function f4
 [value] Done for function f4
-tests/value/bts0506.i:27:[kernel] warning: non-finite float value. assert \is_finite(tmp_8);
-                                          (tmp_8 from f4())
+tests/value/bts0506.i:27:[value] warning: non-finite float value. assert \is_finite(tmp_8);
+                                         (tmp_8 from f4())
 [value] computing for function f4 <- main2 <- main.
         Called from tests/value/bts0506.i:28.
 [value] Done for function f4
-tests/value/bts0506.i:28:[kernel] warning: non-finite float value. assert \is_finite(tmp_9);
-                                          (tmp_9 from f4())
+tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(tmp_9);
+                                         (tmp_9 from f4())
 [value] computing for function f5 <- main2 <- main.
         Called from tests/value/bts0506.i:30.
 tests/value/bts0506.i:30:[kernel] warning: Neither code nor specification for function f5, generating default assigns from the prototype
 [value] using specification for function f5
 [value] Done for function f5
-tests/value/bts0506.i:30:[kernel] warning: non-finite double value. assert \is_finite(tmp_10);
-                                           (tmp_10 from f5())
-tests/value/bts0506.i:30:[kernel] warning: non-finite float value. assert \is_finite((float)tmp_10);
+tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(tmp_10);
                                           (tmp_10 from f5())
+tests/value/bts0506.i:30:[value] warning: non-finite float value. assert \is_finite((float)tmp_10);
+                                         (tmp_10 from f5())
 [value] computing for function f5 <- main2 <- main.
         Called from tests/value/bts0506.i:31.
 [value] Done for function f5
-tests/value/bts0506.i:31:[kernel] warning: non-finite double value. assert \is_finite(tmp_11);
-                                           (tmp_11 from f5())
+tests/value/bts0506.i:31:[value] warning: non-finite double value. assert \is_finite(tmp_11);
+                                          (tmp_11 from f5())
 [value] computing for function f6 <- main2 <- main.
         Called from tests/value/bts0506.i:33.
 tests/value/bts0506.i:33:[kernel] warning: Neither code nor specification for function f6, generating default assigns from the prototype
@@ -94,9 +94,9 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {43}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   r1 ∈ [--..--]
   r2 ∈ [--..--]
   r3 ∈ [--..--]
@@ -110,12 +110,15 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
   r10 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   r11 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   r12 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-  r13 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r14 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r15 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
-  r16 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
-  r17 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
-[value] Values at end of function main:
+  r13 ∈
+     {{ NULL + [0..4294967295] ; &alloced_return_f6 + [0..2147483644],0%4 }}
+  r14 ∈
+     {{ NULL + [0..4294967295] ; &alloced_return_f6 + [0..2147483644],0%4 }}
+  r15 ∈
+     {{ NULL + [0..4294967295] ; &alloced_return_f6 + [0..2147483644],0%4 }}
+  r16 ∈ {{ NULL + [0..4294967295] ; &alloced_return_f7 + [0..2147483647] }}
+  r17 ∈ {{ NULL + [0..4294967295] ; &alloced_return_f7 + [0..2147483647] }}
+[value:final-states] Values at end of function main:
   x ∈ {43}
 [from] Computing for function f
 [from] Done for function f

@@ -30,6 +30,7 @@ module DatatypeMessages =
        let reprs =
          [ { evt_kind = Failure;
              evt_plugin = "";
+             evt_dkey = None;
              evt_source = None;
              evt_message = "" } ]
        let mem_project = Datatype.never_any_project

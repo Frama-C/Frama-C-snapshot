@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/copy.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function copy
@@ -14,9 +13,9 @@ Let a_1 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(i_1) /\ is_sint32(n).
   (* Goal *)
-  When: (i < n) /\ (0 <= i).
+  When: (0 <= i) /\ (i < n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -24,7 +23,7 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((i_2 < i_1) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
       (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
@@ -43,7 +42,7 @@ Assume {
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -51,18 +50,18 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((i_2 < i) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
       (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
-  Have: forall i_2 : Z. let a_2 = shift_sint32(a, i_2) in ((i_2 < i) ->
-      ((0 <= i_2) -> (Mint_0[a_2] = m[a_2]))).
+  Have: forall i_2 : Z. let a_2 = shift_sint32(a, i_2) in ((0 <= i_2) ->
+      ((i_2 < i) -> (Mint_0[a_2] = m[a_2]))).
   (* Assertion 'B' *)
-  Have: forall i_2 : Z. let a_2 = shift_sint32(b, i_2) in ((i_2 < i) ->
-      ((0 <= i_2) -> (Mint_0[a_2] = m[a_2]))).
+  Have: forall i_2 : Z. let a_2 = shift_sint32(b, i_2) in ((0 <= i_2) ->
+      ((i_2 < i) -> (Mint_0[a_2] = m[a_2]))).
 }
 Prove: m[shift_sint32(a, i_1)] = m[shift_sint32(b, i_1)].
 
@@ -79,7 +78,7 @@ Let a_1 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -87,18 +86,18 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_2] = m[a_2]))).
+  Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
   (* Assertion 'B' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_2] = m[a_2]))).
+  Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
 }
 Prove: (-1) <= i.
 
@@ -115,9 +114,9 @@ Let a_2 = shift_sint32(a, i).
 Assume {
   Type: is_sint32(i_1) /\ is_sint32(n).
   (* Goal *)
-  When: (i < i_1) /\ (0 <= i).
+  When: (0 <= i) /\ (i < i_1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -125,7 +124,7 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((i_2 < i_1) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
       (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
@@ -144,9 +143,9 @@ Let a_2 = shift_sint32(b, i).
 Assume {
   Type: is_sint32(i_1) /\ is_sint32(n).
   (* Goal *)
-  When: (i < i_1) /\ (0 <= i).
+  When: (0 <= i) /\ (i < i_1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -154,15 +153,15 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((i_2 < i_1) -> ((0 <= i_2) ->
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
       (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
   (* Then *)
   Have: i_1 < n.
   (* Assertion 'A' *)
-  Have: forall i_2 : Z. let a_3 = shift_sint32(a, i_2) in ((i_2 < i_1) ->
-      ((0 <= i_2) -> (Mint_0[a_3] = m[a_3]))).
+  Have: forall i_2 : Z. let a_3 = shift_sint32(a, i_2) in ((0 <= i_2) ->
+      ((i_2 < i_1) -> (Mint_0[a_3] = m[a_3]))).
 }
 Prove: Mint_0[a_2] = m[a_2].
 
@@ -182,7 +181,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_1, n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -190,18 +189,18 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_2] = m[a_2]))).
+  Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
   (* Assertion 'B' *)
-  Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_2] = m[a_2]))).
+  Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
 }
 Prove: included(a_1, n, a_1, n).
 
@@ -217,7 +216,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_1, 1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
@@ -225,18 +224,18 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_2, n).
   (* Invariant 'Copy' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((0 <= i_1) ->
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
       (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
-  Have: forall i_1 : Z. let a_3 = shift_sint32(a, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_3] = m[a_3]))).
+  Have: forall i_1 : Z. let a_3 = shift_sint32(a, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_3] = m[a_3]))).
   (* Assertion 'B' *)
-  Have: forall i_1 : Z. let a_3 = shift_sint32(b, i_1) in ((i_1 < i) ->
-      ((0 <= i_1) -> (Mint_1[a_3] = m[a_3]))).
+  Have: forall i_1 : Z. let a_3 = shift_sint32(b, i_1) in ((0 <= i_1) ->
+      ((i_1 < i) -> (Mint_1[a_3] = m[a_3]))).
 }
 Prove: included(a_1, 1, a_2, n).
 
@@ -254,7 +253,7 @@ Let a_1 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)

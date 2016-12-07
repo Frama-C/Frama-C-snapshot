@@ -22,9 +22,18 @@
 
 type kind = Result | Feedback | Debug | Warning | Error | Failure
 
+let _pretty_kind fmt = function
+  | Result -> Format.fprintf fmt "Result"
+  | Feedback -> Format.fprintf fmt "Feedback"
+  | Debug -> Format.fprintf fmt "Debug"
+  | Warning -> Format.fprintf fmt "Warning"
+  | Error -> Format.fprintf fmt "Error"
+  | Failure -> Format.fprintf fmt "Failure"
+
 type event = {
   evt_kind : kind ;
   evt_plugin : string ;
+  evt_dkey : string option;
   evt_source : Lexing.position option ;
   evt_message : string ;
 }
@@ -115,7 +124,7 @@ let stdout = {
   clean = true ;
   delayed = [] ;
   isatty = Unix.isatty Unix.stdout ;
-  output = Pervasives.output Pervasives.stdout ;
+  output = Pervasives.output_substring Pervasives.stdout ;
   flush =  (fun () -> Pervasives.flush Pervasives.stdout);
 }
 
@@ -194,13 +203,8 @@ let print_delayed job =
 
 type buffer = {
   mutable formatter : Format.formatter ; (* formatter on self (recursive) *)
-  mutable text : string ;
-  mutable pos : int ; (* end of material *)
+  mutable buf : FCBuffer.t ;
 }
-
-let rec size_up required size =
-  let s = 2*size+1 in
-  if required <= s then s else size_up required s
 
 let is_blank = function
   | ' ' | '\t' | '\r' | '\n' -> true
@@ -208,20 +212,20 @@ let is_blank = function
 
 let trim_begin buffer =
   let rec lookup_fwd text k n =
-    if k < n && is_blank text.[k] then lookup_fwd text (succ k) n else k
-  in lookup_fwd buffer.text 0 buffer.pos
+    if k < n && is_blank (FCBuffer.nth text k) then lookup_fwd text (succ k) n else k
+  in lookup_fwd buffer.buf 0 (FCBuffer.length buffer.buf)
 
 let trim_end buffer =
   let rec lookup_bwd text k =
-    if k >= 0 && is_blank text.[k] then lookup_bwd text (pred k) else k
-  in lookup_bwd buffer.text (pred buffer.pos)
+    if k >= 0 && is_blank (FCBuffer.nth text k) then lookup_bwd text (pred k) else k
+  in lookup_bwd buffer.buf (pred (FCBuffer.length buffer.buf))
 
 let reduce_buffer buffer =
-  if String.length buffer.text > min_buffer then
-    buffer.text <- String.create min_buffer
+  if FCBuffer.length buffer.buf > min_buffer then
+    FCBuffer.reset buffer.buf
 
 let truncate_text buffer size =
-  if buffer.pos > size then
+  if FCBuffer.length buffer.buf > size then
     begin
       let p = trim_begin buffer in
       let q = trim_end buffer in
@@ -229,50 +233,31 @@ let truncate_text buffer size =
       if n <= 0 then
         begin
           reduce_buffer buffer ;
-          buffer.pos <- 0 ;
         end
       else
       if n <= size then
         begin
-          String.blit buffer.text p buffer.text 0 n ;
-          buffer.pos <- n ;
+          FCBuffer.blit_buffer buffer.buf p buffer.buf 0 n ;
         end
       else
         begin
           let n_left = size / 2 - 3 in
           let n_right = size - n_left - 5 in
-          if p > 0 then String.blit buffer.text p buffer.text 0 n_left ;
-          String.blit "[...]" 0 buffer.text n_left 5 ;
-          String.blit buffer.text (q-n_right+1) buffer.text (n_left + 5) n_right ;
-          buffer.pos <- size ;
+          if p > 0 then FCBuffer.blit_buffer buffer.buf p buffer.buf 0 n_left ;
+          FCBuffer.blit_substring "[...]" 0 buffer.buf n_left 5 ;
+          FCBuffer.blit_buffer buffer.buf (q-n_right+1) buffer.buf (n_left + 5) n_right ;
+          FCBuffer.truncate buffer.buf size ;
         end
     end
 
-let append_text buffer text k n =
-  begin
-    let req = buffer.pos + n in
-    let avail = String.length buffer.text in
-    if req > avail then
-      begin
-        let s = size_up req avail in
-        let t = String.create s in
-        String.blit buffer.text 0 t 0 buffer.pos ;
-        buffer.text <- t ;
-      end ;
-    String.blit text k buffer.text buffer.pos n ;
-    buffer.pos <- buffer.pos + n ;
-    if buffer.pos > tgr_buffer then truncate_text buffer max_buffer ;
-  end
-
 let append buffer text k n =
-  if n > 0 then
-    append_text buffer text k n
+  FCBuffer.add_substring buffer.buf text k n;
+  if FCBuffer.length buffer.buf > tgr_buffer then truncate_text buffer max_buffer
 
 let new_buffer () =
   let buffer = {
     formatter = null ;
-    text = String.create min_buffer ;
-    pos = 0 ;
+    buf = FCBuffer.create min_buffer ;
   } in
   let fmt = Format.make_formatter (append buffer) (fun () -> ()) in
   buffer.formatter <- fmt ; buffer
@@ -501,9 +486,7 @@ let open_buffer c =
   if c.stack > 0 then
     ( c.stack <- succ c.stack ; new_buffer () )
   else
-    ( c.stack <- 1 ;
-      c.locked_buffer.pos <- 0 ;
-      c.locked_buffer )
+    ( c.stack <- 1 ; c.locked_buffer )
 
 let close_buffer c =
   if c.stack > 1 then
@@ -517,7 +500,7 @@ let fire_listeners emitwith listeners event =
   | None , fs -> List.iter (do_fire (Lazy.force event)) fs
   | Some f , _ -> do_fire (Lazy.force event) f
 
-let logtext c ?(transient=false) ~kind ~once ~prefix ~source ~append ~emitwith ~echo text =
+let logtext c ?(transient=false) ~kind ~once ?dkey ~prefix ~source ~append ~emitwith ~echo text =
   let buffer = open_buffer c in
   Format.kfprintf
     (fun fmt ->
@@ -530,20 +513,21 @@ let logtext c ?(transient=false) ~kind ~once ~prefix ~source ~append ~emitwith ~
          let q = trim_end buffer in
          if p <= q then
            if transient then
-             do_transient c.terminal source buffer.text p q
+             do_transient c.terminal source (FCBuffer.contents buffer.buf) p q
            else
              begin
                let event = lazy {
                  evt_kind = kind ;
                  evt_plugin = c.plugin ;
-                 evt_message = String.sub buffer.text p (q+1-p) ;
+                 evt_dkey = dkey ;
+                 evt_message = FCBuffer.sub buffer.buf p (q+1-p) ;
                  evt_source = source ;
                } in
                if not once || !check_not_yet (Lazy.force event) then
                  begin
                    let e = c.emitters.(nth_kind kind) in
                    if echo && e.echo then
-                     do_echo c.terminal source prefix buffer.text p q ;
+                     do_echo c.terminal source prefix (FCBuffer.contents buffer.buf) p q ;
                    fire_listeners emitwith e.listeners event
                  end
              end ;
@@ -553,7 +537,7 @@ let logtext c ?(transient=false) ~kind ~once ~prefix ~source ~append ~emitwith ~
          raise e
     ) buffer.formatter text
 
-let logwith c ~kind ~prefix ~source ~append ~echo f text =
+let logwith c ~kind ?dkey ~prefix ~source ~append ~echo f text =
   let buffer = open_buffer c in
   Format.kfprintf
     (fun fmt ->
@@ -566,12 +550,13 @@ let logwith c ~kind ~prefix ~source ~append ~echo f text =
          let event = lazy {
            evt_kind = kind ;
            evt_plugin = c.plugin ;
-           evt_message = if p<=q then String.sub buffer.text p (q+1-p) else "" ;
+           evt_dkey = dkey ;
+           evt_message = if p<=q then FCBuffer.sub buffer.buf p (q+1-p) else "" ;
            evt_source = source ;
          } in
          let e = c.emitters.(nth_kind kind) in
          if echo && e.echo && p <= q then
-           do_echo c.terminal source prefix buffer.text p q ;
+           do_echo c.terminal source prefix (FCBuffer.contents buffer.buf) p q ;
          List.iter (do_fire (Lazy.force event)) e.listeners ;
          close_buffer c ;
          f event
@@ -842,6 +827,7 @@ struct
     if verbose_atleast level && has_debug_key dkey then
       logtext channel
         ~kind:Result
+        ?dkey
         ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
         ~once ~emitwith ~echo ~append
@@ -867,6 +853,7 @@ struct
     | `Message ->
         logtext channel
           ~kind:Feedback
+          ?dkey
           ~prefix:(prefix_dkey dkey)
           ~source:(get_source current source)
           ~once ~emitwith ~echo ~append
@@ -875,6 +862,7 @@ struct
         logtext channel
           ~transient:true
           ~kind:Feedback
+          ?dkey
           ~prefix:prefix_first
           ~once:false ~echo:true
           ~source:None ~emitwith:None ~append:None
@@ -895,6 +883,7 @@ struct
     if should_output_debug level dkey then
       logtext channel
         ~kind:Debug
+        ?dkey
         ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
         ~once ~emitwith ~echo ~append
@@ -1045,7 +1034,7 @@ struct
         (* Header is a regular message *)
         let header = match header with None -> noprint | Some h -> h in
         logtext channel ~kind:Result
-          ~prefix:(prefix_dkey dkey) ~source:(get_source current source)
+          ?dkey ~prefix:(prefix_dkey dkey) ~source:(get_source current source)
           ~emitwith:(Some noemit) ~echo:true ~append:None ~once:false
           "%t" header ;
         let print_line = function

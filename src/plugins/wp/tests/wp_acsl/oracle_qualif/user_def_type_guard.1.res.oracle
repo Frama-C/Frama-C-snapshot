@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/user_def_type_guard.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_qed_ko : Unknown

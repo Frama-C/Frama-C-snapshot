@@ -41,6 +41,11 @@ module type With_Top = sig
   val top: t  (** largest element *)
 end
 
+module type With_Top_Opt = sig
+  type t
+  val top_opt: t option (** optional largest element *)
+end
+
 module type With_Error_Top = sig
   exception Error_Top
 end

@@ -14,9 +14,9 @@ struct S x = {.v = 1, .a = {0, 0, 0, 0, 0}, .b = 2};
 struct SS y;
 /*@
 logic struct S foo(struct S x) =
-  {{x \with .b = (int)(x.b+1)} \with .v = (int)3};
+  {{x \with .b = (int)(x.b + 1)} \with .v = (int)3};
  */
-/*@ lemma foo2{L}: x ≡ {foo(x) \with .b = (int)(x.a[0]+1)};
+/*@ lemma foo2{L}: x ≡ {foo(x) \with .b = (int)(x.a[0] + 1)};
  */
 /*@
 lemma bar{L}:
@@ -32,21 +32,21 @@ lemma bar{L}:
 /*@
 lemma bar3{L}:
   y ≡
-  {y \with .a = \let idx = 3+1;
-                {y.a \with [idx] = {y.a[idx] \with .b = (int)(x.b+1)}}};
+  {y \with .a = \let idx = 3 + 1;
+                {y.a \with [idx] = {y.a[idx] \with .b = (int)(x.b + 1)}}};
  */
 /*@
 lemma bar4{L}:
   y ≡
   {y \with .a = {y.a \with [4] = {y.a[4] \with .a = {y.a[4].a \with [
-  ..] = (int)(x.b+1)}}}};
+  ..] = (int)(x.b + 1)}}}};
  */
 /*@
 lemma bar5{L}:
   y ≡
   (\let tmp =
    {y \with .a = {y.a \with [4] = {{y.a[4] \with .a = {y.a[4].a \with [
-   ..] = (int)(x.b+1)}} \with .v = (int)3}}};
+   ..] = (int)(x.b + 1)}} \with .v = (int)3}}};
    {tmp \with .b = {tmp.b \with .v = (int)4}});
  */
 /*@ lemma cast{L}: y.a[0].v ≡ (\let tmp = (struct S)y; tmp.v);

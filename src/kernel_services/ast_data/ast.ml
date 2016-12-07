@@ -96,9 +96,6 @@ let default_initialization =
 
 let set_default_initialization f = default_initialization := f
 
-let syntactic_constant_folding ast =
-  Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) ast
-
 module Computing =
   State_builder.False_ref(
     struct let name = "Ast.computing" let dependencies = [] end)
@@ -110,11 +107,7 @@ let force_compute () =
   Kernel.feedback ~level:2 "computing the AST";
   !default_initialization ();
   Computing.set false;
-  let s = get () in
-  (* Syntactic constant folding before analysing files if required *)
-  if Kernel.Constfold.get () then syntactic_constant_folding s;
-  After_building.apply s;
-  s
+  let s = get () in After_building.apply s; s
 
 let get () = memo (fun () -> force_compute ())
 
@@ -128,9 +121,17 @@ let set_file file =
     if old_file == file then old_file
     else raise (Bad_Initialization "Too many AST initializations")
   in
-  ignore 
+  ignore
     (memo ~change
-       (fun () -> mark_as_computed (); After_building.apply file; file))
+       (fun () ->
+          mark_as_computed ();
+          if not (Computing.get ()) then
+            (* if we are computing the Ast through force_compute, the hooks
+               will be applied by force_compute itself, and trying to do that
+               here might trigger a Bad_Initialization (see gitlab issue #209)
+            *)
+            After_building.apply file;
+          file))
 
 module UntypedFiles = struct
 

@@ -67,7 +67,7 @@ struct
     | C( e , r ) when A.equal x e -> r
     | _ -> let r = f x in m.(h) <- C(x,r) ; r
 
-  let create ~size = Array.create (alloc size) N
+  let create ~size = Array.make (alloc size) N
 
 end
 
@@ -87,6 +87,6 @@ struct
     | C( a , b , r ) when A.equal x a && A.equal y b -> r
     | _ -> let r = f x y in m.(h) <- C(x,y,r) ; r
 
-  let create ~size = Array.create (alloc size) N
+  let create ~size = Array.make (alloc size) N
 
 end

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   I ∈ {2}
   J ∈ {8}
@@ -109,7 +109,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function const_destination:
+[value:final-states] Values at end of function const_destination:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
   s.i1 ∈ {3; 4}
@@ -121,11 +121,11 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6; 7}
    [6..9] ∈ {0}
-[value] Values at end of function const_formal:
+[value:final-states] Values at end of function const_formal:
   i ∈ [--..--]
-[value] Values at end of function constrain_G:
+[value:final-states] Values at end of function constrain_G:
   r ∈ {3; 5}
-[value] Values at end of function pointer_to_const:
+[value:final-states] Values at end of function pointer_to_const:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
   s.i1 ∈ {3; 4}
@@ -137,7 +137,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6; 7}
    [6..9] ∈ {0}
-[value] Values at end of function modify_I:
+[value:final-states] Values at end of function modify_I:
   I ∈ {0; 2; 3}
   J ∈ {8}
   s.i1 ∈ {3}
@@ -149,7 +149,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6}
    [6..9] ∈ {0}
-[value] Values at end of function modify_J:
+[value:final-states] Values at end of function modify_J:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
   s.i1 ∈ {3}
@@ -161,7 +161,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6}
    [6..9] ∈ {0}
-[value] Values at end of function modify_s:
+[value:final-states] Values at end of function modify_s:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
   s.i1 ∈ {3; 4}
@@ -173,7 +173,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6}
    [6..9] ∈ {0}
-[value] Values at end of function modify_t:
+[value:final-states] Values at end of function modify_t:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
   s.i1 ∈ {3; 4}
@@ -185,9 +185,9 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [4] ∈ {5}
    [5] ∈ {6; 7}
    [6..9] ∈ {0}
-[value] Values at end of function pointer_to_const_logic:
+[value:final-states] Values at end of function pointer_to_const_logic:
   J ∈ {0; 8; 9; 12}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   I ∈ {0; 2; 3}
   J ∈ {0; 8; 9; 12}
   s.i1 ∈ {3; 4}
@@ -310,7 +310,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ [--..--]
   I ∈ {2}
   J ∈ {8}
@@ -328,7 +328,7 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
 [value] computing for function const_formal <- main.
         Called from tests/value/const.i:84.
 [value] Called Frama_C_show_each([-2147483648..2147483647])
-tests/value/const.i:21:[kernel] warning: out of bounds write. assert \valid(&i);
+tests/value/const.i:21:[value] warning: out of bounds write. assert \valid(&i);
 tests/value/const.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for const_formal
 [value] Done for function const_formal
@@ -340,19 +340,19 @@ tests/value/const.i:21:[kernel] warning: all target addresses were invalid. This
 [value] computing for function modify_I <- main.
         Called from tests/value/const.i:87.
 [value] Called Frama_C_show_each({2})
-tests/value/const.i:38:[kernel] warning: out of bounds write. assert \valid(&I);
+tests/value/const.i:38:[value] warning: out of bounds write. assert \valid(&I);
 tests/value/const.i:38:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_I <- main.
         Called from tests/value/const.i:39.
 [value] Called Frama_C_show_each({2})
-tests/value/const.i:26:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/const.i:26:[value] warning: out of bounds write. assert \valid(p);
 tests/value/const.i:26:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for pointer_to_const
 [value] Done for function pointer_to_const
 [value] computing for function const_destination <- modify_I <- main.
         Called from tests/value/const.i:40.
 [value] Called Frama_C_show_each({2})
-tests/value/const.i:32:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/const.i:32:[value] warning: out of bounds write. assert \valid(p);
 tests/value/const.i:32:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for const_destination
 [value] Done for function const_destination
@@ -377,7 +377,7 @@ tests/value/const.i:32:[kernel] warning: all target addresses were invalid. This
 [value] computing for function modify_s <- main.
         Called from tests/value/const.i:89.
 [value] Called Frama_C_show_each({3})
-tests/value/const.i:52:[kernel] warning: out of bounds write. assert \valid(&s.i1);
+tests/value/const.i:52:[value] warning: out of bounds write. assert \valid(&s.i1);
 tests/value/const.i:52:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_s <- main.
         Called from tests/value/const.i:53.
@@ -394,7 +394,7 @@ tests/value/const.i:52:[kernel] warning: all target addresses were invalid. This
 [value] computing for function modify_t <- main.
         Called from tests/value/const.i:90.
 [value] Called Frama_C_show_each({6})
-tests/value/const.i:59:[kernel] warning: out of bounds write. assert \valid(&t[5]);
+tests/value/const.i:59:[value] warning: out of bounds write. assert \valid(&t[5]);
 tests/value/const.i:59:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] computing for function pointer_to_const <- modify_t <- main.
         Called from tests/value/const.i:60.
@@ -415,7 +415,7 @@ tests/value/const.i:59:[kernel] warning: all target addresses were invalid. This
 [value] Done for function constrain_G
 [value] computing for function pointer_to_const_logic <- main.
         Called from tests/value/const.i:93.
-tests/value/const.i:80:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/const.i:80:[value] warning: out of bounds write. assert \valid(p);
 tests/value/const.i:80:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for pointer_to_const_logic
 [value] Done for function pointer_to_const_logic
@@ -428,25 +428,25 @@ tests/value/const.i:52:[value] assertion 'Value,mem_access' got final status inv
 tests/value/const.i:59:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function const_destination:
+[value:final-states] Values at end of function const_destination:
   J ∈ {0}
-[value] Values at end of function const_formal:
+[value:final-states] Values at end of function const_formal:
   
-[value] Values at end of function constrain_G:
+[value:final-states] Values at end of function constrain_G:
   r ∈ {3; 5}
-[value] Values at end of function pointer_to_const:
+[value:final-states] Values at end of function pointer_to_const:
   NON TERMINATING FUNCTION
-[value] Values at end of function modify_I:
+[value:final-states] Values at end of function modify_I:
   J ∈ {8}
-[value] Values at end of function modify_J:
+[value:final-states] Values at end of function modify_J:
   J ∈ {0; 8; 9}
-[value] Values at end of function modify_s:
+[value:final-states] Values at end of function modify_s:
   J ∈ {0; 8; 9}
-[value] Values at end of function modify_t:
+[value:final-states] Values at end of function modify_t:
   J ∈ {0; 8; 9}
-[value] Values at end of function pointer_to_const_logic:
+[value:final-states] Values at end of function pointer_to_const_logic:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   J ∈ {0; 8; 9}
 [from] Computing for function const_destination
 [from] Done for function const_destination

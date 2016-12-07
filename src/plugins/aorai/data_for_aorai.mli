@@ -30,6 +30,10 @@ open Promelaast
     are mainly accessors for data. The use of this module is mainly done
     through the ltl_utils module. *)
 
+(** raised when simplifications make the resulting automaton empty,
+    meaning that the code and the property do not match. *)
+exception Empty_automaton
+
 (* ************************************************************************* *)
 (** {2 LTL/Promela primitives} *)
 (* ************************************************************************* *)
@@ -426,6 +430,10 @@ val set_usedinfo : string -> Cil_types.enuminfo -> unit
 (** These functions are direct accesses to the table memorizing the enuminfo data associated to the name of an enumeration structure, from which cenum info are computed.*)
 val get_usedinfo : string -> Cil_types.enuminfo
 
+(** Simplify the automaton by removing transitions and states that are
+    never active during an execution of the program.
+    @raise Empty_automaton if the simplification result in an empty automaton.
+ *)
 val removeUnusedTransitionsAndStates : unit -> unit
 
 (*

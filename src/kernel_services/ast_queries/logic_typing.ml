@@ -48,7 +48,7 @@ let wcharlist_of_string s =
   let rec treat_escape_octal n nb_pass =
     if nb_pass > 2 then res:= n::!res
     else if !i >= String.length s then res:= n::!res
-    else match s.[!i] with
+    else match String.get s !i with
         x when '0' <= x && x <= '9' ->
           incr i;
           treat_escape_octal
@@ -58,7 +58,7 @@ let wcharlist_of_string s =
   in
   let rec treat_escape_hexa n =
     if !i >= String.length s then res:= n::!res
-    else match s.[!i] with
+    else match String.get s !i with
         x when '0' <= x && x <= '9' ->
           incr i;
           treat_escape_hexa
@@ -80,7 +80,7 @@ let wcharlist_of_string s =
     if !i >= String.length s then
       Kernel.warning ~current:true "Ill-formed escape sequence in wide string"
     else begin
-      match s.[!i] with
+      match String.get s !i with
           x when '0' <= x && x <= '9' ->
             treat_escape_octal Int64.zero 0
         | 'x' -> incr i; treat_escape_hexa Int64.zero
@@ -102,7 +102,7 @@ let wcharlist_of_string s =
     end
   in
   while (!i < String.length s) do
-    match s.[!i] with
+    match String.get s !i with
       | '\\' -> incr i; treat_escape_sequence ()
       | c -> res := Int64.of_int (Char.code c)::!res; incr i
   done;
@@ -209,7 +209,7 @@ let optimize_comprehension term =
     | Tcomprehension
         (t, [x],
          Some
-           { content =
+           { pred_content =
                Papp({l_var_info = {lv_name="\\subset"}},[],[elt;set]) }) ->
       (match elt.term_node with
         | TLogic_coerce
@@ -483,13 +483,13 @@ type typing_context = {
   pre_state:Lenv.t;
   post_state:Cil_types.termination_kind list -> Lenv.t;
   assigns_env:Lenv.t;
-  type_predicate:Lenv.t -> Logic_ptree.lexpr -> predicate named;
+  type_predicate:Lenv.t -> Logic_ptree.lexpr -> predicate;
   type_term:Lenv.t -> Logic_ptree.lexpr -> term;
   type_assigns:
     accept_formal:bool ->
     Lenv.t ->
     Logic_ptree.lexpr Cil_types.assigns -> identified_term Cil_types.assigns;
-  error: 'a. location -> ('a,formatter,unit) format -> 'a
+  error: 'a 'b. location -> ('a,formatter,unit,'b) format4 -> 'a
 }
 
 module Extensions = struct
@@ -499,9 +499,9 @@ module Extensions = struct
   let register name typer =
     Logic_utils.register_extension name;
     Hashtbl.add typer_tbl name typer
-  let typer name ~typing_context:typing_context ~loc bhv p =
+  let typer name ~typing_context:typing_context ~loc p =
     try let typ = find_typer name in
-    typ ~typing_context ~loc bhv p
+    typ ~typing_context ~loc p
     with Not_found ->
       Kernel.fatal ~source:(fst loc) "unsupported clause of name '%s'" name
 end
@@ -931,7 +931,7 @@ struct
       | TIndex (t,o) -> needs_at t || needs_at_offset o
       | TField(_,o) | TModel(_,o) -> needs_at_offset o
     and needs_at_pred p =
-      match p.content with
+      match p.pred_content with
       | Pfalse | Ptrue | Pat _ -> false
       | Papp(_,_,t) | Pseparated t -> List.exists needs_at t
       | Prel(_,t1,t2) -> needs_at t1 || needs_at t2
@@ -1736,7 +1736,7 @@ struct
       String.iter (fun c -> l:=Int64.of_int (Char.code c) :: !l) s;
       List.rev !l
     in
-    match s.[0] with
+    match String.get s 0 with
       | 'L' -> (* L'wide_char' *)
           let content = String.sub s 2 (String.length s - 3) in
           let tokens = explode content in
@@ -2055,22 +2055,50 @@ struct
    call itself to have a consistent AST, i.e. something like
    logic f{L}(...) = ... f{L}(...).
 
+   In case of inductive predicates, the considered label is not the one given
+   into the profile of the predicate, but the one given into the defined case,
+   i.e. something like
+   inductive P{...}(...) { case n{L}: .... P{L}(...) }.
+
    The visit must be done after the type-checking, as the implicit label may
    be added after the recursive call has been handled.
 *)
 let add_label info lab =
   let vis =
-    object
+    object(self)
+      val mutable curr_lab = lab
       inherit Cil.nopCilVisitor
       method! vterm_node t =
         match t with
         | Tapp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-          ChangeDoChildrenPost(Tapp(info,[lab, lab], args),Extlib.id)
+          ChangeDoChildrenPost(Tapp(info,[lab, curr_lab], args),Extlib.id)
         | _ -> DoChildren
-      method! vpredicate p =
+      method! vpredicate_node p =
         match p with
         | Papp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-          ChangeDoChildrenPost (Papp(info, [lab,lab], args),Extlib.id)
+          ChangeDoChildrenPost (Papp(info, [lab,curr_lab], args),Extlib.id)
+        | _ -> DoChildren
+
+      method private treat_ind_case (n,labs,t,p as ind) =
+        match labs with
+        | [ mylab ] ->
+          let old = curr_lab in
+          curr_lab <- mylab;
+          let p' = Cil.visitCilPredicate self p in
+          let res = if p' != p then (n, labs, t, p') else ind in
+          curr_lab <- old;
+          res
+        | _ -> ind
+          (* We do not have a context allowing to update the predicate.
+             Implies that any recursive call is already explicitely guarded
+          *)
+
+      method! vlogic_info_decl info =
+        match info.l_body with
+        | LBinductive l ->
+          let l' = Cil.mapNoCopy self#treat_ind_case l in
+          if l != l' then info.l_body <- LBinductive l';
+          SkipChildren
         | _ -> DoChildren
     end
   in
@@ -2097,7 +2125,7 @@ let add_label info lab =
     match !Lenv.default_label with
       | None -> p
       | Some lab ->
-	{ p with content = Pat(p,lab) }
+	{ p with pred_content = Pat(p,lab) }
 
   let update_ind_case_wrt_default_label (name, labs, tvars, p as case) =
     match labs, !Lenv.default_label with
@@ -2466,6 +2494,10 @@ let add_label info lab =
                                   %s as constant" x)
           end
       | PLapp (f, labels, tl) ->
+          let f = try (match (C.find_macro f).lexpr_node with 
+                     | PLvar (x) -> x
+                     | _ -> C.error loc "invalid definition for macro %s" f)
+            with Not_found -> f in
           let ttl = List.map (term ~silent env) tl in
           fresh_type#reset ();
           lfun_app ~silent env loc f labels ttl
@@ -3124,10 +3156,14 @@ let add_label info lab =
       | PLiff (p1, p2) -> piff ~loc (predicate env p1, predicate env p2)
       | PLnot p ->
           (match (predicate env p) with
-	     | {content = Prel (Cil_types.Rneq, t, z)} when isLogicZero z ->
+	     | {pred_content = Prel (Cil_types.Rneq, t, z)} when isLogicZero z ->
 	         prel ~loc (Cil_types.Req, t, Cil.lzero ~loc ())
 	     | p -> pnot ~loc p)
       | PLapp (p, labels, tl) ->
+          let p = try (match (C.find_macro p).lexpr_node with 
+                     | PLvar (x) -> x
+                     | _ -> C.error loc "invalid definition for macro %s" p)
+            with Not_found -> p in
           let ttl= List.map (term env) tl in
           let info, label_assoc, tl, t = type_logic_app env loc p labels ttl in
           begin
@@ -3266,7 +3302,7 @@ let add_label info lab =
           var.l_body <- tdef;
           let env = Lenv.add_logic_info x var env in
           let tbody = predicate env body in
-          { name = []; loc; content = Plet(var,tbody) }
+          { pred_name = []; pred_loc = loc; pred_content = Plet(var,tbody) }
       | PLcast _ | PLblock_length _ | PLbase_addr _ | PLoffset _
       | PLrepeat _ | PLlist _ | PLarrget _ | PLarrow _
       | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
@@ -3276,7 +3312,7 @@ let add_label info lab =
       | PLtypeof _ | PLtype _ -> boolean_to_predicate env p0
       | PLrange _ -> C.error loc "cannot use operator .. within a predicate"
       | PLnamed (n, p) ->
-        let p = predicate env p in { p with name = n::p.name }
+        let p = predicate env p in { p with pred_name = n::p.pred_name }
       | PLsubtype (t,tc) -> psubtype ~loc (term env t, term env tc)
       | PLseparated seps ->
         let type_loc l =
@@ -3350,10 +3386,29 @@ let add_label info lab =
   let id_predicate env pred = Logic_const.new_predicate (predicate env pred)
   let id_term env t = Logic_const.new_identified_term (term env t)
 
-  let loop_pragma env = function
-    | Unroll_specs l -> (Unroll_specs (List.map (term env) l))
-    | Widen_hints l -> (Widen_hints (List.map (term env) l))
-    | Widen_variables l -> (Widen_variables (List.map (term env) l))
+  (* For Widen_hints and Widen_variables, we check that the arguments of the
+     pragma can be understood later. Keep this code synchronized with
+     src/plugins/value/utils/widen.ml. *)
+  let loop_pragma env p =
+    let accept_int = function
+        { term_node = TConst (Integer _)} -> true | _ -> false
+    in
+    let accept_var = function
+        { term_node = TLval (TVar {lv_origin = Some _}, _)} -> true | _ -> false
+    in
+    (* fail when the translation of [p] does not verify the predicate [accept]*)
+    let term_accept accept p =
+      let t = term env p in
+      if not (accept t) then
+        C.error t.term_loc "invalid pragma '%a'" Cil_printer.pp_term t;
+      t
+    in
+    match p with
+    | Unroll_specs l -> Unroll_specs (List.map (term env) l)
+    | Widen_variables l -> Widen_variables (List.map (term_accept accept_var) l)
+    | Widen_hints l ->
+      let accept t = accept_int t || accept_var t in
+      Widen_hints (List.map (term_accept accept) l)
 
   let type_annot loc ti =
     let env = append_here_label (append_init_label (Lenv.empty())) in
@@ -3393,6 +3448,7 @@ let add_label info lab =
   let check_unique_behavior_names loc old_behaviors behaviors =
     List.fold_left
       (fun names b ->
+         let open Cil_types in
          if b.b_name = Cil.default_behavior_name then names
          else begin
            if (List.mem b.b_name names) then
@@ -3402,19 +3458,15 @@ let add_label info lab =
       old_behaviors
       behaviors
 
-  let type_extended ~typing_context ~loc behavior extensions =
-    List.iter
-      (fun (name,_,ps) ->
-        let loc = match ps with
-	  | [] -> loc
-	  | p::_ -> p.lexpr_loc in
-        if Extensions.is_extension name then
-          Extensions.typer name ~typing_context ~loc  behavior ps
-        else
-          C.error
-            loc "No type-checking function registered for extension %s" name
-      )
-      extensions
+  let type_extended ~typing_context ~loc (name,ps) =
+    let loc = match ps with
+      | [] -> loc
+      | p::_ -> p.lexpr_loc in
+    if Extensions.is_extension name then
+      name , Extensions.typer name ~typing_context ~loc ps
+    else
+      C.error
+        loc "No type-checking function registered for extension %s" name
 
   (* This module is used to sort the list of behaviors in [complete] and
      [disjoint] clauses, in order to remove duplicate clauses. *)
@@ -3468,43 +3520,42 @@ let add_label info lab =
       let spec_behavior = s.spec_behavior
       in if spec_behavior = [] then
 	  (* at least allocates \nothing *)
-	  [mk_behavior ~allocation:None ()]
+	  [Cabshelper.mk_behavior ()]
         else spec_behavior
     in
     let b = List.map
-      (fun {b_assigns= ba; b_name = bn; b_post_cond=be; b_assumes= bas;
-	    b_allocation=bfa; b_requires=br; b_extended=bext} ->
-         let result =
-           { b_assigns=
-               type_assign ~accept_formal:is_stmt_contract assigns_env ba;
-	     b_allocation= (match bfa with
-	       | FreeAllocAny -> FreeAllocAny
-	       | FreeAlloc(f,a) ->
-		   FreeAlloc((List.map (id_term env) f),
-			     List.map (id_term (post_state_env Normal)) a));
-           b_name = bn;
-             b_post_cond =
-               List.map
-                 (fun (k,p)->
-                   let p' = id_predicate (post_state_env k) p in (k,p')) be;
-             b_assumes= List.map (id_predicate env) bas;
-             b_requires= List.map (id_predicate env) br;
-             b_extended= []}
+      (fun {b_assigns= ba; b_name; b_post_cond=be; b_assumes= bas;
+            b_allocation=bfa; b_requires=br; b_extended=bext} ->
+         let b_assumes = List.map (id_predicate env) bas in
+         let b_requires= List.map (id_predicate env) br in
+         let b_post_cond =
+           List.map
+             (fun (k,p)->
+                let p' = id_predicate (post_state_env k) p in (k,p')) be
          in
-	 let typing_context = make_typing_context
-	   ~pre_state:env
-           ~post_state:multiple_post_clauses_state_env
-           ~assigns_env:assigns_env
-           ~type_predicate:predicate
-           ~type_term:term
-           ~type_assigns:type_assign
+         let b_assigns =
+           type_assign ~accept_formal:is_stmt_contract assigns_env ba
          in
-         type_extended
-	   ~typing_context
-           ~loc
-           result
-           bext;
-         result)
+         let b_allocation=
+           match bfa with
+           | FreeAllocAny -> FreeAllocAny
+           | FreeAlloc(f,a) ->
+             FreeAlloc((List.map (id_term env) f),
+                       List.map (id_term (post_state_env Normal)) a)
+         in
+         let typing_context =
+           make_typing_context
+             ~pre_state:env
+             ~post_state:multiple_post_clauses_state_env
+             ~assigns_env:assigns_env
+             ~type_predicate:predicate
+             ~type_term:term
+             ~type_assigns:type_assign
+         in
+         let b_extended = List.map (type_extended ~typing_context ~loc) bext in
+         { Cil_types.b_name; b_assumes; b_requires; b_post_cond;
+           b_assigns; b_allocation; b_extended }
+      )
       spec_behavior
     in
     let none_for_stmt_contract clause = function
@@ -3539,7 +3590,7 @@ let add_label info lab =
     in
     let complete = cleanup_duplicate complete in
     let disjoint = cleanup_duplicate disjoint in
-    { spec_behavior = b;
+    { Cil_types.spec_behavior = b;
       spec_variant = v;
       spec_terminates = t;
       spec_complete_behaviors = complete;
@@ -3586,13 +3637,13 @@ let add_label info lab =
     let annot = match ca with
       | AAssert (behav,p) ->
           check_behavior_names loc current_behaviors behav;
-          AAssert (behav,predicate (code_annot_env()) p)
+          Cil_types.AAssert (behav,predicate (code_annot_env()) p)
       | APragma (Impact_pragma sp) ->
-	  APragma (Impact_pragma (impact_pragma (code_annot_env()) sp))
+	  Cil_types.APragma (Impact_pragma (impact_pragma (code_annot_env()) sp))
       | APragma (Slice_pragma sp) ->
-	  APragma (Slice_pragma (slice_pragma (code_annot_env()) sp))
+	  Cil_types.APragma (Slice_pragma (slice_pragma (code_annot_env()) sp))
       | APragma (Loop_pragma lp) ->
-	  APragma (Loop_pragma (loop_pragma (code_annot_env()) lp))
+	  Cil_types.APragma (Loop_pragma (loop_pragma (code_annot_env()) lp))
       | AStmtSpec (behav,s) ->
           (* function behaviors and statement behaviors are not at the
              same level. Do not mix them in a complete or disjoint clause
@@ -3605,23 +3656,39 @@ let add_label info lab =
           in
           ignore
             (check_unique_behavior_names
-               loc current_behaviors my_spec.spec_behavior);
-	  AStmtSpec (behav,my_spec)
-      | AVariant v -> AVariant (type_variant (loop_annot_env ()) v)
+               loc current_behaviors my_spec.Cil_types.spec_behavior);
+	  Cil_types.AStmtSpec (behav,my_spec)
+      | AVariant v ->
+          Cil_types.AVariant (type_variant (loop_annot_env ()) v)
       | AInvariant (behav,f,i) ->
           let env = if f then loop_annot_env () else code_annot_env () in
           check_behavior_names loc current_behaviors behav;
-          AInvariant (behav,f,predicate env i)
+          Cil_types.AInvariant (behav,f,predicate env i)
       | AAllocation (behav,fa) ->
           check_behavior_names loc current_behaviors behav;
-	  AAllocation(behav,
+	  Cil_types.AAllocation(behav,
 	        (match fa with
 		   | FreeAllocAny -> FreeAllocAny
 		   | FreeAlloc(f,a) ->
 		       FreeAlloc((List.map (id_term (loop_annot_env())) f),
 				 List.map (id_term (loop_annot_env())) a)));
       | AAssigns (behav,a) ->
-        AAssigns (behav,type_assign ~accept_formal:true (loop_annot_env()) a)
+          Cil_types.AAssigns
+            (behav,type_assign ~accept_formal:true (loop_annot_env()) a)
+      | AExtended (behav, ext) ->
+        let pre_state = loop_annot_env() in
+        (* not supposed to use post_states in loop annotations. *)
+        let post_state = fun _ -> Lenv.empty() in
+        let assigns_env = Lenv.empty() in
+        let type_predicate = predicate in
+        let type_term = term in
+        let type_assigns = type_assign in
+        let typing_context =
+          make_typing_context
+            ~pre_state ~post_state ~assigns_env
+            ~type_predicate ~type_term ~type_assigns
+        in
+        Cil_types.AExtended (behav, type_extended ~typing_context ~loc ext)
     in Logic_const.new_code_annotation annot
 
   let formals loc env p =

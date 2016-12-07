@@ -21,7 +21,6 @@ tests/wp_acsl/precedence.i:175:[kernel] warning: R is not a logic variable. Igno
 tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Ignoring code annotation
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 52 goals scheduled
 [wp] [Qed] Goal typed_bitwise_post_r_precedence_and_xor : Valid

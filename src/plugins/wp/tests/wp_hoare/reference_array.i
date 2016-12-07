@@ -71,11 +71,11 @@ void calls_on_array_dim_1 (void)
 
 /*@
   assigns reg_load[0..4], reg_add[0..4],tt[0][0..4];
-  ensures todo: Pload :
+  ensures Pload :
     \forall integer i; 0<=i<5 ==> reg_load[i] == \old(tt[0][i]);
-  ensures todo: Preset: 
+  ensures Preset: 
     \forall integer j; 0<=j<5 ==> tt[0][j] == 0; 
-  ensures todo: Padd  : 
+  ensures Padd  : 
      \forall integer k; 0<=k<5 ==> reg_add[k] ==  \old(tt[0][k]); 
  */
 void calls_on_array_dim_2_to_1 (void)

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function h <- main.
         Called from tests/value/strucval.c:27.
@@ -12,7 +12,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   SharedData.FunctionCode ∈ {0}
             .MachineNumber ∈ {1456}
             .[bits 48 to 63] ∈ UNINITIALIZED

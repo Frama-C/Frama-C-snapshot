@@ -40,7 +40,7 @@ let create () = {
 (* Requires n > length elt *)
 let do_grow w n =
   begin
-    let elt = Array.create n w.dumb in
+    let elt = Array.make n w.dumb in
     Array.blit w.elt 0 elt 0 w.top ;
     w.elt <- elt ;
   end

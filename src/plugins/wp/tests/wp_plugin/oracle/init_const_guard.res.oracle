@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/init_const_guard.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -15,14 +14,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Pointed_Valid' in 'f':
-Let a = shift_sint32(global(G_x_67), 0).
-Assume {
-  (* Initializer *)
-  Init: a = Mptr_0[shift_PTR(global(K_q_68), 0)].
-  (* Heap *)
-  Have: framed(Mptr_0) /\ linked(Malloc_0).
-}
-Prove: valid_rw(Malloc_0, a, 1).
+Assume { (* Heap *) Have: (region(G_x_67) <= 0) /\ linked(Malloc_0). }
+Prove: valid_rw(Malloc_0, global(G_x_67), 1).
 
 ------------------------------------------------------------
 
@@ -45,24 +38,16 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion 'Read' (file tests/wp_plugin/init_const_guard.i, line 31):
-Let a = shift_sint32(global(G_x_67), 0).
-Assume {
-  (* Initializer *)
-  Init: a = Mptr_0[shift_PTR(global(K_q_68), 0)].
-  (* Heap *)
-  Have: framed(Mptr_0) /\ linked(Malloc_0).
-}
-Prove: valid_rd(Malloc_0, a, 1).
+Assume { (* Heap *) Have: (region(p.base) <= 0) /\ linked(Malloc_0). }
+Prove: valid_rd(Malloc_0, global(G_x_67), 1).
 
 ------------------------------------------------------------
 
 Goal Assertion 'Guard_against_Const' (file tests/wp_plugin/init_const_guard.i, line 32):
-Let a = shift_sint32(global(G_x_67), 0).
+Let a = global(G_x_67).
 Assume {
-  (* Initializer *)
-  Init: a = Mptr_0[shift_PTR(global(K_q_68), 0)].
   (* Heap *)
-  Have: framed(Mptr_0) /\ linked(Malloc_0).
+  Have: (region(p.base) <= 0) /\ linked(Malloc_0).
   (* Assertion 'Read' *)
   Have: valid_rd(Malloc_0, a, 1).
 }

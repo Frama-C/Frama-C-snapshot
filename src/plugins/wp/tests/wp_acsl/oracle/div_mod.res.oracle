@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/div_mod.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -67,7 +66,7 @@ Goal Post-condition 'sd1,div_neg_pos' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (0 < y) /\ (x <= 0).
+  When: (x <= 0) /\ (0 < y).
 }
 Prove: (x / y) <= 0.
 
@@ -77,7 +76,7 @@ Goal Post-condition 'sd2,div_pos_neg' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (y < 0) /\ (0 <= x).
+  When: (0 <= x) /\ (y < 0).
 }
 Prove: (x / y) <= 0.
 
@@ -87,7 +86,7 @@ Goal Post-condition 'sd3,div_neg_neg' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (y < 0) /\ (x <= 0).
+  When: (x <= 0) /\ (y < 0).
 }
 Prove: 0 <= (x / y).
 
@@ -150,7 +149,7 @@ Goal Post-condition 'sm1,mod_neg_pos' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (0 < y) /\ (x <= 0).
+  When: (x <= 0) /\ (0 < y).
 }
 Prove: (x % y) <= 0.
 
@@ -160,7 +159,7 @@ Goal Post-condition 'sm2,mod_pos_neg' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (y < 0) /\ (0 <= x).
+  When: (0 <= x) /\ (y < 0).
 }
 Prove: 0 <= (x % y).
 
@@ -170,7 +169,7 @@ Goal Post-condition 'sm3,mod_neg_neg' in 'f':
 Assume {
   Type: is_sint32(x) /\ is_sint32(y).
   (* Goal *)
-  When: (y < 0) /\ (x <= 0).
+  When: (x <= 0) /\ (y < 0).
 }
 Prove: (x % y) <= 0.
 

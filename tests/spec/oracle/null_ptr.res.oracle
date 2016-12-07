@@ -18,7 +18,7 @@ void f(char *x)
   return;
 }
 
-/*@ ensures (\result≢0) ≡ \true; */
+/*@ ensures (\result ≢ 0) ≡ \true; */
 int g(void)
 {
   int __retres;

@@ -3,22 +3,22 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 [value] computing for function t1 <- main.
         Called from tests/value/shift_big.i:63.
-tests/value/shift_big.i:5:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
-tests/value/shift_big.i:5:[kernel] warning: signed overflow. assert 1<<j ≤ 2147483647;
+tests/value/shift_big.i:5:[value] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
+tests/value/shift_big.i:5:[value] warning: signed overflow. assert 1 << j ≤ 2147483647;
 [value] Recording results for t1
 [value] Done for function t1
 [value] computing for function t2 <- main.
         Called from tests/value/shift_big.i:64.
-tests/value/shift_big.i:15:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
-tests/value/shift_big.i:15:[kernel] warning: signed overflow. assert 1<<j ≤ 2147483647;
+tests/value/shift_big.i:15:[value] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
+tests/value/shift_big.i:15:[value] warning: signed overflow. assert 1 << j ≤ 2147483647;
 [value] Recording results for t2
 [value] Done for function t2
-tests/value/shift_big.i:64:[kernel] warning: signed overflow. assert r+tmp_0 ≤ 2147483647;
-                                   (tmp_0 from t2())
+tests/value/shift_big.i:64:[value] warning: signed overflow. assert r + tmp_0 ≤ 2147483647;
+                                  (tmp_0 from t2())
 [value] computing for function t3 <- main.
         Called from tests/value/shift_big.i:65.
 tests/value/shift_big.i:22:[value] entering loop for the first time
@@ -54,29 +54,29 @@ tests/value/shift_big.i:58:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function t1:
+[value:final-states] Values at end of function t1:
   j ∈ [0..31]
   i ∈ [1..2147483647]
   __retres ∈ [1..2147483647]
-[value] Values at end of function t2:
+[value:final-states] Values at end of function t2:
   j ∈ {1; 10; 31}
   i ∈ {2; 1024}
   __retres ∈ {2; 1024}
-[value] Values at end of function t3:
+[value:final-states] Values at end of function t3:
   x ∈ [1000000000..1999999999]
   i ∈ {2000000000}
-[value] Values at end of function t4:
+[value:final-states] Values at end of function t4:
   x ∈ {1000000000; 1000000001}
-[value] Values at end of function t5:
+[value:final-states] Values at end of function t5:
   x ∈ [1000000000..1999999999]
   i ∈ {2000000000}
-[value] Values at end of function t6:
+[value:final-states] Values at end of function t6:
   x ∈ {1000000000; 1000000001}
-[value] Values at end of function t7:
+[value:final-states] Values at end of function t7:
   x ∈ {1022; 1023}
-[value] Values at end of function t8:
+[value:final-states] Values at end of function t8:
   x ∈ {1022; 1023}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   r ∈ [0..2147483647]
 [from] Computing for function t1
 [from] Done for function t1

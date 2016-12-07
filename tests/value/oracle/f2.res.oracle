@@ -3,12 +3,12 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {0}
 [from] Computing for function f
 [from] Done for function f

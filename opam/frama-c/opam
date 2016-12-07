@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "frama-c"
-version: "20160502"
+version: "20161101"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Patrick Baudin"
@@ -32,7 +32,7 @@ authors: [
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
 dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
-doc: ["http://frama-c.com/download/user-manual-Aluminium-20160501.pdf"]
+doc: ["http://frama-c.com/download/user-manual-Silicon-20161101.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"
@@ -50,7 +50,7 @@ tags: [
 ]
 
 depends: [
-  "frama-c-base" { = "20160502" }
+  "frama-c-base" { = "20161101" }
   "zarith"
   "lablgtk" { >= "2.18.2" } #for ocaml >= 4.02.1
   "conf-gtksourceview"
@@ -58,8 +58,11 @@ depends: [
   "alt-ergo"
 ]
 
+depopts: [
+  "altgr-ergo" { build }
+]
+
 messages: [
    "Alt-Ergo Graphical Interface can be used by the WP plug-in" { !altgr-ergo:installed }
 ]
-available: [ ocaml-version >= "4.00.1" & ocaml-version != "4.02.0" &
-             ocaml-version != "4.02.2" ]
+available: [ ocaml-version >= "4.02.3" ]

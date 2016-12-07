@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at dead_code
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   after ∈ [--..--]
 [value] Recording results for dead_code
 [value] done for function dead_code

@@ -91,7 +91,8 @@ let rec print_condition fmt = function
   | TCall (kf,None) ->
     Format.fprintf fmt "Call(%a)" Kernel_function.pretty kf
   | TCall (kf, Some b) ->
-    Format.fprintf fmt "Call(%a::%s)" Kernel_function.pretty kf b.b_name
+    Format.fprintf fmt "Call(%a::%s)"
+      Kernel_function.pretty kf b.Cil_types.b_name
   | TReturn kf ->
     Format.fprintf fmt "Return(%a)" Kernel_function.pretty kf
   | TOr  (c1,c2) ->
@@ -130,32 +131,22 @@ let print_one_action fmt = function
 let print_action fmt l =
   Pretty_utils.pp_list ~sep:"@\n" print_one_action fmt l
 
-let normal_funcs = ref None
-
 (* Use well-parenthesized combination of escape_newline/normal_newline*)
 let escape_newline fmt =
-  let (out,flush,newline,spaces as funcs) =
-    Format.pp_get_all_formatter_output_functions fmt ()
-  in
-  (match !normal_funcs with
-      None -> normal_funcs:= Some funcs
-    | Some _ -> Aorai_option.fatal "Already in escape newline mode");
+  let funcs = Format.pp_get_formatter_out_functions fmt () in
   let has_printed = ref false in
-  let newline () = 
-    if !has_printed then out " \\\n" 0 3 
-    else newline ()
+  let out_newline () =
+    if !has_printed then funcs.Format.out_string " \\\n" 0 3
+    else funcs.Format.out_newline ()
   in
-  let out s b l = 
-    if String.contains (String.sub s b l) '"' then 
+  let out_string s b l =
+    if String.contains (String.sub s b l) '"' then
       has_printed:=not !has_printed;
-    out s b l 
+    funcs.Format.out_string s b l
   in
-  Format.pp_set_all_formatter_output_functions fmt ~out ~flush ~newline ~spaces
-
-let normal_newline fmt =
-  let (out, flush, newline, spaces) = Extlib.the !normal_funcs in
-  normal_funcs := None;
-  Format.pp_set_all_formatter_output_functions fmt ~out ~flush ~newline ~spaces
+  Format.pp_set_formatter_out_functions fmt
+    { funcs with Format.out_newline; out_string };
+  funcs
 
 let print_full_transition fmt (cond,action) =
   Format.fprintf fmt "%a@\n%a" print_condition cond print_action action
@@ -223,7 +214,7 @@ let dot_trans out tr =
 let output_dot_automata (states_l,trans_l) fichier =
   let cout = open_out fichier in
   let fmt = formatter_of_out_channel cout in
-  escape_newline fmt;
+  let output_functions = escape_newline fmt in
   let one_line_comment s =
     let l = String.length s in
     let fill = if l >= 75 then 0 else 75 - l in 
@@ -250,7 +241,7 @@ let output_dot_automata (states_l,trans_l) fichier =
         (Format.fprintf fmt 
            "/* guards of transitions */@\ncomment=\"%a\";@\n"
            (Pretty_utils.pp_list ~sep:"@\n" print_trans) trans_l));
-  normal_newline fmt;
+  Format.pp_set_formatter_out_functions fmt output_functions;
   close_out cout
 
 (*

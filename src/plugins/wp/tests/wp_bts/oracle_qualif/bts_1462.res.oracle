@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_1462.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 13 goals scheduled
 [wp] [Qed] Goal typed_local_loop_inv_preserved : Valid

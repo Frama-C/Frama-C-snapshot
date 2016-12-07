@@ -61,19 +61,19 @@ type annot_kind =
 (** {3 Adding properties (predicates)} *)
 
 val normalize : WpPropId.prop_id ->
-  ?assumes:predicate named ->
+  ?assumes:predicate ->
   NormAtLabels.label_mapping ->
-  predicate named -> predicate named option
+  predicate -> predicate option
 
 (** generic function to add a predicate property after normalisation.
  * All the [add_prop_xxx] functions below use this one. *)
-val add_prop : t_annots -> annot_kind -> WpPropId.prop_id -> predicate named option -> t_annots
+val add_prop : t_annots -> annot_kind -> WpPropId.prop_id -> predicate option -> t_annots
 
 (** Add the predicate as a function precondition.
  * Add [assumes => pre] if [assumes] is given. *)
 val add_prop_fct_pre : t_annots -> annot_kind ->
   kernel_function -> funbehavior ->
-  assumes: predicate named option -> identified_predicate -> t_annots
+  assumes: predicate option -> identified_predicate -> t_annots
 
 (** Add the preconditions of the behavior :
  * if [impl_assumes], add [b_assumes => b_requires]
@@ -89,13 +89,13 @@ val add_prop_fct_post : t_annots -> annot_kind ->
  * Add [assumes => pre] if [assumes] is given. *)
 val add_prop_stmt_pre : t_annots -> annot_kind ->
   kernel_function -> stmt -> funbehavior ->
-  assumes: predicate named option -> identified_predicate -> t_annots
+  assumes: predicate option -> identified_predicate -> t_annots
 
 (** Add the predicate as a stmt precondition.
  * Add [\old (assumes) => post] if [assumes] is given. *)
 val add_prop_stmt_post :t_annots -> annot_kind ->
   kernel_function -> stmt -> funbehavior -> termination_kind ->
-  logic_label option -> assumes:predicate named option -> identified_predicate
+  logic_label option -> assumes:predicate option -> identified_predicate
   -> t_annots
 
 (** Add all the [b_requires]. Add [b_assumes => b_requires] if [with_assumes] *)
@@ -108,19 +108,19 @@ val add_prop_stmt_spec_pre : t_annots -> annot_kind ->
   kernel_function -> stmt -> funspec -> t_annots
 
 val add_prop_call_pre : t_annots -> annot_kind -> WpPropId.prop_id ->
-  assumes:predicate named -> identified_predicate -> t_annots
+  assumes:predicate -> identified_predicate -> t_annots
 
 (** Add a postcondition of a called function. Beware that [kf] and [bhv]
  * are the called one. *)
 val add_prop_call_post : t_annots -> annot_kind ->
   kernel_function -> funbehavior -> termination_kind ->
-  assumes:predicate named -> identified_predicate -> t_annots
+  assumes:predicate -> identified_predicate -> t_annots
 
 val add_prop_assert : t_annots -> annot_kind ->
-  kernel_function -> stmt -> code_annotation -> predicate named -> t_annots
+  kernel_function -> stmt -> code_annotation -> predicate -> t_annots
 
 val add_prop_loop_inv : t_annots -> annot_kind ->
-  stmt -> WpPropId.prop_id -> predicate named -> t_annots
+  stmt -> WpPropId.prop_id -> predicate -> t_annots
 
 (** {3 Adding assigns properties} *)
 
@@ -273,6 +273,6 @@ val fold_bhv_post_cond : warn:bool ->
 
 val mk_variant_properties :
   kernel_function -> stmt -> code_annotation -> term ->
-  (WpPropId.prop_id * predicate named)
-  * (WpPropId.prop_id * predicate named)
+  (WpPropId.prop_id * predicate)
+  * (WpPropId.prop_id * predicate)
 (* -------------------------------------------------------------------------- *)

@@ -5,7 +5,7 @@ tests/slicing/use_spec.i:18:[kernel] warning: Body of function f falls-through. 
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
@@ -19,8 +19,8 @@ tests/slicing/use_spec.i:18:[kernel] warning: Body of function f falls-through. 
 [value] computing for function h <- main2.
         Called from tests/slicing/use_spec.i:40.
 [value] Done for function h
-tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert -2147483648 ≤ tmp+G2;
-tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert tmp+G2 ≤ 2147483647;
+tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert -2147483648 ≤ tmp + G2;
+tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert tmp + G2 ≤ 2147483647;
 [value] Recording results for main2
 [value] done for function main2
 [slicing] making slicing project 'Slicing'...
@@ -44,7 +44,7 @@ tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert tmp+G2 ≤
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
 [value] computing for function h_slice_2 <- main2.
@@ -55,12 +55,12 @@ tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert tmp+G2 ≤
         Called from tests/slicing/use_spec.i:40.
 [value] using specification for function h_slice_1
 [value] Done for function h_slice_1
-tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert -2147483648 ≤ tmp+G2;
-tests/slicing/use_spec.i:41:[kernel] warning: signed overflow. assert tmp+G2 ≤ 2147483647;
+tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert -2147483648 ≤ tmp + G2;
+tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert tmp + G2 ≤ 2147483647;
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   tmp ∈ [--..--]
@@ -87,8 +87,8 @@ int main2(int v1, int v4)
   h_slice_2(v1);
   tmp = G1;
   h_slice_1(v4);
-  /*@ assert Value: signed_overflow: -2147483648 ≤ tmp+G2; */
-  /*@ assert Value: signed_overflow: tmp+G2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: -2147483648 ≤ tmp + G2; */
+  /*@ assert Value: signed_overflow: tmp + G2 ≤ 2147483647; */
   __retres = tmp + G2;
   return __retres;
 }

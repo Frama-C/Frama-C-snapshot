@@ -106,13 +106,14 @@ void isPresent_post_func(int res)
 }
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
-    requires \valid(t+(0 .. max));
+    requires \valid(t + (0 .. max));
     requires max ≥ 0;
     ensures (0 ≤ \result ≤ \old(max)) ∨ \result ≡ -1;
-    ensures 0 ≤ \result ≤ \old(max) ⇒ *(\old(t)+\result) ≡ \old(val);
+    ensures
+      0 ≤ \result ≤ \old(max) ⇒ *(\old(t) + \result) ≡ \old(val);
     ensures
       \result ≡ -1 ⇒
-      (∀ ℤ j; 0 ≤ j ≤ \old(max) ⇒ *(\old(t)+j) ≢ \old(val));
+      (∀ ℤ j; 0 ≤ j ≤ \old(max) ⇒ *(\old(t) + j) ≢ \old(val));
     
     behavior Buchi_property_behavior:
       ensures
@@ -134,12 +135,12 @@ int isPresent(int *t, int max, int val)
   aorai_loop_32:
     /*@ loop invariant
           inv:
-            0 ≤ i ≤ max ∧ \valid(t+(0 .. max)) ∧ max ≥ 0 ∧
-            (∀ ℤ j; 0 ≤ j ≤ i-1 ⇒ *(t+j) ≢ val);
+            0 ≤ i ≤ max ∧ \valid(t + (0 .. max)) ∧ max ≥ 0 ∧
+            (∀ ℤ j; 0 ≤ j ≤ i - 1 ⇒ *(t + j) ≢ val);
         loop invariant Aorai: 0 ≡ End;
         loop invariant Aorai: 1 ≡ Idle;
         loop invariant Aorai: 0 ≡ WillDoFoo;
-        loop variant (v: max-i);
+        loop variant (v: max - i);
     */
     while (1) {
       if (i < max) {

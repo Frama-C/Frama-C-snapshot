@@ -124,6 +124,10 @@ val plugin_subpath: string -> unit
     directories [Share], [Session] and [Config] above.
     @since Neon-20140301 *)
 
+val default_msg_keys: string list -> unit
+(** Debug message keys set by default for the plugin.
+    @since Silicon-20161101 *)
+
 (* ************************************************************************* *)
 (** {2 Handling plugins} *)
 (* ************************************************************************* *)

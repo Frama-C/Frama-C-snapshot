@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at origin
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   aa2 ∈ {0}
@@ -60,14 +60,14 @@ tests/value/origin.i:124:[value] Assigning imprecise value to r.p.
         The imprecision originates from Misaligned {tests/value/origin.i:124}
 tests/value/origin.i:127:[value] Assigning imprecise value to r.t[0].
         The imprecision originates from Merge {tests/value/origin.i:127}
-tests/value/origin.i:128:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
-tests/value/origin.i:128:[kernel] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
+tests/value/origin.i:128:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
+tests/value/origin.i:128:[value] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
 tests/value/origin.i:128:[value] Assigning imprecise value to r.t[1].
         The imprecision originates from Arithmetic {tests/value/origin.i:128}
 [value] Recording results for origin
 [value] done for function origin
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function origin:
+[value:final-states] Values at end of function origin:
   r.c ∈ [--..--]
    .[bits 8 to 15] ∈ UNINITIALIZED
    .i ∈ [--..--]

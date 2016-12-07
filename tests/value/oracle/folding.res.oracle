@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- main.
         Called from tests/value/folding.i:23.
@@ -24,18 +24,18 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function foo:
+[value:final-states] Values at end of function foo:
   unknown ∈ [--..--]
   __retres ∈ {8; 9; 779}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   pfct ∈ {{ &f }}
   un ∈ {1}
   p ∈ {{ &deux }}
   deux ∈ {2}
   trois ∈ {5}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   a ∈ {17; 18; 787; 788}
   b ∈ {4}
   c ∈ {33; 34; 803; 804}

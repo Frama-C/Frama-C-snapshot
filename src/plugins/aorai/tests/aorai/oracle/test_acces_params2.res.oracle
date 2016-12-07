@@ -173,7 +173,7 @@ void opa_post_func(int res)
     requires r < 5000;
     
     behavior j:
-      ensures \result ≡ \old(r)+1;
+      ensures \result ≡ \old(r) + 1;
     
     behavior Buchi_property_behavior:
       ensures 1 ≡ S4 ⇒ \result ≤ 5000;

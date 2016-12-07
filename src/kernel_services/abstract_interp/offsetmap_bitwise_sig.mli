@@ -64,11 +64,12 @@ val find_iset : validity:Base.validity -> intervals -> t -> v
 (** {2 Adding values} *)
 
 val add_binding_intervals :
-  validity:Base.validity -> exact:bool -> intervals -> v -> t -> [`Map of t | `Bottom]
+  validity:Base.validity ->
+  exact:bool -> intervals -> v -> t -> t Bottom.or_bottom
 
 val add_binding_ival :
   validity:Base.validity ->
-  exact:bool -> Ival.t -> size:Int_Base.t -> v -> t -> [`Map of t | `Bottom]
+  exact:bool -> Ival.t -> size:Int_Base.t -> v -> t -> t Bottom.or_bottom
 
 
 (** {2 Creating an offsetmap} *)

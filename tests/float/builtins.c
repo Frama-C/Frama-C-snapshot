@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -then -main main_log_exp -then -all-rounding-modes
+   OPT: -no-val-builtins-auto -val @VALUECONFIG@ -then -main main_log_exp -then -all-rounding-modes -then -val-builtins-auto
 */
 
 #include <__fc_builtin.h>
@@ -21,25 +21,25 @@ double Frama_C_exp(double d);
 
 /*@ requires \is_finite(d);
   requires d > 0.;
-  ensures \is_finite(d); */
-double log(double d) {
-  return Frama_C_log(d);
-}
+  ensures \is_finite(d);
+  assigns \result \from d; */
+double log(double d) { return Frama_C_log(d); }
+
 
 /*@ requires \is_finite(d);
   requires d > 0.;
-  ensures \is_finite(d); */
-double log10(double d) {
-  return Frama_C_log10(d);
-}
+  ensures \is_finite(d);
+  assigns \result \from d; */
+double log10(double d) { return Frama_C_log10(d); }
+
 
 /*@ requires \is_finite(d);
    requires d <= 0x1.62e42fefa39efp9; // log(DBL_MAX)
    ensures \is_finite(d);
-*/
-double exp(double d) {
-  return Frama_C_exp(d);
-}
+   assigns \result \from d; */
+double exp(double d) { return Frama_C_exp(d); }
+
+
 
 volatile v;
 
@@ -68,7 +68,7 @@ void main_log_exp(double d) {
     m4 = log10(d);
   }
   if (v) { // Spurious warning in -all-rounding-modes, because the reduction
-           // to >0. is transformed in >=0.
+           // to >0. is transformed in >=0. Also, in -val-builtins-auto mode, preconditions are **not** evaluated
     l5 = log(d);
   }
   if (v) {

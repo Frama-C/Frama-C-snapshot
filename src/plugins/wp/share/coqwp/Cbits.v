@@ -961,6 +961,14 @@ Proof.
   intros x y; rewrite Cint.to_uint_64; apply to_uint_lor.
 Qed.
 
+(* Why3 goal *)
+Lemma is_uint_lxor : forall (n:Z) (x:Z) (y:Z), (Cint.is_uint n x) ->
+  ((Cint.is_uint n y) -> ((Cint.to_uint n (Cint.lxor x y)) = (Cint.lxor x
+  y))).
+Proof.
+  intro n; is_uint_bitwise xorb (Zabs_nat n). 
+Qed.
+
 (** * Some C-Integer Bits Conversions are identity *)
 (** ** Unsigned conversions *)
 (* Why3 goal *)
@@ -1039,6 +1047,13 @@ Qed.
 
 (** *** Cast to uint8 C type *)
 (* Why3 goal *)
+Lemma is_uint8_lxor : forall (x:Z) (y:Z), (Cint.is_uint8 x) ->
+  ((Cint.is_uint8 y) -> ((Cint.to_uint8 (Cint.lxor x y)) = (Cint.lxor x y))).
+Proof.
+  intros; rewrite Cint.to_uint_8; apply is_uint_lxor; trivial.
+Qed.
+
+(* Why3 goal *)
 Lemma is_uint8_lor : forall (x:Z) (y:Z), (Cint.is_uint8 x) -> ((Cint.is_uint8
   y) -> ((Cint.to_uint8 (Cint.lor x y)) = (Cint.lor x y))).
 Proof.
@@ -1074,6 +1089,14 @@ Proof.
 Qed.
 
 (** ***  Cast to uint16 C type *)
+(* Why3 goal *)
+Lemma is_uint16_lxor : forall (x:Z) (y:Z), (Cint.is_uint16 x) ->
+  ((Cint.is_uint16 y) -> ((Cint.to_uint16 (Cint.lxor x y)) = (Cint.lxor x
+  y))).
+Proof. 
+  intros; rewrite Cint.to_uint_16; apply is_uint_lxor; trivial.
+Qed.
+
 (* Why3 goal *)
 Lemma is_uint16_lor : forall (x:Z) (y:Z), (Cint.is_uint16 x) ->
   ((Cint.is_uint16 y) -> ((Cint.to_uint16 (Cint.lor x y)) = (Cint.lor x y))).
@@ -1112,6 +1135,14 @@ Qed.
 
 (** *** Cast to uint32 C type *)
 (* Why3 goal *)
+Lemma is_uint32_lxor : forall (x:Z) (y:Z), (Cint.is_uint32 x) ->
+  ((Cint.is_uint32 y) -> ((Cint.to_uint32 (Cint.lxor x y)) = (Cint.lxor x
+  y))).
+Proof.
+  intros; rewrite Cint.to_uint_32; apply is_uint_lxor; trivial.
+Qed.
+
+(* Why3 goal *)
 Lemma is_uint32_lor : forall (x:Z) (y:Z), (Cint.is_uint32 x) ->
   ((Cint.is_uint32 y) -> ((Cint.to_uint32 (Cint.lor x y)) = (Cint.lor x y))).
 Proof.
@@ -1148,6 +1179,14 @@ Proof.
 Qed.
 
 (** *** Cast to uint64 C type *)
+(* Why3 goal *)
+Lemma is_uint64_lxor : forall (x:Z) (y:Z), (Cint.is_uint64 x) ->
+  ((Cint.is_uint64 y) -> ((Cint.to_uint64 (Cint.lxor x y)) = (Cint.lxor x
+  y))).
+Proof.
+  intros; rewrite Cint.to_uint_64; apply is_uint_lxor; trivial.
+Qed.
+
 (* Why3 goal *)
 Lemma is_uint64_lor : forall (x:Z) (y:Z), (Cint.is_uint64 x) ->
   ((Cint.is_uint64 y) -> ((Cint.to_uint64 (Cint.lor x y)) = (Cint.lor x y))).

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at h
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
   q ∈ {0}
   x ∈ {0}
@@ -16,9 +16,9 @@
 [value] Recording results for h
 [value] done for function h
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   q ∈ {{ &y }}
 [from] Computing for function f
 [from] Done for function f

@@ -55,6 +55,9 @@ let modify_font phi widget =
 let set_small_font w = modify_font small_font w
 let set_bold_font w = modify_font bold_font w
 let set_tooltip w m = on m w#misc#set_tooltip_text
+let set_enabled (w : #GObj.widget) = w#misc#set_sensitive
+let set_visible (w : #GObj.widget) e =
+  let m = w#misc in if e then m#show () else m#hide ()
 
 let share = ref "/usr/local/share"
 let flush = ref prerr_endline
@@ -91,15 +94,53 @@ let later f =
   let prio = Glib.int_of_priority `LOW in
   ignore (Glib.Idle.add ~prio for_idle)
 
-
 (* -------------------------------------------------------------------------- *)
 (* ---  Widget & Signals                                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-class coerce obj =
+class type widget =
   object
-    method set_enabled (e : bool) : unit = obj#misc#set_sensitive e
+    method set_visible : bool -> unit
+    method set_enabled : bool -> unit
+    method coerce : GObj.widget
+    method widget : widget
+  end
+
+class gobj_widget obj =
+  object(self)
+    method set_visible = set_visible obj
+    method set_enabled = set_enabled obj
     method coerce : GObj.widget = (obj#coerce)
+    method widget = (self :> widget)
+  end
+
+class gobj_action obj =
+  object
+    inherit gobj_widget obj
+    method set_tooltip txt = set_tooltip (obj :> GObj.widget) (Some txt)
+  end
+
+class layout =
+  object(self)
+    val mutable content : widget option = None
+    method coerce =
+      match content with
+      | None -> raise (Invalid_argument "Wbox.layout")
+      | Some w -> w#coerce
+    method widget =
+      match content with
+      | None -> (self :> widget)
+      | Some w -> w
+    method set_visible v =
+      match content with
+      | None -> ()
+      | Some w -> w#set_visible v
+    method set_enabled e =
+      match content with
+      | None -> ()
+      | Some w -> w#set_enabled e
+    method populate : 'a. (#widget as 'a) -> unit =
+      fun w -> content <- Some (w :> widget)
   end
 
 class virtual ['a] handler =

@@ -48,6 +48,15 @@ val pp : Format.formatter -> t -> unit
 exception Error of string * int * string
 (** file, line, message *)
 
+(** {2 Constructors} *)
+
+val of_bool : bool -> t
+val of_int : int -> t
+val of_float : float -> t
+val of_list : t list -> t
+val of_array : t array -> t
+val of_fields : (string * t) list -> t
+
 (** {2 Parsers} Parsing raise [Error] in case of error. *)
 
 val of_lexbuf : Lexing.lexbuf -> t
@@ -71,12 +80,17 @@ val bool : t -> bool
     @raise Invalid_argument when the conversion fails. *)
 
 val int : t -> int
-(** Convert [Int], [Float], [Number] and [String] to an [int]. 
-    Floats are truncated with [int_of_float].
+(** Convert [Null], [Int], [Float], [Number] and [String] to an [int]. 
+    Floats are truncated with [int_of_float] and [Null] to 0.
+    @raise Invalid_argument when the conversion fails. *)
+
+val string : t -> string
+(** Convert [Null], [Int], [Float], [Number] and [String] to a [string].
+    Floats are truncated with [string_of_float] and [Null] to [""].
     @raise Invalid_argument when the conversion fails. *)
 
 val float : t -> float
-(** Convert [Int], [Float], [Number] and [String] to [float]. 
+(** Convert [Null], [Int], [Float], [Number] and [String] to [float] and [Null] to [0.0].
     @raise Invalid_argument when the conversion fails. *)
 
 val array : t -> t array

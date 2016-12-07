@@ -83,6 +83,8 @@ module V : sig
   val compare_min_int : t -> t -> int
   val compare_max_int : t -> t -> int
 
+  val backward_mult_int_left: right:t -> result:t -> t option Bottom.or_bottom
+
   val backward_comp_int_left: Comp.t -> t -> t -> t
   val backward_comp_float_left: Comp.t -> bool -> Fval.float_kind -> t -> t -> t
 
@@ -182,6 +184,7 @@ module V_Or_Uninitialized : sig
   include Lattice_type.With_Under_Approximation with type t:= t
   include Lattice_type.With_Narrow with type t := t
   include Lattice_type.With_Top with type t := t
+  include Lattice_type.With_Top_Opt with type t := t
 
   val get_v : t -> V.t
   val make : initialized: bool -> escaping: bool -> V.t -> t
@@ -246,7 +249,7 @@ end
 
 (** Values bound by default to a variable. *)
 module Default_offsetmap: sig
-  val default_offsetmap : Base.t -> [ `Bottom | `Map of V_Offsetmap.t ]
+  val default_offsetmap : Base.t -> V_Offsetmap.t Bottom.or_bottom
 end
 
 (** Memories. They are maps from bases to memory slices *)
@@ -257,6 +260,8 @@ module Model: sig
     with type v = V_Or_Uninitialized.t
     and type offsetmap = V_Offsetmap.t
     and type widen_hint_base = V_Or_Uninitialized.generic_widen_hint
+
+  include Lattice_type.With_Narrow with type t := t
 
   (** {2 Finding values *} *)
 

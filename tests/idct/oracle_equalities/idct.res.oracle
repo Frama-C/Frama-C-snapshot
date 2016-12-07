@@ -1,6 +1,0 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/idct/idct.c (with preprocessing)
-tests/idct/idct.c:91:[kernel] warning: Floating-point constant 3.14159265358979323846 is not represented exactly. Will use 0x1.921fb54442d18p1. See documentation for option -warn-decimal-float
-[kernel] user error: cannot find entry point `main'.
-                     Please use option `-main' for specifying a valid entry point.
-[kernel] Frama-C aborted: invalid user input.

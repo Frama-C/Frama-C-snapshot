@@ -59,10 +59,10 @@ let merge_referenced_formals kf prev_state new_state =
       let b = Base.of_varinfo vi in
       let prev_offsm = Cvalue.Model.find_base b prev_state in
       let new_offsm = Cvalue.Model.find_base b new_state in
-      match Cvalue.V_Offsetmap.join_top_bottom prev_offsm new_offsm with
+      match Bottom.Top.join Cvalue.V_Offsetmap.join prev_offsm new_offsm with
       | `Top -> assert false
       | `Bottom -> Cvalue.Model.bottom
-      | `Map m -> Cvalue.Model.add_base b m state
+      | `Value m -> Cvalue.Model.add_base b m state
     else state
   in
   List.fold_left aux new_state formals
@@ -85,13 +85,6 @@ let main_initial_state_with_formals kf (state:Cvalue.Model.t) =
 
 
 let compute_actual ~with_alarms ~warn_indeterminate state e =
-  let warn kind =
-    if with_alarms.CilE.imprecision_tracing.CilE.a_log then
-      Value_parameters.result ~current:true ~once:true
-        "completely invalid@ %s in evaluation of@ argument %a"
-        kind Printer.pp_exp e;
-    raise Actual_is_bottom
-  in
   match e with
   | { enode = Lval lv } when not (Eval_typ.is_bitfield (Cil.typeOfLval lv)) ->
     let ploc, state, o =
@@ -101,14 +94,14 @@ let compute_actual ~with_alarms ~warn_indeterminate state e =
             unknown size. Aborting" Printer.pp_exp e;
     in begin
       match o with
-      | `Map o ->
+      | `Value o ->
         let typ_lv = Cil.typeOfLval lv in
         let o, state =
           if warn_indeterminate then
             match Warn.warn_reduce_indeterminate_offsetmap
              ~with_alarms typ_lv o (`PreciseLoc ploc) state
             with
-            | `Bottom -> warn "value"
+            | `Bottom -> raise Actual_is_bottom
             | `Res r -> r
           else o, state
         in
@@ -119,14 +112,13 @@ let compute_actual ~with_alarms ~warn_indeterminate state e =
         | None -> ()
         end;
         o, state
-      | `Bottom -> warn "location"
-      | `Top -> Warn.warn_top ()
+      | `Bottom -> raise Actual_is_bottom
     end
   | _ ->
     let state, _, interpreted_expr =
       Eval_exprs.eval_expr_with_deps_state ~with_alarms None state e
     in
-    if Cvalue.V.is_bottom interpreted_expr then warn "value";
+    if Cvalue.V.is_bottom interpreted_expr then raise Actual_is_bottom;
     let typ = Cil.typeOf e in
     Eval_op.offsetmap_of_v ~typ interpreted_expr, state
 

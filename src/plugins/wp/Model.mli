@@ -128,3 +128,7 @@ module Generator(K : Key)(D : Data with type key = K.t) : Generator
 module StaticGenerator(K : Key)(D : Data with type key = K.t) : Generator
   with type key = D.key
    and type data = D.data
+
+
+val run_once_for_each_ast: name:string -> (unit -> unit) -> (unit -> unit)
+(** run the function once for each ast *)

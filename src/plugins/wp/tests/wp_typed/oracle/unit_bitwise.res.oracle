@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Global
@@ -346,7 +345,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition 'ko' in 'bxor_uchar':
+Goal Post-condition 'ok' in 'bxor_uchar':
 Let x = lxor(a, b). Assume { Type: is_uint8(a) /\ is_uint8(b). }
 Prove: x = to_uint8(x).
 
@@ -360,7 +359,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition 'ko' in 'bxor_uint':
+Goal Post-condition 'ok' in 'bxor_uint':
 Let x = lxor(a, b). Assume { Type: is_uint32(a) /\ is_uint32(b). }
 Prove: x = to_uint32(x).
 

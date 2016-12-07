@@ -28,9 +28,11 @@ void multi_dim_array_decay(void)
 {
   struct P *pp;
   struct P p;
+  int *tmp;
+  int *tmp_3;
   pp = & p;
-  if (pp->val[0]) ;
-  if (p.val[0]) ;
+  tmp = pp->val[0];
+  tmp_3 = p.val[0];
   return;
 }
 

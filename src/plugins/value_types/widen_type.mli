@@ -24,20 +24,25 @@
 
 include Datatype.S
 
-
 (** An empty set of hints *)
 val empty : t
 
 (** A default set of hints *)
 val default : unit -> t
 
-(** Add numeric hints for one or all variables ([None]),
-    for a a certain stmt or for all statements ([None]).  *)
-val add_num_hints:
-  Cil_types.stmt option -> Base.t option -> Ival.Widen_Hints.t -> t -> t
+val join: t -> t -> t
 
-(** Add a set of bases to widen in priority for a given statement. *)
-val add_var_hints : Cil_types.stmt -> Base.Set.t -> t -> t
+(**  Pretty-prints a set of hints (for debug purposes only).
+     @since Silicon-20161101 *)
+val pretty : Format.formatter -> t -> unit
+
+(** Define numeric hints for one or all variables ([None]),
+    for a certain stmt or for all statements ([None]).  *)
+val num_hints:
+  Cil_types.stmt option -> Base.t option -> Ival.Widen_Hints.t -> t
+
+(** Define a set of bases to widen in priority for a given statement. *)
+val var_hints : Cil_types.stmt -> Base.Set.t -> t
 
 (** Widen hints for a given statement, suitable for function
     {!Cvalue.Model.widen}. *)

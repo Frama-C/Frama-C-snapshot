@@ -39,7 +39,7 @@ val if_then : stmt -> tag
 val if_else : stmt -> tag
 val switch_cases : stmt -> int64 list -> tag
 val switch_default : stmt -> tag
-val cases : identified_predicate -> (tag * predicate named) list option
+val cases : identified_predicate -> (tag * predicate) list option
 val call : stmt -> kernel_function -> tag
 
 type 'a t

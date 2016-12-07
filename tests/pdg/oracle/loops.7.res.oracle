@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at non_natural_loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   after ∈ [--..--]
 tests/pdg/loops.c:139:[kernel] warning: Non-natural loop detected.
 [value] Recording results for non_natural_loop

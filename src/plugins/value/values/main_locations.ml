@@ -34,14 +34,6 @@ module PLoc = struct
 
   let structure = Structure.Key_Location.Leaf ploc_key
 
-  let sizeof_lval_typ typlv =
-    match Cil.unrollType typlv with
-    | TInt (_, attrs) | TEnum (_, attrs) as t ->
-      (match Cil.findAttribute Cil.bitfield_attribute_name attrs with
-       | [AInt i] -> Int_Base.Value i
-       | _ -> Bit_utils.sizeof t)
-    | t -> Bit_utils.sizeof t
-
   let equal_loc = Precise_locs.equal_loc
   let equal_offset o1 o2 = match o1, o2 with
     | Precise o1, Precise o2 -> Precise_locs.equal_offset o1 o2
@@ -186,7 +178,7 @@ module PLoc = struct
   (* ------------------------------------------------------------------------ *)
 
   let make_precise_loc loc typ_offs =
-    let size = sizeof_lval_typ typ_offs in
+    let size = Eval_typ.sizeof_lval_typ typ_offs in
     let loc = Precise_locs.make_precise_loc loc ~size in
     if Precise_locs.is_bottom_loc loc
     then `Bottom

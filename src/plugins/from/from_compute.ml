@@ -649,7 +649,7 @@ struct
       (let s = ref "" in
        Stack.iter
          (fun kf ->
-           s := !s^" <-"^(Pretty_utils.sfprintf "%a" Kernel_function.pretty kf))
+           s := !s^" <-"^(Format.asprintf "%a" Kernel_function.pretty kf))
          call_stack;
        !s);
     !Db.progress ();

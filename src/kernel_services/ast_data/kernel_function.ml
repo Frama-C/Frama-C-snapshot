@@ -29,7 +29,6 @@ open Cil_datatype
 
 let dummy () =
   { fundec = Definition (Cil.emptyFunction "@dummy@", Location.unknown);
-    return_stmt = None;
     spec = List.hd Funspec.reprs }
 
 let get_vi kf = Ast_info.Function.get_vi kf.fundec
@@ -79,9 +78,6 @@ module Kf =
 let self = Kf.self
 
 let auxiliary_kf_stmt_state = Kf.self
-
-let clear_sid_info () = Kf.clear ()
-let () = Cfg.clear_sid_info_ref := clear_sid_info
 
 let compute () =
   Kf.memo
@@ -223,31 +219,42 @@ let find_enclosing_loop kf stmt =
 exception Got_return of stmt
 exception No_Statement
 
+module ReturnCache =
+  Cil_state_builder.Kernel_function_hashtbl
+    (Cil_datatype.Stmt)
+    (struct
+      let name = "Kernel_function.ReturnCache"
+      let dependencies = [Ast.self]
+      let size = 43
+    end)
+
+let () = Ast.add_monotonic_state ReturnCache.self
+
+let clear_sid_info () = Kf.clear (); ReturnCache.clear ()
+let () = Cfg.clear_sid_info_ref := clear_sid_info
+
 let find_return kf =
-  match kf.return_stmt with
-  | None ->
-      let find_return fd =
-        let visitor = object
-          inherit Cil.nopCilVisitor
-          method! vstmt s =
-            match s.skind with
-              | Return _ -> raise (Got_return s)
-              | _ -> Cil.DoChildren
-        end
-        in
-        try
-          ignore (Cil.visitCilFunction (visitor :> Cil.cilVisitor) fd);
-          assert false
-        with Got_return s -> s
+  try
+    ReturnCache.find kf
+  with Not_found ->
+    let find_return fd =
+      let visitor = object
+        inherit Cil.nopCilVisitor
+        method! vstmt s =
+          match s.skind with
+          | Return _ -> raise (Got_return s)
+          | _ -> Cil.DoChildren
+      end
       in
-      (try
-         let ki = find_return (get_definition kf) in
-         kf.return_stmt <- Some ki;
-         ki
-       with No_Definition ->
-         raise No_Statement)
-  | Some ki ->
-      ki
+      try
+        ignore (Cil.visitCilFunction (visitor :> Cil.cilVisitor) fd);
+        Kernel.fatal "Function %a does not have a return statement" pretty kf
+      with Got_return s ->
+        ReturnCache.add kf s; s
+    in
+    try
+      find_return (get_definition kf)
+    with No_Definition -> raise No_Statement
 
 let get_stmts kf =
   try (get_definition kf).sbody.bstmts with No_Definition | Not_found -> []

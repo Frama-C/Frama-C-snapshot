@@ -4,7 +4,6 @@
 tests/wp_plugin/model.i:11:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 ---------------------------------------------
@@ -19,8 +18,8 @@ goal f_post:
   forall t : (addr,int) farray.
   forall a : addr.
   let x = t[shift_sint32(a, i)] : int in
-  is_sint32(i) ->
   (region(a.base) <= 0) ->
+  is_sint32(i) ->
   is_sint32(x) ->
   P_P(x)
 
@@ -58,7 +57,6 @@ Prove: P_P(x).
 
 ------------------------------------------------------------
 [wp] Running WP plugin...
-[wp] Collecting variable usage
 [wp] 2 goals scheduled
 ---------------------------------------------
 --- File 'typed_ref/f_post.ergo' 
@@ -72,8 +70,8 @@ goal f_post:
   forall t : (addr,int) farray.
   forall a : addr.
   let x = t[shift_sint32(a, i)] : int in
-  is_sint32(i) ->
   (region(a.base) <= 0) ->
+  is_sint32(i) ->
   is_sint32(x) ->
   P_P(x)
 
@@ -107,8 +105,8 @@ goal f_post:
   forall t : (addr,int) farray.
   forall a : addr.
   let x = t[shift_sint32(a, i)] : int in
-  is_sint32(i) ->
   (region(a.base) <= 0) ->
+  is_sint32(i) ->
   is_sint32(x) ->
   P_P(x)
 

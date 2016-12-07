@@ -68,7 +68,7 @@ module Printer = struct
 
   let vertex_attributes (s, has_postdom) =
     let attrib = [] in
-    let txt = Pretty_utils.sfprintf "%a" V.pretty s in
+    let txt = Format.asprintf "%a" V.pretty s in
     let attrib = (`Label txt) :: attrib in
     let color = if has_postdom then 0x7FFFD4 else 0xFF0000 in
     let attrib = (`Shape `Box) :: attrib in

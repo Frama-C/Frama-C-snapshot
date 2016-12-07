@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}
@@ -27,11 +27,12 @@
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function F1:
+[value:final-states] Values at end of function F1:
   G3 ∈ {0}
-[value] Values at end of function F2:
+[value:final-states] Values at end of function F2:
   G1 ∈ {0}
-[value] Values at end of function main:
+  V1 ∈ {1}
+[value:final-states] Values at end of function main:
   G1 ∈ {0}
   G2 ∈ {0}
   G3 ∈ {0}
@@ -72,7 +73,7 @@
 [inout] Inputs for function F1:
           G2.M2; G5
 [inout] Out (internal) for function F2:
-          G1.M1
+          G1.M1; V1
 [inout] Inputs for function F2:
           G4
 [inout] Out (internal) for function main:
@@ -111,54 +112,58 @@
  {n11}: In1
    -[a--]-> 10
  {n12}: VarDecl : V1
- {n13}: (f2->M5)->M1 = 0;
+ {n13}: V1 = 1;
+   -[-c-]-> 9
+   -[a--]-> 12
+ {n14}: (f2->M5)->M1 = 0;
    -[-c-]-> 9
    -[a--]-> 10
    -[a--]-> 11
-   -[a--]-> 16
- {n14}: return V1;
+   -[a--]-> 17
+ {n15}: return V1;
    -[-c-]-> 9
    -[--d]-> 12
- {n15}: OutRet
-   -[--d]-> 14
- {n16}: In(G4)
+   -[--d]-> 13
+ {n16}: OutRet
+   -[--d]-> 15
+ {n17}: In(G4)
 [pdg] PDG for main
- {n17}: InCtrl
- {n18}: VarDecl : V2
- {n19}: Call8-InCtrl : F2((T5 *)(& G4));
-   -[-c-]-> 17
- {n20}: Call8-In1 : F2((T5 *)(& G4));
-   -[-c-]-> 17
-   -[-c-]-> 19
- {n21}: Call8-Out(G1.M1) : F2((T5 *)(& G4));
-   -[-c-]-> 17
-   -[-c-]-> 19
-   -[--d]-> 20
+ {n18}: InCtrl
+ {n19}: VarDecl : V2
+ {n20}: Call9-InCtrl : F2((T5 *)(& G4));
+   -[-c-]-> 18
+ {n21}: Call9-In1 : F2((T5 *)(& G4));
+   -[-c-]-> 18
+   -[-c-]-> 20
+ {n22}: Call9-Out(G1.M1) : F2((T5 *)(& G4));
+   -[-c-]-> 18
+   -[-c-]-> 20
+   -[--d]-> 21
+   -[--d]-> 32
+ {n23}: G2 = G1;
+   -[-c-]-> 18
+   -[--d](G1.M1)-> 22
    -[--d]-> 31
- {n22}: G2 = G1;
-   -[-c-]-> 17
-   -[--d](G1.M1)-> 21
+ {n24}: Call11-InCtrl : F1((T3 *)(& G5));
+   -[-c-]-> 18
+ {n25}: Call11-In1 : F1((T3 *)(& G5));
+   -[-c-]-> 18
+   -[-c-]-> 24
+ {n26}: Call11-Out(G3.M2) : F1((T3 *)(& G5));
+   -[-c-]-> 18
+   -[--d]-> 23
+   -[-c-]-> 24
+   -[--d]-> 25
    -[--d]-> 30
- {n23}: Call10-InCtrl : F1((T3 *)(& G5));
-   -[-c-]-> 17
- {n24}: Call10-In1 : F1((T3 *)(& G5));
-   -[-c-]-> 17
-   -[-c-]-> 23
- {n25}: Call10-Out(G3.M2) : F1((T3 *)(& G5));
-   -[-c-]-> 17
-   -[--d]-> 22
-   -[-c-]-> 23
-   -[--d]-> 24
-   -[--d]-> 29
- {n26}: V2 = 0;
-   -[-c-]-> 17
-   -[a--]-> 18
- {n27}: return V2;
-   -[-c-]-> 17
-   -[--d]-> 18
-   -[--d]-> 26
- {n28}: OutRet
+ {n27}: V2 = 0;
+   -[-c-]-> 18
+   -[a--]-> 19
+ {n28}: return V2;
+   -[-c-]-> 18
+   -[--d]-> 19
    -[--d]-> 27
- {n29}: In(G5)
- {n30}: In(G1.M2)
- {n31}: In(G4)
+ {n29}: OutRet
+   -[--d]-> 28
+ {n30}: In(G5)
+ {n31}: In(G1.M2)
+ {n32}: In(G4)

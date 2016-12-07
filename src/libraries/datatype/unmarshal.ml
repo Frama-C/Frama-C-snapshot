@@ -168,12 +168,12 @@ let readheader64 =
 ;;
 
 let readblock ch dest ofs len =
-  unsafe_really_input ch (Obj.obj dest : string) ofs len
+  unsafe_really_input ch (Obj.obj dest : bytes) ofs len
 ;;
 
 let readblock_rev ch dest ofs len =
   for i = len - 1 + ofs downto ofs do
-    String.unsafe_set (Obj.obj dest : string) i (input_char ch);
+    Bytes.unsafe_set (Obj.obj dest : bytes) i (input_char ch);
   done
 ;;
 
@@ -237,29 +237,29 @@ let check_const ch s msg =
 (* Auxiliary functions for handling Custom blocks. *)
 
 let buflen = 100;;
-let buf = String.create buflen;;
+let buf = Bytes.create buflen;;
 let bufs = ref [];;
 let read_customident ch =
   let rec loop i =
     let c = input_char ch in
     if c = '\000' then begin
       if !bufs = []
-      then String.sub buf 0 i
+      then Bytes.sub buf 0 i
       else begin
-        let res = String.concat "" (List.rev (String.sub buf 0 i :: !bufs)) in
+        let res = Bytes.concat Bytes.empty (List.rev (Bytes.sub buf 0 i :: !bufs)) in
         bufs := [];
         res
       end
     end else if i >= buflen then begin
       assert (i = buflen);
-      bufs := String.copy buf :: !bufs;
+      bufs := Bytes.copy buf :: !bufs;
       loop 0
     end else begin
-      buf.[i] <- c;
+      Bytes.set buf i c;
       loop (i + 1)
     end
   in
-  loop 0
+  loop 0 |> Bytes.to_string
 ;;
 
 let custom_table =
@@ -497,7 +497,7 @@ let input_val ch t =
     end
 
   and read_string stk t len =
-    let v = Obj.repr (String.create len) in
+    let v = Obj.repr (Bytes.create len) in
     readblock ch v 0 len;
     let dest = !ctr in
     ctr := dest + 1;

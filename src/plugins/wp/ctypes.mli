@@ -74,6 +74,10 @@ val object_of_logic_pointed : logic_type -> c_object
 
 val imemo : (c_int -> 'a) -> c_int -> 'a
 val fmemo : (c_float -> 'a) -> c_float -> 'a
+(** memoization function, projectified *)
+
+val iiter: (c_int -> unit) -> unit
+val fiter: (c_float -> unit) -> unit
 
 val is_char : c_int -> bool
 val c_char : unit -> c_int     (** Returns the type of [char] *)
@@ -107,8 +111,13 @@ val sizeof_object : c_object -> int
 val field_offset : fieldinfo -> int
 
 val no_infinite_array : c_object -> bool
+
+val is_comp : c_object -> compinfo -> bool
+val is_array : c_object -> elt:c_object -> bool
+val get_array : c_object -> ( c_object * int option ) option
+val get_array_size : c_object -> int option
+val array_size : arrayinfo -> int option
 val array_dim : arrayinfo -> c_object * int
-val array_size : typ -> int option
 val array_dimensions : arrayinfo -> c_object * int option list
 (** Returns the list of dimensions the array consists of.
     None-dimension means undefined one. *)

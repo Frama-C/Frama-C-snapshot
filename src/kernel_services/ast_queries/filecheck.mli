@@ -24,15 +24,15 @@
     Code may vary depending on current development of the kernel and/or
     identified bugs. *)
 
-class check: ?is_normalized:bool -> string -> Visitor.frama_c_visitor
-  (** visitor that performs various consistency checks over the AST.
-      The string argument will be used in the error message in case of
-      inconsistency, in order to trace the issue. [is_normalized] defaults to
-      [true]. Some checks are deactivated when it is set [false].  *)
+val check_ast: ?is_normalized:bool -> ?ast:Cil_types.file -> string -> unit
+(** Visits the given AST (defaults to the AST of the current project) 
+    to check whether it is consistent. Use a non-default [ast] argument
+    at your own risks.
 
-val check_ast: ?is_normalized:bool -> string -> unit
-(** performs the checks of the [check] class on the current AST.
-    @since Aluminium-20160501 *)
+    Note that the check is only partial.
+    @since Aluminium-20160501 
+    @modify Silicon-20161101 adds optional ast argument
+*)
 
 (*
 Local Variables:

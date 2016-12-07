@@ -145,7 +145,7 @@ module Printer (X: AdditionalInfo) = struct
   let vertex_attributes v =
     let txt = Pretty_utils.to_string V.pretty v in
     let txt = if String.length txt > 100 then String.sub txt 0 100 else txt in
-    let txt = Pretty_utils.sfprintf "%S" txt in
+    let txt = Format.asprintf "%S" txt in
     let txt = String.sub txt 1 (String.length txt - 2) in
     let shape =
       if Pdg_aux.NS.mem v X.initial_nodes then
@@ -223,7 +223,7 @@ let print_reason reason =
       pp_node nsrc pp_node ndst
       (match reason with
          | Intraprocedural dpd ->
-             Pretty_utils.sfprintf "intra %a" PdgTypes.Dpd.pretty dpd
+             Format.asprintf "intra %a" PdgTypes.Dpd.pretty dpd
          | InterproceduralDownward -> "downward"
          | InterproceduralUpward -> "upward"
       )

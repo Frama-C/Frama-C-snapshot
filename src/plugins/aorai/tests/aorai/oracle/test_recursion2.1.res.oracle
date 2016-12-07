@@ -20,42 +20,44 @@ axiomatic string_len {
   axiom strlen0{L}: ∀ char *s; \valid(s) ⇒ string_len(s) ≥ 0;
   
   axiom strlen1{L}:
-    ∀ char *s; \valid(s) ∧ *(s+0) ≡ '\000' ⇒ string_len(s) ≡ 0;
+    ∀ char *s; \valid(s) ∧ *(s + 0) ≡ '\000' ⇒ string_len(s) ≡ 0;
   
-  axiom strlen2{L}: ∀ char *s; \valid(s) ⇒ *(s+string_len(s)) ≡ '\000';
+  axiom strlen2{L}:
+    ∀ char *s; \valid(s) ⇒ *(s + string_len(s)) ≡ '\000';
   
   axiom strlen3{L}:
     ∀ char *s;
-      \valid(s) ∧ *(s+0) ≢ '\000' ⇒
-      string_len(s) ≡ 1+string_len(s+1) ∧ \valid(s+1);
+      \valid(s) ∧ *(s + 0) ≢ '\000' ⇒
+      string_len(s) ≡ 1 + string_len(s + 1) ∧ \valid(s + 1);
   
   axiom strlen4{L}:
     ∀ char *s;
       \valid(s) ⇒
-      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s+i) ≢ '\000');
+      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s + i) ≢ '\000');
   
   }
  */
 /*@
 predicate valid_string{L}(char *s) =
-  \valid(s) ∧ \valid(s+(0 .. string_len(s)));
+  \valid(s) ∧ \valid(s + (0 .. string_len(s)));
  */
 /*@
 axiomatic sum_tab {
   logic ℤ sum_tab{L}(char *t, ℤ l, ℤ i) ;
   
   axiom sum_tab0{L}:
-    ∀ char *t, ℤ l; \valid(t+(0 .. l)) ⇒ sum_tab(t, l, 0) ≡ *(t+0);
+    ∀ char *t, ℤ l;
+      \valid(t + (0 .. l)) ⇒ sum_tab(t, l, 0) ≡ *(t + 0);
   
   axiom sum_tabi{L}:
     ∀ char *t, ℤ l, ℤ i;
-      \valid(t+(0 .. l)) ∧ 0 < i ≤ l ⇒
-      sum_tab(t, l, i) ≡ sum_tab(t, l, i-1)+*(t+i);
+      \valid(t + (0 .. l)) ∧ 0 < i ≤ l ⇒
+      sum_tab(t, l, i) ≡ sum_tab(t, l, i - 1) + *(t + i);
   
   axiom sum_tabn{L}:
     ∀ char *t, ℤ l;
-      \valid(t+(0 .. l)) ∧ l > 0 ∧ l ≡ string_len(t) ⇒
-      sum_tab(t, l, l) ≡ sum_tab(t, l, l-1);
+      \valid(t + (0 .. l)) ∧ l > 0 ∧ l ≡ string_len(t) ⇒
+      sum_tab(t, l, l) ≡ sum_tab(t, l, l - 1);
   
   }
  */
@@ -299,7 +301,8 @@ int sumOne(char *t, int length)
   aorai_loop_42:
     /*@ loop invariant ranges: 0 ≤ i ≤ length;
         loop invariant sumValue0: i ≡ 0 ⇒ sum ≡ 0;
-        loop invariant sumValuei: i > 0 ⇒ sum ≡ sum_tab(t, length, i-1);
+        loop invariant
+          sumValuei: i > 0 ⇒ sum ≡ sum_tab(t, length, i - 1);
         loop invariant Aorai: 0 ≡ S1;
         loop invariant Aorai: 0 ≡ T0_init;
         loop invariant Aorai: 1 ≡ T1;
@@ -416,7 +419,8 @@ void main_post_func(int res)
 
 /*@ requires 1 ≡ T0_init ∧ 0 ≡ S1 ∧ 0 ≡ T1 ∧ 0 ≡ accept_T2;
     requires
-      argc ≥ 0 ∧ (argc > 0 ⇒ \valid(argv) ∧ valid_string(*(argv+0)));
+      argc ≥ 0 ∧
+      (argc > 0 ⇒ \valid(argv) ∧ valid_string(*(argv + 0)));
     ensures \result ≡ 1;
     
     behavior aorai_acceptance:

@@ -4,7 +4,7 @@
 [value] Analyzing an incomplete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ [--..--]
 [value] computing for function f <- g.
         Called from tests/impact/called.i:15.

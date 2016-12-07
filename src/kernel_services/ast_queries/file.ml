@@ -260,6 +260,7 @@ let default_machdeps =
     "gcc_x86_32", Machdeps.gcc_x86_32;
     "gcc_x86_64", Machdeps.gcc_x86_64;
     "ppc_32", Machdeps.ppc_32;
+    "msvc_x86_64", Machdeps.msvc_x86_64;
   ]
 
 let regexp_existing_machdep_macro = Str.regexp "-D[ ]*__FC_MACHDEP_"
@@ -276,8 +277,9 @@ let machdep_macro = function
   | "x86_32" | "gcc_x86_32" -> "__FC_MACHDEP_X86_32"
   | "x86_64" | "gcc_x86_64" -> "__FC_MACHDEP_X86_64"
   | "ppc_32"                -> "__FC_MACHDEP_PPC_32"
+  | "msvc_x86_64"           -> "__FC_MACHDEP_MSVC_X86_64"
   | s ->
-      let res = "__FC_MACHDEP_" ^ (String.uppercase s) in
+      let res = "__FC_MACHDEP_" ^ (Transitioning.String.uppercase_ascii s) in
       Kernel.warning ~once:true
         "machdep %s has no registered macro. Using %s for pre-processing" s res;
       res
@@ -455,7 +457,7 @@ let parse_cabs = function
         else supp_args
       in
       let add_args s =
-        Pretty_utils.sfprintf "%a%s"
+        Format.asprintf "%a%s"
           (Pretty_utils.pp_list ~sep:" "
              (fun fmt s -> Format.fprintf fmt "%s" s))
           (Kernel.CppExtraArgs.get ())
@@ -751,7 +753,7 @@ let emit_status p =
     Property.pretty p;
   Property_status.emit Emitter.kernel ~hyps:[] p Property_status.True
 
-let emit_all_statuses _ = 
+let emit_all_statuses _ =
   Kernel.debug ~dkey:dkey_annot "Marking properties";
   Implicit_annotations.iter emit_status
 
@@ -859,7 +861,7 @@ effects";
             | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
               (* Annotation relative to the effect of next statement *)
               add_user_annot_for_next_stmt annot
-            | APragma _ | AAssert _ | AAssigns _ | AAllocation _
+            | APragma _ | AAssert _ | AAssigns _ | AAllocation _ | AExtended _
             | AInvariant _ | AVariant _ ->
               (* Annotation relative to the current control point *)
               (match !user_annots_for_next_stmt with
@@ -895,6 +897,8 @@ let register_global = function
         Cfg.prepareCFG ~keepSwitch:(Kernel.KeepSwitch.get ()) fundec;
         Cfg.clearCFGinfo fundec;
         Cfg.cfgFun fundec;
+        (* prepareCFG may add additional labels that are not used in the end. *)
+        Rmtmps.remove_unused_labels fundec;
       end;
       Globals.Functions.add (Definition(fundec,loc));
   | GFunDecl (spec, f,loc) ->
@@ -1084,19 +1088,16 @@ let recompute_cfg _ =
     (fun f -> Cfg.clearCFGinfo ~clear_id:false f; Cfg.cfgFun f);
   Cfg_recomputation_queue.clear ()
 
-let () = Ast.apply_after_computed recompute_cfg
-
-let transform_and_check name is_normalized f file =
+let transform_and_check name is_normalized f ast =
   Kernel.feedback ~dkey:dkey_transform "applying %s to file" name;
-  f file;
+  f ast;
   recompute_cfg ();
   if Kernel.Check.get () then begin
-    Cil.visitCilFileSameGlobals
-      (new Filecheck.check ~is_normalized ("after code transformation: " ^ name)
-       :> Cil.cilVisitor) file;
+    Filecheck.check_ast
+      ~is_normalized  ~ast ("after code transformation: " ^ name);
   end
 
-let add_code_transformation_before_cleanup 
+let add_code_transformation_before_cleanup
     ?(deps:(module Parameter_sig.S) list = [])
     ?(before=[]) ?(after=[]) name f =
   Transform_before_cleanup.extend
@@ -1111,7 +1112,7 @@ let add_code_transformation_before_cleanup
     after;
   List.iter (add_transform_parameter ~before ~after name f) deps
 
-let add_code_transformation_after_cleanup 
+let add_code_transformation_after_cleanup
     ?(deps:(module Parameter_sig.S) list = [])  ?(before=[]) ?(after=[])
     name f =
   Transform_after_cleanup.extend name.after_id
@@ -1124,23 +1125,32 @@ let add_code_transformation_after_cleanup
       Transform_after_cleanup.add_dependency a.after_id name.after_id) after;
   List.iter (add_transform_parameter ~before ~after name f) deps
 
-let prepare_cil_file file =
+let syntactic_constant_folding ast =
+  if Kernel.Constfold.get () then
+    Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) ast
+
+let constfold = register_code_transformation_category "constfold"
+
+let () =
+  let deps = [ (module Kernel.Constfold: Parameter_sig.S) ] in
+  add_code_transformation_after_cleanup
+    ~deps constfold syntactic_constant_folding
+
+let prepare_cil_file ast =
   Kernel.feedback ~level:2 "preparing the AST";
-  computeCFG ~clear_id:true file;
+  computeCFG ~clear_id:true ast;
   if Kernel.Check.get () then begin
-   Cil.visitCilFileSameGlobals
-     (new Filecheck.check ~is_normalized:false "initial AST" :> Cil.cilVisitor) 
-     file
+    Filecheck.check_ast ~is_normalized:false ~ast "initial AST"
   end;
   Kernel.feedback ~level:2 "First check done";
   if Kernel.Orig_name.get () then begin
-    Cil.visitCilFileSameGlobals print_renaming file
+    Cil.visitCilFileSameGlobals print_renaming ast
   end;
-  Transform_before_cleanup.apply file;
+  Transform_before_cleanup.apply ast;
   (* Compute the list of functions and their CFG *)
-  Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point file;
+  Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point ast;
   (try
-     List.iter register_global file.globals
+     List.iter register_global ast.globals
    with Globals.Vars.AlreadyExists(vi,_) ->
      Kernel.fatal
        "Trying to add the same varinfo twice: %a (vid:%d)"
@@ -1149,27 +1159,26 @@ let prepare_cil_file file =
   (* NB: register_global also calls oneret, which might introduce new
      statements and new annotations tied to them. Since sid are set by cfg,
      we must compute it again before annotation synchronisation *)
-  Cfg.clearFileCFG ~clear_id:false file;
-  Cfg.computeFileCFG file;
+  Cfg.clearFileCFG ~clear_id:false ast;
+  Cfg.computeFileCFG ast;
   let recompute = ref false in
   Globals.Functions.iter (synchronize_source_annot recompute);
   (* We might also introduce new blocks for synchronization. *)
   if !recompute then begin
-    Cfg.clearFileCFG ~clear_id:false file;
-    Cfg.computeFileCFG file;
+    Cfg.clearFileCFG ~clear_id:false ast;
+    Cfg.computeFileCFG ast;
   end;
-  cleanup file;
-  Ast.set_file file;
+  cleanup ast;
+  Ast.set_file ast;
   (* Check that normalization is correct. *)
   if Kernel.Check.get() then begin
-   Cil.visitCilFileSameGlobals
-     (new Filecheck.check "AST after normalization" :> Cil.cilVisitor) file;
+     Filecheck.check_ast ~ast "AST after normalization";
   end;
   Globals.Functions.iter Annotations.register_funspec;
-  Transform_after_cleanup.apply file;
+  Transform_after_cleanup.apply ast;
   (* reset tables depending on AST in case they have been computed during
      the transformation. *)
-  Ast.set_file file
+  Ast.set_file ast
 
 let fill_built_ins () =
   if Cil.selfMachine_is_computed () then begin
@@ -1454,7 +1463,7 @@ object(self)
           DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
       | _ -> DoChildren
 
-  method! vpredicate p =
+  method! vpredicate_node p =
     match p with
       | Plet(li,_) -> self#add_local_logic_info li;
           DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
@@ -1589,32 +1598,24 @@ let init_project_from_visitor ?(reorder=false) prj
     Kernel.fatal
       "Visitor does not copy or does not operate on correct project.";
   Project.on prj (fun () -> Cil.initCIL (fun () -> ()) (get_machdep ())) ();
-  let file = Ast.get () in
-  let file' = visitFramacFileCopy vis file in
-  let finalize file' =
-    computeCFG ~clear_id:false file';
-    Ast.set_file file'
+  let old_ast = Ast.get () in
+  let ast = visitFramacFileCopy vis old_ast in
+  let finalize ast =
+    computeCFG ~clear_id:false ast;
+    Ast.set_file ast
   in
   let selection = State_selection.with_dependencies Ast.self in
-  Project.on ~selection prj finalize file';
+  Project.on ~selection prj finalize ast;
   (* reorder _before_ check. *)
   if reorder then Project.on prj reorder_ast ();
   if Kernel.Check.get() then begin
     let name = prj.Project.name in
     Kernel.debug ~dkey:dkey_print_one "Check for project %s" name;
-    Project.on
-      prj
-      (* eta-expansion required because of operations on the current project in
-         the class constructor *)
-      (fun f ->
-         Visitor.visitFramacFileSameGlobals
-           (new Filecheck.check ("AST of " ^ name)) f)
-      file';
+    Project.on prj (Filecheck.check_ast ~ast) ("AST of " ^ name);
     assert
-      (Kernel.verify (file == Ast.get())
+      (Kernel.verify (old_ast == Ast.get())
          "Creation of project %s modifies original project"  name);
-    Visitor.visitFramacFileSameGlobals
-      (new Filecheck.check("Original AST after creation of " ^ name)) file
+    Filecheck.check_ast ("Original AST after creation of " ^ name)
   end
 
 let prepare_from_visitor ?reorder prj visitor =
@@ -1665,8 +1666,7 @@ let init_from_cmdline () =
   try
     init_from_c_files files;
     if Kernel.Check.get () then begin
-      Cil.visitCilFile
-        (new Filecheck.check "Copy of original AST" :> Cil.cilVisitor) (Ast.get())
+      Filecheck.check_ast "Copy of original AST"
     end;
     if Kernel.Copy.get () then begin
       Project.on prj1 fill_built_ins ();

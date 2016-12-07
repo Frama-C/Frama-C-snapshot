@@ -134,7 +134,7 @@ void f_pre_func(int x)
       aorai_CurStates_tmp = aorai_intermediate_state;
       aorai_x = x;
     }
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -217,7 +217,7 @@ void f_post_func(int res)
     if (aorai_x == 1) aorai_CurStates_tmp = aorai_intermediate_state_0;
   if (4 == aorai_CurStates) 
     if (aorai_x_0 == 3) aorai_CurStates_tmp = OK;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -246,14 +246,14 @@ void f_post_func(int res)
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x_0 ≡ \at(x,Pre)+0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre)+0;
+        aorai_x_0 ≡ \at(x,Pre) + 0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x ≡ \at(x,Pre)+0 ∨ aorai_x ≡ \at(aorai_x,Pre)+0;
+        aorai_x ≡ \at(x,Pre) + 0 ∨ aorai_x ≡ \at(aorai_x,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧ aorai_CurStates ≡ OK ⇒
-        aorai_x_0 ≡ \at(x,Pre)+0;
+        aorai_x_0 ≡ \at(x,Pre) + 0;
     
     behavior Buchi_behavior_in_0:
       assumes aorai_CurStates ≡ main_0 ∧ x ≡ 1;
@@ -268,15 +268,15 @@ void f_post_func(int res)
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x_0 ≡ \at(x,Pre)+0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre)+0;
+        aorai_x_0 ≡ \at(x,Pre) + 0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x ≡ \at(x,Pre)+0 ∨ aorai_x ≡ \at(aorai_x,Pre)+0;
+        aorai_x ≡ \at(x,Pre) + 0 ∨ aorai_x ≡ \at(aorai_x,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ main_0,Pre) ∧
         aorai_CurStates ≡ aorai_intermediate_state_0 ⇒
-        aorai_x ≡ \at(x,Pre)+0;
+        aorai_x ≡ \at(x,Pre) + 0;
  */
 int f(int x)
 {
@@ -342,7 +342,7 @@ void g_pre_func(int y)
     aorai_y = y;
   }
   if (0 == aorai_CurStates) aorai_CurStates_tmp = OK;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -415,7 +415,7 @@ void g_post_func(int res)
     _LAND: ;
     if (0 == aorai_CurStates) aorai_CurStates_tmp = OK;
   }
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -439,10 +439,10 @@ void g_post_func(int res)
       ensures aorai_CurStates ≡ OK ∨ aorai_CurStates ≡ aorai_reject;
       ensures
         \at(aorai_CurStates ≡ aorai_intermediate_state_0,Pre) ∧
-        aorai_CurStates ≡ aorai_reject ⇒ aorai_y ≡ \at(y,Pre)+0;
+        aorai_CurStates ≡ aorai_reject ⇒ aorai_y ≡ \at(y,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ aorai_intermediate_state_0,Pre) ∧
-        aorai_CurStates ≡ OK ⇒ aorai_y ≡ \at(y,Pre)+0;
+        aorai_CurStates ≡ OK ⇒ aorai_y ≡ \at(y,Pre) + 0;
     
     behavior Buchi_behavior_in_0:
       assumes aorai_CurStates ≡ OK;
@@ -495,7 +495,7 @@ void main_pre_func(void)
   aorai_CurOperation = op_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (6 == aorai_CurStates) aorai_CurStates_tmp = main_0;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -546,7 +546,7 @@ void main_post_func(int res)
   aorai_CurStates_tmp = aorai_CurStates;
   if (5 == aorai_CurStates) aorai_CurStates_tmp = aorai_reject;
   if (0 == aorai_CurStates) aorai_CurStates_tmp = OK;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -558,24 +558,24 @@ void main_post_func(int res)
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x_0 ≡ \at(1,Pre)+0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre)+0;
+        aorai_x_0 ≡ \at(1,Pre) + 0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_y ≡ \at(2,Pre)+0 ∨ aorai_y ≡ \at(aorai_y,Pre)+0;
+        aorai_y ≡ \at(2,Pre) + 0 ∨ aorai_y ≡ \at(aorai_y,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧
         aorai_CurStates ≡ aorai_reject ⇒
-        aorai_x ≡ \at(1,Pre)+0 ∨ aorai_x ≡ \at(aorai_x,Pre)+0;
+        aorai_x ≡ \at(1,Pre) + 0 ∨ aorai_x ≡ \at(aorai_x,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧ aorai_CurStates ≡ OK ⇒
-        aorai_x_0 ≡ \at(1,Pre)+0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre)+0;
+        aorai_x_0 ≡ \at(1,Pre) + 0 ∨ aorai_x_0 ≡ \at(aorai_x_0,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧ aorai_CurStates ≡ OK ⇒
-        aorai_y ≡ \at(2,Pre)+0 ∨ aorai_y ≡ \at(aorai_y,Pre)+0;
+        aorai_y ≡ \at(2,Pre) + 0 ∨ aorai_y ≡ \at(aorai_y,Pre) + 0;
       ensures
         \at(aorai_CurStates ≡ init,Pre) ∧ aorai_CurStates ≡ OK ⇒
-        aorai_x ≡ \at(1,Pre)+0 ∨ aorai_x ≡ \at(aorai_x,Pre)+0;
+        aorai_x ≡ \at(1,Pre) + 0 ∨ aorai_x ≡ \at(aorai_x,Pre) + 0;
  */
 int main(void)
 {

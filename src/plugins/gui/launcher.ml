@@ -147,15 +147,19 @@ let add_group (box:GPack.box) label options =
 let box_plugin p =
   let frame = GBin.frame ~border_width:5 () in
   let vbox = GPack.vbox ~packing:frame#add () in
-  let markup = "<span font_weight=\"bold\">" ^
-               String.capitalize p.Plugin.p_help ^ "</span>" in
+  let markup =
+    "<span font_weight=\"bold\">" ^
+    Transitioning.String.capitalize_ascii p.Plugin.p_help ^
+    "</span>"
+  in
   ignore (GMisc.label ~markup ~packing:(vbox#pack ~padding:15) ());
   let sorted_groups =
     List.sort
       (fun (s1, _) (s2, _) -> String.compare s1 s2)
       (Hashtbl.fold
          (fun l g acc ->
-            if g = [] then acc else (String.capitalize l, g) :: acc)
+            if g = [] then acc
+            else (Transitioning.String.capitalize_ascii l, g) :: acc)
          p.Plugin.p_parameters
          [])
   in
@@ -282,7 +286,10 @@ let show ?height ?width ~(host:basic_main) () =
   ignore (button_run#connect#released (run host dialog));
   let plugins = ref [] in
   Plugin.iter_on_plugins
-    (fun p -> plugins := (String.capitalize p.Plugin.p_name, p) :: !plugins);
+    (fun p ->
+       plugins :=
+         (Transitioning.String.capitalize_ascii p.Plugin.p_name, p)
+         :: !plugins);
   plugins :=
     List.sort (fun (n1, _) (n2, _) -> compare_plugin_name n1 n2)!plugins;
   listview_plugins ~packing:hbox#pack !plugins;

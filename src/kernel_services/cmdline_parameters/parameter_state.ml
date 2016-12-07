@@ -26,6 +26,7 @@
 
 let selection : (State.t * bool) list ref = ref []
 let no_reset_selection: (State.t * bool) list ref = ref []
+let collections: State.Set.t ref = ref State.Set.empty
 
 let get_selection_gen ?(is_set=true) selection =
   let l =
@@ -43,9 +44,12 @@ let get_selection ?is_set () = get_selection_gen ?is_set !selection
 
 let get_selection_context ?is_set () =
   let has_dependencies s =
-    State_dependency_graph.G.out_degree State_dependency_graph.graph s > 0
+    (* each collection whose state is a string has at least 1 dependency
+       which is its typed state. *)
+    let degree = if State.Set.mem s !collections then 1 else 0 in
+    State_dependency_graph.G.out_degree State_dependency_graph.graph s > degree
   in
-  (* automatically select all options which have some dependencies:
+  (* automatically select all options that have some dependencies:
      they have an impact on some analysis. *)
   let states =
     State_selection.fold
@@ -207,16 +211,22 @@ struct
 
   let force_set x =
     let old = Internal_state.get () in
-    if projectify then begin
-      (* [JS 2009/05/25] first clear the dependency and next apply the hooks
-         since these hooks may set some states in the dependencies *)
-      let selection =
-        State_selection.diff
-          (State_selection.with_dependencies self)
-          (State_selection.singleton Is_set.self)
-      in
-      Project.clear ~selection ()
-    end;
+    (* First clear the dependency and next apply the hooks since these hooks may
+       set some states in the dependencies. Even do so for unprojectifed options
+       since they actually use the project system (in a fake way, see module
+       {!Options_state_builder}) and could have some dependencies that must be
+       kept consistent. *)
+    let selection =
+      State_selection.diff
+        (State_selection.with_dependencies self)
+        (State_selection.singleton Is_set.self)
+    in
+    (try Project.clear ~selection ()
+     with Project.NoProject ->
+       (* unprojectified early options can be set even before creating the
+          initial project. Do nothing for these ones: consistency will be
+          automatically ensured when creating the initial project. *)
+       assert (not projectify));
     Internal_state.set x;
     Set_hook.apply (old, x)
 

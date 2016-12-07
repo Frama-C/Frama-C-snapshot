@@ -109,8 +109,12 @@ module Configuration = struct
   let load () = loadConfiguration (configuration_file ())
   let save () = saveConfiguration (configuration_file ())
   let () = Cmdline.at_normal_exit save
+
   let set = setConfiguration
   let find = findConfiguration
+
+  let use_int = useConfigurationInt
+  let set_int key s = set key (ConfInt s)
   let find_int ?default key =
     try findConfigurationInt key
     with Not_found -> match default with
@@ -119,7 +123,8 @@ module Configuration = struct
           set key (ConfInt v);
           v
 
-  let use_int = useConfigurationInt
+  let use_float = useConfigurationFloat
+  let set_float key f = set key (ConfFloat f)
   let find_float ?default key =
     try findConfigurationFloat key
     with Not_found -> match default with
@@ -127,8 +132,9 @@ module Configuration = struct
       | Some v ->
           set key (ConfFloat v);
           v
-  let use_float = useConfigurationFloat
 
+  let use_bool = useConfigurationBool
+  let set_bool key b = set key (ConfBool b)
   let find_bool ?default key =
     try findConfigurationBool key
     with Not_found -> match default with
@@ -136,18 +142,55 @@ module Configuration = struct
       | Some v ->
           set key (ConfBool v);
           v
-
-  let use_bool = useConfigurationBool
+    
+  let use_string = useConfigurationString
+  let set_string key s = set key (ConfString s)
   let find_string ?default s = 
     try findConfigurationString s
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v -> set s (ConfString v);
           v
-  let use_string = useConfigurationString
 
-  let find_list = findConfigurationList
+  let set_list key l = set key (ConfList l)
   let use_list = useConfigurationList
+  let find_list = findConfigurationList
+  
+  class type ['a] selector =
+    object
+      method set : 'a -> unit
+      method connect : ('a -> unit) -> unit
+    end
+    
+  let config_string ~key ~default widget =
+    let init = find_string ~default key in
+    widget#set init ;
+    widget#connect (set_string key)
+      
+  let config_int ~key ~default widget =
+    let init = find_int ~default key in
+    widget#set init ;
+    widget#connect (set_int key)
+
+  let config_bool ~key ~default widget =
+    let init = find_bool ~default key in
+    widget#set init ;
+    widget#connect (set_bool key)
+
+  let config_values ~key ~default ~values widget =
+    begin
+      let of_string s = fst (List.find (fun e -> snd e = s) values) in
+      let to_string v = snd (List.find (fun e -> fst e = v) values) in
+      let init =
+        try of_string (find_string key)
+      with Not_found -> default
+      in
+      widget#set init ;
+      widget#connect
+        (fun v ->
+           try set_string key (to_string v)
+           with Not_found -> ())
+    end
 
 end
 
@@ -269,14 +312,18 @@ let channel_redirector channel callback =
   let channel = Glib.Io.channel_of_descr cout in
   let len = 80 in
   let current_partial = ref "" in
-  let buf = String.create len in
+  let buf = Bytes.create len in
   ignore (Glib.Io.add_watch channel ~prio:0 ~cond:[`IN; `HUP; `ERR] ~callback:
             begin fun cond ->
               try if List.mem `IN cond then begin
                   (* On Windows, you must use Io.read *)
-                  let len = Glib.Io.read channel ~buf ~pos:0 ~len in
+                  (* buf' is added only to work around the suspicious type of
+                     Glib.Io.read *)
+                  let buf' = Bytes.to_string buf in
+                  let len = Glib.Io.read channel ~buf:buf' ~pos:0 ~len in
+                  let buf = Bytes.of_string buf' in
                   len >= 1 &&
-                  (let full_string = !current_partial ^ String.sub buf 0 len in
+                  (let full_string = !current_partial ^ Bytes.sub_string buf 0 len in
                    let to_emit, c = splitting_for_utf8 full_string in
                    current_partial := c;
                    callback to_emit)
