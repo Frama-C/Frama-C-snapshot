@@ -39,7 +39,8 @@ module Make(E : Elt) : sig
   val mem : E.t -> t -> bool (** Log complexity. *)
   val get : int -> t -> E.t (** raises Not_found. Log complexity. *)
   val index : E.t -> t -> int (** raise Not_found. Log complexity. *)
-
+  val is_empty : t -> bool
+  
   val empty : t 
   val add : E.t -> t -> t (** Log complexity. *)
   val remove : E.t -> t -> t (** Log complexity. *)

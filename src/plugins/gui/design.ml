@@ -316,7 +316,7 @@ let print_code_annotations (main_ui:main_window_extension_points) kf stmt =
          else match Alarms.find a with
            | Some _ -> "alarm"
            | None ->
-               Pretty_utils.sfprintf "emitted by %a" Emitter.pretty e
+               Format.asprintf "emitted by %a" Emitter.pretty e
        in
        main_ui#pretty_information "@[%s: @[<hov>%a@]@]@.%a@."
          kind Printer.pp_code_annotation a
@@ -559,7 +559,7 @@ let to_do_on_select
         ignore (menu_factory#add_item
                   ("Go to definition of " ^
                    (Pretty_utils.escape_underscores
-                      (Pretty_utils.sfprintf "%a" Varinfo.pretty vi)))
+                      (Format.asprintf "%a" Varinfo.pretty vi)))
                   ~callback)
   end
 

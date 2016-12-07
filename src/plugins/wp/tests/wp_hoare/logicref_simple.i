@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-model +ref -wp-msg-key var_kind
+   OPT: -wp-model +ref -wp-msg-key refusage
 */
 
 /* run.config_qualif
@@ -26,7 +26,8 @@ int ftwo_star (int **d) {return **d+1;}
 //@ requires vpositive(b) ; assigns *b;ensures *b == 0;
 void fvpositive (int *b)
 {
-  //@ assert todo: \valid(b);
+  // OK for ref model only
+  //@ assert OK: \valid(b);
   *b = 0 ;
 }
 

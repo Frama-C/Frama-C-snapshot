@@ -8,8 +8,8 @@ int main(void)
   signed char cx;
   signed char cy;
   signed char cz;
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)cx+(int)cy; */
-  /*@ assert rte: signed_overflow: (int)cx+(int)cy ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)cx + (int)cy; */
+  /*@ assert rte: signed_overflow: (int)cx + (int)cy ≤ 2147483647; */
   cz = (signed char)((int)cx + (int)cy);
   __retres = 0;
   return __retres;

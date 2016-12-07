@@ -3,12 +3,14 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
+tests/value/test.i:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[100]);
 [value] Recording results for f
 [value] done for function f
+tests/value/test.i:21:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   t[0] ∈ {99}
    [1..88887] ∈ UNINITIALIZED
 [from] Computing for function f

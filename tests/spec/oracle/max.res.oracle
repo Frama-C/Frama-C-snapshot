@@ -17,14 +17,15 @@ axiomatic IsMax {
   
   }
  */
-/*@ requires \valid(t+(0 .. n-1));
+/*@ requires \valid(t + (0 .. n - 1));
     
     behavior nonempty:
       assumes n > 0;
       ensures
         0 ≤ \result < \old(n) ∧
-        (∀ int i; 0 ≤ i < \old(n) ⇒ *(\old(t)+\result) ≥ *(\old(t)+i)) ∧
-        is_max(*(\old(t)+\result), (int [])\old(t), \old(n));
+        (∀ int i;
+           0 ≤ i < \old(n) ⇒ *(\old(t) + \result) ≥ *(\old(t) + i)) ∧
+        is_max(*(\old(t) + \result), (int [])\old(t), \old(n));
     
     behavior empty:
       assumes n ≤ 0;
@@ -44,8 +45,8 @@ int max(int *t, int n)
   /*@ ghost max_0 = *(t + 0); */
   i = 1;
   /*@ loop invariant
-        (∀ int j; 0 ≤ j < i ⇒ *(t+imax) ≥ *(t+j)) ∧
-        is_max(max_0, (int [])t, i-1);
+        (∀ int j; 0 ≤ j < i ⇒ *(t + imax) ≥ *(t + j)) ∧
+        is_max(max_0, (int [])t, i - 1);
   */
   while (i < n) {
     if (*(t + i) > *(t + imax)) {

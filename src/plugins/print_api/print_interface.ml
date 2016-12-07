@@ -59,7 +59,8 @@ let type_to_add: (string, string * string) Hashtbl.t = Hashtbl.create 97
 let clash_with_compilation_unit = 
   let h = Hashtbl.create 97 in
   List.iter (fun s -> Hashtbl.add h s ()) Config.compilation_unit_names;
-  fun s -> Hashtbl.mem h s || Hashtbl.mem h (String.lowercase s)
+  fun s ->
+    Hashtbl.mem h s || Hashtbl.mem h (Transitioning.String.lowercase_ascii s)
 
 (** Modules can depend on each other, when a value of a given module depend
     on a type of another. It is then important to print them in an appropriate
@@ -290,7 +291,9 @@ let print_plugin fmt =
         let deps = find_module_deps key1 in
         let extern, sub_modules = List.partition (is_submodule key1) deps in
         List.iter (print_one_plugin fmt i) extern;
-	let short_module_name = String.capitalize (get_name i key1) in
+        let short_module_name =
+          Transitioning.String.capitalize_ascii (get_name i key1)
+        in
 	let space_i = space i in
 	Format.fprintf fmt "\n \n%smodule %s:\n%ssig "
 	  space_i

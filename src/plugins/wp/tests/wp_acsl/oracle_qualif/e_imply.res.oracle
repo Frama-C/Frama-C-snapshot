@@ -1,0 +1,60 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/e_imply.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] Computing [100 goals...]
+[wp] 115 goals scheduled
+[wp] [Alt-Ergo] Goal typed_f_post_p0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p3 : Valid
+[wp] [Qed] Goal typed_f_post_p4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p5 : Valid
+[wp] [Qed] Goal typed_f_post_p6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_p8 : Valid
+[wp] [Qed] Goal typed_f_post_p9 : Valid
+[wp] [Qed] Goal typed_f_post_i0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i3 : Valid
+[wp] [Qed] Goal typed_f_post_i4 : Valid
+[wp] [Qed] Goal typed_f_post_i5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_i9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a2 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a3 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_a9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o1 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o2 : Valid
+[wp] [Qed] Goal typed_f_post_o3 : Valid
+[wp] [Qed] Goal typed_f_post_o4 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o5 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o6 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o7 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o8 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_o9 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
+[wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
+[wp] Proved goals:  115 / 115
+     Qed:             8 
+     Alt-Ergo:      107
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               -      73 (14)    73       100%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    8     34 (12)    42       100%
+----------------------------------------------------------

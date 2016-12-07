@@ -232,7 +232,7 @@ let initialize_var_using_type varinfo state =
                 let _alarm, offsm =
                   Cvalue.Model.copy_offsetmap loc size_elt !state
                 in
-                match offsm with `Bottom | `Top -> assert false | `Map m -> m
+                match offsm with `Bottom -> assert false | `Value m -> m
               in
               let last_loc, locs = match !locs with
                 | [] -> assert false (* AutomaticContextMaxWidth is at least 1*)

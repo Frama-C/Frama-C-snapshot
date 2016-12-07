@@ -1,5 +1,5 @@
 /* run.config
-   OPT: tests/spec/volatile_aux.c -print -check -copy
+   OPT: tests/spec/volatile_aux.c -print -copy
 */
 
 #include "tests/spec/volatile.h"

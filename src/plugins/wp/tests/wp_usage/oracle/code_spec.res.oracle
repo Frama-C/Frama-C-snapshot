@@ -171,10 +171,7 @@ tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns cl
   &addr
    array[_]
    val_for_tab
-   global_spec
-   params_spec
    val1
-   global_and_param_spec
    val0
   &addr_val1
    val_val2
@@ -201,7 +198,6 @@ tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns cl
    value_array
 .................................................
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
-[wp] [WP:unreachability] Goal by_reference_in_code_annotation_no_exit_exit : Valid
+[wp] [CFG] Goal by_reference_in_code_annotation_no_exit_exit : Valid (Unreachable)
 [wp] warning: Missing RTE guards
 [wp] No proof obligations

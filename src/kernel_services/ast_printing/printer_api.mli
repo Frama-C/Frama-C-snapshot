@@ -225,8 +225,8 @@ class type extensible_printer_type = object
   method logic_info: Format.formatter -> logic_info -> unit
   method logic_var: Format.formatter -> logic_var -> unit
   method quantifiers: Format.formatter -> quantifiers -> unit
+  method predicate_node: Format.formatter -> predicate_node -> unit
   method predicate: Format.formatter -> predicate -> unit
-  method predicate_named: Format.formatter -> predicate named -> unit
   method identified_predicate: 
     Format.formatter -> identified_predicate -> unit
   method behavior: Format.formatter -> funbehavior -> unit
@@ -392,8 +392,8 @@ module type S = sig
   val pp_term_offset: Format.formatter -> term_offset -> unit
   val pp_logic_label: Format.formatter -> logic_label -> unit
 
+  val pp_predicate_node: Format.formatter -> predicate_node -> unit
   val pp_predicate: Format.formatter -> predicate -> unit
-  val pp_predicate_named: Format.formatter -> predicate named -> unit
   val pp_identified_predicate: Format.formatter -> identified_predicate -> unit
   val pp_code_annotation: Format.formatter -> code_annotation -> unit
   val pp_funspec: Format.formatter -> funspec -> unit

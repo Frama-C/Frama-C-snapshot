@@ -10,7 +10,7 @@ axiomatic length {
   axiom length_empty<C>: length(Nil) ≡ 0;
   
   axiom length_cons<D>:
-    ∀ D a, list<D>  l; length(Cons(a, l)) ≡ length(l)+1;
+    ∀ D a, list<D>  l; length(Cons(a, l)) ≡ length(l) + 1;
   
   }
  */
@@ -28,6 +28,6 @@ axiomatic length {
  */
 /*@ logic my_int x= (int)42;
  */
-/*@ lemma baz: x+1 ≡ 43;
+/*@ lemma baz: x + 1 ≡ 43;
  */
 

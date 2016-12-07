@@ -3,19 +3,19 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   TAB[0..9] ∈ [--..--]
   G ∈ [--..--]
   H ∈ [--..--]
   J ∈ [--..--]
-tests/value/modifies.i:8:[kernel] warning: signed overflow. assert J+1 ≤ 2147483647;
-tests/value/modifies.i:8:[kernel] warning: signed overflow. assert -2147483648 ≤ TAB[4]-1;
-tests/value/modifies.i:11:[kernel] warning: signed overflow. assert TAB[1]+1 ≤ 2147483647;
-tests/value/modifies.i:11:[kernel] warning: signed overflow. assert TAB[6]+1 ≤ 2147483647;
+tests/value/modifies.i:8:[value] warning: signed overflow. assert J + 1 ≤ 2147483647;
+tests/value/modifies.i:8:[value] warning: signed overflow. assert -2147483648 ≤ TAB[4] - 1;
+tests/value/modifies.i:11:[value] warning: signed overflow. assert TAB[1] + 1 ≤ 2147483647;
+tests/value/modifies.i:11:[value] warning: signed overflow. assert TAB[6] + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   TAB[0..9] ∈ [--..--]
   G ∈ [--..--]
   H ∈ {0; 1; 3}

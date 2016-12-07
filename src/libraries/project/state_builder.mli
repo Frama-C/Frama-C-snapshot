@@ -279,7 +279,7 @@ module type Hashconsing_tbl =
 (** Weak hashtbl dedicated to hashconsing.
     Note that the resulting table is not saved on disk.
     @since Boron-20100401
-    @modified Aluminium-20160501, renamed *)
+    @modify Aluminium-20160501, renamed *)
 module Hashconsing_tbl_weak: Hashconsing_tbl
 
 (** Hash table for hashconsing, but the internal table is _not_ weak
@@ -462,6 +462,30 @@ module SharedCounter(Info : sig val name : string end) : Counter
 
     @since Nitrogen-20111001 *)
 module Counter(Info : sig val name : string end) : Counter
+
+
+(* ****************************************************************************)
+(** {2 Generic functor to hashcons an arbitrary type } *)
+(* ****************************************************************************)
+
+(** Output signature of [Hashcons] below. *)
+module type Hashcons = sig
+  type elt (** The type of the elements that are hash-consed *)
+
+  include Datatype.S_with_collections (** hashconsed version of {!elt} *)
+
+  val hashcons: elt -> t (** Injection as an hashconsed value. *)
+  val get:      t -> elt (** Projection out of hashconsing. *)
+
+  val id: t -> int (** Id of an hashconsed value. Unique:
+                       [id x = id y] is equivalent to equality on {!elt}. *)
+
+  val self: State.t
+end
+
+(** Hashconsed version of an arbitrary datatype *)
+module Hashcons (Data: Datatype.S)(Info: Info) : Hashcons with type elt = Data.t
+
 
 (* ************************************************************************* *)
 (** {3 Useful operations} *)

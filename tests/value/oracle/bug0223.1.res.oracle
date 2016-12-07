@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   ch1 ∈ {{ NULL ; &S_ch1[0] }}
   ch2 ∈ {{ NULL ; &S_ch2[0] }}
   S_ch1[0..1] ∈ [--..--]
@@ -28,9 +28,9 @@ tests/value/bug0223.i:16:[kernel] warning: Neither code nor specification for fu
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h2:
+[value:final-states] Values at end of function h2:
   test ∈ {0; 1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {0}
   j ∈ {0; 1}
   k ∈ {0}

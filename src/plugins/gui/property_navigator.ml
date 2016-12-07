@@ -65,10 +65,10 @@ let kf_name_and_module kf =
 
 let make_property ip =
   let status = Property_status.get ip in
-  let status_name = Pretty_utils.sfprintf "%a" Property_status.pretty status in
+  let status_name = Format.asprintf "%a" Property_status.pretty status in
   let con_status = Consolidation.get ip in
   let consolidated_status_name =
-    Pretty_utils.sfprintf "%a" Consolidation.pretty con_status
+    Format.asprintf "%a" Consolidation.pretty con_status
   in
   let function_name, module_name = match Property.get_kf ip with
     | None -> "", "" (* TODO: it would be great to find the location
@@ -77,7 +77,7 @@ let make_property ip =
     | Some kf -> kf_name_and_module kf
   in
   let kind =
-    Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip
+    Format.asprintf "@[<hov>%a@]" Property.pretty ip
   in
   let status_icon = Gtk_helper.Icon.Feedback (Feedback.get ip) in
   {
@@ -110,7 +110,8 @@ module Refreshers: sig
   val allocations: check
   val assigns: check
   val from: check
-  val assertions: check
+  val user_assertions: check
+  val rte: check
   val invariant: check
   val variant: check
   val terminates: check
@@ -177,14 +178,11 @@ struct
   let add ~name ~hint ?(default=true) ?(set=(fun _b -> ())) ?(resettable=true) () =
     let open Gtk_helper in
     let key_name =
-      let s = String.copy name in
-      for i = 0 to String.length s - 1 do
-        let c = s.[i] in
-        if c < 'A' || c > 'z' || (c > 'Z' && c < 'a') then
-          s.[i] <- '_'
-      done;
-      "property_panel." ^ s
+      String.map
+        (fun c -> if c < 'A' || c > 'z' || (c > 'Z' && c < 'a') then '_' else c)
+        name
     in
+    let key_name = "property_panel." ^ key_name in
     let module M = State_builder.Ref
         (Datatype.Bool)
         (struct
@@ -238,10 +236,12 @@ struct
       ~hint:"Show function assigns" ()
   let from = add ~name:"From" ()
       ~hint:"Show functional dependencies in function assigns"
-  (* Function called when assertions are enabled or disabled. *)
-  let set_assertions = ref (fun _b -> ())
-  let assertions = add ~set:(fun b -> !set_assertions b) ~name:"Assert"
-      ~hint:"Show assertions" ()
+  let user_assertions =
+    add ~name:"User assertions" ~hint:"Show user assertions" ()
+  (* Function called when RTEs are enabled or disabled. *)
+  let set_rte = ref (fun _b -> ())
+  let rte = add ~set:(fun b -> !set_rte b) ~name:"RTEs"
+      ~hint:"Show runtime errors" ()
   let invariant = add ~name:"Invariant"
       ~hint:"Show loop invariants" ()
   let variant = add ~name:"Variant"
@@ -345,7 +345,8 @@ struct
     allocations.add hb;
     assigns.add hb;
     from.add hb;
-    assertions.add hb;
+    user_assertions.add hb;
+    rte.add hb;
     invariant.add hb;
     variant.add hb;
     terminates.add hb;
@@ -372,7 +373,7 @@ struct
     inconsistent.add hb;
     let hb_category, expand_category = make_expand box
         ~tooltip:"Category of runtime errors leading to the emission of an \
-                  assertion. Enabled only when assertions are displayed."
+                  assertion. Enabled only when RTEs are displayed."
         "RTE category"
     in
     List.iter (fun check_alarm -> check_alarm.add hb_category) list_alarms;
@@ -384,11 +385,11 @@ struct
     rteNotGenerated.add hb;
     rteGenerated.add hb;
     (* Register additional callbacks *)
-    set_assertions :=
+    set_rte :=
       (fun b ->
          hb_category#misc#set_sensitive b;
          if not b then expand_category#set_expanded false);
-    !set_assertions (assertions.get ()) (* For the initial state *);
+    !set_rte (rte.get ()) (* For the initial state *);
   ;;
 
 end
@@ -417,7 +418,7 @@ let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
         function_name = function_name;
         visible = true;
         ip=ip;
-        kind=Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip;
+        kind=Format.asprintf "@[<hov>%a@]" Property.pretty ip;
         status_name = "" ;
         consolidated_status = None ;
         consolidated_status_name = status_name ;
@@ -618,9 +619,9 @@ let make_panel (main_ui:main_window_extension_points) =
     | Property.IPComplete _ -> complete_disjoint.get ()
     | Property.IPDisjoint _ -> complete_disjoint.get ()
     | Property.IPCodeAnnot(_,_,({annot_content = AAssert _} as ca)) ->
-        assertions.get () && (match Alarms.find ca with
-            | None -> true
-            | Some a -> active_alarm a)
+      (match Alarms.find ca with
+       | None -> user_assertions.get ()
+       | Some a -> rte.get () && active_alarm a)
     | Property.IPCodeAnnot(_,_,{annot_content = AInvariant _}) ->
         invariant.get ()
     | Property.IPCodeAnnot(_,_,{annot_content = APragma p}) ->

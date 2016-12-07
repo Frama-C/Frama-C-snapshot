@@ -3,14 +3,15 @@
 [kernel] Parsing tests/wp_plugin/nth.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
-[wp] 2 goals scheduled
+[wp] 4 goals scheduled
 [wp] [alt-ergo] Goal typed_lemma_access_16_16_ok : Unknown
 [wp] [alt-ergo] Goal typed_lemma_access_4_4_ok : Valid
-[wp] Proved goals:    1 / 2
+[wp] [alt-ergo] Goal typed_lemma_access_repeat_concat_3_ok : Valid
+[wp] [alt-ergo] Goal typed_lemma_eq_repeat_concat_3_ok : Unknown
+[wp] Proved goals:    2 / 4
      Qed:             0 
-     alt-ergo:        1  (unknown: 1)
+     alt-ergo:        2  (unknown: 2)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic Nth       -      -           2      50.0%
+Axiomatic Nth       -      -           4      50.0%
 ----------------------------------------------------------

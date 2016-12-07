@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {3}
@@ -30,20 +30,20 @@
   B7 ∈ {0}
   S8 ∈ {0}
   B8 ∈ {0}
-tests/value/relations.i:35:[kernel] warning: signed overflow. assert u[0]+1 ≤ 2147483647;
-tests/value/relations.i:41:[kernel] warning: signed overflow. assert -2147483648 ≤ u[5]-u[0];
-tests/value/relations.i:41:[kernel] warning: signed overflow. assert u[5]-u[0] ≤ 2147483647;
-tests/value/relations.i:46:[kernel] warning: signed overflow. assert -2147483648 ≤ u[10]-u[11];
-tests/value/relations.i:46:[kernel] warning: signed overflow. assert u[10]-u[11] ≤ 2147483647;
-tests/value/relations.i:48:[kernel] warning: signed overflow. assert -2147483648 ≤ u[1]-u[0];
-tests/value/relations.i:48:[kernel] warning: signed overflow. assert u[1]-u[0] ≤ 2147483647;
-tests/value/relations.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ u[5]-u[1];
-tests/value/relations.i:52:[kernel] warning: signed overflow. assert u[5]-u[1] ≤ 2147483647;
-tests/value/relations.i:56:[kernel] warning: out of bounds read. assert \valid_read(&pCs->L0);
+tests/value/relations.i:35:[value] warning: signed overflow. assert u[0] + 1 ≤ 2147483647;
+tests/value/relations.i:41:[value] warning: signed overflow. assert -2147483648 ≤ u[5] - u[0];
+tests/value/relations.i:41:[value] warning: signed overflow. assert u[5] - u[0] ≤ 2147483647;
+tests/value/relations.i:46:[value] warning: signed overflow. assert -2147483648 ≤ u[10] - u[11];
+tests/value/relations.i:46:[value] warning: signed overflow. assert u[10] - u[11] ≤ 2147483647;
+tests/value/relations.i:48:[value] warning: signed overflow. assert -2147483648 ≤ u[1] - u[0];
+tests/value/relations.i:48:[value] warning: signed overflow. assert u[1] - u[0] ≤ 2147483647;
+tests/value/relations.i:52:[value] warning: signed overflow. assert -2147483648 ≤ u[5] - u[1];
+tests/value/relations.i:52:[value] warning: signed overflow. assert u[5] - u[1] ≤ 2147483647;
+tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_read(&pCs->L0);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..1] ∈ {4}
    [2] ∈ {3}
   p ∈ {{ &t[1] }}

@@ -37,21 +37,18 @@ module CVal = struct
   let top = Cvalue.V.top
   let top_int = Cvalue.V.top_int
   let inject_int _typ = Cvalue.V.inject_int
+  let inject_address vi =
+    let base = Base.of_varinfo vi in
+    Cvalue.V.inject base Ival.zero
 
   let equal = Cvalue.V.equal
   let is_included = Cvalue.V.is_included
   let join = Cvalue.V.join
-  let join_and_is_included = Cvalue.V.join_and_is_included
   let narrow a b =
     let n = Cvalue.V.narrow a b in
     if Cvalue.V.is_bottom n
     then `Bottom
     else `Value n
-
-  let all_values typ =
-    let size = Cil.bitsSizeOf typ in
-    let sityp = Bit_utils.is_signed_int_enum_pointer typ in
-    Cvalue.V.create_all_values ~size ~signed:sityp
 
   let constant exp = function
     | CInt64 (i,_k,_s) -> (* Integer constants never overflow, because the
@@ -154,11 +151,6 @@ module Interval = struct
     | None, _ | _, None -> None
     | Some a, Some b    -> Some (Ival.join a b)
 
-  let join_and_is_included a b = match a, b with
-    | _, None        -> None, true
-    | None, _        -> None, false
-    | Some a, Some b -> let r, i = Ival.join_and_is_included a b in Some r, i
-
   let narrow a b = match a, b with
     | None, x | x, None -> `Value x
     | Some a, Some b ->
@@ -169,8 +161,7 @@ module Interval = struct
   let float_zeros = None
   let top_int = None
   let inject_int _typ _i = None
-
-  let all_values _typ = None
+  let inject_address _ = None
 
   let top_eval = `Value top, Alarmset.all
   let constant _ _ = top_eval
@@ -178,14 +169,14 @@ module Interval = struct
   let forward_binop ~context:_ _ _ _ _ = top_eval
   let do_promotion ~src_typ:_ ~dst_typ:_ _ _ = top_eval
 
-  let resolve_functions ~typ_pointer:_ _ = `Top, false
+  let resolve_functions ~typ_pointer:_ _ = `Top, true
 
-  let reinterpret_int ikind value =
-    let size = Integer.of_int (Cil.bitsSizeOfInt ikind) in
-    let signed = Cil.isSigned ikind in
-    `Value (Some (Ival.cast ~signed ~size ~value)), Alarmset.none
+  let reinterpret_int_alarms range value =
+    let size = Integer.of_int range.Eval_typ.i_bits in
+    let signed = range.Eval_typ.i_signed in
+    `Value (Some (Ival.cast ~signed ~size ~value)), Alarmset.all (* TODO *)
 
-  let unsafe_reinterpret_float fkind ival =
+  let reinterpret_float fkind ival =
     match Value_util.float_kind fkind with
     | Fval.Float32 ->
       let rounding_mode = Value_util.get_rounding_mode () in
@@ -197,8 +188,8 @@ module Interval = struct
       let b', ival = Ival.cast_double ival in
       b || b', ival
 
-  let reinterpret_float exp fkind v =
-    let overflow, res = unsafe_reinterpret_float fkind v in
+  let reinterpret_float_alarms exp fkind v =
+    let overflow, res = reinterpret_float fkind v in
     let alarms =
       if overflow
       then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
@@ -209,18 +200,12 @@ module Interval = struct
   let reinterpret expr typ = function
     | None -> top_eval
     | Some ival ->
-      match Cil.unrollType typ with
-      | TEnum ({ekind=ikind}, _)
-      | TInt (ikind, _)       -> reinterpret_int ikind ival
-      | TPtr _                -> reinterpret_int Cil.theMachine.Cil.upointKind ival
-      | TFloat (fkind, _)     -> reinterpret_float expr fkind ival
-      | TBuiltin_va_list _    -> top_eval
-      (* Nothing can/should be done on struct and arrays, that are either already
-         imprecise as a Cvalue.V, or read in a precise way. It is not clear
-         that a TFun can be obtained here, but one never knows. *)
-      | TComp _ | TArray _ | TFun _ -> `Value (Some ival), Alarmset.none
-      | TNamed _ -> assert false
-      | TVoid _  -> assert false
+      match Eval_typ.classify_as_scalar typ with
+      | Eval_typ.TSInt ik | Eval_typ.TSPtr ik ->
+        reinterpret_int_alarms ik ival
+      | Eval_typ.TSFloat fk ->
+        reinterpret_float_alarms expr fk ival
+      | Eval_typ.TSNotScalar -> `Value None, Alarmset.all
 
   let backward_unop ~typ_arg:_ _unop ~arg:_ ~res:_ = `Value None
   let backward_binop ~input_type:_ ~resulting_type:_ _binop ~left:_ ~right:_ ~result:_ =

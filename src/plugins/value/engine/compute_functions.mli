@@ -22,8 +22,27 @@
 
 (** Value analysis of entire functions, using Eva engine. *)
 
-val force_compute : unit -> unit
-(** Perform a full analysis, starting from the [main] function. *)
+open Cil_types
+open Eval
 
-val cvalue_initial_state: unit -> Cvalue.Model.t
-(** Compute the initial state of the cvalue domain only. *)
+
+module Make
+    (Value: Abstract_value.S)
+    (Loc: Abstract_location.External with type value = Value.t)
+    (Domain : Abstract_domain.External with type location = Loc.location
+                                        and type value = Value.t)
+    (Eva: Evaluation.S with type value = Domain.value
+                        and type origin = Domain.origin
+                        and type loc = Domain.location
+                        and type state = Domain.t)
+    (Init: Initialization.S with type state := Domain.t)
+  : sig
+
+    val compute_from_entry_point: kernel_function -> unit or_bottom
+
+  end
+
+
+val run:
+  (kernel_function -> unit or_bottom) ->
+  ?library:bool -> kernel_function -> unit

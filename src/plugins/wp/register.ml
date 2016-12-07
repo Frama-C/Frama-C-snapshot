@@ -112,8 +112,11 @@ let wp_print_separation fmt =
              Format.fprintf fmt "//-------------------------------------------@." ;
            end
       ) ;
-    if !k>1 then Format.fprintf fmt "/* (%d hypotheses) */@\n" !k ;
-    Format.fprintf fmt "//-------------------------------------------@." ;
+    if !k>1 then
+      begin
+        Format.fprintf fmt "/* (%d hypotheses) */@\n" !k ;
+        Format.fprintf fmt "//-------------------------------------------@." ;
+      end
   end
 
 (* ------------------------------------------------------------------------ *)
@@ -173,8 +176,8 @@ let pp_warnings fmt wpo =
       | false , _ -> Format.fprintf fmt " (Stronger, %d warnings)" n
     end
 
-let auto_check_valid goal result = match goal with
-  | { Wpo.po_formula = Wpo.GoalCheck _ } -> result.VCS.verdict = VCS.Valid
+let auto_check = function
+  | { Wpo.po_formula = Wpo.GoalCheck _ } -> true
   | _ -> false
 
 let launch task =
@@ -310,7 +313,7 @@ let do_wpo_stat goal prover res =
         add_time (get_pstat Qed) res.solver_time
           
 let do_wpo_result goal prover res =
-  if VCS.is_verdict res && not (auto_check_valid goal res) then
+  if VCS.is_verdict res then
     begin
       if Wp_parameters.Check.get () then
         begin
@@ -326,7 +329,7 @@ let do_wpo_result goal prover res =
     end
 
 let do_why3_result goal prover res =
-  if VCS.is_verdict res && not (auto_check_valid goal res) then
+  if VCS.is_verdict res then
     begin
       do_wpo_stat goal prover res ;
       let open VCS in
@@ -360,8 +363,9 @@ let do_wpo_success goal s =
                   end
           end
     | Some prover ->
-        Wp_parameters.feedback ~ontty:`Silent
-          "[%a] Goal %s : Valid" VCS.pp_prover prover (Wpo.get_gid goal)
+        if not (auto_check goal) then
+          Wp_parameters.feedback ~ontty:`Silent
+            "[%a] Goal %s : Valid" VCS.pp_prover prover (Wpo.get_gid goal)
 
 let do_list_scheduled_result () =
   if not (Wp_parameters.has_dkey "no-goals-info") then
@@ -478,10 +482,9 @@ let do_wp_proofs_for goals = do_wp_proofs_iter (fun f -> Bag.iter f goals)
 (* ---  Secondary Entry Points                                          --- *)
 (* ------------------------------------------------------------------------ *)
 
-(* Registered entry point in Dynamic. *)
+(* Deprecated entry point in Dynamic. *)
 
-let wp_compute_deprecated kf bhv ipopt =
-  Wp_parameters.warning ~once:true "Dynamic 'wp_compute' is now deprecated." ;
+let deprecated_wp_compute kf bhv ipopt =
   let model = computer () in
   let goals =
     match ipopt with
@@ -489,18 +492,22 @@ let wp_compute_deprecated kf bhv ipopt =
     | Some ip -> Generator.compute_ip model ip
   in do_wp_proofs_for goals
 
-let wp_compute_kf kf bhv prop =
+let deprecated_wp_compute_kf kf bhv prop =
   let model = computer () in
   do_wp_proofs_for (Generator.compute_kf model ?kf ~bhv ~prop ())
 
-let wp_compute_ip ip =
+let deprecated_wp_compute_ip ip =
+  Wp_parameters.warning ~once:true "Dynamic 'wp_compute_ip' is now deprecated." ;
   let model = computer () in
   do_wp_proofs_for (Generator.compute_ip model ip)
 
-let wp_compute_call stmt =
+let deprecated_wp_compute_call stmt =
+  Wp_parameters.warning ~once:true "Dynamic 'wp_compute_ip' is now deprecated." ;
   do_wp_proofs_for (Generator.compute_call (computer ()) stmt)
 
-let wp_clear () = Wpo.clear ()
+let deprecated_wp_clear () =
+  Wp_parameters.warning ~once:true "Dynamic 'wp_compute_ip' is now deprecated." ;
+  Wpo.clear ()
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Command-line Entry Points                                       --- *)
@@ -516,11 +523,6 @@ let cmdline_run () =
         LogicUsage.compute ();
         LogicUsage.dump ();
       end ;
-    if Wp_parameters.has_dkey "varusage" then
-      begin
-        VarUsage.compute ();
-        VarUsage.dump ();
-      end ;
     if Wp_parameters.has_dkey "refusage" then
       begin
         RefUsage.compute ();
@@ -530,7 +532,6 @@ let cmdline_run () =
       begin
         LogicBuiltins.dump ();
       end ;
-    Variables_analysis.precondition_compute ();
     let bhv = Wp_parameters.Behaviors.get () in
     let prop = Wp_parameters.Properties.get () in
     let computer = computer () in
@@ -565,41 +566,47 @@ let cmdline_run () =
 (* ---  Register external functions                                     --- *)
 (* ------------------------------------------------------------------------ *)
 
+let deprecated name =
+  Wp_parameters.warning ~once:true ~current:false
+    "Dynamic '%s' now is deprecated. Use `Wp.VC` api instead." name
+
+let register name ty code =
+  let _ = 
+    Dynamic.register ~plugin:"Wp" name ty
+      ~journalize:false (*LC: Because of Property is not journalizable. *)
+      (fun x -> deprecated name ; code x)
+  in ()
+
 (* DEPRECATED *)
-let wp_compute =
+let () =
   let module OLS = Datatype.List(Datatype.String) in
   let module OKF = Datatype.Option(Kernel_function) in
   let module OP = Datatype.Option(Property) in
-  Dynamic.register ~plugin:"Wp" "wp_compute"
+  register "wp_compute"
     (Datatype.func3 OKF.ty OLS.ty OP.ty Datatype.unit)
-    ~journalize:false (*LC: Because of Property is not journalizable. *)
-    wp_compute_deprecated
+    deprecated_wp_compute
 
-let wp_compute_kf =
+let () =
   let module OKF = Datatype.Option(Kernel_function) in
   let module OLS = Datatype.List(Datatype.String) in
-  Dynamic.register ~plugin:"Wp" "wp_compute_kf"
+  register "wp_compute_kf"
     (Datatype.func3 OKF.ty OLS.ty OLS.ty Datatype.unit)
-    ~journalize:true
-    wp_compute_kf
+    deprecated_wp_compute_kf
 
-let wp_compute_ip =
-  Dynamic.register ~plugin:"Wp" "wp_compute_ip"
+let () =
+  register "wp_compute_ip"
     (Datatype.func Property.ty Datatype.unit)
-    ~journalize:false (*LC: Because of Property is not journalizable. *)
-    wp_compute_ip
+    deprecated_wp_compute_ip
 
-let wp_compute_call =
-  Dynamic.register ~plugin:"Wp" "wp_compute_call"
+let () =
+  register "wp_compute_call"
     (Datatype.func Cil_datatype.Stmt.ty Datatype.unit)
-    ~journalize:true (*LC: Because of Property is not journalizable. *)
-    wp_compute_call
+    deprecated_wp_compute_call
 
-let wp_clear =
-  Dynamic.register ~plugin:"Wp" "wp_clear"
+let () =
+  register "wp_clear"
     (Datatype.func Datatype.unit Datatype.unit)
-    ~journalize:false (*LC: To be consistent with Wp_Compute *)
-    wp_clear
+    deprecated_wp_clear
 
 let run = Dynamic.register ~plugin:"Wp" "run"
     (Datatype.func Datatype.unit Datatype.unit)
@@ -643,6 +650,14 @@ let pp_wp_parameters fmt =
     if tm > 10 then Format.fprintf fmt " -wp-steps %d" st ;
     let dp = Wp_parameters.Depth.get () in
     if dp > 0 then Format.fprintf fmt " -wp-depth %d" dp ;
+    if not (Kernel.SignedOverflow.get ()) then
+      Format.pp_print_string fmt " -no-warn-signed-overflow" ;
+    if Kernel.UnsignedOverflow.get () then
+      Format.pp_print_string fmt " -warn-unsigned-overflow" ;
+    if Kernel.SignedDowncast.get () then
+      Format.pp_print_string fmt " -warn-signed-downcast" ;
+    if Kernel.UnsignedDowncast.get () then
+      Format.pp_print_string fmt " -warn-unsigned-downcast" ;
     Format.pp_print_string fmt " [...]" ;
     Format.pp_print_newline fmt () ;
   end

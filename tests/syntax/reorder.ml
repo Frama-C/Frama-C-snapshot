@@ -45,11 +45,6 @@ let run () =
   Annotations.add_global Emitter.end_user dlj;
   Annotations.add_global Emitter.end_user dlk;
   Annotations.add_global Emitter.end_user dll;
-  file.globals <- file.globals @ 
-    [ GAnnot (dli,loc); 
-      GAnnot (dlj,loc); 
-      GAnnot (dll, loc); 
-      GAnnot (dlk,loc) ];
   Logic_utils.add_logic_function li;
   Logic_utils.add_logic_function lj;
   Logic_utils.add_logic_function lk;
@@ -57,8 +52,6 @@ let run () =
   File.pretty_ast ();
   File.reorder_ast ();
   File.pretty_ast ();
-  Visitor.visitFramacFileSameGlobals
-    (new Filecheck.check "reordered")
-    (Ast.get())
+  Filecheck.check_ast "reordered"
 
 let () = Db.Main.extend run

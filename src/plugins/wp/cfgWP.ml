@@ -35,8 +35,6 @@ open Lang.F
 open Memory
 open Wpo
 
-module WpLog = Wp_parameters
-
 module VC( M : Memory.Model ) =
 struct
 
@@ -453,7 +451,7 @@ struct
          let descr = Pretty_utils.to_string WpPropId.pretty hpid in
          let outcome = Warning.catch
              ~severe:false ~effect:"Skip hypothesis"
-             (L.pred `Positive env) predicate in
+             (L.pred `Negative env) predicate in
          let warn,hs = match outcome with
            | Warning.Result(warn,p) -> warn , [p]
            | Warning.Failed warn -> warn , []
@@ -787,8 +785,11 @@ struct
     let ks,vs = cc_case_values [] [] sigma es in
     let pa = join_with sigma wp.sigma in
     let eq = p_any (p_equal v) vs in
-    vs , cc_group_case stmt warn "Case"
-      (Splitter.switch_cases stmt ks) pa [eq] wp.vcs
+    let msg = match ks with
+      | [k] -> "Case " ^ Int64.to_string k
+      | _ -> "Cases " ^ String.concat "," (List.map Int64.to_string ks) in
+    let tag = Splitter.switch_cases stmt ks in
+    vs , cc_group_case stmt warn msg tag pa [eq] wp.vcs
 
   let cc_default stmt sigma neq default =
     let pa = join_with sigma default.sigma in
@@ -797,7 +798,13 @@ struct
 
   let switch wenv stmt exp cases default = L.in_frame wenv.frame
       (fun () ->
-         let sigma = Sigma.create () in
+         let domain =
+           List.fold_left (fun d (_,wp) ->
+               match wp.sigma with
+               | None -> d
+               | Some s -> Sigma.union d (Sigma.domain s)
+             ) Sigma.empty cases in
+         let sigma = Sigma.havoc (Sigma.create ()) domain in
          let warn,value =
            match Warning.catch ~source:"Switch"
                    ~severe:false ~effect:"Skip switched value"
@@ -1405,13 +1412,15 @@ struct
       val mutable lemmas : LogicUsage.logic_lemma Bag.t = Bag.empty
       val mutable annots : WpStrategy.strategy Bag.t = Bag.empty
       method lemma = true
+      method model = m
       method add_lemma lemma = lemmas <- Bag.append lemmas lemma
       method add_strategy strategy = annots <- Bag.append annots strategy
       method compute : Wpo.t Bag.t =
         begin
           let collection = ref Bag.empty in
           Lang.F.release () ;
-          Lang.F.do_checks := Wp_parameters.QedChecks.get () ;
+          Datatype.String.Set.iter Lang.F.Check.set
+            (Wp_parameters.QedChecks.get ()) ;
           Model.on_model m
             begin fun () ->
               Model.on_global
@@ -1425,10 +1434,9 @@ struct
                    let kf = WpStrategy.get_kf strategy in
                    Model.on_kf kf
                      begin fun () ->
-                       let names = WpAnnot.missing_rte kf in
                        let bhv = WpStrategy.get_bhv strategy in
                        let index = Wpo.Function( kf , bhv ) in
-                       if names <> [] then
+                       if WpRTE.missing_guards kf m then
                          Wp_parameters.warning ~current:false ~once:true
                            "Missing RTE guards" ;
                        try
@@ -1439,16 +1447,16 @@ struct
                            ~current:false "From %s: %s" source reason
                      end
                 ) annots ;
-              if !Lang.F.do_checks then
+              if not (Lang.F.Check.is_set ()) then
                 begin
-                  Wp_parameters.feedback "Collecting checks" ;
+                  Wp_parameters.feedback ~ontty:`Transient "Collecting checks" ;
                   Bag.iter (fun w -> ignore (Wpo.resolve w)) !collection ;
-                  Lang.F.iter_checks (add_qed_check collection m) ;
+                  Lang.F.Check.iter (add_qed_check collection m) ;
                 end
             end ;
           lemmas <- Bag.empty ;
           annots <- Bag.empty ;
-          Lang.F.do_checks := false ;
+          Lang.F.Check.reset () ;
           Lang.F.release () ;
           !collection
         end
@@ -1456,7 +1464,7 @@ struct
 
 end
 
-(* A Cash is necessary because computer functors can not be instanciated twice *)
+(* Cache because computer functors can not be instanciated twice *)
 module COMPUTERS = Model.S.Hashtbl
 let computers = COMPUTERS.create 1
 

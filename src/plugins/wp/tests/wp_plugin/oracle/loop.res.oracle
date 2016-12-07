@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/loop.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function init
@@ -15,9 +14,9 @@ Let x = -a.
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i_1).
   (* Goal *)
-  When: (a <= i) /\ (i <= b) /\ is_sint32(i).
+  When: (i <= b) /\ (a <= i) /\ is_sint32(i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
@@ -25,7 +24,7 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_1, Mint_0, a_1, i_1 - a).
   (* Invariant 'qed_ok' *)
-  Have: forall i_2 : Z. ((i_2 < i_1) -> ((a <= i_2) ->
+  Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i_1) ->
       (e = Mint_0[shift_sint32(t, i_2)]))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i_1) /\ (i_1 <= (1 + b)).
@@ -43,7 +42,7 @@ Let x_1 = 1 + i.
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(x_1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
@@ -51,7 +50,7 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_0, Mint_1, a_1, i - a).
   (* Invariant 'qed_ok' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+  Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
       (e = Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
@@ -66,7 +65,7 @@ Goal Establishment of Invariant 'qed_ok' (file tests/wp_plugin/loop.i, line 12):
 Assume {
   Type: is_sint32(a) /\ is_sint32(b).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
   (* Pre-condition *)
@@ -84,7 +83,7 @@ Assume {
   (* Goal *)
   When: (a <= i_1) /\ (i_1 <= i) /\ is_sint32(i_1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
@@ -92,7 +91,7 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_1, Mint_0, a_1, i - a).
   (* Invariant 'qed_ok' *)
-  Have: forall i_2 : Z. ((i_2 < i) -> ((a <= i_2) ->
+  Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i) ->
       (e = Mint_0[shift_sint32(t, i_2)]))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
@@ -123,7 +122,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_1, x_1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
@@ -131,7 +130,7 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_0, Mint_1, a_1, x_1).
   (* Invariant 'qed_ok' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+  Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
       (e = Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
@@ -152,7 +151,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_2, 1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
@@ -160,7 +159,7 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_0, Mint_1, a_1, i - a).
   (* Invariant 'qed_ok' *)
-  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+  Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
       (e = Mint_1[shift_sint32(t, i_1)]))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
@@ -186,7 +185,7 @@ Let x_2 = 1 + b - a.
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, x_2).
   (* Pre-condition *)

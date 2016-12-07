@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/subset_fopen.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -40,10 +39,10 @@ Assume {
   (* Assertion 'Ok_A' *)
   Have: (0 <= i) /\ (i <= 9).
   (* Call 'fopen' *)
-  Have: included(p, 8,
+  Have: included(p, 2,
           shift___fc_FILE(shift_A512___fc_FILE(global(G___fc_fopen_68), 0),
-            0), 4096).
+            0), 1024).
 }
-Prove: valid_rw(Malloc_0, p, 8).
+Prove: valid_rw(Malloc_0, p, 2).
 
 ------------------------------------------------------------

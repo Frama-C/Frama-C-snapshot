@@ -486,6 +486,112 @@ let compute_on_cilast () =
     else Metrics_parameters.result "%a" pp_with_funinfo cil_visitor
   end
 
+(* Visitor for the recursive estimation of a stack size.
+   Its arguments are the function currently being visited and the current
+   callstack, as a list of kernel functions.
+   The callstack is used to detect recursive calls.
+   TODO: this computation is far from optimal; for instance, locals_size could
+   be cached for each function. Also, it does not consider calls via function
+   pointers. *)
+class locals_size_visitor kf callstack = object
+
+  val mutable locals_size_no_temps = Integer.zero
+  method get_locals_size_no_temps = locals_size_no_temps
+
+  val mutable locals_size_temps = Integer.zero
+  method get_locals_size_temps = locals_size_temps
+
+  val mutable max_size_calls_no_temps = Integer.zero
+  method get_max_size_calls_no_temps = max_size_calls_no_temps
+
+  val mutable max_size_calls_temps = Integer.zero
+  method get_max_size_calls_temps = max_size_calls_temps
+
+  inherit Visitor.frama_c_inplace
+
+  method! vinst i = match i with
+    | Call (_, e, _, _) ->
+      begin
+        match e.enode with
+        | Lval ((Var vi), _) ->
+          begin
+            try
+              let kf' = Globals.Functions.find_by_name vi.vname in
+              Metrics_parameters.debug
+                "@[function %a:@;computing call to function %a@]"
+                Kernel_function.pretty kf Kernel_function.pretty kf';
+              let new_cs = kf' :: callstack in
+              if List.mem kf' callstack then
+                Metrics_parameters.abort
+                  "@[unsupported recursive call detected:@;%a@]"
+                  (Pretty_utils.pp_list ~sep:"@ <-@ " Kernel_function.pretty)
+                  (List.rev new_cs);
+              let new_vis = new locals_size_visitor kf' new_cs in
+              ignore (Visitor.visitFramacKf
+                        (new_vis :> Visitor.frama_c_visitor) kf');
+              let call_size_no_temps =
+                Integer.add new_vis#get_max_size_calls_no_temps
+                  new_vis#get_locals_size_no_temps
+              in
+              let call_size_temps =
+                Integer.add new_vis#get_max_size_calls_temps
+                  new_vis#get_locals_size_temps
+              in
+              max_size_calls_no_temps <-
+                Integer.max max_size_calls_no_temps call_size_no_temps;
+              max_size_calls_temps <-
+                Integer.max max_size_calls_temps call_size_temps
+            with Not_found ->
+              (* should not happen *)
+              Metrics_parameters.fatal ~current:true
+                "@[function not found:@;%s@]" vi.vname;
+          end;
+          ()
+        | _ ->
+          Metrics_parameters.warning ~current:true
+            "@[ignoring unsupported function call in expression:@;%a@]"
+            Printer.pp_exp e
+      end;
+      Cil.DoChildren
+    | _ -> Cil.DoChildren
+
+  method! vvdec vi =
+    if not vi.vglob && not vi.vghost && vi.vstorage = NoStorage then
+      begin
+        let size_exp = Cil.sizeOf ~loc:vi.vdecl vi.vtype in
+        match Cil.constFoldToInt size_exp with
+        | None -> Metrics_parameters.error
+                    "@[in function %a,@;cannot compute sizeof %a (type %a)@]"
+                    Kernel_function.pretty kf Printer.pp_varinfo vi
+                    Printer.pp_typ vi.vtype
+        | Some size ->
+          Metrics_parameters.debug "@[function %a:@;sizeof(%a) = %a (%s)@]"
+            Kernel_function.pretty kf
+            Printer.pp_varinfo vi (Integer.pretty ~hexa:false) size
+            (if vi.vtemp then "temp" else "non-temp");
+          if vi.vtemp then
+            locals_size_temps <- Integer.add locals_size_temps size
+          else
+            locals_size_no_temps <- Integer.add locals_size_no_temps size
+      end;
+    Cil.DoChildren
+
+end
+
+(* Requires a computed Cil AST *)
+let compute_locals_size kf =
+  let vis = new locals_size_visitor kf [kf] in
+  ignore (Visitor.visitFramacKf (vis :> Visitor.frama_c_visitor) kf);
+  Metrics_parameters.result "@[%a\t%a\t%a\t%a\t%a@]"
+    Kernel_function.pretty kf
+    (Integer.pretty ~hexa:false) vis#get_locals_size_no_temps
+    (Integer.pretty ~hexa:false)
+    (Integer.add vis#get_locals_size_no_temps vis#get_locals_size_temps)
+    (Integer.pretty ~hexa:false) vis#get_max_size_calls_no_temps
+    (Integer.pretty ~hexa:false)
+    (Integer.add vis#get_max_size_calls_no_temps vis#get_max_size_calls_temps)
+;;
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

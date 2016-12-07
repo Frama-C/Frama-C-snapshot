@@ -1,14 +1,15 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
+tests/value/loop_wvar.i:38:[kernel] warning: invalid pragma '12'. Ignoring loop annotation
 [value] Analyzing a complete application starting at main3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function main_unhelpful <- main3.
         Called from tests/value/loop_wvar.i:84.
 tests/value/loop_wvar.i:52:[value] entering loop for the first time
-tests/value/loop_wvar.i:57:[kernel] warning: signed overflow. assert next+1 ≤ 2147483647;
+tests/value/loop_wvar.i:57:[value] warning: signed overflow. assert next + 1 ≤ 2147483647;
 [value] Recording results for main_unhelpful
 [value] Done for function main_unhelpful
 [value] computing for function main_multiple_hints <- main3.
@@ -26,14 +27,14 @@ tests/value/loop_wvar.i:69:[value] entering loop for the first time
 [value] Recording results for main3
 [value] done for function main3
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main_multiple_hints:
+[value:final-states] Values at end of function main_multiple_hints:
   maxj ∈ {17}
   maxk ∈ {11}
   j ∈ [0..18]
   k ∈ [0..12]
-[value] Values at end of function main_unhelpful:
+[value:final-states] Values at end of function main_unhelpful:
   max ∈ {25}
   next ∈ [0..2147483647]
   i ∈ {30}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   

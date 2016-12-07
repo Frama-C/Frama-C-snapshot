@@ -1,6 +1,6 @@
 directory	file	line	function	property kind	status	property
-tests/report	csv.c	11	main1	signed_overflow	Unknown	-2147483648 ≤ x*x
-tests/report	csv.c	11	main1	signed_overflow	Unknown	x*x ≤ 2147483647
+tests/report	csv.c	11	main1	signed_overflow	Unknown	-2147483648 ≤ x * x
+tests/report	csv.c	11	main1	signed_overflow	Unknown	x * x ≤ 2147483647
 tests/report	csv.c	12	main1	index_bound	Unknown	0 ≤ x
 tests/report	csv.c	12	main1	index_bound	Unknown	x < 15
 tests/report	csv.c	13	main1	initialisation	Unknown	\initialized(&u[x])

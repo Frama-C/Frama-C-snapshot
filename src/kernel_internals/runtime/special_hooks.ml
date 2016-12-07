@@ -20,6 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* just after loading all plug-ins, add the dependencies between the AST
+   and the command line options that depend on it. *)
+let () =
+  Cmdline.run_after_extended_stage
+    (fun () ->
+      State_dependency_graph.add_dependencies
+        ~from:Ast.self
+        !Parameter_builder.ast_dependencies)
+
 let print_config () =
   if Kernel.PrintConfig.get () then begin
     Log.print_on_output 
@@ -141,7 +150,6 @@ let on_call_to_undeclared_function vi =
 
 let () =
   Cabs2cil.register_implicit_prototype_hook on_call_to_undeclared_function
-
 
 (*
 Local Variables:

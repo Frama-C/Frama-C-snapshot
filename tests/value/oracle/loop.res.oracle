@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -17,11 +17,11 @@ tests/value/loop.i:7:[value] entering loop for the first time
 [value] Called Frama_C_show_each_F([0..48],0%2)
 [value] Called Frama_C_show_each_F([0..48],0%2)
 [value] Called Frama_C_show_each_F([0..48],0%2)
-tests/value/loop.i:9:[kernel] warning: signed overflow. assert i_0+r ≤ 2147483647;
+tests/value/loop.i:9:[value] warning: signed overflow. assert i_0 + r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   n ∈ {50}
   r ∈ [0..2147483646],0%2
   i_0 ∈ [50..2147483646],0%2

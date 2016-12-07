@@ -20,27 +20,35 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Weak topological ordering of statements. See "Bourdoncle,
-    Efficient chaotic iteration strategies with widenings" for a
-    complete explanation. *)
+(** Specialization of WTO for the CIL statement graph. See the Wto module
+    for more details *)
 
 open Cil_types
 
-(** This type represents a list; [Nil] is the empty list, [Node] conses a
-   single element, while [Component] conses a whole component. Note:
-   Bourdoncle paper always has a single element as the header of a
-   component, and this type does not enforce this. *)
-type wto =
-| Nil
-| Node of stmt * wto
-| Component of wto * wto
+(** A weak topological ordering where nodes are Cil statements *)
+type wto = stmt Wto.partition
 
-
-(** wto as Datatype *)
+(** The datatype for statment WTOs *)
 module WTO : Datatype.S with type t = wto
 
-(** @return depth of a statement *)
-val depth_of_stmt : stmt -> int
-
-(** @return wto of a kernel function *)
+(** @return the computed wto for the given function *)
 val wto_of_kf : kernel_function -> wto
+
+
+(** the position of a statement in a wto given as the list of 
+    component heads *)
+type wto_index = stmt list
+
+(** Datatype for  wto_index *)
+module WTOIndex : Datatype.S with type t = wto_index
+
+(** @return the wto_index for a statement *)
+val wto_index_of_stmt : stmt -> wto_index
+
+(** @return the components left and the components entered when going from
+    one index to another *)
+val wto_index_diff : wto_index -> wto_index -> stmt list * stmt list
+
+(** @return the components left and the components entered when going from
+    one stmt to another *)
+val wto_index_diff_of_stmt : stmt -> stmt -> stmt list * stmt list

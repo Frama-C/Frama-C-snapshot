@@ -3,7 +3,7 @@
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ [--..--]
   pf2 ∈ {{ &f2 }}
 [value] computing for function f <- main.
@@ -52,11 +52,11 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   x ∈ {0; 1}
-[value] Values at end of function aux:
+[value:final-states] Values at end of function aux:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [report] Computing properties status...
 
@@ -65,7 +65,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 --------------------------------------------------------------------------------
 
 [  Valid  ] Pre-condition (file tests/value/precond.c, line 8)
-            requires i+1 ≥ 0
+            requires i + 1 ≥ 0
             by Call Preconditions.
 [  Alarm  ] Pre-condition (file tests/value/precond.c, line 9)
             requires i ≥ 0
@@ -115,7 +115,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 31)
 
-            status of 'requires i+1 ≥ 0' of f at stmt 11
+            status of 'requires i + 1 ≥ 0' of f at stmt 11
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 31)
 
@@ -123,7 +123,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 32)
 
-            status of 'requires i+1 ≥ 0' of f at stmt 14
+            status of 'requires i + 1 ≥ 0' of f at stmt 14
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 32)
 
@@ -135,7 +135,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
             tried with Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 39)
 
-            status of 'requires i+1 ≥ 0' of f at stmt 20
+            status of 'requires i + 1 ≥ 0' of f at stmt 20
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 39)
 
@@ -143,7 +143,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 40)
 
-            status of 'requires i+1 ≥ 0' of f at stmt 21
+            status of 'requires i + 1 ≥ 0' of f at stmt 21
             by Value.
 [  Alarm  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 40)
 
@@ -166,7 +166,7 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 --------------------------------------------------------------------------------
 
 [  Valid  ] Pre-condition (file tests/value/precond.c, line 8)
-            requires i+1 ≥ 0
+            requires i + 1 ≥ 0
             by Call Preconditions.
 [  Alarm  ] Pre-condition (file tests/value/precond.c, line 9)
             requires i ≥ 0

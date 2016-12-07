@@ -4,10 +4,10 @@
 
 #include <stdint.h>
 
-int a = 0, b = 1, c = 2;
-int *p, *q;
-int v;
-char w;
+
+
+
+
 
 volatile uintptr_t rand; /* Use as undeterminism. */
 
@@ -15,10 +15,10 @@ volatile uintptr_t rand; /* Use as undeterminism. */
    pointers or integers.
    tests the backward propagation of this reduction into p and q. */
 void main1 () {
-
-  p = rand ? &a : (int*)rand;
-  q = rand ? &b : (int*)rand;
-
+  int a = 0, b = 1;
+  int *p = rand ? &a : (int*)rand;
+  int *q = rand ? &b : (int*)rand;
+  int v; char w;
   if (rand) {
     /* According to the C semantics, computes (p + sizeof(*p) q),
        so the b address from q is lost in the operation. */
@@ -46,9 +46,9 @@ void main1 () {
    where p and q are both precise pointers or integers.
    tests the backward propagation of this reduction into p and q. */
 void main2 () {
-
-  p = rand ? &a : (int*)rand;
-  q = rand ? &b : (int*)rand;
+  int a = 0, b = 1;
+  int *p = rand ? &a : (int*)rand;
+  int *q = rand ? &b : (int*)rand;
 
   if (rand)
     if (*( (int *) ((char*)p + (uintptr_t)q)) == 0)
@@ -71,10 +71,10 @@ int* gm(int *p) { return (int *) ((uintptr_t) p * 2 / 2); }
 /* Backward propagation of a reduction on (p + q), where p is a garbled mix,
    and q a precise pointer or an integer. */
 void main3 () {
-
-  p = gm (&a);
-  q = rand ? &b : (int*)rand;
-
+  int a = 0, b = 1, c = 2;
+  int *p = gm (&a);
+  int *q = rand ? &b : (int*)rand;
+  int v; char w;
   if (rand) {
     /* According to the C semantics, computes (p + sizeof(*p) q),
        so the b address from q is lost in the operation. */
@@ -141,10 +141,10 @@ void main3 () {
 
 /* Backward propagation of a reduction on (p + q) when p and q are garbled mix. */
 void main4() {
-
-  p = gm (rand ? &a : &b);
-  q = gm (&c);
-
+  int a = 0, b = 1, c = 2;
+  int *p = gm (rand ? &a : &b);
+  int *q = gm (&c);
+  int v; char w;
   if (rand) {
     /* Garbled mixs on both sides, no reduction. */
     v = *((p + (uintptr_t)q));
@@ -187,9 +187,9 @@ int main() {
   main3();
   main4();
 
-  a = 0;
-  b = 1;
-  c = 2;
+  /* a = 0; */
+  /* b = 1; */
+  /* c = 2; */
 
   return 0;
 

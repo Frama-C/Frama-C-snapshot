@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..4] ∈ {0}
   u[0..4] ∈ {1}
   v[0..2] ∈ {0x22222222}
@@ -17,8 +17,11 @@
   va ∈ [--..--]
 [value] Recording results for main
 [value] done for function main
+[value] warning: Garbled mix generated during analysis:
+                 {{ garbled mix of &{t} (origin: Merge {tests/value/join_misaligned.i:42}) }}
+                 {{ garbled mix of &{u} (origin: Merge {tests/value/join_misaligned.i:42}) }}
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t{[0]; [1][bits 0 to 15]} ∈ {0}
    [1][bits 16 to 23] ∈ {97; 98}
    {[1][bits 24 to 31]; [2..4]} ∈ {0}

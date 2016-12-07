@@ -36,22 +36,22 @@ tests/value/undefined_sequence2.i:47:[kernel] warning: Unspecified sequence with
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a[0..1] ∈ {0}
   foo ∈ [--..--]
 [value] computing for function multiple_update_wrong_1 <- main.
         Called from tests/value/undefined_sequence2.i:56.
-tests/value/undefined_sequence2.i:11:[kernel] warning: undefined multiple accesses in expression. assert \separated(x, x);
+tests/value/undefined_sequence2.i:11:[value] warning: undefined multiple accesses in expression. assert \separated(x, x);
 [value] Recording results for multiple_update_wrong_1
 [value] Done for function multiple_update_wrong_1
 [value] computing for function multiple_update_wrong_2 <- main.
         Called from tests/value/undefined_sequence2.i:58.
-tests/value/undefined_sequence2.i:18:[kernel] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+tests/value/undefined_sequence2.i:18:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
 [value] Recording results for multiple_update_wrong_2
 [value] Done for function multiple_update_wrong_2
 [value] computing for function multiple_update_wrong_3 <- main.
         Called from tests/value/undefined_sequence2.i:60.
-tests/value/undefined_sequence2.i:26:[kernel] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
+tests/value/undefined_sequence2.i:26:[value] warning: undefined multiple accesses in expression. assert \separated(&i, &i);
 [value] Recording results for multiple_update_wrong_3
 [value] Done for function multiple_update_wrong_3
 [value] computing for function multiple_update_unsafe <- main.
@@ -61,7 +61,7 @@ tests/value/undefined_sequence2.i:26:[kernel] warning: undefined multiple access
 [value] Called Frama_C_show_each_passed4()
 [value] computing for function multiple_update_unsafe <- main.
         Called from tests/value/undefined_sequence2.i:64.
-tests/value/undefined_sequence2.i:34:[kernel] warning: undefined multiple accesses in expression. assert \separated(x, y);
+tests/value/undefined_sequence2.i:34:[value] warning: undefined multiple accesses in expression. assert \separated(x, y);
 [value] Recording results for multiple_update_unsafe
 [value] Done for function multiple_update_unsafe
 [value] computing for function multiple_update_safe <- main.
@@ -80,21 +80,21 @@ tests/value/undefined_sequence2.i:11:[value] assertion 'Value,separation' got fi
 tests/value/undefined_sequence2.i:18:[value] assertion 'Value,separation' got final status invalid.
 tests/value/undefined_sequence2.i:26:[value] assertion 'Value,separation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function multiple_update_safe:
+[value:final-states] Values at end of function multiple_update_safe:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}
-[value] Values at end of function multiple_update_unsafe:
+[value:final-states] Values at end of function multiple_update_unsafe:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}
-[value] Values at end of function multiple_update_wrong_1:
+[value:final-states] Values at end of function multiple_update_wrong_1:
   NON TERMINATING FUNCTION
-[value] Values at end of function multiple_update_wrong_2:
+[value:final-states] Values at end of function multiple_update_wrong_2:
   NON TERMINATING FUNCTION
-[value] Values at end of function multiple_update_wrong_3:
+[value:final-states] Values at end of function multiple_update_wrong_3:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   b ∈ {0}
   c ∈ {0}
   __retres ∈ {0}

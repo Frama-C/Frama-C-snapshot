@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function addressee <- main.
         Called from tests/value/cert_exp35_c.i:11.
@@ -17,14 +17,14 @@ tests/value/cert_exp35_c.i:11:[kernel] warning: Neither code nor specification f
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function addressee:
+[value:final-states] Values at end of function addressee:
   result.a[0] ∈ {119}
         .a[1] ∈ {111}
         .a[2] ∈ {114}
         .a[3] ∈ {108}
         .a[4] ∈ {100}
         .a[5] ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function addressee
 [from] Done for function addressee

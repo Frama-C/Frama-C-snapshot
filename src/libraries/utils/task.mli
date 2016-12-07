@@ -29,7 +29,7 @@
 
 type 'a task
 type 'a status =
-  | Timeout
+  | Timeout of int
   | Canceled
   | Result of 'a
   | Failed of exn
@@ -153,18 +153,35 @@ val share : 'a shared -> 'a task
 (** New instance of shared task. *)
 
 (* ************************************************************************* *)
-(** {2 Task Server} *)
+(** {2 Task Thread} *)
 (* ************************************************************************* *)
 
-type server
 type thread
 
 val thread : 'a task -> thread
 val cancel : thread -> unit
-
+val running : thread -> bool
+  
 val run : thread -> unit
 (** Runs one single task in the background. 
     Typically using [on_idle]. *)
+
+(* ************************************************************************* *)
+(** {2 Task Pool} *)
+(* ************************************************************************* *)
+
+type pool
+val pool : unit -> pool
+val add : pool -> thread -> unit (** Auto-flush *)
+val iter : (thread -> unit) -> pool -> unit (** Auto-flush *)
+val flush : pool -> unit (** Clean all terminated tasks *)
+val size : pool -> int (** Auto-flush. Number of living tasks *)
+
+(* ************************************************************************* *)
+(** {2 Task Server} *)
+(* ************************************************************************* *)
+
+type server
 
 val server :
   ?stages:int ->
@@ -175,7 +192,7 @@ val server :
       Stage 0 tasks are issued first. Default is 1.
       @param procs maximum number of running tasks. Default is 4. *)
 
-val spawn : server -> ?stage:int -> thread -> unit
+val spawn : server -> ?pool:pool -> ?stage:int -> thread -> unit
   (** Schedules a task on the server.
       The task is not immediately started. *)
 

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-precond -print
+   OPT: -rte -rte-precond -print
 */
 
 typedef int (*fptr)(int);

@@ -1,0 +1,608 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/ctype.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __FC_errno ∈ [--..--]
+  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
+  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
+  __fc_fopen[0..511] ∈ {0}
+  __p_fc_fopen ∈ {{ &__fc_fopen[0] }}
+  S___fc_stdin[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:9.
+[value] using specification for function isascii
+share/libc/ctype.h:217:[value] function isascii: precondition got status valid.
+[value] Done for function isascii
+tests/libc/ctype.c:10:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:11.
+[value] Done for function isascii
+tests/libc/ctype.c:12:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:13.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:13.
+[value] Done for function isascii
+tests/libc/ctype.c:14:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:15.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:15.
+[value] Done for function isascii
+tests/libc/ctype.c:16:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:17.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:17.
+[value] Done for function isascii
+tests/libc/ctype.c:18:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:19.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:19.
+[value] Done for function isascii
+tests/libc/ctype.c:20:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:21.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:21.
+[value] Done for function isascii
+tests/libc/ctype.c:22:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:23.
+[value] using specification for function isalnum
+share/libc/ctype.h:39:[value] function isalnum: precondition got status valid.
+[value] Done for function isalnum
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:23.
+[value] Done for function isalnum
+tests/libc/ctype.c:24:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:25.
+[value] Done for function isalnum
+tests/libc/ctype.c:26:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:27.
+[value] Done for function isalnum
+tests/libc/ctype.c:28:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:29.
+[value] Done for function isalnum
+tests/libc/ctype.c:30:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:31.
+[value] Done for function isalnum
+tests/libc/ctype.c:32:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:33.
+[value] Done for function isalnum
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:33.
+[value] Done for function isalnum
+tests/libc/ctype.c:34:[value] assertion got status valid.
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:35.
+[value] Done for function isalnum
+[value] computing for function isalnum <- main.
+        Called from tests/libc/ctype.c:35.
+[value] Done for function isalnum
+tests/libc/ctype.c:36:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:37.
+[value] using specification for function isalpha
+share/libc/ctype.h:52:[value] function isalpha: precondition got status valid.
+[value] Done for function isalpha
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:37.
+[value] Done for function isalpha
+tests/libc/ctype.c:38:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:39.
+[value] Done for function isalpha
+tests/libc/ctype.c:40:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:41.
+[value] Done for function isalpha
+tests/libc/ctype.c:42:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:43.
+[value] Done for function isalpha
+tests/libc/ctype.c:44:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:45.
+[value] Done for function isalpha
+tests/libc/ctype.c:46:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:47.
+[value] Done for function isalpha
+tests/libc/ctype.c:48:[value] assertion got status valid.
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:49.
+[value] Done for function isalpha
+[value] computing for function isalpha <- main.
+        Called from tests/libc/ctype.c:49.
+[value] Done for function isalpha
+tests/libc/ctype.c:50:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:51.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:51.
+[value] Done for function isascii
+tests/libc/ctype.c:52:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:53.
+[value] Done for function isascii
+tests/libc/ctype.c:54:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:55.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:55.
+[value] Done for function isascii
+tests/libc/ctype.c:56:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:57.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:57.
+[value] Done for function isascii
+tests/libc/ctype.c:58:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:59.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:59.
+[value] Done for function isascii
+tests/libc/ctype.c:60:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:61.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:61.
+[value] Done for function isascii
+tests/libc/ctype.c:62:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:63.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:63.
+[value] Done for function isascii
+tests/libc/ctype.c:64:[value] assertion got status valid.
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:65.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+        Called from tests/libc/ctype.c:65.
+[value] Done for function isascii
+tests/libc/ctype.c:66:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:67.
+[value] using specification for function isblank
+share/libc/ctype.h:64:[value] function isblank: precondition got status valid.
+[value] Done for function isblank
+tests/libc/ctype.c:68:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:69.
+[value] Done for function isblank
+tests/libc/ctype.c:70:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:71.
+[value] Done for function isblank
+tests/libc/ctype.c:72:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:73.
+[value] Done for function isblank
+tests/libc/ctype.c:74:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:75.
+[value] Done for function isblank
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:75.
+[value] Done for function isblank
+tests/libc/ctype.c:76:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:77.
+[value] Done for function isblank
+tests/libc/ctype.c:78:[value] assertion got status valid.
+[value] computing for function isblank <- main.
+        Called from tests/libc/ctype.c:79.
+[value] Done for function isblank
+tests/libc/ctype.c:80:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:81.
+[value] using specification for function iscntrl
+share/libc/ctype.h:77:[value] function iscntrl: precondition got status valid.
+[value] Done for function iscntrl
+tests/libc/ctype.c:82:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:83.
+[value] Done for function iscntrl
+tests/libc/ctype.c:84:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:85.
+[value] Done for function iscntrl
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:85.
+[value] Done for function iscntrl
+tests/libc/ctype.c:86:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:87.
+[value] Done for function iscntrl
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:87.
+[value] Done for function iscntrl
+tests/libc/ctype.c:88:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:89.
+[value] Done for function iscntrl
+tests/libc/ctype.c:90:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:91.
+[value] Done for function iscntrl
+tests/libc/ctype.c:92:[value] assertion got status valid.
+[value] computing for function iscntrl <- main.
+        Called from tests/libc/ctype.c:93.
+[value] Done for function iscntrl
+tests/libc/ctype.c:94:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:95.
+[value] using specification for function isdigit
+share/libc/ctype.h:89:[value] function isdigit: precondition got status valid.
+[value] Done for function isdigit
+tests/libc/ctype.c:96:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:97.
+[value] Done for function isdigit
+tests/libc/ctype.c:98:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:99.
+[value] Done for function isdigit
+tests/libc/ctype.c:100:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:101.
+[value] Done for function isdigit
+tests/libc/ctype.c:102:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:103.
+[value] Done for function isdigit
+tests/libc/ctype.c:104:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:105.
+[value] Done for function isdigit
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:105.
+[value] Done for function isdigit
+tests/libc/ctype.c:106:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:107.
+[value] Done for function isdigit
+tests/libc/ctype.c:108:[value] assertion got status valid.
+[value] computing for function isdigit <- main.
+        Called from tests/libc/ctype.c:109.
+[value] Done for function isdigit
+tests/libc/ctype.c:110:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:111.
+[value] using specification for function isgraph
+share/libc/ctype.h:102:[value] function isgraph: precondition got status valid.
+[value] Done for function isgraph
+tests/libc/ctype.c:112:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:113.
+[value] Done for function isgraph
+tests/libc/ctype.c:114:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:115.
+[value] Done for function isgraph
+tests/libc/ctype.c:116:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:117.
+[value] Done for function isgraph
+tests/libc/ctype.c:118:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:119.
+[value] Done for function isgraph
+tests/libc/ctype.c:120:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:121.
+[value] Done for function isgraph
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:121.
+[value] Done for function isgraph
+tests/libc/ctype.c:122:[value] assertion got status valid.
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:123.
+[value] Done for function isgraph
+[value] computing for function isgraph <- main.
+        Called from tests/libc/ctype.c:123.
+[value] Done for function isgraph
+tests/libc/ctype.c:124:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:125.
+[value] using specification for function islower
+share/libc/ctype.h:114:[value] function islower: precondition got status valid.
+[value] Done for function islower
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:125.
+[value] Done for function islower
+tests/libc/ctype.c:126:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:127.
+[value] Done for function islower
+tests/libc/ctype.c:128:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:129.
+[value] Done for function islower
+tests/libc/ctype.c:130:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:131.
+[value] Done for function islower
+tests/libc/ctype.c:132:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:133.
+[value] Done for function islower
+tests/libc/ctype.c:134:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:135.
+[value] Done for function islower
+tests/libc/ctype.c:136:[value] assertion got status valid.
+[value] computing for function islower <- main.
+        Called from tests/libc/ctype.c:137.
+[value] Done for function islower
+tests/libc/ctype.c:138:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:139.
+[value] using specification for function isprint
+share/libc/ctype.h:126:[value] function isprint: precondition got status valid.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:139.
+[value] Done for function isprint
+tests/libc/ctype.c:140:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:141.
+[value] Done for function isprint
+tests/libc/ctype.c:142:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:143.
+[value] Done for function isprint
+tests/libc/ctype.c:144:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:145.
+[value] Done for function isprint
+tests/libc/ctype.c:146:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:147.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:147.
+[value] Done for function isprint
+tests/libc/ctype.c:148:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:149.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:149.
+[value] Done for function isprint
+tests/libc/ctype.c:150:[value] assertion got status valid.
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:151.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+        Called from tests/libc/ctype.c:151.
+[value] Done for function isprint
+tests/libc/ctype.c:152:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:153.
+[value] using specification for function ispunct
+share/libc/ctype.h:138:[value] function ispunct: precondition got status valid.
+[value] Done for function ispunct
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:153.
+[value] Done for function ispunct
+tests/libc/ctype.c:154:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:155.
+[value] Done for function ispunct
+tests/libc/ctype.c:156:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:157.
+[value] Done for function ispunct
+tests/libc/ctype.c:158:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:159.
+[value] Done for function ispunct
+tests/libc/ctype.c:160:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:161.
+[value] Done for function ispunct
+tests/libc/ctype.c:162:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:163.
+[value] Done for function ispunct
+tests/libc/ctype.c:164:[value] assertion got status valid.
+[value] computing for function ispunct <- main.
+        Called from tests/libc/ctype.c:165.
+[value] Done for function ispunct
+tests/libc/ctype.c:166:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:167.
+[value] using specification for function isspace
+share/libc/ctype.h:151:[value] function isspace: precondition got status valid.
+[value] Done for function isspace
+tests/libc/ctype.c:168:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:169.
+[value] Done for function isspace
+tests/libc/ctype.c:170:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:171.
+[value] Done for function isspace
+tests/libc/ctype.c:172:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:173.
+[value] Done for function isspace
+tests/libc/ctype.c:174:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:175.
+[value] Done for function isspace
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:175.
+[value] Done for function isspace
+tests/libc/ctype.c:176:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:177.
+[value] Done for function isspace
+tests/libc/ctype.c:178:[value] assertion got status valid.
+[value] computing for function isspace <- main.
+        Called from tests/libc/ctype.c:179.
+[value] Done for function isspace
+tests/libc/ctype.c:180:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:181.
+[value] using specification for function isupper
+share/libc/ctype.h:163:[value] function isupper: precondition got status valid.
+[value] Done for function isupper
+tests/libc/ctype.c:182:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:183.
+[value] Done for function isupper
+tests/libc/ctype.c:184:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:185.
+[value] Done for function isupper
+tests/libc/ctype.c:186:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:187.
+[value] Done for function isupper
+tests/libc/ctype.c:188:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:189.
+[value] Done for function isupper
+tests/libc/ctype.c:190:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:191.
+[value] Done for function isupper
+tests/libc/ctype.c:192:[value] assertion got status valid.
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:193.
+[value] Done for function isupper
+[value] computing for function isupper <- main.
+        Called from tests/libc/ctype.c:193.
+[value] Done for function isupper
+tests/libc/ctype.c:194:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:195.
+[value] using specification for function isxdigit
+share/libc/ctype.h:175:[value] function isxdigit: precondition got status valid.
+[value] Done for function isxdigit
+tests/libc/ctype.c:196:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:197.
+[value] Done for function isxdigit
+tests/libc/ctype.c:198:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:199.
+[value] Done for function isxdigit
+tests/libc/ctype.c:200:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:201.
+[value] Done for function isxdigit
+tests/libc/ctype.c:202:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:203.
+[value] Done for function isxdigit
+tests/libc/ctype.c:204:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:205.
+[value] Done for function isxdigit
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:205.
+[value] Done for function isxdigit
+tests/libc/ctype.c:206:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:207.
+[value] Done for function isxdigit
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:207.
+[value] Done for function isxdigit
+tests/libc/ctype.c:208:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+        Called from tests/libc/ctype.c:209.
+[value] Done for function isxdigit
+tests/libc/ctype.c:210:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:211.
+[value] using specification for function tolower
+share/libc/ctype.h:190:[value] function tolower: precondition got status valid.
+[value] Done for function tolower
+tests/libc/ctype.c:212:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:213.
+[value] Done for function tolower
+tests/libc/ctype.c:214:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:215.
+[value] Done for function tolower
+tests/libc/ctype.c:216:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:217.
+[value] Done for function tolower
+tests/libc/ctype.c:218:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:219.
+[value] Done for function tolower
+tests/libc/ctype.c:220:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:221.
+[value] Done for function tolower
+tests/libc/ctype.c:222:[value] assertion got status valid.
+[value] computing for function tolower <- main.
+        Called from tests/libc/ctype.c:223.
+[value] Done for function tolower
+tests/libc/ctype.c:224:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:225.
+[value] using specification for function toupper
+share/libc/ctype.h:203:[value] function toupper: precondition got status valid.
+[value] Done for function toupper
+tests/libc/ctype.c:226:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:227.
+[value] Done for function toupper
+tests/libc/ctype.c:228:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:229.
+[value] Done for function toupper
+tests/libc/ctype.c:230:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:231.
+[value] Done for function toupper
+tests/libc/ctype.c:232:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:233.
+[value] Done for function toupper
+tests/libc/ctype.c:234:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:235.
+[value] Done for function toupper
+tests/libc/ctype.c:236:[value] assertion got status valid.
+[value] computing for function toupper <- main.
+        Called from tests/libc/ctype.c:237.
+[value] Done for function toupper
+tests/libc/ctype.c:238:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  r ∈ {90}
+  __retres ∈ {0}

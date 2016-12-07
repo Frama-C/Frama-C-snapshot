@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
 tests/rte/unspecified_sequence.i:7:[value] warning: function main: precondition got status unknown.
 [value] computing for function f <- main.
@@ -21,9 +21,9 @@ tests/rte/unspecified_sequence.i:7:[value] warning: function main: precondition 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   y ∈ {0}
   z ∈ {0}
 [from] Computing for function f

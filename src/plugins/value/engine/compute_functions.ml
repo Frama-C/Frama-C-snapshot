@@ -27,20 +27,34 @@ let dkey = Value_parameters.register_category "callbacks"
 
 
 module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.S with type value = Value.t)
-    (Domain : Abstract_domain.External with type location = Loc.location
-                                        and type value = Value.t)
-    (Eva: Evaluation.S with type value = Domain.value
-                        and type origin = Domain.origin
-                        and type loc = Domain.location
-                        and type state = Domain.t)
-    (Init: Initialization.S with type state := Domain.t)
+    (Val: Abstract_value.S)
+    (Loc: Abstract_location.External with type value = Val.t)
+    (Dom: Abstract_domain.External with type location = Loc.location
+                                    and type value = Val.t)
+    (Eva: Evaluation.S with type value = Dom.value
+                        and type origin = Dom.origin
+                        and type loc = Dom.location
+                        and type state = Dom.t)
+    (Init: Initialization.S with type state := Dom.t)
 = struct
 
+  module Domain = struct
+    include Dom
+    let enter_scope kf vars state = match vars with
+      | [] -> state
+      | _ ->  enter_scope kf vars state
+    let leave_scope kf vars state = match vars with
+      | [] -> state
+      | _ ->  leave_scope kf vars state
+  end
   module States = Partitioning.Make_Set (Domain)
-  module Domain_Transfer = Domain.Transfer (Eva.Valuation)
-  module Transfer = Transfer_stmt.Make (Domain_Transfer) (Eva)
+  module Domain_Transfer = struct
+    include Domain.Transfer (Eva.Valuation)
+    let leave_scope = Domain.leave_scope
+    module Store = Domain.Store
+    include (Domain : Datatype.S with type t = state)
+  end
+  module Transfer = Transfer_stmt.Make (Val) (Loc) (Domain_Transfer) (Eva)
   module Logic = Transfer_logic.Make (Domain) (Partitioning.Make_Set (Domain))
 
   module Computer =
@@ -61,11 +75,10 @@ module Make
     Value_results.mark_kf_as_called kf;
     let global = match call_kinstr with Kglobal -> true | _ -> false in
     let pp = not global && Value_parameters.ValShowProgress.get () in
-    let entry_time = if pp then Unix.time () else 0. in
     if pp then
       Value_parameters.feedback
         "@[computing for function %a.@\nCalled from %a.@]"
-        Value_util.pretty_call_stack_short (Value_util.call_stack ())
+        Value_types.Callstack.pretty_short (Value_util.call_stack ())
         Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc call_kinstr);
     let use_spec = match kf.fundec with
       | Declaration (_,_,_,_) -> `Spec (Annotations.funspec kf)
@@ -85,28 +98,15 @@ module Make
         Db.Value.Call_Type_Value_Callbacks.apply (`Def, cvalue_state, call_stack);
         Computer.compute kf call_kinstr state
     in
-    if pp then begin
-      let compute_time = (Unix.time ()) -. entry_time in
-      if compute_time > Value_parameters.FloatTimingStep.get ()
-      then Value_parameters.feedback "Done for function %a, in %a seconds."
-          Kernel_function.pretty kf
-          Datatype.Float.pretty  compute_time
-      else Value_parameters.feedback "Done for function %a"
-          Kernel_function.pretty kf
-    end;
+    if pp then
+      Value_parameters.feedback
+        "Done for function %a" Kernel_function.pretty kf;
     result
 
 
   (* Mem Exec *)
 
-  module MemExec = Mem_exec2.Make (Value) (Domain)
-
-  let extract_value = function
-    | Assign value -> `Value value
-    | Copy (_lval, copy) ->
-      match copy with
-      | Determinate v -> `Value v.v
-      | Exact v -> v.v
+  module MemExec = Mem_exec2.Make (Val) (Domain)
 
   let compute_call call_kinstr call init_state =
     let default () =
@@ -114,7 +114,7 @@ module Make
     in
     if Value_parameters.MemExecAll.get () then
       let args =
-        List.map (fun {avalue} -> extract_value avalue) call.arguments
+        List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
       in
       match MemExec.reuse_previous_call call.kf init_state args with
       | None ->
@@ -158,11 +158,11 @@ module Make
   let compute_from_entry_point kf =
     Init.initial_state_with_formals kf >>-: fun init_state ->
     Value_util.push_call_stack kf Kglobal;
-    (* TODO: apply for the whole domain. *)
+    Domain.Store.register_initial_state (Value_util.call_stack ()) init_state;
     let cvalue_state = get_cvalue init_state in
-    Db.Value.merge_initial_state (Value_util.call_stack ()) cvalue_state;
     Db.Value.Call_Value_Callbacks.apply (cvalue_state, [kf, Kglobal]);
-    ignore (compute_using_spec_or_body Kglobal kf init_state)
+    ignore (compute_using_spec_or_body Kglobal kf init_state);
+    Value_util.pop_call_stack ()
 
 end
 
@@ -221,10 +221,12 @@ let generate_specs () =
 
 let pre () =
   generate_specs ();
+  Widen.precompute_widen_hints ();
   Value_perf.reset();
   (* We may be resuming Value from a previously crashed analysis. Clear
      degeneration states *)
   Value_util.DegenerationPoints.clear ();
+  Cvalue.V.clear_garbled_mix ();
 ;;
 
 let post_cleanup ~aborted =
@@ -256,57 +258,14 @@ let () =
   with Invalid_argument _ -> () (* Ignore: SIGURSR1 is not available on Windows,
                                    and possibly on other platforms. *)
 
-
-(* Hard-wired instanciation of the analysis for the cvalue abstract domain. *)
-
-module Main = Abstractions.Legacy
-
-module Eva = Evaluation.Make (Main.Val) (Main.Loc) (Main.Dom)
-module NonLinear = Non_linear_evaluation.Make (Main.Val) (Eva)
-module Eval = struct
-  include Eva
-  let evaluate = NonLinear.evaluate
-end
-
-module Init = Initialization.Make (Main.Val) (Main.Loc) (Main.Dom) (Eval)
-
-let cvalue_initial_state () =
-  Cvalue_domain.extract Main.Dom.get (Init.initial_state ())
-
-module MainComputer = Make (Main.Val) (Main.Loc) (Main.Dom) (Eval) (Init)
-
-
-(* On the fly instantiation of others abstract domains. *)
-let analyzer config =
-  let abstract =
-    if config = Abstractions.default_config
-    then (module Abstractions.Default : Abstractions.S)
-    else Abstractions.make config
-  in
-  let module Abstract = (val abstract : Abstractions.S) in
-  let module Eva = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom) in
-  let module NonLinear = Non_linear_evaluation.Make (Abstract.Val) (Eva) in
-  let module Eval = struct
-    include Eva
-    let evaluate = NonLinear.evaluate
-  end
-  in
-  let module Init =
-    Initialization.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom) (Eval)
-  in
-  let module Computer =
-    Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom) (Eval) (Init)
-  in
-  Computer.compute_from_entry_point
-
 (* Analysis. *)
 
-let main_compute compute_from_entry_point =
+let run compute_from_entry_point ?(library=false) kf =
+  check ();
   try
     pre ();
     Value_util.clear_call_stack ();
     Stop_at_nth.clear ();
-    let kf, library = Globals.entry_point () in
     Value_results.mark_kf_as_called kf;
     Value_parameters.feedback "Analyzing a%scomplete application starting at %a"
       (if library then "n in" else " ")
@@ -322,6 +281,10 @@ let main_compute compute_from_entry_point =
       Value_parameters.feedback "done for function %a" Kernel_function.pretty kf;
       Separate.epilogue ();
       Db.Value.mark_as_computed ();
+      (* Garbled mix must be dumped here -- at least before the call to
+         mark_green_and_red -- because fresh ones are created when re-evaluating
+         all the alarms, and we get an unpleasant "ghost effect". *)
+      Value_util.dump_garbled_mix ();
       (* Mark unreachable and RTE statuses. Only do this there, not when the
          analysis was aborted (hence, not in post_cleanup), because the
          propagation is incomplete. Also do not mark unreachable statutes if
@@ -346,29 +309,6 @@ let main_compute compute_from_entry_point =
          that can be reached from the degeneration point.@."
   | Globals.No_such_entry_point _ as exn -> raise exn
   | exn -> Db.Value.mark_as_computed (); raise exn
-
-let default_analyzer =
-  if Abstractions.default_config = Abstractions.legacy_config
-  then MainComputer.compute_from_entry_point
-  else analyzer Abstractions.default_config
-
-let ref_analyzer =
-  ref (Abstractions.default_config, default_analyzer)
-
-let force_compute () =
-  Ast.compute ();
-  check ();
-  let config = Abstractions.configure () in
-  let analyzer =
-    if config = fst !ref_analyzer then snd !ref_analyzer
-    else if config = Abstractions.legacy_config
-    then MainComputer.compute_from_entry_point
-    else
-      let a = analyzer config in
-      ref_analyzer := config, a;
-      a
-  in
-  main_compute analyzer
 
 
 (*

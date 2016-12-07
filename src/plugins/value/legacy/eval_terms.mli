@@ -107,12 +107,12 @@ val eval_term_as_exact_locs :
   eval_env -> term -> Cil_datatype.Typ.t * location
 
 val eval_predicate :
-  eval_env -> predicate named -> predicate_status
+  eval_env -> predicate -> predicate_status
 
-val predicate_deps: eval_env -> predicate named -> logic_deps
+val predicate_deps: eval_env -> predicate -> logic_deps
 
 val reduce_by_predicate :
-  eval_env -> bool -> predicate named -> eval_env
+  eval_env -> bool -> predicate -> eval_env
 
 (** If [reduce] is true, reduce in all cases. Otherwise, reduce only
     when [p] is a disjunction, ie. split by this disjunction.
@@ -122,6 +122,6 @@ val split_disjunction_and_reduce :
   env:eval_env ->
   (Cvalue.Model.t * Trace.t) ->
   slevel:int ->
-  predicate named ->
+  predicate ->
   Property.t ->
   State_set.t

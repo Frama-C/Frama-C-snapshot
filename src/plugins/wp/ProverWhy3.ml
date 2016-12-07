@@ -52,7 +52,7 @@ let cluster_file c =
 
 let theory_name_of_cluster c =
   let base = cluster_id c in
-  String.capitalize base
+  Transitioning.String.capitalize_ascii base
 
 let theory_name_of_pid fmt pid =
   Format.fprintf fmt "VC%s" (WpPropId.get_propid pid)
@@ -164,13 +164,13 @@ class visitor fmt c =
       self#lines ;
       let name = (cluster_id c) in
       Format.fprintf fmt "use import %s.%s@\n"
-        name (String.capitalize name) ;
+        name (Transitioning.String.capitalize_ascii name) ;
       deps <- (D_cluster c) :: deps
 
     method add_extlib file =
       let thy = filenoext file in
       let path = LogicBuiltins.find_lib file in
-      self#add_import2 thy (String.capitalize thy) ;
+      self#add_import2 thy (Transitioning.String.capitalize_ascii thy) ;
       self#add_dfile path
 
     method on_library thy =
@@ -178,7 +178,8 @@ class visitor fmt c =
         match Str.split_delim regexp_col opt with
         | [file] ->
             let filenoext = filenoext file in
-            self#add_import2 filenoext (String.capitalize filenoext) ;
+            self#add_import2 filenoext
+              (Transitioning.String.capitalize_ascii filenoext) ;
             self#add_dfile file
         | [file;lib] ->
             self#add_import2 (filenoext file) lib ;
@@ -602,7 +603,7 @@ open Task
 let prove_file ~prover ~pid ~file ~includes ~logout ~logerr =
   let why = new why3 ~prover ~pid ~file ~includes ~logout ~logerr in
   why#prove () >>> function
-  | Task.Timeout -> Task.return VCS.timeout
+  | Task.Timeout t -> Task.return (VCS.timeout t)
   | Task.Result r -> Task.call why#result r
   | st -> Task.status (Task.map (fun _ -> assert false) st)
 
@@ -636,8 +637,10 @@ type dp = {
 let find name dps =
   try List.find (fun d -> d.dp_prover = name) dps
   with Not_found ->
-    let name = String.lowercase name in
-    try List.find (fun d -> String.lowercase d.dp_name = name) dps
+    let name = Transitioning.String.lowercase_ascii name in
+    try
+      List.find
+        (fun d -> Transitioning.String.lowercase_ascii d.dp_name = name) dps
     with Not_found ->
       { dp_prover = name ; dp_name = name ; dp_version = "default" }
 
@@ -645,10 +648,8 @@ let parse spec =
   try
     let k = String.index spec ':' in
     let dp_name = String.sub spec 0 k in
-    let dp_version = String.sub spec (succ k) (String.length spec - k - 1) in
-    for i = 0 to String.length dp_version - 1 do
-      if dp_version.[i] = ':' then dp_version.[i] <- ' ' ;
-    done ;
+    let dp_version = String.sub spec (succ k) (String.length spec - k - 1)
+                   |> String.map (fun c -> if c =':' then ' ' else c) in
     { dp_prover = spec ; dp_name ; dp_version }
   with Not_found ->
     { dp_prover = spec ; dp_name = spec ; dp_version = "default" }
@@ -671,12 +672,9 @@ class why3detect job =
         let dp_version = p#get_string 2 in
         Wp_parameters.debug ~level:1
           "Prover %S, version %s detected." dp_name dp_version ;
-        let dp_prover = Printf.sprintf "%s:%s" dp_name dp_version in
-        for i = String.length dp_name + 1 to String.length dp_prover - 1 do
-          match dp_prover.[i] with
-          | ' ' | ',' -> dp_prover.[i] <- ':'
-          | _ -> ()
-        done ;
+        let dp_prover = Printf.sprintf "%s:%s" dp_name dp_version
+                      |> String.map
+                           (fun c -> if c = ' ' || c = ',' then ':' else c) in
         dps <- { dp_name ; dp_version ; dp_prover } :: dps
       end
 

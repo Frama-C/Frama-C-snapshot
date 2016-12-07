@@ -20,4 +20,7 @@ void main() {
     fr[i] = ((unsigned char*) &f)[i];
   for (i=0; i<8; i++)
     dr[i] = ((unsigned char*) &d)[i];
+
+  long double x = 1.;
+  Frama_C_show_each(*(unsigned char *)&x);
 }

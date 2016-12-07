@@ -72,6 +72,14 @@ module DoMemAccess =
 array access"
      end)
 
+(* annotates calls through pointers *)
+module DoPointerCall =
+  True
+    (struct
+       let option_name = "-rte-pointer-call"
+       let help = "when on, annotate functions calls through pointers"
+     end)
+
 (* if DoAll is true: all other options become true, except for 
    UnsignedOverflow, UnsignedDownCast and "PreConds"
    <=> only "true" runtime error and 
@@ -89,6 +97,7 @@ let () =
       DoMemAccess.set b;
       DoDivMod.set b;
       DoFloatToInt.set b;
+      DoPointerCall.set b;
       Kernel.SignedOverflow.set b;
       Kernel.SignedDowncast.set b)
 

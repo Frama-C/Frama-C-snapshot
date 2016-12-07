@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_typed/user_rec.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Global
 ------------------------------------------------------------
@@ -128,7 +126,7 @@ Prove: if (n <= 1) then (1 = x) else (L_fact(i) = x).
 
 Goal Establishment of Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26):
 Assume { Type: is_sint32(n). }
-Prove: (n <= 1) \/ (1 = L_fact(1)).
+Prove: (1 = L_fact(1)) \/ (n <= 1).
 
 ------------------------------------------------------------
 
@@ -195,7 +193,7 @@ Prove: if (n <= 1) then (1 = x_2) else (x_2 = (x / L_fact(x_1))).
 
 Goal Establishment of Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39):
 Let x = L_fact(n). Assume { Type: is_sint32(n). }
-Prove: (n <= 1) \/ (1 = (x / x)).
+Prove: (1 = (x / x)) \/ (n <= 1).
 
 ------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   S ∈ {0}
   X ∈ {0}
@@ -15,15 +15,15 @@
   Yg ∈ {0}
 [value] computing for function simple <- main.
         Called from tests/scope/zones.c:73.
-tests/scope/zones.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
-tests/scope/zones.c:16:[kernel] warning: signed overflow. assert y+z ≤ 2147483647;
+tests/scope/zones.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+tests/scope/zones.c:16:[value] warning: signed overflow. assert y + z ≤ 2147483647;
 [value] Recording results for simple
 [value] Done for function simple
 [value] computing for function array1 <- main.
         Called from tests/scope/zones.c:74.
-tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index. assert 0 ≤ x;
-tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index. assert x < 10;
-tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147483647;
+tests/scope/zones.c:21:[value] warning: accessing out of bounds index. assert 0 ≤ x;
+tests/scope/zones.c:21:[value] warning: accessing out of bounds index. assert x < 10;
+tests/scope/zones.c:22:[value] warning: signed overflow. assert T[0] + y ≤ 2147483647;
 [value] Recording results for array1
 [value] Done for function array1
 [value] computing for function struct1 <- main.
@@ -46,12 +46,12 @@ tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147
 [value] Done for function g
 [value] computing for function g <- caller <- main.
         Called from tests/scope/zones.c:68.
-tests/scope/zones.c:60:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
+tests/scope/zones.c:60:[value] warning: signed overflow. assert a + b ≤ 2147483647;
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- caller <- main.
         Called from tests/scope/zones.c:68.
-tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483647;
+tests/scope/zones.c:54:[value] warning: signed overflow. assert x + y ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for caller
@@ -59,21 +59,21 @@ tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function array1:
+[value:final-states] Values at end of function array1:
   T[0] ∈ [--..--]
    [1..9] ∈ {0; 3}
   __retres ∈ [--..--]
-[value] Values at end of function ctrl1:
+[value:final-states] Values at end of function ctrl1:
   a ∈ [--..--]
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   Xf ∈ [0..9]
   Yf ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   Xg ∈ [--..--]
   Yg ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
-[value] Values at end of function caller:
+[value:final-states] Values at end of function caller:
   Xf ∈ [0..9]
   Xg ∈ [--..--]
   Yf ∈ [-2147483648..2147483644]
@@ -85,14 +85,14 @@ tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483
   b1 ∈ {0}
   c1 ∈ {0}
   pf ∈ {{ &f ; &g }}
-[value] Values at end of function simple:
+[value:final-states] Values at end of function simple:
   x ∈ [-2147483645..2147483647]
   y ∈ {3}
-[value] Values at end of function struct1:
+[value:final-states] Values at end of function struct1:
   s.a ∈ [0..9]
    .b ∈ [--..--]
   __retres ∈ [0..9]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0] ∈ [--..--]
    [1..9] ∈ {0; 3}
   Xf ∈ [0..9]

@@ -101,26 +101,26 @@ let to_string ip =
     match ip with
     | IPCodeAnnot (kf, _stmt, ca) -> begin
       let kind, pp = match ca.annot_content with
-        | AAssert (_, ({content = p; name} as named)) -> begin
+        | AAssert (_, ({pred_content = p; pred_name} as named)) -> begin
           match Alarms.find ca with
           | Some alarm ->
-            (alarm_get_name alarm), (Printer.pp_predicate |> p)
+            (alarm_get_name alarm), (Printer.pp_predicate_node |> p)
           | None -> begin
               (* Special hack for builtin "preconditions" in Value. Not
                  meant to stay forever, hopefully. *)
-              match p, name with
+              match p, pred_name with
               | Papp ({l_var_info = {lv_name = "\\warning"}}, _,
                       [{term_node = TConst (LStr s)}]), [_plugin; name] ->
                 name, (Format.pp_print_string |> s)
               | _ ->
-                if List.exists ((=) "missing_return") name then
-                  "missing_return", (Printer.pp_predicate_named |> named)
+                if List.exists ((=) "missing_return") pred_name then
+                  "missing_return", (Printer.pp_predicate |> named)
                 else
-                  "user assertion", (Printer.pp_predicate |> p)
+                  "user assertion", (Printer.pp_predicate_node |> p)
             end
         end
-        | AInvariant (_, _, {content = p}) ->
-          "loop invariant", (Printer.pp_predicate |> p)
+        | AInvariant (_, _, {pred_content = p}) ->
+          "loop invariant", (Printer.pp_predicate_node |> p)
         | _ ->
           Report_parameters.warning ~source:(fst loc)
             "ignoring annotation '%a' in csv export"

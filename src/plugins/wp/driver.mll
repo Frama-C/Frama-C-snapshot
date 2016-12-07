@@ -445,10 +445,9 @@ and bal = parse
         parse ~driver_dir library input
       | _ -> failwith "Unexpected entry"
 
-  let load ?(feedback=true) file =
+  let load ?(ontty=`Transient) file =
     try
-      if feedback then
-        Wp_parameters.feedback "Loading driver '%s'" (Filepath.pretty file) ;
+      Wp_parameters.feedback ~ontty "Loading driver '%s'" (Filepath.pretty file) ;
       let driver_dir = Filename.dirname file in
       let inc = open_in file in
       let lex = Lexing.from_channel inc in
@@ -511,7 +510,8 @@ and bal = parse
             drivers in
         let default = Wp_parameters.Share.file ~error:true "wp.driver" in
         let feedback = Wp_parameters.Share.Dir_name.is_set () in
-        load ~feedback default;
+        let ontty = if feedback then `Message else `Transient in
+        load ~ontty default;
         List.iter load drivers;
         Hashtbl.add loaded key (Context.get LogicBuiltins.driver);
         if Wp_parameters.has_dkey "driver" then LogicBuiltins.dump ()

@@ -4,30 +4,30 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
         Called from tests/value/redundant_alarms.c:50.
-tests/value/redundant_alarms.c:11:[kernel] warning: accessing uninitialized left-value. assert \initialized(p);
-tests/value/redundant_alarms.c:12:[kernel] warning: accessing uninitialized left-value. assert \initialized(p);
-tests/value/redundant_alarms.c:15:[kernel] warning: accessing uninitialized left-value. assert \initialized(p);
+tests/value/redundant_alarms.c:11:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+tests/value/redundant_alarms.c:12:[value] warning: accessing uninitialized left-value. assert \initialized(p);
+tests/value/redundant_alarms.c:15:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/redundant_alarms.c:51.
-tests/value/redundant_alarms.c:20:[kernel] warning: accessing out of bounds index. assert 0 ≤ i;
-tests/value/redundant_alarms.c:20:[kernel] warning: accessing out of bounds index. assert i < 10;
-tests/value/redundant_alarms.c:21:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-tests/value/redundant_alarms.c:22:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert 0 ≤ i;
+tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert i < 10;
+tests/value/redundant_alarms.c:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+tests/value/redundant_alarms.c:22:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
         Called from tests/value/redundant_alarms.c:52.
 tests/value/redundant_alarms.c:25:[value] warning: function main3: precondition got status unknown.
-tests/value/redundant_alarms.c:31:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-tests/value/redundant_alarms.c:31:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
-tests/value/redundant_alarms.c:32:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
-tests/value/redundant_alarms.c:33:[kernel] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
+tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
+tests/value/redundant_alarms.c:32:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
+tests/value/redundant_alarms.c:33:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.

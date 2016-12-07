@@ -6,7 +6,7 @@ enum __anonenum_T_BOOLEEN_1 {
     FALSE = 0
 };
 typedef enum __anonenum_T_BOOLEEN_1 T_BOOLEEN;
-/*@ logic T_BOOLEEN test(ℤ b) = b≡1? VRAI: FALSE;
+/*@ logic T_BOOLEEN test(ℤ b) = b ≡ 1? VRAI: FALSE;
  */
 /*@ ensures \result ≡ test(\old(boo)); */
 T_BOOLEEN test(int boo)

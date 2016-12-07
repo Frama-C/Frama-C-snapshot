@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_1360.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [rte] annotating function foo_correct
 [rte] annotating function foo_wrong
 ------------------------------------------------------------
@@ -20,7 +19,7 @@ Assume {
   Type: is_sint32(Mint_0[a]) /\ is_sint32(Mint_0[b]) /\
       is_sint32(Mint_1[a]) /\ is_sint32(Mint_2[a]) /\ is_sint32(Mint_2[b]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rd(Malloc_0, b, 1) /\ valid_rw(Malloc_0, a, 1).
   (* Pre-condition *)
@@ -75,7 +74,7 @@ Assume {
   Type: is_sint32(Mint_0[a]) /\ is_sint32(Mint_0[b]) /\
       is_sint32(Mint_1[a]) /\ is_sint32(Mint_2[a]) /\ is_sint32(Mint_2[b]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rd(Malloc_0, a, 1) /\ valid_rd(Malloc_0, b, 1).
   (* Pre-condition *)

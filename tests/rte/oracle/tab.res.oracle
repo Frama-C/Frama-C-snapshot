@@ -18,8 +18,8 @@ double g4(typetab *t)
 double h4(double * /*[2]*/ t)
 {
   double __retres;
-  /*@ assert rte: mem_access: \valid_read(t+0); */
-  /*@ assert rte: mem_access: \valid_read(t+1); */
+  /*@ assert rte: mem_access: \valid_read(t + 0); */
+  /*@ assert rte: mem_access: \valid_read(t + 1); */
   __retres = *(t + 0) + *(t + 1);
   return __retres;
 }
@@ -27,8 +27,8 @@ double h4(double * /*[2]*/ t)
 double i4(double *t)
 {
   double __retres;
-  /*@ assert rte: mem_access: \valid_read(t+0); */
-  /*@ assert rte: mem_access: \valid_read(t+1); */
+  /*@ assert rte: mem_access: \valid_read(t + 0); */
+  /*@ assert rte: mem_access: \valid_read(t + 1); */
   __retres = *(t + 0) + *(t + 1);
   return __retres;
 }

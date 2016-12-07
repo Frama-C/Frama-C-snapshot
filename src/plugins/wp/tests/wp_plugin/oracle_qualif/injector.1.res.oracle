@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_plugin/injector.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 4 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_ko_post_qed_ko : Unknown

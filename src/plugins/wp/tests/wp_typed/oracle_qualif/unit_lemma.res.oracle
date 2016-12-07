@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_typed/unit_lemma.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] 6 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_P23_KO : Unknown
 [wp] [Alt-Ergo] Goal typed_lemma_P52 : Valid

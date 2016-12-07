@@ -12,8 +12,8 @@ int t[10];
  */
 extern int any();
 
-/*@ ensures t[i] ≡ \old(t[\at(i,Here)])+1;
-    ensures \let j = i; t[j] ≡ \old(t[j])+1;
+/*@ ensures t[i] ≡ \old(t[\at(i,Here)]) + 1;
+    ensures \let j = i; t[j] ≡ \old(t[j]) + 1;
     assigns i, t[\at(i,Post)];
  */
 void f(void)
@@ -32,14 +32,14 @@ int main(void)
 {
   int __retres;
   /*@ behavior pre_f:
-        ensures t[i] ≡ \old(t[\at(i,Here)])+1;
-        ensures \let j = i; t[j] ≡ \old(t[j])+1;
+        ensures t[i] ≡ \old(t[\at(i,Here)]) + 1;
+        ensures \let j = i; t[j] ≡ \old(t[j]) + 1;
         assigns i, t[\at(i,Post)];
   */
   f();
   /*@ behavior pre_f_2:
-        ensures t[i] ≡ \old(t[\at(i,Here)])+1;
-        ensures \let j = i; t[j] ≡ \old(t[j])+1;
+        ensures t[i] ≡ \old(t[\at(i,Here)]) + 1;
+        ensures \let j = i; t[j] ≡ \old(t[j]) + 1;
         assigns i, t[\at(i,Post)];
   */
   f();

@@ -1,5 +1,5 @@
 /* run.config
-OPT: -scf -check -then-on propagated -check
+OPT: -scf -then-on propagated
 */
 
 void (*pf)(void);

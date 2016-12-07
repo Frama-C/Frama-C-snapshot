@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   tqmf[0..23] ∈ {0}
   h[0] ∈ {12}
    [1..2] ∈ {-44}
@@ -741,43 +741,43 @@ tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function abs:
+[value:final-states] Values at end of function abs:
   m ∈ {0; 1; 2}
-[value] Values at end of function filtep:
+[value:final-states] Values at end of function filtep:
   pl ∈ {-2464; -1146; 0; 47584; 56154}
   pl2 ∈ {-2; 0; 98}
   __retres ∈ {-1; 0; 1}
-[value] Values at end of function filtez:
+[value:final-states] Values at end of function filtez:
   bpl ∈ {{ &delay_bpl[6] ; &delay_bph[6] }}
   dlt_0 ∈ {{ &delay_dltx[6] ; &delay_dhx[6] }}
   i ∈ {6}
   zl ∈ {-256; -128; 0; 6223; 6272}
   __retres ∈ {-1; 0}
-[value] Values at end of function logsch:
+[value:final-states] Values at end of function logsch:
   nbh_0 ∈ {0; 577; 798}
   wd ∈ {0; 791}
-[value] Values at end of function logscl:
+[value:final-states] Values at end of function logscl:
   nbl_0 ∈ {2958; 3042; 5869; 5976; 8865}
   wd ∈ {0; 2934; 3018; 5823; 5929}
-[value] Values at end of function quantl:
+[value:final-states] Values at end of function quantl:
   ril ∈ {4; 32; 63}
   mil ∈ {0; 29}
   wd ∈ {0; 1; 2}
   decis ∈ {0; 1; 79; 223}
-[value] Values at end of function scalel:
+[value:final-states] Values at end of function scalel:
   wd1 ∈ {0; 9; 10; 12; 14; 15; 27; 29}
   wd2 ∈ {0; 1; 2; 4}
   wd3 ∈ {1; 10; 11; 28; 29; 79}
   __retres ∈ {8; 80; 88; 224; 232; 632}
-[value] Values at end of function uppol1:
+[value:final-states] Values at end of function uppol1:
   wd2 ∈ {0; 191; 381; 570; 759}
   wd3 ∈ {14790; 14890; 14997; 15046; 15111; 15232}
   apl1 ∈ {192; 383; 573; 762; 951}
-[value] Values at end of function uppol2:
+[value:final-states] Values at end of function uppol2:
   wd2 ∈ {-24; -18; -12; -6; 0}
   wd4 ∈ {-152; 104; 110; 116; 122; 128}
   apl2 ∈ {128; 249; 314; 363; 470; 570}
-[value] Values at end of function upzero:
+[value:final-states] Values at end of function upzero:
   delay_bpl[0] ∈ {0; 127; 128; 254}
            [1] ∈ {-2; 0; 127; 128}
            [2..5] ∈ {0; 127; 128; 254}
@@ -791,7 +791,7 @@ tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
   i ∈ {6}
   wd2 ∈ {128} or UNINITIALIZED
   wd3 ∈ {0; 126; 127} or UNINITIALIZED
-[value] Values at end of function encode:
+[value:final-states] Values at end of function encode:
   tqmf[0] ∈ {0; 1}
       [1] ∈ {1}
       [2..5] ∈ {0; 1}
@@ -852,7 +852,7 @@ tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
   xb ∈ {-456; -44; 0; 168; 992}
   decis ∈ {0; 1}
   __retres ∈ {96; 191; 196; 224; 255}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   tqmf[0..5] ∈ {1}
       [6] ∈ {0}
       [7] ∈ {1}

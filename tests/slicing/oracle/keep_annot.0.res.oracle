@@ -1,20 +1,20 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/keep_annot.c (with preprocessing)
+[kernel] Parsing tests/slicing/keep_annot.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- f.
-        Called from tests/slicing/keep_annot.c:26.
-tests/slicing/keep_annot.c:15:[value] entering loop for the first time
-tests/slicing/keep_annot.c:20:[value] warning: assertion got status unknown.
-tests/slicing/keep_annot.c:21:[value] warning: assertion got status unknown.
+        Called from tests/slicing/keep_annot.i:26.
+tests/slicing/keep_annot.i:15:[value] entering loop for the first time
+tests/slicing/keep_annot.i:20:[value] warning: assertion got status unknown.
+tests/slicing/keep_annot.i:21:[value] warning: assertion got status unknown.
 [value] Recording results for g
 [value] Done for function g
-tests/slicing/keep_annot.c:27:[value] assertion got status valid.
-tests/slicing/keep_annot.c:28:[value] warning: assertion got status unknown.
+tests/slicing/keep_annot.i:27:[value] assertion got status valid.
+tests/slicing/keep_annot.i:28:[value] warning: assertion got status unknown.
 [value] Recording results for f
 [value] done for function f
 [slicing] making slicing project 'Slicing'...
@@ -61,3 +61,5 @@ void f(las *p, int n, int m)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_keep_annot.i (no preprocessing)

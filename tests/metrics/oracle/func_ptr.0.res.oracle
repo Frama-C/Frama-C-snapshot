@@ -34,7 +34,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           Cyclomatic complexity = 6
 [metrics] Functions syntactically reachable from main: 3
           ----------------------------------------------
-          <tests/metrics/func_ptr.c>: foo; main; exit; 
+          <tests/metrics/func_ptr.c>: exit; foo; main; 
           
           Functions syntactically unreachable from main: 2
           ------------------------------------------------
@@ -42,7 +42,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
 [value] Recording results for main
@@ -54,7 +54,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           Coverage estimation = 33.3% 
           
           Unseen functions (2) =
-            <tests/metrics/func_ptr.c>: foo; exit;
+            <tests/metrics/func_ptr.c>: exit; foo;
 [metrics] References to non-analyzed functions
           ------------------------------------
           Function main calls exit (at tests/metrics/func_ptr.c:28)

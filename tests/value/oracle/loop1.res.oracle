@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   U[0] ∈ {1}
    [1] ∈ {2}
    [2..99] ∈ {0}
@@ -16,20 +16,20 @@ tests/value/loop1.i:5:[value] entering loop for the first time
 [value] computing for function main2 <- main.
         Called from tests/value/loop1.i:23.
 tests/value/loop1.i:14:[value] entering loop for the first time
-tests/value/loop1.i:16:[kernel] warning: accessing out of bounds index. assert i < 100;
+tests/value/loop1.i:16:[value] warning: accessing out of bounds index. assert i < 100;
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   U[0] ∈ {1; 7}
    [1] ∈ {2; 7}
    [2..99] ∈ {0; 7}
   i ∈ {100}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main1
 [from] Done for function main1

@@ -153,7 +153,7 @@ end
 
 let treat_pred replace_pre pred fa_terms (ret_opt : term_lval option)  =
   let visitor = replacement_visitor replace_pre fa_terms ret_opt in
-  Cil.visitCilPredicate (visitor :> Cil.cilVisitor) pred
+  Cil.visitCilPredicateNode (visitor :> Cil.cilVisitor) pred
     
 let treat_term replace_pre trm fa_terms ret_opt =
   let visitor = replacement_visitor replace_pre fa_terms ret_opt in
@@ -205,6 +205,7 @@ type to_annotate = {
   signed_downcast: bool;
   unsigned_downcast: bool;
   float_to_int: bool;
+  pointer_call: bool;
   precond: bool;
 }
 
@@ -217,6 +218,7 @@ let annotate_nothing = {
   signed_downcast = false;
   unsigned_downcast = false;
   float_to_int = false;
+  pointer_call = false;
   precond = false;
 }
 
@@ -229,6 +231,7 @@ let annotate_all = {
   signed_downcast = true;
   unsigned_downcast = true;
   float_to_int = true;
+  pointer_call = true;
   precond = true;
 }
 
@@ -243,6 +246,7 @@ let annotate_from_options () = {
   signed_downcast = Kernel.SignedDowncast.get ();
   unsigned_downcast = Kernel.UnsignedDowncast.get ();
   float_to_int = Options.DoFloatToInt.get ();
+  pointer_call = Options.DoPointerCall.get ();
   precond = Options.DoCalledPrecond.get ();
 }
 
@@ -285,6 +289,9 @@ class annot_visitor kf to_annot on_alarm = object (self)
   method private do_float_to_int () =
     to_annot.float_to_int && not (Generator.Float_to_int.is_computed kf)
 
+  method private do_pointer_call () =
+    to_annot.pointer_call && not (Generator.Pointer_call.is_computed kf)
+
   method private do_called_precond () =
     to_annot.precond && not (Generator.Called_precond.is_computed kf)
 
@@ -325,13 +332,11 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	  Logic_const.unamed
 	    (treat_pred
                replace_pre
-	       p'.content
+	       p'.pred_content
 	       formals_actuals_terms tret_opt)
 	in
         Logic_const.new_predicate 
-	  { content = p_unnamed.content ;
-	    loc = p_unnamed.loc ;
-	    name = p'.name }
+          { p_unnamed with pred_name = p'.pred_name }
       with 
       | AddrOfFormal
       | NoResult ->
@@ -496,14 +501,14 @@ class annot_visitor kf to_annot on_alarm = object (self)
     in
     try
       let new_behaviors = 
-	let default_allocation_assigns = ref (None, None) in
+	let default_allocation_assigns = ref (FreeAllocAny, None) in
 	let new_bhvs =
 	  List.fold_left
 	    (fun acc bhv -> 
 	      (* step 1: looking for managment of allocation and assigns
 		 clause. *)
 	      let allocation = 
-		Some (fun_transform_allocations bhv.b_allocation) 
+                fun_transform_allocations bhv.b_allocation
 	      in
 	      let assigns, allocation, name = 
 		if Cil.is_default_behavior bhv then
@@ -532,7 +537,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
 		       So, extract the allocation clause for the new bhv
 		       where the eventual default assigns will be set. *)
 		    default_allocation_assigns := allocation, default_assigns;
-		    bhv.b_assigns, None, self#mk_new_behavior_name kf bhv
+		    bhv.b_assigns, FreeAllocAny, self#mk_new_behavior_name kf bhv
 		else 
 		  bhv.b_assigns,allocation, self#mk_new_behavior_name kf bhv
 	      in
@@ -588,7 +593,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	in
 	(* step 3: adds the allocation clause into a default behavior *)
 	match !default_allocation_assigns with
-	| None,None -> new_bhvs
+	| FreeAllocAny,None -> new_bhvs
 	| allocation,None -> Cil.mk_behavior ~allocation () :: new_bhvs
 	| allocation,Some assigns -> 
 	  Cil.mk_behavior
@@ -640,8 +645,9 @@ class annot_visitor kf to_annot on_alarm = object (self)
       Options.debug "lval %a: validity of potential mem access checked\n"
 	Printer.pp_lval ret;
       self#generate_assertion 
-	(Rte.lval_assertion ~read_only:Alarms.For_writing) ret);
-    if self#do_called_precond () then
+	(Rte.lval_assertion ~read_only:Alarms.For_writing) ret
+    );
+    if self#do_called_precond () then begin
       match funcexp.enode with
       | Lval (Var vinfo,NoOffset) ->
 	let kf =  Globals.Functions.get vinfo in	    
@@ -651,7 +657,6 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	    Options.warn
 	      "(%a) function call with # actuals <> # formals: not treated"
 	      Printer.pp_stmt (Extlib.the (self#current_stmt));
-	    Cil.DoChildren
 	  end else
 	    let formals_actuals_terms =
 	      List.rev_map2
@@ -664,10 +669,8 @@ class annot_visitor kf to_annot on_alarm = object (self)
               kf formals_actuals_terms ret_opt
 	      (Extlib.the (self#current_stmt)) 
 	    with
-	    | None -> Cil.DoChildren
-	    | Some contract_stmt ->
-	      self#queue_stmt_spec contract_stmt;
-	      Cil.DoChildren
+	    | None -> ()
+	    | Some contract_stmt -> self#queue_stmt_spec contract_stmt
 	in 
 	(match ret_opt with
 	| None -> do_no_implicit_cast ()
@@ -678,16 +681,22 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	    Options.warn 
 	      "(%a) function call with intermediate cast: not treated"
 	      Printer.pp_stmt (Extlib.the (self#current_stmt));
-	    Cil.DoChildren
 	  end else
 	    do_no_implicit_cast ())
       | Lval (Mem _,NoOffset) ->
 	Options.warn "(%a) function called through a pointer: not treated"
-	  Printer.pp_stmt (Extlib.the (self#current_stmt));
-	Cil.DoChildren
+	  Cil_printer.pp_stmt (Extlib.the (self#current_stmt));
       | _ -> assert false
-    else 
-      Cil.DoChildren
+    end;
+    (* Alarm if the call is through a pointer. Done in DoChildrenPost to get a
+       more pleasant ordering of annotations. *)
+    let do_ptr () =
+      if self#do_pointer_call () then
+        match funcexp.enode with
+        | Lval (Mem e, _) -> self#generate_assertion Rte.pointer_call e
+        | _ -> ()
+    in
+    Cil.DoChildrenPost (fun res -> do_ptr (); res)
   | _ -> Cil.DoChildren
 
   method! vexpr exp =
@@ -851,6 +860,7 @@ let annotate_kf_aux to_annot kf =
     (* Strict version of ||, because [comp] has side-effects *)
     let (|||) a b = a || b in
     if comp Generator.mem_access_status to_annot.mem_access |||
+       comp Generator.pointer_call_status to_annot.pointer_call |||
        comp Generator.div_mod_status to_annot.div_mod |||
        comp Generator.shift_status to_annot.shift |||
        comp Generator.signed_overflow_status to_annot.signed_ov |||

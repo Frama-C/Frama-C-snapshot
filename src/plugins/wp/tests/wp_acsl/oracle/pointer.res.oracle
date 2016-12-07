@@ -3,14 +3,13 @@
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:48:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:47:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:46:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
-tests/wp_acsl/pointer.i:45:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:48:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:47:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:46:[wp] warning: Uncomparable locations p_0 and mem:t
+tests/wp_acsl/pointer.i:45:[wp] warning: Uncomparable locations p_0 and mem:t
 ------------------------------------------------------------
   Function absurd
 ------------------------------------------------------------
@@ -117,7 +116,7 @@ Prove: p = q.
 Goal Post-condition 'qed_ok,Lt' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:45: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Goal *)
@@ -134,7 +133,7 @@ Prove: addr_lt(shift_A10_sint32(global(G_t_68), 0), p).
 Goal Post-condition 'qed_ok,Le' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:46: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Goal *)
@@ -151,7 +150,7 @@ Prove: addr_le(shift_A10_sint32(global(G_t_68), 0), p).
 Goal Post-condition 'qed_ok,Eq' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:47: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Heap *)
@@ -166,7 +165,7 @@ Prove: p = shift_A10_sint32(global(G_t_68), 0).
 Goal Post-condition 'qed_ok,Ne' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:48: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Goal *)
@@ -183,7 +182,7 @@ Prove: p != shift_A10_sint32(global(G_t_68), 0).
 Goal Post-condition 'qed_ko,Le_oracle_ko' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:49: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Goal *)
@@ -200,7 +199,7 @@ Prove: addr_lt(shift_A10_sint32(global(G_t_68), 0), p).
 Goal Post-condition 'qed_ko,Lt_oracle_ko' in 'mixed_array_pointer':
 tests/wp_acsl/pointer.i:50: warning from Reference Variable Model:
  - Warning: Hide sub-term definition
-   Reason: Uncomparable locations ptr(p_0) and mem(t)
+   Reason: Uncomparable locations p_0 and mem:t
 Let x = p.base.
 Assume {
   (* Goal *)

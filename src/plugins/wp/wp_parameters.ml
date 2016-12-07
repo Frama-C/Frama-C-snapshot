@@ -27,8 +27,7 @@ include Plugin.Register
     (struct
       let name = "WP"
       let shortname = "wp"
-      let help = "Weakest Precondition Calculus\n\
-                  WP 1.0 for " ^ Config.version
+      let help = "Proof by Weakest Precondition Calculus"
     end)
 
 (* localize all warnings inside WP *)
@@ -356,8 +355,9 @@ module SimplifyType =
 
 let () = Parameter_customize.set_group wp_simplifier
 module QedChecks =
-  False(struct
+  String_set(struct
     let option_name = "-wp-qed-checks"
+    let arg_name = "qed-key,..."
     let help = "Check internal simplifications."
   end)
 
@@ -837,6 +837,8 @@ let get_includes () =
     (Includes.get ())
 
 let cat_print_generated = register_category "print-generated"
+
+let has_print_generated () = has_dkey "print-generated"
 
 let print_generated file =
   debug ~dkey:cat_print_generated

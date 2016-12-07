@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at appel_ptr_fct
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ [--..--]
   G2 ∈ [--..--]
   G3 ∈ [--..--]
@@ -16,9 +16,9 @@
         Called from tests/pdg/multiple_calls.c:23.
 [value] Recording results for fct1
 [value] Done for function fct1
-tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert x+G1 ≤ 2147483647;
-tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(x+G1)+G2;
-tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert (int)(x+G1)+G2 ≤ 2147483647;
+tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert x + G1 ≤ 2147483647;
+tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert -2147483648 ≤ (int)(x + G1) + G2;
+tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x + G1) + G2 ≤ 2147483647;
 [value] Recording results for appel_ptr_fct
 [value] done for function appel_ptr_fct
 [from] Computing for function fct1

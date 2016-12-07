@@ -4,7 +4,7 @@ tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   result1 ∈ {0}
   result3 ∈ {0}
   result4 ∈ {0}
@@ -14,7 +14,7 @@ tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   result1 ∈ {0; 1; 2; 4}
   result3 ∈ {0; 42}
   result4 ∈ {0; 1; 2}

@@ -84,9 +84,9 @@ struct
 
   let pp_sloc fmt = function
     | Sloc l -> M.pretty fmt l
-    | Sarray(l,_,s) -> Format.fprintf fmt "@[<hov2>%a@,+[%d]@]"
-                         M.pretty l s
-    | Srange(l,_,a,b) -> Format.fprintf fmt "@[<hov2>%a@,+(%a@,..%a)@]"
+    | Sarray(l,_,n) -> Format.fprintf fmt "@[<hov2>%a@,.(..%d)@]"
+                           M.pretty l (n-1)
+    | Srange(l,_,a,b) -> Format.fprintf fmt "@[<hov2>%a@,.(%a@,..%a)@]"
                            M.pretty l pp_bound a pp_bound b
     | Sdescr(xs,l,p) -> Format.fprintf fmt "@[<hov2>{ %a | %a }@]"
                           M.pretty l F.pp_pred (F.p_forall xs p)
@@ -113,8 +113,7 @@ struct
     | Vexp e -> M.pointer_loc e
     | Vloc l -> l
     | _ ->
-        Wp_parameters.abort ~current:true "Unexpected set (%a)"
-          Printer.pp_term t
+        Warning.error "Non-expected set of locations (%a)" Printer.pp_term t
 
   let val_of_term env t =
     match C.logic env t with
@@ -122,17 +121,9 @@ struct
     | Vloc l -> M.pointer_val l
     | Vset s -> Vset.concretize s
     | Lset _ ->
-        Wp_parameters.abort ~current:true "Unexpected set of locations (%a)"
-          Printer.pp_term t
-
+        Warning.error "Non-expected set of values (%a)" Printer.pp_term t
         
-  let set_of_term env t =
-    let v = C.logic env t in
-    match v with
-    | Vexp s when Logic_typing.is_set_type t.term_type ->
-        let te = Logic_typing.type_of_set_elem t.term_type in
-        [Vset.Set(tau_of_ltype te,s)]
-    | _ -> L.vset v
+  let set_of_term env t = L.vset (C.logic env t)
 
   let collection_of_term env t =
     let v = C.logic env t in
@@ -184,17 +175,17 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   (* typ is logic-type of (load v) *)
-  let rec shift_offset env typ (v:logic) = function
+  let rec logic_offset env typ (v:logic) = function
     | TNoOffset -> typ , v
     | TModel _ -> Wp_parameters.not_yet_implemented "Model field"
     | TField(f,offset) ->
-        shift_offset env f.ftype (L.field v f) offset
+        logic_offset env f.ftype (L.field v f) offset
     | TIndex(k,offset) ->
         let te = Cil.typeOf_array_elem typ in
-        let size = Ctypes.array_size typ in
+        let size = Ctypes.get_array_size (Ctypes.object_of typ) in
         let obj = Ctypes.object_of te in
         let vloc = L.shift v obj ?size (C.logic env k) in
-        shift_offset env te vloc offset
+        logic_offset env te vloc offset
 
   (* -------------------------------------------------------------------------- *)
   (* --- Logic Variable                                                     --- *)
@@ -218,7 +209,7 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let load_loc env typ loc loffset =
-    let te,lp = shift_offset env typ (Vloc loc) loffset in
+    let te,lp = logic_offset env typ (Vloc loc) loffset in
     L.load (C.sigma env) (Ctypes.object_of te) lp
 
   let term_lval env (lhost,loffset) =
@@ -228,7 +219,7 @@ struct
         access_offset env (Vexp (e_var r)) loffset
     | TMem e ->
         let te = Logic_typing.ctype_of_pointed e.term_type in
-        let te , lp = shift_offset env te (C.logic env e) loffset in
+        let te , lp = logic_offset env te (C.logic env e) loffset in
         L.load (C.sigma env) (Ctypes.object_of te) lp
     | TVar{lv_name="\\exit_status"} ->
         assert (loffset = TNoOffset) ; (* int ! *)
@@ -249,7 +240,7 @@ struct
     | TResult _ -> Wp_parameters.abort ~current:true "Address of \\result"
     | TMem e ->
         let te = Logic_typing.ctype_of_pointed e.term_type in
-        snd (shift_offset env te (C.logic env e) loffset)
+        snd (logic_offset env te (C.logic env e) loffset)
     | TVar lv ->
         begin
           match logic_var env lv with
@@ -257,7 +248,7 @@ struct
               Wp_parameters.abort ~current:true
                 "Address of logic value (%a)@." pp_logic v
           | VAR x ->
-              snd (shift_offset env x.vtype (Vloc (M.cvar x)) loffset)
+              snd (logic_offset env x.vtype (Vloc (M.cvar x)) loffset)
         end
 
   (* -------------------------------------------------------------------------- *)
@@ -318,8 +309,8 @@ struct
     | EQ_set ->
         let sa = set_of_term env a in
         let sb = set_of_term env b in
-        (* TODO: should be parametric in the equality of elements *)
-        Vset.equal sa sb
+        (* TODO: should be parametric in the equality of elements *) 
+       Vset.equal sa sb
 
     | EQ_loc ->
         let la = loc_of_term env a in
@@ -365,10 +356,10 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let exp_equal env a b =
-    Vexp(e_prop (term_equal `Positive env a b))
+    Vexp(e_prop (term_equal `NoPolarity env a b))
 
   let exp_diff env a b =
-    Vexp(e_prop (term_diff `Positive env a b))
+    Vexp(e_prop (term_diff `NoPolarity env a b))
 
   let exp_compare env vrel lrel a b =
     Vexp(e_prop (compare_term env vrel lrel a b))
@@ -389,6 +380,15 @@ struct
     then fint va vb
     else freal (toreal ta va) (toreal tb vb)
 
+  let rec fold_assoc bop acc ts = 
+    match ts with
+    | [] -> acc
+    | t::others -> 
+        match t.term_node with
+        | TBinOp(binop,a,b) when bop == binop ->
+                fold_assoc bop acc (a::b::others)
+        | _  -> fold_assoc bop (t::acc) others
+    
   let term_binop env binop a b =
     match binop with
     | PlusA -> arith env L.apply_add (L.apply F.e_add) a b
@@ -416,8 +416,8 @@ struct
     | BAnd -> L.apply Cint.l_and (C.logic env a) (C.logic env b)
     | BXor -> L.apply Cint.l_xor (C.logic env a) (C.logic env b)
     | BOr -> L.apply Cint.l_or (C.logic env a) (C.logic env b)
-    | LAnd -> Vexp(e_and [val_of_term env a;val_of_term env b])
-    | LOr -> Vexp(e_or [val_of_term env a;val_of_term env b])
+    | LAnd -> Vexp(e_and (List.map (val_of_term env) (fold_assoc LAnd [] [a;b])))
+    | LOr  -> Vexp(e_or  (List.map (val_of_term env) (fold_assoc LOr  [] [a;b])))
     | Lt -> exp_compare env p_lt M.loc_lt a b
     | Gt -> exp_compare env p_lt M.loc_lt b a
     | Le -> exp_compare env p_leq M.loc_leq a b
@@ -461,15 +461,15 @@ struct
     | C_int i , L_cint i0 ->
         let v = C.logic env t in
         if (Ctypes.sub_c_int i0 i) then v
-        else L.map (Cint.iconvert i) v
+        else L.map (Cint.convert i) v
     | C_int i , L_integer ->
-        L.map (Cint.iconvert i) (C.logic env t)
+        L.map (Cint.convert i) (C.logic env t)
     | C_int i , L_pointer _ ->
         L.map_l2t (M.int_of_loc i) (C.logic env t)
     | C_int i , (L_cfloat _ | L_real) ->
         L.map (Cint.of_real i) (C.logic env t)
     | C_float f , (L_cfloat _ | L_real) ->
-        L.map (Cfloat.fconvert f) (C.logic env t)
+        L.map (Cfloat.convert f) (C.logic env t)
     | C_float f , (L_cint _ | L_integer) ->
         L.map (Cfloat.float_of_int f) (C.logic env t)
     | C_pointer ty , L_pointer t0 ->
@@ -596,7 +596,7 @@ struct
           let condition = match cond with
             | None -> p_conj domain
             | Some p ->
-                let cc = C.pred `Positive env in
+                let cc = C.pred `NoPolarity env in
                 let p = Lang.without_assume cc p in
                 p_conj (p :: domain)
           in match C.logic env t with
@@ -662,7 +662,7 @@ struct
     L.valid sigma acs (Ctypes.object_of te) (L.sloc addrs)
 
   let predicate polarity env p =
-    match p.content with
+    match p.pred_content with
     | Pfalse -> p_false
     | Ptrue -> p_true
     | Pseparated ts -> separated_terms env ts
@@ -716,7 +716,7 @@ struct
 
     | Plet _ ->
         Warning.error "Complex let-inding not implemented yet (%a)"
-          Printer.pp_predicate_named p
+          Printer.pp_predicate p
 
     | Pforall(qs,p) ->
         let xs,env,hs = bind_quantifiers env qs in
@@ -738,12 +738,12 @@ struct
     | Pvalid_function _t ->
         Warning.error
           "\\valid_function not yet implemented@\n\
-           @[<hov 0>(%a)@]" Printer.pp_predicate_named p
+           @[<hov 0>(%a)@]" Printer.pp_predicate p
 
     | Pallocable _ | Pfreeable _ | Pfresh _ | Pinitialized _ | Pdangling _->
         Warning.error
           "Allocation, initialization and danglingness not yet implemented@\n\
-           @[<hov 0>(%a)@]" Printer.pp_predicate_named p
+           @[<hov 0>(%a)@]" Printer.pp_predicate p
 
     | Psubtype _ ->
         Warning.error "Type tags not implemented yet"
@@ -769,7 +769,7 @@ struct
           let xs,env,domain = bind_quantifiers env qs in
           let conditions = match cond with
             | None -> domain
-            | Some p -> C.pred `Positive env p :: domain
+            | Some p -> C.pred `NoPolarity env p :: domain
           in
           List.map
             (function
@@ -811,7 +811,7 @@ struct
 
   let term_handler t =
     let x = Lang.freshvar ~basename:"w" (Lang.tau_of_ltype t.term_type) in
-    Vexp (e_var x)
+    Cvalues.plain t.term_type (e_var x)
 
   let term_protected env t =
     Warning.handle
@@ -852,11 +852,11 @@ struct
 
   let pred_trigger positive env np =
     let p = pred_protected positive env np in
-    if List.mem "TRIGGER" np.Cil_types.name then
+    if List.mem "TRIGGER" np.Cil_types.pred_name then
       C.trigger (Trigger.of_pred p) ; p
 
   let pred polarity env p =
-    Context.with_current_loc p.loc (pred_trigger polarity env) p
+    Context.with_current_loc p.pred_loc (pred_trigger polarity env) p
 
   let logic env t =
     Context.with_current_loc t.term_loc (term_trigger env) t
@@ -906,7 +906,8 @@ struct
 
   let vars_sloc = function
     | Sloc l
-    | Sarray(l,_,_) -> M.vars l
+    | Sarray(l,_,_) ->
+        M.vars l
     | Srange(l,_,a,b) ->
         Vars.union (M.vars l) (Vars.union (vars_opt a) (vars_opt b))
     | Sdescr(xs,l,p) ->

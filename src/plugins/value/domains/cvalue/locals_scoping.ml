@@ -122,7 +122,7 @@ let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_o
     try
       match Cvalue.Model.find_base base state with
       | `Top | `Bottom -> state
-      | `Map offsm -> aux base offsm state
+      | `Value offsm -> aux base offsm state
     with Not_found -> state
   in
   try (* Iterate on all the bases that might contain a local, and clean them*)
@@ -173,6 +173,34 @@ let block_top_addresses_of_locals fdec clob blocks =
 	clob
     in
     state_top_addresses_of_locals ~exact:true
+
+(* Topifies all the references to the variables [vars] in [state]. *)
+let state_top_addresses fundec clob vars state =
+  let filter acc v =
+    if v.vtemp || not v.vreferenced
+    then acc else Base.Hptset.add (Base.of_varinfo v) acc
+  in
+  let vars = List.fold_left filter Base.Hptset.empty vars in
+  if Base.Hptset.is_empty vars
+  then state
+  else
+    let offsetmap_top_addresses_of_locals =
+      offsetmap_top_addresses_of_locals (fun b -> Base.Hptset.mem b vars)
+    in
+    (* Detect whether we are deallocating an inner block of the function,
+       or a formal/a toplevel local. This is used for the warning message. *)
+    let is_inner_block =
+      let b = Base.Hptset.choose vars in
+      not (Base.is_formal b fundec || Base.is_block_local b fundec.sbody)
+    in
+    let state_top_addresses_of_locals =
+      state_top_addresses_of_locals
+        (Warn.warn_locals_escape is_inner_block fundec)
+        offsetmap_top_addresses_of_locals
+        clob
+    in
+    state_top_addresses_of_locals ~exact:true state
+
 
 (*
 Local Variables:

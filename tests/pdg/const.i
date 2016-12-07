@@ -27,7 +27,7 @@ void F1(T3 * const f1)
 
 int F2(T5 * const f2)
 {
-  int V1;
+  int V1 = 1;
   (f2->M5)->M1 = 0;
   return V1;
 }

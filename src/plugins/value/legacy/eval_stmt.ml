@@ -94,7 +94,7 @@ let compute_call_ref = ref (fun _ -> assert false)
             typeHasQualifier "volatile" (Cil.typeOfLval exp_lv)
           in
           let offsetmap_state = match offsetmap with
-            | `Map o ->
+            | `Value o ->
               let o =
                 (* TODO: this is the good place to handle partially volatile
                    struct, whether as source or destination *)
@@ -111,7 +111,6 @@ let compute_call_ref = ref (fun _ -> assert false)
                 Warn.warn_reduce_indeterminate_offsetmap
                   ~with_alarms typ_lv o (`Loc right_loc) state
               else `Res (o, state)
-            | `Top -> Warn.warn_top ();
             | `Bottom -> `Bottom
           in
           match offsetmap_state with
@@ -295,7 +294,7 @@ let compute_call_ref = ref (fun _ -> assert false)
           try
             match Model.find_base b acc with
             | `Bottom | `Top -> acc
-            | `Map offsm -> Model.add_base (Base.of_varinfo vi) offsm acc
+            | `Value offsm -> Model.add_base (Base.of_varinfo vi) offsm acc
           with Not_found -> acc
         end
         | None -> acc
@@ -370,7 +369,7 @@ let compute_call_ref = ref (fun _ -> assert false)
                 (Kernel_function.is_definition f (* Should we keep this? *)
                  || let name = Kernel_function.get_name f in
                  (name >= "Frama_C" && name < "Frama_D")
-                 || Builtins.mem_builtin name)
+                 || Builtins.find_builtin_override f <> None)
               || Value_util.warn_indeterminate f
             in
             let aux_actual e (state, actuals) =
@@ -490,8 +489,7 @@ let compute_call_ref = ref (fun _ -> assert false)
               | `Bottom ->
                 assert (Model.equal Model.bottom state);
                 state, None
-              | `Top -> Warn.warn_top ();
-              | `Map oret ->
+              | `Value oret ->
                 Valarms.set_syntactic_context (Valarms.SyMem lv);
                 let offsetmap_state =
                   if Value_util.warn_indeterminate kf then
@@ -512,7 +510,7 @@ let compute_call_ref = ref (fun _ -> assert false)
       (* We only remove from [state] the formals that have been overwritten
          during the call. The other ones will be used by the caller. See
          {!reduce_actuals_by_formals} above. *)
-      let written_formals = Value_util.written_formals kf in
+      let written_formals = Backward_formals.written_formals kf in
       let written_formals = Cil_datatype.Varinfo.Set.elements written_formals in
       let state = Cvalue.Model.remove_variables written_formals state in
       let state = state_top_addresses_of_locals state in

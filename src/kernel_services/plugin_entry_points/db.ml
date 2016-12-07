@@ -316,13 +316,6 @@ module Value = struct
         let size = size
         let dependencies = dependencies
        end)
-  module AfterTable =
-    Cil_state_builder.Stmt_hashtbl(Cvalue.Model)
-    (struct
-       let name = "Value analysis after states"
-       let dependencies = [AfterTable_By_Callstack.self]
-       let size = size
-     end)
 
 
   let self = Table_By_Callstack.self
@@ -1066,7 +1059,88 @@ module Properties = struct
     let term_offset_to_offset =
       mk_resultfun "Properties.Interp.term_offset_to_offset"
 
-    module To_zone = struct
+    module To_zone : sig
+      (** The signature of the mli is copy pasted here because of
+          http://caml.inria.fr/mantis/view.php?id=7313 *)
+      type t_ctx =
+          {state_opt:bool option;
+           ki_opt:(stmt * bool) option;
+           kf:Kernel_function.t}
+
+      val mk_ctx_func_contrat:
+        (kernel_function -> state_opt:bool option -> t_ctx) ref
+      (** To build an interpretation context relative to function
+          contracts. *)
+
+      val mk_ctx_stmt_contrat:
+        (kernel_function -> stmt -> state_opt:bool option -> t_ctx) ref
+      (** To build an interpretation context relative to statement
+          contracts. *)
+
+      val mk_ctx_stmt_annot:
+        (kernel_function -> stmt -> t_ctx) ref
+      (** To build an interpretation context relative to statement
+          annotations. *)
+
+      type t = {before:bool ; ki:stmt ; zone:Locations.Zone.t}
+      type t_zone_info = (t list) option
+      (** list of zones at some program points.
+       *   None means that the computation has failed. *)
+
+      type t_decl = {var: Varinfo.Set.t ; (* related to vars of the annot *)
+                     lbl: Logic_label.Set.t} (* related to labels of the annot *)
+      type t_pragmas =
+        {ctrl: Stmt.Set.t ; (* related to //@ slice pragma ctrl/expr *)
+         stmt: Stmt.Set.t}  (* related to statement assign and
+                               //@ slice pragma stmt *)
+
+      val from_term: (term -> t_ctx -> t_zone_info * t_decl) ref
+      (** Entry point to get zones needed to evaluate the [term] relative to
+          the [ctx] of interpretation. *)
+
+      val from_terms: (term list -> t_ctx -> t_zone_info * t_decl) ref
+      (** Entry point to get zones needed to evaluate the list of [terms]
+          relative to the [ctx] of interpretation. *)
+
+      val from_pred: (predicate -> t_ctx -> t_zone_info * t_decl) ref
+      (** Entry point to get zones needed to evaluate the [predicate]
+          relative to the [ctx] of interpretation. *)
+
+      val from_preds: (predicate list -> t_ctx -> t_zone_info * t_decl) ref
+      (** Entry point to get zones needed to evaluate the list of
+          [predicates] relative to the [ctx] of interpretation. *)
+
+      val from_zone: (identified_term -> t_ctx -> t_zone_info * t_decl) ref
+      (** Entry point to get zones needed to evaluate the [zone] relative to
+          the [ctx] of interpretation. *)
+
+      val from_stmt_annot:
+        (code_annotation -> stmt * kernel_function
+         -> (t_zone_info * t_decl) * t_pragmas) ref
+      (** Entry point to get zones needed to evaluate an annotation on the
+          given stmt. *)
+
+      val from_stmt_annots:
+        ((code_annotation -> bool) option ->
+         stmt * kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
+      (** Entry point to get zones needed to evaluate annotations of this
+          [stmt]. *)
+
+      val from_func_annots:
+        (((stmt -> unit) -> kernel_function -> unit) ->
+         (code_annotation -> bool) option ->
+         kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
+      (** Entry point to get zones
+          needed to evaluate annotations of this [kf]. *)
+
+      val code_annot_filter:
+        (code_annotation ->
+         threat:bool -> user_assert:bool -> slicing_pragma:bool ->
+         loop_inv:bool -> loop_var:bool -> others:bool -> bool) ref
+        (** To quickly build an annotation filter *)
+
+    end
+    = struct
       type t_ctx =
           { state_opt: bool option;
             ki_opt: (stmt * bool) option;
@@ -1146,6 +1220,7 @@ module RteGen = struct
   let get_divMod_status = mk_fun "RteGen.get_divMod_status"
   let get_signed_downCast_status = mk_fun "RteGen.get_signed_downCast_status"
   let get_memAccess_status = mk_fun "RteGen.get_memAccess_status"
+  let get_pointerCall_status = mk_fun "RteGen.get_pointerCall_status"
   let get_unsignedOv_status = mk_fun "RteGen.get_unsignedOv_status"
   let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"
 end

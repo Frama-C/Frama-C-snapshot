@@ -3,12 +3,12 @@
 [value] Analyzing a complete application starting at loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
 [value] Recording results for loop
 [value] done for function loop
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function loop:
+[value:final-states] Values at end of function loop:
   X ∈ {2}
 [from] Computing for function loop
 [from] Done for function loop

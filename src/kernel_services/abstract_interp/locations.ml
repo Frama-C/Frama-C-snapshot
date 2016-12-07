@@ -47,7 +47,6 @@ end
    of the concretization, but instead the one of the Ocaml datastructure. *)
 module Comp_exact = struct
   let e = true (* corresponds to bottom *)
-  let default = true (* corresponds to missing keys, hence bottom *)
 
   let f _b v = Ival.cardinal_zero_or_one v
   (* on Ival, both forms of cardinal coincide *)
@@ -66,7 +65,8 @@ module Location_Bytes = struct
   include MapLatticeIval
     (* Invariant :
        [Top (s, _) must always contain NULL, _and_ at least another base.
-       Top ({Null}, _) is replaced by Top_int]. See inject_top_origin below. *)
+       Top ({Null}, _) is replaced by Top_int]. See inject_top_origin_internal
+       below. *)
 
   let inject_ival i = inject Base.null i
 
@@ -151,21 +151,75 @@ module Location_Bytes = struct
       in
       M.fold aux_base m (Some Int.zero)
 
-  let top_with_origin origin =
-    Top(Base.SetLattice.top, origin)
+  (* These two states contain the garbled mix that we track. The list preserves
+     the creation order (except it is reversed), while the set is used to test
+     inclusion efficiently so far. Only "original" garbled mix are tracked,
+     i.e. operations that _transform a garbled mix are not tracked. *)
+  module ListGarbledMix = State_builder.List_ref(MapLatticeIval)
+      (struct
+        let name = "Locations.ListGarbledMix"
+        let dependencies = [MapLatticeIval.M.self]
+      end)
+  module SetGarbledMix = State_builder.Set_ref(MapLatticeIval.Set)
+      (struct
+        let name = "Locations.SetGarbledMix"
+        let dependencies = [MapLatticeIval.M.self]
+      end)
 
-  let inject_top_origin o b =
+  let get_garbled_mix () = List.rev (ListGarbledMix.get ())
+  let clear_garbled_mix () =
+    ListGarbledMix.clear ();
+    SetGarbledMix.clear ();
+  ;;
+
+  (* We skip Well origins, because they have no location information and can be
+     tracked in the initial state. Unknown origins have no location, and are
+     only built as a side-product of the analysis. Leaf origins are also
+     skipped, because we may create tons of those, that get reduced to precise
+     values by the specifications of the function. *)
+  let is_gm_to_log m =
+    let open Origin in
+    match m with
+    | Map _ | Top (_, (Well | Unknown | Leaf _)) -> false
+    | Top (_, (Misalign_read _ | Merge _ | Arith _)) -> true
+
+  let ref_track_garbled_mix = ref true
+  let do_track_garbled_mix b = ref_track_garbled_mix := b
+
+  (* track a garbled mix if needed, then return it (more convenient for the
+     caller). *)
+  let track_garbled_mix gm =
+    if !ref_track_garbled_mix && is_gm_to_log gm && not (SetGarbledMix.mem gm)
+    then begin
+      SetGarbledMix.set (MapLatticeIval.Set.add gm (SetGarbledMix.get ()));
+      ListGarbledMix.set (gm :: ListGarbledMix.get ());
+    end;
+    gm
+
+  let top_with_origin origin =
+    track_garbled_mix (Top(Base.SetLattice.top, origin))
+
+  (* This internal function builds a garbled mix, but does *not* track its
+     creation. This is useful for functions that transform existing GMs. *) 
+  let inject_top_origin_internal o b =
     if Base.Hptset.(equal b empty || equal b Base.null_set) then
       top_int
-    else
-      Top (Base.SetLattice.inject (Base.Hptset.add Base.null b), o)
+    else begin
+      if Base.Hptset.mem Base.null b then
+        Top (Base.SetLattice.inject b, o)
+      else
+        Top (Base.(SetLattice.inject (Hptset.add null b)), o)
+    end
+
+  let inject_top_origin o b =
+    track_garbled_mix (inject_top_origin_internal o b)
 
   (** some functions can reduce a garbled mix, make sure to normalize
       the result when only NULL remains *)
   let normalize_top m =
     match m with
     | Top (Base.SetLattice.Top, _) | Map _ -> m
-    | Top (Base.SetLattice.Set s, o) -> inject_top_origin o s
+    | Top (Base.SetLattice.Set s, o) -> inject_top_origin_internal o s
 
   let narrow m1 m2 = normalize_top (narrow m1 m2)
   let meet m1 m2 = normalize_top (meet m1 m2)
@@ -268,7 +322,7 @@ module Location_Bytes = struct
     | Top (Base.SetLattice.Top as t,_) -> t, v
     | Top (Base.SetLattice.Set garble, orig) ->
         let locals, nonlocals = Base.Hptset.partition is_local garble in
-        (Base.SetLattice.inject locals), inject_top_origin orig nonlocals
+        Base.SetLattice.inject locals, inject_top_origin_internal orig nonlocals
     | Map m ->
         let locals, clean_map =
           M.fold
@@ -330,7 +384,7 @@ module Location_Bytes = struct
 	 try
            (match PartiallyOverlaps.find size_int with Overlaps f -> f)
 	 with Not_found ->
-           let name = Pretty_utils.sfprintf "Locations.Overlap(%d)" size_int in
+           let name = Format.asprintf "Locations.Overlap(%d)" size_int in
 	   let f = 
 	     M.symmetric_binary_predicate
                (Hptmap_sig.TemporaryCache name) M.ExistentialPredicate
@@ -552,9 +606,9 @@ let int_base_size_of_varinfo v =
     let s = bitsSizeOf v.vtype in
     let s = Int.of_int s in
     Int_Base.inject s
-  with Cil.SizeOfError _ ->
+  with Cil.SizeOfError (msg, _) ->
     Lattice_messages.emit_approximation emitter
-      "imprecise size for variable %a" Printer.pp_varinfo v;
+      "imprecise size for variable %a (%s)" Printer.pp_varinfo v msg;
     Int_Base.top
 
 let loc_of_varinfo v =

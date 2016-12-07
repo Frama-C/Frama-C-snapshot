@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0] ∈ {3}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -16,11 +16,11 @@
   G ∈ {99}
 tests/value/inversion2.i:10:[value] entering loop for the first time
 tests/value/inversion2.i:11:[value] entering loop for the first time
-tests/value/inversion2.i:12:[kernel] warning: division by zero. assert TT[i][j] ≢ 0;
+tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] ≢ 0;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ [5..99],1%2
   i ∈ {3}
   j ∈ {1; 2; 3; 4; 77}
@@ -38,7 +38,7 @@ tests/value/inversion2.i:12:[kernel] warning: division by zero. assert TT[i][j] 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0] ∈ {3}
    [1] ∈ {1}
    [2] ∈ {2}
@@ -49,11 +49,11 @@ tests/value/inversion2.i:12:[kernel] warning: division by zero. assert TT[i][j] 
     [2][0..1] ∈ {2}
     [2][2..4] ∈ {0}
   G ∈ {99}
-tests/value/inversion2.i:12:[kernel] warning: division by zero. assert TT[i][j] ≢ 0;
+tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] ≢ 0;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {5; 7; 15; 99}
   i ∈ {3}
   j ∈ {1; 2; 3; 77}

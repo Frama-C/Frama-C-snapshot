@@ -240,102 +240,6 @@ struct
         Obj.obj (Obj.field t (base+3))
 end
 
-module Array_7 =
-struct
-  type ('a, 'b, 'c, 'd, 'e, 'f, 'g) t
-
-  let (clear : ('a , 'b , 'c , 'd , 'e , 'f , 'g) t ->
-        'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit)
-      = fun t a b c d e f g ->
-        let t = Obj.repr t in
-        let size7 = Obj.size t in
-        let i = ref 0 in
-        while (!i < size7)
-        do
-          let base = !i in
-          Obj.set_field t (base)   (Obj.repr a);
-          Obj.set_field t (base+1) (Obj.repr b);
-          Obj.set_field t (base+2) (Obj.repr c);
-          Obj.set_field t (base+3) (Obj.repr d);
-          Obj.set_field t (base+4) (Obj.repr e);
-          Obj.set_field t (base+5) (Obj.repr f);
-          Obj.set_field t (base+6) (Obj.repr g);
-          i := base + 7;
-        done
-
-  let (_make : int -> 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g ->
-        ('a , 'b , 'c , 'd , 'e , 'f , 'g) t)
-      = fun size a b c d e f g ->
-        let size7 = 7 * size in
-        let t  = Obj.obj (Obj.new_block 0 size7) in
-        clear t a b c d e f g;
-        t
-
-  let (_set :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int ->
-        'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit)
-      = fun t i a b c d e f g ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.set_field t (base)   (Obj.repr a);
-        Obj.set_field t (base+1) (Obj.repr b);
-        Obj.set_field t (base+2) (Obj.repr c);
-        Obj.set_field t (base+3) (Obj.repr d);
-        Obj.set_field t (base+4) (Obj.repr e);
-        Obj.set_field t (base+5) (Obj.repr f);
-        Obj.set_field t (base+6) (Obj.repr g)
-
-  let (_get0 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'a)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base))
-
-  let (_get1 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'b)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+1))
-
-  let (_get2 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'c)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+2))
-
-  let (_get3 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'd)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+3))
-
-  let (_get4 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'e)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+4))
-
-  let (_get5 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'f)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+5))
-
-  let (_get6 :
-          ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'g)
-      = fun t i ->
-        let t = Obj.repr t in
-        let base = 7 * i in
-        Obj.obj (Obj.field t (base+6))
-
-end
-
 module Symmetric_Binary (H: Cacheable) (R: Result) =
 struct
   let size = cache_size
@@ -344,7 +248,7 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_3.clear !!cache H.sentinel H.sentinel R.sentinel
 
   let hash = H.hash
@@ -382,7 +286,7 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_2.clear !!cache H.sentinel R.sentinel
 
   let merge f a0 =
@@ -408,7 +312,7 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_3.clear !!cache H0.sentinel H1.sentinel R.sentinel
 
   let merge f a0 a1 =
@@ -439,7 +343,7 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_4.clear !!cache H0.sentinel H1.sentinel H2.sentinel R.sentinel
 
   let merge f a0 a1 a2 =
@@ -468,17 +372,17 @@ module Array_Bit =
 struct
   let make size =
     let size = (size + 7) lsr 3 in
-    String.make size (char_of_int 0)
+    Bytes.make size (char_of_int 0)
 
   let get s i =
     let c = i lsr 3 in
     let b = 1 lsl (i land 7) in
-    (Char.code s.[c]) land b <> 0
+    (Char.code (Bytes.get s c)) land b <> 0
 
   let set s i v =
     let c = i lsr 3 in
     let b = 1 lsl (i land 7) in
-    let oldcontents = Char.code s.[c] in
+    let oldcontents = Char.code (Bytes.get s c) in
     let newcontents = 
       if v 
       then b lor oldcontents 
@@ -486,11 +390,11 @@ struct
 	let mask = lnot b in
 	oldcontents land mask 
     in
-    s.[c] <- Char.chr newcontents
+    Bytes.set s c (Char.chr newcontents)
 
   let clear s =
     let zero = char_of_int 0 in
-    String.fill s 0 (String.length s) zero
+    Bytes.fill s 0 (Bytes.length s) zero
 end
 
 module Binary_Predicate (H0: Cacheable) (H1: Cacheable) =
@@ -501,9 +405,9 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_2.clear !!cache H0.sentinel H1.sentinel;
-    if Lazy.lazy_is_val result then
+    if Lazy.is_val result then
       Array_Bit.clear !!result
 
   let merge f a0 a1 =
@@ -536,9 +440,9 @@ struct
   let mask = pred size
 
   let clear () =
-    if Lazy.lazy_is_val cache then
+    if Lazy.is_val cache then
       Array_2.clear !!cache H0.sentinel H0.sentinel;
-    if Lazy.lazy_is_val result then
+    if Lazy.is_val result then
       Array_Bit.clear !!result
 
   let hash = H0.hash

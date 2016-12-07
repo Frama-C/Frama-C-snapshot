@@ -69,14 +69,9 @@ type coqlib = {
 
 (* Take the directory name and changes all '/' into '.' *)
 let name_of_path path =
-  if path = "." then "" else
-    begin
-      let name = String.copy path in
-      for i = 0 to String.length name - 1 do
-        if name.[i] = '/' then name.[i] <- '.'
-        else if name.[i] = '\\' then name.[i] <- '.'
-      done ; name
-    end
+  if path = "." then ""
+  else
+    String.map (fun c -> if c = '/' || c = '\\' then '.' else c) path
 
 let find_nonwin_column opt =
   let p = String.rindex opt ':' in
@@ -96,13 +91,18 @@ let parse_c_option opt =
     let c_path = Filename.dirname c_file in
     let c_name = name_of_path c_path in
     let coqid = Filename.chop_extension (Filename.basename c_file) in
-    let c_module = Printf.sprintf "%s.%s" c_name (String.capitalize coqid) in
+    let c_module =
+      Printf.sprintf "%s.%s" c_name
+        (Transitioning.String.capitalize_ascii coqid)
+    in
     { c_id = opt ; c_source ; c_file ; c_path ; c_name ; c_module }
   with Not_found ->
     (* Format "<source>/<file.v>" *)
     let c_source = Filename.dirname opt in
     let c_file = Filename.basename opt in
-    let c_module = String.capitalize (Filename.chop_extension c_file) in
+    let c_module =
+      Transitioning.String.capitalize_ascii (Filename.chop_extension c_file)
+    in
     { c_id = opt ; c_source ; c_file ; c_path = "." ; c_name = "" ; c_module }
 
 let coqlibs = Hashtbl.create 128 (*[LC] Not Projectified. *)
@@ -613,7 +613,7 @@ let prove_session ~mode w =
             try_prove w >>> function
             | Task.Result true -> Task.return true
             | Task.Failed e -> Task.raised e
-            | Task.Canceled | Task.Timeout | Task.Result false -> try_coqide w
+            | Task.Canceled | Task.Timeout _ | Task.Result false -> try_coqide w
           end
     end
   end
@@ -626,7 +626,7 @@ let check_session w =
   (fun () -> check_script w) >>> function
   | Task.Result true -> Task.return VCS.checked
   | Task.Failed e -> Task.raised e
-  | Task.Canceled | Task.Timeout | Task.Result false ->
+  | Task.Canceled | Task.Timeout _ | Task.Result false ->
       Task.raised Admitted_not_proved
 
 let prove_session ~mode w =

@@ -3,11 +3,11 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
-tests/value/initialized_copy.i:29:[kernel] warning: accessing uninitialized left-value. assert \initialized(&b);
-tests/value/initialized_copy.i:37:[kernel] warning: accessing uninitialized left-value. assert \initialized(&b_0);
+tests/value/initialized_copy.i:29:[value] warning: accessing uninitialized left-value. assert \initialized(&b);
+tests/value/initialized_copy.i:37:[value] warning: accessing uninitialized left-value. assert \initialized(&b_0);
 [value] DUMPING STATE of file tests/value/initialized_copy.i line 38
         w[0..9] ∈ {0}
         v ∈ [--..--]
@@ -15,8 +15,8 @@ tests/value/initialized_copy.i:37:[kernel] warning: accessing uninitialized left
         a_0 ∈ {1}
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
-tests/value/initialized_copy.i:47:[kernel] warning: accessing uninitialized left-value. assert \initialized(&c);
-tests/value/initialized_copy.i:64:[kernel] warning: accessing uninitialized left-value. assert \initialized(&c_0);
+tests/value/initialized_copy.i:47:[value] warning: accessing uninitialized left-value. assert \initialized(&c);
+tests/value/initialized_copy.i:64:[value] warning: accessing uninitialized left-value. assert \initialized(&c_0);
 [value] DUMPING STATE of file tests/value/initialized_copy.i line 65
         w[0..9] ∈ {0}
         v ∈ [--..--]
@@ -32,9 +32,9 @@ tests/value/initialized_copy.i:64:[kernel] warning: accessing uninitialized left
 [value] Called Frama_C_show_each(.i1 ∈ {1}
                                  .i2 ∈ UNINITIALIZED)
 tests/value/initialized_copy.i:90:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:92:[kernel] warning: accessing uninitialized left-value. assert \initialized(&v_0[i]);
+tests/value/initialized_copy.i:92:[value] warning: accessing uninitialized left-value. assert \initialized(&v_0[i]);
 tests/value/initialized_copy.i:98:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:101:[kernel] warning: accessing uninitialized left-value. assert \initialized(&v_1[i_0]);
+tests/value/initialized_copy.i:101:[value] warning: accessing uninitialized left-value. assert \initialized(&v_1[i_0]);
 [value] DUMPING STATE of file tests/value/initialized_copy.i line 102
         w[0..9] ∈ {0}
         v ∈ [--..--]
@@ -46,7 +46,7 @@ tests/value/initialized_copy.i:101:[kernel] warning: accessing uninitialized lef
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
 tests/value/initialized_copy.i:108:[value] warning: assertion got status unknown.
-tests/value/initialized_copy.i:111:[kernel] warning: accessing uninitialized left-value. assert \initialized(&v_2[i_1]);
+tests/value/initialized_copy.i:111:[value] warning: accessing uninitialized left-value. assert \initialized(&v_2[i_1]);
 [value] DUMPING STATE of file tests/value/initialized_copy.i line 112
         w[0..9] ∈ {0; 12}
         v ∈ [--..--]
@@ -56,15 +56,11 @@ tests/value/initialized_copy.i:111:[kernel] warning: accessing uninitialized lef
            [2..9] ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
-tests/value/initialized_copy.i:117:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_3);
-tests/value/initialized_copy.i:124:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_4);
-tests/value/initialized_copy.i:129:[value] completely invalid value in evaluation of
-        argument a_5
-tests/value/initialized_copy.i:129:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_5);
-tests/value/initialized_copy.i:135:[value] completely invalid value in evaluation of
-        argument a_6
-tests/value/initialized_copy.i:135:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_6);
-tests/value/initialized_copy.i:143:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_7);
+tests/value/initialized_copy.i:117:[value] warning: accessing uninitialized left-value. assert \initialized(&a_3);
+tests/value/initialized_copy.i:124:[value] warning: accessing uninitialized left-value. assert \initialized(&a_4);
+tests/value/initialized_copy.i:129:[value] warning: accessing uninitialized left-value. assert \initialized(&a_5);
+tests/value/initialized_copy.i:135:[value] warning: accessing uninitialized left-value. assert \initialized(&a_6);
+tests/value/initialized_copy.i:143:[value] warning: accessing uninitialized left-value. assert \initialized(&a_7);
 [value] computing for function f <- main.
         Called from tests/value/initialized_copy.i:143.
 [value] Recording results for f
@@ -75,7 +71,7 @@ tests/value/initialized_copy.i:143:[kernel] warning: accessing uninitialized lef
         a_7 ∈ {1}
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
-tests/value/initialized_copy.i:151:[kernel] warning: accessing uninitialized left-value. assert \initialized(&a_8);
+tests/value/initialized_copy.i:151:[value] warning: accessing uninitialized left-value. assert \initialized(&a_8);
 [value] computing for function g <- main.
         Called from tests/value/initialized_copy.i:151.
 tests/value/initialized_copy.i:151:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
@@ -96,9 +92,9 @@ tests/value/initialized_copy.i:117:[value] assertion 'Value,initialisation' got 
 tests/value/initialized_copy.i:129:[value] assertion 'Value,initialisation' got final status invalid.
 tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   w[0..9] ∈ {0; 12}
   __retres ∈ {0; 8}
 [from] Computing for function f
@@ -132,15 +128,15 @@ tests/value/initialized_copy.i:135:[value] assertion 'Value,initialisation' got 
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
-tests/value/initialized_copy.i:160:[kernel] warning: accessing uninitialized left-value. assert \initialized(&x);
+tests/value/initialized_copy.i:160:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main2
 [value] done for function main2
 tests/value/initialized_copy.i:160:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2
@@ -156,13 +152,13 @@ tests/value/initialized_copy.i:160:[value] assertion 'Value,initialisation' got 
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   w[0..9] ∈ {0}
   v ∈ [--..--]
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
 [from] Computing for function main2
 [from] Done for function main2

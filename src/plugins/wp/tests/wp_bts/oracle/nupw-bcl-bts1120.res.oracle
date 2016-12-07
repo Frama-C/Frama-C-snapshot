@@ -3,15 +3,14 @@
 [kernel] Parsing tests/wp_bts/nupw-bcl-bts1120.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 tests/wp_bts/nupw-bcl-bts1120.i:54:[wp] warning: [cfg] Forget exits clause of node <blkIn-stmt:26>
 tests/wp_bts/nupw-bcl-bts1120.i:54:[wp] warning: [cfg] Forget exits clause of node <blkIn-stmt:26>
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_assign : Valid
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_exit_ok : Valid
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_post_ok : Valid
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_assert_ok : Valid
-[wp] [WP:unreachability] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid
+[wp] [CFG] Goal unreachable_smt_with_contract_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_stmt_exit_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_stmt_post_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_assert_ok : Valid (Unreachable)
+[wp] [CFG] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid (Unreachable)
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function cfg_domination_problem

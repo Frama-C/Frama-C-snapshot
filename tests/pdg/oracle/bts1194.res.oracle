@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Y ∈ {0}
   X ∈ {0}
   v ∈ [--..--]
@@ -37,14 +37,14 @@ tests/pdg/bts1194.c:22:[value] entering loop for the first time
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   NON TERMINATING FUNCTION
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   X ∈ {2}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   Y ∈ [1..2147483647]
   l ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Y ∈ [1..2147483647]
   X ∈ {2}
 [from] Computing for function g
@@ -211,7 +211,7 @@ tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Y ∈ {0}
 [value] computing for function f_slice_1 <- main.
         Called from tests/pdg/bts1194.c:32.

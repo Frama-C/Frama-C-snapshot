@@ -91,7 +91,7 @@ int F3(int f2)
   V3 = 0;
   if (f2) goto L2;
   V3 ++;
-  /*@ assert property: V3≢0? 1 ≢ 0: 0 ≢ 0; */ ;
+  /*@ assert property: V3 ≢ 0? 1 ≢ 0: 0 ≢ 0; */ ;
   L2: ;
   return V3;
 }

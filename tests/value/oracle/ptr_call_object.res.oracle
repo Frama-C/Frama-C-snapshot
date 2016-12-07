@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function rand <- main.
         Called from tests/value/ptr_call_object.c:30.
@@ -27,11 +27,11 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function next_0:
+[value:final-states] Values at end of function next_0:
   __retres ∈ {0}
-[value] Values at end of function next_1:
+[value:final-states] Values at end of function next_1:
   __retres ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   o1.next ∈ {{ &next_1 }}
     .i ∈ UNINITIALIZED
   o0.next ∈ {{ &next_0 }}

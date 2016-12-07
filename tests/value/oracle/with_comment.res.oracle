@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   HHH ∈ {0}
   G ∈ {0}
 tests/value/with_comment.i:20:[value] entering loop for the first time
-tests/value/with_comment.i:21:[kernel] warning: signed overflow. assert G+1 ≤ 2147483647;
+tests/value/with_comment.i:21:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   i ∈ {11}
   G ∈ [0..2147483647]
 [from] Computing for function main2

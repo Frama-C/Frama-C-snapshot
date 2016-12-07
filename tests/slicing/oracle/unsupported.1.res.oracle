@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Call to builtin bzero(({{ (unsigned char *)&t }},{40}))
 [value] Recording results for main
@@ -31,7 +31,7 @@ int main(void)
   int __retres;
   int t[10];
   /*@ behavior Frama_C_implicit_init:
-        assigns t[0 .. 10-1]; */
+        assigns t[0 .. 10 - 1]; */
   {
     Frama_C_bzero();
     t[2] = 2;

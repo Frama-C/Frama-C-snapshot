@@ -14,6 +14,155 @@
 ###############################################################################
 
 ######################################
+Open Source Release Silicon-20161101
+######################################
+
+-*! Eva       [2016/10/29] Fix soundness bug on statements with RTE or
+              programmatically-added user assertions (bts #2258). This
+              leads to minor changes in the way states are propagated when
+              all slevel has been consumed. Also, consolidated states now
+              return the abstraction before any reduction by assertions or
+              alarms.
+-* Eva        [2016/10/20] Fix bug in the bitwise domain, on some applications
+              of the & and | operators
+-  Value      [2016/10/20] New (experimental) option -val-builtins-auto, to
+              automatically replace known C functions by builtins. Will
+              be set by default in Phosphorus.
+-* Value      [2016/10/19] Frama_C_cos and Frama_C_sin builtins are now
+              precise by default. The former Frama_C_cos / Frama_Csin_precise
+              have been removed
+-* Kernel     [2016/10/18] Fix bug when pretty printing an ACSL term
+              "divisor / *p" (bts #2250).
+-  Eva        [2016/10/18] New experimental Gauges domain, that relates
+              integer variable to loop counters.
+-! Kernel     [2016/10/15] Fix major bug in the backward dataflow of module
+              Dataflows
+-! Scope      [2016/10/15] Fix bug that might lead to unsoundness and / or
+              looping in 'Datascope' functionality (#!235)
+-* Eva        [2016/10/11] Prevent incorrect reductions on memory locations
+              with volatile qualifier
+-! Value      [2016/10/11] Option -val-warn-copy-indeterminate is now set by
+              default. See command-line help if you want to deactivate it.
+-  Kernel     [2016/10/07] Fix bug that may occur when modifying several times
+              command line-options taking functions as argument (issue #@109)
+-! Libc       [2016/10/07] Functions in share/libc.c have been inlined into
+              the proper .c files under share/libc
+-  Eva        [2016/10/07] More systematic backward-propagation between
+              actual paramaters and formals
+-  Nonterm    [2016/10/05] overall increase in precision, especially on
+              compound statements (if, switch, loops...). Verbosity has been
+              decreased
+-  Nonterm    [2016/10/05] New options -nonterm-ignore f1,..,fn (to
+              ignore calls to functions f1,..,fn) and -nonterm-dead-code
+              (to warn about syntactically dead code)
+-  Value      [2016/09/23] Extended support for syntactic widening hints
+              (@widen_hints - see the Value user manual for more details)
+-  Value      [2016/09/20] New builtins for string-related functions:
+              Frama_C_strlen, Frama_C_strchr, Frama_C_strnlen,
+              Frama_C_memchr and Frama_C_rawmemchr
+-  Value      [2016/09/20] valid_string and valid_read_string predicates
+              are now evaluated by Value
+-* Eva        [2016/09/18] Fix bug in equality domain, after assignements
+              lv = e where the modified locations intersect those involved in
+              computing lv
+-* Eva        [2016/09/18] fix performance bug in the equality domain,
+              especially visible on programs with many local variables.
+o! Kernel     [2016/09/16] Rename some types of the logic AST for more coherence
+-  Kernel     [2016/09/13] Support for C11 redefinition of typedefs
+-  Kernel     [2016/09/06] Deprecated Pretty_utils.sfprintf,
+              use Format.asprintf instead.
+-! Logic      [2016/08/31] Refactoring of ACSL extensions + allow extensions
+              in loop annotations
+-! Libc       [2016/08/29] New file share/libc/string.c, with simple
+              implementations for C99 functions defined in string.h.
+              Duplicate implementations were removed from share/libc.c.
+-* Kernel     [2016/08/12] Fix bug #2239 about unsoundness of callgraph's
+              services computation (bug introduced in Frama-C Magnesium).
+o! Kernel     [2016/07/26] Suppress return_stmt field of kernel_function type.
+              Use Kernel_function.find_return instead.
+-* Kernel     [2016/07/31] Scripts that use Gtk can again be loaded using
+              option -load-script (bug report:
+              http://stackoverflow.com/questions/38677256/)
+-! From       [2016/07/28] Removed options -experimental-path-deps and
+              -experimental-mem-deps.
+-! Value      [2016/06/26] Do not compute the sizeof of a function when
+              evaluating a function call through a pointer. This avoids some
+              warnings in MSVC mode.
+-! Value      [2016/06/26] Option -val-show-time has been removed. Options
+              -val-show-perf or -val-flamegraph offer more information
+-  Value      [2016/06/26] New option -val-flamegraph, to dump information about
+              analysis times as a Flamegraph
+-* Value      [2016/06/26] Option -val-show-perf now properly takes into
+              account the time taken by the main function itself (without its
+              callees)
+-! Kernel     [2016/06/14] OCamlGraph is no longer packaged within Frama-C,
+              and must be installed to build Frama-C from source
+o! Kernel     [2016/06/14] Remove class Filecheck.check from API.
+              Use Filecheck.check_ast that provides the correct encapsulation.
+-  Eva        [2016/06/11] Various improvements to experimental Apron domain
+-  Value      [2016/06/11] Pointers to functions with an incompatible type are
+              now handled in a more stringent manner. Previously, arguments
+              with incompatibles types but equal size were reported with an
+              orange status. Now, any mismatch (e.g. int/float or
+              signed/unsigned) causes a red alarm.
+-* Eva        [2016/06/06] Setting option -val-warn-copy-indeterminate now
+              forces lvalue copies to perform a full evaluation. This includes
+              converting the copied value to the proper type, and emitting
+              alarms if it is indeterminate. This option should not be set
+              for memcpy-like functions, or for functions that copy bits
+              of pointers
+-! Value      [2016/06/05] API changes in modules Lmap and Cvalue.Model. All
+              occurrences of `Map in returned value should be replaced by
+              `Value
+-! Value      [2016/06/03] Several warnings emitted by Value are now properly
+              prefixed by [value] instead of [kernel]
+-  Value      [2016/05/31] New message key 'garbled-mix', to track garbled mix
+              generated during the analysis
+-* Value      [2016/05/30] Garbled mix created when analyzing assigns / from
+              clauses are now tagged as having "Library function" origin
+-  Value      [2016/05/30] New option -val-warn-on-alarms, which governs
+              whether alarms are printed as warnings or text.
+-* Kernel     [2016/05/23] Side-effect free instructions such as 'e;' are now
+              translated as 'tmp = e;' instead of 'if (e) {}' (which was
+              incorrect when e did not have a scalar type)
+-  Eva        [2016/05/27] Improvements to option -val-subdivide-non-linear for
+              high number of subdivisions 
+-* Value      [2016/05/23] Option -val-show-initial-state has been removed.
+              Instead, -value-msg-key=-initial-state can be used
+-  Value      [2016/05/23] New message key final-states, that can be used
+              to deactivate the printing of the abstract states at the end of
+              each function
+o* Kernel     [2016/05/18] Fixes merging of contract when using
+              Annotations.add_code_annot
+-  Rte        [2016/05/15] New option -rte-pointer-call, to generate
+              annotations for calls through function pointers
+-* Value      [2016/05/15] Fix crash when extracting bits of a long double
+              value. (Issue 92 on TIS-interpreter, reported by ch3root.).
+-  Value      [2016/05/14] Builtins are now available for malloc:
+              Frama_C_alloc_size (one new base each time, may diverge) and
+              Frama_C_alloc_by_stack (one base by stack, may end up performing
+              weak updates).
+-! Cil        [2016/05/12] Conversions between a bit-field lvalue and the
+              (integral) type of the bitfield are now always made explicit
+              through casts; the attribute FRAMA_C_BITFIELD_SIZE is present on
+              the type of the cast if needed.
+-  Libc       [2016/05/03] Implementations of some functions of the standard
+              library are now available in share/libc/*.c
+-* Makefile   [2016/04/27] Fix compilation of plug-ins which depends on
+              another plug-ins when compiled outside Frama-C.
+-  Gui        [2016/04/24] Different filters for user assertions and RTEs
+              are now available.
+-  Eva        [2016/04/05] Improvements to option -val-subdivide-non-linear on
+              expressions such as x*x+y*y, or t[i*i].
+-  Eva        [2016/04/01] Support for options -warn-signed-downcast and
+              -warn-unsigned-downcast.
+-! Kernel     [2016/03/31] OCaml version greater or equal than 4.02.3 required.
+o  Makefile   [2016/03/31] Warnings and warn-error are activated only if a file
+              .for_devel is present along side the Makefile (also for plugins)
+o! Kernel     [2016/03/29] Functions Integer.pgcd and Integer.ppcm are now
+              guaranteed to return a positive result.
+
+######################################
 Open Source Release Aluminium-20160502
 ######################################
 

@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -value-msg-key initial_state -val-initialization-padding-globals no -val @VALUECONFIG@ -lib-entry -main main -context-depth 3 -journal-disable -then -deps -out -input -then -main main2 -then -context-width 4
+   OPT: -value-msg-key initial-state -val-initialization-padding-globals no -val @VALUECONFIG@ -lib-entry -main main -context-depth 3 -journal-disable -then -deps -out -input -then -main main2 -then -context-width 4
 */
 int f_int(int x);
 int *f_star_int(int x);

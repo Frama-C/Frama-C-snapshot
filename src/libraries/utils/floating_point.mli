@@ -28,6 +28,9 @@ type c_rounding_mode =
 
 val string_of_c_rounding_mode : c_rounding_mode -> string
 
+(* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
+[@@@ warning "-3"]
+
 external set_round_downward : unit -> unit = "set_round_downward" "noalloc"
 external set_round_upward : unit -> unit = "set_round_upward" "noalloc"
 external set_round_nearest_even : unit -> unit = 
@@ -35,6 +38,8 @@ external set_round_nearest_even : unit -> unit =
 external set_round_toward_zero : unit -> unit = "set_round_toward_zero" "noalloc"
 external get_rounding_mode: unit -> c_rounding_mode = "get_rounding_mode" "noalloc"
 external set_rounding_mode: c_rounding_mode -> unit = "set_rounding_mode" "noalloc"
+
+[@@@ warning "+3"]
 
 external round_to_single_precision_float: float -> float = "round_to_float"
 

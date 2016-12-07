@@ -4,9 +4,9 @@
 [value] Computing initial state
 tests/value/unknown_sizeof.i:8:[value] warning: during initialization of variable 's', size of type 'struct s' cannot be
                  computed (abstract type 'struct s')
-tests/value/unknown_sizeof.i:8:[kernel] imprecise size for variable s
+tests/value/unknown_sizeof.i:8:[kernel] imprecise size for variable s (abstract type 'struct s')
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s.[bits 0 to ..] ∈ {0} or UNINITIALIZED
 tests/value/unknown_sizeof.i:23:[value] user error: Function argument *((struct s *)((char *)(& s) + 1)) has unknown size. Aborting
 [kernel] Plug-in value aborted: invalid user input.

@@ -141,7 +141,7 @@ val resolv_func_vinfo :
 val offsetmap_of_lv:
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval ->
-  Precise_locs.precise_location * Cvalue.Model.t * Cvalue.V_Offsetmap.t_top_bottom
+  Precise_locs.precise_location * Cvalue.Model.t * Cvalue.V_Offsetmap.t Bottom.or_bottom
 (** May raise [Int_Base.Error_Top] *)
 
 (*

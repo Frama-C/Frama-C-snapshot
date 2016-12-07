@@ -1,1 +1,1 @@
-tests/misc/log-file.i:15:[kernel] Neither code nor specification for function f, generating default assigns from the prototype
+tests/misc/log-file.i:17:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype

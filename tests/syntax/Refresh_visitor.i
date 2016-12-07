@@ -1,6 +1,6 @@
 /* run.config
 EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
-OPT: -check -load-module @PTEST_DIR@/@PTEST_NAME@
+OPT: -load-module @PTEST_DIR@/@PTEST_NAME@
 */
 
 struct S { int i; };

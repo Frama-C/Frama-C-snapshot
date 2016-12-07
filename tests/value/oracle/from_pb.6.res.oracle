@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main5
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   k ∈ {0}
   i ∈ {0}
   j ∈ {0}
@@ -14,7 +14,7 @@
 [value] Recording results for main5
 [value] done for function main5
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main5:
+[value:final-states] Values at end of function main5:
   T[0..9] ∈ {0}
 [from] Computing for function main5
 [from] Done for function main5

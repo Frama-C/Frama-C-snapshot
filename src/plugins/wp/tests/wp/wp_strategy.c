@@ -10,7 +10,7 @@ OPT: -journal-disable -rte -wp -wp-model Hoare -wp-par 1 -wp-msg-key "no-time-in
 
 /* This file is to test the strategy generation, so it doesn't need to be tested
  * for different models. Let's choose examples that work with Hoare,
- * except to test assign properties that need Store Memory Model (ex Typed).
+ * except to test assign properties that need pointer aware memory model (ex Typed).
  */
 
 /*----------------------------------------------------------------------------*/

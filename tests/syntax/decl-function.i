@@ -1,6 +1,6 @@
 /* run.config
 COMMENT: test the use of (==) in Ast.is_def_or_last_decl
-OPT: -check -then -print -no-unicode
+OPT: -then -print -no-unicode
  */
 
 int x;

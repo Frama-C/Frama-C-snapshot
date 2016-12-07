@@ -149,22 +149,26 @@ object (self)
         if not catch_all then self#union_exn uncaught;
         List.iter
           (fun (v,b) ->
-            let catch_all =
-              match v with 
-                  Catch_all -> true
-                | Catch_exn (v,[]) ->
-                    let catch = add_exn_var Cil_datatype.Typ.Set.empty v in
-                    Stack.push catch current_exn; false
-                | Catch_exn (_,aux) ->
-                    let catch =
-                      List.fold_left
-                        add_exn_clause Cil_datatype.Typ.Set.empty aux
-                    in
-                    Stack.push catch current_exn; false
-            in
+             (match v with 
+              | Catch_all ->
+                (* catch_all will catch all exceptions that are not
+                   already handled by a previous clause. It must be the
+                   last handler (C++11, 15.3§5), thus there's no handler
+                   ordering issue
+                *)
+                Stack.push uncaught current_exn
+              | Catch_exn (v,[]) ->
+                let catch = add_exn_var Cil_datatype.Typ.Set.empty v in
+                Stack.push catch current_exn
+              | Catch_exn (_,aux) ->
+                let catch =
+                  List.fold_left
+                    add_exn_clause Cil_datatype.Typ.Set.empty aux
+                in
+                Stack.push catch current_exn);
             ignore 
               (Visitor.visitFramacBlock (self:>Visitor.frama_c_inplace) b);
-            if not catch_all then ignore (Stack.pop current_exn))
+            ignore (Stack.pop current_exn))
           c;
         let my_exn = !(Stack.pop possible_exn) in
         ExnsStmt.replace s my_exn;
@@ -442,6 +446,8 @@ object(self)
 
   method private exn_kind t = Cil_datatype.Typ.Hashtbl.find exn_enum t
 
+  method private is_thrown t = Cil_datatype.Typ.Hashtbl.mem exn_enum t
+
   method private exn_field_off name =
     List.find (fun fi -> fi.fname = name) (Extlib.the exn_struct).cfields
 
@@ -636,7 +642,7 @@ object(self)
            we haven't seen an uncaught exception anyway. *)
       | Exits | Breaks | Continues -> orig
       | Returns | Normal ->
-          let loc = pred.ip_loc in
+          let loc = pred.ip_content.pred_loc in
           let p = self#pred_uncaught_flag loc false in
           let pred' = Logic_const.pred_of_id_pred pred in
           (kind,
@@ -668,6 +674,25 @@ object(self)
             b.b_post_cond <- List.map self#guard_post_cond b.b_post_cond;
             ChangeTo b
           end
+
+  method private clean_catch_clause (bind,b as handler) acc =
+    let remove_local v =
+      let f = Cil.get_fundec self#behavior (Extlib.the self#current_func) in
+      let v = Cil.get_varinfo self#behavior v in
+      f.slocals <- List.filter (fun v' -> v!=v') f.slocals;
+    in
+    match bind with
+    | Catch_all -> handler :: acc
+    | Catch_exn (v, []) ->
+      if self#is_thrown (purify v.vtype) then handler :: acc
+      else begin remove_local v; acc end
+    | Catch_exn (v, l) ->
+      let caught, remove =
+        List.partition (fun (v,_) -> self#is_thrown (purify v.vtype)) l
+      in
+      List.iter (fun (v,_) -> remove_local v) remove;
+      if caught = [] then begin remove_local v; acc end
+      else (Catch_exn (v,caught), b) :: acc
 
   method! vstmt_aux s =
     match s.skind with
@@ -740,6 +765,8 @@ object(self)
         DoChildren (* visit the block for nested try catch. *)
       | TryCatch (t,c,loc) ->
         self#modify_current();
+        (* First, remove handlers of exceptions that cannot be thrown. *)
+        let c = List.fold_right self#clean_catch_clause c [] in
         (* Visit the catch clauses first, as they are in the same catch scope
            than the current block. As we are adding statements in the
            auxiliary blocks, we need to do that before adding labels to the

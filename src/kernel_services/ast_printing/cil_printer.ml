@@ -40,16 +40,21 @@ module Behavior_extensions = struct
   let register name printer =
     Hashtbl.add printer_tbl name printer
 
-  let default_pp printer fmt (_,preds) =
-    Pretty_utils.pp_list ~sep:",@ " printer#identified_predicate fmt preds
+  let default_pp printer fmt ext =
+    match ext with
+    | Ext_id i -> Format.pp_print_int fmt i
+    | Ext_terms terms ->
+      Pretty_utils.pp_list ~sep:",@ " printer#term fmt terms
+    | Ext_preds preds ->
+      Pretty_utils.pp_list ~sep:",@ " printer#predicate fmt preds
 
-  let pp (printer:extensible_printer_type) fmt (name, code, preds) =
-    let pp = 
+  let pp (printer:extensible_printer_type) fmt (name, ext) =
+    let pp =
       try
         Hashtbl.find printer_tbl name
       with Not_found -> default_pp
     in
-    Format.fprintf fmt "@[<hov 2>%s %a;@]" name (pp printer) (code, preds)
+    Format.fprintf fmt "@[<hov 2>%s %a;@]" name (pp printer) ext
 
 end
 let register_behavior_extension = Behavior_extensions.register
@@ -63,9 +68,9 @@ let needs_quote =
   fun s -> not (Str.string_match regex s 0)
 
 let print_as_source source =
-  Kernel.Debug.get () = 0 
+  Kernel.Debug.get () = 0
   &&
-  (Kernel.BigIntsHex.is_default () 
+  (Kernel.BigIntsHex.is_default ()
    || not (Str.string_match (Str.regexp "^-?[0-9]+$") source 0))
 
 let print_global g =
@@ -79,20 +84,20 @@ let print_global g =
     print_var vi
   | _ -> true
 
-let pretty_C_constant suffix k fmt i = 
-  let nb_signed_bits = 
-    Integer.pred (Integer.of_int (8 * (Cil.bytesSizeOfInt k))) 
+let pretty_C_constant suffix k fmt i =
+  let nb_signed_bits =
+    Integer.pred (Integer.of_int (8 * (Cil.bytesSizeOfInt k)))
   in
   let max_strict_signed = Integer.two_power nb_signed_bits in
   let most_neg = Integer.neg max_strict_signed in
-  if Integer.equal most_neg i then 
+  if Integer.equal most_neg i then
     (* sm: quirk here: if you print -2147483648 then this is two
-       tokens in C, and the second one is too large to represent in 
-       a signed int.. 
+       tokens in C, and the second one is too large to represent in
+       a signed int..
        so we do what's done in limits.h, and print (-2147483467-1); *)
-    (* in gcc this avoids a warning, but it might avoid a real 
+    (* in gcc this avoids a warning, but it might avoid a real
        problem on another compiler or a 64-bit architecture *)
-    Format.fprintf fmt "(-%a-1)" 
+    Format.fprintf fmt "(-%a-1)"
       Datatype.Integer.pretty (Integer.pred max_strict_signed)
   else
     Format.fprintf fmt "%a%s" Datatype.Integer.pretty i suffix
@@ -274,7 +279,7 @@ module Precedence = struct
     | AQuestion _ -> questionLevel
 
   let needIndent current pred fmt =
-    let nextLevel = getParenthLevelPred pred.content in
+    let nextLevel = getParenthLevelPred pred.pred_content in
     let need = not (current == binderLevel && nextLevel == binderLevel) in
     if need then begin
       pp_open_box fmt 2;
@@ -291,7 +296,7 @@ let get_termination_kind_name = function
   | Continues -> "continues" | Returns -> "returns"
 
 let rec get_pand_list pred l =
-  match pred.content with
+  match pred.pred_content with
   | Pand(p1,p2) -> get_pand_list p1 (p2::l)
   | _ -> pred::l
 
@@ -470,7 +475,7 @@ class cil_printer () = object (self)
       let prefix =
         if suffix <> "" then ""
         else if ik = IInt then ""
-        else Pretty_utils.sfprintf "(%a)" self#ikind ik
+        else Format.asprintf "(%a)" self#ikind ik
       in
       fprintf fmt "%s%a" prefix (pretty_C_constant suffix ik) i
 
@@ -2126,10 +2131,10 @@ class cil_printer () = object (self)
     | TBinOp (LAnd, l, r) when not state.print_cil_as_is ->
       fprintf fmt "@[%a@]" self#tand_list (get_tand_list l [r])
     | TBinOp (op,l,r) ->
-      fprintf fmt "%a%a%a"
-	(self#term_prec current_level) l
-	self#term_binop op
-	(self#term_prec current_level) r
+      fprintf fmt "@[%a@ %a@ %a@]"
+        (self#term_prec current_level) l
+        self#term_binop op
+        (self#term_prec current_level) r
     | TCastE (ty,e) ->
       fprintf fmt "(%a)%a" (self#typ None) ty
 	(self#term_prec current_level) e
@@ -2216,7 +2221,7 @@ class cil_printer () = object (self)
      fprintf fmt "{@[%a@ |@ %a%a@]}"
        self#term lv self#quantifiers quant
        (Pretty_utils.pp_opt
-	  (fun fmt p -> fprintf fmt ";@ %a" self#identified_pred p))
+          (fun fmt p -> fprintf fmt ";@ %a" self#predicate p))
        pred
    | Trange(low,high) ->
      let pp_term = self#term_prec current_level in
@@ -2236,7 +2241,7 @@ class cil_printer () = object (self)
      let args = def.l_profile in
      let pp_defn = match def.l_body with
        | LBterm t -> fun fmt -> self#term fmt t
-       | LBpred p -> fun fmt -> self#predicate_named fmt p
+       | LBpred p -> fun fmt -> self#predicate fmt p
        | LBnone
        | LBreads _ | LBinductive _ -> 
 	 Kernel.fatal "invalid logic local definition"
@@ -2299,8 +2304,8 @@ class cil_printer () = object (self)
   method private pred_prec fmt (contextprec,p) =
     let thisLevel = Precedence.getParenthLevelPred p in
     let needParens = Precedence.needParens thisLevel contextprec in
-    if needParens then fprintf fmt "@[<hov 2>(%a)@]" self#predicate p
-    else self#predicate fmt p
+    if needParens then fprintf fmt "@[<hov 2>(%a)@]" self#predicate_node p
+    else self#predicate_node fmt p
 
   method private named_pred fmt (parenth, names, content) =
     match names with
@@ -2315,18 +2320,15 @@ class cil_printer () = object (self)
 	  (Pretty_utils.pp_list ~sep:":@ " self#name) names
 	  self#pred_prec (Precedence.upperLevel, content)
 
-  method private identified_pred fmt p =
-    self#named_pred fmt (Precedence.upperLevel, p.name, p.content)
-
   method private pred_prec_named fmt (parenth,p) =
-    self#named_pred fmt (parenth,p.name,p.content)
+    self#named_pred fmt (parenth,p.pred_name,p.pred_content)
 
-  method predicate_named fmt p =
-    self#named_pred fmt (Precedence.upperLevel, p.name, p.content)
+  method predicate fmt p =
+    self#named_pred fmt (Precedence.upperLevel, p.pred_name, p.pred_content)
 
   method identified_predicate fmt p =
     if verbose then fprintf fmt "/* ip:%d */" p.ip_id;
-    self#predicate_named fmt (Logic_const.pred_of_id_pred p)
+    self#predicate fmt (Logic_const.pred_of_id_pred p)
 
   method private preds kw fmt l =
     Pretty_utils.pp_list ~suf:"@]@\n" ~sep:"@\n"
@@ -2339,8 +2341,8 @@ class cil_printer () = object (self)
     match l with
     | [] -> ()
     | [p] -> pred fmt p
-    | { content = Prel(rel1, low, mid1) } ::
-      { content = Prel(rel2, mid2, up)  } :: l
+    | { pred_content = Prel(rel1, low, mid1) } ::
+      { pred_content = Prel(rel2, mid2, up)  } :: l
       when is_compatible_relation rel1 rel2 &&
            equal_mod_coercion mid1 mid2 ->
       fprintf fmt "@[%a@ %a@ %a@ %a@ %a"
@@ -2349,7 +2351,7 @@ class cil_printer () = object (self)
       let rec rel_list dir t =
         function
         | [] -> fprintf fmt "@]"
-        | { content = Prel(rel,t',up) } :: l
+        | { pred_content = Prel(rel,t',up) } :: l
           when is_same_direction_rel dir rel && equal_mod_coercion t t' ->
           fprintf fmt " %a@ %a" self#relation rel term up;
           rel_list (update_direction_rel dir rel) up l
@@ -2360,7 +2362,7 @@ class cil_printer () = object (self)
     | p :: l ->
       fprintf fmt "%a %a@ %a" pred p self#term_binop LAnd self#pand_list l
 
-  method predicate fmt p =
+  method predicate_node fmt p =
     let current_level = Precedence.getParenthLevelPred p in
     let term = self#term_prec current_level in
     match p with
@@ -2630,28 +2632,28 @@ class cil_printer () = object (self)
     let nl_decreases = nl_extended || b.b_post_cond != [] in
     let nl_requires = nl_decreases || variant != None || terminates != None in
     let nl_assumes = nl_requires || b.b_requires != [] in
-    let pp_list nl fmt = 
+    let pp_list nl fmt =
       let suf = if nl then format_of_string "@]@\n" else "@]" in
-      Pretty_utils.pp_list ~pre:"@[<v>" ~sep:"@\n" ~suf fmt 
+      Pretty_utils.pp_list ~pre:"@[<v>" ~sep:"@\n" ~suf fmt
     in
     fprintf fmt "%a%a%a%a%a%a%(%)%a%(%)%(%)"
       (pp_list nl_assumes self#assumes) b.b_assumes
       (pp_list nl_requires self#requires) b.b_requires
-      (self#terminates_decreases ~extra_nl:false nl_decreases) 
+      (self#terminates_decreases ~extra_nl:false nl_decreases)
       (terminates, variant)
       (pp_list nl_ensures self#post_cond) b.b_post_cond
-      (pp_list nl_extended 
-	 (Behavior_extensions.pp (self:>extensible_printer_type))) b.b_extended
+      (pp_list nl_extended
+         (Behavior_extensions.pp (self:>extensible_printer_type))) b.b_extended
       (self#assigns_deps "assigns") b.b_assigns
-      (format_of_string 
-	 (if nl_assigns && b.b_assigns != WritesAny
+      (format_of_string
+         (if nl_assigns && b.b_assigns != WritesAny
           then format_of_string "@\n" else ""))
       (self#allocation ~isloop:false) b.b_allocation
-      (format_of_string 
-	 (if nl && b.b_allocation != FreeAllocAny
+      (format_of_string
+         (if nl && b.b_allocation != FreeAllocAny
           then format_of_string "@\n" else ""))
       (format_of_string
-	 (if extra_nl && (nl_assumes || b.b_assumes != [])
+         (if extra_nl && (nl_assumes || b.b_assumes != [])
           then format_of_string "@\n" else ""));
     self#reset_current_behavior ()
 
@@ -2736,9 +2738,9 @@ class cil_printer () = object (self)
     match ca.annot_content with
     | AAssert (behav,p) ->
       fprintf fmt "@[%a%a@ %a;@]"
-	pp_for_behavs behav
+        pp_for_behavs behav
         self#pp_acsl_keyword "assert"
-	self#identified_pred p
+        self#predicate p
     | APragma (Slice_pragma sp) ->
       fprintf fmt "@[%a@ %a;@]"
         self#pp_acsl_keyword "slice pragma"
@@ -2753,28 +2755,32 @@ class cil_printer () = object (self)
         self#loop_pragma lp
     | AStmtSpec(for_bhv, spec) ->
       fprintf fmt "@[<hv 2>%a%a@]"
-	pp_for_behavs for_bhv
-	self#funspec spec
+        pp_for_behavs for_bhv
+        self#funspec spec
     | AAssigns(behav,a) ->
       fprintf fmt "@[<2>%a%a@]"
-	pp_for_behavs behav
-	(self#assigns_deps "loop assigns") a
+        pp_for_behavs behav
+        (self#assigns_deps "loop assigns") a
     | AAllocation(behav,af) ->
       fprintf fmt "@[<2>%a%a@]"
-	pp_for_behavs behav
-	(self#allocation ~isloop:true) af
+        pp_for_behavs behav
+        (self#allocation ~isloop:true) af
     | AInvariant(behav,true, i) ->
       fprintf fmt "@[<2>%a%a@ %a;@]"
-	pp_for_behavs behav
+        pp_for_behavs behav
         self#pp_acsl_keyword "loop invariant"
-	self#identified_pred i
-    | AInvariant(behav,false,i) -> 
+        self#predicate i
+    | AInvariant(behav,false,i) ->
       fprintf fmt "@[<2>%a%a@ %a;@]"
-	pp_for_behavs behav
+        pp_for_behavs behav
         self#pp_acsl_keyword "invariant"
-	self#identified_pred i
-    | AVariant v -> 
+        self#predicate i
+    | AVariant v ->
       self#variant fmt v
+    | AExtended (behav, e) ->
+      fprintf fmt "@[<2>%aloop %a@]"
+        pp_for_behavs behav
+        (Behavior_extensions.pp (self:>Printer_api.extensible_printer_type)) e
 
   method private logicPrms fmt arg =
     let pvar fmt = self#logic_var fmt arg in
@@ -2826,7 +2832,7 @@ class cil_printer () = object (self)
         self#logic_var a.l_var_info
         (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@] " ~sep:",@ " 
 	   self#logicPrms) a.l_profile
-        self#identified_pred (pred_body a.l_body);
+        self#predicate (pred_body a.l_body);
       current_label <- old_label
     | Dmodel_annot (mfi,_) ->
       self#model_info fmt mfi
@@ -2839,7 +2845,7 @@ class cil_printer () = object (self)
       fprintf fmt "@[<hv 2>@[%a %a:@]@ %a;@]@\n"
         self#pp_acsl_keyword "global invariant"
         self#logic_var pred.l_var_info
-        self#identified_pred (pred_body pred.l_body);
+        self#predicate (pred_body pred.l_body);
       current_label <- old_label
     | Dlemma(name, is_axiom, labels, tvars, pred,_) ->
       let old_lab = current_label in
@@ -2854,7 +2860,7 @@ class cil_printer () = object (self)
            the pretty-printing of labels, and before pretty-printing predicate
         *)
         (fun _ -> (match labels with [l] -> current_label <- l | _ -> ()))
-        self#identified_pred pred;
+        self#predicate pred;
       current_label <- old_lab
     | Dtype (ti,_) ->
       fprintf fmt "@[<hv 2>@[%a %a%a%a;@]@\n"
@@ -2906,7 +2912,7 @@ class cil_printer () = object (self)
        | LBpred def ->
          (match li.l_labels with | [ l ] -> current_label <- l | _ -> ());
          fprintf fmt "=@]@ %a;"
-	   self#identified_pred def
+	   self#predicate def
        | LBinductive indcases ->
          fprintf fmt "{@]@ %a}"
            (Pretty_utils.pp_list ~pre:"@[<v 0>" ~suf:"@]@\n" ~sep:"@\n"
@@ -2917,7 +2923,7 @@ class cil_printer () = object (self)
                    self#labels labels
                    self#polyTypePrms tvars
                    (fun _ -> (match labels with [l]-> current_label<-l |_-> ()))
-                   self#identified_pred p;
+                   self#predicate p;
                  (* we restore the current_label between two cases, since
                     they are completely independent *)
                  current_label <- old_lab))

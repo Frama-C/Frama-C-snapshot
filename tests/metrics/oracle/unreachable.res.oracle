@@ -33,7 +33,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Recording results for main
 [value] done for function main
@@ -55,7 +55,7 @@
 [value] Analyzing a complete application starting at foo
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Recording results for foo
 [value] done for function foo

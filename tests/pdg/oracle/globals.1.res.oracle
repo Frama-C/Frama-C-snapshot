@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at h
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {3}
   S ∈ [--..--]
   P ∈ {{ &X }}
-tests/pdg/globals.c:28:[kernel] warning: signed overflow. assert s2.a2+s2.b2 ≤ 2147483647;
+tests/pdg/globals.c:28:[value] warning: signed overflow. assert s2.a2 + s2.b2 ≤ 2147483647;
 [value] Recording results for h
 [value] done for function h
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   s2.a2 ∈ [-2147483648..2147483644]
     .b2 ∈ {3}
     .s2 ∈ UNINITIALIZED

@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/reference_array.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function add_1_5
 ------------------------------------------------------------
@@ -16,17 +14,14 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(ap_0.base) <= 0).
+  Have: (region(ap_0.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, shift_sint32(a, 0), 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
 }
-Prove: reg_add_0[i] = (reg_load_0[i] + Mint_0[shift_sint32(a, i)]).
+Prove: (reg_load_0[i] + Mint_0[shift_sint32(a, i)]) = reg_add_0[i].
 
 ------------------------------------------------------------
 
@@ -56,9 +51,6 @@ Assume {
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_load_0[i_1] = t[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t_1[i_1]))).
   (* Call Effects *)
@@ -66,10 +58,7 @@ Assume {
       (((i_1 < 0) \/ (5 <= i_1)) -> (t_1[i_1] = t[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + t_1[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + t_1[i_1]) = reg_add_0[i_1]))).
 }
 Prove: reg_load_0[i] = t[i].
 
@@ -82,9 +71,6 @@ Assume {
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_load_0[i_1] = t_1[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t[i_1]))).
   (* Call Effects *)
@@ -92,10 +78,7 @@ Assume {
       (((i_1 < 0) \/ (5 <= i_1)) -> (t[i_1] = t_1[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + t[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + t[i_1]) = reg_add_0[i_1]))).
 }
 Prove: 0 = t[i].
 
@@ -108,9 +91,6 @@ Assume {
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_load_0[i_1] = t[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t_1[i_1]))).
   (* Call Effects *)
@@ -118,10 +98,7 @@ Assume {
       (((i_1 < 0) \/ (5 <= i_1)) -> (t_1[i_1] = t[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + t_1[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + t_1[i_1]) = reg_add_0[i_1]))).
 }
 Prove: reg_add_0[i] = t[i].
 
@@ -159,89 +136,55 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Pload' in 'calls_on_array_dim_2':
-Let m = tt_1[0].
-Let m_1 = tt_0[0].
+Let m = tt_0[0].
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = m_1[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
+      (reg_load_0[i_1] = m[i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = m[i_1]))).
-  (* Call Effects *)
-  Have: (forall i_1 : Z. ((0 != i_1) -> (tt_1[i_1] = tt_0[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m[i_1] = m_1[i_1]))))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
 }
-Prove: reg_load_0[i] = m_1[i].
+Prove: reg_load_0[i] = m[i].
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Preset' in 'calls_on_array_dim_2':
-Let m = tt_0[0].
-Let m_1 = tt_1[0].
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = m_1[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
+      (reg_load_0[i_1] = tt_0[0][i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = m[i_1]))).
-  (* Call Effects *)
-  Have: (forall i_1 : Z. ((0 != i_1) -> (tt_0[i_1] = tt_1[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m[i_1] = m_1[i_1]))))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
 }
-Prove: 0 = m[i].
+Prove: 0 = v[i].
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Padd' in 'calls_on_array_dim_2':
-Let m = tt_1[0].
-Let m_1 = tt_0[0].
+Let m = tt_0[0].
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = m_1[i_1]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
+      (reg_load_0[i_1] = m[i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = m[i_1]))).
-  (* Call Effects *)
-  Have: (forall i_1 : Z. ((0 != i_1) -> (tt_1[i_1] = tt_0[i_1]))) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m[i_1] = m_1[i_1]))))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + m[i_1])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
 }
-Prove: reg_add_0[i] = m_1[i].
+Prove: reg_add_0[i] = m[i].
 
 ------------------------------------------------------------
 
@@ -276,7 +219,7 @@ Prove: true.
   Function calls_on_array_dim_2_to_1
 ------------------------------------------------------------
 
-Goal Post-condition 'todo,Pload' in 'calls_on_array_dim_2_to_1':
+Goal Post-condition 'Pload' in 'calls_on_array_dim_2_to_1':
 Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
 Let a_1 = shift_sint32(a, 0).
 Assume {
@@ -288,9 +231,6 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 5) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
        (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (0 = Mint_1[shift_sint32(a, i_1)]))).
@@ -298,16 +238,38 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
 }
-Prove: reg_load_0[i] = tt_0[0][i].
+Prove: reg_load_0[i] = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
 
 ------------------------------------------------------------
 
-Goal Post-condition 'todo,Preset' in 'calls_on_array_dim_2_to_1':
+Goal Post-condition 'Preset' in 'calls_on_array_dim_2_to_1':
+Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
+Let a_1 = shift_sint32(a, 0).
+Assume {
+  (* Goal *)
+  When: (0 <= i) /\ (i <= 4).
+  (* Heap *)
+  Have: linked(Malloc_0).
+  (* Call 'load_5' *)
+  Have: valid_rw(Malloc_0, a_1, 5) /\
+      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
+       (reg_load_0[i_1] = Mint_1[shift_sint32(a, i_1)])))).
+  (* Call 'reset_5' *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
+      (0 = Mint_0[shift_sint32(a, i_1)]))).
+  (* Call Effects *)
+  Have: havoc(Mint_1, Mint_0, a_1, 5).
+  (* Call 'add_5' *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
+      ((reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
+}
+Prove: 0 = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Padd' in 'calls_on_array_dim_2_to_1':
 Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
 Let a_1 = shift_sint32(a, 0).
 Assume {
@@ -319,9 +281,6 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 5) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
        (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (0 = Mint_1[shift_sint32(a, i_1)]))).
@@ -329,110 +288,19 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
+      ((reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
 }
-Prove: 0 = tt_0[0][i].
+Prove: reg_add_0[i] = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
 
 ------------------------------------------------------------
 
-Goal Post-condition 'todo,Padd' in 'calls_on_array_dim_2_to_1':
-Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
-Let a_1 = shift_sint32(a, 0).
-Assume {
-  (* Goal *)
-  When: (0 <= i) /\ (i <= 4).
-  (* Heap *)
-  Have: linked(Malloc_0).
-  (* Call 'load_5' *)
-  Have: valid_rw(Malloc_0, a_1, 5) /\
-      (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
-  (* Call 'reset_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_1[shift_sint32(a, i_1)]))).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a_1, 5).
-  (* Call 'add_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)])))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_add_0[i_1] = reg_add_1[i_1])))).
-}
-Prove: reg_add_0[i] = tt_0[0][i].
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (1/2):
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1':
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (2/2):
-Call Effect at line 84
-Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
-Let a_1 = shift_sint32(a, 0).
-Assume {
-  (* Heap *)
-  Have: linked(Malloc_0).
-  (* Call 'load_5' *)
-  Have: valid_rw(Malloc_0, a_1, 5) /\
-      (forall i : Z. ((0 <= i) -> ((i <= 4) ->
-       (reg_load_0[i] = Mint_0[shift_sint32(a, i)])))).
-  (* Call Effects *)
-  Have: forall i : Z. ((0 <= i) -> ((i <= 4) -> (((i < 0) \/ (5 <= i)) ->
-      (reg_load_0[i] = reg_load_1[i])))).
-  (* Merge *)
-  Either {
-    Case:
-      Have: Mint_1 = Mint_0.
-      (* Call 'reset_5' *)
-      Have: forall i : Z. ((0 <= i) -> ((i <= 4) ->
-          (0 = Mint_2[shift_sint32(a, i)]))).
-      (* Call Effects *)
-      Have: havoc(Mint_1, Mint_2, a_1, 5).
-    Case:
-      Have: Mint_3 = Mint_0.
-      (* Exit Effects *)
-      Have: havoc(Mint_3, Mint_4, a_1, 5).
-  }
-}
-Prove: !valid_rd(Malloc_0, a_1, 5).
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (1/2):
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1':
 Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (2/2):
-Call Effect at line 84
-Let a = shift_A20_A5_sint32(global(G_tt_110), 0).
-Let a_1 = shift_sint32(a, 0).
-Assume {
-  (* Heap *)
-  Have: linked(Malloc_0).
-  (* Call 'load_5' *)
-  Have: valid_rw(Malloc_0, a_1, 5) /\
-      (forall i : Z. ((0 <= i) -> ((i <= 4) ->
-       (reg_load_0[i] = Mint_0[shift_sint32(a, i)])))).
-  (* Call Effects *)
-  Have: forall i : Z. ((0 <= i) -> ((i <= 4) -> (((i < 0) \/ (5 <= i)) ->
-      (reg_load_0[i] = reg_load_1[i])))).
-  (* Call 'reset_5' *)
-  Have: forall i : Z. ((0 <= i) -> ((i <= 4) ->
-      (0 = Mint_1[shift_sint32(a, i)]))).
-  (* Call Effects *)
-  Have: havoc(Mint_0, Mint_1, a_1, 5).
-}
-Prove: !valid_rd(Malloc_0, a_1, 5).
 
 ------------------------------------------------------------
 
@@ -465,15 +333,12 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(lp_0.base) <= 0).
+  Have: (region(lp_0.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, shift_sint32(a, 0), 5).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
       (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)]))).
-  (* Call Effects *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (reg_load_0[i_1] = reg_load_1[i_1])))).
 }
 Prove: reg_load_0[i] = Mint_0[shift_sint32(a, i)].
 
@@ -505,7 +370,7 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 4).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(rp_0.base) <= 0).
+  Have: (region(rp_0.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a_1, 5).
   (* Call 'reset_5' *)

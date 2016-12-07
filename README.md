@@ -1,4 +1,4 @@
-![Frama-C](share/frama-c.gif?raw=true)
+![Frama-C](share/frama-c.png?raw=true)
 
 [Frama-C](http://frama-c.com) is a platform dedicated to the analysis of
 source code written in C.
@@ -27,34 +27,22 @@ properties. Plug-ins can also collaborate via their APIs.
 
 ## Installation
 
-#### Prerequisites
+For more detailed information about installing OPAM/Frama-C,
+see [INSTALL.md](INSTALL.md).
 
-- [OPAM](http://opam.ocaml.org/) (v1.2 or newer; also, an external solver for
-                                  OPAM is highly recommended, e.g. aspcud)
-- OCaml 4.xx (make sure to use the latest patch release for your minor branch:
-  4.00.1, 4.01.0 or 4.02.3)
-- A C compiler (gcc and clang are recommended)
-- GNU Make
+Frama-C is available through [OPAM](http://opam.ocaml.org/), the
+OCaml Package Manager. This is the preferred installation method. Be sure
+to install opam v1.2 or higher. Then the following sequence of commands
+should install frama-c and its gui:
+
+    opam init
+    opam install depext
+    opam depext frama-c
+    opam install frama-c
 
 Frama-C is developed mainly in Linux, often tested in Mac OSX
 (via Homebrew), and occasionally tested on Windows
 (with Cygwin + MinGW).
-
-#### Installing via OPAM
-
-Frama-C is available through [OPAM](http://opam.ocaml.org/), the
-OCaml Package Manager.
-
-    opam install frama-c
-
-Please ensure that your OPAM is version 1.2 or newer.
-
-You can install the command-line version only:
-
-    opam install frama-c-base
-
-For more detailed information about installing OPAM/Frama-C,
-see [INSTALL.md](INSTALL.md).
 
 ## Usage
 

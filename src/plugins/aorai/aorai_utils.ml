@@ -44,7 +44,7 @@ let rename_pred v1 v2 p =
       else Cil.JustCopy
   end
   in
-  Visitor.visitFramacPredicateNamed r p
+  Visitor.visitFramacPredicate r p
 
 (** Given a transition a function name and a function status (call or
     return) it returns if the cross condition can be statisfied with
@@ -376,7 +376,7 @@ let crosscond_to_pred cross curr_f curr_status =
         | Some b ->
           (Bool3.Undefined,
            Logic_const.pands
-             (List.map Logic_utils.named_of_identified_predicate b.b_assumes))
+             (List.map Logic_const.pred_of_id_pred b.b_assumes))
       in
       check_current_event f Promelaast.Call pred
     | TReturn f ->
@@ -859,7 +859,7 @@ let change_vars subst subst_res kf label pred =
                ChangeTo new_lv)
           | Some _ | None -> DoChildren
     end
-  in Visitor.visitFramacPredicate visitor pred
+  in Visitor.visitFramacPredicateNode visitor pred
 
 let pred_of_condition subst subst_res label cond =
   let mk_func_event f =
@@ -900,9 +900,7 @@ let pred_of_condition subst subst_res label cond =
           | None -> pred
           | Some b ->
             Logic_const.pands
-              (pred ::
-                 (List.map
-                    Logic_utils.named_of_identified_predicate b.b_assumes))
+              (pred :: (List.map Logic_const.pred_of_id_pred b.b_assumes))
       in
       kf, pred
     | TReturn s ->
@@ -912,7 +910,7 @@ let pred_of_condition subst subst_res label cond =
     | TFalse -> kf, pfalse
     | TRel(rel,t1,t2) ->
       kf,
-      unamed (change_vars subst subst_res kf label (prel (rel,t1,t2)).content)
+      unamed (change_vars subst subst_res kf label (prel (rel,t1,t2)).pred_content)
   in snd (aux None true cond)
 
 let mk_deterministic_lemma () =
@@ -1901,7 +1899,7 @@ let auto_func_block loc f st status res =
   let stvar_update =
     if Aorai_option.Deterministic.get () then
       let orig = Data_for_aorai.get_varinfo curState in
-      [ equalsStmt (Cil.var (List.hd local_var)) (Cil.evar ~loc orig)]
+      [ equalsStmt (Cil.var orig) (Cil.evar (List.hd local_var))]
     else
       List.map
         (fun (state,copy) ->
@@ -1910,7 +1908,11 @@ let auto_func_block loc f st status res =
              (Cil.evar ~loc copy))
         copies
   in
-  let res_block = (Cil.mkBlock ( stmt_begin_list @ copies_update @ main_stmt @ stvar_update)) in
+  let ret = [ Cil.mkStmt (Cil_types.Return(None,loc)) ] in
+  let res_block =
+    (Cil.mkBlock
+       ( stmt_begin_list @ copies_update @ main_stmt @ stvar_update @ ret))
+  in
   res_block.blocals <- local_var;
   Aorai_option.debug ~dkey "Generated body is:@\n%a"
     Printer.pp_block res_block;
@@ -1972,7 +1974,7 @@ let treat_val loc base range pred =
       | Unbounded min -> Logic_const.prel (Rle, add_cst min, loc)
   in
   Aorai_option.debug ~dkey:action_dkey "Action predicate: %a"
-    Printer.pp_predicate_named res;
+    Printer.pp_predicate res;
   Logic_const.por(pred,res)
 
 let possible_states_preds state =

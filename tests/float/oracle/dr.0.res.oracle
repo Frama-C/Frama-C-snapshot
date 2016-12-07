@@ -4,7 +4,7 @@ tests/float/dr.i:6:[kernel] warning: Floating-point constant 100e30f is not repr
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   big ∈ {1.00000003318e+32}
   big2 ∈ {1.00126002403e+32}
   ne1 ∈ {-0.10000000149}
@@ -29,7 +29,7 @@ tests/float/dr.i:27:[kernel] warning: Neither code nor specification for functio
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   e1 ∈ {1}
   e2 ∈ {0}
   __retres ∈ {0}

@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {1}
 tests/slicing/bts679b.i:11:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
 tests/slicing/bts679b.i:11:[value] warning: assertion got status unknown.
@@ -37,3 +37,5 @@ void main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_bts679b.i (no preprocessing)

@@ -3,22 +3,22 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ {-42}
 [value] computing for function f <- main.
         Called from tests/constant_propagation/declaration.c:27.
-tests/constant_propagation/declaration.c:6:[kernel] warning: signed overflow. assert *x+1 ≤ 2147483647;
+tests/constant_propagation/declaration.c:6:[value] warning: signed overflow. assert *x + 1 ≤ 2147483647;
 [value] computing for function h <- f <- main.
         Called from tests/constant_propagation/declaration.c:8.
-tests/constant_propagation/declaration.c:22:[kernel] warning: signed overflow. assert *x+2 ≤ 2147483647;
+tests/constant_propagation/declaration.c:22:[value] warning: signed overflow. assert *x + 2 ≤ 2147483647;
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/constant_propagation/declaration.c:28.
-tests/constant_propagation/declaration.c:12:[kernel] warning: signed overflow. assert *x+1 ≤ 2147483647;
+tests/constant_propagation/declaration.c:12:[value] warning: signed overflow. assert *x + 1 ≤ 2147483647;
 [value] computing for function h <- g <- main.
         Called from tests/constant_propagation/declaration.c:14.
 [value] Recording results for h
@@ -28,16 +28,16 @@ tests/constant_propagation/declaration.c:12:[kernel] warning: signed overflow. a
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   X ∈ [-2147483645..2147483647]
   Y ∈ {-36; -30}
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   X ∈ [-2147483645..2147483647]
   Y ∈ {-36}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   X ∈ [-2147483642..2147483647]
   Y ∈ {-30}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   X ∈ [-2147483642..2147483647]
   Y ∈ {-30}
 [scf] beginning constant propagation
@@ -50,7 +50,7 @@ extern int X;
 
 void f(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
   X ++;
   Y = -41;
   h(& X,& Y);
@@ -59,7 +59,7 @@ void f(int *x, int *y, void (*p)(int *x, int *y))
 
 void g(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
   X ++;
   Y = -35;
   h(& X,& Y);
@@ -69,7 +69,7 @@ void g(int *x, int *y, void (*p)(int *x, int *y))
 int Y = -42;
 void h(int *x, int *y)
 {
-  /*@ assert Value: signed_overflow: *x+2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 2 ≤ 2147483647; */
   X += 2;
   Y += 5;
   return;
@@ -88,22 +88,22 @@ int main(void)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ [--..--]
   Y ∈ {-42}
 [value] computing for function f <- main.
         Called from tests/constant_propagation/declaration.c:27.
-tests/constant_propagation/declaration.c:6:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
+tests/constant_propagation/declaration.c:6:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
 [value] computing for function h <- f <- main.
         Called from tests/constant_propagation/declaration.c:8.
-tests/constant_propagation/declaration.c:22:[kernel] warning: signed overflow. assert X+2 ≤ 2147483647;
+tests/constant_propagation/declaration.c:22:[value] warning: signed overflow. assert X + 2 ≤ 2147483647;
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/constant_propagation/declaration.c:28.
-tests/constant_propagation/declaration.c:12:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
+tests/constant_propagation/declaration.c:12:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
 [value] computing for function h <- g <- main.
         Called from tests/constant_propagation/declaration.c:14.
 [value] Recording results for h
@@ -121,8 +121,8 @@ extern int X;
 
 void f(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x+1 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: X + 1 ≤ 2147483647; */
   X ++;
   Y = -41;
   h(& X,& Y);
@@ -131,8 +131,8 @@ void f(int *x, int *y, void (*p)(int *x, int *y))
 
 void g(int *x, int *y, void (*p)(int *x, int *y))
 {
-  /*@ assert Value: signed_overflow: *x+1 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X+1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 1 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: X + 1 ≤ 2147483647; */
   X ++;
   Y = -35;
   h(& X,& Y);
@@ -142,8 +142,8 @@ void g(int *x, int *y, void (*p)(int *x, int *y))
 int Y = -42;
 void h(int *x, int *y)
 {
-  /*@ assert Value: signed_overflow: *x+2 ≤ 2147483647; */
-  /*@ assert Value: signed_overflow: X+2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: *x + 2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: X + 2 ≤ 2147483647; */
   X += 2;
   Y += 5;
   return;

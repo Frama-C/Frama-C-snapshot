@@ -5,10 +5,10 @@
 unsigned char f(int a, int b)
 {
   unsigned char __retres;
-  /*@ assert rte: unsigned_downcast: a+b ≤ 255; */
-  /*@ assert rte: unsigned_downcast: 0 ≤ a+b; */
-  /*@ assert rte: signed_overflow: -2147483648 ≤ a+b; */
-  /*@ assert rte: signed_overflow: a+b ≤ 2147483647; */
+  /*@ assert rte: unsigned_downcast: a + b ≤ 255; */
+  /*@ assert rte: unsigned_downcast: 0 ≤ a + b; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ a + b; */
+  /*@ assert rte: signed_overflow: a + b ≤ 2147483647; */
   __retres = (unsigned char)(a + b);
   return __retres;
 }

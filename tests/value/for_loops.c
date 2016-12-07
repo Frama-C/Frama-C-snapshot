@@ -40,7 +40,7 @@ void main_3 () {
   for (j = 0; j < nSelectors; j++) T[j] = 1;
   Frama_C_dump_each();
   for (j = 0; j < nSelectors; j++) w += T[j];
-  return;
+  Frama_C_show_each(w);
 }
 
 void main_4 () {

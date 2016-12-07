@@ -1,0 +1,10 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/locals_size.i (no preprocessing)
+[metrics] function	locals_size_no_temps	locals_size_with_temps	max_call_size_no_temps	max_call_size_with_temps
+[metrics] f	0	0	0	0
+[metrics] g	9	10	0	0
+[metrics] level3	9	9	0	0
+[metrics] level2	8	12	9	9
+[metrics] level1	12	16	17	21
+[metrics] user error: in function main, cannot compute sizeof i (type incomplete)
+[metrics] main	12	28	29	37

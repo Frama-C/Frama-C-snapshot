@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_typed/user_bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function rl1
 ------------------------------------------------------------
@@ -34,9 +32,9 @@ Goal Post-condition 'b1' in 'rln32':
 Let x_1 = -n.
 Let x_2 = lsr(x, 32 - n).
 Assume {
-  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
+  Type: is_uint32(x) /\ is_sint32(n) /\ is_uint32(x_2).
   (* Goal *)
-  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  When: (0 <= i) /\ (i < n) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
@@ -49,9 +47,9 @@ Goal Post-condition 'b2' in 'rln32':
 Let x_1 = i + n.
 Let x_2 = lsr(x, 32 - n).
 Assume {
-  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
+  Type: is_uint32(x) /\ is_sint32(n) /\ is_uint32(x_2).
   (* Goal *)
-  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 31).
+  When: (0 <= i) /\ (x_1 <= 31) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
@@ -67,9 +65,9 @@ Goal Post-condition 'b1' in 'rln64':
 Let x_1 = -n.
 Let x_2 = lsr(x, 64 - n).
 Assume {
-  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
+  Type: is_sint32(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  When: (0 <= i) /\ (i < n) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
@@ -82,9 +80,9 @@ Goal Post-condition 'b2' in 'rln64':
 Let x_1 = i + n.
 Let x_2 = lsr(x, 64 - n).
 Assume {
-  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
+  Type: is_sint32(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 63).
+  When: (0 <= i) /\ (x_1 <= 63) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
@@ -121,9 +119,9 @@ Goal Post-condition 'b1' in 'rrn32':
 Let x_1 = lsr(x, n).
 Let x_2 = -n.
 Assume {
-  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_1).
+  Type: is_uint32(x) /\ is_sint32(n) /\ is_uint32(x_1).
   (* Goal *)
-  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  When: (0 <= i) /\ (i < n) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
@@ -136,9 +134,9 @@ Goal Post-condition 'b2' in 'rrn32':
 Let x_1 = i + n.
 Let x_2 = lsr(x, n).
 Assume {
-  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
+  Type: is_uint32(x) /\ is_sint32(n) /\ is_uint32(x_2).
   (* Goal *)
-  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 31).
+  When: (0 <= i) /\ (x_1 <= 31) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
@@ -154,9 +152,9 @@ Goal Post-condition 'b1' in 'rrn64':
 Let x_1 = lsr(x, n).
 Let x_2 = -n.
 Assume {
-  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_1).
+  Type: is_sint32(n) /\ is_uint64(x) /\ is_uint64(x_1).
   (* Goal *)
-  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  When: (0 <= i) /\ (i < n) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
@@ -169,9 +167,9 @@ Goal Post-condition 'b2' in 'rrn64':
 Let x_1 = i + n.
 Let x_2 = lsr(x, n).
 Assume {
-  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
+  Type: is_sint32(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 63).
+  When: (0 <= i) /\ (x_1 <= 63) /\ is_sint32(i).
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }

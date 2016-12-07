@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "frama-c-base"
-version: "20160502"
+version: "20161101"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Patrick Baudin"
@@ -53,7 +53,7 @@ build: [
   ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
                                               # the configure *cannot* yet be
                                               # generated
-  ["./configure" "--prefix" prefix "--disable-local-ocamlgraph"
+  ["./configure" "--prefix" prefix
                  "--disable-gui" { !conf-gtksourceview:installed |
                                    !conf-gnomecanvas:installed }
 ]
@@ -68,17 +68,17 @@ remove: [
   ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
                                               # the configure *cannot* yet be
                                               # generated
-  ["./configure" "--prefix" prefix "--disable-local-ocamlgraph"
+  ["./configure" "--prefix" prefix
                  "--disable-gui" { !conf-gtksourceview:installed |
                                    !conf-gnomecanvas:installed }
 ]
   [make "uninstall"]
-  ["rm" "-rf" frama-c:doc]
+  ["rm" "-rf" frama-c-base:doc]
 ]
 
 build-doc: [
    [make "-C" "doc" "download"]
-   [make "-C" "doc" "FRAMAC_DOCDIR=%{frama-c:doc}%" "install"]
+   [make "-C" "doc" "FRAMAC_DOCDIR=%{frama-c-base:doc}%" "install"]
 ]
 
 build-test: [
@@ -86,7 +86,7 @@ build-test: [
 ]
 
 depends: [
-  "ocamlgraph" { = "1.8.5" | = "1.8.6" }
+  "ocamlgraph" { >= "1.8.5" & < "1.9~" }
   "ocamlfind"
 ]
 
@@ -96,6 +96,7 @@ depopts: [
   "conf-gtksourceview"
   "conf-gnomecanvas"
   "coq" { build }
+  "why3" { build }
 ]
 
 messages: [
@@ -109,5 +110,4 @@ conflicts: [
   "lablgtk" { < "2.18.2" } #for ocaml >= 4.02.1
 ]
 
-available: [ ocaml-version >= "4.00.1" & ocaml-version != "4.02.0" &
-             ocaml-version != "4.02.2" ]
+available: [ ocaml-version >= "4.02.3" ]

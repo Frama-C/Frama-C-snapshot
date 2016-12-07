@@ -4,7 +4,7 @@ tests/float/s.i:18:[kernel] warning: Floating-point constant 1.882f is not repre
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G3 ∈ {42}
   G5[0..63] ∈ {0}
   G6 ∈ {42}
@@ -248,33 +248,33 @@ tests/float/s.i:18:[kernel] warning: Floating-point constant 1.882f is not repre
 tests/float/s.i:230:[kernel] warning: Neither code nor specification for function F1, generating default assigns from the prototype
 [value] using specification for function F1
 [value] Done for function F1
-tests/float/s.i:231:[kernel] warning: accessing out of bounds index. assert 0 ≤ V4;
-tests/float/s.i:231:[kernel] warning: accessing out of bounds index. assert V4 < 64;
+tests/float/s.i:231:[value] warning: accessing out of bounds index. assert 0 ≤ V4;
+tests/float/s.i:231:[value] warning: accessing out of bounds index. assert V4 < 64;
 [value] computing for function F2 <- F4 <- main.
         Called from tests/float/s.i:233.
 tests/float/s.i:233:[kernel] warning: Neither code nor specification for function F2, generating default assigns from the prototype
 [value] using specification for function F2
 [value] Done for function F2
-tests/float/s.i:238:[kernel] warning: accessing out of bounds index. assert 0 ≤ V5;
-tests/float/s.i:238:[kernel] warning: accessing out of bounds index. assert V5 < 64;
+tests/float/s.i:238:[value] warning: accessing out of bounds index. assert 0 ≤ V5;
+tests/float/s.i:238:[value] warning: accessing out of bounds index. assert V5 < 64;
 [value] computing for function F2 <- F4 <- main.
         Called from tests/float/s.i:241.
 [value] Done for function F2
-tests/float/s.i:242:[kernel] warning: accessing out of bounds index. assert 0 ≤ V6;
-tests/float/s.i:242:[kernel] warning: accessing out of bounds index. assert V6 < 64;
+tests/float/s.i:242:[value] warning: accessing out of bounds index. assert 0 ≤ V6;
+tests/float/s.i:242:[value] warning: accessing out of bounds index. assert V6 < 64;
 [value] computing for function F3 <- F4 <- main.
         Called from tests/float/s.i:244.
 tests/float/s.i:244:[kernel] warning: Neither code nor specification for function F3, generating default assigns from the prototype
 [value] using specification for function F3
 [value] Done for function F3
-tests/float/s.i:245:[kernel] warning: accessing out of bounds index. assert 0 ≤ V7;
-tests/float/s.i:245:[kernel] warning: accessing out of bounds index. assert V7 < 32;
+tests/float/s.i:245:[value] warning: accessing out of bounds index. assert 0 ≤ V7;
+tests/float/s.i:245:[value] warning: accessing out of bounds index. assert V7 < 32;
 [value] Recording results for F4
 [value] Done for function F4
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function F4:
+[value:final-states] Values at end of function F4:
   V1 ∈ {0}
   V2 ∈ [-0x1.a4cfc20000000p-3 .. 0x1.fcb5d00000000p0]
   V3 ∈ [-0x1.fec1fc0000000p-1 .. -0x1.f3f3f40000000p-1]
@@ -288,7 +288,7 @@ tests/float/s.i:245:[kernel] warning: accessing out of bounds index. assert V7 <
   G17 ∈ [0x1.6c16c20000000p-5 .. 0x1.5555560000000p-1]
   G18 ∈ [0x1.f9f9fa0000000p-1 .. 0x1.ff60fe0000000p-1]
   G19 ∈ [0x1.176b480000000p-13 .. 0x1.859f320000000p-6]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   V8 ∈ {0}
   G14 ∈ [0x1.3e68360000000p-10 .. 0x1.8618580000000p-7]
   G15 ∈ [-0x1.a5529a0000000p-3 .. 0x1.fd53fe0000000p0]

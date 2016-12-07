@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -16,13 +16,13 @@
   m2 ∈ {0}
   m3 ∈ {0}
   G ∈ {0}
-tests/value/test_arith.c:16:[kernel] warning: signed overflow. assert n+1 ≤ 2147483647;
-tests/value/test_arith.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)ptr+1;
-tests/value/test_arith.c:18:[kernel] warning: signed overflow. assert (int)ptr+1 ≤ 2147483647;
+tests/value/test_arith.c:16:[value] warning: signed overflow. assert n + 1 ≤ 2147483647;
+tests/value/test_arith.c:18:[value] warning: signed overflow. assert -2147483648 ≤ (int)ptr + 1;
+tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..4] ∈ {0}
    [5] ∈ {11}
    [6..9] ∈ {0}

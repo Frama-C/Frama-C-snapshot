@@ -39,6 +39,8 @@ class type ['a] marker =
     method on_click : ('a entry -> unit) -> unit
     method on_double_click : ('a entry -> unit) -> unit
     method on_right_click : ('a entry -> unit) -> unit
+    method on_shift_click : ('a entry -> unit) -> unit
+    method on_add : ('a entry -> unit) -> unit
 
     method wrap : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a -> unit
     (** Register with [#add] an entry around its pretty-print. *)
@@ -57,27 +59,28 @@ class text : ?autoscroll:bool -> ?width:int -> ?indent:int -> unit ->
     method clear : unit
     method fmt : Format.formatter (** The formatter used by [printf] method. *)
 
+    method hrule : unit (** Print an horizontal rule. Consecutive rules are collapsed. *)
     method printf : 'a. ?scroll:bool -> ('a,Format.formatter,unit) format -> 'a
     (** Append material to the text buffer, optionally scrolling it to the
         beginning of the message (defaults to autoscrolling setting).
 
-        	The underlying formatter (method [fmt]) recognizes the following default
+       	The underlying formatter (method [fmt]) recognizes the following default
         tags:
-        	- ["bf"] bold face
-        	- ["it"] italic style
-        	- ["ul"] underlined
-        	- ["st"] striked through
-        	- ["blue"], ["red"], ["orange"], ["green"] predifined foreground color
+        - ["bf"] bold face
+        - ["it"] italic style
+        - ["ul"] underlined
+        - ["st"] striked through
+        - ["blue"], ["red"], ["orange"], ["green"] predifined foreground color
         - ["hover"] background green (default for highlighter)
         - ["link"] underlined blue
-        	- ["fg:<color name>"] foreground color
-        	- ["bg:<color name>"] background color
+        - ["fg:<color name>"] foreground color
+        - ["bg:<color name>"] background color
         - ["link:<name>"] add a link marker
-
-        	Properties for any tag (except parametric and mark) can be modified
-        	with method [set_tag_style].
-
-        	[t#printf] is a shortcut for [Format.fprintf t#fmt] followed
+        
+        Properties for any tag (except parametric and mark) can be modified
+        with method [set_tag_style].
+        
+        [t#printf] is a shortcut for [Format.fprintf t#fmt] followed
         by flushing and optional scrolling. *)
 
     method set_monospace : unit

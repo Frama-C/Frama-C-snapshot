@@ -4,7 +4,7 @@ tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid
 [value] Analyzing an incomplete application starting at sort4_3
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ [--..--]
   b ∈ [--..--]
   c ∈ [--..--]
@@ -14,7 +14,7 @@ tests/value/sort4.i:61:[value] warning: function sort4_3: postcondition got stat
 [value] Recording results for sort4_3
 [value] done for function sort4_3
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function sort4_3:
+[value:final-states] Values at end of function sort4_3:
   tmp ∈ [-2147483647..2147483647] or UNINITIALIZED
   S_d_0[0..1] ∈ [--..--]
   S_c_0[0..1] ∈ [--..--]

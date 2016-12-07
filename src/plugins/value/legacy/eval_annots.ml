@@ -25,11 +25,10 @@ open Eval_terms
 
 (* Statuses for code annotations and function contracts *)
 
-(* Emits a status and a notification message. Returns the message callback. *)
-let emit_status ppt status state =
-  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status;
-  Value_messages.new_status ppt status state
-;;
+(* Emits a status, possibly mutiple times. *)
+let emit_status ppt status =
+  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
+
 
 (* Display the message as result/warning depending on [status] *)
 let msg_status status ?current ?once ?source fmt =
@@ -37,7 +36,13 @@ let msg_status status ?current ?once ?source fmt =
     if Value_parameters.ValShowProgress.get ()
     then Value_parameters.result ?current ?once ?source fmt
     else Value_parameters.result ?current ?once ?source ~level:2 fmt
-  else Value_parameters.warning ?current ?once ?source fmt
+  else
+    if Value_parameters.AlarmsWarnings.get () then
+      Value_parameters.warning ?current ?once ?source fmt
+    else
+      Value_parameters.result
+        ?current ?once ?source ~dkey:Value_parameters.dkey_alarm fmt
+
 
 module ActiveBehaviors = struct
 
@@ -145,7 +150,19 @@ let post_kind kf =
   else
     PostBody
 
-let emit_message_and_status kf bhv behav_active ip pre_post pred_status pred named_pred state ~source =
+let ip_from_precondition kf call_ki b pre =
+  let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
+  match call_ki with
+  | Kglobal -> (* status of the main function. We update the global
+                  status, and pray that there is no recursion.
+                  TODO: check what the WP does.*)
+    ip_precondition
+  | Kstmt stmt ->
+    (* choose the copy of the precondition on the call point [stmt]. *)
+    Statuses_by_call.setup_precondition_proxy kf ip_precondition;
+    Statuses_by_call.precondition_at_call kf ip_precondition stmt
+
+let emit_message_and_status kf bhv behav_active ip pre_post pred_status pred named_pred ~source =
   let pp_header = pp_header kf in
   match pre_post with
   | Precondition | Postcondition PostBody ->
@@ -155,7 +172,7 @@ let emit_message_and_status kf bhv behav_active ip pre_post pred_status pred nam
       pretty_predicate_status pred_status
       (if behav_active then (fun _ -> ()) else behavior_inactive)
       Value_util.pp_callstack;
-    emit_status ip (conv_status pred_status) state;
+    emit_status ip (conv_status pred_status);
   | Postcondition (PostLeaf | PostUseSpec as postk) ->
     (* Do not display anything for postconditions of leaf functions that
        receive status valid (very rare) or unknown: this brings no
@@ -164,7 +181,7 @@ let emit_message_and_status kf bhv behav_active ip pre_post pred_status pred nam
     let pp_behavior_inactive fmt =
       Format.fprintf fmt ",@ the behavior@ was@ inactive"
     in
-    if pred_status = False && pred.ip_content <> Pfalse then
+    if pred_status = False && pred.ip_content.pred_content <> Pfalse then
       Value_parameters.warning ~once:true ~source
         "@[%a:@ this postcondition@ evaluates to@ false@ in this@ context.\
          @ If it is valid,@ either@ a precondition@ was not@ verified@ \
@@ -176,62 +193,63 @@ let emit_message_and_status kf bhv behav_active ip pre_post pred_status pred nam
     (* Only emit a status if the function has a body. Otherwise, we would
        overwite the "considered valid" status of the kernel. *)
     if postk = PostUseSpec then
-      emit_status ip (conv_status pred_status) state;
+      emit_status ip (conv_status pred_status);
   | Assumes ->
     (* No statuses are emitted for 'assumes' clauses, and for the moment we
        do not emit text either *) ()
 
 (* Emits informative messages about inactive behaviors, and emits a valid
    status for requires and ensures that have not been evaluated. *)
-let process_inactive_behaviors kf ab state =
-  List.iter
-    (fun b ->
-       if ab.ActiveBehaviors.is_active b = Eval_terms.False then begin
-         let emitted = ref false in
-         (* We emit a valid status for every requires and ensures of the
-            behavior. *)
-         List.iter (fun (tk, _ as post) ->
-             if tk = Normal then begin
-               emitted := true;
-               if post_kind kf <> PostLeaf then
-                 let ip = Property.ip_of_ensures kf Kglobal b post in
-                 emit_status ip Property_status.True state;
-             end
-           ) b.b_post_cond;
-         List.iter (fun pre ->
-             emitted := true;
-             let ip = Property.ip_of_requires kf Kglobal b pre in
-             emit_status ip Property_status.True state;
-           ) b.b_requires;
-         if !emitted then
-           Value_parameters.result ~once:true ~current:true ~level:2
-             "%a: assumes got status invalid; behavior not evaluated.%t"
-             (pp_header kf) b Value_util.pp_callstack;
-       end
-    ) ab.ActiveBehaviors.funspec.spec_behavior
+let process_inactive_behavior kf call_ki behavior =
+  let emitted = ref false in
+  (* We emit a valid status for every requires and ensures of the behavior. *)
+  List.iter (fun (tk, _ as post) ->
+      if tk = Normal then begin
+        emitted := true;
+        if post_kind kf <> PostLeaf then
+          let ip = Property.ip_of_ensures kf Kglobal behavior post in
+          emit_status ip Property_status.True;
+      end
+    ) behavior.b_post_cond;
+  List.iter (fun pre ->
+      emitted := true;
+      let ip = ip_from_precondition kf call_ki behavior pre in
+      emit_status ip Property_status.True;
+    ) behavior.b_requires;
+  if !emitted then
+    Value_parameters.result ~once:true ~current:true ~level:2
+      "%a: assumes got status invalid; behavior not evaluated.%t"
+      (pp_header kf) behavior Value_util.pp_callstack
+
+(* Emits informative messages about inactive behaviors, and emits a valid
+   status for requires and ensures that have not been evaluated. *)
+let process_inactive_behaviors kf call_ki ab =
+  List.iter (process_inactive_behavior kf call_ki)
+    (List.filter (fun b -> ab.ActiveBehaviors.is_active b = Eval_terms.False)
+       ab.ActiveBehaviors.funspec.spec_behavior)
 
 (* Emits informative messages about behavior postconditions not evaluated
    because the _requires_ of the behavior are invalid. *)
-let process_inactive_postconds kf inactive_post_state_list =
+let process_inactive_postconds kf inactive_bhvs =
   List.iter
-    (fun (b, state) ->
+    (fun b ->
        let emitted = ref false in
        List.iter (fun (tk, _ as post) ->
            if tk = Normal then begin
              emitted := true;
              if post_kind kf <> PostLeaf then
                let ip = Property.ip_of_ensures kf Kglobal b post in
-               emit_status ip Property_status.True state;
+               emit_status ip Property_status.True;
            end
          ) b.b_post_cond;
        if !emitted then
          Value_parameters.result ~once:true ~current:true ~level:2
            "%a: requires got status invalid; postconditions not evaluated.%t"
            (pp_header kf) b Value_util.pp_callstack;
-    ) inactive_post_state_list
+    ) inactive_bhvs
 
 let warn_inactive kf b pre_post ip =
-  let source = fst ip.ip_loc in
+  let source = fst ip.ip_content.pred_loc in
   Value_parameters.result ~once:true ~source ~level:2
     "%a: assumes got status invalid; %a not evaluated.%t"
     (pp_header kf) b pp_p_kind pre_post Value_util.pp_callstack
@@ -264,8 +282,8 @@ let eval_and_reduce_p_kind kf b ~active p_kind ips build_prop build_env states =
   let pp_header = pp_header kf in
   let slevel = Value_util.get_slevel kf in
   let aux_pred behav_active states pred =
-    let pr = Logic_utils.named_of_identified_predicate pred in
-    let source = fst pr.loc in
+    let pr = Logic_const.pred_of_id_pred pred in
+    let source = fst pr.pred_loc in
     if State_set.is_empty states then
       (Value_parameters.result ~once:true ~source ~level:2
          "%a: no state left in which to evaluate %a, status%a not \
@@ -275,11 +293,10 @@ let eval_and_reduce_p_kind kf b ~active p_kind ips build_prop build_env states =
     else
       let ip = build_prop pred in
       State_set.fold
-        (fun accstateset (state, trace as stt) ->
+        (fun accstateset (state, _trace as stt) ->
            let env = build_env state in
 	   let res = eval_predicate env pr in
-           emit_message_and_status kf b behav_active ip p_kind res pred pr
-             (state, trace (* TODO: add info *)) ~source;
+           emit_message_and_status kf b behav_active ip p_kind res pred pr ~source;
 	   let reduced_states =
 	     if behav_active then
                match res with
@@ -460,7 +477,7 @@ let check_fct_assigns kf ab ~pre_state found_froms =
           status_txt
           pp_activity activity
           Value_util.pp_callstack;
-          emit_status ip status (pre_state, Trace.top);
+          emit_status ip status;
         (* Now, checks the individual froms. *)
         let check_from ((asgn,deps) as from) assigns_zone =
           match deps with
@@ -477,7 +494,7 @@ let check_fct_assigns kf ab ~pre_state found_froms =
               status_txt
               pp_activity activity
               Value_util.pp_callstack;
-            emit_status ip (conv_status status) (pre_state, Trace.top)
+            emit_status ip (conv_status status)
         in
         List.iter2 check_from assigns_deps assigns_zones)
   in List.iter check_for_behavior behaviors
@@ -500,24 +517,13 @@ let check_fct_preconditions_for_behavior kf ab ~per_behavior call_ki states b =
     let k = Precondition in
     match refine_active ab b per_behavior with
     | None ->
+      process_inactive_behavior kf call_ki b;
       warn_inactive kf b k ip;
       states
     | Some active ->
-      let build_prop pre =
-        let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
-        match call_ki with
-        | Kglobal -> (* status of the main function. We update the global
-                        status, and pray that there is no recursion.
-                        TODO: check what the WP does.*)
-          ip_precondition
-        | Kstmt stmt ->
-	  (* choose the copy of the precondition on the call point [stmt]. *)
-          Statuses_by_call.setup_precondition_proxy kf ip_precondition;
-          Statuses_by_call.precondition_at_call kf ip_precondition stmt
-      in
       let build_env pre = env_pre_f ~pre () in
       eval_and_reduce_p_kind
-        kf b ~active k b.b_requires build_prop build_env states
+        kf b ~active k b.b_requires (ip_from_precondition kf call_ki b) build_env states
 
 (*  Check the precondition of [kf]. This may result in splitting [init_state]
     into multiple states if the precondition contains disjunctions. *)
@@ -533,7 +539,8 @@ let code_annotation_text ca =
   match ca.annot_content with
   | AAssert _ ->  "assertion"
   | AInvariant _ ->  "loop invariant"
-  | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ ->
+  | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ 
+  | AExtended _  ->
     assert false (* currently not treated by Value *)
 
 (* location of the given code annotation. If unknown, use the location of the
@@ -569,10 +576,10 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
     | `False -> states
     | `True | `Unknown as in_behavior ->
       (* if record [holds], emit statuses in the Kernel, and print a message *)
-      let emit status state =
+      let emit status =
         if record then begin
           let change_status st =
-            List.iter (fun p -> emit_status p st state) ips
+            List.iter (fun p -> emit_status p st) ips
           in
           let message =
             match status, in_behavior with
@@ -598,7 +605,7 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
           (fun accstateset (here, _trace as ht) ->
             let env = env_annot ~pre:initial_state ~here () in
             let res = eval_predicate env p in
-            emit res ht;
+            emit res;
             match res, in_behavior with
               | _, `Unknown ->
                 (* Cannot conclude because behavior might be inactive *)
@@ -627,8 +634,8 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
       if record then begin
         let text = code_annotation_text ca in
         Value_parameters.result ~once:true ~source ~level:2
-          "no state left in which to evaluate %s, status not \
-         computed.%t" (String.lowercase text) Value_util.pp_callstack;
+          "no state left in which to evaluate %s, status not computed.%t"
+          (Transitioning.String.lowercase_ascii text) Value_util.pp_callstack;
       end;
       states
     ) else
@@ -639,7 +646,7 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
     | AInvariant (behav, true, p) -> aux ca behav p
     | APragma _
     | AInvariant (_, false, _)
-    | AVariant _ | AAssigns _ | AAllocation _
+    | AVariant _ | AAssigns _ | AAllocation _ | AExtended _
     | AStmtSpec _ (*TODO*) -> states
 
 
@@ -654,7 +661,6 @@ let mark_unreachable () =
       let reach_p = Property.ip_reachable_ppt ppt in
       emit ppt Property_status.True;
       emit_status reach_p Property_status.False_and_reachable
-        (Cvalue.Model.bottom, Trace.top)
     end
   in
   (* Mark standard code annotations *)
@@ -680,8 +686,7 @@ let mark_unreachable () =
                   preconditions on reachable calls, and the consolidation
                   gives very bad results when reachable and unrechable calls
                   coexist (untried+dead -> unknown). *)
-               if not (Value_parameters.BuiltinsOverrides.mem kf) &&
-                  not (!Db.Value.mem_builtin (Kernel_function.get_name kf))
+               if Builtins.find_builtin_override kf = None
                then begin
                  (* Setup all precondition statuses for [kf]: maybe it has
                     never been called anywhere. *)
@@ -709,15 +714,27 @@ let mark_rte () =
   let _, arith, _ = !Db.RteGen.get_divMod_status () in
   let _, signed_ovf, _ = !Db.RteGen.get_signedOv_status () in
   let _, unsigned_ovf, _ = !Db.RteGen.get_unsignedOv_status () in
-  let signed = Kernel.SignedOverflow.get () in
-  let unsigned = Kernel.UnsignedOverflow.get () in
+  let _, signed_downcast, _ = !Db.RteGen.get_signed_downCast_status () in
+  let _, unsigned_downcast, _ = !Db.RteGen.get_unsignedDownCast_status () in
+  let _, pointer_call, _ = !Db.RteGen.get_pointerCall_status () in
+  let b_signed_ovf = Kernel.SignedOverflow.get () in
+  let b_unsigned_ovf = Kernel.UnsignedOverflow.get () in
+  let b_signed_downcast =
+    Value_parameters.Eva.get () &&  Kernel.SignedDowncast.get ()
+  in
+  let b_unsigned_downcast =
+    Value_parameters.Eva.get () && Kernel.UnsignedDowncast.get ()
+  in
   Globals.Functions.iter
     (fun kf ->
       if !Db.Value.is_called kf then (
         mem kf true;
         arith kf true;
-        signed_ovf kf signed;
-        unsigned_ovf kf unsigned;
+        pointer_call kf true;
+        if b_signed_ovf then signed_ovf kf true;
+        if b_unsigned_ovf then unsigned_ovf kf true;
+        if b_signed_downcast then signed_downcast kf true;
+        if b_unsigned_downcast then unsigned_downcast kf true
       )
     )
 
@@ -821,7 +838,7 @@ let mark_green_and_red () =
           | Eval_terms.Unknown -> ()
         end
       | AInvariant (_, false, _) | AStmtSpec _ | AVariant _ | AAssigns _
-      | AAllocation _ | APragma _ -> ()
+      | AAllocation _ | APragma _ | AExtended _ -> ()
   in
   Annotations.iter_all_code_annot do_code_annot
 

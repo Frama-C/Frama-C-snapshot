@@ -49,7 +49,6 @@ val is_proved : proof -> bool
 
 val target : proof -> Property.t
 val dependencies : proof -> Property.t list
-val missing_rte : kernel_function -> string list
 
 val filter_status : WpPropId.prop_id -> bool
 
@@ -65,11 +64,15 @@ val get_called_assigns : kernel_function -> Property.t list
 type asked_assigns = NoAssigns | OnlyAssigns | WithAssigns
 
 val get_id_prop_strategies :
+  model:Model.t ->
   ?assigns:asked_assigns -> Property.t -> WpStrategy.strategy list
 
-val get_call_pre_strategies : stmt -> WpStrategy.strategy list
+val get_call_pre_strategies :
+  model:Model.t ->
+  stmt -> WpStrategy.strategy list
 
 val get_function_strategies :
+  model:Model.t ->
   ?assigns:asked_assigns ->
   ?bhv:string list ->
   ?prop:string list ->

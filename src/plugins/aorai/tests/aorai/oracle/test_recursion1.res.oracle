@@ -23,25 +23,26 @@ axiomatic string_len {
   axiom strlen0{L}: ∀ char *s; \valid(s) ⇒ string_len(s) ≥ 0;
   
   axiom strlen1{L}:
-    ∀ char *s; \valid(s) ∧ *(s+0) ≡ '\000' ⇒ string_len(s) ≡ 0;
+    ∀ char *s; \valid(s) ∧ *(s + 0) ≡ '\000' ⇒ string_len(s) ≡ 0;
   
-  axiom strlen2{L}: ∀ char *s; \valid(s) ⇒ *(s+string_len(s)) ≡ '\000';
+  axiom strlen2{L}:
+    ∀ char *s; \valid(s) ⇒ *(s + string_len(s)) ≡ '\000';
   
   axiom strlen3{L}:
     ∀ char *s;
-      \valid(s) ∧ *(s+0) ≢ '\000' ⇒
-      string_len(s) ≡ 1+string_len(s+1) ∧ \valid(s+1);
+      \valid(s) ∧ *(s + 0) ≢ '\000' ⇒
+      string_len(s) ≡ 1 + string_len(s + 1) ∧ \valid(s + 1);
   
   axiom strlen4{L}:
     ∀ char *s;
       \valid(s) ⇒
-      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s+i) ≢ '\000');
+      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s + i) ≢ '\000');
   
   }
  */
 /*@
 predicate valid_string{L}(char *s) =
-  \valid(s) ∧ \valid(s+(0 .. string_len(s)));
+  \valid(s) ∧ \valid(s + (0 .. string_len(s)));
  */
 /*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
@@ -227,8 +228,8 @@ void count_post_func(int res)
 
 /*@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
     requires
-      argc > 0 ∧ \valid(argv) ∧ \valid(argv+(0 .. argc)) ∧
-      (∀ ℤ i; 0 ≤ i < argc ⇒ valid_string(*(argv+i)));
+      argc > 0 ∧ \valid(argv) ∧ \valid(argv + (0 .. argc)) ∧
+      (∀ ℤ i; 0 ≤ i < argc ⇒ valid_string(*(argv + i)));
     ensures \result ≥ 0;
     
     behavior Buchi_property_behavior:
@@ -332,8 +333,8 @@ void main_post_func(int res)
 /*@ requires 1 ≡ T0_init ∧ 0 ≡ T0_S2 ∧ 0 ≡ accept_S1;
     requires
       argc ≥ 0 ∧ (argc > 0 ⇒ \valid(argv)) ∧
-      \valid(argv+(0 .. argc)) ∧
-      (∀ ℤ i; 0 ≤ i < argc ⇒ valid_string(*(argv+i)));
+      \valid(argv + (0 .. argc)) ∧
+      (∀ ℤ i; 0 ≤ i < argc ⇒ valid_string(*(argv + i)));
     ensures \result ≡ 1;
     
     behavior aorai_acceptance:

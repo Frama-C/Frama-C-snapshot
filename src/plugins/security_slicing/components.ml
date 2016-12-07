@@ -761,7 +761,7 @@ let impact_analysis =
     (Component.forward Component.Impact)
 
 (* ************************************************************************ *)
-
+(*
 (* type t = stmt *)
 
 (** Security component table: a security component is represented by the
@@ -803,7 +803,7 @@ end = struct
     S.fold (fun c l acc -> f acc c (List.fold_left g init_g !l)) init_f
 *)
 end
-(*
+
 module Nodes =
   State_builder.SetRef
     (struct include NodeKf.Datatype let compare = NodeKf.compare end)

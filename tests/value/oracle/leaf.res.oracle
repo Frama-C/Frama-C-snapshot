@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0] ∈ {1}
    [1..29] ∈ {0}
   cv1 ∈ {10}
@@ -37,7 +37,7 @@ tests/value/leaf.i:41:[kernel] warning: Neither code nor specification for funct
 tests/value/leaf.i:43:[kernel] warning: Neither code nor specification for function f_int_star_int, generating default assigns from the prototype
 [value] using specification for function f_int_star_int
 [value] Done for function f_int_star_int
-tests/value/leaf.i:44:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/value/leaf.i:44:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Called Frama_C_show_each_F([-2147483648..2147483647])
 [value] Called Frama_C_show_each_F([-2147483648..2147483647])
 [value] computing for function f_int_star_int_star_int <- main.
@@ -45,14 +45,14 @@ tests/value/leaf.i:44:[kernel] warning: out of bounds read. assert \valid_read(p
 tests/value/leaf.i:48:[kernel] warning: Neither code nor specification for function f_int_star_int_star_int, generating default assigns from the prototype
 [value] using specification for function f_int_star_int_star_int
 [value] Done for function f_int_star_int_star_int
-tests/value/leaf.i:49:[kernel] warning: out of bounds read. assert \valid_read(pp);
+tests/value/leaf.i:49:[value] warning: out of bounds read. assert \valid_read(pp);
 tests/value/leaf.i:49:[value] Reading left-value *pp.
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179869152],0%32 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
         because of Library function {tests/value/leaf.i:48}.
 [value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
                                    (origin: Library function {tests/value/leaf.i:48}) }})
-tests/value/leaf.i:50:[kernel] warning: out of bounds read. assert \valid_read(*pp);
+tests/value/leaf.i:50:[value] warning: out of bounds read. assert \valid_read(*pp);
 tests/value/leaf.i:50:[value] Reading left-value *(*pp).
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..34359738336],0%8 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
@@ -65,7 +65,7 @@ tests/value/leaf.i:52:[value] Reading left-value *pp.
         because of Library function {tests/value/leaf.i:48}.
 [value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
                                    (origin: Library function {tests/value/leaf.i:48}) }})
-tests/value/leaf.i:53:[kernel] warning: out of bounds read. assert \valid_read(*pp);
+tests/value/leaf.i:53:[value] warning: out of bounds read. assert \valid_read(*pp);
 tests/value/leaf.i:53:[value] Reading left-value *(*pp).
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..34359738336],0%8 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
@@ -125,7 +125,7 @@ tests/value/leaf.i:67:[kernel] warning: Neither code nor specification for funct
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0] ∈ [--..--]
    [1] ∈ {0}
    [2] ∈ [--..--]
@@ -139,17 +139,17 @@ tests/value/leaf.i:67:[kernel] warning: Neither code nor specification for funct
   st_star_cint_1 ∈
                 {{ garbled mix of &{cv2;
                                     alloced_return_f_st_star_cint_st_star_cint}
-                 (origin: Arithmetic {tests/value/leaf.i:61}) }}
+                 (origin: Library function {tests/value/leaf.i:61}) }}
   st_star_cint_3 ∈
                 {{ garbled mix of &{cv3}
-                 (origin: Arithmetic {tests/value/leaf.i:65}) }}
+                 (origin: Library function {tests/value/leaf.i:65}) }}
   st_star_int_1 ∈
                {{ garbled mix of &{v2;
                                    alloced_return_f_st_star_int_st_star_int}
-                (origin: Arithmetic {tests/value/leaf.i:62}) }}
+                (origin: Library function {tests/value/leaf.i:62}) }}
   st_star_int_3 ∈
                {{ garbled mix of &{v3}
-                (origin: Arithmetic {tests/value/leaf.i:66}) }}
+                (origin: Library function {tests/value/leaf.i:66}) }}
   st_tab3_int_1 ∈ [--..--]
   st_tab3_int_3 ∈ [--..--]
   p ∈ {{ &alloced_return_f_int_star_int + [0..2147483644],0%4 }}

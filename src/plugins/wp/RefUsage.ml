@@ -486,7 +486,7 @@ and addr_lval env (h,ofs) = match h with
         "Address of logic variable (%a)" Logic_var.pretty x
 
 (* --- Predicates --- *)
-and pred (env:ctx) p : value = match p.content with
+and pred (env:ctx) p : value = match p.pred_content with
   | Psubtype (_, _) | Pfalse | Ptrue ->  E.bot
 
   (* Unary *)
@@ -604,7 +604,7 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
           do_lval_opt lval_opt ;
           match Kernel_function.get_called fun_exp with
           | None -> List.iter do_exp (fun_exp::args_list)
-          | Some called_kf -> do_exp fun_exp ; do_args called_kf args_list
+          | Some called_kf -> do_args called_kf args_list
         end
     | Return(Some exp,_)
     | If (exp,_,_,_)
@@ -614,7 +614,7 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
     inherit Visitor.frama_c_inplace as super
     method! vstmt stmt = do_code stmt.skind; super#vstmt stmt
     (*  method! vcode_annot _ =  Cil.SkipChildren via visitCilStmt *)
-    method !vpredicate_named p = do_pred p ; Cil.SkipChildren
+    method !vpredicate p = do_pred p ; Cil.SkipChildren
     method !vterm t = do_term t ; Cil.SkipChildren
     (* speed up: skip non interesting subtrees *)
     method! vloop_pragma _ =  Cil.SkipChildren (* via vcode_annot *)
@@ -636,7 +636,7 @@ let cfun_spec env kf =
   in
   let visitor = object
     inherit Cil.nopCilVisitor as super
-    method !vpredicate_named p = update_spec_env (pred env p)
+    method !vpredicate p = update_spec_env (pred env p)
     method !vterm t = update_spec_env (vterm env t)
   end in
   let spec = Annotations.funspec kf in
@@ -711,6 +711,7 @@ type callees = callee KFmap.t
 type fp_t = { mutable todo: unit KFmap.t ; mutable redo: unit KFmap.t }
 
 let compute_usage () =
+  Wp_parameters.feedback ~ontty:`Transient "Collecting variable usage" ;
   (* initial state from variable initializers *)
   let u_init = Globals.Vars.fold cvarinit E.bot in
   (* initial state by kf *)

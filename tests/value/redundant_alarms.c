@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: @VALUECONFIG@ -val-warn-copy-indeterminate main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
+   OPT: @VALUECONFIG@ -val-warn-copy-indeterminate=-@all,main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
  **/
 
 volatile int v;

@@ -50,25 +50,27 @@ share/Makefile.kernel: Makefile.generating share/Makefile.config share/Makefile.
 	$(ECHO) "# This makefile was automatically generated." > $@
 	$(ECHO) "# Do not modify." >> $@
 	$(ECHO) "ifeq (\$$(FRAMAC_INTERNAL),yes)" >> $@
-	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES), $(BLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_TOP_SRCDIR)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(GEN_BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS), $(BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(notdir $(ALL_BATCH_CMO)))" >> $@
-	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES), $(OLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_TOP_SRCDIR)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(GEN_OPT_LIBS))" >> $@
-	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS), $(OPT_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(ALL_BATCH_CMX))" >> $@
+	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES),$(BLINKFLAGS)) $(foreach d,$(INCLUDES:-I%=%),-I $(FRAMAC_ROOT_SRCDIR)/$(d))" >> $@
+	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(GEN_BYTE_LIBS))" >> $@
+	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS),$(BYTE_LIBS))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(notdir $(ALL_BATCH_CMO)))" >> $@
+	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES),$(OLINKFLAGS)) $(foreach d,$(INCLUDES:-I%=%),-I $(FRAMAC_ROOT_SRCDIR)/$(d))" >> $@
+	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(GEN_OPT_LIBS))" >> $@
+	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS),$(OPT_LIBS))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(ALL_BATCH_CMX))" >> $@
 	$(ECHO) "else" >> $@
-	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES), $(BLINKFLAGS)) $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
-	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_LIBDIR)/, $(notdir $(GEN_BYTE_LIBS)))" >> $@
-	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS), $(BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_LIBDIR)/, $(notdir $(ALL_BATCH_CMO)))" >> $@
-	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES), $(OLINKFLAGS))  $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
-	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_LIBDIR)/, $(notdir $(GEN_OPT_LIBS)))" >> $@
-	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS), $(OPT_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_LIBDIR)/, $(notdir $(ALL_BATCH_CMX)))" >> $@
+	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES),$(BLINKFLAGS)) $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
+	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_BYTE_LIBS)))" >> $@
+	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS),$(BYTE_LIBS))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(ALL_BATCH_CMO)))" >> $@
+	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES),$(OLINKFLAGS))  $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
+	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_OPT_LIBS)))" >> $@
+	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS),$(OPT_LIBS))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(ALL_BATCH_CMX)))" >> $@
 	$(ECHO) "endif" >> $@
 	$(CHMOD_RO) $@
+
+ALL_LIBRARY_NAMES=$(shell ocamlfind query -r -p-format $(LIBRARY_NAMES) $(LIBRARY_NAMES_GUI))
 
 $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generating configure.in
 	$(SED) \
@@ -78,7 +80,7 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
           -e "s|@OCAMLOPT@|$(OCAMLOPT)|" \
           -e "s|@FRAMAC_DATADIR@|$(FRAMAC_DATADIR)|" \
 	  -e "s|@FRAMAC_LIBDIR@|$(FRAMAC_LIBDIR)|" \
-	  -e "s|@FRAMAC_TOP_SRCDIR@|$(FRAMAC_TOP_SRCDIR)|" \
+	  -e "s|@FRAMAC_ROOT_SRCDIR@|$(FRAMAC_ROOT_SRCDIR)|" \
 	  -e "s|@FRAMAC_PLUGINDIR@|$(FRAMAC_PLUGINDIR)|" \
 	  -e "s|@FRAMAC_DEFAULT_CPP@|$(FRAMAC_DEFAULT_CPP)|" \
 	  -e "s|@FRAMAC_GNU_CPP@|$(FRAMAC_GNU_CPP)|" \
@@ -86,7 +88,7 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
 	  -e "s|@STATIC_PLUGINS@|$(STATIC_PLUGINS)|" \
           -e "s|@STATIC_GUI_PLUGINS@|$(STATIC_GUI_PLUGINS)|" \
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
-          -e "s|@LIBRARY_NAMES@|$(LIBRARY_NAMES)|" \
+          -e "s|@LIBRARY_NAMES@|$(foreach p,$(ALL_LIBRARY_NAMES),\"$p\";)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
           -e "s|@EXE@|$(EXE)|" \
           $< > $@.tmp
@@ -168,6 +170,24 @@ ifeq ($(OCAMLBEST),opt)
 	$(OCAMLOPT) str.cmxa $< -o $@
 else
 	$(OCAMLC) str.cma $< -o $@
+endif
+
+# Merlin #
+
+.PHONY:merlin
+.merlin merlin: share/Makefile.config Makefile.generating
+#create Merlin file
+	$(PRINT_MAKING) $@
+	echo "FLG -c $(FLAGS) $(FRAMAC_USER_MERLIN_FLAGS)" > .merlin
+	for PKG in $(LIBRARY_NAMES); do echo PKG $$PKG >> .merlin; done
+	for PKG in $(LIBRARY_NAMES_GUI); do echo PKG $$PKG >> .merlin; done
+	echo "B lib/plugins" >> .merlin
+	echo "B lib/plugins/gui" >> .merlin
+	find src \( -name '.*' -o -name tests -o -name doc -o -name '*.cache' \) -prune \
+	      -o \( -type d -exec printf "B %s\n" {} \; -exec printf "S %s\n" {} \; \) >> .merlin
+
+ifeq ("$(DEVELOPMENT)","yes")
+all:: .merlin
 endif
 
 

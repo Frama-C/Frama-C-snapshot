@@ -24,8 +24,9 @@
 #ifndef __FC_STDARG
 #define __FC_STDARG
 #include "features.h"
+#include "__fc_machdep.h" // for __FC_VA_LIST_T
 __BEGIN_DECLS
-typedef __builtin_va_list va_list;
+typedef __FC_VA_LIST_T va_list;
 __END_DECLS
 #define va_arg(a,b) __builtin_va_arg(a,b)
 #define va_copy(a,b) __builtin_va_copy(a,b)

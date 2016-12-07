@@ -3,22 +3,13 @@
 [kernel] Parsing tests/wp_plugin/call.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function main
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/call.i, line 17) in 'main':
-Assume {
-  Type: is_sint32(main_0) /\ is_sint32(x) /\ is_sint32(y).
-  (* Residual *)
-  When: y <= x.
-  If y < x
-  Then { (* Call 'job' *) Have: 0 < main_0. }
-  Else { Have: 0 = main_0. }
-}
-Prove: 0 <= main_0.
+Prove: true.
 
 ------------------------------------------------------------
 

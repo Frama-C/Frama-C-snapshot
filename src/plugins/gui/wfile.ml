@@ -83,7 +83,7 @@ class button ?kind ?title ?select ?tooltip ?parent () =
   let dialog = new dialog ?kind ?title ?select ?parent () in
   object(self)
 
-    inherit Wutil.coerce button
+    inherit Wutil.gobj_widget button
     inherit! [string] Wutil.selector "" as current
 
     val mutable disptip = fun f ->

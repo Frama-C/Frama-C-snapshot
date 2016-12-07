@@ -45,7 +45,7 @@ enum aorai_OpStatusList {
     behavior buch_state_aorai_intermediate_state_1_in_0:
       assumes 1 ≡ aorai_intermediate_state_0 ∧ aorai_counter < 5;
       ensures 1 ≡ aorai_intermediate_state_1;
-      ensures aorai_counter ≡ \old(aorai_counter)+1;
+      ensures aorai_counter ≡ \old(aorai_counter) + 1;
     
     behavior buch_state_aorai_intermediate_state_1_in_1:
       assumes 1 ≡ aorai_intermediate_state;
@@ -202,7 +202,7 @@ void f_post_func(void)
       ensures
         \at(1 ≡ aorai_intermediate_state_0,Pre) ∧
         1 ≡ aorai_intermediate_state_2 ⇒
-        aorai_counter ≡ \at(aorai_counter,Pre)+1;
+        aorai_counter ≡ \at(aorai_counter,Pre) + 1;
       ensures
         \at(1 ≡ aorai_intermediate_state,Pre) ∧
         1 ≡ aorai_intermediate_state_2 ⇒ aorai_counter ≡ 1;
@@ -543,7 +543,7 @@ void main_post_func(int res)
       ensures
         \at(1 ≡ S0,Pre) ∧ 1 ≡ Sf ⇒
         (1 ≤ aorai_counter ≤ 5) ∨
-        aorai_counter ≡ \at(aorai_counter,Pre)+0;
+        aorai_counter ≡ \at(aorai_counter,Pre) + 0;
  */
 int main(int c)
 {

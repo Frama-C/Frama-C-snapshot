@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main6
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s1[0] ∈ {104}
     [1] ∈ {101}
     [2..3] ∈ {108}
@@ -43,7 +43,7 @@
 tests/value/strings.i:72:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
-tests/value/strings.i:73:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)s3, (void *)s4);
+tests/value/strings.i:73:[value] warning: pointer comparison. assert \pointer_comparable((void *)s3, (void *)s4);
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:74.
 [value] Done for function u
@@ -53,15 +53,15 @@ tests/value/strings.i:73:[kernel] warning: pointer comparison. assert \pointer_c
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:78.
 [value] Done for function u
-tests/value/strings.i:79:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)s7, (void *)s8);
+tests/value/strings.i:79:[value] warning: pointer comparison. assert \pointer_comparable((void *)s7, (void *)s8);
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:80.
 [value] Done for function u
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:82.
 [value] Done for function u
-tests/value/strings.i:83:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)(s7+1), (void *)(s8+1));
+tests/value/strings.i:83:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)(s7 + 1), (void *)(s8 + 1));
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:84.
 [value] Done for function u
@@ -83,16 +83,16 @@ tests/value/strings.i:83:[kernel] warning: pointer comparison.
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:90.
 [value] Done for function u
-tests/value/strings.i:91:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)s5, (void *)s6);
+tests/value/strings.i:91:[value] warning: pointer comparison. assert \pointer_comparable((void *)s5, (void *)s6);
 [value] computing for function u <- main6.
         Called from tests/value/strings.i:92.
 [value] Done for function u
-tests/value/strings.i:93:[kernel] warning: pointer comparison.
-                  assert \pointer_comparable((void *)("oh, hello"+4), (void *)s7);
+tests/value/strings.i:93:[value] warning: pointer comparison.
+                 assert \pointer_comparable((void *)("oh, hello" + 4), (void *)s7);
 [value] Recording results for main6
 [value] done for function main6
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main6:
+[value:final-states] Values at end of function main6:
   s5 ∈ {{ "tutu" ; "hello" }}
   s6 ∈ {{ "tutu" ; "tutu" ; "hello" }}
   cc ∈ {116}

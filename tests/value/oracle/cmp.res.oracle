@@ -3,22 +3,22 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/value/cmp.i:10:[kernel] warning: accessing out of bounds index. assert 0 ≤ d;
-tests/value/cmp.i:10:[kernel] warning: accessing out of bounds index. assert d < 10;
+tests/value/cmp.i:10:[value] warning: accessing out of bounds index. assert 0 ≤ d;
+tests/value/cmp.i:10:[value] warning: accessing out of bounds index. assert d < 10;
 [value] computing for function cmp <- main.
         Called from tests/value/cmp.i:11.
-tests/value/cmp.i:4:[kernel] warning: accessing uninitialized left-value. assert \initialized(s1);
-tests/value/cmp.i:4:[kernel] warning: out of bounds read. assert \valid_read(s1);
+tests/value/cmp.i:4:[value] warning: accessing uninitialized left-value. assert \initialized(s1);
+tests/value/cmp.i:4:[value] warning: out of bounds read. assert \valid_read(s1);
 [value] Recording results for cmp
 [value] Done for function cmp
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function cmp:
+[value:final-states] Values at end of function cmp:
   __retres ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0..9] ∈ [--..--] or UNINITIALIZED
   r ∈ {1}
 [from] Computing for function cmp

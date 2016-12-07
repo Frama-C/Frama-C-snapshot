@@ -54,14 +54,14 @@ module GCallstackMap = FCMap.Make(struct
 type gui_selection =
   | GS_TLVal of term | GS_LVal of lval | GS_AbsoluteMem
   | GS_Expr of exp | GS_Term of term
-  | GS_Predicate of Cil_types.predicate Cil_types.named
+  | GS_Predicate of Cil_types.predicate
 
 let pretty_gui_selection fmt = function
   | GS_TLVal t | GS_Term t -> Printer.pp_term fmt t
   | GS_LVal l -> Printer.pp_lval fmt l
   | GS_AbsoluteMem -> Format.pp_print_string fmt "NULL"
   | GS_Expr e -> Printer.pp_exp fmt e
-  | GS_Predicate p -> Printer.pp_predicate fmt p.content
+  | GS_Predicate p -> Printer.pp_predicate_node fmt p.pred_content
 
 let gui_selection_equal e1 e2 = match e1, e2 with
   | GS_TLVal t1, GS_TLVal t2 | GS_Term t1, GS_Term t2 ->
@@ -70,8 +70,8 @@ let gui_selection_equal e1 e2 = match e1, e2 with
   | GS_AbsoluteMem, GS_AbsoluteMem -> true
   | GS_Expr e1, GS_Expr e2 -> Cil_datatype.Exp.equal e1 e2
   | GS_Predicate p1, GS_Predicate p2 ->
-    (* Cil_datatype.Predicate_named.equal not implemented *)
-    p1.content == p2.content
+    (* Cil_datatype.Predicate.equal not implemented *)
+    p1.pred_content == p2.pred_content
   | (GS_TLVal _ | GS_LVal _ | GS_AbsoluteMem | GS_Expr _ | GS_Term _ |
      GS_Predicate _) , _ -> false
 
@@ -170,9 +170,12 @@ let pretty_callstack fmt cs =
   | (_kf_cur, Kstmt callsite) :: q -> begin
       let rec aux callsite = function
         | (kf, callsite') :: q -> begin
-            Format.fprintf fmt "%a (%a)"
+            Format.fprintf fmt "%a (%a%t)"
               Kernel_function.pretty kf
-              Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc callsite);
+              Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc callsite)
+              (fun fmt ->
+                 if Gui_parameters.debug_atleast 1 then
+                   Format.fprintf fmt ", %d" callsite.sid);
             match callsite' with
             | Kglobal -> ()
             | Kstmt callsite' ->
@@ -197,6 +200,29 @@ let pretty_callstack_short fmt cs =
       (fun fmt (kf, _) -> Kernel_function.pretty fmt kf) fmt q
   | _ -> assert false
 
+let var_of_base base acc =
+  try (Base.to_varinfo base) :: acc
+  with Base.Not_a_C_variable -> acc
+
+(* [vars_in_gui_res r] returns a list of C variables present in [r]. *)
+let vars_in_gui_res r =
+  let rev_vars = match r with
+    | GR_Offsm (m_res, _) ->
+      begin
+        match m_res with
+        | GO_Offsetmap m ->
+          Cvalue.V_Offsetmap.fold_on_values (fun vu acc ->
+              Cvalue.V.fold_bases var_of_base
+                (Cvalue.V_Or_Uninitialized.get_v vu) acc
+            ) m []
+        | _ -> []
+      end
+    | GR_Value (v, _) -> Cvalue.V.fold_bases var_of_base v []
+    | GR_Zone z -> Locations.Zone.fold_bases var_of_base z []
+    | GR_Status _ | GR_Empty -> []
+  in
+  (* inverse the list to preserve the order of the offsetmap *)
+  List.rev rev_vars
 
 (*
 Local Variables:

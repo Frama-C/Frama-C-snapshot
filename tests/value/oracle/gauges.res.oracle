@@ -1,0 +1,710 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/gauges.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  t[0..37] ∈ {0}
+  u[0..99] ∈ {0}
+  T[0..99] ∈ [--..--]
+[value] computing for function main0 <- main.
+        Called from tests/value/gauges.i:299.
+tests/value/gauges.i:14:[value] entering loop for the first time
+tests/value/gauges.i:16:[value] entering loop for the first time
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:21:[value] warning: signed overflow. assert -2147483648 ≤ j - 4;
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
+[value] Recording results for main0
+[value] Done for function main0
+[value] computing for function main0_bis <- main.
+        Called from tests/value/gauges.i:300.
+tests/value/gauges.i:36:[value] entering loop for the first time
+tests/value/gauges.i:38:[value] entering loop for the first time
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:43:[value] warning: signed overflow. assert -2147483648 ≤ j - 4;
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+[value] Called Frama_C_show_each_0({{ "in" }})
+[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:46:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
+[value] Recording results for main0_bis
+[value] Done for function main0_bis
+[value] computing for function main1 <- main.
+        Called from tests/value/gauges.i:301.
+tests/value/gauges.i:55:[value] entering loop for the first time
+[value] Called Frama_C_show_each({{ "in" }})
+[value] Called Frama_C_show_each({{ "in" }})
+[value] Called Frama_C_show_each({{ "in" }})
+[value] Called Frama_C_show_each({{ "in" }})
+[value] Called Frama_C_show_each({{ "in" }})
+[value] Called Frama_C_show_each({{ "in" }})
+tests/value/gauges.i:56:[value] warning: accessing out of bounds index. assert j < 38;
+[value] Called Frama_C_show_each({{ "out" }})
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/value/gauges.i:302.
+tests/value/gauges.i:68:[value] entering loop for the first time
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:69:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from p++)
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/value/gauges.i:303.
+tests/value/gauges.i:76:[value] entering loop for the first time
+tests/value/gauges.i:77:[value] entering loop for the first time
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+tests/value/gauges.i:79:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({{ "outer" }})
+tests/value/gauges.i:82:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "outer" }})
+[value] Called Frama_C_show_each({{ "inner" }})
+[value] Called Frama_C_show_each({{ "outer" }})
+[value] Called Frama_C_show_each([0..2147483647])
+[value] Recording results for main3
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/value/gauges.i:304.
+[value] computing for function main4_search <- main4 <- main.
+        Called from tests/value/gauges.i:105.
+tests/value/gauges.i:94:[value] entering loop for the first time
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
+[value] Recording results for main4_search
+[value] Done for function main4_search
+[value] Recording results for main4
+[value] Done for function main4
+[value] computing for function main5 <- main.
+        Called from tests/value/gauges.i:305.
+tests/value/gauges.i:111:[value] entering loop for the first time
+[value] Called Frama_C_show_each({{ &x }})
+[value] Called Frama_C_show_each({{ &x + {0; 4} }})
+[value] Called Frama_C_show_each({{ &x + {0; 4; 8} }})
+[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12} ; &y }})
+[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16} ; &y + {0; 4} }})
+[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16; 20} ; &y + {0; 4; 8} }})
+[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16; 20; 24} ;
+                                    &y + {0; 4; 8; 12} }})
+[value] Called Frama_C_show_each({{ &x + [0..36],0%4 ; &y + [0..36],0%4 }})
+[value] Called Frama_C_show_each({{ &x + [0..40],0%4 ; &y + [0..40],0%4 }})
+tests/value/gauges.i:115:[value] warning: out of bounds write. assert \valid(p);
+[value] Recording results for main5
+[value] Done for function main5
+[value] computing for function main5_bis <- main.
+        Called from tests/value/gauges.i:306.
+[value] Called Frama_C_show_each({{ &x }})
+[value] Called Frama_C_show_each({{ &x + {4} }})
+[value] Called Frama_C_show_each({{ &x + {8} }})
+[value] Called Frama_C_show_each({{ &y }})
+tests/value/gauges.i:124:[value] entering loop for the first time
+[value] Called Frama_C_show_each({{ &y + {4} }})
+[value] Called Frama_C_show_each({{ &y + {4; 8} }})
+[value] Called Frama_C_show_each({{ &y + {4; 8; 12} }})
+[value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16} }})
+[value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16; 20} }})
+[value] Called Frama_C_show_each({{ &y + [4..36],0%4 }})
+[value] Called Frama_C_show_each({{ &y + [4..40],0%4 }})
+tests/value/gauges.i:128:[value] warning: out of bounds write. assert \valid(p);
+[value] Recording results for main5_bis
+[value] Done for function main5_bis
+[value] computing for function main6 <- main.
+        Called from tests/value/gauges.i:307.
+tests/value/gauges.i:136:[value] entering loop for the first time
+tests/value/gauges.i:138:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Recording results for main6
+[value] Done for function main6
+[value] computing for function main7 <- main.
+        Called from tests/value/gauges.i:308.
+[value] computing for function main7_aux <- main7 <- main.
+        Called from tests/value/gauges.i:162.
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:145:[value] entering loop for the first time
+tests/value/gauges.i:147:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from p--)
+[value] Recording results for main7_aux
+[value] Done for function main7_aux
+[value] computing for function main7_aux2 <- main7 <- main.
+        Called from tests/value/gauges.i:163.
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:154:[value] entering loop for the first time
+tests/value/gauges.i:156:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from p--)
+tests/value/gauges.i:154:[value] warning: signed overflow. assert -2147483648 ≤ toCopy - 1;
+[value] Recording results for main7_aux2
+[value] Done for function main7_aux2
+[value] Recording results for main7
+[value] Done for function main7
+[value] computing for function main8 <- main.
+        Called from tests/value/gauges.i:309.
+[value] computing for function main8_aux <- main8 <- main.
+        Called from tests/value/gauges.i:176.
+[value] Called Frama_C_show_each({0})
+[value] Called Frama_C_show_each({4294967295})
+tests/value/gauges.i:169:[value] entering loop for the first time
+[value] Called Frama_C_show_each({4294967294})
+[value] Called Frama_C_show_each({4294967293; 4294967294})
+[value] Called Frama_C_show_each({4294967292; 4294967293; 4294967294})
+[value] Called Frama_C_show_each([2147483647..4294967294])
+[value] Called Frama_C_show_each([2147483646..4294967294])
+[value] Called Frama_C_show_each([1..4294967294])
+[value] Called Frama_C_show_each([1..4294967294])
+[value] Called Frama_C_show_each([1..4294967294])
+[value] Called Frama_C_show_each([1..4294967294])
+tests/value/gauges.i:171:[value] warning: out of bounds write. assert \valid(tmp);
+                                      (tmp from p++)
+[value] Called Frama_C_show_each([1..4294967294])
+[value] Recording results for main8_aux
+[value] Done for function main8_aux
+[value] Recording results for main8
+[value] Done for function main8
+[value] computing for function main9 <- main.
+        Called from tests/value/gauges.i:310.
+tests/value/gauges.i:184:[value] entering loop for the first time
+tests/value/gauges.i:186:[value] warning: signed overflow. assert -2147483648 ≤ (int)p + (int)q;
+tests/value/gauges.i:186:[value] warning: signed overflow. assert (int)p + (int)q ≤ 2147483647;
+tests/value/gauges.i:186:[value] Assigning imprecise value to z.
+        The imprecision originates from Arithmetic {tests/value/gauges.i:186}
+tests/value/gauges.i:187:[value] Assigning imprecise value to r.
+        The imprecision originates from Arithmetic {tests/value/gauges.i:186}
+tests/value/gauges.i:188:[value] warning: out of bounds write. assert \valid(r);
+tests/value/gauges.i:190:[value] warning: out of bounds write. assert \valid(p);
+tests/value/gauges.i:191:[value] warning: out of bounds write. assert \valid(q);
+[value] Recording results for main9
+[value] Done for function main9
+[value] computing for function main10 <- main.
+        Called from tests/value/gauges.i:311.
+[value] Call to builtin bzero(({{ (unsigned char *)&A }},{40}))
+[value] Call to builtin bzero(({{ (unsigned char *)&B }},{40}))
+[value] computing for function main10_aux <- main10 <- main.
+        Called from tests/value/gauges.i:209.
+tests/value/gauges.i:199:[value] entering loop for the first time
+tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp);
+                                     (tmp from A++)
+tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp_0);
+                                     (tmp_0 from B++)
+tests/value/gauges.i:199:[value] warning: signed overflow. assert -2147483648 ≤ numNonZero - 1;
+tests/value/gauges.i:200:[value] warning: non-finite float value.
+                 assert \is_finite((float)(*p * (float)(*tmp * *tmp_0)));
+                 (tmp from A++, tmp_0 from B++)
+[value] Recording results for main10_aux
+[value] Done for function main10_aux
+tests/value/gauges.i:209:[value] warning: overflow in conversion from floating-point to integer.
+                 assert tmp < 2147483648;
+                 (tmp from main10_aux(& p, (float const *)(& A), (float const *)(& B), 10))
+[value] Recording results for main10
+[value] Done for function main10
+[value] computing for function main11 <- main.
+        Called from tests/value/gauges.i:312.
+tests/value/gauges.i:215:[value] entering loop for the first time
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:217:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+[value] Called Frama_C_show_each()
+tests/value/gauges.i:218:[value] warning: signed overflow. assert -2147483648 ≤ n - 1;
+[value] Recording results for main11
+[value] Done for function main11
+[value] computing for function main12 <- main.
+        Called from tests/value/gauges.i:313.
+tests/value/gauges.i:223:[value] entering loop for the first time
+tests/value/gauges.i:223:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
+[value] Recording results for main12
+[value] Done for function main12
+[value] computing for function main13 <- main.
+        Called from tests/value/gauges.i:314.
+[value] computing for function main13_1 <- main13 <- main.
+        Called from tests/value/gauges.i:278.
+tests/value/gauges.i:236:[value] entering loop for the first time
+tests/value/gauges.i:238:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..2147483647])
+[value] Recording results for main13_1
+[value] Done for function main13_1
+[value] computing for function main13_2 <- main13 <- main.
+        Called from tests/value/gauges.i:279.
+tests/value/gauges.i:247:[value] entering loop for the first time
+tests/value/gauges.i:249:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..2147483647])
+[value] Recording results for main13_2
+[value] Done for function main13_2
+[value] computing for function main13_3 <- main13 <- main.
+        Called from tests/value/gauges.i:280.
+tests/value/gauges.i:259:[value] entering loop for the first time
+tests/value/gauges.i:261:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..2147483647])
+[value] Recording results for main13_3
+[value] Done for function main13_3
+[value] computing for function main13_4 <- main13 <- main.
+        Called from tests/value/gauges.i:281.
+tests/value/gauges.i:270:[value] entering loop for the first time
+tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..2147483647])
+[value] Recording results for main13_4
+[value] Done for function main13_4
+[value] Recording results for main13
+[value] Done for function main13
+[value] computing for function main14 <- main.
+        Called from tests/value/gauges.i:315.
+tests/value/gauges.i:289:[value] entering loop for the first time
+tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
+                                 [0..2147483647])
+[value] Recording results for main14
+[value] Done for function main14
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main0:
+  i ∈ {1; 162}
+  j ∈ [-2147483646..2],2%4
+  k ∈ {101}
+  l ∈ [4..2147483647]
+[value:final-states] Values at end of function main0_bis:
+  i ∈ {1; 163}
+  j ∈ [-2147483646..2],2%4
+  k ∈ {101}
+  l ∈ [4..2147483647]
+[value:final-states] Values at end of function main1:
+  t[0..4] ∈ {0}
+   [5] ∈ [0..48],0%3
+   [6] ∈ {0}
+   [7] ∈ [0..48],0%3
+   [8] ∈ {0}
+   [9] ∈ [0..48],0%3
+   [10] ∈ {0}
+   [11] ∈ [0..48],0%3
+   [12] ∈ {0}
+   [13] ∈ [0..48],0%3
+   [14] ∈ {0}
+   [15] ∈ [0..48],0%3
+   [16] ∈ {0}
+   [17] ∈ [0..48],0%3
+   [18] ∈ {0}
+   [19] ∈ [0..48],0%3
+   [20] ∈ {0}
+   [21] ∈ [0..48],0%3
+   [22] ∈ {0}
+   [23] ∈ [0..48],0%3
+   [24] ∈ {0}
+   [25] ∈ [0..48],0%3
+   [26] ∈ {0}
+   [27] ∈ [0..48],0%3
+   [28] ∈ {0}
+   [29] ∈ [0..48],0%3
+   [30] ∈ {0}
+   [31] ∈ [0..48],0%3
+   [32] ∈ {0}
+   [33] ∈ [0..48],0%3
+   [34] ∈ {0}
+   [35] ∈ [0..48],0%3
+   [36] ∈ {0}
+   [37] ∈ [0..48],0%3
+  j ∈ [5..39],1%2
+[value:final-states] Values at end of function main10_aux:
+  A ∈ {{ &A + [0..--],0%4 }}
+  B ∈ {{ &B + [0..--],0%4 }}
+  numNonZero ∈ [-2147483648..8]
+  p ∈ [0. .. 3.40282346639e+38]
+  __retres ∈ [0. .. 3.40282346639e+38]
+[value:final-states] Values at end of function main10:
+  p ∈ [0. .. 3.40282346639e+38]
+  A[0] ∈ {1.}
+   [1..9] ∈ {0}
+  B[0] ∈ {2.}
+   [1..9] ∈ {0}
+  __retres ∈ [0..2147483647]
+[value:final-states] Values at end of function main11:
+  n ∈ [-2147483648..99]
+  i ∈ [1..2147483647]
+[value:final-states] Values at end of function main12:
+  i ∈ [0..2147483647]
+  j ∈ {10}
+[value:final-states] Values at end of function main13_1:
+  i ∈ {45; 46; 47; 48; 49; 50; 51}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main13_2:
+  i ∈ {48; 49; 50; 51; 52; 53; 54}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main13_3:
+  i ∈ {-59; -58; -57; -56; -55; -54; -53}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main13_4:
+  i ∈ {-64; -63; -62; -61; -60; -59; -58}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main13:
+  
+[value:final-states] Values at end of function main14:
+  i ∈ {-593; -592; -591; -590; -589; -588}
+  s ∈ {5; 6}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main2:
+  u[0..99] ∈ [0..100]
+  p ∈ {{ &u + [0..--],0%4 }}
+[value:final-states] Values at end of function main3:
+  k ∈ [0..2147483647]
+[value:final-states] Values at end of function main4_search:
+  c ∈ [0..2147483647]
+  i ∈ {21}
+[value:final-states] Values at end of function main4:
+  i ∈ [0..2147483647]
+[value:final-states] Values at end of function main5:
+  x[0..9] ∈ [0..9] or UNINITIALIZED
+  y[0..9] ∈ [0..9] or UNINITIALIZED
+  p ∈ {{ &x + [0..40],0%4 ; &y + [4..40],0%4 }}
+[value:final-states] Values at end of function main5_bis:
+  x[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {2}
+   [3..9] ∈ UNINITIALIZED
+  y[0] ∈ {3}
+   [1..9] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
+  p ∈ {{ &y + [4..40],0%4 }}
+[value:final-states] Values at end of function main6:
+  i ∈ {13}
+  j ∈ [0..2147483647]
+[value:final-states] Values at end of function main7_aux:
+  T[0..99] ∈ [--..--]
+  toCopy ∈ [--..--]
+  p ∈ {{ &T + [--..396],0%4 }}
+[value:final-states] Values at end of function main7_aux2:
+  T[0..99] ∈ [--..--]
+  toCopy ∈ [-2147483648..99]
+  p ∈ {{ &T + [--..396],0%4 }}
+[value:final-states] Values at end of function main7:
+  T[0..99] ∈ [--..--]
+  toCopy ∈ {100}
+[value:final-states] Values at end of function main8_aux:
+  n ∈ {0}
+  arr[0] ∈ {0}
+     [1] ∈ {-1}
+     [2..65535] ∈ [--..--] or UNINITIALIZED
+  p ∈ {{ &arr + [12..--],0%4 }}
+[value:final-states] Values at end of function main8:
+  
+[value:final-states] Values at end of function main9:
+  x[0..9] ∈ [--..--] or UNINITIALIZED
+  y[0..9] ∈ [--..--] or UNINITIALIZED
+  p ∈ {{ &x + [0..40],0%4 }}
+  q ∈ {{ &y + [0..40],0%4 }}
+  z ∈
+   {{ garbled mix of &{x; y}
+    (origin: Arithmetic {tests/value/gauges.i:186}) }} or UNINITIALIZED
+[value:final-states] Values at end of function main:
+  t[0..4] ∈ {0}
+   [5] ∈ [0..48],0%3
+   [6] ∈ {0}
+   [7] ∈ [0..48],0%3
+   [8] ∈ {0}
+   [9] ∈ [0..48],0%3
+   [10] ∈ {0}
+   [11] ∈ [0..48],0%3
+   [12] ∈ {0}
+   [13] ∈ [0..48],0%3
+   [14] ∈ {0}
+   [15] ∈ [0..48],0%3
+   [16] ∈ {0}
+   [17] ∈ [0..48],0%3
+   [18] ∈ {0}
+   [19] ∈ [0..48],0%3
+   [20] ∈ {0}
+   [21] ∈ [0..48],0%3
+   [22] ∈ {0}
+   [23] ∈ [0..48],0%3
+   [24] ∈ {0}
+   [25] ∈ [0..48],0%3
+   [26] ∈ {0}
+   [27] ∈ [0..48],0%3
+   [28] ∈ {0}
+   [29] ∈ [0..48],0%3
+   [30] ∈ {0}
+   [31] ∈ [0..48],0%3
+   [32] ∈ {0}
+   [33] ∈ [0..48],0%3
+   [34] ∈ {0}
+   [35] ∈ [0..48],0%3
+   [36] ∈ {0}
+   [37] ∈ [0..48],0%3
+  u[0..99] ∈ [0..100]
+  T[0..99] ∈ [--..--]
+[from] Computing for function main0
+[from] Done for function main0
+[from] Computing for function main0_bis
+[from] Done for function main0_bis
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main10_aux
+[from] Done for function main10_aux
+[from] Computing for function main10
+[from] Computing for function Frama_C_bzero <-main10
+[from] Done for function Frama_C_bzero
+[from] Done for function main10
+[from] Computing for function main11
+[from] Done for function main11
+[from] Computing for function main12
+[from] Done for function main12
+[from] Computing for function main13_1
+[from] Done for function main13_1
+[from] Computing for function main13_2
+[from] Done for function main13_2
+[from] Computing for function main13_3
+[from] Done for function main13_3
+[from] Computing for function main13_4
+[from] Done for function main13_4
+[from] Computing for function main13
+[from] Done for function main13
+[from] Computing for function main14
+[from] Done for function main14
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4_search
+[from] Done for function main4_search
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main5
+[from] Done for function main5
+[from] Computing for function main5_bis
+[from] Done for function main5_bis
+[from] Computing for function main6
+[from] Done for function main6
+[from] Computing for function main7_aux
+[from] Done for function main7_aux
+[from] Computing for function main7_aux2
+[from] Done for function main7_aux2
+[from] Computing for function main7
+[from] Done for function main7
+[from] Computing for function main8_aux
+[from] Done for function main8_aux
+[from] Computing for function main8
+[from] Done for function main8
+[from] Computing for function main9
+[from] Done for function main9
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_bzero:
+  A[0..9] FROM \nothing (and SELF)
+  B[0..9] FROM \nothing (and SELF)
+[from] Function main0:
+  NO EFFECTS
+[from] Function main0_bis:
+  NO EFFECTS
+[from] Function main1:
+  t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
+    [29]; [31]; [33]; [35]; [37]}
+   FROM \nothing (and SELF)
+[from] Function main10_aux:
+  p FROM p; A; B; n; p; A[0..9]; B[0..9] (and SELF)
+  \result FROM p; A; B; n; p; A[0..9]; B[0..9]
+[from] Function main10:
+  \result FROM \nothing
+[from] Function main11:
+  NO EFFECTS
+[from] Function main12:
+  NO EFFECTS
+[from] Function main13_1:
+  NO EFFECTS
+[from] Function main13_2:
+  NO EFFECTS
+[from] Function main13_3:
+  NO EFFECTS
+[from] Function main13_4:
+  NO EFFECTS
+[from] Function main13:
+  NO EFFECTS
+[from] Function main14:
+  NO EFFECTS
+[from] Function main2:
+  u[0..99] FROM \nothing (and SELF)
+[from] Function main3:
+  NO EFFECTS
+[from] Function main4_search:
+  \result FROM T[0..20]
+[from] Function main4:
+  NO EFFECTS
+[from] Function main5:
+  NO EFFECTS
+[from] Function main5_bis:
+  NO EFFECTS
+[from] Function main6:
+  NO EFFECTS
+[from] Function main7_aux:
+  T[0..99] FROM toCopy (and SELF)
+[from] Function main7_aux2:
+  T[0..99] FROM toCopy (and SELF)
+[from] Function main7:
+  T[0..99] FROM \nothing (and SELF)
+[from] Function main8_aux:
+  NO EFFECTS
+[from] Function main8:
+  NO EFFECTS
+[from] Function main9:
+  NO EFFECTS
+[from] Function main:
+  t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
+    [29]; [31]; [33]; [35]; [37]}
+   FROM \nothing (and SELF)
+  u[0..99] FROM \nothing (and SELF)
+  T[0..99] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main0:
+          i; j; k; l
+[inout] Inputs for function main0:
+          \nothing
+[inout] Out (internal) for function main0_bis:
+          i; j; k; l
+[inout] Inputs for function main0_bis:
+          \nothing
+[inout] Out (internal) for function main1:
+          t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
+            [29]; [31]; [33]; [35]; [37]}; j; i
+[inout] Inputs for function main1:
+          \nothing
+[inout] Out (internal) for function main10_aux:
+          A; B; numNonZero; tmp; tmp_0; tmp_1; p; __retres
+[inout] Inputs for function main10_aux:
+          p; A[0..9]; B[0..9]
+[inout] Out (internal) for function main10:
+          p; A[0..9]; B[0..9]; tmp; __retres
+[inout] Inputs for function main10:
+          \nothing
+[inout] Out (internal) for function main11:
+          n; i; tmp
+[inout] Inputs for function main11:
+          \nothing
+[inout] Out (internal) for function main12:
+          i; j
+[inout] Inputs for function main12:
+          v
+[inout] Out (internal) for function main13_1:
+          i; tmp; j
+[inout] Inputs for function main13_1:
+          v
+[inout] Out (internal) for function main13_2:
+          i; tmp; j
+[inout] Inputs for function main13_2:
+          v
+[inout] Out (internal) for function main13_3:
+          i; tmp; j
+[inout] Inputs for function main13_3:
+          v
+[inout] Out (internal) for function main13_4:
+          i; tmp; j
+[inout] Inputs for function main13_4:
+          v
+[inout] Out (internal) for function main13:
+          \nothing
+[inout] Inputs for function main13:
+          v
+[inout] Out (internal) for function main14:
+          i; s; tmp; j
+[inout] Inputs for function main14:
+          v
+[inout] Out (internal) for function main2:
+          u[0..99]; p; i; tmp
+[inout] Inputs for function main2:
+          \nothing
+[inout] Out (internal) for function main3:
+          k; i; j
+[inout] Inputs for function main3:
+          \nothing
+[inout] Out (internal) for function main4_search:
+          c; i
+[inout] Inputs for function main4_search:
+          T[0..20]
+[inout] Out (internal) for function main4:
+          i
+[inout] Inputs for function main4:
+          T[0..20]
+[inout] Out (internal) for function main5:
+          x[0..9]; y[0..9]; p; i
+[inout] Inputs for function main5:
+          \nothing
+[inout] Out (internal) for function main5_bis:
+          x[0..2]; y[0..9]; p; i
+[inout] Inputs for function main5_bis:
+          \nothing
+[inout] Out (internal) for function main6:
+          i; j
+[inout] Inputs for function main6:
+          \nothing
+[inout] Out (internal) for function main7_aux:
+          T[0..99]; toCopy; p; tmp; tmp_0
+[inout] Inputs for function main7_aux:
+          \nothing
+[inout] Out (internal) for function main7_aux2:
+          T[0..99]; toCopy; p; tmp; tmp_0
+[inout] Inputs for function main7_aux2:
+          \nothing
+[inout] Out (internal) for function main7:
+          T[0..99]; toCopy
+[inout] Inputs for function main7:
+          \nothing
+[inout] Out (internal) for function main8_aux:
+          n; arr[0..65535]; p; tmp
+[inout] Inputs for function main8_aux:
+          \nothing
+[inout] Out (internal) for function main8:
+          \nothing
+[inout] Inputs for function main8:
+          \nothing
+[inout] Out (internal) for function main9:
+          x[0..9]; y[0..9]; p; q; z; i; r
+[inout] Inputs for function main9:
+          \nothing
+[inout] Out (internal) for function main:
+          t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
+            [29]; [31]; [33]; [35]; [37]}; u[0..99]; T[0..99]
+[inout] Inputs for function main:
+          v; T[0..20]

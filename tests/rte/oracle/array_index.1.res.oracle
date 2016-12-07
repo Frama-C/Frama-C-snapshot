@@ -34,7 +34,7 @@ void main(int i, int j, unsigned int k)
   /*@ assert rte: index_bound: i < 10; */
   t[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
-  /*@ assert rte: index_bound: i < (int)(8+3); */
+  /*@ assert rte: index_bound: i < (int)(8 + 3); */
   u[i] = 0;
   /*@ assert rte: index_bound: 0 ≤ i; */
   /*@ assert rte: index_bound: i < 16; */
@@ -49,7 +49,7 @@ void main(int i, int j, unsigned int k)
   s.v[i].t[j] = 0;
   /*@ assert rte: index_bound: k < 10; */
   t[k] = 0;
-  /*@ assert rte: index_bound: k < (int)(8+3); */
+  /*@ assert rte: index_bound: k < (int)(8 + 3); */
   u[k] = 0;
   /*@ assert rte: index_bound: k < 16; */
   /*@ assert rte: index_bound: c[k] < 17; */

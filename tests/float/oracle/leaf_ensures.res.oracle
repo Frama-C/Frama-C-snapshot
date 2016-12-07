@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   d1 ∈ {0}
   d2 ∈ {0}
   d3 ∈ {0}
@@ -28,7 +28,7 @@ tests/float/leaf_ensures.i:20:[value] warning: no 'assigns \result \from ...' cl
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   d1 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
   d2 ∈ [-1. .. 1.]
   d3 ∈ [--..--]

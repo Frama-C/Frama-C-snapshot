@@ -3,13 +3,13 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   p ∈ {0}
 tests/constant_propagation/array_pointers.i:10:[kernel] warning: using size of 'void'
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   q ∈ {{ &p + {4} }}
   r ∈ {{ &p + {8} }}
   s ∈ {1}

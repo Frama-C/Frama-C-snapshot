@@ -1,6 +1,6 @@
 /* run.config
 DONTRUN: does not work yet.
-OPT: -check -print
+OPT: -print
 */
 
 //@ requires i > 0 && \valid(a+(i-1));

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
         Called from tests/value/false.i:18.
@@ -22,9 +22,9 @@ tests/value/false.i:11:[value] function g: no state left in which to evaluate po
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {0}
 [from] Computing for function g
 [from] Done for function g

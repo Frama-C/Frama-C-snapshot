@@ -3,23 +3,21 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/wp_plugin/removed.i:10:[kernel] warning: signed overflow. assert 1+i ≤ 2147483647;
+tests/wp_plugin/removed.i:10:[value] warning: signed overflow. assert 1 + i ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ [-2147483647..2147483647]
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
-[wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_main_assert_Value_signed_overflow : Unknown
 [wp] Proved goals:    0 / 1
      Alt-Ergo:        0  (unknown: 1)
 [wp] Running WP plugin...
-[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
 [wp] 0 goal scheduled
 [wp] Proved goals:    0 / 0

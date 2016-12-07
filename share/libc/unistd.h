@@ -23,6 +23,7 @@
 #ifndef __FC_UNISTD
 #define __FC_UNISTD
 
+extern int Frama_C_entropy_source;
 #include "__fc_string_axiomatic.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_null.h"
@@ -851,7 +852,20 @@ char        *ttyname(int);
 int          ttyname_r(int, char *, size_t);
 useconds_t   ualarm(useconds_t, useconds_t);
 int          unlink(const char *);
-int          usleep(useconds_t);
+
+// usleep is not POSIX anymore since 200809
+#if (_XOPEN_SOURCE >= 500) && ! (_POSIX_C_SOURCE >= 200809L) \
+  || /* Glibc since 2.19: */ _DEFAULT_SOURCE \
+  || /* Glibc versions <= 2.19: */ _BSD_SOURCE
+/*@
+  assigns \result \from indirect:usec, indirect:Frama_C_entropy_source;
+  assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+  ensures \result == 0 || \result == -1;
+ */
+int          usleep(useconds_t usec);
+
+#endif
+
 pid_t        vfork(void);
 
 /*@

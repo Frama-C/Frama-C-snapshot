@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/looplabels.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function copy
@@ -15,7 +14,7 @@ Let a_2 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -43,7 +42,7 @@ Let a_2 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -77,7 +76,7 @@ Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -106,7 +105,7 @@ Let a_2 = shift_sint32(b, 0).
 Assume {
   Type: is_sint32(n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -134,7 +133,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_1, n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -166,7 +165,7 @@ Assume {
   (* Goal *)
   When: valid_rd(Malloc_0, a_3, 1).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)
@@ -201,7 +200,7 @@ Let a_2 = shift_sint32(a, 0).
 Assume {
   Type: is_sint32(n).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0) /\ (region(b.base) <= 0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: 0 < n.
   (* Pre-condition *)

@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at init
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
@@ -22,7 +22,7 @@
   d3 ∈ {0}
 [value] computing for function add3 <- init.
         Called from tests/constant_propagation/const_propagate.c:56.
-tests/constant_propagation/const_propagate.c:48:[kernel] warning: signed overflow. assert v1+v2 ≤ 2147483647;
+tests/constant_propagation/const_propagate.c:48:[value] warning: signed overflow. assert v1 + v2 ≤ 2147483647;
 [value] Recording results for add3
 [value] Done for function add3
 [value] Recording results for init
@@ -103,7 +103,7 @@ int *test_struct_ptr(void)
 int add3(int v1, int v2, int v3)
 {
   int __retres;
-  /*@ assert Value: signed_overflow: v1+v2 ≤ 2147483647; */
+  /*@ assert Value: signed_overflow: v1 + v2 ≤ 2147483647; */
   __retres = (v1 + 7) + 0;
   return __retres;
 }

@@ -1,0 +1,16 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/avar.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+tests/wp_typed/avar.i:4:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/avar.i, line 1) in 'f'' in 'g' at call 'f' (file tests/wp_typed/avar.i, line 4)
+:
+Prove: true.
+
+------------------------------------------------------------

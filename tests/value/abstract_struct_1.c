@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"tests/value/abstract_struct_2.c -lib-entry -value-msg-key initial_state"
+   STDOPT: #"tests/value/abstract_struct_2.c -lib-entry -value-msg-key initial-state"
 */
 #include "share/libc/stdlib.h"
 

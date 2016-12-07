@@ -44,8 +44,7 @@ val isCrossableAtInit:
     return) the generation simplifies the generated expression.
  *)
 val crosscond_to_pred:
-  typed_condition -> kernel_function -> funcStatus ->
-  Cil_types.predicate Cil_types.named
+  typed_condition -> kernel_function -> funcStatus -> predicate
 
 (** {b Globals management} *)
 
@@ -70,7 +69,7 @@ val host_state_term: unit -> Cil_types.term_lval
 
 (** Returns the predicate saying that automaton is in 
     corresponding state. *)
-val is_state_pred: state -> Cil_types.predicate Cil_types.named
+val is_state_pred: state -> predicate
 
 (** Returns the statement saying the state is affected *)
 val is_state_stmt: state * Cil_types.varinfo -> location -> Cil_types.stmt
@@ -80,7 +79,7 @@ val is_state_exp: state -> location -> Cil_types.exp
 
 (** Returns the predicate saying that automaton is NOT
     in corresponding state. *)
-val is_out_of_state_pred: state -> Cil_types.predicate Cil_types.named
+val is_out_of_state_pred: state -> predicate
 
 (** Returns the statement saying the automaton is not in the corresponding
     state.
@@ -139,17 +138,15 @@ val auto_func_block:
   Data_for_aorai.state -> Cil_types.varinfo option ->
   Cil_types.block * Cil_types.varinfo list
 
-val get_preds_pre_wrt_params :
-  kernel_function -> Cil_types.predicate Cil_types.named
+val get_preds_pre_wrt_params :  kernel_function -> predicate
 
-val get_preds_post_bc_wrt_params :
-  kernel_function -> Cil_types.predicate Cil_types.named
+val get_preds_post_bc_wrt_params : kernel_function -> predicate
 
 (** Returns a list of predicate giving for each possible start state the
     disjunction of possible current states
 *)
 val possible_states_preds:
-  Data_for_aorai.state -> Cil_types.predicate Cil_types.named list
+  Data_for_aorai.state -> predicate list
 
 (** Possible values of the given auxiliary variable under the current path,
     [start]ing from the given point
@@ -158,7 +155,7 @@ val possible_states_preds:
 val update_to_pred:
   start: Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
-  Cil_types.term -> Data_for_aorai.Intervals.t -> predicate named
+  Cil_types.term -> Data_for_aorai.Intervals.t -> predicate
 
 (** for a given starting and ending state, returns the post-conditions
     related to the possible values of the auxiliary variables at current point
@@ -169,7 +166,7 @@ val update_to_pred:
 val action_to_pred:
   start:Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
-  Data_for_aorai.Vals.t -> predicate named list
+  Data_for_aorai.Vals.t -> predicate list
 
 (** All actions that might have been performed on aux variables from the
     given program point, guarded by the path followed.
@@ -177,7 +174,7 @@ val action_to_pred:
  *)
 val all_actions_preds: 
   Cil_types.logic_label ->
-  Data_for_aorai.state -> predicate named list
+  Data_for_aorai.state -> predicate list
 
 (** Return an integer constant term with the 0 value. *)
 val zero_term : unit -> Cil_types.term

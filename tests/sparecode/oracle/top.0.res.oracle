@@ -5,7 +5,7 @@
 [value] Analyzing a complete application starting at main_top
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main_top.
         Called from tests/sparecode/top.i:21.
@@ -21,7 +21,7 @@
 [value] Analyzing a complete application starting at main_top
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main_top.
         Called from tests/sparecode/top.i:21.

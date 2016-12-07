@@ -76,7 +76,7 @@ struct
     ceq = Ceq.empty ;
     def = Vmap.empty ;
     cst = Tmap.empty ;
-    mem = Array.create 5 Tmap.empty ;
+    mem = Array.make 5 Tmap.empty ;
   }
 
   let equal s1 s2 =
@@ -95,7 +95,7 @@ struct
         end
     | _ ->
         let ys = F.vars e in
-        if not (Vars.intersect ys sigma.dall)
+        if not (Vars.is_empty ys || Vars.intersect ys sigma.dall)
         then e (* no subst *)
         else if n < 5 then
           begin
@@ -154,7 +154,7 @@ struct
           (fun e c cst ->
              if vmem x e then Tmap.add (e_apply sx e) c cst else cst)
           cst0 sigma.cst in
-      let cache = Array.create (Array.length sigma.mem) Tmap.empty in
+      let cache = Array.make (Array.length sigma.mem) Tmap.empty in
       cache.(0) <- cst1 ;
       {
         mem = cache ;
@@ -180,7 +180,7 @@ struct
     with Not_found ->
       let cst = Tmap.add e c sigma.cst in
       let all = Vars.union (F.vars e) sigma.dall in
-      let cache = Array.create (Array.length sigma.mem) Tmap.empty in
+      let cache = Array.make (Array.length sigma.mem) Tmap.empty in
       cache.(0) <- cst ;
       {
         mem = cache ;

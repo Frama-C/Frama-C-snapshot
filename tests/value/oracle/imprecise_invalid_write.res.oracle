@@ -6,12 +6,12 @@ tests/value/imprecise_invalid_write.i:17:[kernel] warning: Body of function main
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {0}
   s ∈ {{ "abc" }}
 [value] computing for function main1 <- main.
         Called from tests/value/imprecise_invalid_write.i:22.
-tests/value/imprecise_invalid_write.i:5:[kernel] warning: out of bounds write. assert \valid((int *)c);
+tests/value/imprecise_invalid_write.i:5:[value] warning: out of bounds write. assert \valid((int *)c);
 tests/value/imprecise_invalid_write.i:5:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main1
 [value] Done for function main1
@@ -20,7 +20,7 @@ tests/value/imprecise_invalid_write.i:5:[kernel] warning: all target addresses w
 tests/value/imprecise_invalid_write.i:9:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic
         {tests/value/imprecise_invalid_write.i:9}
-tests/value/imprecise_invalid_write.i:10:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/imprecise_invalid_write.i:10:[value] warning: out of bounds write. assert \valid(p);
 tests/value/imprecise_invalid_write.i:10:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main2
 [value] Done for function main2
@@ -29,7 +29,7 @@ tests/value/imprecise_invalid_write.i:10:[kernel] warning: all target addresses 
 tests/value/imprecise_invalid_write.i:16:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic
         {tests/value/imprecise_invalid_write.i:16}
-tests/value/imprecise_invalid_write.i:17:[kernel] warning: out of bounds write. assert \valid(p);
+tests/value/imprecise_invalid_write.i:17:[value] warning: out of bounds write. assert \valid(p);
 tests/value/imprecise_invalid_write.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main3
 [value] Done for function main3
@@ -39,13 +39,13 @@ tests/value/imprecise_invalid_write.i:5:[value] assertion 'Value,mem_access' got
 tests/value/imprecise_invalid_write.i:10:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/imprecise_invalid_write.i:17:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   NON TERMINATING FUNCTION
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   NON TERMINATING FUNCTION
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Non-terminating function main1 (no dependencies)

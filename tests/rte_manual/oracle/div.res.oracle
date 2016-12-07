@@ -9,7 +9,7 @@ void f(void)
   int y;
   int z;
   /*@ assert rte: division_by_zero: x ≢ 0; */
-  /*@ assert rte: signed_overflow: y/x ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: y / x ≤ 2147483647; */
   z = y / x;
   return;
 }

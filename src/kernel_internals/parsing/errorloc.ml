@@ -117,8 +117,57 @@ let setCurrentFile ?(normalize=true) (n: string) =
   !current.lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = n }
 
 
+(* Prints the [pos.pos_lnum]-th line from file [pos.pos_fname],
+   plus up to [ctx] lines before and after [pos.pos_lnum] (if they exist),
+   similar to 'grep -C<ctx>'. The first line is numbered 1.
+   Most exceptions are silently caught and printing is stopped if they occur. *)
+let pp_context_from_file ?(ctx=2) fmt pos =
+  try
+    let in_ch = open_in pos.Lexing.pos_fname in
+    try
+      begin
+        let n = pos.Lexing.pos_lnum in
+        let first_to_print = max (n-ctx) 1 in
+        let last_to_print = n+ctx in
+        let i = ref 1 in
+        try
+          (* advance to line *)
+          while !i < first_to_print do
+            ignore (input_line in_ch);
+            incr i
+          done;
+          (* print context and target line *)
+          while !i <= last_to_print do
+            let line = input_line in_ch in
+            if !i = n then begin
+              Format.fprintf fmt "%-6d%s\n" !i line;
+              let cursor =
+                  String.make 6 ' ' ^
+                  String.make (String.length line) '^'
+              in
+              Format.fprintf fmt "%s\n" cursor
+            end
+            else
+              Format.fprintf fmt "%-6d%s\n" !i line;
+            incr i
+          done;
+        with End_of_file ->
+          if !i <= n then (* could not reach line, print warning *)
+            Kernel.warning "end of file reached before line %d" n
+          else (* context after line n, no warning *) ()
+      end;
+      close_in in_ch
+    with _ -> close_in_noerr in_ch
+  with _ -> ()
+
 let parse_error ?(source=Lexing.lexeme_start_p !current.lexbuf) msg =
-  Kernel.abort  ~source msg
+  Pretty_utils.ksfprintf (fun str ->
+  Kernel.feedback "%s" str ~append:(fun fmt ->
+      Format.fprintf fmt " at %s:%d:\n"
+        (Filepath.pretty source.Lexing.pos_fname) source.Lexing.pos_lnum;
+      Format.fprintf fmt "%a@." (pp_context_from_file ~ctx:2) source);
+      raise (Log.AbortError "kernel"))
+    msg
 
 (* More parsing support functions: line, file, char count *)
 let currentLoc () : Lexing.position * Lexing.position =

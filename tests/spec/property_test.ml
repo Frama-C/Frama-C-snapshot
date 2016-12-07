@@ -19,9 +19,18 @@ class visit prj =
           [ Logic_const.new_identified_term (Logic_const.tvar x),
             From [ Logic_const.new_identified_term (Logic_const.tvar x);
                    Logic_const.new_identified_term (Logic_const.tvar c)]
-          ]
-      end;
-      ChangeTo b
+          ];
+        let nkf = Cil.get_kernel_function self#behavior kf in
+        let keep_empty = true in
+        let post b =
+          Queue.add
+            (fun () ->
+               Annotations.add_assigns ~keep_empty emitter nkf b.b_assigns)
+          self#get_filling_actions;
+          b
+        in
+        ChangeDoChildrenPost(b, post)
+      end else DoChildren
   end
 
 let show_properties () =
@@ -29,7 +38,7 @@ let show_properties () =
   let strs =
     Property_status.fold
       (fun p acc ->
-         let s = Pretty_utils.sfprintf "Status of %a: %a@."
+         let s = Format.asprintf "Status of %a: %a@."
            Property.pretty p Property_status.pretty (Property_status.get p)
          in
          Datatype.String.Set.add s acc

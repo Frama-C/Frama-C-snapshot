@@ -79,6 +79,14 @@ let pp_vset fmt = function
   | Range(a,b) -> Format.fprintf fmt "@[<hov 2>[%a@,..%a]@]" pp_bound a pp_bound b
   | Descr _ -> Format.fprintf fmt "{ <comprehension> }"
 
+let pretty fmt = function
+  | [] -> Format.pp_print_string fmt "{}"
+  | [v] -> pp_vset fmt v
+  | v::vs ->
+      Format.fprintf fmt "@[<hov 2>(%a" pp_vset v ;
+      List.iter (fun v -> Format.fprintf fmt "@ + %a" pp_vset v) vs ;
+      Format.fprintf fmt ")@]"
+
 (* -------------------------------------------------------------------------- *)
 (* --- Set Operations                                                     --- *)
 (* -------------------------------------------------------------------------- *)

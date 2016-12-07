@@ -32,6 +32,8 @@ module ReductionDepth: Parameter_sig.Int
 
 module CvalueDomain: Parameter_sig.Bool
 module EqualityDomain: Parameter_sig.Bool
+module GaugesDomain: Parameter_sig.Bool
+module SymbolicLocsDomain: Parameter_sig.Bool
 module BitwiseOffsmDomain: Parameter_sig.Bool
 
 module ApronOctagon: Parameter_sig.Bool
@@ -39,6 +41,11 @@ module ApronBox: Parameter_sig.Bool
 module PolkaLoose: Parameter_sig.Bool
 module PolkaStrict: Parameter_sig.Bool
 module PolkaEqualities: Parameter_sig.Bool
+
+module EqualityStorage: Parameter_sig.Bool
+module SymbolicLocsStorage: Parameter_sig.Bool
+module ApronStorage: Parameter_sig.Bool
+module BitwiseOffsmStorage: Parameter_sig.Bool
 
 
 module AutomaticContextMaxDepth: Parameter_sig.Int
@@ -58,6 +65,7 @@ module ResultsCallstack: Parameter_sig.Bool
 module JoinResults: Parameter_sig.Bool
 
 module WarnLeftShiftNegative: Parameter_sig.Bool
+module WarnSignedConvertedDowncast: Parameter_sig.Bool
 module WarnPointerSubstraction: Parameter_sig.Bool
 module WarnCopyIndeterminate: Parameter_sig.Kernel_function_set
 
@@ -99,6 +107,7 @@ module LinearLevel: Parameter_sig.Int
 module BuiltinsOverrides:
   Parameter_sig.Map with type key = Cil_types.kernel_function
                     and type value = string
+module BuiltinsAuto: Parameter_sig.Bool
 module SplitReturnFunction:
   Parameter_sig.Map with type key = Cil_types.kernel_function
                     and type value = Split_strategy.t
@@ -106,10 +115,11 @@ module SplitGlobalStrategy: State_builder.Ref with type data = Split_strategy.t
 
 module ValShowProgress: Parameter_sig.Bool
 module ValShowInitialState: Parameter_sig.Bool
-module FloatTimingStep: State_builder.Ref with type data = float
 module ValShowPerf: Parameter_sig.Bool
+module ValPerfFlamegraphs: Parameter_sig.String
 module ShowSlevel: Parameter_sig.Int
 module PrintCallstacks: Parameter_sig.Bool
+module AlarmsWarnings: Parameter_sig.Bool
 
 module MemExecAll: Parameter_sig.Bool
 
@@ -119,11 +129,28 @@ module ObviouslyTerminatesAll: Parameter_sig.Bool
 module ObviouslyTerminatesFunctions: Parameter_sig.Fundec_set
 module StopAtNthAlarm: Parameter_sig.Int
 
-module ReusedExprs: Parameter_sig.Bool
+
+(** Dynamic allocation *)
+
+module MallocFunctions: Parameter_sig.String_set
+module MallocReturnsNull: Parameter_sig.Bool
+module MallocLevel: Parameter_sig.Int
 
 
 val parameters_correctness: Typed_parameter.t list
 val parameters_tuning: Typed_parameter.t list
+
+(** Debug categories responsible for printing initial and final states of Value.
+   Enabled by default, but can be disabled via the command-line:
+   -value-msg-key="-initial_state,-final_state" *)
+val dkey_initial_state : Log.category
+val dkey_final_states : Log.category
+
+(** Debug category used when emitting an alarm in "non-warning" mode *)
+val dkey_alarm: Log.category
+
+(** Debug category used to print garbled mix *)
+val dkey_garbled_mix: Log.category
 
 (*
 Local Variables:

@@ -15,7 +15,7 @@ void f(void)
 
 void g(void)
 {
-  /*@ loop invariant x ≤ 3+2; */
+  /*@ loop invariant x ≤ 3 + 2; */
   while (x < y) x ++;
   return;
 }

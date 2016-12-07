@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main11
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NULL[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
@@ -125,22 +125,22 @@ tests/value/alias.i:260:[value] entering loop for the first time
         =END OF DUMP==
 [value] Recording results for f2
 [value] Done for function f2
-tests/value/alias.i:271:[kernel] warning: signed overflow. assert c2+1 ≤ 2147483647;
-tests/value/alias.i:273:[kernel] warning: signed overflow. assert c2+2 ≤ 2147483647;
+tests/value/alias.i:271:[value] warning: signed overflow. assert c2 + 1 ≤ 2147483647;
+tests/value/alias.i:273:[value] warning: signed overflow. assert c2 + 2 ≤ 2147483647;
 tests/value/alias.i:279:[value] entering loop for the first time
-tests/value/alias.i:285:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
+tests/value/alias.i:285:[value] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
 tests/value/alias.i:292:[value] entering loop for the first time
-tests/value/alias.i:292:[kernel] warning: signed overflow. assert c1+1 ≤ 2147483647;
+tests/value/alias.i:292:[value] warning: signed overflow. assert c1 + 1 ≤ 2147483647;
 [value] Recording results for main11
 [value] done for function main11
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f2:
+[value:final-states] Values at end of function f2:
   q_0 ∈ {{ &p2 + {1} }}
   p2[0][bits 0 to 15]# ∈ {1} repeated %8 
     [0][bits 16 to 31] ∈ {0}
     [1] ∈ {33}
     [2..4] ∈ {0}
-[value] Values at end of function main11:
+[value:final-states] Values at end of function main11:
   A ∈ {1; 33}
   B ∈ {-32; 0; 32}
   D ∈ {33}

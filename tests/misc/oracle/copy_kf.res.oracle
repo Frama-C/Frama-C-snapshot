@@ -8,7 +8,7 @@
          extern void g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int f(int x)
          {
            int __retres;
@@ -19,7 +19,7 @@
          }
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int new_f(int x)
          {
            int __retres;
@@ -41,7 +41,7 @@
          extern void new_g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int f(int x)
          {
            int __retres;
@@ -52,7 +52,7 @@
          }
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int new_f(int x)
          {
            int __retres;
@@ -74,7 +74,7 @@
          extern void new_g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int f(int x)
          {
            int __retres;
@@ -85,7 +85,7 @@
          }
          
          /*@ requires 0 ≤ x ≤ 10;
-             ensures \result ≡ 2*\old(x); */
+             ensures \result ≡ 2 * \old(x); */
          int new_f(int x)
          {
            int __retres;

@@ -123,18 +123,18 @@ void isPresent_post_func(int res)
 }
 
 /*@ requires 1 ≡ Idle ∧ 0 ≡ End ∧ 0 ≡ WillDoFoo;
-    requires \valid(t+(0 .. size-1));
+    requires \valid(t + (0 .. size - 1));
     requires size ≥ 0;
     decreases size;
     ensures -1 ≤ \result < \old(size);
     
     behavior found:
-      ensures 0 ≤ \result ⇒ *(\old(t)+\result) ≡ \old(val);
+      ensures 0 ≤ \result ⇒ *(\old(t) + \result) ≡ \old(val);
     
     behavior notIn:
       ensures
         \result ≡ -1 ⇒
-        (∀ ℤ i; 0 ≤ i < \old(size) ⇒ *(\old(t)+i) ≢ \old(val));
+        (∀ ℤ i; 0 ≤ i < \old(size) ⇒ *(\old(t) + i) ≢ \old(val));
     
     behavior Buchi_property_behavior:
       ensures

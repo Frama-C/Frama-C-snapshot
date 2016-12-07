@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main0
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
   c ∈ {0}
   u ∈ {0}
@@ -19,11 +19,11 @@
 [value] Recording results for main0
 [value] done for function main0
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function incr:
+[value:final-states] Values at end of function incr:
   G ∈ {1}
   H ∈ {1}
   __retres ∈ {2}
-[value] Values at end of function main0:
+[value:final-states] Values at end of function main0:
   G ∈ {1}
   H ∈ {1}
   I ∈ {2}

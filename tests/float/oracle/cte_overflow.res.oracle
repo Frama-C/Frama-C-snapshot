@@ -7,14 +7,14 @@ tests/float/cte_overflow.i:17:[kernel] warning: Floating-point constant 1e500f i
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/float/cte_overflow.i:12:[kernel] warning: non-finite double value. assert \is_finite(1e500);
-tests/float/cte_overflow.i:17:[kernel] warning: non-finite float value. assert \is_finite(1e80f);
+tests/float/cte_overflow.i:12:[value] warning: non-finite double value. assert \is_finite(1e500);
+tests/float/cte_overflow.i:17:[value] warning: non-finite float value. assert \is_finite(1e80f);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t ∈ {0}
   __retres ∈ {0}
 [from] Computing for function main

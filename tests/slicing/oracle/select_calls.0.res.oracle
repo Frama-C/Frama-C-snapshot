@@ -1,44 +1,44 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/select_calls.c (with preprocessing)
+[kernel] Parsing tests/slicing/select_calls.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
   d ∈ [--..--]
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:22.
-tests/slicing/select_calls.c:22:[kernel] warning: Neither code nor specification for function send, generating default assigns from the prototype
+        Called from tests/slicing/select_calls.i:22.
+tests/slicing/select_calls.i:22:[kernel] warning: Neither code nor specification for function send, generating default assigns from the prototype
 [value] using specification for function send
 [value] Done for function send
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:23.
+        Called from tests/slicing/select_calls.i:23.
 [value] Done for function send
 [value] computing for function crypt <- f.
-        Called from tests/slicing/select_calls.c:24.
-tests/slicing/select_calls.c:24:[kernel] warning: Neither code nor specification for function crypt, generating default assigns from the prototype
+        Called from tests/slicing/select_calls.i:24.
+tests/slicing/select_calls.i:24:[kernel] warning: Neither code nor specification for function crypt, generating default assigns from the prototype
 [value] using specification for function crypt
 [value] Done for function crypt
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:25.
+        Called from tests/slicing/select_calls.i:25.
 [value] Done for function send
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:28.
+        Called from tests/slicing/select_calls.i:28.
 [value] Done for function send
 [value] computing for function uncrypt <- f.
-        Called from tests/slicing/select_calls.c:30.
-tests/slicing/select_calls.c:30:[kernel] warning: Neither code nor specification for function uncrypt, generating default assigns from the prototype
+        Called from tests/slicing/select_calls.i:30.
+tests/slicing/select_calls.i:30:[kernel] warning: Neither code nor specification for function uncrypt, generating default assigns from the prototype
 [value] using specification for function uncrypt
 [value] Done for function uncrypt
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:31.
+        Called from tests/slicing/select_calls.i:31.
 [value] Done for function send
 [value] computing for function crypt <- f.
-        Called from tests/slicing/select_calls.c:33.
+        Called from tests/slicing/select_calls.i:33.
 [value] Done for function crypt
 [value] computing for function send <- f.
-        Called from tests/slicing/select_calls.c:35.
+        Called from tests/slicing/select_calls.i:35.
 [value] Done for function send
 [value] Recording results for f
 [value] done for function f
@@ -94,3 +94,5 @@ void f(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_select_calls.i (no preprocessing)

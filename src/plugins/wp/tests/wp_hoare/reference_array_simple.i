@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-model +ref -wp-msg-key var_kind
+   OPT: -wp-model +ref -wp-msg-key refusage
 */
 
 /* run.config_qualif
@@ -11,7 +11,7 @@ int tt[10][5];
 //@ ensures \result == p1[i]; assigns \nothing;
 int f1 (int * p1,int i) ;
 
-//@ ensures todo: \result ==5; 
+//@ ensures \result ==5; 
 int call_f1(void)
 { 
   tt[0][3] = 5; 

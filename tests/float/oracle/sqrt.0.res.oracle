@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/float/sqrt.i:12:[value] assertion got status valid.
 tests/float/sqrt.i:14:[value] assertion got status valid.
@@ -29,7 +29,7 @@ tests/float/sqrt.i:14:[value] assertion got status valid.
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 tests/float/sqrt.i:11:[kernel] warning: Neither code nor specification for function Frama_C_sqrt, generating default assigns from the prototype
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   k ∈ {8}
   i ∈ {-0.}
   j ∈ {-0.}
@@ -45,6 +45,8 @@ tests/float/sqrt.i:11:[kernel] warning: Neither code nor specification for funct
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_sqrt:
+  \result FROM d
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======

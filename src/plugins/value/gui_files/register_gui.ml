@@ -287,11 +287,11 @@ module Callstacks_manager = struct
         try
           let txt = match col_type with
             | CBefore e ->
-              Pretty_utils.sfprintf "'%a'  (before)" pretty_gui_selection e
+              Format.asprintf "'%a'  (before)" pretty_gui_selection e
             | CAfter e ->
-              Pretty_utils.sfprintf "'%a'  (after)" pretty_gui_selection e
+              Format.asprintf "'%a'  (after)" pretty_gui_selection e
             | CAlarm e ->
-              Pretty_utils.sfprintf "'%a'  (alarms)" pretty_gui_selection e
+              Format.asprintf "'%a'  (alarms)" pretty_gui_selection e
             | CCallstack | CEmpty -> raise Not_found
           in
           if column#visible ||
@@ -469,7 +469,7 @@ module Callstacks_manager = struct
       let menu_on_expr col_type (icon: GMisc.image)  (menu: GMenu.menu Lazy.t)=
         let has_filters = column_has_filter model col_type in
         let txt_remove_col =
-          Pretty_utils.sfprintf "Remove all columns for '%a'%s"
+          Format.asprintf "Remove all columns for '%a'%s"
             pretty_gui_selection expr
             (if has_filters then " (including filters)" else "")
         in
@@ -609,7 +609,7 @@ module Callstacks_manager = struct
     in
     (* This is the menu which is displayed when the user right-clicks
        on a data column. It can be used to filter lines *)
-    let popup_menu_filter expr v icon =
+    let popup_menu_filter expr v icon vars_to_display =
       let menu = GMenu.menu () in
       let callback_only_except oe () =
         let filter = expr, oe, v in
@@ -623,6 +623,27 @@ module Callstacks_manager = struct
       menu#add different;
       ignore (equal#connect#activate (callback_only_except true));
       ignore (different#connect#activate (callback_only_except false));
+      (* add menu items for variables present in the selected expression *)
+      let callback_display_var vi () =
+        Extlib.may (fun loc ->
+            let opt_states = Gui_eval.callstacks_at_gui_loc loc in
+            Extlib.may
+              (fun { Gui_eval.states_before = before; states_after = after } ->
+                 let lval = (Var vi, NoOffset) in
+                 let _errors = Gui_eval.make_data_all_callstacks add_data
+                     Gui_eval.lval_ev ~before ~after lval
+                 in
+                 render_session ()
+              ) opt_states
+          ) model.loc
+      in
+      List.iter (fun vi ->
+          let label = Format.asprintf "Display values for '%a'"
+              Printer.pp_varinfo vi in
+          let varmenuitem = GMenu.menu_item ~label () in
+          menu#add varmenuitem;
+          ignore (varmenuitem#connect#activate (callback_display_var vi));
+        ) vars_to_display;
       let time = GtkMain.Main.get_current_event_time () in
       menu#popup ~button:3 ~time
     in
@@ -667,6 +688,11 @@ module Callstacks_manager = struct
            end
          | CAlarm _, _ | CEmpty, _ -> ()
       );
+    let gui_res_of_after f after =
+      match after with
+      | GA_After r -> f r
+      | GA_NA | GA_Unchanged -> []
+    in
     w#on_right_click
       (fun (_, row) column ->
          match HColumns.find model.columns_type column with
@@ -692,14 +718,16 @@ module Callstacks_manager = struct
            let data = find_data row expr in
            if data.Gui_eval.before <> GR_Empty then
              popup_menu_filter expr (FilterBefore data.Gui_eval.before) icon
+               (Gui_types.vars_in_gui_res data.Gui_eval.before);
          | CAfter expr, icon ->
            let data = find_data row expr in
            if data.Gui_eval.before <> GR_Empty then
              popup_menu_filter expr (FilterAfter data.Gui_eval.after) icon
+               (gui_res_of_after Gui_types.vars_in_gui_res data.Gui_eval.after)
          | CAlarm expr, icon ->
            let data = find_data row expr in
            if data.Gui_eval.before <> GR_Empty then
-             popup_menu_filter expr (FilterAlarm data.Gui_eval.alarm) icon
+             popup_menu_filter expr (FilterAlarm data.Gui_eval.alarm) icon []
          | CEmpty, _ -> ()
       );
     frame,
@@ -850,13 +878,13 @@ module Callstacks_manager = struct
       | Some loc ->
         let txt = match loc with
           | GL_Stmt (kf, stmt) ->
-            Pretty_utils.sfprintf "%a:%d"
+            Format.asprintf "%a:%d"
               Kernel_function.pretty kf
               (fst (Cil_datatype.Stmt.loc stmt)).Lexing.pos_lnum
           | GL_Pre kf ->
-            Pretty_utils.sfprintf "pre %a" Kernel_function.pretty kf
+            Format.asprintf "pre %a" Kernel_function.pretty kf
           | GL_Post kf ->
-            Pretty_utils.sfprintf "post %a" Kernel_function.pretty kf
+            Format.asprintf "post %a" Kernel_function.pretty kf
         in
         let hb = GPack.hbox () in
         ignore (GMisc.label ~packing:hb#pack ~markup:txt ());
@@ -1043,7 +1071,7 @@ let eval_acsl_term_pred main_ui cm loc tp () =
   let txt =
     GToolbox.input_string ~title:"Evaluate"
       ~text:!last_evaluate_acsl_request
-      (Pretty_utils.sfprintf "  Enter an ACSL %a to evaluate  "
+      (Format.asprintf "  Enter an ACSL %a to evaluate  "
          pp_term_or_pred tp)
       (* the spaces at beginning and end should not be necessary
          but are the quickest fix for an aesthetic GTK problem *)
@@ -1145,7 +1173,8 @@ let pretty_stmt_info (main_ui:main_ui) kf stmt =
   end
   else main_ui#pretty_information "This code is dead@."
 
-(* Actions to perform when the user has left-clicked, and Value is computed *)
+(* Actions to perform when the user has left-clicked, and Value is computed.
+   Maintain sychronized with [can_eval_acsl_expr_selector] later in this file.*)
 let left_click_values_computed main_ui cm localizable =
   try
     let open Property in
@@ -1156,6 +1185,9 @@ let left_click_values_computed main_ui cm localizable =
     | PLval (Some kf, Kstmt stmt,lv) ->
       if not (isFunctionType (typeOfLval lv)) then
         select_lv main_ui cm (GL_Stmt (kf, stmt)) lv
+    | PLval (Some kf, Kglobal, lv) -> (* see can_eval_acsl_expr_selector *)
+      if not (isFunctionType (typeOfLval lv)) then
+        select_lv main_ui cm (GL_Pre kf) lv
     | PExp (Some kf, Kstmt stmt,e) ->
       select_exp main_ui cm (GL_Stmt (kf, stmt)) e
     | PTermLval (Some kf, Kstmt stmt, _, tlv) ->
@@ -1180,7 +1212,7 @@ let left_click_values_computed main_ui cm localizable =
         | Some loc ->
           select_predicate main_ui cm loc (Logic_const.pred_of_id_pred p)
       end
-    | PLval ((_ , Kglobal, _) | (None, Kstmt _, _))
+    | PLval (None , _, _)
     | PExp ((_,Kglobal,_) | (None, Kstmt _, _))
     | PTermLval (None, _, _, _)-> ()
     | PVDecl (_kf,_vi) -> ()
@@ -1317,14 +1349,6 @@ let hide_unused_function_or_var g =
     | _ -> false
   )
 
-module DegeneratedHighlighted =
-  State_builder.Option_ref
-    (Pretty_source.Localizable)
-    (struct
-      let name = "Value_gui.DegeneratedHighlightedState"
-      let dependencies = [ Ast.self ]
-    end)
-
 let value_panel (main_ui:main_ui) =
   let box = GPack.vbox () in
   let run_button = GButton.button ~label:"Run" ~packing:(box#pack) () in
@@ -1398,6 +1422,12 @@ let add_keybord_shortcut_evaluate (main_ui:main_ui) cm =
     | PTermLval (Some kf, Kstmt stmt, _, _) ->
       if Gui_eval.results_kf_computed kf
       then select (Some (GL_Stmt (kf, stmt)))
+      else select None
+    | PLval (Some kf, Kglobal, _) ->
+      (* We are either on a formal, or on the declaration of the variables of
+         [kf] at body scope. *)
+      if Gui_eval.results_kf_computed kf
+      then select (Some (GL_Pre kf))
       else select None
     | PTermLval (Some kf, Kglobal, ip, _) ->
       select (Gui_eval.classify_pre_post kf ip)

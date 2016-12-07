@@ -3,18 +3,12 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   X ∈ {0}
   p ∈ {0}
-tests/value/invalid_lval_arg.i:15:[value] completely invalid location in evaluation of
-        argument *(*((int **)0))
-tests/value/invalid_lval_arg.i:15:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
-tests/value/invalid_lval_arg.i:17:[value] completely invalid location in evaluation of
-        argument *(*((int **)0))
-tests/value/invalid_lval_arg.i:17:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
-tests/value/invalid_lval_arg.i:19:[value] completely invalid location in evaluation of
-        argument *(*((int **)0))
-tests/value/invalid_lval_arg.i:19:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
+tests/value/invalid_lval_arg.i:15:[value] warning: out of bounds read. assert \valid_read((int **)0);
+tests/value/invalid_lval_arg.i:17:[value] warning: out of bounds read. assert \valid_read((int **)0);
+tests/value/invalid_lval_arg.i:19:[value] warning: out of bounds read. assert \valid_read((int **)0);
 [value] Recording results for main
 [value] done for function main
 tests/value/invalid_lval_arg.i:15:[value] assertion 'Value,mem_access' got final status invalid.
@@ -22,7 +16,7 @@ tests/value/invalid_lval_arg.i:17:[value] assertion 'Value,mem_access' got final
 tests/value/invalid_lval_arg.i:19:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 tests/value/invalid_lval_arg.i:15:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
 [from] Computing for function main
 [from] Computing for function f <-main

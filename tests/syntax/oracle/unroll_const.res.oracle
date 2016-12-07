@@ -35,7 +35,7 @@ void main(void)
   if (! c) goto unrolling_2_loop;
   i ++;
   unrolling_3_loop: ;
-  /*@ loop pragma UNROLL sizeof(t)/sizeof(t[0]);
+  /*@ loop pragma UNROLL sizeof(t) / sizeof(t[0]);
       loop pragma UNROLL "done", 4;
   */
   while (c) i ++;
@@ -95,7 +95,7 @@ void main(void)
   if (! c) goto unrolling_22_loop;
   i ++;
   unrolling_23_loop: ;
-  /*@ loop pragma UNROLL s.i+s.v.l;
+  /*@ loop pragma UNROLL s.i + s.v.l;
       loop pragma UNROLL "done", 5; */
   while (c) i ++;
   unrolling_22_loop: ;
@@ -135,7 +135,7 @@ void main(void)
   if (! c) goto unrolling_35_loop;
   i ++;
   unrolling_36_loop: ;
-  /*@ loop pragma UNROLL \max({1, 1+s.i});
+  /*@ loop pragma UNROLL \max({1, 1 + s.i});
       loop pragma UNROLL "done", 6; */
   while (c) i ++;
   unrolling_35_loop: ;
@@ -145,7 +145,7 @@ void main(void)
   if (! c) goto unrolling_43_loop;
   i ++;
   unrolling_44_loop: ;
-  /*@ loop pragma UNROLL \min(t[{1, 3}])+\max(t[{1, 3}]);
+  /*@ loop pragma UNROLL \min(t[{1, 3}]) + \max(t[{1, 3}]);
       loop pragma UNROLL "done", 2;
   */
   while (c) i ++;
@@ -168,7 +168,7 @@ void main(void)
   if (! c) goto unrolling_47_loop;
   i ++;
   unrolling_48_loop: ;
-  /*@ loop pragma UNROLL \min(u[.. 1].i1)*\max(u[.. 1].i1);
+  /*@ loop pragma UNROLL \min(u[.. 1].i1) * \max(u[.. 1].i1);
       loop pragma UNROLL "done", 6;
   */
   while (c) i ++;

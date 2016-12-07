@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/reads.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -50,12 +49,7 @@ Prove: P_P(m[v <- 1 + x_2], u, v).
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,F_OK' in 'modifies_x':
-Assume {
-  Type: is_sint32(x).
-  (* Pre-condition 'H' *)
-  Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
-}
-Prove: P_f.
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -93,12 +87,7 @@ Prove: P_w(y, 1 + x).
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,F_OK' in 'modifies_y':
-Assume {
-  Type: is_sint32(y).
-  (* Pre-condition 'H' *)
-  Have: P_f /\ P_g(x) /\ P_h(y, x) /\ P_w(y, x).
-}
-Prove: P_f.
+Prove: true.
 
 ------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function stop <- main.
         Called from tests/value/goto.i:10.
@@ -12,9 +12,9 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function stop:
+[value:final-states] Values at end of function stop:
   NON TERMINATING FUNCTION
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   c ∈ [--..--]
   __retres ∈ {0}
 [from] Computing for function stop

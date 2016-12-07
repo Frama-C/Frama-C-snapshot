@@ -8,8 +8,8 @@ int main(void)
   long lx;
   long ly;
   long lz;
-  /*@ assert rte: signed_overflow: -2147483648 ≤ lx*ly; */
-  /*@ assert rte: signed_overflow: lx*ly ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ lx * ly; */
+  /*@ assert rte: signed_overflow: lx * ly ≤ 2147483647; */
   lz = lx * ly;
   __retres = 0;
   return __retres;

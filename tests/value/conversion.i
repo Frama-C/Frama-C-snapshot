@@ -1,3 +1,9 @@
+/* run.config*
+   STDOPT: +"-val-warn-copy-indeterminate=-@all -then -val-warn-copy-indeterminate=@all"
+*/
+
+// Comments are given for cases where -val-warn-copy-indeterminate is not set
+
 volatile v;
 
 void main() {

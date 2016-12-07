@@ -1,21 +1,17 @@
-# frama-c -wp -wp-model 'Typed (Ref)' [...]
+# frama-c -wp [...]
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/logicarr.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-tests/wp_hoare/logicarr.i:27:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
-[wp] Collecting variable usage
-tests/wp_hoare/logicarr.i:26:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
-tests/wp_hoare/logicarr.i:26:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
 [wp] 3 goals scheduled
-[wp] [Alt-Ergo] Goal typed_ref_job_post_qed_ok_PTR_todo : Unknown
-[wp] [Alt-Ergo] Goal typed_ref_job_post_qed_ok_ARR_todo : Unknown (Stronger, 2 warnings)
-[wp] [Alt-Ergo] Goal typed_ref_job_post_qed_ok_DUM_todo : Unknown (Stronger)
-[wp] Proved goals:    0 / 3
-     Alt-Ergo:        0  (unknown: 3)
+[wp] [Alt-Ergo] Goal typed_job_post_PTR : Valid
+[wp] [Alt-Ergo] Goal typed_job_post_ARR : Valid
+[wp] [Alt-Ergo] Goal typed_job_post_DUM : Valid
+[wp] Proved goals:    3 / 3
+     Qed:             0 
+     Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-job                 -      -           3       0.0%
+job                 -       3 (27)     3       100%
 ----------------------------------------------------------

@@ -414,6 +414,21 @@ class markReachableVisitor
     | _ ->
 	SkipChildren
 
+  method! vstmt s =
+    match s.skind with
+    | TryCatch(_,c,_) ->
+      List.iter
+        (fun (decl,_) ->
+           match decl with
+           | Catch_exn(v,l) ->
+             (* treat all variables declared in exn clause as used. *)
+             ignore (self#vvrbl v);
+             List.iter (fun (v,_) -> ignore (self#vvrbl v)) l
+           | Catch_all -> ())
+        c;
+      DoChildren
+    | _ -> DoChildren
+
   method! vinst = function
     | Asm (_, tmpls, _, _) when Cil.msvcMode () ->
           (* If we have inline assembly on MSVC, we cannot tell which locals
@@ -630,7 +645,7 @@ object
     end;
     DoChildren
 
-  method! vpredicate t =
+  method! vpredicate_node t =
     begin
       match t with
       | Pat (_,lab) -> keep_label_logic lab

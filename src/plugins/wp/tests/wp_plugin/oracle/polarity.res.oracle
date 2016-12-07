@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/polarity.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/polarity.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
+              (\initialized(\at(p,Pre)))
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_plugin/polarity.i, line 4):
+tests/wp_plugin/polarity.i:1: warning from wp:
+ - Warning: Ignored Hypothesis
+   Reason: Allocation, initialization and danglingness not yet implemented
+(\initialized(\at(p,Pre)))
+Prove: false.
+
+------------------------------------------------------------

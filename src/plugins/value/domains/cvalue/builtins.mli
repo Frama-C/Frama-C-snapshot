@@ -27,7 +27,7 @@ exception Invalid_nb_of_args of int
 
 (** Register the given OCaml function as a builtin, that will be used
     instead of the Cil C function of the same name *)
-val register_builtin: string -> Db.Value.builtin_sig -> unit
+val register_builtin: string -> ?replace:string -> Db.Value.builtin_sig -> unit
 
 (** Returns a list of the pairs (name, builtin_sig) registered via
     [register_builtin].
@@ -42,7 +42,7 @@ val find_builtin: string -> Db.Value.builtin_sig
 val mem_builtin: string -> bool
 
 (** Should the given function be replaced by a call to a builtin *)
-val overridden_by_builtin: Kernel_function.t -> bool
+val find_builtin_override: Kernel_function.t -> Db.Value.builtin_sig option
 
 val clobbered_set_from_ret: Cvalue.Model.t -> Cvalue.V.t -> Base.SetLattice.t
 (** [clobbered_set_from_ret state ret] can be used for functions that return
@@ -50,19 +50,17 @@ val clobbered_set_from_ret: Cvalue.Model.t -> Cvalue.V.t -> Base.SetLattice.t
     of [ret] whose contents may contain local variables. *)
 
 
-(** Builtins with multiple names; the lookup is done using a distinctive
-    prefix *)
-(* TODO: move the lookup mechanism into find_builtin *)
-val dump_state: Db.Value.builtin_sig
-val dump_args: string -> Db.Value.builtin_sig
-val dump_state_file: string -> Db.Value.builtin_sig
-
-
 (** Emit an ACSL assert (using \warning predicate) to signal that the
     builtin encountered an alarm described by the string.
-    [kind] is used to describe the alarm, similarly to [Alarms.get_name]. *)
-val emit_alarm: kind:string -> text:string -> unit
+    [kind] is used to describe the alarm, similarly to [Alarms.get_name].
+    Identical alarms are not re-emitted. Returns [true] iff it is a new alarm.
 
+    @modify Silicon-20161101 change return type *)
+val emit_alarm: kind:string -> text:string -> bool
+
+(** Iteration on special assertions built by the builtins *)
+val fold_emitted_alarms:
+  (Cil_types.stmt -> Cil_datatype.Code_annotation.Set.t -> 'a -> 'a) -> 'a -> 'a
 
 (*
 Local Variables:

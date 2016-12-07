@@ -23,26 +23,29 @@
 open Cil_types
 open Cil_datatype
 
+(* Note concerning all visitors and hints related to statements:
+   currently, [stmt] is always [None]. Because our dataflow does not
+   stabilize inner loop before the outer ones, we sometimes end up widening
+   an inner variable inside an outer loop. Hence, we need to have the inner
+   widening hints in the outer loops. To do so, the simplest is to avoid
+   specifying statements altogether. This may be inefficient for codes that
+   reuse loop indexes...
+ *)
 
-class widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
+class pragma_widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
   inherit Visitor.frama_c_inplace
 
   val widen_hints = init_widen_hints
   val enclosing_loops = init_enclosing_loops
 
-  (* Caution: currently, [stmt] is always [None]. Because our dataflow does not
-     stabilize inner loop before the outer ones, we sometimes end up widening
-     an inner variable inside an outer loop. Hence, we need to have the inner
-     widening hints in the outer loops. To do so, the simplest is to avoid
-     specifying statements altogether. This may be inefficient for codes that
-     reuse loop indexes... *)
-  method private add_num_hints ?stmt ?base hints =
-    widen_hints := Widen_type.add_num_hints stmt base hints !widen_hints
+  method private add_num_hints ?base hints =
+    widen_hints := Widen_type.join (Widen_type.num_hints None(*see note*) base hints) !widen_hints
 
-  method private add_var_hints ~stmt hints = 
-    widen_hints := Widen_type.add_var_hints stmt hints !widen_hints
+  method private add_var_hints ~stmt hints =
+    widen_hints := Widen_type.join (Widen_type.var_hints stmt hints) !widen_hints
 
-  method private process_loop_pragma stmt p = match p with
+  method private process_loop_pragma stmt p =
+    match p with
   | Widen_variables l -> begin
     let f (lv, lt) t = match t with
       | { term_node= TLval (TVar {lv_origin = Some vi}, _)} ->
@@ -54,7 +57,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
       (* the annotation is empty or contains only variables *)
       self#add_var_hints ~stmt var_hints
     | (_lv, _lt) ->
-      Kernel.warning ~once:true ~current:true
+      Kernel.warning ~once:true
         "could not interpret loop pragma relative to widening variables"
   end
   | Widen_hints l -> begin
@@ -69,11 +72,11 @@ class widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
     | (vars, hints, []) ->
       (* the annotation is empty or contains only variables *)
       if vars = [] then
-        self#add_num_hints ?stmt:None hints
+        self#add_num_hints hints
       else
-        List.iter (fun base -> self#add_num_hints ?stmt:None ~base hints) vars
+        List.iter (fun base -> self#add_num_hints ~base hints) vars
     | _ ->
-      Kernel.warning ~once:true ~current:true
+      Kernel.warning ~once:true
         "could not interpret loop pragma relative to widening hint"
   end
   | _ -> ()
@@ -88,7 +91,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
       let pragmas = Logic_utils.extract_loop_pragma annot in
       List.iter (self#process_loop_pragma s) pragmas;
       let new_loop_info = s :: enclosing_loops in
-      let visitor = new widen_visitor kf widen_hints new_loop_info in
+      let visitor = new pragma_widen_visitor kf widen_hints new_loop_info in
       ignore (Visitor.visitFramacBlock visitor bl);
       Cil.SkipChildren (* Otherwise the inner statements are visited multiple
                           times needlessly *)
@@ -237,36 +240,161 @@ class widen_visitor kf init_widen_hints init_enclosing_loops = object(self)
     Cil.DoChildren
 end
 
-let compute_widen_hints kf default_widen_hints =
+let bases_of_lval olv =
+  match olv with
+  | None -> None
+  | Some (lh, _offs) ->
+    begin
+      match lh with
+      | Var vi -> Some [Base.of_varinfo vi]
+      | _ -> assert false (* syntactic constraints prevent this from happening *)
+    end
+
+let hint_of_hint_term ht =
+  let global_find_init vi =
+    try (Globals.Vars.find vi).init with Not_found -> None
+  in
+  let ht = Cil.visitCilTerm
+      (new Logic_utils.simplify_const_lval global_find_init) ht
+  in
+  match Logic_utils.constFoldTermToInt ht with
+  | None -> Kernel.abort ~source:(fst ht.term_loc)
+              "could not parse widening hint: %a@ \
+               If it contains variables, they must be global const integers."
+              Printer.pp_term ht
+  | Some i -> i
+
+let iter_hints ~global hints (add_hints: ?base:Base.t -> Ival.Widen_Hints.t -> unit) =
+  List.iter
+    (fun ({Widen_hints_ext.vars = olv; loc}, wh_terms) ->
+       let obases = bases_of_lval olv in
+       let hints = List.fold_left (fun acc' ht ->
+           Ival.Widen_Hints.add (hint_of_hint_term ht) acc'
+         ) Ival.Widen_Hints.empty wh_terms
+       in
+       Kernel.feedback ~source:(fst loc) ~dkey:Widen_hints_ext.dkey
+         "adding%s hint from annotation: %a, %a (for all statements)"
+         (if global then " global" else "")
+         (Pretty_utils.pp_opt ~none:(format_of_string "for all variables")
+            (Pretty_utils.pp_list ~sep:", " Base.pretty)) obases
+         Ival.Widen_Hints.pretty hints;
+       match obases with
+       | None -> add_hints ?base:None hints
+       | Some bases ->
+         List.iter (fun base ->
+             add_hints ~base hints
+           ) bases
+    ) hints
+
+class global_hints_visitor init_widen_hints = object(self)
+  inherit Visitor.frama_c_inplace
+
+  val widen_hints = init_widen_hints
+
+  method private add_num_hints ?base hints =
+    widen_hints := Widen_type.join (Widen_type.num_hints None(*see note*) base hints) !widen_hints
+
+  method! vstmt s =
+    let all_hints = Widen_hints_ext.get_stmt_widen_hint_terms s in
+    let global_hints = List.filter Widen_hints_ext.is_global all_hints in
+    iter_hints ~global:true global_hints self#add_num_hints;
+    Cil.DoChildren
+end
+
+class hints_visitor init_widen_hints = object(self)
+  inherit Visitor.frama_c_inplace
+
+  val widen_hints = init_widen_hints
+
+  method private add_num_hints ?base hints =
+    widen_hints := Widen_type.join (Widen_type.num_hints None base hints) !widen_hints
+
+  method! vstmt s =
+    let all_hints = Widen_hints_ext.get_stmt_widen_hint_terms s in
+    let non_global_hints =
+      List.filter (fun ht -> not (Widen_hints_ext.is_global ht)) all_hints
+    in
+    iter_hints ~global:false non_global_hints self#add_num_hints;
+    Cil.DoChildren
+end
+
+let compute_pragma_widen_hints kf default_widen_hints =
   let widen_hints =
     begin
       match kf.fundec with
-        | Declaration _ -> default_widen_hints
-        | Definition (fd,_) ->
-            begin
-              let widen_hints = ref default_widen_hints in
-	      let visitor = new widen_visitor kf widen_hints [] in
-	      ignore (Visitor.visitFramacFunction visitor fd);
-              !widen_hints
-            end
+      | Declaration _ -> default_widen_hints
+      | Definition (fd,_) ->
+        begin
+          let widen_hints = ref default_widen_hints in
+          let visitor = new pragma_widen_visitor kf widen_hints [] in
+          ignore (Visitor.visitFramacFunction visitor fd);
+          !widen_hints
+        end
     end
   in widen_hints
+
+let compute_local_widen_hints kf default_widen_hints =
+  let widen_hints =
+    begin
+      match kf.fundec with
+      | Declaration _ -> default_widen_hints
+      | Definition (fd,_) ->
+        begin
+          let widen_hints = ref default_widen_hints in
+          let visitor = new hints_visitor widen_hints in
+          ignore (Visitor.visitFramacFunction visitor fd);
+          !widen_hints
+        end
+    end
+  in
+  widen_hints
+
+module Global_Hints =
+  State_builder.Ref
+    (Widen_type)
+    (struct
+      let dependencies = [ Ast.self ]
+      let name = "Widen.Global_Hints"
+      let default = Widen_type.default
+    end)
+let () = Ast.add_monotonic_state Global_Hints.self
+
+let compute_global_widen_hints () =
+  if (not (Global_Hints.is_computed ())) then
+    begin
+      Kernel.debug ~dkey:Widen_hints_ext.dkey "computing global widen hints";
+      let global_widen_hints = ref (Widen_type.default ()) in
+      Globals.Functions.iter_on_fundecs (fun fd ->
+          let visitor = new global_hints_visitor global_widen_hints in
+          ignore (Visitor.visitFramacFunction visitor fd));
+      Global_Hints.set !global_widen_hints;
+      Global_Hints.mark_as_computed ()
+    end
 
 module Hints =
   Kernel_function.Make_Table
     (Widen_type)
     (struct
-       let name = "Widen.Hints"
-       let size = 97
-       let dependencies = [ Ast.self ]
-     end)
+      let name = "Widen.Hints"
+      let size = 97
+      let dependencies = [ Ast.self ]
+    end)
 let () = Ast.add_monotonic_state Hints.self
 
+let precompute_widen_hints () =
+  compute_global_widen_hints ();
+  (* parse and precompute local hints *)
+  let global_hints = Global_Hints.get () in
+  Globals.Functions.iter (fun kf ->
+      if Kernel_function.is_definition kf then
+        ignore (Hints.memo (fun kf -> compute_pragma_widen_hints kf
+                               (compute_local_widen_hints kf global_hints)
+                           ) kf)
+    )
+
 let getWidenHints (kf:kernel_function) (s:stmt) =
-  let widen_hints_map =
-    Hints.memo (fun kf -> compute_widen_hints kf (Widen_type.default ())) kf
-  in
-  Widen_type.hints_from_keys s widen_hints_map
+  precompute_widen_hints (); (* in case they have been erased *)
+  Widen_type.hints_from_keys s (Hints.find kf)
 
 (*
 Local Variables:

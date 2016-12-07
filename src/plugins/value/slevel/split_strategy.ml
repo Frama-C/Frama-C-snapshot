@@ -88,6 +88,6 @@ let to_string = function
   | SplitAuto -> "auto"
   | FullSplit -> "full"
   | SplitEqList l ->
-    Pretty_utils.sfprintf "%t"
+    Format.asprintf "%t"
       (fun fmt ->
          Pretty_utils.pp_list ~sep:":" Datatype.Integer.pretty fmt l)

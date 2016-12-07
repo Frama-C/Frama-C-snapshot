@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   a ∈ {0}
   b ∈ {0}
   c ∈ {0}
@@ -86,12 +86,12 @@ tests/value/from_call.i:20:[kernel] warning: Neither code nor specification for 
 [from] Computing for function f
 [from] Done for function f
 [value] Done for function f
-tests/value/from_call.i:82:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ tmp+tmp_0;
-                  (tmp from f(& c), tmp_0 from f(& d))
-tests/value/from_call.i:82:[kernel] warning: signed overflow.
-                  assert tmp+tmp_0 ≤ 2147483647;
-                  (tmp from f(& c), tmp_0 from f(& d))
+tests/value/from_call.i:82:[value] warning: signed overflow.
+                 assert -2147483648 ≤ tmp + tmp_0;
+                 (tmp from f(& c), tmp_0 from f(& d))
+tests/value/from_call.i:82:[value] warning: signed overflow.
+                 assert tmp + tmp_0 ≤ 2147483647;
+                 (tmp from f(& c), tmp_0 from f(& d))
 [value] computing for function dispatcher <- main.
         Called from tests/value/from_call.i:83.
 [value] Recording results for dispatcher
@@ -197,30 +197,30 @@ tests/value/from_call.i:82:[kernel] warning: signed overflow.
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function access_tab:
+[value:final-states] Values at end of function access_tab:
   __retres ∈ {0}
-[value] Values at end of function dispatcher:
+[value:final-states] Values at end of function dispatcher:
   
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   __retres ∈ [--..--]
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   b ∈ {0}
   c ∈ {0}
   d ∈ {0}
   previous ∈ {{ &b ; &c ; &d }}
-[value] Values at end of function return_A1:
+[value:final-states] Values at end of function return_A1:
   
-[value] Values at end of function return_A2:
+[value:final-states] Values at end of function return_A2:
   
-[value] Values at end of function dispatcher2:
+[value:final-states] Values at end of function dispatcher2:
   
-[value] Values at end of function call_dispatcher2:
+[value:final-states] Values at end of function call_dispatcher2:
   
-[value] Values at end of function call_dispatcher2_0:
+[value:final-states] Values at end of function call_dispatcher2_0:
   
-[value] Values at end of function call_dispatcher2_1:
+[value:final-states] Values at end of function call_dispatcher2_1:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   b ∈ {0}
   c ∈ {0}
   d ∈ {0}
@@ -238,10 +238,10 @@ tests/value/from_call.i:82:[kernel] warning: signed overflow.
   tab[0..4] ∈ {0}
   AR ∈
     {{ garbled mix of &{AA}
-     (origin: Arithmetic {tests/value/from_call.i:96}) }}
+     (origin: Library function {tests/value/from_call.i:96}) }}
   AS ∈
     {{ garbled mix of &{AA}
-     (origin: Arithmetic {tests/value/from_call.i:96}) }}
+     (origin: Library function {tests/value/from_call.i:96}) }}
   previous ∈ {{ &d }}
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to g at tests/value/from_call.i:20 (by f):

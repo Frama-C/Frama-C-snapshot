@@ -50,9 +50,9 @@ let make ?tab_pos ?packing () =
   }
 
 let input_channel b ic =
-  let buf = String.create 1024 and len = ref 0 in
+  let buf = Bytes.create 1024 and len = ref 0 in
   while len := input ic buf 0 1024; !len > 0 do
-    Buffer.add_substring b buf 0 !len
+    Buffer.add_subbytes b buf 0 !len
   done
 
 let with_file name ~f =

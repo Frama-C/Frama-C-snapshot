@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
         Called from tests/value/local_cleanup.c:16.
@@ -20,15 +20,15 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   t[0] ∈ UNINITIALIZED
    [1] ∈ {12}
   lmain[0] ∈ UNINITIALIZED
        [1] ∈ {12}
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   t[0] ∈ UNINITIALIZED
    [1] ∈ {12}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   lmain[0] ∈ UNINITIALIZED
        [1] ∈ {12}
 [from] Computing for function f

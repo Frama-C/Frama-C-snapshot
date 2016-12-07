@@ -82,7 +82,7 @@ int g(int x, int y)
 {
   int __retres;
   /*@ assert rte: division_by_zero: y ≢ 0; */
-  /*@ assert rte: signed_overflow: x/y ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: x / y ≤ 2147483647; */
   __retres = x / y;
   return __retres;
 }
@@ -90,8 +90,8 @@ int g(int x, int y)
 int f(int x, int y)
 {
   int __retres;
-  /*@ assert rte: signed_overflow: -2147483648 ≤ x+y; */
-  /*@ assert rte: signed_overflow: x+y ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
+  /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
   if (x + y != 0) 
     if (x == 2147483647) 
       if (y == 1) {
@@ -125,15 +125,15 @@ int main(void)
   while (i < 20) {
     {
       int tmp;
-      /*@ assert rte: signed_overflow: -2147483648 ≤ x+y; */
-      /*@ assert rte: signed_overflow: x+y ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
+      /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
       tmp = x + y;
-      /*@ assert rte: signed_overflow: -2147483648 ≤ x-y; */
-      /*@ assert rte: signed_overflow: x-y ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
+      /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
       x = tmp;
     }
-    /*@ assert rte: signed_overflow: i+1 ≤ 2147483647; */
+    /*@ assert rte: signed_overflow: i + 1 ≤ 2147483647; */
     i ++;
   }
   if (x > 0) 
@@ -144,8 +144,8 @@ int main(void)
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }
-      /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0+tmp_1; */
-      /*@ assert rte: signed_overflow: tmp_0+tmp_1 ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0 + tmp_1; */
+      /*@ assert rte: signed_overflow: tmp_0 + tmp_1 ≤ 2147483647; */
       __retres = tmp_0 + tmp_1;
       goto return_label;
     }
@@ -264,8 +264,8 @@ int g(int x, int y)
 int f(int x, int y)
 {
   int __retres;
-  /*@ assert rte: signed_overflow: -2147483648 ≤ x+y; */
-  /*@ assert rte: signed_overflow: x+y ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
+  /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
   if (x + y != 0) 
     if (x == 2147483647) 
       if (y == 1) {
@@ -299,15 +299,15 @@ int main(void)
   while (i < 20) {
     {
       int tmp;
-      /*@ assert rte: signed_overflow: -2147483648 ≤ x+y; */
-      /*@ assert rte: signed_overflow: x+y ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
+      /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
       tmp = x + y;
-      /*@ assert rte: signed_overflow: -2147483648 ≤ x-y; */
-      /*@ assert rte: signed_overflow: x-y ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
+      /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
       x = tmp;
     }
-    /*@ assert rte: signed_overflow: i+1 ≤ 2147483647; */
+    /*@ assert rte: signed_overflow: i + 1 ≤ 2147483647; */
     i ++;
   }
   if (x > 0) 
@@ -318,8 +318,8 @@ int main(void)
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }
-      /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0+tmp_1; */
-      /*@ assert rte: signed_overflow: tmp_0+tmp_1 ≤ 2147483647; */
+      /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0 + tmp_1; */
+      /*@ assert rte: signed_overflow: tmp_0 + tmp_1 ≤ 2147483647; */
       __retres = tmp_0 + tmp_1;
       goto return_label;
     }

@@ -65,7 +65,7 @@ void f_pre_func(void)
   aorai_CurOperation = op_f;
   aorai_CurStates_tmp = aorai_CurStates;
   if (3 == aorai_CurStates) aorai_CurStates_tmp = S_in_f;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -101,7 +101,7 @@ void f_post_func(void)
   aorai_CurOperation = op_f;
   aorai_CurStates_tmp = aorai_CurStates;
   if (2 == aorai_CurStates) aorai_CurStates_tmp = in_main;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -149,7 +149,7 @@ void main_pre_func(void)
   aorai_CurOperation = op_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (0 == aorai_CurStates) aorai_CurStates_tmp = Sf;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 
@@ -185,7 +185,7 @@ void main_post_func(int res)
   aorai_CurOperation = op_main;
   aorai_CurStates_tmp = aorai_CurStates;
   if (4 == aorai_CurStates) aorai_CurStates_tmp = S2;
-  aorai_CurStates_tmp = aorai_CurStates;
+  aorai_CurStates = aorai_CurStates_tmp;
   return;
 }
 

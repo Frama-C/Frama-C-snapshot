@@ -319,8 +319,10 @@ module MYTREE = struct
         []
         globs
     in
-    let name g = String.lowercase ((get_storage g).name) in
-    let sort = List.sort (fun g1 g2 -> String.compare (name g1) (name g2)) in
+    let name g = (get_storage g).name in
+    let sort =
+      List.sort (fun g1 g2 -> Extlib.compare_ignore_case (name g1) (name g2))
+    in
     sort l
 
   let make_file hide (display_name, globs) =
@@ -439,7 +441,7 @@ module State = struct
         let sorted_files = (List.sort (fun (s1, _) (s2, _) ->
             let s1, s2 = Filepath.pretty s1, Filepath.pretty s2 in
             (* compare in inverse order due to inversion by fold_left below *)
-            String.compare (String.lowercase s2) (String.lowercase s1)) files)
+            Extlib.compare_ignore_case s2 s1) files)
         in
         let files = List.fold_left
             (fun acc v ->

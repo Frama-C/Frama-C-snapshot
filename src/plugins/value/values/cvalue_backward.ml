@@ -198,7 +198,20 @@ let backward_add_ptr typ ~res_value ~v1 ~v2 pos =
       else Some (unsafe_backward_add_ptr size ~res_value ~v1 ~v2 pos)
     | V.Top _, V.Top _ -> default
 
+let convert default = function
+  | `Bottom -> V.bottom
+  | `Value None -> default
+  | `Value (Some v) -> v
 
+(* Correct only when no overflow occurs. *)
+let _backward_mult typ v1 v2 res_value =
+  let result = res_value in
+  let v1' = Cvalue.V.backward_mult_int_left ~right:v2 ~result
+  and v2' = Cvalue.V.backward_mult_int_left ~right:v1 ~result in
+  let v1 = convert v1 v1'
+  and v2 = convert v2 v2' in
+  Cvalue_forward.unsafe_reinterpret typ v1,
+  Cvalue_forward.unsafe_reinterpret typ v2
 
 let backward_band ~v1 ~v2 ~res typ =
   let size = Cil.bitsSizeOf typ in
@@ -303,6 +316,10 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
     in
     Some (v1', v2')
 
+(*
+  | Mult, TInt _ -> Some (backward_mult typ v1 v2 res_value)
+*)
+
   | BAnd, TInt _ -> Some (backward_band ~v1 ~v2 ~res:res_value typ)
 
   | BOr, TInt _ -> Some (backward_bor ~v1 ~v2 ~res:res_value typ)
@@ -347,6 +364,15 @@ let cast_float_to_double_inverse v =
   with V.Not_based_on_null | Ival.Nan_or_infinite ->
     None
 
+let downcast_enabled ~ik_src ~ik_dst =
+  if Cil.isSigned ik_dst
+  then
+    Kernel.SignedDowncast.get () ||
+    (* In this case, -val-warn-signed-converted-downcast behaves exactly
+       as -warn-signed-downcast *)
+    (Cil.isSigned ik_src && Value_parameters.WarnSignedConvertedDowncast.get ())
+  else Kernel.UnsignedDowncast.get ()
+
 (* see .mli *)
 let backward_cast ~src_typ ~dst_typ ~src_val ~dst_val =
   (*  Kernel.result "%a %a %a %a" Printer.pp_typ src_typ Printer.pp_typ dst_typ
@@ -355,8 +381,12 @@ let backward_cast ~src_typ ~dst_typ ~src_val ~dst_val =
   | (TInt _  | TEnum _ | TPtr _), (TInt _  | TEnum _ | TPtr _) ->
     let ik_dst = ikind dst_typ in
     let ik_src = ikind src_typ in
-    if Cil.intTypeIncluded ik_src ik_dst || fits_in_ikind ik_dst src_val then
-      (* the cast to dst_typ is the identity on src_val *)
+    if Cil.intTypeIncluded ik_src ik_dst (*the cast is statically the identity*)
+       || downcast_enabled ~ik_src ~ik_dst (* the cast may not be the identity, but
+          the alarms on downcasts ensure that [src_val] must fit in [dst_typ] *)
+       || fits_in_ikind ik_dst src_val (* the cast is dynamically the identity*)
+    then
+      (* in each case, the cast to [dst_typ] is the identity on [src_val]*)
       Some dst_val
     else None
 

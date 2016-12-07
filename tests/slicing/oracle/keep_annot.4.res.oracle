@@ -1,13 +1,13 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/keep_annot.c (with preprocessing)
+[kernel] Parsing tests/slicing/keep_annot.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at bts1110
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/slicing/keep_annot.c:50:[value] assertion got status valid.
-tests/slicing/keep_annot.c:52:[value] warning: assertion got status unknown.
+tests/slicing/keep_annot.i:50:[value] assertion got status valid.
+tests/slicing/keep_annot.i:52:[value] warning: assertion got status unknown.
 [value] Recording results for bts1110
 [value] done for function bts1110
 [slicing] making slicing project 'Slicing'...
@@ -33,3 +33,5 @@ int bts1110(int x)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_4_keep_annot.i (no preprocessing)

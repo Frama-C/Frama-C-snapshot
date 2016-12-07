@@ -3,41 +3,41 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ {0}
-tests/scope/bts383.c:56:[kernel] warning: out of bounds read. assert \valid_read(p+1);
-tests/scope/bts383.c:57:[kernel] warning: out of bounds read. assert \valid_read(p+1);
+tests/scope/bts383.c:56:[value] warning: out of bounds read. assert \valid_read(p + 1);
+tests/scope/bts383.c:57:[value] warning: out of bounds read. assert \valid_read(p + 1);
 [value] computing for function if1 <- main.
         Called from tests/scope/bts383.c:58.
-tests/scope/bts383.c:10:[kernel] warning: out of bounds read. assert \valid_read(p);
-tests/scope/bts383.c:11:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:10:[value] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:11:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for if1
 [value] Done for function if1
 [value] computing for function if2 <- main.
         Called from tests/scope/bts383.c:59.
-tests/scope/bts383.c:15:[kernel] warning: out of bounds read. assert \valid_read(p);
-tests/scope/bts383.c:16:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:15:[value] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:16:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for if2
 [value] Done for function if2
 [value] computing for function loop1 <- main.
         Called from tests/scope/bts383.c:60.
-tests/scope/bts383.c:20:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:20:[value] warning: out of bounds read. assert \valid_read(p);
 tests/scope/bts383.c:21:[value] entering loop for the first time
-tests/scope/bts383.c:22:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:22:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for loop1
 [value] Done for function loop1
 [value] computing for function loop2 <- main.
         Called from tests/scope/bts383.c:61.
 tests/scope/bts383.c:27:[value] entering loop for the first time
-tests/scope/bts383.c:28:[kernel] warning: out of bounds read. assert \valid_read(p);
-tests/scope/bts383.c:30:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:28:[value] warning: out of bounds read. assert \valid_read(p);
+tests/scope/bts383.c:30:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for loop2
 [value] Done for function loop2
 [value] computing for function out_string <- main.
         Called from tests/scope/bts383.c:62.
 tests/scope/bts383.c:35:[value] entering loop for the first time
-tests/scope/bts383.c:35:[kernel] warning: out of bounds read. assert \valid_read(value);
-tests/scope/bts383.c:36:[kernel] warning: out of bounds read. assert \valid_read(value);
+tests/scope/bts383.c:35:[value] warning: out of bounds read. assert \valid_read(value);
+tests/scope/bts383.c:36:[value] warning: out of bounds read. assert \valid_read(value);
 [value] computing for function out_char <- out_string <- main.
         Called from tests/scope/bts383.c:36.
 tests/scope/bts383.c:36:[kernel] warning: Neither code nor specification for function out_char, generating default assigns from the prototype
@@ -56,51 +56,51 @@ tests/scope/bts383.c:36:[kernel] warning: Neither code nor specification for fun
 [value] Done for function out_string
 [value] computing for function fstruct <- main.
         Called from tests/scope/bts383.c:63.
-tests/scope/bts383.c:41:[kernel] warning: out of bounds write. assert \valid(&ps->a);
-tests/scope/bts383.c:42:[kernel] warning: out of bounds write. assert \valid(&ps->b);
-tests/scope/bts383.c:43:[kernel] warning: out of bounds write. assert \valid(&ps->a);
-tests/scope/bts383.c:43:[kernel] warning: out of bounds read. assert \valid_read(&ps->b);
-tests/scope/bts383.c:44:[kernel] warning: out of bounds write. assert \valid(&ps->b);
-tests/scope/bts383.c:44:[kernel] warning: out of bounds read. assert \valid_read(&ps->a);
-tests/scope/bts383.c:45:[kernel] warning: out of bounds read. assert \valid_read(&ps->a);
-tests/scope/bts383.c:45:[kernel] warning: out of bounds read. assert \valid_read(&ps->b);
-tests/scope/bts383.c:47:[kernel] warning: out of bounds write. assert \valid(&ps->a);
-tests/scope/bts383.c:48:[kernel] warning: out of bounds write. assert \valid(&ps->b);
-tests/scope/bts383.c:49:[kernel] warning: out of bounds write. assert \valid(&ps->a);
-tests/scope/bts383.c:49:[kernel] warning: out of bounds read. assert \valid_read(&ps->b);
-tests/scope/bts383.c:50:[kernel] warning: out of bounds write. assert \valid(&ps->b);
-tests/scope/bts383.c:50:[kernel] warning: out of bounds read. assert \valid_read(&ps->a);
-tests/scope/bts383.c:51:[kernel] warning: out of bounds read. assert \valid_read(&ps->a);
-tests/scope/bts383.c:51:[kernel] warning: out of bounds read. assert \valid_read(&ps->b);
+tests/scope/bts383.c:41:[value] warning: out of bounds write. assert \valid(&ps->a);
+tests/scope/bts383.c:42:[value] warning: out of bounds write. assert \valid(&ps->b);
+tests/scope/bts383.c:43:[value] warning: out of bounds write. assert \valid(&ps->a);
+tests/scope/bts383.c:43:[value] warning: out of bounds read. assert \valid_read(&ps->b);
+tests/scope/bts383.c:44:[value] warning: out of bounds write. assert \valid(&ps->b);
+tests/scope/bts383.c:44:[value] warning: out of bounds read. assert \valid_read(&ps->a);
+tests/scope/bts383.c:45:[value] warning: out of bounds read. assert \valid_read(&ps->a);
+tests/scope/bts383.c:45:[value] warning: out of bounds read. assert \valid_read(&ps->b);
+tests/scope/bts383.c:47:[value] warning: out of bounds write. assert \valid(&ps->a);
+tests/scope/bts383.c:48:[value] warning: out of bounds write. assert \valid(&ps->b);
+tests/scope/bts383.c:49:[value] warning: out of bounds write. assert \valid(&ps->a);
+tests/scope/bts383.c:49:[value] warning: out of bounds read. assert \valid_read(&ps->b);
+tests/scope/bts383.c:50:[value] warning: out of bounds write. assert \valid(&ps->b);
+tests/scope/bts383.c:50:[value] warning: out of bounds read. assert \valid_read(&ps->a);
+tests/scope/bts383.c:51:[value] warning: out of bounds read. assert \valid_read(&ps->a);
+tests/scope/bts383.c:51:[value] warning: out of bounds read. assert \valid_read(&ps->b);
 [value] Recording results for fstruct
 [value] Done for function fstruct
-tests/scope/bts383.c:63:[kernel] warning: signed overflow. assert x+tmp ≤ 2147483647;
-                                   (tmp from fstruct(ps + 1))
+tests/scope/bts383.c:63:[value] warning: signed overflow. assert x + tmp ≤ 2147483647;
+                                  (tmp from fstruct(ps + 1))
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 12 assertion(s)
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function fstruct:
+[value:final-states] Values at end of function fstruct:
   ps ∈ {{ &S_ps[2] }}
   x ∈ {20}
   S_ps[0] ∈ [--..--]
       [1..2]{.a; .b} ∈ {5}
-[value] Values at end of function if1:
+[value:final-states] Values at end of function if1:
   v ∈ [--..--]
-[value] Values at end of function if2:
+[value:final-states] Values at end of function if2:
   v ∈ [--..--]
   __retres ∈ [--..--]
-[value] Values at end of function loop1:
+[value:final-states] Values at end of function loop1:
   v ∈ [--..--]
   i ∈ [0..2147483647]
   n ∈ [--..--]
-[value] Values at end of function loop2:
+[value:final-states] Values at end of function loop2:
   v ∈ [--..--]
   i ∈ [0..2147483647]
   __retres ∈ [--..--]
-[value] Values at end of function out_string:
+[value:final-states] Values at end of function out_string:
   value ∈ {{ &S_p + {4; 5; 6; 7; 8; 9; 10; 11} }}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   v ∈ [--..--]
   x ∈ [-2147483628..2147483647]
   S_ps[0] ∈ [--..--]
@@ -214,9 +214,9 @@ int main(int *p, Tstruct *ps)
 {
   int x;
   int tmp;
-  /*@ assert Value: mem_access: \valid_read(p+1); */
+  /*@ assert Value: mem_access: \valid_read(p + 1); */
   x = *(p + 1);
-  /*@ assert Value: mem_access: \valid_read(p+1); */
+  /*@ assert Value: mem_access: \valid_read(p + 1); */
   v = *(p + 1);
   if1(p + 1);
   if2(x,p + 1);
@@ -225,7 +225,7 @@ int main(int *p, Tstruct *ps)
   out_string((char const *)(p + 1));
   { /* sequence */
     tmp = fstruct(ps + 1);
-    /*@ assert Value: signed_overflow: x+tmp ≤ 2147483647; */
+    /*@ assert Value: signed_overflow: x + tmp ≤ 2147483647; */
     x += tmp;
   }
   return x;

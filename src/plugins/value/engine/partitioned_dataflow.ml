@@ -33,8 +33,6 @@ let check_signals, signal_abort =
      end),
   (fun () -> signal_emitted := true)
 
-let with_alarms = Value_util.warn_all_quiet_mode ()
-
 let dkey_callbacks = Value_parameters.register_category "callbacks"
 
 
@@ -42,7 +40,7 @@ module Make_Dataflow
     (Domain : Abstract_domain.External)
     (States : Partitioning.StateSet with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t
-                                 and type summary = Domain.summary)
+                                 and type return = Domain.return)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
     (AnalysisParam : sig
@@ -51,6 +49,8 @@ module Make_Dataflow
        val initial_state : Domain.t
      end)
 = struct
+
+  let with_alarms = Value_util.warn_all_quiet_mode ()
 
   module Partition = Partitioning.Make_Partition (Domain) (States)
 
@@ -112,9 +112,8 @@ module Make_Dataflow
     and kf = current_kf
     and call_kinstr = AnalysisParam.call_kinstr
     and ab = active_behaviors in
-    let state =
-      Domain.open_block current_fundec current_fundec.sbody ~body:true state
-    in
+    let locals = current_fundec.sbody.blocals in
+    let state = Domain.enter_scope current_kf locals state in
     (* Remark: the pre-condition cannot talk about the locals. BUT
        check_fct_preconditions split the state into a stateset, hence
        it is simpler to apply it to the (unique) state with locals *)
@@ -163,7 +162,12 @@ module Make_Dataflow
     counter_unroll = 0;
   }
 
-  module StmtHtbl = Cil_datatype.Stmt.Hashtbl
+  module StmtHtbl = struct
+    include Cil_datatype.Stmt.Hashtbl
+    let replace_value t stmt = function
+      | `Bottom -> ()
+      | `Value s -> replace t stmt s
+  end
   type tt = stmt_state StmtHtbl.t
 
   let current_table : tt = StmtHtbl.create 128
@@ -192,12 +196,17 @@ module Make_Dataflow
       | `Value state ->
         if Domain.is_included state widening_state
         then States.empty
-        else States.singleton state
+        else (
+          let join = Domain.join widening_state state in
+          record.widening_state <-`Value join;
+          States.singleton join
+        )
 
   let update_stmt_widening_info stmt wcounter wstate =
     let record = stmt_state stmt in
     record.widening <- wcounter;
-    record.widening_state <- wstate
+    record.widening_state <-
+      Bottom.join Domain.join record.widening_state wstate
 
 
   let states_unmerged s =
@@ -207,7 +216,7 @@ module Make_Dataflow
     | `Bottom -> s
     | `Value state -> States.add state s
 
-  let states_after = StmtHtbl.create 5
+  let states_after : Domain.state StmtHtbl.t = StmtHtbl.create 5
 
   (* During the dataflow analysis, if required by a callback, we store the
      state after a statement, but only if either the following conditions
@@ -347,7 +356,8 @@ module Make_Dataflow
           match i with
           | Set (lv,exp,_loc) ->
             apply_each_state
-              (fun s -> Transfer.assign ~with_alarms s current_kf stmt lv exp)
+              (fun s ->
+                 Transfer.assign ~with_alarms s current_kf stmt lv exp)
           | Call (lval_option, funcexp, args, _loc) ->
             let process = interp_call stmt lval_option funcexp args in
             propagate (States.fold process d_states States.empty)
@@ -413,10 +423,20 @@ module Make_Dataflow
       in
       if States.is_empty states then ret Dataflow2.SDefault
       else
+        (* Snapshot the currently propagated state (curr_wstate) here,
+           because this information is modified imperatively by
+           [update_stmt_states] *)
+        let curr_wcounter, curr_wstate = stmt_widening_info s in
         let states =
           if obviously_terminates
           then states
-          else update_stmt_states s states (* Remove states already present *)
+          else
+            (* store the states that we are propagating, and remove the states
+               that have already been propagated. Notice that, if the slevel
+               is exhausted, the field [widening_state] will contain the
+               join of [states], but in practice we may propagate *less*,
+               because the states are reduced by assertions/loop invariants. *)
+            update_stmt_states s states 
         in
         if States.is_empty states then ret Dataflow2.SDefault
         else
@@ -446,12 +466,11 @@ module Make_Dataflow
               if (old_counter > slevel && not is_return)
               || (is_return && obviously_terminates)
               then (* No slevel left, perform some join and/or widening *)
-                let curr_wcounter, curr_wstate = stmt_widening_info s in
                 let state = States.join states in
                 let joined = Bottom.join Domain.join curr_wstate state in
                 if Bottom.equal Domain.equal joined curr_wstate then
-                  States.empty (* [state] is included in the last propagated state.
-                                               Nothing remains to do *)
+                  States.empty (* [state] is included in the last propagated
+                                  state. Nothing remains to do *)
                 else
                 if obviously_terminates
                 then begin (* User thinks the analysis will terminate: do not widen *)
@@ -501,7 +520,7 @@ module Make_Dataflow
       if store_state_after_during_dataflow s succ
       then (
         let old =
-          try StmtHtbl.find states_after s
+          try `Value (StmtHtbl.find states_after s)
           with Not_found -> `Bottom
         in
         let updated =
@@ -509,33 +528,43 @@ module Make_Dataflow
             (fun s acc -> Bottom.join Domain.join acc (`Value s))
             states old
         in
-        Cil_datatype.Stmt.Hashtbl.replace states_after s updated
+        StmtHtbl.replace_value states_after s updated
       );
-      (* Variables exiting their scope *)
-      let states =
-        match Kernel_function.blocks_closed_by_edge s succ with
-        | [] -> states
-        | closed_blocks ->
-          States.fold
-            (fun state acc ->
-               let state =
-                 List.fold_left
-                   (fun acc block ->
-                      Domain.close_block current_fundec block ~body:false acc)
-                   state closed_blocks
-               in
-               States.add state acc)
-            states
-            States.empty;
+      let index = Wto_statement.wto_index_of_stmt s
+      and loops_left, loops_entered =
+        Wto_statement.wto_index_diff_of_stmt s succ
       in
-      (* Variables entering in scope *)
-      let opened_blocks = Kernel_function.blocks_opened_by_edge s succ in
-      let states =
-        List.fold_left
-          (fun set b ->
-             States.map (Domain.open_block current_fundec b ~body:false) set)
-          states opened_blocks
+      let succ_is_loop_head = match index with
+        | s' :: _  -> s'.sid = succ.sid
+        | _ -> false
       in
+      let blocks_closed = Kernel_function.blocks_closed_by_edge s succ in
+      let blocks_opened = Kernel_function.blocks_opened_by_edge s succ in
+      (* TODO: scopes and WTOs are linked, so we should try to synchronize
+         the two of them. *)
+      let do_edge state =
+        let enter_block state block =
+          Domain.enter_scope current_kf block.blocals state
+        in
+        let close_block state block =
+          Domain.leave_scope current_kf block.blocals state
+        in
+        let enter_loop = Extlib.swap Transfer.enter_loop in
+        let leave_loop = Extlib.swap Transfer.leave_loop in
+        let state = List.fold_left close_block state blocks_closed in
+        let state = List.fold_left leave_loop state loops_left in
+        let state =
+          if succ_is_loop_head
+          then Transfer.incr_loop_counter s state
+          else state
+        in
+        let state = List.fold_left enter_loop state loops_entered in
+        let state = List.fold_left enter_block state blocks_opened in 
+        state
+      in
+      (* We do a simple 'map' here. Duplicates will be removed by States.merge
+         later on. *)
+      let states = States.map do_edge states in
       Alarmset.end_stmt ();
       d.to_propagate <- states;
       d
@@ -671,12 +700,6 @@ module Make_Dataflow
     let process state acc =
       let return =
         Transfer.return ~with_alarms current_kf return return_lval state
-        >>-: fun return ->
-        let post_state =
-          Domain.close_block current_fundec current_fundec.sbody
-            ~body:true return.post_state
-        in
-        { return with post_state }
       in
       Bottom.add_to_list return acc
     in
@@ -694,6 +717,13 @@ module Make_Dataflow
   let compute () =
     let start = Kernel_function.find_first_stmt AnalysisParam.kf in
     initial_states >>- fun states ->
+    (* Ugly fix because otherwise we are never notified that we are
+       entering a loop. *)
+    let states =
+      if is_loop start
+      then States.map (Transfer.enter_loop start) states
+      else states
+    in
     (* Init the dataflow state for the first statement *)
     let dinit = { to_propagate = states } in
     let dinit = DataflowArg.computeFirstPredecessor start dinit in
@@ -702,18 +732,69 @@ module Make_Dataflow
     results ()
 
 
-  let extract_cvalue = Cvalue_domain.extract Domain.get
-
-  let states_for_callbacks () =
+  let states_before_stmt () =
     let r = StmtHtbl.create (StmtHtbl.length current_table) in
     let aux stmt record =
-      let cvalue_superposed = extract_cvalue (Partition.join record.superposition)
-      and cvalue_widened = extract_cvalue record.widening_state in
-      let cvalue = Cvalue.Model.join cvalue_widened cvalue_superposed in
-      StmtHtbl.add r stmt cvalue
+      let superposed = Partition.join record.superposition
+      and widened = record.widening_state in
+      let state = Bottom.join Domain.join widened superposed in
+      match state with
+      | `Bottom -> ()
+      | `Value state -> StmtHtbl.add r stmt state
     in
     StmtHtbl.iter aux current_table;
     r
+
+  let states_after_stmt states_before =
+    let states_before = Lazy.force states_before in
+    StmtHtbl.iter
+      (fun stmt state ->
+         List.iter
+           (fun pred ->
+              if not (store_state_after_during_dataflow pred stmt) then
+                try
+                  let cur = StmtHtbl.find states_after pred in
+                  let state = Domain.join state cur in
+                  StmtHtbl.replace states_after pred state
+                with Not_found ->
+                  StmtHtbl.add states_after pred state
+           ) stmt.preds;
+      ) states_before;
+    (* Since the return instruction has no successor, it is not visited
+       by the iter above. We fill it manually *)
+    (try
+       let s = StmtHtbl.find states_before return in
+       StmtHtbl.add states_after return s
+     with Kernel_function.No_Statement | Not_found -> ()
+    );
+    states_after
+
+  let register_states pre_states post_states =
+    if Mark_noresults.should_memorize_function current_fundec then begin
+      let callstack = Value_util.call_stack () in
+      let pre_states = Lazy.force pre_states
+      and post_states = Lazy.force post_states in
+      let process_before_stmt stmt state =
+        Domain.Store.register_state_before_stmt callstack stmt state
+      in
+      Cil_datatype.Stmt.Hashtbl.iter process_before_stmt pre_states;
+      let process_after_stmt stmt state =
+        Domain.Store.register_state_after_stmt callstack stmt state
+      in
+      Cil_datatype.Stmt.Hashtbl.iter process_after_stmt post_states;
+    end
+
+
+  let extract_cvalue = Cvalue_domain.extract Domain.get
+
+  let lift_to_cvalues tbl =
+    let tbl = Lazy.force tbl in
+    let h = StmtHtbl.create (StmtHtbl.length tbl) in
+    let process stmt state =
+      StmtHtbl.replace h stmt (extract_cvalue (`Value state))
+    in
+    StmtHtbl.iter process tbl;
+    h
 
   let states_unmerged_for_callbacks () =
     let r = StmtHtbl.create (StmtHtbl.length current_table) in
@@ -726,50 +807,17 @@ module Make_Dataflow
     StmtHtbl.iter aux current_table;
     r
 
-  (* Computation of the per-function 'after statement' states *)
-  let local_after_states superposed =
-    let superposed = Lazy.force superposed in
-    let h = StmtHtbl.create 5 in
-    (* TODO: optimization. *)
-    StmtHtbl.iter
-      (fun stmt state ->
-         let cvalue = extract_cvalue state in
-         StmtHtbl.add h stmt cvalue)
-      states_after;
-    StmtHtbl.iter
-      (fun stmt (state: Cvalue.Model.t) ->
-         List.iter
-           (fun pred ->
-              if not (store_state_after_during_dataflow pred stmt) then
-                try
-                  let cur = StmtHtbl.find states_after pred in
-                  let cur = extract_cvalue cur in
-                  StmtHtbl.replace h pred
-                    (Cvalue.Model.join state cur)
-                with Not_found ->
-                  StmtHtbl.add h pred state
-           ) stmt.preds;
-      ) superposed;
-    (* Since the return instruction has no successor, it is not visited
-       by the iter above. We fill it manually *)
-    (try
-       let s = StmtHtbl.find superposed return in
-       StmtHtbl.add h return s
-     with Kernel_function.No_Statement | Not_found -> ()
-    );
-    h
-
   (* TODO: store results for all domains. *)
   let merge_results () =
-    let superposed = lazy (states_for_callbacks ()) in
+    let pre_states = lazy (states_before_stmt ()) in
+    let post_states = lazy (states_after_stmt pre_states) in
+    register_states pre_states post_states;
+    let superposed = lazy (lift_to_cvalues pre_states) in
+    let after_full = lazy (lift_to_cvalues post_states) in
     let current_superpositions = lazy (states_unmerged_for_callbacks ()) in
-    let after_full = lazy (local_after_states superposed) in
     let stack_for_callbacks = Value_util.call_stack () in
-    if Mark_noresults.should_memorize_function current_fundec then begin
-      Value_results.merge_states_in_db superposed stack_for_callbacks;
+    if Mark_noresults.should_memorize_function current_fundec then
       Db.Value.merge_conditions DataflowArg.conditions_table;
-      Value_results.merge_after_states_in_db after_full stack_for_callbacks;
-    end;
     if not (Db.Value.Record_Value_Superposition_Callbacks.is_empty ())
     then begin
       if Value_parameters.ValShowProgress.get () then
@@ -818,7 +866,7 @@ module Computer
     (States : Partitioning.StateSet with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t
                                  and type value = Domain.value
-                                 and type summary = Domain.summary)
+                                 and type return = Domain.return)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
 = struct

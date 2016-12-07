@@ -85,12 +85,12 @@ sig
   (** {3 Compiler} *)
 
   val term : env -> Cil_types.term -> term
-  val pred : polarity -> env -> predicate named -> pred
+  val pred : polarity -> env -> predicate -> pred
   val logic : env -> Cil_types.term -> logic
   val region : env -> Cil_types.term -> M.loc sloc list
 
   val bootstrap_term : (env -> Cil_types.term -> term) -> unit
-  val bootstrap_pred : (polarity -> env -> predicate named -> pred) -> unit
+  val bootstrap_pred : (polarity -> env -> predicate -> pred) -> unit
   val bootstrap_logic : (env -> Cil_types.term -> logic) -> unit
   val bootstrap_region : (env -> Cil_types.term -> M.loc sloc list) -> unit
 

@@ -20,6 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module type S_with_pretty = sig
+  include Datatype.S
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+module type S_with_collections_pretty = sig
+  include Datatype.S_with_collections
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+
 open Cil_types
 let (=?=) = Extlib.compare_basic
 let compare_list = Extlib.list_compare
@@ -530,6 +539,7 @@ module Attribute=struct
      end)
 end
 
+(* Shared between the different modules for types. *)
 let pretty_typ_ref = ref (fun _ _ -> assert false)
 
 module Attributes=
@@ -538,6 +548,7 @@ module Attributes=
 
 module MakeTyp(M:sig val config: type_compare_config val name: string end) =
 struct
+  let pretty_ref = pretty_typ_ref
   include Make_with_collections
     (struct
       type t = typ
@@ -718,8 +729,8 @@ module Compinfo =
      end)
 
 module Fieldinfo = struct
-let pretty_ref = Extlib.mk_fun "Cil_datatype.Fieldinfo.pretty_ref"
-include  Make_with_collections
+  let pretty_ref = Extlib.mk_fun "Cil_datatype.Fieldinfo.pretty_ref"
+  include  Make_with_collections
     (struct
       type t = fieldinfo
       let name = "fieldinfo"
@@ -1274,10 +1285,13 @@ let rec hash_logic_type config = function
   | Larrow (_,t) -> 41 * hash_logic_type config t
 
 
+(* Shared between the different modules for logic types *)
 let pretty_logic_type_ref = ref (fun _ _ -> assert false)
+
 module Make_Logic_type
-  (M: sig val config: type_compare_config val name: string end) =
-  Make_with_collections(
+  (M: sig val config: type_compare_config val name: string end) = struct
+  let pretty_ref = pretty_logic_type_ref
+  include Make_with_collections(
     struct
       include Datatype.Undefined
       type t = logic_type
@@ -1287,10 +1301,11 @@ module Make_Logic_type
       let compare = compare_logic_type M.config
       let equal = Datatype.from_compare
       let hash = hash_logic_type M.config
-        
+
       let pretty fmt t = !pretty_logic_type_ref fmt t
         
     end)
+end
 
 module Logic_type =
   Make_Logic_type(
@@ -1339,7 +1354,7 @@ module Model_info = struct
       let hash mi = Hashtbl.hash mi.mi_name + 3 * Typ.hash mi.mi_base_type
       let copy mi =
         {
-          mi_name = String.copy mi.mi_name;
+          mi_name = mi.mi_name;
           mi_base_type = Typ.copy mi.mi_base_type;
           mi_field_type = Logic_type.copy mi.mi_field_type;
           mi_decl = Location.copy mi.mi_decl;
@@ -1775,8 +1790,9 @@ module Term_lval = struct
   let pretty fmt t = !pretty_ref fmt t
 end
 
-module Logic_label =
-  Make_with_collections
+module Logic_label = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
         type t = logic_label
         let name = "Logic_label"
@@ -1788,9 +1804,10 @@ module Logic_label =
         let copy = Datatype.undefined
         let hash = hash_label
         let internal_pretty_code = Datatype.undefined
-        let pretty = Datatype.undefined
+        let pretty fmt l = !pretty_ref fmt l
         let varname _ = "logic_label"
-     end)
+    end)
+end
 
 module Global_annotation = struct
 
@@ -1996,7 +2013,6 @@ module Kf = struct
 			   sallstmts = [];
 			   sspec = empty_spec },
 			 loc);
-		      return_stmt = None;
 		      spec = empty_spec } :: acc)
 		acc
 		Varinfo.reprs)
@@ -2056,21 +2072,23 @@ module Code_annotation = struct
      end)
 
   let loc ca = match ca.annot_content with
-    | AAssert(_,{loc=loc})
-    | AInvariant(_,_,{loc=loc})
+    | AAssert(_,{pred_loc=loc})
+    | AInvariant(_,_,{pred_loc=loc})
     | AVariant({term_loc=loc},_) -> Some loc
-    | AAssigns _ | AAllocation _ | APragma _
+    | AAssigns _ | AAllocation _ | APragma _ | AExtended _
     | AStmtSpec _ -> None
 
 end
 
-module Predicate_named = 
+module Predicate =
   Make
     (struct
-      type t = predicate named
-      let name = "Predicate_named"
-      let reprs = 
-	[ { name = [ "" ]; loc = Location.unknown; content = Pfalse } ]
+      type t = predicate
+      let name = "Predicate"
+      let reprs =
+        [ { pred_name = [ "" ];
+            pred_loc = Location.unknown;
+            pred_content = Pfalse } ]
       let internal_pretty_code = Datatype.undefined
       let pretty = Datatype.undefined
       let varname _ = "p"
@@ -2082,10 +2100,7 @@ module Identified_predicate =
         type t = identified_predicate
         let name = "Identified_predicate"
         let reprs =
-          [ { ip_name = [ "" ]; 
-	      ip_loc = Location.unknown; 
-	      ip_content = Pfalse; 
-	      ip_id = -1} ]
+          [ { ip_content = List.hd Predicate.reprs; ip_id = -1} ]
         let compare x y = Extlib.compare_basic x.ip_id y.ip_id
         let equal x y = x.ip_id = y.ip_id
         let copy = Datatype.undefined
@@ -2109,7 +2124,7 @@ module Funbehavior =
 	       List.map (fun x -> Normal, x) Identified_predicate.reprs;
 	     b_assigns = WritesAny;
 	     b_allocation = FreeAllocAny;
-	     b_extended = [ "toto", 4, Identified_predicate.reprs ]; } ]
+	     b_extended = [ "toto", Ext_preds Predicate.reprs ]; } ]
       let mem_project = Datatype.never_any_project
      end)
 

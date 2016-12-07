@@ -3,9 +3,8 @@
 [kernel] Parsing tests/wp_usage/frama_c_exo3_solved.simplified.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] 32 goals scheduled
+[wp] 30 goals scheduled
 [wp] [Qed] Goal typed_pair_complete_has_pair_no_pair : Valid
 [wp] [Qed] Goal typed_pair_disjoint_has_pair_no_pair : Valid
 [wp] [Alt-Ergo] Goal typed_pair_loop_inv_preserved : Valid
@@ -20,11 +19,9 @@
 [wp] [Qed] Goal typed_pair_loop_inv_5_established : Valid
 [wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_preserved : Valid
 [wp] [Alt-Ergo] Goal typed_pair_loop_inv_6_established : Valid
-[wp] [Qed] Goal typed_pair_loop_assign_part1 : Valid
-[wp] [Qed] Goal typed_pair_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_pair_loop_assign : Valid
 [wp] [Qed] Goal typed_pair_loop_assign_2_part1 : Valid
 [wp] [Qed] Goal typed_pair_loop_assign_2_part2 : Valid
-[wp] [Qed] Goal typed_pair_loop_assign_2_part3 : Valid
 [wp] [Qed] Goal typed_pair_assign_part1 : Valid
 [wp] [Qed] Goal typed_pair_assign_part2 : Valid
 [wp] [Qed] Goal typed_pair_assign_part3 : Valid
@@ -38,10 +35,10 @@
 [wp] [Qed] Goal typed_pair_loop_term_2_positive : Valid
 [wp] [Alt-Ergo] Goal typed_pair_has_pair_post : Valid
 [wp] [Alt-Ergo] Goal typed_pair_no_pair_post : Valid
-[wp] Proved goals:   32 / 32
-     Qed:            22 
+[wp] Proved goals:   30 / 30
+     Qed:            20 
      Alt-Ergo:       10
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-pair                22     10 (118)   32       100%
+pair                20     10 (98)    30       100%
 ----------------------------------------------------------

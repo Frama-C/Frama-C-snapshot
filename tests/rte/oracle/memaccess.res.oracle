@@ -12,7 +12,7 @@ int main(int x)
   *p = 3;
   q = p;
   /*@ assert rte: mem_access: \valid(q); */
-  /*@ assert rte: signed_overflow: *p+5 ≤ 2147483647; */
+  /*@ assert rte: signed_overflow: *p + 5 ≤ 2147483647; */
   /*@ assert rte: mem_access: \valid_read(p); */
   *q = *p + 5;
   /*@ assert rte: mem_access: \valid_read(q); */
@@ -23,14 +23,14 @@ int main(int x)
   tab[x] = *q;
   p = & tab[2];
   p = & tab[x];
-  /*@ assert rte: mem_access: \valid(p+1); */
+  /*@ assert rte: mem_access: \valid(p + 1); */
   *(p + 1) = tab[0];
-  /*@ assert rte: mem_access: \valid(p+1); */
+  /*@ assert rte: mem_access: \valid(p + 1); */
   /*@ assert rte: index_bound: 0 ≤ x; */
   /*@ assert rte: index_bound: x < 10; */
   *(p + 1) = tab[x];
   /*@ assert rte: mem_access: \valid(q); */
-  /*@ assert rte: mem_access: \valid_read(p+2); */
+  /*@ assert rte: mem_access: \valid_read(p + 2); */
   *q = *(p + 2);
   __retres = 0;
   return __retres;

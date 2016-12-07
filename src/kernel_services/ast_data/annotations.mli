@@ -68,8 +68,7 @@ val funspec:
     @raise No_funspec whenever the given function has no specification *) 
 
 val behaviors:
-  ?emitter:Emitter.t -> ?populate:bool -> kernel_function -> 
-  (identified_predicate, identified_term) behavior list
+  ?emitter:Emitter.t -> ?populate:bool -> kernel_function -> funbehavior list
 (** Get the behaviors clause of the contract associated to the given function.
     Meaning of [emitter] and [populate] is similar to {!funspec}. 
     @raise No_funspec whenever the given function has no specification *)
@@ -204,23 +203,21 @@ val fold_allocates:
   (** Fold on the allocates of the corresponding behavior. *)
 
 val iter_extended:
-  (Emitter.t -> (string * int * identified_predicate list) -> unit) ->
+  (Emitter.t -> acsl_extension -> unit) ->
   kernel_function -> string -> unit
   (** @since Sodium-20150201 *)
 
 val fold_extended:
-  (Emitter.t -> (string * int * identified_predicate list) -> 'a -> 'a) ->
+  (Emitter.t -> acsl_extension -> 'a -> 'a) ->
   kernel_function -> string -> 'a -> 'a
 
 val iter_behaviors:
-  (Emitter.t -> (identified_predicate, identified_term) behavior -> unit)
-  -> kernel_function -> unit
+  (Emitter.t -> funbehavior -> unit) -> kernel_function -> unit
   (** Iter on the behaviors of the given kernel function.
       @since Fluorine-20130401 *)
 
 val fold_behaviors:
-  (Emitter.t -> (identified_predicate, identified_term) behavior -> 'a -> 'a)
-  -> kernel_function -> 'a -> 'a
+  (Emitter.t -> funbehavior -> 'a -> 'a) -> kernel_function -> 'a -> 'a
   (** Fold on the behaviors of the given kernel function. *)
 
 val iter_complete:
@@ -279,7 +276,7 @@ val add_code_annot:
  *)
 
 val add_assert:
-  Emitter.t -> ?kf:kernel_function -> stmt -> predicate named -> unit
+  Emitter.t -> ?kf:kernel_function -> stmt -> predicate -> unit
 (** Add an assertion attached to the given statement. If [kf] is
     provided, the function runs faster. 
     @plugin development guide *)
@@ -395,8 +392,7 @@ val add_assigns:
 val add_allocates: identified_term allocation behavior_component_addition
 (** Add new allocates into the given behavior. *)
 
-val add_extended:
-  (string * int * identified_predicate list) behavior_component_addition
+val add_extended: acsl_extension behavior_component_addition
 (** @since Sodium-20150201 *)
 
 (**************************************************************************)
@@ -418,11 +414,7 @@ val remove_global: Emitter.t -> global_annotation -> unit
 *)
   
 val remove_behavior:
-  ?force:bool ->
-  Emitter.t ->
-  kernel_function -> 
-  (identified_predicate, identified_term) behavior -> 
-  unit
+  ?force:bool -> Emitter.t -> kernel_function -> funbehavior -> unit
 (** Remove a behavior attached to a function. The provided emitter must be the
     one that emits this annotation. Do nothing if the annotation does not exist,
     or if the emitter is not ok. If [force] is [false] (which is the default),
@@ -486,10 +478,8 @@ val remove_assigns:
   (** Remove the corresponding assigns clause. Do nothing if the clause
       does not exist or was not emitted by the given emitter. *)
 
-val remove_extended:
-  Emitter.t -> kernel_function ->
-  (string * int * identified_predicate list) -> unit
-  (** @since Sodium-20150201 *)
+val remove_extended: Emitter.t -> kernel_function -> acsl_extension -> unit
+(** @since Sodium-20150201 *)
 
 (**************************************************************************)
 (** {2 Other useful functions} *)

@@ -109,7 +109,7 @@ val select_stmt_lval_rw :
 val select_stmt_pred :
   Db.Slicing.Select.set ->
   Db.Slicing.Mark.t ->
-  predicate named ->
+  predicate ->
   stmt ->
   kernel_function ->
   Db.Slicing.Select.set

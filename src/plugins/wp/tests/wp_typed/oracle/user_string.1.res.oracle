@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function strlen
 ------------------------------------------------------------
@@ -18,7 +16,7 @@ Let x_3 = s.base.
 Assume {
   Type: is_sint32(x_2).
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(x_3) <= 0).
+  Have: (region(x_3) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
@@ -34,8 +32,8 @@ Assume {
   (* Assertion 'END' *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, x_2).
 }
-Prove: exists i_1 : Z. P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1) /\
-    (x = (i_1 + x_1)).
+Prove: exists i_1 : Z. (x = (i_1 + x_1)) /\
+    P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
 
 ------------------------------------------------------------
 
@@ -57,7 +55,7 @@ Let a_1 = shift_sint8(ss_0, 1).
 Assume {
   Type: is_sint8(x).
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(x_1) <= 0).
+  Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
@@ -78,7 +76,7 @@ Goal Establishment of Invariant 'RANGE' (file tests/wp_typed/user_string.i, line
 Assume {
   Type: is_sint8(Mchar_0[ss_0]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(s.base) <= 0).
+  Have: (region(s.base) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
 }
@@ -96,7 +94,7 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ ((i + x_2) <= x_3).
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(x_1) <= 0).
+  Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
   (* Invariant 'ZERO' *)
@@ -125,7 +123,7 @@ Let x_1 = s.offset.
 Let x_2 = ss_0.offset.
 Assume {
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(x) <= 0).
+  Have: (region(x) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
@@ -180,7 +178,7 @@ Let x_4 = ss_0.offset.
 Assume {
   Type: is_sint8(x).
   (* Heap *)
-  Have: linked(Malloc_0) /\ sconst(Mchar_0) /\ (region(x_1) <= 0).
+  Have: (region(x_1) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)

@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function call_global
 ------------------------------------------------------------
@@ -143,7 +141,7 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) i
 :
 Assume {
   (* Block In *)
-  Have: (ta_z_0=true) /\ (ta_tmp_0=false) /\ (ta_z_1=false).
+  Have: (ta_tmp_0=false) /\ (ta_z_0=true) /\ (ta_z_1=false).
 }
 Prove: (ta_z_0=true).
 
@@ -154,7 +152,7 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) i
 Assume {
   Type: is_sint32(z).
   (* Block In *)
-  Have: (ta_z_0=true) /\ (ta_tmp_0=false) /\ (ta_z_1=false).
+  Have: (ta_tmp_0=false) /\ (ta_z_0=true) /\ (ta_z_1=false).
   (* Call 'reset' *)
   Have: (ta_z_0=true) /\ (0 = z).
 }
@@ -299,14 +297,12 @@ Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 68) in 'call_para
 Assume {
   Type: is_sint32(call_param_ref_0) /\ is_sint32(load_0) /\ is_sint32(q) /\
       is_sint32(tmp_0).
-  (* Pre-condition *)
-  Have: (ra_q_0=true).
   (* Block In *)
   Have: (ta_tmp_0=false).
   (* Call 'reset' *)
-  Have: (ra_q_0=true) /\ (0 = q).
+  Have: 0 = q.
   (* Call 'load' *)
-  Have: (ra_q_0=true) /\ (load_0 = q) /\ (load_0 = tmp_0).
+  Have: (load_0 = q) /\ (load_0 = tmp_0).
   (* Return *)
   Have: call_param_ref_0 = tmp_0.
 }
@@ -329,14 +325,12 @@ Call Result at line 73
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(q) /\ is_sint32(tmp_0).
   Have: (ta_tmp_0=true) <-> (ta_tmp_1=true).
-  (* Pre-condition *)
-  Have: (ra_q_0=true).
   (* Block In *)
   Have: (ta_tmp_1=false).
   (* Call 'reset' *)
-  Have: (ra_q_0=true) /\ (0 = q).
+  Have: 0 = q.
   (* Call 'load' *)
-  Have: (ra_q_0=true) /\ (load_0 = q).
+  Have: load_0 = q.
 }
 Prove: (ta_tmp_0=false).
 
@@ -344,28 +338,13 @@ Prove: (ta_tmp_0=false).
 
 Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_param_ref' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 72)
 :
-Assume {
-  (* Pre-condition *)
-  Have: (ra_q_0=true).
-  (* Block In *)
-  Have: (ta_tmp_0=false).
-}
-Prove: (ra_q_0=true).
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_param_ref' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 73)
 :
-Assume {
-  Type: is_sint32(q).
-  (* Pre-condition *)
-  Have: (ra_q_0=true).
-  (* Block In *)
-  Have: (ta_tmp_0=false).
-  (* Call 'reset' *)
-  Have: (ra_q_0=true) /\ (0 = q).
-}
-Prove: (ra_q_0=true).
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -376,8 +355,6 @@ Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 21) in 'incr':
 Assume {
   Type: is_sint32(ip_1) /\ is_sint32(ip_0) /\ is_sint32(ip_2).
   Have: ip_1 = ip_2.
-  (* Pre-condition *)
-  Have: (ra_ip_0=true).
   Have: ip_0 = (1 + ip_2).
 }
 Prove: ip_0 = (1 + ip_1).
@@ -420,12 +397,7 @@ Prove: (ta_retres_0=false).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 14) in 'reset':
-Assume {
-  Type: is_sint32(rp_0).
-  (* Pre-condition *)
-  Have: (ra_rp_0=true).
-  Have: 0 = rp_0.
-}
+Assume { Type: is_sint32(rp_0). Have: 0 = rp_0. }
 Prove: 0 = rp_0.
 
 ------------------------------------------------------------

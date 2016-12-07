@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function malloc <- main.
         Called from tests/value/automalloc.i:10.
@@ -15,11 +15,11 @@ tests/value/automalloc.i:10:[kernel] warning: Neither code nor specification for
 tests/value/automalloc.i:11:[kernel] warning: Neither code nor specification for function realloc, generating default assigns from the prototype
 [value] using specification for function realloc
 [value] Done for function realloc
-tests/value/automalloc.i:13:[kernel] warning: out of bounds write. assert \valid(buf+1);
+tests/value/automalloc.i:13:[value] warning: out of bounds write. assert \valid(buf + 1);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   test ∈ [--..--]
   buf ∈
      {{ NULL + [--..--] ; &alloced_return_malloc + [0..2147483647] ;

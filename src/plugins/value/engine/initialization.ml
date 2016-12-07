@@ -330,12 +330,10 @@ module Make
         ~level:2 "@[  %a@]" Cvalue.Model.pretty cvalue_state
     | Computed ->
       Value_parameters.feedback "Initial state computed";
-      if Value_parameters.ValShowInitialState.get ()
-      then
-        Value_parameters.printf
-          ~header:(fun fmt -> Format.pp_print_string fmt
-                      "Values of globals at initialization")
-          "@[  %a@]" Cvalue.Model.pretty cvalue_state
+      Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
+        ~header:(fun fmt -> Format.pp_print_string fmt
+                    "Values of globals at initialization")
+        "@[  %a@]" Cvalue.Model.pretty cvalue_state
 
   let compute_main_formals kf state =
     match kf.fundec with

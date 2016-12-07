@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at test_onzes
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   r0 ∈ {0}
   r1 ∈ {0}
   r2 ∈ {0}
@@ -77,27 +77,27 @@ tests/value/loop_test.i:37:[value] entering loop for the first time
 [value] Recording results for test_onzes
 [value] done for function test_onzes
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function onze_0:
+[value:final-states] Values at end of function onze_0:
   onze ∈ {11}
-[value] Values at end of function onze_1:
+[value:final-states] Values at end of function onze_1:
   onze ∈ {11}
-[value] Values at end of function onze_2:
+[value:final-states] Values at end of function onze_2:
   onze ∈ {11}
-[value] Values at end of function onze_3:
+[value:final-states] Values at end of function onze_3:
   onze ∈ {11}
-[value] Values at end of function onze_4:
+[value:final-states] Values at end of function onze_4:
   onze ∈ {11}
-[value] Values at end of function onze_5:
+[value:final-states] Values at end of function onze_5:
   onze ∈ {11}
-[value] Values at end of function onze_6:
+[value:final-states] Values at end of function onze_6:
   onze ∈ {11}
-[value] Values at end of function onze_7:
+[value:final-states] Values at end of function onze_7:
   onze ∈ {11}
-[value] Values at end of function onze_8:
+[value:final-states] Values at end of function onze_8:
   onze ∈ {11}
-[value] Values at end of function onze_9:
+[value:final-states] Values at end of function onze_9:
   onze ∈ {11}
-[value] Values at end of function test_onzes:
+[value:final-states] Values at end of function test_onzes:
   r0 ∈ {11}
   r1 ∈ {11}
   r2 ∈ {11}

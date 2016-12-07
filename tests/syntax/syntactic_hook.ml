@@ -89,3 +89,32 @@ let warn_cond_effect orig e =
 ;;
 
 Cabs2cil.register_conditional_side_effect_hook warn_cond_effect
+
+let process_new_global =
+  let seen_vi = Cil_datatype.Varinfo.Hashtbl.create 10 in
+  fun vi exists ->
+    let source = fst vi.vdecl in
+    Kernel.feedback ~source
+      "New global node introducing identifier %s(%d)" vi.vname vi.vid;
+    if exists then begin
+      Kernel.feedback "New occurrence of existing identifier %s" vi.vname;
+      if not (Cil_datatype.Varinfo.Hashtbl.mem seen_vi vi) then
+        Kernel.fatal
+          "identifier %s is supposed to have been already seen, but it has \
+           not been processed through this hook." vi.vname;
+      let vi' = Cil_datatype.Varinfo.Hashtbl.find seen_vi vi in
+      if vi != vi' then
+        Kernel.fatal
+          "identifier %s(%d) is not shared with its previous occurrence %s(%d)"
+          vi.vname vi.vid vi'.vname vi'.vid
+    end else begin
+      Kernel.feedback "First occurrence of %s" vi.vname;
+      if Cil_datatype.Varinfo.Hashtbl.mem seen_vi vi then
+        Kernel.fatal
+          "This is supposed to be the first occurrence of %s, \
+           but it is already present in the table." vi.vname;
+      Cil_datatype.Varinfo.Hashtbl.add seen_vi vi vi
+    end
+;;
+
+Cabs2cil.register_new_global_hook process_new_global

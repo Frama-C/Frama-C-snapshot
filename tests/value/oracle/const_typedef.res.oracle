@@ -31,7 +31,7 @@ int main(void)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x1[0][0] ∈ {1}
     [0][1] ∈ {2}
     [0][2] ∈ {3}
@@ -80,5 +80,5 @@ int main(void)
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}

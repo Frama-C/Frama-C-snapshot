@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -36,26 +36,26 @@ tests/value/local_variables.i:24:[kernel] warning: Neither code nor specificatio
 [value] Done for function v
 tests/value/local_variables.i:35:[value] warning: locals {x} escaping the scope of a block of main through p
 tests/value/local_variables.i:43:[value] entering loop for the first time
-tests/value/local_variables.i:47:[kernel] warning: accessing left-value that contains escaping addresses.
-                  assert ¬\dangling(&p);
-tests/value/local_variables.i:47:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/value/local_variables.i:47:[value] warning: accessing left-value that contains escaping addresses.
+                 assert ¬\dangling(&p);
+tests/value/local_variables.i:47:[value] warning: out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function w:
+[value:final-states] Values at end of function w:
   B ∈ {0}
   wu ∈ {0}
   wv ∈ {0}
   __retres ∈ {0}
-[value] Values at end of function u:
+[value:final-states] Values at end of function u:
   B ∈ {0}
   ru ∈ {0}
   wu ∈ {0}
-[value] Values at end of function v:
+[value:final-states] Values at end of function v:
   B ∈ {0}
   rv ∈ {0}
   wv ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   B ∈ {0}
   R ∈ {0}
   S ∈ {0}

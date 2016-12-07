@@ -1,5 +1,5 @@
 /*run.config*
-  STDOPT: #"-simplify-cfg -check"
+  STDOPT: #"-simplify-cfg"
  */
 
 int f(int x) { return x+1; }

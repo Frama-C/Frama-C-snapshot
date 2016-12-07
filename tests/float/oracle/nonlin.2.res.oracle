@@ -1,10 +1,10 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/nonlin.c (with preprocessing)
-tests/float/nonlin.c:81:[kernel] warning: Floating-point constant 0.000000001 is not represented exactly. Will use 0x1.12e0be826d695p-30. See documentation for option -warn-decimal-float
+tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is not represented exactly. Will use 0x1.12e0be826d695p-30. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   a ∈ {0}
   b ∈ {0}
@@ -34,9 +34,9 @@ tests/float/nonlin.c:81:[kernel] warning: Floating-point constant 0.000000001 is
   z ∈ {0}
   rbits1 ∈ {0}
   rbits2 ∈ {0}
-  ff ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  v ∈ [--..--]
 [value] computing for function nonlin_f <- main.
-        Called from tests/float/nonlin.c:59.
+        Called from tests/float/nonlin.c:85.
 [value] computing for function Frama_C_float_interval <- nonlin_f <- main.
         Called from tests/float/nonlin.c:16.
 [value] using specification for function Frama_C_float_interval
@@ -114,41 +114,53 @@ tests/float/nonlin.c:24:[value] assertion got status valid.
                                       [0x1.b800000000000p2 .. 0x1.c800000000000p2])
 [value] Recording results for nonlin_f
 [value] Done for function nonlin_f
-[value] computing for function Frama_C_float_interval <- main.
-        Called from tests/float/nonlin.c:61.
+[value] computing for function other <- main.
+        Called from tests/float/nonlin.c:86.
+[value] computing for function Frama_C_float_interval <- other <- main.
+        Called from tests/float/nonlin.c:59.
 [value] Done for function Frama_C_float_interval
-[value] computing for function Frama_C_float_interval <- main.
-        Called from tests/float/nonlin.c:62.
+[value] computing for function Frama_C_float_interval <- other <- main.
+        Called from tests/float/nonlin.c:60.
 [value] Done for function Frama_C_float_interval
-tests/float/nonlin.c:63:[kernel] warning: accessing out of bounds index.
-                  assert 0 ≤ (int)((double)((double)((float)(i*i))+2.0));
-tests/float/nonlin.c:63:[kernel] warning: accessing out of bounds index.
-                  assert (int)((double)((double)((float)(i*i))+2.0)) < 10;
-[value] computing for function access_bits <- main.
-        Called from tests/float/nonlin.c:69.
+tests/float/nonlin.c:61:[value] warning: accessing out of bounds index.
+                 assert 0 ≤ (int)((double)((double)((float)(i * i)) + 2.0));
+tests/float/nonlin.c:61:[value] warning: accessing out of bounds index.
+                 assert (int)((double)((double)((float)(i * i)) + 2.0)) < 10;
+[value] computing for function access_bits <- other <- main.
+        Called from tests/float/nonlin.c:67.
 [value] Recording results for access_bits
 [value] Done for function access_bits
-[value] computing for function Frama_C_interval <- main.
-        Called from tests/float/nonlin.c:71.
+[value] computing for function Frama_C_interval <- other <- main.
+        Called from tests/float/nonlin.c:69.
 [value] using specification for function Frama_C_interval
 share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
-tests/float/nonlin.c:72:[kernel] warning: division by zero. assert x ≢ 0;
+tests/float/nonlin.c:70:[value] warning: division by zero. assert x ≢ 0;
+[value] Recording results for other
+[value] Done for function other
 [value] computing for function split_alarm <- main.
-        Called from tests/float/nonlin.c:74.
-tests/float/nonlin.c:81:[kernel] warning: non-finite double value.
-                  assert
-                  \is_finite((double)((double)1/(double)((double)((double)ff*(double)ff)+0.000000001)));
+        Called from tests/float/nonlin.c:87.
+tests/float/nonlin.c:74:[value] warning: non-finite float value. assert \is_finite(v);
+tests/float/nonlin.c:75:[value] warning: non-finite double value.
+                 assert
+                 \is_finite((double)((double)1 /
+                                     (double)((double)((double)ff * (double)ff) + 0.000000001)));
 [value] Recording results for split_alarm
 [value] Done for function split_alarm
+[value] computing for function norm <- main.
+        Called from tests/float/nonlin.c:88.
+tests/float/nonlin.c:79:[value] warning: non-finite float value. assert \is_finite(v);
+tests/float/nonlin.c:80:[value] warning: non-finite float value. assert \is_finite(v);
+[value] Recording results for norm
+[value] Done for function norm
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function access_bits:
+[value:final-states] Values at end of function access_bits:
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [0..3271884800]
   __retres ∈ {0; 1}
-[value] Values at end of function nonlin_f:
+[value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
   b ∈ [-0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
@@ -156,9 +168,28 @@ tests/float/nonlin.c:81:[kernel] warning: non-finite double value.
   r1 ∈ [0x1.4000000000000p2 .. 0x1.2000000000000p3]
   r2 ∈ [0x1.4000000000000p2 .. 0x1.c800000000000p2]
   d ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
-[value] Values at end of function split_alarm:
+[value:final-states] Values at end of function norm:
+  v1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  v2 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  square ∈ [-0x1.fffffc0000020p256 .. 0x1.fffffc0000020p256]
+[value:final-states] Values at end of function other:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
+  s ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
+  zf ∈ [-0x1.1300000000000p8 .. 0x1.1300000000000p8]
+  s2 ∈ [-0x1.0a00000000000p8 .. 0x1.1c00000000000p8]
+  sq ∈ [-0x1.2718000000000p14 .. 0x1.3b10000000000p14]
+  h ∈ [-0x1.38d8000000000p14 .. 0x1.2950000000000p14]
+  r ∈ [2..11]
+  x ∈ [0..42]
+  y ∈ [0..42]
+  z ∈ [-2750000..2750000]
+  rbits1 ∈ {0; 1; 2}
+  rbits2 ∈ {0; 1}
+[value:final-states] Values at end of function split_alarm:
+  ff ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
   d_0 ∈ [-0x1.fffffffffffffp1023 .. 0x1.fffffffffffffp1023]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
   b ∈ [-0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
@@ -178,13 +209,12 @@ tests/float/nonlin.c:81:[kernel] warning: non-finite double value.
   z ∈ [-2750000..2750000]
   rbits1 ∈ {0; 1; 2}
   rbits2 ∈ {0; 1}
-  __retres ∈ {0}
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function access_bits:
+[value:final-states] Values at end of function access_bits:
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [0..3271884800]
   __retres ∈ {0; 1}
-[value] Values at end of function nonlin_f:
+[value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [5. .. 7.]
   b ∈ [-0. .. 1.]
@@ -192,9 +222,28 @@ tests/float/nonlin.c:81:[kernel] warning: non-finite double value.
   r1 ∈ [5. .. 9.]
   r2 ∈ [5. .. 7.125]
   d ∈ [5. .. 7.]
-[value] Values at end of function split_alarm:
+[value:final-states] Values at end of function norm:
+  v1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  v2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  square ∈ [-2.31584150868e+77 .. 2.31584150868e+77]
+[value:final-states] Values at end of function other:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-133. .. 142.]
+  s ∈ [-133. .. 142.]
+  zf ∈ [-275. .. 275.]
+  s2 ∈ [-266. .. 284.]
+  sq ∈ [-18886. .. 20164.]
+  h ∈ [-20022. .. 19028.]
+  r ∈ [2..11]
+  x ∈ [0..42]
+  y ∈ [0..42]
+  z ∈ [-2750000..2750000]
+  rbits1 ∈ {0; 1; 2}
+  rbits2 ∈ {0; 1}
+[value:final-states] Values at end of function split_alarm:
+  ff ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   d_0 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [5. .. 7.]
   b ∈ [-0. .. 1.]
@@ -214,4 +263,3 @@ tests/float/nonlin.c:81:[kernel] warning: non-finite double value.
   z ∈ [-2750000..2750000]
   rbits1 ∈ {0; 1; 2}
   rbits2 ∈ {0; 1}
-  __retres ∈ {0}

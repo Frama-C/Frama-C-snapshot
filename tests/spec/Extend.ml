@@ -1,30 +1,26 @@
-open Extlib
 open Cil_types
 open Logic_typing
 
-let type_foo ~typing_context ~loc bhv l =
+let type_foo ~typing_context ~loc l =
   let _loc = loc in
   let preds =
-    List.map 
-      (Logic_const.new_predicate $ 
-         (typing_context.type_predicate typing_context.pre_state))
-      l
+    List.map (typing_context.type_predicate typing_context.pre_state) l
   in
-  bhv.b_extended <- ("foo", 0, preds) :: bhv.b_extended
+  Ext_preds preds
 
 module Count = State_builder.Counter(struct let name = "Count" end)
 
 module Bar_table =
   State_builder.Hashtbl
     (Datatype.Int.Hashtbl)
-    (Datatype.List(Cil_datatype.Predicate_named))
+    (Datatype.List(Cil_datatype.Predicate))
     (struct
         let name = "Bar_table"
         let dependencies = [ Ast.self; Count.self ]
         let size = 3
      end)
 
-let type_bar ~typing_context ~loc bhv l =
+let type_bar ~typing_context ~loc l =
   let _loc = loc in
   let i = Count.next() in
   let p =
@@ -32,27 +28,63 @@ let type_bar ~typing_context ~loc bhv l =
       (typing_context.type_predicate (typing_context.post_state [Normal])) l
   in
   Bar_table.add i p;
-  bhv.b_extended <- ("bar", i, []) :: bhv.b_extended
+  Ext_id i
 
-let print_bar prt fmt (idx, _) =
-  let l = Bar_table.find idx in
-  Pretty_utils.pp_list
-    ~pre:"@[<hov 2>" ~sep:",@ " ~suf:"@]" prt#predicate_named fmt l
+let print_bar prt fmt ext =
+  match ext with
+  | Ext_id idx ->
+    let l = Bar_table.find idx in
+    Pretty_utils.pp_list
+      ~pre:"@[<hov 2>" ~sep:",@ " ~suf:"@]" prt#predicate fmt l
+  | Ext_preds _ | Ext_terms _ ->
+    Kernel.fatal "bar extension should have ids as arguments"
 
-let visit_bar vis (idx, _) =
-  let l = Bar_table.find idx in
-  let l' = Cil.mapNoCopy (Cil.visitCilPredicateNamed vis) l in
-  if Cil.is_copy_behavior vis#behavior then begin
-    let idx' = Count.next () in
-    Queue.add (fun () -> Bar_table.add idx' l') vis#get_filling_actions;
-    Cil.ChangeTo(idx',[])
-  end else begin
-    Bar_table.replace idx l';
-    Cil.SkipChildren
-  end
+let visit_bar vis ext =
+  match ext with
+  | Ext_id idx ->
+    let l = Bar_table.find idx in
+    let l' = Cil.mapNoCopy (Cil.visitCilPredicate vis) l in
+    if Cil.is_copy_behavior vis#behavior then begin
+      let idx' = Count.next () in
+      Queue.add (fun () -> Bar_table.add idx' l') vis#get_filling_actions;
+      Cil.ChangeTo(Ext_id idx')
+    end else begin
+      Bar_table.replace idx l';
+      Cil.SkipChildren
+    end
+  | Ext_terms _ | Ext_preds _ ->
+      Kernel.fatal "bar extension should have ids as arguments"
+
+let type_baz ~typing_context ~loc l =
+  if not (typing_context.is_loop ()) then
+    typing_context.error loc "baz is a loop extension only"
+  else
+    let t =
+      List.map
+        (typing_context.type_term typing_context.pre_state) l
+    in
+    Ext_terms t
 
 let () =
   Logic_typing.register_behavior_extension "foo" type_foo;
   Logic_typing.register_behavior_extension "bar" type_bar;
   Cil_printer.register_behavior_extension "bar" print_bar;
-  Cil.register_behavior_extension "bar" visit_bar
+  Cil.register_behavior_extension "bar" visit_bar;
+  Logic_typing.register_behavior_extension "baz" type_baz
+
+let run () =
+  Ast.compute ();
+  let debug = Kernel.debug_atleast 1 in
+  let my_file = Extlib.temp_file_cleanup_at_exit ~debug "Extend" ".i" in
+  let out = open_out my_file in
+  let fmt = Format.formatter_of_out_channel out in
+  File.pretty_ast ~fmt ();
+  let prj = Project.create "reparsing" in
+  Project.on prj Kernel.Files.add my_file;
+  Kernel.feedback "Reparsing file";
+  (* Avoid having a temporary name in the oracle. *)
+  Kernel.Verbose.set 0;
+  Project.on prj Ast.compute ();
+  File.pretty_ast ~prj ()
+
+let () = Db.Main.extend run

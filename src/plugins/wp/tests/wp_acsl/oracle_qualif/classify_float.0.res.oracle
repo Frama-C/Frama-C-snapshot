@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/classify_float.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acos, generating default assigns from the specification
 FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acosf, generating default assigns from the specification
 FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acosh, generating default assigns from the specification

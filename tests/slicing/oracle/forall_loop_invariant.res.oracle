@@ -4,7 +4,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   u[0..9] ∈ {0}
 tests/slicing/forall_loop_invariant.i:10:[value] loop invariant got status valid.
@@ -89,3 +89,5 @@ int main(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_forall_loop_invariant.i (no preprocessing)

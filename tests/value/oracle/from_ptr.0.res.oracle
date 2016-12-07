@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   x ∈ {0}
@@ -16,13 +16,13 @@
   b ∈ {0}
   p[0..9][0..9][0..9] ∈ {0}
   q ∈ {0}
-tests/value/from_ptr.i:17:[kernel] warning: out of bounds write. assert \valid((int *)i);
+tests/value/from_ptr.i:17:[value] warning: out of bounds write. assert \valid((int *)i);
 tests/value/from_ptr.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
 tests/value/from_ptr.i:17:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {{ (long)&p[10] }}
   d ∈ {0}
   q ∈ {{ &b }}

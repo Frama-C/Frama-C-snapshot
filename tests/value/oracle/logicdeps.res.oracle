@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..49] ∈ {0}
   p ∈ {0}
   y ∈ [--..--]
@@ -55,11 +55,11 @@ tests/value/logicdeps.i:32:[value] Reusing old results for call to g
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   t[0..19] ∈ {0}
    [20..40] ∈ [--..--]
    [41..49] ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..19] ∈ {0}
    [20..40] ∈ [--..--]
    [41..49] ∈ {0}

@@ -40,9 +40,33 @@ end
 
 type callstack = call_site list
 
-module Callstack = Datatype.With_collections
-  (Datatype.List(Callsite))
-  (struct let module_name = "Value_types.Callstack" end)
+module Callstack = struct
+  include Datatype.With_collections
+      (Datatype.List(Callsite))
+      (struct let module_name = "Value_types.Callstack" end)
+
+  (* Use default Datatype printer for debug only *)
+  let pretty_debug = pretty
+
+  let pretty_short fmt callstack =
+    Pretty_utils.pp_flowlist ~left:"" ~sep:" <- " ~right:""
+      (fun fmt (kf,_) -> Kernel_function.pretty fmt kf)
+      fmt
+      callstack
+
+  let pretty fmt callstack =
+    Format.fprintf fmt "@[<hv>";
+    List.iter (fun (kf,ki) ->
+        Kernel_function.pretty fmt kf;
+        match ki with
+        | Kglobal -> ()
+        | Kstmt stmt -> Format.fprintf fmt " :: %a <-@ "
+                          Cil_datatype.Location.pretty
+                          (Cil_datatype.Stmt.loc stmt)
+      ) callstack;
+    Format.fprintf fmt "@]"
+
+end
 
 type 'a callback_result =
   | Normal of 'a

@@ -1,0 +1,95 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 12) in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/byref.i, line 13) in 'f':
+Effect at line 14
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function formal
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 47) in 'formal':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' in 'formal' at call 'f' (file tests/wp_hoare/byref.i, line 50)
+:
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function global
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 57) in 'global':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' in 'global' at call 'f' (file tests/wp_hoare/byref.i, line 60)
+:
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function local
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 38) in 'local':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' in 'local' at call 'f' (file tests/wp_hoare/byref.i, line 42)
+:
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function pointer
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 29) in 'pointer':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' in 'pointer' at call 'f' (file tests/wp_hoare/byref.i, line 33)
+:
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function wrong_without_ref
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/byref.i, line 18) in 'wrong_without_ref':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/byref.i, line 11) in 'f'' in 'wrong_without_ref' at call 'f' (file tests/wp_hoare/byref.i, line 22)
+:
+Assume {
+  Type: is_sint32(Mint_0[q]).
+  (* Heap *)
+  Have: (region(q.base) <= 0) /\ linked(Malloc_0).
+}
+Prove: valid_rw(Malloc_0, q, 1).
+
+------------------------------------------------------------

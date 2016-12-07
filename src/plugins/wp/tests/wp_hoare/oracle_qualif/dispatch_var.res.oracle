@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/dispatch_var.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 [wp] 80 goals scheduled
 [wp] [Qed] Goal typed_ref_array_in_struct_param_post_Pload2 : Valid
 [wp] [Qed] Goal typed_ref_array_in_struct_param_assign : Valid

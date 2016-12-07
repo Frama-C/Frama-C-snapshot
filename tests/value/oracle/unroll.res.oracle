@@ -5,19 +5,19 @@ tests/value/unroll.i:54:[kernel] warning: ignoring invalid unrolling directive
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t_biosmap[0..9] ∈ {0}
   g_biosmap ∈ {{ &t_biosmap[0] }}
   biosmap ∈ {0}
 tests/value/unroll.i:31:[value] entering loop for the first time
-tests/value/unroll.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ j-1;
-tests/value/unroll.i:32:[kernel] warning: signed overflow. assert G+i ≤ 2147483647;
+tests/value/unroll.i:34:[value] warning: signed overflow. assert -2147483648 ≤ j - 1;
+tests/value/unroll.i:32:[value] warning: signed overflow. assert G + i ≤ 2147483647;
 tests/value/unroll.i:39:[value] entering loop for the first time
 tests/value/unroll.i:49:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   c ∈ {0}
   G ∈ [17739..2147483647]
   i ∈ {257}

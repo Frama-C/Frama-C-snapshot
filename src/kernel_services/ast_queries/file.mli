@@ -114,6 +114,10 @@ val add_code_transformation_after_cleanup:
       @since Neon-20140301 
       @plugin development guide *)
 
+val constfold: code_transformation_category
+(** category for syntactic constfolding (done after cleanup)
+    @since Silicon-20161101 *)
+
 val must_recompute_cfg: Cil_types.fundec -> unit
   (** [must_recompute_cfg f] must be called by code transformation hooks
       when they modify statements in function [f]. This will trigger a 

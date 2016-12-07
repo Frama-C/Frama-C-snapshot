@@ -737,7 +737,7 @@ let process_call pdg state stmt lvaloption funcexp argl =
   let new_state =
     match state_for_each_call with
     | [] ->
-       let stmt_str = Pretty_utils.sfprintf "%a" Printer.pp_stmt stmt in
+       let stmt_str = Format.asprintf "%a" Printer.pp_stmt stmt in
        Pdg_parameters.not_yet_implemented
          "pdg with an unknown function call: %s" stmt_str
     | st :: [] -> st

@@ -40,9 +40,10 @@ let wrap_size_t i =
   Some (offsetmap_of_v ~typ:(Cil.theMachine.Cil.typeOfSizeOf) i)
 
 
-let reinterpret_int ~with_alarms:_ ikind v =
-  let size = Int.of_int (Cil.bitsSizeOfInt ikind) in
-  let signed = Cil.isSigned ikind in
+let reinterpret_int ~with_alarms:_ ikind attrs v =
+  let range = Eval_typ.ik_attrs_range ikind attrs in
+  let size = Integer.of_int (range.Eval_typ.i_bits) in
+  let signed = range.Eval_typ.i_signed in
   let v', _ok = V.cast ~signed ~size v in
   v'
 
@@ -63,10 +64,9 @@ let reinterpret_float ~with_alarms fkind v =
 
 let reinterpret ~with_alarms t v =
   match Cil.unrollType t with
-  | TInt (ikind, _)
-  | TEnum ({ekind=ikind},_) ->
-      reinterpret_int ~with_alarms ikind v
-  | TPtr _ -> reinterpret_int ~with_alarms Cil.theMachine.Cil.upointKind v
+  | TInt (ikind, attrs) | TEnum ({ekind=ikind}, attrs) ->
+      reinterpret_int ~with_alarms ikind attrs v
+  | TPtr _ -> reinterpret_int ~with_alarms Cil.theMachine.Cil.upointKind [] v
   | TFloat (fkind, _) ->
       reinterpret_float ~with_alarms fkind v
   | TBuiltin_va_list _ ->
@@ -121,8 +121,8 @@ let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v msg =
         Valarms.warn_float_to_int_overflow with_alarms mn mx msg;
       end;
       r
-  | TInt (ikind, _), TInt _ ->
-      reinterpret_int ~with_alarms ikind v
+  | TInt (ikind, attrs), TInt _ ->
+      reinterpret_int ~with_alarms ikind attrs v
   | TFloat (fkind, _), TFloat _ ->
       reinterpret_float ~with_alarms fkind v
   | _, _ -> v
@@ -469,7 +469,7 @@ let reduce_by_initialized_defined f loc state =
     let lh = Int.pred (Int.add ll size) in
     let offsm = match Model.find_base_or_default base state with
       | `Bottom | `Top -> raise Unchanged
-      | `Map offsm -> offsm
+      | `Value offsm -> offsm
     in
     let aux (offl, offh) (v, modu, shift) acc =
       let v' = f v in

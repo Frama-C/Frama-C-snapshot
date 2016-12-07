@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   j ∈ {0}
   k ∈ {0}
@@ -12,12 +12,12 @@
 [value] using specification for function any_int
 [value] Done for function any_int
 tests/value/loop3.c:11:[value] entering loop for the first time
-tests/value/loop3.c:11:[kernel] warning: signed overflow. assert j+3 ≤ 2147483647;
-tests/value/loop3.c:11:[kernel] warning: signed overflow. assert k+8 ≤ 2147483647;
+tests/value/loop3.c:11:[value] warning: signed overflow. assert j + 3 ≤ 2147483647;
+tests/value/loop3.c:11:[value] warning: signed overflow. assert k + 8 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {100}
   j ∈ [0..2147483646],0%3
   k ∈ [0..2147483640],0%8

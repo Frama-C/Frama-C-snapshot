@@ -172,7 +172,7 @@ global invariant _Buch_not_reachable:
         0 ≢ aorai_CurStates[S3];
     
     behavior default:
-      ensures g_calls ≡ \old(g_calls)+1;
+      ensures g_calls ≡ \old(g_calls) + 1;
       assigns g_calls;
  */
 int g(int x)

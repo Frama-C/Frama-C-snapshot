@@ -142,3 +142,19 @@ let list_of_bot = function
 let add_to_list elt list = match elt with
   | `Bottom    -> list
   | `Value elt -> elt :: list
+
+
+module Top = struct
+
+  type 'a or_top_bottom = [ 'a or_bottom | `Top ]
+
+  let join vjoin x y = match x, y with
+    | `Top, _ | _, `Top -> `Top
+    | (#or_bottom as x), (#or_bottom as y) -> join vjoin x y
+
+  let narrow vnarrow x y = match x, y with
+    | `Top, v | v, `Top -> v
+    | (#or_bottom as x), (#or_bottom as y) ->
+      (narrow vnarrow x y :> _ or_top_bottom)
+
+end

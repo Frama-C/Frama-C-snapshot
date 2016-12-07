@@ -42,7 +42,7 @@
 (****************************************************************************)
 
 (** Untyped AST.
-    @plug-in development guide **)
+    @plugin development guide **)
 
 (*
 ** Types

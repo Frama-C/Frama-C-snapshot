@@ -287,6 +287,8 @@ val create_all_values: signed:bool -> size:int -> t
     representable in [size] bits. *)
 val all_values: size:Integer.t -> t -> bool
 
+val backward_mult_int_left: right:t -> result:t -> t option Bottom.or_bottom
+
 val backward_comp_int_left : Comp.t -> t -> t -> t
 (** [backward_comp_int op l r] reduces [l] into [l'] so that
     [l' op r] holds. [l] is assumed to be an integer *)

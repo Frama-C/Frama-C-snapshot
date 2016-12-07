@@ -91,8 +91,8 @@ val valid : result
 val checked : result
 val invalid : result
 val unknown : result
-val timeout : result
 val stepout : result
+val timeout : int -> result
 val computing : (unit -> unit) -> result
 val failed : ?pos:Lexing.position -> string -> result
 val kfailed : ?pos:Lexing.position -> ('a,Format.formatter,unit,result) format4 -> 'a

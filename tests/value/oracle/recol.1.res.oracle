@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   s[0..99] ∈ {0}
   c ∈ {0}
   s_int ∈ {0}
@@ -21,7 +21,7 @@ tests/value/recol.c:47:[value] warning: 2's complement assumed for overflow
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   s[bits 0 to 15] ∈ {97}
    [bits 16 to 47] ∈ {776}
    [6] ∈ {-103}

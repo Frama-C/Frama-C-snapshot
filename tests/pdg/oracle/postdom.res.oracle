@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/pdg/postdom.c:20:[value] entering loop for the first time
 [value] computing for function __VERIFIER_assert <- main.
@@ -18,7 +18,7 @@ tests/pdg/postdom.c:20:[value] entering loop for the first time
         Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
-tests/pdg/postdom.c:21:[kernel] warning: signed overflow. assert sn+2 ≤ 2147483647;
+tests/pdg/postdom.c:21:[value] warning: signed overflow. assert sn + 2 ≤ 2147483647;
 [value] computing for function __VERIFIER_assert <- main.
         Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert

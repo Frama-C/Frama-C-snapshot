@@ -89,7 +89,6 @@ let () =
 type model = Real | Float
 
 let model = Context.create ~default:Real "Cfloat.model"
-let configure = Context.set model
 
 (* -------------------------------------------------------------------------- *)
 (* --- Litterals                                                          --- *)
@@ -109,20 +108,25 @@ let suffixed r_literal =
 let acsl_lit =
   let open Cil_types in
   function { r_literal ; r_nearest } ->
-    match Context.get model with
-    | Float ->
-        if suffixed r_literal
-        then e_hexfloat r_nearest
-        else e_real (R.of_string r_literal)
-    | Real ->
-        e_mthfloat r_nearest
+  match r_literal with
+  | "0" | ".0" | "0." | "0.0" -> F.e_zero_real
+  | _ ->
+      match Context.get model with
+      | Float ->
+          if suffixed r_literal
+          then e_hexfloat r_nearest
+          else e_real (R.of_string r_literal)
+      | Real ->
+          e_mthfloat r_nearest
 
-let round_lit flt r =
-  let open Floating_point in
-  let p = match flt with
-    | Float32 -> single_precision_of_string r
-    | Float64 -> double_precision_of_string r
-  in e_hexfloat p.f_nearest
+let round_lit flt = function
+  | "0" | ".0" | "0." | "0.0" -> F.e_zero_real
+  | r ->
+      let open Floating_point in
+      let p = match flt with
+        | Float32 -> single_precision_of_string r
+        | Float64 -> double_precision_of_string r
+      in e_hexfloat p.f_nearest
 
 (* -------------------------------------------------------------------------- *)
 (* --- Maths                                                              --- *)
@@ -183,20 +187,6 @@ let builtin_sqrt = function
         | _ -> raise Not_found
       end
   | _ -> raise Not_found
-
-
-let () =
-  begin
-    F.set_builtin     f_iabs (builtin_abs f_iabs e_zero) ;
-    F.set_builtin     f_rabs (builtin_abs f_rabs e_zero_real) ;
-    F.set_builtin     f_sqrt  builtin_sqrt ;
-    F.set_builtin_eq  f_iabs (builtin_positive_eq  f_iabs e_zero) ;
-    F.set_builtin_eq  f_rabs (builtin_positive_eq  f_rabs e_zero_real) ;
-    F.set_builtin_eq  f_sqrt (builtin_positive_eq  f_sqrt e_zero_real) ;
-    F.set_builtin_leq f_iabs (builtin_positive_leq f_iabs e_zero) ;
-    F.set_builtin_leq f_rabs (builtin_positive_leq f_rabs e_zero_real) ;
-    F.set_builtin_leq f_sqrt (builtin_positive_leq f_sqrt e_zero_real) ;
-  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Operators                                                          --- *)
@@ -278,27 +268,22 @@ let () =
     add_fmodel flt_mul e_prod ; (* only 2 params in flt_mul *)
     add_fmodel flt_div (function [x;y] -> e_div x y | _ -> raise Not_found) ;
     add_fmodel flt_sqrt (e_fun f_sqrt) (* only 1 param *) ;
-    F.set_builtin f_model builtin_model ;
-    F.set_builtin f_delta builtin_error ;
-    F.set_builtin f_epsilon builtin_error ;
-    F.set_builtin (flt_rnd Float32) (builtin_round Float32) ;
-    F.set_builtin (flt_rnd Float64) (builtin_round Float64) ;
   end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Conversion Symbols                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-let fconvert =
+let convert =
   fun f a ->
     match Context.get model with
     | Real -> a
     | Float -> e_fun (flt_rnd f) [a]
 
 let real_of_int a = e_fun f_of_int [a]
-let float_of_int f a = fconvert f (real_of_int a)
+let float_of_int f a = convert f (real_of_int a)
 
-let frange =
+let range =
   let is_float = Ctypes.fmemo (make_pred_float "is") in
   fun f a -> p_call (is_float f) [a]
 
@@ -316,7 +301,7 @@ let rbinop op f x y =
   | Real -> op x y
   | Float -> e_fun f [x;y]
 
-let funop op f x = fconvert f (op x)
+let funop op f x = convert f (op x)
 
 let fbinop rop fop f x y =
   match Context.get model with
@@ -346,7 +331,29 @@ let compute_f_of_int = function
       end
   | _ -> raise Not_found
 
-let () =
-  F.set_builtin f_of_int compute_f_of_int ;
-
   (* -------------------------------------------------------------------------- *)
+
+let once_for_each_ast = Model.run_once_for_each_ast ~name:"float" (fun () ->
+    F.set_builtin     f_iabs (builtin_abs f_iabs e_zero) ;
+    F.set_builtin     f_rabs (builtin_abs f_rabs e_zero_real) ;
+    F.set_builtin     f_sqrt  builtin_sqrt ;
+    F.set_builtin_eq  f_iabs (builtin_positive_eq  f_iabs e_zero) ;
+    F.set_builtin_eq  f_rabs (builtin_positive_eq  f_rabs e_zero_real) ;
+    F.set_builtin_eq  f_sqrt (builtin_positive_eq  f_sqrt e_zero_real) ;
+    F.set_builtin_leq f_iabs (builtin_positive_leq f_iabs e_zero) ;
+    F.set_builtin_leq f_rabs (builtin_positive_leq f_rabs e_zero_real) ;
+    F.set_builtin_leq f_sqrt (builtin_positive_leq f_sqrt e_zero_real) ;
+
+    F.set_builtin f_model builtin_model ;
+    F.set_builtin f_delta builtin_error ;
+    F.set_builtin f_epsilon builtin_error ;
+    F.set_builtin (flt_rnd Float32) (builtin_round Float32) ;
+    F.set_builtin (flt_rnd Float64) (builtin_round Float64) ;
+
+    F.set_builtin f_of_int compute_f_of_int ;
+
+  )
+
+let configure m =
+  Context.set model m;
+  once_for_each_ast ()

@@ -4,10 +4,10 @@
 [value] Analyzing a complete application starting at foo
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   y ∈ {0}
   ptr ∈ {{ &foo }}
-tests/slicing/same_sliced_name_bts1422.i:9:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/slicing/same_sliced_name_bts1422.i:9:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for foo
 [value] done for function foo
 [slicing] making slicing project 'Slicing'...
@@ -35,3 +35,5 @@ void foo(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_same_sliced_name_bts1422.i (no preprocessing)

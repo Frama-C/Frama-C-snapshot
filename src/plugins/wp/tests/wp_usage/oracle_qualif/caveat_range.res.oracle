@@ -1,0 +1,27 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/caveat_range.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 13 goals scheduled
+[wp] [Alt-Ergo] Goal typed_caveat_reset_post : Valid
+[wp] [Alt-Ergo] Goal typed_caveat_reset_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_caveat_reset_loop_inv_3_preserved : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_inv_3_established : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_caveat_reset_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_caveat_reset_assign_part1 : Valid
+[wp] [Qed] Goal typed_caveat_reset_assign_part2 : Valid
+[wp] Proved goals:   13 / 13
+     Qed:             8 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+reset                8      5 (42)    13       100%
+----------------------------------------------------------

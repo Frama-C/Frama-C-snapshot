@@ -37,7 +37,7 @@ unsigned rr1 (unsigned x) {
       \forall int k ; 0 <= k && k < 32-n
       ==> ( (x&(1<<k)) <==> (\result&(1<<(k+n))) );
  */
-unsigned rln32 (unsigned x, unsigned n) {
+unsigned rln32 (unsigned x, int n) {
   return (x << n) | (x >> (32 - n));
 }
 
@@ -49,7 +49,7 @@ unsigned rln32 (unsigned x, unsigned n) {
       \forall int k ; 0 <= k && k < 32-n
       ==> ( (\result&(1<<k)) <==> (x&(1<<(n+k))) );
  */
-unsigned rrn32 (unsigned x, unsigned n) {
+unsigned rrn32 (unsigned x, int n) {
   return (x << (32 - n)) | (x >> n);
 }
 
@@ -62,7 +62,7 @@ unsigned rrn32 (unsigned x, unsigned n) {
       \forall int k ; 0 <= k && k < 64-n
       ==> ( (x&(1<<k)) <==> (\result&(1<<(k+n))) );
  */
-unsigned long long rln64 (unsigned long long x, unsigned long long n) {
+unsigned long long rln64 (unsigned long long x, int n) {
   return (x << n) | (x >> (64 - n));
 }
 
@@ -74,7 +74,7 @@ unsigned long long rln64 (unsigned long long x, unsigned long long n) {
       \forall int k ; 0 <= k && k < 64-n
       ==> ( (\result&(1<<k)) <==> (x&(1<<(n+k))) );
  */
-unsigned long long rrn64 (unsigned long long x, unsigned long long n) {
+unsigned long long rrn64 (unsigned long long x, int n) {
   return (x << (64 - n)) | (x >> n);
 }
 /*---------------------------------------------------*/

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_store/struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
@@ -20,7 +19,7 @@ Let a_1 = shift_sint32(shiftfield_F1_t_tab(a), 0).
 Assume {
   Type: is_sint32(Mint_0[a_1]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0).
+  Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a, 5) /\ valid_rw(Malloc_0, a_1, 5).
 }
@@ -46,7 +45,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'P,qed_ok' in 'main':
-Let a = shift_St(global(G_v_75), 0).
+Let a = global(G_v_75).
 Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).
@@ -66,7 +65,7 @@ Prove: EqS2_St(a_1, w).
 ------------------------------------------------------------
 
 Goal Post-condition 'Q,qed_ok' in 'main':
-Let a = shift_St(global(G_v_75), 0).
+Let a = global(G_v_75).
 Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).

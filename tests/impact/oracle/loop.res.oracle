@@ -4,17 +4,17 @@
 [value] Analyzing an incomplete application starting at loop
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   c ∈ [--..--]
   x ∈ [--..--]
   y ∈ [--..--]
   z ∈ [--..--]
   w ∈ [--..--]
 tests/impact/loop.i:9:[value] entering loop for the first time
-tests/impact/loop.i:10:[kernel] warning: signed overflow. assert w+1 ≤ 2147483647;
-tests/impact/loop.i:11:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
-tests/impact/loop.i:13:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
-tests/impact/loop.i:14:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/impact/loop.i:10:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
+tests/impact/loop.i:11:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
+tests/impact/loop.i:13:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+tests/impact/loop.i:14:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for loop
 [value] done for function loop
 [pdg] computing for function loop

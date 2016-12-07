@@ -2,10 +2,10 @@
 [kernel] Parsing tests/value/global_bug.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/global_bug.i:6:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ 63 < 32;
+tests/value/global_bug.i:6:[value] warning: invalid RHS operand for shift. assert 0 ≤ 63 < 32;
 tests/value/global_bug.i:7:[value] Evaluation of initializer '99 << 63' failed
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NOT ACCESSIBLE
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======

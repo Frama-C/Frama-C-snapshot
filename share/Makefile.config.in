@@ -27,12 +27,6 @@
 #                                                                        #
 ##########################################################################
 
-#######################
-# Working directories #
-#######################
-
-FRAMAC_TOP_SRCDIR 	?= @abs_top_srcdir@
-
 ######################
 # Installation paths #
 ######################
@@ -87,14 +81,11 @@ NATIVE_THREADS	?=@HAS_NATIVE_THREADS@
 OCAMLWIN32	?=@OCAMLWIN32@
 PTESTSBEST      ?=@PTESTSBEST@
 
+DEVELOPMENT	?=@DEVELOPMENT@
+
 #############
 # Libraries #
 #############
-
-# ocamlgraph
-OCAMLGRAPH_INCLUDE?=@OCAMLGRAPH_INCLUDE@ # ocamlgraph compilation directive
-OCAMLGRAPH_LOCAL  ?=@OCAMLGRAPH_LOCAL@
-OCAMLGRAPH_HOME   ?=@OCAMLGRAPH_HOME@
 
 # lablgtk
 HAS_LABLGTK	?=@HAS_LABLGTK@
@@ -171,13 +162,44 @@ DYNAMIC_INOUT                     ?=@DYNAMIC_INOUT@
 DYNAMIC_METRICS                   ?=@DYNAMIC_METRICS@
 DYNAMIC_OCCURRENCE                ?=@DYNAMIC_OCCURRENCE@
 DYNAMIC_PDG                       ?=@DYNAMIC_PDG@
-#DYNAMIC_POSTDOMINATORS: never dynamic
-#DYNAMIC_RTEGEN: never dynamic
+DYNAMIC_POSTDOMINATORS            ?=@DYNAMIC_POSTDOMINATORS@
+DYNAMIC_RTEGEN                    ?=@DYNAMIC_RTEGEN@
 DYNAMIC_SCOPE                     ?=@DYNAMIC_SCOPE@
 DYNAMIC_SLICING                   ?=@DYNAMIC_SLICING@
 DYNAMIC_SPARECODE                 ?=@DYNAMIC_SPARECODE@
 DYNAMIC_USERS                     ?=@DYNAMIC_USERS@
 DYNAMIC_VALUE_ANALYSIS            ?=@DYNAMIC_VALUE_ANALYSIS@
+
+#bytes is part of the stdlib, but is used as a transitional package.
+LIBRARY_NAMES := findlib ocamlgraph num unix str dynlink bytes
+
+ifeq ($(HAS_ZARITH),yes)
+LIBRARY_NAMES += zarith
+endif
+
+ifneq ($(ENABLE_GUI),no)
+LIBRARY_NAMES_GUI = lablgtk2 lablgtk2.gnomecanvas lablgtk2.sourceview2
+else
+LIBRARY_NAMES_GUI =
+endif
+
+#######################
+# Working directories #
+#######################
+
+ifeq ($(OCAMLWIN32),yes)
+ifneq ($(CYGPATH),no)
+# Note: using quotes in the line below leads to weird garbled characters
+# in some versions of Cygwin.
+winpath=$(shell $(CYGPATH) -m $(1))
+else
+winpath=$(1)
+endif #CYGPATH
+else
+winpath=$(1)
+endif #OCAMLWIN32
+
+FRAMAC_ROOT_SRCDIR 	?= $(call winpath,@abs_top_srcdir@)
 
 ##########################################################################
 # Local Variables:

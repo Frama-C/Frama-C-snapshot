@@ -1,0 +1,6 @@
+%init: s0;
+%accept: OK;
+%deterministic;
+
+s0: { f() } -> OK;
+OK: -> OK;

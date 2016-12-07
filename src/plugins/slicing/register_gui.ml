@@ -170,7 +170,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                 add_mark_info (fun () ->
                                  if !Db.Slicing.Project.is_called project kf
                                  then (* but the source function is called *)
-                                   (Pretty_utils.sfprintf "<src>%a"
+                                   (Format.asprintf "<src>%a"
                                       !Db.Slicing.Mark.pretty (!Db.Slicing.Mark.get_from_src_func project kf))
                                  else
                                    "<   ><   >")
@@ -179,11 +179,11 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                 then begin (* The source function is also called *)
                   assert (not (kf == fst (Globals.entry_point ()))) ;
                   add_mark_info (fun () ->
-                                   Pretty_utils.sfprintf "<src>%a"
+                                   Format.asprintf "<src>%a"
                                      !Db.Slicing.Mark.pretty (!Db.Slicing.Mark.get_from_src_func project kf))
                 end ;
                 let mark_slice slice =
-                  add_mark_info (fun () -> Pretty_utils.sfprintf "%a" !Db.Slicing.Mark.pretty (get_mark slice))
+                  add_mark_info (fun () -> Format.asprintf "%a" !Db.Slicing.Mark.pretty (get_mark slice))
                 in List.iter mark_slice slices
           in match localizable with
           | Pretty_source.PTermLval(Some kf,(Kstmt ki),_,_) (* as for the statement *)

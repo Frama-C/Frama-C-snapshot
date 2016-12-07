@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 tests/wp_acsl/funvar_inv.i:24:[wp] warning: Can not compare pointers in Empty model
 tests/wp_acsl/funvar_inv.i:23:[wp] warning: Can not compare pointers in Empty model
@@ -34,13 +33,14 @@ tests/wp_acsl/funvar_inv.i:24: warning from Empty Model:
  - Warning: Target turned to False, looking for context inconsistency
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
-Let x_1 = G[1].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  (* Goal *)
+  When: (0 != x) /\ (0 = G[1]).
   If i <= 3
   Then { (* Else *) Have: 0 = G[i]. }
 }
-Prove: (0 = x) \/ (0 != x_1).
+Prove: false.
 
 ------------------------------------------------------------
 
@@ -71,13 +71,14 @@ tests/wp_acsl/funvar_inv.i:38: warning from Empty Model:
  - Warning: Target turned to False, looking for context inconsistency
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
-Let x_1 = G[1].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  (* Goal *)
+  When: (0 != x) /\ (0 = G[1]).
   If (4 * i) <= 15
   Then { (* Else *) Have: 0 = G[i]. }
 }
-Prove: (0 = x) \/ (0 != x_1).
+Prove: false.
 
 ------------------------------------------------------------
 
@@ -108,13 +109,14 @@ tests/wp_acsl/funvar_inv.i:53: warning from Empty Model:
  - Warning: Target turned to False, looking for context inconsistency
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
-Let x_1 = G[1].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  (* Goal *)
+  When: (0 != x) /\ (0 = G[1]).
   If (16 * i) <= 63
   Then { (* Else *) Have: 0 = G[i]. }
 }
-Prove: (0 = x) \/ (0 != x_1).
+Prove: false.
 
 ------------------------------------------------------------
 

@@ -470,37 +470,192 @@ let forward_unop ~check_overflow ~context typ op value =
     value, alarms
 
 (* --------------------------------------------------------------------------
+                              Downcast checks
+   -------------------------------------------------------------------------- *)
+
+type integer_range = Eval_typ.integer_range = { i_bits: int; i_signed: bool }
+
+(* Check whether [v] of fits within the range [range]. Returns two [ok]
+   booleans, one for each bound. *)
+let value_inclusion v range =
+  let i, p = V.split Base.null v in
+  (* Check pure pointer part: emit an alarm if it is non-empty, and a pointer
+     would not fit within the destination type. Garbled mix also have an
+     integer part, which is checked later with the integer part. *)
+  let ok_ptr_min, ok_ptr_max =
+    if V.is_bottom p
+    then true, true
+    else
+      let r_ptr = Eval_typ.ik_range Cil.theMachine.Cil.upointKind in
+      Eval_typ.range_inclusion r_ptr range
+  in
+  (* Check whether the integer part fits within [dst] *)
+  let ok_min, ok_max =
+    if Ival.is_bottom i then
+      true, true
+    else
+      let min_v, max_v = Ival.min_and_max i in
+      (match min_v with
+       | None -> false
+       | Some min_v -> Integer.le (Eval_typ.range_lower_bound range) min_v),
+      (match max_v with
+       | None -> false
+       | Some max_v -> Integer.ge (Eval_typ.range_upper_bound range) max_v)
+  in
+  ok_ptr_min && ok_min, ok_ptr_max && ok_max
+
+(* How an integer cast should be analyzed *)
+type cast_effects =
+  | Identity (* nothing to do: upcasts, or downcasts that have no effect. *)
+  | DowncastWrap (* downcast, using modulo semantics *)
+  | DowncastTruncate of Ival.t * Alarmset.t
+  (* truncation to the given range + emission of the given alarms *)
+
+(* Effects of a downcast to [range]. Which alarms are built depends on
+   [ok_min] and [ok_max]. [ov_kind] and [exp] are used to build the alarm. *)
+let downcast_effects range (ok_min, ok_max) ov_kind exp =
+  if ok_min && ok_max then Identity
+  else
+    let open Alarms in
+    let alarm_min, min =
+      if not ok_min then
+        let min = Eval_typ.range_lower_bound range in
+        Alarmset.singleton (Overflow (ov_kind, exp, min, Lower_bound)), Some min
+      else Alarmset.none, None
+    and alarm_max, max =
+      if not ok_max then
+        let max = Eval_typ.range_upper_bound range in
+        Alarmset.singleton (Overflow (ov_kind, exp, max, Upper_bound)), Some max
+      else Alarmset.none, None
+    in
+    let i = Ival.inject_range min max in
+    let alarms = Alarmset.union alarm_min alarm_max in
+    DowncastTruncate (i, alarms)
+
+let meet_ok (ol1, ou1) (ol2, ou2) = (ol1 || ol2, ou1 || ou2)
+
+(* Effects of the cast of [exp] from [src] to [dst], assuming [exp] has initial
+   value [v]. *)
+let cast_effects ~src ~dst v_src exp =
+  let ok_low, ok_up as ok = Eval_typ.range_inclusion src dst in
+  if ok_low && ok_up then
+    Identity (* Upcast. Nothing to check. *)
+  else if dst.i_signed then (* signed downcast *)
+    if Kernel.SignedDowncast.get () ||
+       Value_parameters.WarnSignedConvertedDowncast.get ()
+    then
+      let ok' = value_inclusion v_src dst in
+      downcast_effects dst (meet_ok ok' ok) Alarms.Signed_downcast exp
+    else DowncastWrap
+  else (* unsigned downcast *)
+  if Kernel.UnsignedDowncast.get () then
+    let ok' = value_inclusion v_src dst in
+    downcast_effects dst (meet_ok ok' ok) Alarms.Unsigned_downcast exp
+  else DowncastWrap
+
+
+let signed_ikind = function
+  | IBool                   -> IBool
+  | IChar | ISChar | IUChar -> ISChar
+  | IInt | IUInt            -> IInt
+  | IShort | IUShort        -> IShort
+  | ILong | IULong          -> ILong
+  | ILongLong | IULongLong  -> ILongLong
+
+let signed_counterpart typ =
+  match Cil.unrollType typ with
+  | TInt (ik, attrs) -> TInt (signed_ikind ik, attrs)
+  | TEnum ({ekind = ik} as info, attrs) ->
+    let info = { info with ekind = signed_ikind ik} in
+    TEnum (info, attrs)
+  | _ -> assert false
+
+module MemoDowncastConvertedAlarm =
+  State_builder.Hashtbl(Cil_datatype.Exp.Hashtbl)(Cil_datatype.Exp)
+    (struct
+      let name = "Value.Cvalue_forward.MemoDowncastConvertedAlarm"
+      let size = 16
+      let dependencies = [Ast.self]
+    end)
+let exp_alarm_signed_converted_downcast =
+  MemoDowncastConvertedAlarm.memo
+    (fun exp ->
+       let src_typ = Cil.typeOf exp in
+       let signed_typ = signed_counterpart src_typ in
+       let signed_exp = Cil.new_exp ~loc:exp.eloc (CastE (signed_typ, exp)) in
+       signed_exp)
+
+(* Relaxed semantics for downcasts into signed types:
+   first converts the value to the signed counterpart of the source type, and
+   then downcasts it into the signed destination type. Emits only alarms for
+   the second cast.
+   This function also returns the value on which the problematic cast is
+   performed. *)
+let relaxed_cast_effects exp ~src ~dst v =
+  let ok_low, ok_up = Eval_typ.range_inclusion src dst in
+  if ok_low && ok_up then
+    Identity, v (* No downcast. Nothing to check. *)
+  else
+    (* If needed, convert the expression, integer range and value to their
+       signed counterparts, then downcast. *)
+    let exp, src, v =
+      if not src.i_signed && dst.i_signed
+      then
+        let size = Integer.of_int src.i_bits in
+        let signed_v, _ = Cvalue.V.cast ~signed:true ~size v in
+        let signed_src = { src with i_signed = true } in
+        let signed_exp = exp_alarm_signed_converted_downcast exp in
+        signed_exp, signed_src, signed_v
+      else exp, src, v
+    in
+    (* Downcast effects *)
+    cast_effects ~src ~dst v exp, v
+
+
+(* --------------------------------------------------------------------------
                                   Cast
    -------------------------------------------------------------------------- *)
 
-let reinterpret_int ikind v =
-  let size = Integer.of_int (Cil.bitsSizeOfInt ikind) in
-  let signed = Cil.isSigned ikind in
-  fst (V.cast ~signed ~size v)
+(* Re-export type here *)
+type scalar_typ = Eval_typ.scalar_typ =
+  | TSInt of integer_range
+  | TSPtr of integer_range
+  | TSFloat of fkind
+  | TSNotScalar
 
-let unsafe_reinterpret_float fkind v =
+let reinterpret_int range v =
+  let size = Integer.of_int range.i_bits in
+  fst (V.cast ~signed:range.i_signed ~size v)
+
+let reinterpret_float fkind v =
   match Value_util.float_kind fkind with
   | Fval.Float32 ->
     let rounding_mode = Value_util.get_rounding_mode () in
     Cvalue.V.cast_float ~rounding_mode v
   | Fval.Float64 -> Cvalue.V.cast_double v
 
-let unsafe_reinterpret t v =
-  match Cil.unrollType t with
-  | TEnum ({ekind=ikind}, _)
-  | TInt (ikind, _)       -> reinterpret_int ikind v
-  | TPtr _                -> reinterpret_int Cil.theMachine.Cil.upointKind v
-  | TFloat (fkind, _)     -> let _, _, v = unsafe_reinterpret_float fkind v in v
-  | TBuiltin_va_list _    -> V.topify_arith_origin v
-  (* Nothing can/should be done on struct and arrays, that are either already
-     imprecise as a Cvalue.V, or read in a precise way. It is not clear
-     that a TFun can be obtained here, but one never knows. *)
-  | TComp _ | TArray _ | TFun _ -> v
-  | TNamed _ -> assert false
-  | TVoid _  -> assert false
+let cast_int exp ~src ~dst v =
+  let effects, v =
+    if
+      Value_parameters.WarnSignedConvertedDowncast.get ()
+      && not (Kernel.SignedDowncast.get ())
+    then relaxed_cast_effects exp ~src ~dst v
+    else cast_effects ~src ~dst v exp, v
+  in
+  match effects with
+  | Identity -> v, Alarmset.none
+  | DowncastWrap ->
+    let size = Integer.of_int dst.i_bits in
+    let v', _ = V.cast ~signed:dst.i_signed ~size v in
+    v', Alarmset.none
+  | DowncastTruncate (dst_range, alarms) ->
+    let irange, pointer_part = V.split Base.null v in
+    let irange = Ival.narrow irange dst_range in
+    let v_irange = V.inject_ival irange in
+    (V.join v_irange pointer_part), alarms
 
-let reinterpret_float exp fkind v =
-  let addresses, overflow, r = unsafe_reinterpret_float fkind v in
+let cast_float exp fkind v =
+  let addresses, overflow, r = reinterpret_float fkind v in
   let alarms =
     if overflow || addresses
     then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
@@ -508,49 +663,70 @@ let reinterpret_float exp fkind v =
   in
   r, alarms
 
-let reinterpret exp t v =
-  match Cil.unrollType t with
-  | TFloat (fkind, _) -> reinterpret_float exp fkind v
-  | _ -> unsafe_reinterpret t v, Alarmset.none
+let unsafe_reinterpret typ v =
+  match Eval_typ.classify_as_scalar typ with
+  | TSInt ik | TSPtr ik  -> reinterpret_int ik v
+  | TSFloat fk -> let _, _, v = reinterpret_float fk v in v
+  | TSNotScalar -> v
+
+(* TODO: reinterpret should never raise an alarm. Infinite/NaN should
+   be in the lattice, and handled a bit later. *)
+let reinterpret exp typ v =
+  match Eval_typ.classify_as_scalar typ with
+  | TSFloat fkind -> cast_float exp fkind v
+  | TSInt ik | TSPtr ik -> reinterpret_int ik v, Alarmset.none
+  | TSNotScalar -> v, Alarmset.none
+
+(* Conversion from floating-point to integer *)
+let float_to_int_alarms irange fkind exp v =
+  let size = irange.i_bits in
+  let signed = irange.i_signed in
+  let addr, non_finite, overflows, r =
+    Cvalue.V.cast_float_to_int ~signed ~size v
+  in
+  let alarms =
+    if addr || non_finite
+    then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+    else Alarmset.none
+  in
+  let alarms =
+    if overflows <> (false, false)
+    then
+      let dst_range = Ival.create_all_values ~signed ~size in
+      let mn, mx = Ival.min_and_max dst_range in
+      let emit overflow kind bound alarms = match bound with
+        | None -> alarms
+        | Some n ->
+          if overflow
+          then Alarmset.add (Alarms.Float_to_int (exp, n, kind)) alarms
+          else alarms
+      in
+      let alarms = emit (fst overflows) Alarms.Lower_bound mn alarms in
+      let alarms = emit (snd overflows) Alarms.Upper_bound mx alarms in
+      alarms
+    else alarms
+  in
+  r, alarms
 
 let do_promotion ~rounding_mode ~src_typ ~dst_typ exp v =
-  match Cil.unrollType dst_typ, Cil.unrollType src_typ with
-  | TFloat _, TInt _ ->
-    (* Cannot overflow with 32 bits float *)
+  match Eval_typ.classify_as_scalar dst_typ,
+        Eval_typ.classify_as_scalar src_typ
+  with
+  | TSFloat _, (TSInt _ | TSPtr _) -> (* Cannot overflow with 32 bits float *)
     let v, _ok = Cvalue.V.cast_int_to_float rounding_mode v in
     return v
-  | TInt (kind,_), TFloat (fkind, _) ->
-    let size = Cil.bitsSizeOfInt kind in
-    let signed = Cil.isSigned kind in
-    let addr, non_finite, overflows, r =
-      Cvalue.V.cast_float_to_int ~signed ~size v
-    in
-    let alarms =
-      if addr || non_finite
-      then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
-      else Alarmset.none
-    in
-    let alarms =
-      if overflows <> (false, false)
-      then
-        let dst_range = Ival.create_all_values ~signed ~size in
-        let mn, mx = Ival.min_and_max dst_range in
-        let emit overflow kind bound alarms = match bound with
-          | None -> alarms
-          | Some n ->
-            if overflow
-            then Alarmset.add (Alarms.Float_to_int (exp, n, kind)) alarms
-            else alarms
-        in
-        let alarms = emit (fst overflows) Alarms.Lower_bound mn alarms in
-        let alarms = emit (snd overflows) Alarms.Upper_bound mx alarms in
-        alarms
-      else alarms
-    in
-    r, alarms
-  | TInt (ikind, _), TInt _ -> reinterpret_int ikind v, Alarmset.none
-  | TFloat (fkind, _), TFloat _ -> reinterpret_float exp fkind v
-  | _, _ -> return v
+
+  | (TSInt dst | TSPtr dst), TSFloat fk ->
+    float_to_int_alarms dst fk exp v
+
+  | (TSInt dst | TSPtr dst), (TSInt src | TSPtr src) ->
+    cast_int exp ~src ~dst v
+
+  | TSFloat fk, TSFloat _ ->
+    cast_float exp fk v
+
+  | (TSNotScalar, _) | (_, TSNotScalar) ->
+    return v (*unclear whether this happens*)
 
 
 (* --------------------------------------------------------------------------
@@ -570,30 +746,6 @@ let make_volatile ?typ v =
       let aux b _ acc = V.join acc (V.inject b Ival.top) in
       V.M.fold aux m V.bottom
   else v
-
-let cast_lval_if_bitfield typlv v =
-  match Eval_typ.bitfield_size typlv with
-  | None -> v
-  | Some size ->
-    if V.is_arithmetic v
-    then
-      let signed = Bit_utils.is_signed_int_enum_pointer typlv in
-      let v, _ok = Cvalue.V.cast ~size ~signed v in
-      v (* TODO: handle not ok case as a downcast *)
-    else if V.is_bottom v then
-      v
-    else
-      (* [v] is a pointer: check there are enough bits in
-         the bit-field to contain it. *)
-    if Integer.(ge size (of_int (Bit_utils.sizeofpointer ()))) ||
-       V.is_imprecise v
-    then v
-    else begin
-      Value_parameters.result
-        "casting address to a bit-field of %s bits: \
-         this is smaller than sizeof(void*)" (Integer.to_string size);
-      V.topify_arith_origin v
-    end
 
 let eval_float_constant exp f fkind fstring =
   let fl, fu = match fstring with

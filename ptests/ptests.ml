@@ -245,7 +245,7 @@ let () =
     with
     | End_of_file ->
       if !toplevel_path = "" then begin
-        Format.eprintf "Missign TOPLEVEL_PATH variable. Aborting.@.";
+        Format.eprintf "Missing TOPLEVEL_PATH variable. Aborting.@.";
         exit 1
       end
   end
@@ -641,7 +641,7 @@ let config_options =
     (fun _ s current ->
        let new_top =
          List.map
-           (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, log)
+           (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, current.dc_default_log)
            !current_default_cmds
        in
        { current with dc_toplevels =
@@ -736,8 +736,12 @@ let scan_test_file default dir f =
                if List.exists is_current_config configs then
                  (* Found options for current config! *)
                  scan_options dir scan_buffer default
-               else (* config name does not match: eat config and continue *)
-                 (ignore (scan_options dir scan_buffer default);
+               else (* config name does not match: eat config and continue.
+                       But only if the comment is still opened by the end of
+                       the line...
+                    *)
+                 (if not (str_string_match end_comment names 0) then
+                    ignore (scan_options dir scan_buffer default);
                   scan_config ()))
         in
         try
@@ -867,7 +871,7 @@ let get_macros cmd =
 
 let basic_command_string =
   let contains_toplevel_or_frama_c = 
-    Str.regexp ".*\\(\\(toplevel\\)\\|\\(viewer\\)\\|\\(frama-c\\)\\).*"
+    Str.regexp "[^( ]*\\(\\(toplevel\\)\\|\\(viewer\\)\\|\\(frama-c\\)\\).*"
   in
   fun command ->
     let macros = get_macros command in
@@ -887,7 +891,7 @@ let basic_command_string =
       then begin
         let opt_pre = snd (replace_macros macros !additional_options_pre) in
         let opt_post = snd (replace_macros macros !additional_options) in
-        opt_pre ^ " " ^ options ^ " " ^ opt_post
+        "-check " ^ opt_pre ^ " " ^ options ^ " " ^ opt_post
       end else options
     in
     let options = if needs_byte then opt_to_byte_options options else options in

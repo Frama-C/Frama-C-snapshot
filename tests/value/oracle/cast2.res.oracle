@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {255}
 [value] computing for function g <- main.
         Called from tests/value/cast2.i:28.
@@ -11,7 +11,7 @@
         Called from tests/value/cast2.i:7.
 [value] using specification for function any_int
 [value] Done for function any_int
-tests/value/cast2.i:9:[kernel] warning: signed overflow. assert t+1 ≤ 2147483647;
+tests/value/cast2.i:9:[value] warning: signed overflow. assert t + 1 ≤ 2147483647;
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h <- main.
@@ -30,14 +30,14 @@ tests/value/cast2.i:24:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   t ∈ [-2147483647..2147483647]
   G_0 ∈ [--..--]
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   G ∈ {1}
-[value] Values at end of function passcast:
+[value:final-states] Values at end of function passcast:
   i ∈ [-128..100]
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   G ∈ {1}
 [from] Computing for function g
 [from] Computing for function any_int <-g

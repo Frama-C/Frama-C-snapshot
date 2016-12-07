@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
   __fc_fopen[0..511] ∈ {0}
   _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
@@ -28,10 +28,10 @@ tests/value/subset.c:35:[value] assertion got status valid.
 [value] Done for function main2
 [value] computing for function main3 <- main.
         Called from tests/value/subset.c:73.
-tests/value/subset.c:40:[kernel] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:40:[kernel] warning: accessing out of bounds index. assert v < 10;
-tests/value/subset.c:41:[kernel] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:41:[kernel] warning: accessing out of bounds index. assert v < 300;
+tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert 0 ≤ v;
+tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert v < 10;
+tests/value/subset.c:41:[value] warning: accessing out of bounds index. assert 0 ≤ v;
+tests/value/subset.c:41:[value] warning: accessing out of bounds index. assert v < 300;
 tests/value/subset.c:42:[value] warning: assertion got status unknown.
 tests/value/subset.c:43:[value] warning: assertion got status unknown.
 tests/value/subset.c:45:[value] warning: assertion got status unknown.
@@ -42,8 +42,8 @@ tests/value/subset.c:50:[value] warning: assertion got status unknown.
 [value] Done for function main3
 [value] computing for function main4 <- main.
         Called from tests/value/subset.c:74.
-tests/value/subset.c:55:[kernel] warning: accessing out of bounds index. assert 0 ≤ v;
-tests/value/subset.c:55:[kernel] warning: accessing out of bounds index. assert v < 10;
+tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert 0 ≤ v;
+tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert v < 10;
 tests/value/subset.c:56:[value] warning: assertion got status unknown.
 tests/value/subset.c:57:[value] warning: assertion got status unknown.
 tests/value/subset.c:59:[value] warning: assertion got status unknown.
@@ -58,24 +58,24 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
-  p ∈ {{ NULL ; &__fc_fopen + [0..14308],0%28 }}
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main1:
+  p ∈ {{ NULL ; &__fc_fopen + [0..4088],0%8 }}
+[value:final-states] Values at end of function main2:
   x ∈ {1}
   y ∈ {1}
   z ∈ {1}
-[value] Values at end of function main3:
+[value:final-states] Values at end of function main3:
   a[0..8] ∈ {5}
    [9] ∈ [--..--]
   b[0..100] ∈ [-10..10]
    [101..299] ∈ [--..--]
   z ∈ [-10..10]
-[value] Values at end of function main4:
+[value:final-states] Values at end of function main4:
   a[0..4] ∈ {4; 5; 6; 7; 8}
    [5] ∈ {5}
    [6..9] ∈ {4; 5; 6; 7; 8}
   k ∈ {4; 5; 6; 7; 8}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Computing for function fopen <-main1

@@ -6,7 +6,7 @@ int main(void)
   int __retres;
   char *s;
   s = (char *)"\\\\.\\";
-  /*@ assert *(s+0) ≡ '\\'; */ ;
+  /*@ assert *(s + 0) ≡ '\\'; */ ;
   *(s + 2) = (char)'\\';
   __retres = 0;
   return __retres;

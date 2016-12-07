@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -main main -journal-disable -then -out -deps
-   OPT: -val @VALUECONFIG@ -main origin -journal-disable -then -out -deps
+   OPT: @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-main -main main -journal-disable -then -out -deps
+   OPT: @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
 
 */
 char f();

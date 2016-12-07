@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 [wp] 3 goals scheduled
 [wp] [Qed] Goal typed_ref_f_loop_assign : Valid
 [wp] [Qed] Goal typed_ref_f2_loop_assign : Valid

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp/sharing.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp:print-generated] (* ---------------------------------------------------------- *)
@@ -23,11 +22,11 @@
                        let m_3 = m_2[shift_sint32(a, 3) <- m_2[a_2]] : (addr,int) farray in
                        (0 <= i) ->
                        (0 <= i_1) ->
+                       (region(a.base) <= 0) ->
                        (i <= 9) ->
                        (i_1 <= 9) ->
                        linked(t) ->
                        is_sint32(i) ->
-                       (region(a.base) <= 0) ->
                        valid_rw(t, a_1, 10) ->
                        (forall i_2 : int. (0 <= i_2) -> (i_2 <= 9) ->
                         (0 <= t_1[shift_sint32(a, i_2)])) ->
@@ -49,7 +48,7 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 9).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a, 10).
   (* Pre-condition *)

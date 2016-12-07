@@ -4,7 +4,7 @@ tests/value/widen_overflow.i:9:[kernel] warning: Calling undeclared function u. 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Called Frama_C_show_each({4})
 tests/value/widen_overflow.i:9:[value] entering loop for the first time
@@ -31,6 +31,6 @@ tests/value/widen_overflow.i:9:[kernel] warning: Neither code nor specification 
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ [0..4294967294],0%2
   __retres ∈ {0}

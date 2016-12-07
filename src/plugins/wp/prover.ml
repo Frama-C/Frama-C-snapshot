@@ -67,7 +67,7 @@ let run_prover wpo ?(mode=BatchMode) ?callin ?callback prover =
   let result = match status with
     | Task.Result r -> r
     | Task.Canceled -> VCS.no_result
-    | Task.Timeout -> VCS.timeout
+    | Task.Timeout t -> VCS.timeout t
     | Task.Failed exn -> VCS.failed (error exn)
   in
   let result = { result with solver_time = qed_time wpo } in

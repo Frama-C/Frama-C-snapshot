@@ -71,3 +71,19 @@ val list_of_bot: 'a list or_bottom -> 'a list
 
 (** [elt >:: list] adds [elt] to the [list] if it is not bottom. *)
 val add_to_list : 'a or_bottom -> 'a list -> 'a list
+
+
+(** Lattices in which both top and bottom are managed separately *)
+module Top: sig
+
+  type 'a or_top_bottom = [ 'a or_bottom | `Top ]
+
+  val join:
+    ('a -> 'a -> 'a) ->
+    'a or_top_bottom -> 'a or_top_bottom -> 'a or_top_bottom
+
+  val narrow:
+    ('a -> 'a -> 'a or_bottom) ->
+    'a or_top_bottom -> 'a or_top_bottom -> 'a or_top_bottom
+
+end

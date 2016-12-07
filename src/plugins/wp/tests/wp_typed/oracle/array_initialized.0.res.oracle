@@ -4,7 +4,6 @@
 tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function main1
@@ -254,7 +253,7 @@ Assume {
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (p[i_1] = shift_sint32(global(G_p0_75), 0)))).
+      (global(G_p0_75) = p[i_1]))).
   (* Heap *)
   Have: linked(Malloc_0).
 }

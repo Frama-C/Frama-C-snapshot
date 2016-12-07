@@ -61,7 +61,7 @@ uint band_uint(uint a,uint b) { return a & b ; }
 uint bor_uint(uint a,uint b) { return a | b ; }
 
 /*@ ensures ok: \result == (uint)(a ^ b); 
-    ensures ko: \result == (a ^ b); 
+    ensures ok: \result == (a ^ b); 
  */
 uint bxor_uint(uint a,uint b) { return a ^ b ; }
 
@@ -126,7 +126,7 @@ uchar band_uchar(uchar a,uchar b) { return a & b ; }
 uchar bor_uchar(uchar a,uchar b) { return a | b ; }
 
 /*@ ensures ok: \result == (uchar)(a ^ b); 
-    ensures ko: \result == (a ^ b); 
+    ensures ok: \result == (a ^ b); 
  */
 uchar bxor_uchar(uchar a,uchar b) { return a ^ b ; }
 

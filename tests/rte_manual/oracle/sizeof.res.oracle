@@ -4,7 +4,7 @@ tests/rte_manual/sizeof.c:4:[kernel] warning: Variable-sized local variable b
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function fsize3 <- main.
         Called from tests/rte_manual/sizeof.c:9.
@@ -19,11 +19,11 @@ tests/rte_manual/sizeof.c:4:[kernel] warning: Neither code nor specification for
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function fsize3:
+[value:final-states] Values at end of function fsize3:
   b ∈ {{ NULL + [--..--] ; &alloced_return_alloca + [0..2147483647] }}
   __lengthof_b ∈ {8}
   __retres ∈ {8}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {8}
 [from] Computing for function fsize3
 [from] Computing for function alloca <-fsize3

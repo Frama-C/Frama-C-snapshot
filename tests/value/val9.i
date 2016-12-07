@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   STDOPT: #"-main f"
+   STDOPT: #"-main f -val-warn-copy-indeterminate=-f"
 */
 int TT[10]={1,2,3};
 int T[10]={1,2,3};

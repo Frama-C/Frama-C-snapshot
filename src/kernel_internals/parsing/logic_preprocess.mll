@@ -27,7 +27,6 @@
   type end_of_buffer = NEWLINE | SPACE | CHAR
   let preprocess_buffer = Buffer.create 1024
   let output_buffer = Buffer.create 1024
-  let beg_of_line = Buffer.create 8
   (* Standard prohibits the predefined macros to be subject of a #define
      (or #undef) directive. We thus have to filter the definition of these
      macros from gcc's output (gcc emits a warning otherwise).
@@ -55,7 +54,6 @@
   let reset () =
     Buffer.clear preprocess_buffer;
     Buffer.clear output_buffer;
-    Buffer.clear beg_of_line;
     is_newline := CHAR;
     curr_file := "";
     curr_line := 1;
@@ -171,13 +169,9 @@
 
   let add_preprocess_line_info () =
     Printf.bprintf
-      preprocess_buffer "# %d %s \n%s   "
-      !curr_line !curr_file (Buffer.contents beg_of_line);
-    Buffer.clear beg_of_line
+      preprocess_buffer "# %d %s \n" !curr_line !curr_file
 
-  let make_newline () =
-    incr curr_line;
-    Buffer.clear beg_of_line
+  let make_newline () = incr curr_line
 }
 
 rule main = parse
@@ -200,7 +194,6 @@ rule main = parse
     }
   | "/*@" ('{' | '}' as c) { (* Skip special doxygen comments. Use of '@'
                                 instead of !Clexer.annot_char is intentional *)
-        Buffer.add_string beg_of_line "   ";
         Buffer.add_string output_buffer (lexeme lexbuf);
         comment c lexbuf;}
   | "/*"  (_ as c) {
@@ -213,8 +206,7 @@ rule main = parse
         add_preprocess_line_info();
         annot lexbuf
       end else begin
-        if c = '\n' then make_newline()
-        else Buffer.add_string beg_of_line "   ";
+        if c = '\n' then make_newline();
         Buffer.add_string output_buffer (lexeme lexbuf);
         comment c lexbuf;
       end}
@@ -245,15 +237,12 @@ rule main = parse
       make_newline (); Buffer.add_char output_buffer '\n'; main lexbuf }
   | eof  { }
   | '"' {
-      Buffer.add_char beg_of_line ' ';
       Buffer.add_char output_buffer '"'; 
       c_string lexbuf }
-  | "'" { 
-      Buffer.add_char beg_of_line ' ';
+  | "'" {
       Buffer.add_char output_buffer '\'';
       c_char lexbuf }
   | _ as c {
-      Buffer.add_char beg_of_line ' ';
       Buffer.add_char output_buffer c;
       main lexbuf }
 and macro blacklisted = parse
@@ -337,40 +326,25 @@ and macro_char blacklisted = parse
 | _ as c { if not blacklisted then Buffer.add_char preprocess_buffer c;
            macro_char blacklisted lexbuf }
 and c_string = parse
-| "\\\"" { Buffer.add_string beg_of_line "  ";
-           Buffer.add_string output_buffer (lexeme lexbuf);
-           c_string lexbuf }
-| "\"" { Buffer.add_char beg_of_line ' '; 
-         Buffer.add_char output_buffer '"';
-         main lexbuf }
+| "\\\"" { Buffer.add_string output_buffer (lexeme lexbuf); c_string lexbuf }
+| "\"" { Buffer.add_char output_buffer '"'; main lexbuf }
 | '\n' { make_newline ();
          Buffer.add_char output_buffer '\n';
          c_string lexbuf
        }
-| "\\\\" { Buffer.add_string beg_of_line "  ";
-           Buffer.add_string output_buffer (lexeme lexbuf);
-           c_string lexbuf }
-| _ as c { Buffer.add_char beg_of_line ' ';
-           Buffer.add_char output_buffer c;
-           c_string lexbuf }
+| "\\\\" { Buffer.add_string output_buffer (lexeme lexbuf); c_string lexbuf }
+| _ as c { Buffer.add_char output_buffer c; c_string lexbuf }
 (* C syntax allows for multiple char character constants *)
 and c_char = parse
-| "\\\'" { Buffer.add_string beg_of_line "  ";
-           Buffer.add_string output_buffer (lexeme lexbuf);
+| "\\\'" { Buffer.add_string output_buffer (lexeme lexbuf);
            c_char lexbuf }
-| "'" { Buffer.add_char beg_of_line ' '; 
-         Buffer.add_char output_buffer '\'';
-         main lexbuf }
+| "'" { Buffer.add_char output_buffer '\''; main lexbuf }
 | '\n' { make_newline ();
          Buffer.add_char output_buffer '\n';
          c_char lexbuf
        }
-| "\\\\" { Buffer.add_string beg_of_line "  ";
-           Buffer.add_string output_buffer (lexeme lexbuf);
-           c_char lexbuf }
-| _ as c { Buffer.add_char beg_of_line ' ';
-           Buffer.add_char output_buffer c;
-           c_char lexbuf }
+| "\\\\" { Buffer.add_string output_buffer (lexeme lexbuf); c_char lexbuf }
+| _ as c { Buffer.add_char output_buffer c; c_char lexbuf }
 
 and annot = parse
     "*/"  {
@@ -467,7 +441,6 @@ and string annot = parse
 and comment c =
 parse
     "/" {
-      Buffer.add_char beg_of_line ' ';
       Buffer.add_char output_buffer  '/';
       if c = '*' then
         main lexbuf
@@ -477,10 +450,7 @@ parse
   | '\n' { make_newline (); Buffer.add_char output_buffer '\n';
            comment '\n' lexbuf }
   | eof { abort_preprocess "eof while parsing C comment" }
-  | _ as c {
-      Buffer.add_char beg_of_line ' ';
-      Buffer.add_char output_buffer c;
-      comment c lexbuf}
+  | _ as c { Buffer.add_char output_buffer c; comment c lexbuf }
 
 and oneline_annot = parse
     "\n"|eof {

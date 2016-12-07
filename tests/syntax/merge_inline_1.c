@@ -1,5 +1,5 @@
 /* run.config
-OPT: @PTEST_DIR@/merge_inline_2.c -aggressive-merging -check -print
+OPT: @PTEST_DIR@/merge_inline_2.c -aggressive-merging -print
 */
 
 /* Test that we rename properly inlines even if they have prototypes and

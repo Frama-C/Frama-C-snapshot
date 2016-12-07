@@ -188,9 +188,11 @@ module Value : sig
       (Cil_types.exp * Cvalue.V.t * Cvalue.V_Offsetmap.t) list ->
     Value_types.call_result
 
-  val register_builtin: (string -> builtin_sig -> unit) ref
-    (** [!register_builtin name f] registers an abstract function [f]
+  val register_builtin: (string -> ?replace:string -> builtin_sig -> unit) ref
+    (** [!register_builtin name ?replace f] registers an abstract function [f]
         to use everytime a C function named [name] is called in the program.
+        If [replace] is supplied and option [-val-builtins-auto] is active,
+        calls to [replace] will also be substituted by the builtin.
         See also option [-val-builtin] *)
 
   val registered_builtins: (unit -> (string * builtin_sig) list) ref
@@ -434,7 +436,7 @@ module Value : sig
       to change between Frama-C versions. *)
 
     val eval_predicate:
-      (pre:state -> here:state -> predicate named ->
+      (pre:state -> here:state -> predicate ->
        Property_status.emitted_status) ref
       (** Evaluate the given predicate in the given states for the Pre
           and Here ACSL labels.
@@ -625,7 +627,7 @@ module Properties : sig
        Cil_types.term) ref
     val predicate :
       (kernel_function -> ?loc:location -> ?env:Logic_typing.Lenv.t -> string ->
-       Cil_types.predicate named) ref
+       Cil_types.predicate) ref
 
     val code_annot : (kernel_function -> stmt -> string -> code_annotation) ref
 
@@ -755,11 +757,11 @@ module Properties : sig
         (** Entry point to get zones needed to evaluate the list of [terms]
             relative to the [ctx] of interpretation. *)
 
-      val from_pred: (predicate named -> t_ctx -> t_zone_info * t_decl) ref
+      val from_pred: (predicate -> t_ctx -> t_zone_info * t_decl) ref
         (** Entry point to get zones needed to evaluate the [predicate]
             relative to the [ctx] of interpretation. *)
 
-      val from_preds: (predicate named list -> t_ctx -> t_zone_info * t_decl) ref
+      val from_preds: (predicate list -> t_ctx -> t_zone_info * t_decl) ref
         (** Entry point to get zones needed to evaluate the list of
             [predicates] relative to the [ctx] of interpretation. *)
 
@@ -798,7 +800,7 @@ module Properties : sig
         of the term result?
         @since Carbon-20110201 *)
     val to_result_from_pred:
-      (predicate named -> bool) ref
+      (predicate -> bool) ref
 
 
   end
@@ -873,6 +875,7 @@ module RteGen : sig
   val get_precond_status : (unit -> status_accessor) ref
   val get_divMod_status : (unit -> status_accessor) ref
   val get_memAccess_status : (unit -> status_accessor) ref
+  val get_pointerCall_status: (unit -> status_accessor) ref
   val get_signedOv_status : (unit -> status_accessor) ref
   val get_signed_downCast_status : (unit -> status_accessor) ref
   val get_unsignedOv_status : (unit -> status_accessor) ref
@@ -1568,7 +1571,7 @@ module Slicing : sig
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_pred :
-      (set -> Mark.t -> predicate named -> stmt ->
+      (set -> Mark.t -> predicate -> stmt ->
         kernel_function -> set) ref
       (** To select a predicate value related to a statement.
           Note: add also a transparent selection on the whole statement. *)

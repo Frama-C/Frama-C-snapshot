@@ -4,7 +4,7 @@
 int x;
 /*@ predicate P{A}= x ≡ 42;
  */
-/*@ logic ℤ f{B}= x+42;
+/*@ logic ℤ f{B}= x + 42;
  */
 /*@ lemma foo{C}: P ⇒ f ≡ 84;
  */

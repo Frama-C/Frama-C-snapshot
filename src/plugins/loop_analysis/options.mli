@@ -25,3 +25,4 @@ include Plugin.S
 module Run:Parameter_sig.Bool
 module MaxIterations:Parameter_sig.Int
 module MaxSlevel:Parameter_sig.Int
+module NoBranches:Parameter_sig.Bool

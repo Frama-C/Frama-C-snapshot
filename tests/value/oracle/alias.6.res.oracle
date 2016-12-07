@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main8
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   NULL[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
@@ -61,7 +61,7 @@
 [value] Recording results for main8
 [value] done for function main8
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main8:
+[value:final-states] Values at end of function main8:
   A ∈ {3; 4}
   B ∈ {4; 5}
   C ∈ {2; 3; 33; 44}

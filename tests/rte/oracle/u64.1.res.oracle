@@ -6,11 +6,11 @@ unsigned long f(unsigned int n)
 {
   unsigned long __retres;
   /*@ assert
-      rte: unsigned_overflow: 0 ≤ (unsigned long)n*sizeof(unsigned long);
+      rte: unsigned_overflow: 0 ≤ (unsigned long)n * sizeof(unsigned long);
   */
   /*@ assert
       rte: unsigned_overflow:
-        (unsigned long)n*sizeof(unsigned long) ≤ 18446744073709551615;
+        (unsigned long)n * sizeof(unsigned long) ≤ 18446744073709551615;
   */
   __retres = (unsigned long)n * sizeof(unsigned long);
   return __retres;

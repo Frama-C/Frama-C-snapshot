@@ -41,7 +41,7 @@ val labels_stmt_assigns : stmt -> logic_label option -> label_mapping
 val labels_predicate : (logic_label * logic_label) list -> label_mapping
 val labels_axiom : label_mapping
 
-val preproc_annot : label_mapping -> predicate named -> predicate named
+val preproc_annot : label_mapping -> predicate -> predicate
 
 val preproc_assigns :
   label_mapping -> identified_term from list -> identified_term from list

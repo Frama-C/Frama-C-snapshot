@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Called Frama_C_show_each_f({4}, {18446603611099103232}, {0})
 [value] computing for function div64 <- main.
@@ -27,14 +27,14 @@ tests/value/long_const.i:12:[value] warning: function div64: precondition got st
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function LL_ABS:
+[value:final-states] Values at end of function LL_ABS:
   
-[value] Values at end of function div64:
+[value:final-states] Values at end of function div64:
   loc_num ∈ [0..9223372036854775807]
   loc_den ∈ [0..9223372036854775807]
   signe_negatif ∈ {-9223372036854775808; 0}
   __retres ∈ {0}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   i ∈ {18446603611099103232}
   j ∈ {0}
 [from] Computing for function LL_ABS

@@ -11,12 +11,12 @@ int main(void)
   {
     int i_unroll_32;
     x ++;
-    /*@ assert x ≡ \at(x,unrolling_7_loop)+1; */ ;
+    /*@ assert x ≡ \at(x,unrolling_7_loop) + 1; */ ;
     i_unroll_32 = 0;
     /*@ loop invariant \at(i_unroll_32,LoopEntry) ≡ 0; */
     while (i_unroll_32 < 4) {
       i_unroll_32 ++;
-      /*@ assert \at(i_unroll_32,LoopCurrent) ≡ i_unroll_32-1; */ ;
+      /*@ assert \at(i_unroll_32,LoopCurrent) ≡ i_unroll_32 - 1; */ ;
     }
     /*@ assert i_unroll_32 > 0; */ ;
   }
@@ -25,12 +25,12 @@ int main(void)
   {
     int i_unroll_24;
     x ++;
-    /*@ assert x ≡ \at(x,unrolling_6_loop)+1; */ ;
+    /*@ assert x ≡ \at(x,unrolling_6_loop) + 1; */ ;
     i_unroll_24 = 0;
     /*@ loop invariant \at(i_unroll_24,LoopEntry) ≡ 0; */
     while (i_unroll_24 < 4) {
       i_unroll_24 ++;
-      /*@ assert \at(i_unroll_24,LoopCurrent) ≡ i_unroll_24-1; */ ;
+      /*@ assert \at(i_unroll_24,LoopCurrent) ≡ i_unroll_24 - 1; */ ;
     }
     /*@ assert i_unroll_24 > 0; */ ;
   }
@@ -39,12 +39,12 @@ int main(void)
   {
     int i_unroll_16;
     x ++;
-    /*@ assert x ≡ \at(x,unrolling_5_loop)+1; */ ;
+    /*@ assert x ≡ \at(x,unrolling_5_loop) + 1; */ ;
     i_unroll_16 = 0;
     /*@ loop invariant \at(i_unroll_16,LoopEntry) ≡ 0; */
     while (i_unroll_16 < 4) {
       i_unroll_16 ++;
-      /*@ assert \at(i_unroll_16,LoopCurrent) ≡ i_unroll_16-1; */ ;
+      /*@ assert \at(i_unroll_16,LoopCurrent) ≡ i_unroll_16 - 1; */ ;
     }
     /*@ assert i_unroll_16 > 0; */ ;
   }
@@ -53,12 +53,12 @@ int main(void)
   {
     int i_unroll_8;
     x ++;
-    /*@ assert x ≡ \at(x,unrolling_4_loop)+1; */ ;
+    /*@ assert x ≡ \at(x,unrolling_4_loop) + 1; */ ;
     i_unroll_8 = 0;
     /*@ loop invariant \at(i_unroll_8,LoopEntry) ≡ 0; */
     while (i_unroll_8 < 4) {
       i_unroll_8 ++;
-      /*@ assert \at(i_unroll_8,LoopCurrent) ≡ i_unroll_8-1; */ ;
+      /*@ assert \at(i_unroll_8,LoopCurrent) ≡ i_unroll_8 - 1; */ ;
     }
     /*@ assert i_unroll_8 > 0; */ ;
   }
@@ -71,12 +71,12 @@ int main(void)
   while (x < 15) {
     int i;
     x ++;
-    /*@ assert x ≡ \at(x,LoopCurrent)+1; */ ;
+    /*@ assert x ≡ \at(x,LoopCurrent) + 1; */ ;
     i = 0;
     /*@ loop invariant \at(i,LoopEntry) ≡ 0; */
     while (i < 4) {
       i ++;
-      /*@ assert \at(i,LoopCurrent) ≡ i-1; */ ;
+      /*@ assert \at(i,LoopCurrent) ≡ i - 1; */ ;
     }
     /*@ assert i > 0; */ ;
   }

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
   tab_s[0..1] ∈ {0}
@@ -13,20 +13,31 @@
   tab_s4[0..1] ∈ {0}
   s1 ∈ {0}
   s2 ∈ {0}
-  s4 ∈ {0}
-  s5 ∈ {0}
-  s6 ∈ {0}
   s8 ∈ {0}
   s7 ∈ {0}
   v ∈ [--..--]
-tests/value/struct3.i:38:[kernel] warning: accessing out of bounds index. assert 10 < 10;
-tests/value/struct3.i:38:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+tests/value/struct3.i:42:[value] warning: accessing out of bounds index. assert 10 < 10;
+tests/value/struct3.i:42:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+tests/value/struct3.i:46:[value] Assigning imprecise value to s2.a.
+        The imprecision originates from Arithmetic {tests/value/struct3.i:46}
 [value] Recording results for main
 [value] done for function main
-tests/value/struct3.i:38:[value] assertion 'Value,index_bound' got final status invalid.
+[value] warning: Garbled mix generated during analysis:
+                 {{ garbled mix of &{s1} (origin: Arithmetic {tests/value/struct3.i:46}) }}
+tests/value/struct3.i:42:[value] assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   s1.a ∈ {2}
+    .d[0] ∈ {1}
+    .d[1..2] ∈ {2}
+    .d[3..7] ∈ {0}
+    .d[8..9] ∈ {2}
+    .b.a ∈ {3}
+    {.b.b; .e[0..9]} ∈ {0}
+    .c ∈ {{ &s1 }}
+  s2.a ∈
+    {{ garbled mix of &{s1}
+     (origin: Arithmetic {tests/value/struct3.i:46}) }}
     .d[0] ∈ {1}
     .d[1..2] ∈ {2}
     .d[3..7] ∈ {0}
@@ -40,8 +51,9 @@ tests/value/struct3.i:38:[value] assertion 'Value,index_bound' got final status 
        These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   s1{{.a; .d[0..2]}; {.d[8..9]; .b.a}; .c} FROM \nothing
+  s2 FROM s1{.d[3..7]; {.b.b; .e[0..9]}}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          s1{{.a; .d[0..2]}; {.d[8..9]; .b.a}; .c}
+          s1{{.a; .d[0..2]}; {.d[8..9]; .b.a}; .c}; s2
 [inout] Inputs for function main:
-          v
+          s1; s2.c; v

@@ -36,3 +36,5 @@ class type engine =
 
 val f_concat : Lang.Fun.t
 val pp_concat : #engine -> Format.formatter -> Lang.F.term list -> unit
+
+val configure : Model.tuning

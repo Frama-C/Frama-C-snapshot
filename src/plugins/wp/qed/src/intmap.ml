@@ -56,7 +56,7 @@ let decode_mask p = lowest_bit (lnot p)
 
 let pp_mask m fmt p =
   begin
-    let bits = Array.create 63 false in
+    let bits = Array.make 63 false in
     let last = ref 0 in
     for i = 0 to 62 do
       let u = 1 lsl i in
@@ -72,7 +72,7 @@ let pp_mask m fmt p =
 
 let pp_bits fmt k =
   begin
-    let bits = Array.create 63 false in
+    let bits = Array.make 63 false in
     let last = ref 0 in
     for i = 0 to 62 do
       if (1 lsl i) land k <> 0 then

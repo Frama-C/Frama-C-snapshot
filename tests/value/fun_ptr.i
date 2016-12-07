@@ -1,3 +1,7 @@
+/* run.config*
+  STDOPT:
+  STDOPT: +"-machdep msvc_x86_64"
+*/
 
 
 int f(int x)
@@ -14,7 +18,7 @@ typedef int (*fptr1)(int);
 typedef int (*fptr2)(int, int);
 typedef double (*fptr3)(int);
 
-long t[2] = { (long)&f, (long)&g };
+long long t[2] = { (long long)&f, (long long)&g };
 
 int R1, R2;
 double R3;
@@ -42,13 +46,13 @@ volatile int v;
 
 void benign(int j, void *p) {
   int *q = p;
-  *q = j; // j is has not been cast as an int here
+  *q = j; // q is a void*, which is actually an int, but at the call site it is a short *. We accept this for now.
   int k = j+0; 
 }
 
 void test_benign () {
   int x;
-  void (*p) (unsigned, short *) = &benign; // We accept this cast, because the arguments are compatible size-wise. An (unprovable) alarm is still emitted
+  void (*p) (long, short *) = &benign; // We accept this cast, because the arguments are "compatible enough". An (unprovable) alarm is still emitted
   (*p)(1U << 31U, &x);
 }
 

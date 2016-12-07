@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..2999] ∈ {0}
 [value] computing for function init <- main.
         Called from tests/value/no_results.c:19.
@@ -50,7 +50,7 @@
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   t[0..1] ∈ {0}
    [2] ∈ {2}
    [3] ∈ {3}
@@ -3050,7 +3050,7 @@
    [2997] ∈ {2997}
    [2998] ∈ {2998}
    [2999] ∈ {2999}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
 Cannot filter: dumping raw memory (including unchanged variables)
   t[0..1] ∈ {0}
    [2] ∈ {2}

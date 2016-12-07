@@ -1,91 +1,91 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/csmith.c (with preprocessing)
+[kernel] Parsing tests/slicing/csmith.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G1 ∈ {0}
   G1b ∈ {0}
   G2 ∈ {0}
 [value] computing for function f1 <- main.
-        Called from tests/slicing/csmith.c:234.
-tests/slicing/csmith.c:15:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:234.
+tests/slicing/csmith.i:15:[value] entering loop for the first time
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f1b <- main.
-        Called from tests/slicing/csmith.c:235.
+        Called from tests/slicing/csmith.i:235.
 [value] Recording results for f1b
 [value] Done for function f1b
 [value] computing for function f2 <- main.
-        Called from tests/slicing/csmith.c:236.
-tests/slicing/csmith.c:36:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:236.
+tests/slicing/csmith.i:36:[value] entering loop for the first time
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function bts181 <- main.
-        Called from tests/slicing/csmith.c:237.
+        Called from tests/slicing/csmith.i:237.
 [value] Recording results for bts181
 [value] Done for function bts181
 [value] computing for function bts181b <- main.
-        Called from tests/slicing/csmith.c:238.
+        Called from tests/slicing/csmith.i:238.
 [value] Recording results for bts181b
 [value] Done for function bts181b
 [value] computing for function bts807 <- main.
-        Called from tests/slicing/csmith.c:239.
-tests/slicing/csmith.c:68:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:239.
+tests/slicing/csmith.i:68:[value] entering loop for the first time
 [value] Recording results for bts807
 [value] Done for function bts807
 [value] computing for function bts809 <- main.
-        Called from tests/slicing/csmith.c:240.
-tests/slicing/csmith.c:78:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:240.
+tests/slicing/csmith.i:78:[value] entering loop for the first time
 [value] Recording results for bts809
 [value] Done for function bts809
 [value] computing for function bts879 <- main.
-        Called from tests/slicing/csmith.c:241.
+        Called from tests/slicing/csmith.i:241.
 [value] Recording results for bts879
 [value] Done for function bts879
 [value] computing for function bts879b <- main.
-        Called from tests/slicing/csmith.c:242.
+        Called from tests/slicing/csmith.i:242.
 [value] Recording results for bts879b
 [value] Done for function bts879b
 [value] computing for function bts899 <- main.
-        Called from tests/slicing/csmith.c:243.
-tests/slicing/csmith.c:135:[value] entering loop for the first time
-tests/slicing/csmith.c:141:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+        Called from tests/slicing/csmith.i:243.
+tests/slicing/csmith.i:135:[value] entering loop for the first time
+tests/slicing/csmith.i:141:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 [value] Recording results for bts899
 [value] Done for function bts899
-tests/slicing/csmith.c:243:[kernel] warning: signed overflow. assert x+tmp_5 ≤ 2147483647;
-                                   (tmp_5 from bts899())
+tests/slicing/csmith.i:243:[value] warning: signed overflow. assert x + tmp_5 ≤ 2147483647;
+                                  (tmp_5 from bts899())
 [value] computing for function bts906 <- main.
-        Called from tests/slicing/csmith.c:244.
-tests/slicing/csmith.c:149:[value] entering loop for the first time
-tests/slicing/csmith.c:150:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:244.
+tests/slicing/csmith.i:149:[value] entering loop for the first time
+tests/slicing/csmith.i:150:[value] entering loop for the first time
 [value] Recording results for bts906
 [value] Done for function bts906
-tests/slicing/csmith.c:244:[kernel] warning: signed overflow. assert x+tmp_6 ≤ 2147483647;
-                                   (tmp_6 from bts906())
+tests/slicing/csmith.i:244:[value] warning: signed overflow. assert x + tmp_6 ≤ 2147483647;
+                                  (tmp_6 from bts906())
 [value] computing for function bts906b <- main.
-        Called from tests/slicing/csmith.c:245.
-tests/slicing/csmith.c:168:[value] entering loop for the first time
-tests/slicing/csmith.c:169:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:245.
+tests/slicing/csmith.i:168:[value] entering loop for the first time
+tests/slicing/csmith.i:169:[value] entering loop for the first time
 [value] Recording results for bts906b
 [value] Done for function bts906b
-tests/slicing/csmith.c:245:[kernel] warning: signed overflow. assert x+tmp_7 ≤ 2147483647;
-                                   (tmp_7 from bts906b())
+tests/slicing/csmith.i:245:[value] warning: signed overflow. assert x + tmp_7 ≤ 2147483647;
+                                  (tmp_7 from bts906b())
 [value] computing for function bts963 <- main.
-        Called from tests/slicing/csmith.c:247.
-tests/slicing/csmith.c:211:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:247.
+tests/slicing/csmith.i:211:[value] entering loop for the first time
 [value] Recording results for bts963
 [value] Done for function bts963
-tests/slicing/csmith.c:247:[kernel] warning: signed overflow. assert x+tmp_8 ≤ 2147483647;
-                                   (tmp_8 from bts963())
+tests/slicing/csmith.i:247:[value] warning: signed overflow. assert x + tmp_8 ≤ 2147483647;
+                                  (tmp_8 from bts963())
 [value] computing for function bts963b <- main.
-        Called from tests/slicing/csmith.c:248.
-tests/slicing/csmith.c:223:[value] entering loop for the first time
+        Called from tests/slicing/csmith.i:248.
+tests/slicing/csmith.i:223:[value] entering loop for the first time
 [value] Recording results for bts963b
 [value] Done for function bts963b
-tests/slicing/csmith.c:248:[kernel] warning: signed overflow. assert x+tmp_9 ≤ 2147483647;
-                                   (tmp_9 from bts963b())
+tests/slicing/csmith.i:248:[value] warning: signed overflow. assert x + tmp_9 ≤ 2147483647;
+                                  (tmp_9 from bts963b())
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...
@@ -411,3 +411,5 @@ int main(int n)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_0_csmith.i (no preprocessing)

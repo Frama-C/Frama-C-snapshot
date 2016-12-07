@@ -4,7 +4,7 @@ tests/float/builtins.c:55:[kernel] warning: Floating-point constant 2.72 is not 
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function Frama_C_float_interval <- main.
@@ -22,14 +22,14 @@ share/libc/__fc_builtin.h:150:[value] function Frama_C_double_interval: precondi
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   f ∈ [-1. .. 1.]
   d ∈ [-1. .. 1.]
 [value] Analyzing a complete application starting at main_log_exp
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function log <- main_log_exp.
@@ -123,11 +123,11 @@ tests/float/builtins.c:37:[value] warning: function exp: precondition got status
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:103:[value] assertion got status valid.
-tests/float/builtins.c:107:[kernel] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:107.
 tests/float/builtins.c:22:[value] warning: function log: precondition got status unknown.
-tests/float/builtins.c:26:[kernel] warning: non-finite double value. assert \is_finite(d);
+tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
 tests/float/builtins.c:26:[value] Reading left-value d.
         It contains a garbled mix of {d} because of Arithmetic
         {tests/float/builtins.c:107}.
@@ -135,24 +135,22 @@ tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range arg
                  (origin: Arithmetic) }}
 tests/float/builtins.c:26:[value] function Frama_C_log applied to address
 tests/float/builtins.c:24:[value] warning: function log: postcondition got status unknown.
-tests/float/builtins.c:26:[kernel] warning: non-finite double value. assert \is_finite(tmp);
-                                           (tmp from Frama_C_log(d))
+tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
+                                          (tmp from Frama_C_log(d))
 [value] Recording results for log
 [value] Done for function log
-tests/float/builtins.c:111:[value] completely invalid value in evaluation of
-        argument (double)x
-tests/float/builtins.c:111:[kernel] warning: accessing uninitialized left-value. assert \initialized(&x);
+tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
 tests/float/builtins.c:111:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function exp:
+[value:final-states] Values at end of function exp:
   
-[value] Values at end of function log:
+[value:final-states] Values at end of function log:
   
-[value] Values at end of function log10:
+[value:final-states] Values at end of function log10:
   
-[value] Values at end of function main_log_exp:
+[value:final-states] Values at end of function main_log_exp:
   l1 ∈ {0} or UNINITIALIZED
   l2 ∈ {1.00063188031} or UNINITIALIZED
   l3 ∈ {1.09861228867} or UNINITIALIZED
@@ -176,17 +174,17 @@ tests/float/builtins.c:111:[value] assertion 'Value,initialisation' got final st
 [value] Analyzing a complete application starting at main_log_exp
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:51.
-[value] warning: option -all-rounding-modes is not supported for builtin Frama_C_log
+[value] warning: builtin Frama_C_log: option -all-rounding-modes not supported by builtin
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
         Called from tests/float/builtins.c:52.
-[value] warning: option -all-rounding-modes is not supported for builtin Frama_C_log10
+[value] warning: builtin Frama_C_log10: option -all-rounding-modes not supported by builtin
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
@@ -216,13 +214,15 @@ tests/float/builtins.c:111:[value] assertion 'Value,initialisation' got final st
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:72.
 tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument ([-0. .. 1.79769313486e+308]):
-                 negative argument, computation may result in NaN
+                 negative argument,
+                 computation may result in NaN
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
         Called from tests/float/builtins.c:75.
 tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range argument ([-0. .. 1.79769313486e+308]):
-                 negative argument, computation may result in NaN
+                 negative argument,
+                 computation may result in NaN
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
@@ -235,7 +235,7 @@ tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range a
 [value] Done for function log10
 [value] computing for function exp <- main_log_exp.
         Called from tests/float/builtins.c:85.
-[value] warning: option -all-rounding-modes is not supported for builtin Frama_C_exp
+[value] warning: builtin Frama_C_exp: option -all-rounding-modes not supported by builtin
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
@@ -258,25 +258,25 @@ tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range a
         Called from tests/float/builtins.c:102.
 [value] Recording results for log
 [value] Done for function log
-tests/float/builtins.c:107:[kernel] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:107.
-tests/float/builtins.c:26:[kernel] warning: non-finite double value. assert \is_finite(d);
-tests/float/builtins.c:26:[kernel] warning: non-finite double value. assert \is_finite(tmp);
-                                           (tmp from Frama_C_log(d))
+tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
+tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
+                                          (tmp from Frama_C_log(d))
 [value] Recording results for log
 [value] Done for function log
-tests/float/builtins.c:111:[kernel] warning: accessing uninitialized left-value. assert \initialized(&x);
+tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function exp:
+[value:final-states] Values at end of function exp:
   
-[value] Values at end of function log:
+[value:final-states] Values at end of function log:
   
-[value] Values at end of function log10:
+[value:final-states] Values at end of function log10:
   
-[value] Values at end of function main_log_exp:
+[value:final-states] Values at end of function main_log_exp:
   l1 ∈ {0} or UNINITIALIZED
   l2 ∈ {1.00063188031} or UNINITIALIZED
   l3 ∈ {1.09861228867} or UNINITIALIZED
@@ -284,6 +284,59 @@ tests/float/builtins.c:111:[kernel] warning: accessing uninitialized left-value.
   l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
   l6 ∈ UNINITIALIZED
   l7 ∈ {{ garbled mix of &{d} (origin: Arithmetic) }} or UNINITIALIZED
+  l8 ∈ UNINITIALIZED
+  m1 ∈ {0} or UNINITIALIZED
+  m2 ∈ {1.} or UNINITIALIZED
+  m3 ∈ {1.30102999566} or UNINITIALIZED
+  m4 ∈ [1. .. 2.00432137378] or UNINITIALIZED
+  m5 ∈ [-323.306215343 .. 308.25471556] or UNINITIALIZED
+  m6 ∈ UNINITIALIZED
+  e1 ∈ {1.} or UNINITIALIZED
+  e2 ∈ {0} or UNINITIALIZED
+  e3 ∈ {2.68811714182e+43} or UNINITIALIZED
+  e4 ∈ [2.68811714182e+43 .. 1.79769313486e+308] or UNINITIALIZED
+  e5 ∈ UNINITIALIZED
+  e6 ∈ {1.79769313486e+308} or UNINITIALIZED
+[value] Analyzing a complete application starting at main_log_exp
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  Frama_C_entropy_source ∈ [--..--]
+  v ∈ [--..--]
+tests/float/builtins.c:72:[value] warning: builtin Frama_C_log: out-of-range argument
+                 ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
+                 computation may result in NaN
+tests/float/builtins.c:75:[value] warning: builtin Frama_C_log10: out-of-range argument
+                 ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
+                 computation may result in NaN
+tests/float/builtins.c:78:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.}):
+                 negative argument,
+                 computation may result in NaN
+tests/float/builtins.c:81:[value] warning: builtin Frama_C_log10: completely out-of-range argument ({-1.}):
+                 negative argument,
+                 computation may result in NaN
+tests/float/builtins.c:95:[value] warning: builtin Frama_C_exp: out-of-range argument ([100. .. 1000.]),
+                 computation may result in +oo
+tests/float/builtins.c:98:[value] warning: builtin Frama_C_exp:
+                 result is always non-finite
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
+tests/float/builtins.c:107:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
+                 (origin: Arithmetic {tests/float/builtins.c:107}) }}
+tests/float/builtins.c:107:[value] function Frama_C_log applied to address
+tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
+[value] Recording results for main_log_exp
+[value] done for function main_log_exp
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main_log_exp:
+  l1 ∈ {0} or UNINITIALIZED
+  l2 ∈ {1.00063188031} or UNINITIALIZED
+  l3 ∈ {1.09861228867} or UNINITIALIZED
+  l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
+  l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
+  l6 ∈ UNINITIALIZED
+  l7 ∈
+    {{ garbled mix of &{d}
+     (origin: Arithmetic {tests/float/builtins.c:107}) }} or UNINITIALIZED
   l8 ∈ UNINITIALIZED
   m1 ∈ {0} or UNINITIALIZED
   m2 ∈ {1.} or UNINITIALIZED

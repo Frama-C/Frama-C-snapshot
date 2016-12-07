@@ -3,18 +3,18 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/any_int.c:9:[value] entering loop for the first time
-tests/value/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
-tests/value/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
-tests/value/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ y-1;
-tests/value/any_int.c:9:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
-tests/value/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x-1;
+tests/value/any_int.c:9:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
+tests/value/any_int.c:9:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
+tests/value/any_int.c:9:[value] warning: signed overflow. assert -2147483648 ≤ y - 1;
+tests/value/any_int.c:9:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
+tests/value/any_int.c:9:[value] warning: signed overflow. assert -2147483648 ≤ x - 1;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   y ∈ [--..--]
   x ∈ [--..--]
 [from] Computing for function main

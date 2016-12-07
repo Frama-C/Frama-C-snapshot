@@ -104,7 +104,7 @@ let import_base (base : Base.t) ~importing_value =
       let new_vi = Value_util.create_new_var vi.vname vi.vtype in
       let validity = import_validity validity in
       let new_base = Base.register_allocated_var new_vi validity in
-      Value_util.register_malloced_base new_base;
+      Builtins_malloc.register_malloced_base new_base;
       new_base
   in
   let id = Base.id base in
@@ -278,3 +278,47 @@ let save_globals_state () : unit =
     else
       Value_parameters.failure "could not find saved state for function `%a'"
         Kernel_function.pretty kf
+
+
+exception Warn_local_addresses
+(* visitor used by frama_c_load_state *)
+class locals_visitor = object(_self) inherit Visitor.frama_c_inplace
+  method! vlval (lhost, _) =
+    match lhost with
+    | Var vi ->
+      if not vi.vglob then raise Warn_local_addresses;
+      Cil.DoChildren
+    | Mem _ -> Cil.DoChildren
+end
+
+
+(* Builtin to load a saved analysis state *)
+let frama_c_load_state state actuals =
+  if Value_parameters.ValShowProgress.get () then
+    Value_parameters.feedback "Call to builtin Frama_C_load_state(%a)%t"
+      Value_util.pretty_actuals actuals Value_util.pp_callstack;
+  (* Warn if arguments contain pointers to local variables,
+     in which case the loaded state may be unsound. *)
+  begin
+    try
+      List.iter (fun (exp_arg, arg, _) ->
+          let vis = new locals_visitor in
+          if Cil.isPointerType (Cil.typeOf exp_arg) then
+            ignore (Visitor.visitFramacExpr vis exp_arg);
+          if Cvalue.V.contains_addresses_of_any_locals arg then
+            raise Warn_local_addresses
+        ) actuals;
+    with Warn_local_addresses ->
+      Value_parameters.warning ~current:true ~once:true
+        "arguments to loaded function state contain local addresses,@ \
+         possible unsoundness";
+  end;
+  let merged_loaded_state = load_and_merge_function_state state in
+  {
+    Value_types.c_values = [None, merged_loaded_state];
+    c_clobbered = Base.SetLattice.empty;
+    c_cacheable = Value_types.NoCacheCallers;
+    c_from = None
+  }
+
+let () = Builtins.register_builtin "Frama_C_load_state" frama_c_load_state

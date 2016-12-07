@@ -53,6 +53,8 @@ module type S = sig
       'b
 
     val clear_caches: unit -> unit
+
+    val pretty_debug: t Pretty_utils.formatter
 end
 
 module Make(X: Hptmap.Id_Datatype)
@@ -149,7 +151,7 @@ module Make(X: Hptmap.Id_Datatype)
     l, pres <> None, r
 
   let intersects =
-    let name = Pretty_utils.sfprintf "Hptset(%s).intersects" X.name in
+    let name = Format.asprintf "Hptset(%s).intersects" X.name in
     symmetric_binary_predicate
       (Hptmap_sig.PersistentCache name)
       ExistentialPredicate

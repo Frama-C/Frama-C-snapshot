@@ -1,19 +1,19 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/bts336.c (with preprocessing)
+[kernel] Parsing tests/slicing/bts336.i (no preprocessing)
 [value] Analyzing a complete application starting at main5
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..9] ∈ {0}
   x5 ∈ {0}
 [value] computing for function f5 <- main5.
-        Called from tests/slicing/bts336.c:98.
+        Called from tests/slicing/bts336.i:98.
 [value] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
 [value] Done for function f5
 [value] computing for function f5 <- main5.
-        Called from tests/slicing/bts336.c:99.
+        Called from tests/slicing/bts336.i:99.
 [value] Recording results for f5
 [from] Computing for function f5
 [from] Done for function f5
@@ -23,10 +23,10 @@
 [from] Done for function main5
 [value] done for function main5
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
-[from] call to f5 at tests/slicing/bts336.c:98 (by main5):
+[from] call to f5 at tests/slicing/bts336.i:98 (by main5):
   x5 FROM q; b1
   a1 FROM p; a1
-[from] call to f5 at tests/slicing/bts336.c:99 (by main5):
+[from] call to f5 at tests/slicing/bts336.i:99 (by main5):
   x5 FROM q; a1
   a2 FROM p; a2
 [from] entry point:
@@ -53,16 +53,16 @@
 [value] Analyzing a complete application starting at main5
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f5_slice_1 <- main5.
-        Called from tests/slicing/bts336.c:98.
+        Called from tests/slicing/bts336.i:98.
 [value] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1
 [value] Done for function f5_slice_1
 [value] computing for function f5_slice_1 <- main5.
-        Called from tests/slicing/bts336.c:99.
+        Called from tests/slicing/bts336.i:99.
 [value] Recording results for f5_slice_1
 [from] Computing for function f5_slice_1
 [from] Done for function f5_slice_1
@@ -72,9 +72,9 @@
 [from] Done for function main5
 [value] done for function main5
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
-[from] call to f5_slice_1 at tests/slicing/bts336.c:98 (by main5):
+[from] call to f5_slice_1 at tests/slicing/bts336.i:98 (by main5):
   a1 FROM p; a1
-[from] call to f5_slice_1 at tests/slicing/bts336.c:99 (by main5):
+[from] call to f5_slice_1 at tests/slicing/bts336.i:99 (by main5):
   a2 FROM p; a2
 [from] entry point:
   \result FROM \nothing
@@ -131,3 +131,5 @@ int main5(void)
 }
 
 
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/result/ocode_7_bts336.i (no preprocessing)

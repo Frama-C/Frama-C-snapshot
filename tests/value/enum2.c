@@ -1,6 +1,6 @@
 /* run.config*
   GCC:
-  OPT: -check -cpp-gnu-like -cpp-command "gcc -C -E -I. %1 -o %2" -val @VALUECONFIG@ -deps -out -input -journal-disable
+  OPT: -cpp-gnu-like -cpp-command "gcc -C -E -I. %1 -o %2" -val @VALUECONFIG@ -deps -out -input -journal-disable
 */
 
 /* This test of enums doubles with a test of the % syntax in -cpp-command */

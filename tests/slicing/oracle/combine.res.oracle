@@ -1,22 +1,22 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/slicing/combine.c (with preprocessing)
+[kernel] Parsing tests/slicing/combine.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/slicing/combine.c:24.
+        Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-        Called from tests/slicing/combine.c:17.
+        Called from tests/slicing/combine.i:17.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/slicing/combine.c:26.
+        Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f <- main.
-        Called from tests/slicing/combine.c:17.
+        Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
@@ -121,21 +121,21 @@ int main(int x)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/slicing/combine.c:24.
+        Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-        Called from tests/slicing/combine.c:17.
-tests/slicing/combine.c:17:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+        Called from tests/slicing/combine.i:17.
+tests/slicing/combine.i:17:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f_s_2 <- main.
-        Called from tests/slicing/combine.c:26.
+        Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f_s_2 <- main.
-        Called from tests/slicing/combine.c:17.
+        Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f_s_2
 [value] Done for function f_s_2
@@ -183,20 +183,20 @@ int main(int x)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/slicing/combine.c:24.
+        Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-        Called from tests/slicing/combine.c:17.
+        Called from tests/slicing/combine.i:17.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f_s_2 <- main.
-        Called from tests/slicing/combine.c:26.
+        Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f_s_2 <- main.
-        Called from tests/slicing/combine.c:17.
+        Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f_s_2
 [value] Done for function f_s_2

@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_1360.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [rte] annotating function foo_correct
 [rte] annotating function foo_wrong
 [wp] 12 goals scheduled

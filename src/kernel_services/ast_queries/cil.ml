@@ -1791,9 +1791,9 @@ class type cilVisitor = object
   method videntified_predicate:
     identified_predicate -> identified_predicate visitAction
 
-  method vpredicate: predicate -> predicate visitAction
+  method vpredicate_node: predicate_node -> predicate_node visitAction
 
-  method vpredicate_named: predicate named -> predicate named visitAction
+  method vpredicate: predicate -> predicate visitAction
 
   method vbehavior: funbehavior -> funbehavior visitAction
 
@@ -1932,9 +1932,9 @@ end
 
    method videntified_predicate _ip = DoChildren
 
-   method vpredicate _p = DoChildren
+   method vpredicate_node _p = DoChildren
 
-   method vpredicate_named _p = DoChildren
+   method vpredicate _p = DoChildren
 
    method vbehavior _b = DoChildren
 
@@ -2241,7 +2241,7 @@ and childrenTermNode vis tn =
     | Tcomprehension(lval,quant,pred) ->
         let quant' = visitCilQuantifiers vis quant in
         let lval' = visitCilTerm vis lval in
-        let pred' = (optMapNoCopy (visitCilPredicateNamed vis)) pred in
+        let pred' = (optMapNoCopy (visitCilPredicate vis)) pred in
         if lval' != lval || quant' != quant || pred' != pred
         then
           Tcomprehension(lval',quant',pred')
@@ -2358,12 +2358,12 @@ and visitCilLogicLabelApp vis (l1,l2 as p) =
 	     let i =
 	       mapNoCopy
 		 (fun (id,labs,tvars,p) ->
-		    (id, labs, tvars, visitCilPredicateNamed vis p))
+		    (id, labs, tvars, visitCilPredicate vis p))
 		 inddef
 	     in
 	     if i != inddef then LBinductive i else li.l_body
 	 | LBpred odef ->
-	     let def = visitCilPredicateNamed vis odef in
+	     let def = visitCilPredicate vis odef in
 	     if def != odef then LBpred def else li.l_body
      end;
    li
@@ -2487,26 +2487,25 @@ and visitCilLogicLabelApp vis (l1,l2 as p) =
      vis#videntified_predicate
      childrenIdentified_predicate
      ip
- and visitCilPredicate vis p =
-   doVisitCil vis id vis#vpredicate childrenPredicate p
+ and visitCilPredicateNode vis p =
+   doVisitCil vis id vis#vpredicate_node childrenPredicateNode p
 
- and visitCilPredicateNamed vis p =
+ and visitCilPredicate vis p =
    doVisitCil vis
-     id vis#vpredicate_named childrenPredicateNamed p
+     id vis#vpredicate childrenPredicate p
 
  and childrenIdentified_predicate vis ip =
-  let p = Logic_const.pred_of_id_pred ip in
-  let p' = visitCilPredicateNamed vis p in
-  if p != p' then 
-    { ip with ip_name = p'.name; ip_content = p'.content; ip_loc = p'.loc }
+  let p = ip.ip_content in
+  let p' = visitCilPredicate vis p in
+  if p != p' then { ip with ip_content = p' }
   else ip
 
- and childrenPredicateNamed vis p =
-   let content = visitCilPredicate vis p.content in
-   if content != p.content then { p with content = content} else p
-
  and childrenPredicate vis p =
-   let vPred p = visitCilPredicateNamed vis p in
+   let content = visitCilPredicateNode vis p.pred_content in
+   if content != p.pred_content then { p with pred_content = content} else p
+
+ and childrenPredicateNode vis p =
+   let vPred p = visitCilPredicate vis p in
    let vLogicInfo li = visitCilLogicInfoUse vis li in
    let vTerm t = visitCilTerm vis t in
    match p with
@@ -2693,18 +2692,23 @@ and childrenBehavior vis b =
    b.b_extended <- mapNoCopy (visitCilExtended vis) b.b_extended;
    b
 
-and visitCilExtended vis (s,i,p as orig) =
+and visitCilExtended vis (s,p as orig) =
   let visit =
     try Hashtbl.find visitor_tbl s
     with Not_found -> (fun _ _ -> DoChildren)
   in
-  let pre = i,p in
-  let (i, p as res) = doVisitCil vis id (visit vis) childrenCilExtended pre in
-  if res == pre then orig else (s,i,p)
+  let p' = doVisitCil vis id (visit vis) childrenCilExtended p in
+  if p == p' then orig else (s,p')
 
-and childrenCilExtended vis (i,p as orig) =
-  let r = mapNoCopy (visitCilIdPredicate vis) p in
-  if r == p then orig else (i,r)
+and childrenCilExtended vis p =
+  match p with
+  | Ext_id _ -> p
+  | Ext_terms terms ->
+    let terms' = mapNoCopy (visitCilTerm vis) terms in
+    if terms == terms' then p else Ext_terms terms'
+  | Ext_preds preds ->
+    let preds' = mapNoCopy (visitCilPredicate vis) preds in
+    if preds == preds' then p else Ext_preds preds'
 
 and visitCilPredicates vis ps = mapNoCopy (visitCilIdPredicate vis) ps
 
@@ -2806,7 +2810,7 @@ and childrenSpec vis s =
 	     vis#get_filling_actions;
 	 if ti' != ti then Dtype (ti',loc) else a
      | Dlemma(s,is_axiom,labels,tvars,p,loc) ->
-	 let p' = visitCilPredicateNamed vis p in
+	 let p' = visitCilPredicate vis p in
 	 if p' != p then Dlemma(s,is_axiom,labels,tvars,p',loc) else a
      | Dinvariant (p,loc) ->
 	 let p' = visitCilLogicInfo vis p in
@@ -2849,7 +2853,7 @@ and childrenSpec vis s =
      vis vis#behavior.ccode_annotation vis#vcode_annot childrenCodeAnnot ca
 
  and childrenCodeAnnot vis ca =
-   let vPred p = visitCilPredicateNamed vis p in
+   let vPred p = visitCilPredicate vis p in
    let vTerm t = visitCilTerm vis t in
    let vSpec s = visitCilFunspec vis s in
    let change_content annot = { ca with annot_content = annot } in
@@ -2882,6 +2886,9 @@ and childrenSpec vis s =
      | AAllocation(behav, fa) ->
 	 let fa' = visitCilAllocation vis fa in
 	 if fa != fa' then change_content (AAllocation (behav,fa')) else ca
+     | AExtended(behav, ext) ->
+       let ext' = visitCilExtended vis ext in
+       if ext' != ext then change_content (AExtended (behav, ext')) else ca
 
 and visitCilExpr (vis: cilVisitor) (e: exp) : exp =
   let oldLoc = CurrentLoc.get () in
@@ -3816,7 +3823,8 @@ let parseIntAux (str:string) =
     let l = String.length str in
     fun s ->
       let ls = String.length s in
-      l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
+      l >= ls &&
+      s = Transitioning.String.uppercase_ascii (String.sub str (l - ls) ls)
   in
   let l = String.length str in
   (* See if it is octal or hex or binary *)
@@ -5044,7 +5052,7 @@ and constFold (machdep: bool) (e: exp) : exp =
       Kernel.debug "ConstFold CAST to to %a@." !pp_typ_ref t ;
     let e = constFold machdep e in
     match e.enode, unrollType t with
-      | Const(CInt64(i,_k,_)), TInt(nk,a) when a = [] ->
+      | Const(CInt64(i,_k,_)),(TInt(nk,a)|TEnum({ekind = nk},a)) when a = [] ->
         begin
           (* If the cast has attributes, leave it alone. *)
           if debugConstFold then
@@ -5053,7 +5061,8 @@ and constFold (machdep: bool) (e: exp) : exp =
           (* Downcasts might truncate silently *)
           kinteger64 ~loc ~kind:nk i
         end
-      | Const (CReal (f, _, _)), TInt (ik, a) when a = [] -> (* See above *)
+      | Const (CReal(f,_,_)),(TInt(ik,a)|TEnum({ekind = ik},a)) when a = [] ->
+        (* See above *)
         begin
           try
             let i = Floating_point.truncate_to_integer f in
@@ -5743,21 +5752,19 @@ let init_builtins () =
  (** [b_assumes] must be always empty for behavior named
      [Cil.default_behavior_name] *) 
  let mk_behavior ?(name=default_behavior_name) ?(assumes=[]) ?(requires=[])
-     ?(post_cond=[]) ?(assigns=WritesAny) ?(allocation=None)  ?(extended=[]) ()
+     ?(post_cond=[]) ?(assigns=WritesAny) ?(allocation=FreeAllocAny)  ?(extended=[]) ()
      =
    { b_name = name;
      b_assumes = assumes; (* must be always empty for default_behavior_name *)
      b_requires = requires;
      b_assigns = assigns ;
-     b_allocation = (match allocation with
-		       | None -> FreeAllocAny
-		       | Some af -> af);
+     b_allocation = allocation ;
      b_post_cond = post_cond ;
      b_extended = extended;
    }
 
 let spare_attributes_for_c_cast =
-  "declspec"::"arraylen"::bitfield_attribute_name::qualifier_attributes
+  "declspec"::"arraylen"::qualifier_attributes
 
 let type_remove_attributes_for_c_cast =
   typeRemoveAttributes spare_attributes_for_c_cast
@@ -5974,6 +5981,17 @@ let need_cast ?(force=false) oldt newt =
  let makeGlobalVar ?source ?temp name typ =
    makeVarinfo ?source ?temp true false name typ
 
+ let mkPureExpr ?(ghost:bool = false) ~(fundec:fundec) ?(loc=Location.unknown)
+     (e : exp) : stmt =
+   let typ = typeOf e in
+   let descr = Format.asprintf "%a" !pp_exp_ref e in
+   let scope = mkBlock [] in
+   let temp = true in
+   let tmp = makeLocalVar ~temp ~scope fundec "tmp" typ in
+   tmp.vdescr <- Some descr;
+   scope.bstmts <- [ mkStmtOneInstr ~ghost (Set(var tmp, e, loc)) ];
+   mkStmt (Block scope)
+
  let emptyFunctionFromVI vi =
    let r =
      { svar  = vi;
@@ -6005,19 +6023,7 @@ let need_cast ?(force=false) oldt newt =
  (* Take the name of a file and make a valid varinfo name out of it. There are
   * a few characters that are not valid in varinfos *)
  let makeValidVarinfoName (s: string) =
-   let s = String.copy s in (* So that we can update in place *)
-   let l = String.length s in
-   for i = 0 to l - 1 do
-     let c = String.get s i in
-     let isinvalid =
-       match c with
-	 '-' | '.' -> true
-       | _ -> false
-     in
-     if isinvalid then
-       String.set s i '_';
-   done;
-   s
+   String.map (fun c -> if c = '-' || c = '.' then '_' else c) s
 
  let rec lastOffset (off: offset) : offset =
    match off with
@@ -7032,6 +7038,8 @@ let initCIL ~initLogicBuiltins machdep =
       else if name = "unsigned short" then IUShort
       else if name = "char" then IChar
       else if name = "unsigned char" then IUChar
+      else if name = "long long" then ILongLong
+      else if name = "unsigned long long" then IULongLong
       else
 	Kernel.fatal
           ~current:true "initCIL: cannot find the right ikind for type %s" name
@@ -7334,7 +7342,7 @@ and free_vars_term_offset bv = function
       (free_vars_term bv t)
       (free_vars_term_offset bv o)
 
-and free_vars_predicate bound_vars p = match p.content with
+and free_vars_predicate bound_vars p = match p.pred_content with
   | Pfalse | Ptrue -> Logic_var.Set.empty
   | Papp (_,_,tl) ->
     List.fold_left
@@ -7437,7 +7445,7 @@ let extract_labels_from_pred pred =
       labels <- Logic_label.Set.add label labels;
       SkipChildren
   end
-  in ignore (visitCilPredicateNamed (visitor :> nopCilVisitor) pred) ;
+  in ignore (visitCilPredicate (visitor :> nopCilVisitor) pred) ;
     visitor#labels
 
 
@@ -7454,9 +7462,9 @@ let close_predicate p =
   let free_vars = free_vars_predicate Logic_var.Set.empty p in
   if Logic_var.Set.is_empty free_vars then p
   else
-    { name = [];
-      loc = p.loc;
-      content = Pforall (Logic_var.Set.elements free_vars, p)}
+    { pred_name = [];
+      pred_loc = p.pred_loc;
+      pred_content = Pforall (Logic_var.Set.elements free_vars, p)}
 
 class alpha_conv tbl ltbl =
 object

@@ -74,6 +74,49 @@ let a_leq = Lang.extern_p ~library ~bool:"addr_le_bool" ~prop:"addr_le" ()
 let a_cast = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "cast"
 let a_hardware = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "hardware"
 
+(*
+
+   the semantic is defined using these notions:
+    - base, offset: has the usual C semantic
+
+    - memory model consists of:
+         - an allocation table A : base -> int
+         - for each kind of cell (char,int,float,pointer(ptr)) with type T, a map (M_T) : addr -> T
+
+    - a pointer is record { base ; offset }, offset are in number of cells
+
+    - allocation table: indicate the size (in number of cell not sizeof)
+       allocated of each base.
+         - = 0 : free
+         - > 0 : allocated read-write
+         - < 0 : allocated read only
+
+   semantic of all these functions:
+
+    - region(base -> int): the regions represent the natural partition of the memory
+       by the time when it have been allocated. So the regions are
+       identified by a number. So the addresses in one base are all in
+       the same region. Caveat the [region] function doesn't associate
+       the base to its region directly but to a congruence class that
+       depend of each function but which keeps the order:
+        - = 1 : regions corresponds to formals
+        - = 2 : regions corresponds to locals
+        - > 2 : freshly allocated bases (malloc)
+        - = 0 : globals (except string literals)
+        - < 0 : string literals (-its id)
+
+    - framed(M_ptr): All pointer values accessible from the memory M (of pointers),
+      lives in region <= 0. Hence separated from locals, formals, and
+      freshly allocated in the current function.
+
+    - linked(A): The proposition [linked] indicate that an allocation
+      table were the globals are allocated.
+
+    - sconst(M_char): Indicate that the memory M (of chars) contains the values of
+      string literals at their bases.
+
+*)
+
 (* -------------------------------------------------------------------------- *)
 (* --- Utilities                                                          --- *)
 (* -------------------------------------------------------------------------- *)
@@ -112,10 +155,6 @@ let a_addr b k = a_shift (a_global b) k
     `\separated`, ...
 *)
 
-let phi_shift f0 p i = match F.repr p with
-  | L.Fun(f,[q;j]) when f==f0 -> e_fun f0 [q;e_add i j]
-  | _ -> raise Not_found
-
 type registered_shift =
   | RS_Field of term (* offset of the field *)
   | RS_Shift of Z.t  (* size of the element *)
@@ -142,7 +181,7 @@ let phi_offset l = match F.repr l with
       begin match RegisterShift.get f, args with
         | Some (RS_Field offset), [] -> e_add offset (a_offset p)
         | Some (RS_Shift size), [k] -> e_add (a_offset p) ((F.e_times size) k)
-        | Some _, _ -> assert false (* absurd: constructed at one place only *)
+        | Some _, _ -> assert false (* constructed at one place only *)
         | None, _ -> raise Not_found
       end
   | _ -> raise Not_found
@@ -157,6 +196,11 @@ let eq_shift a b =
     | L.No -> F.p_false
     | L.Yes -> F.p_equal i j
     | L.Maybe -> raise Not_found
+
+let phi_shift f p i =
+  match F.repr p with
+  | L.Fun(g,[q;j]) when f == g -> F.e_fun f [q;F.e_add i j]
+  | _ -> raise Not_found
 
 (* -------------------------------------------------------------------------- *)
 (* --- Simplifier for 'separated'                                         --- *)
@@ -242,8 +286,7 @@ let r_included = function
         end
   | _ -> raise Not_found
 
-let () =
-  begin
+let once_for_each_ast = Model.run_once_for_each_ast ~name:"MemTyped" (fun () ->
     F.set_builtin_1   f_base   phi_base ;
     F.set_builtin_1   f_offset phi_offset ;
     F.set_builtin_2   f_shift  (phi_shift f_shift) ;
@@ -251,7 +294,7 @@ let () =
     F.set_builtin_eqp f_global eq_shift ;
     F.set_builtin p_separated r_separated ;
     F.set_builtin p_included  r_included ;
-  end
+  )
 
 (* -------------------------------------------------------------------------- *)
 (* --- Model Parameters                                                   --- *)
@@ -261,6 +304,7 @@ let configure () =
   begin
     Context.set Lang.pointer (fun _ -> t_addr) ;
     Context.set Cvalues.null (p_equal a_null) ;
+    once_for_each_ast ();
   end
 
 type pointer = NoCast | Fits | Unsafe
@@ -306,7 +350,7 @@ struct
     | M_pointer -> t_addr
     | T_alloc -> L.Int
   let tau_of_chunk =
-    let m = Array.create 5 L.Int in
+    let m = Array.make 5 L.Int in
     List.iter
       (fun c -> m.(rank c) <- L.Array(key_of_chunk c,val_of_chunk c))
       [M_int;M_char;M_float;M_pointer;T_alloc] ;
@@ -408,7 +452,7 @@ module ShiftFieldDef = Model.StaticGenerator(Cil_datatype.Fieldinfo)
     (struct
       let name = "MemTyped.ShiftFieldDef"
       type key = fieldinfo
-      type data = Definitions.dfun
+      type data = dfun
 
       let generate f =
         let result = t_addr in
@@ -443,14 +487,16 @@ module ShiftField = Model.Generator(Cil_datatype.Fieldinfo)
         dfun.d_lfun
     end)
 
-module ShiftKey =
+module Cobj =
 struct
   type t = c_object
   let pretty = C_object.pretty
   let compare = compare_ptr_conflated
 end
 
-module ShiftDef = Model.StaticGenerator(ShiftKey)
+(* This is a model-indepent generator,
+   which will be inherited from the model-dependent clusters *)
+module ShiftGen = Model.StaticGenerator(Cobj)
     (struct
       let name = "MemTyped.ShiftDef"
       type key = c_object
@@ -467,11 +513,11 @@ module ShiftDef = Model.StaticGenerator(ShiftKey)
             | None -> Format.fprintf fmt "A_%a" c_object_id te
             | Some f -> Format.fprintf fmt "A%d_%a" f.arr_size c_object_id te
 
-      let c_object_id c = Pretty_utils.sfprintf "%a@?" c_object_id c
+      let c_object_id c = Format.asprintf "%a@?" c_object_id c
 
       let generate obj =
         let result = t_addr in
-        let lfun = Lang.generated_f ~result "shift_%s" (c_object_id obj) in
+        let shift = Lang.generated_f ~result "shift_%s" (c_object_id obj) in
         let size = Integer.of_int (size_of_object obj) in
         (* Since its a generated it is the unique name given *)
         let xloc = Lang.freshvar ~basename:"p" t_addr in
@@ -480,26 +526,27 @@ module ShiftDef = Model.StaticGenerator(ShiftKey)
         let k = e_var xk in
         let def = a_shift loc (F.e_times size k) in
         let dfun = Definitions.Value( result , Def , def) in
-        RegisterShift.define lfun (RS_Shift size) ;
-        F.set_builtin_eqp lfun eq_shift ;
-        F.set_builtin_2 lfun (phi_shift lfun) ;
+        RegisterShift.define shift (RS_Shift size) ;
+        F.set_builtin_eqp shift eq_shift ;
+        F.set_builtin_2 shift (phi_shift shift) ;
         {
-          d_lfun = lfun ; d_types = 0 ;
+          d_lfun = shift ; d_types = 0 ;
           d_params = [xloc;xk] ;
           d_definition = dfun ;
           d_cluster = cluster_dummy () ;
         }
-
+        
       let compile = Lang.local generate
     end)
 
-module Shift = Model.Generator(ShiftKey)
+(* The model-dependent derivation of model-independant ShiftDef *)
+module Shift = Model.Generator(Cobj)
     (struct
       let name = "MemTyped.Shift"
       type key = c_object
       type data = lfun
       let compile obj =
-        let dfun = ShiftDef.get obj in
+        let dfun = ShiftGen.get obj in
         let d_cluster = cluster_memory () in
         Definitions.define_symbol { dfun with d_cluster } ;
         dfun.d_lfun
@@ -553,6 +600,7 @@ module STRING = Model.Generator(LITERAL)
         }
 
       let sconst prefix base cst =
+        (** describe the content of literal strings *)
         let name = prefix ^ "_literal" in
         let i = Lang.freshvar ~basename:"i" L.Int in
         let c = Cstring.char_at cst (e_var i) in
@@ -618,10 +666,14 @@ module BASE = Model.Generator(Varinfo)
         let name = prefix ^ "_linked" in
         let obj = Ctypes.object_of x.vtype in
         let size =
-          if Ctypes.sizeof_defined obj then Some (Ctypes.sizeof_object obj) else
-          if Wp_parameters.ExternArrays.get ()
-          then Some max_int
-          else None in
+          if x.vglob then
+            Warning.handle
+              ~handler:(fun _ -> None)
+              ~effect:(Printf.sprintf "No allocation size for variable '%s'" x.vname)
+              (fun obj -> Some (size_of_object obj))
+              obj
+          else Some 0
+        in
         match size with
         | None -> ()
         | Some size ->
@@ -875,7 +927,11 @@ let load sigma obj l = Val (loadvalue sigma obj l)
 let null = a_null
 let literal ~eid cst =
   shift (a_global (STRING.get (eid,cst))) (C_int (Ctypes.c_char ())) e_zero
-let cvar x = shift (a_global (BASE.get x)) (Ctypes.object_of x.vtype) e_zero
+let cvar x =
+  let base = a_global (BASE.get x) in
+  if Cil.isArrayType x.vtype || Cil.isPointerType x.vtype then
+    shift base (Ctypes.object_of x.vtype) e_zero
+  else base
 let pointer_loc t = t
 let pointer_val t = t
 
@@ -1156,7 +1212,7 @@ let assigned s obj = function
       let eq_loc = F.p_conj (equal_loc s obj la) in
       [F.p_forall [xa] (F.p_imply sep_all eq_loc)]
   | Sarray(l,obj,n) ->
-      assigned_range s obj l (e_zero) (e_int (n-1))
+      assigned_range s obj l e_zero (e_int (n-1))
   | Srange(l,obj,u,v) ->
       let a = match u with Some a -> a | None -> e_zero in
       let b = match v with Some b -> b | None -> get_last s.pre l in
@@ -1195,9 +1251,6 @@ let access acs l = match acs with
 
 let valid sigma acs = function
   | Rloc(obj,l) -> s_valid sigma acs l (e_int (size_of_object obj))
-  | Rarray(l,obj,s) ->
-      let n = e_fact (size_of_object obj) (e_int s) in
-      s_valid sigma acs l n
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in
@@ -1251,9 +1304,6 @@ type range =
 let range = function
   | Rloc(obj,l) ->
       LOC( l , e_int (size_of_object obj) )
-  | Rarray(l,obj,n) ->
-      let n = e_fact (size_of_object obj) (e_int n) in
-      LOC( l , n )
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in

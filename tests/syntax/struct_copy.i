@@ -1,5 +1,5 @@
 /* run.config
-OPT: -copy -check -print
+OPT: -copy -print
 */
 struct inner {
   int a, b;

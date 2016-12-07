@@ -3,18 +3,17 @@
 [kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 4 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_frame_assert_ok_formal : Valid
-[wp] [Alt-Ergo] Goal typed_frame_assert_ok_global : Valid
-[wp] [Alt-Ergo] Goal typed_frame_assert_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_frame_post_ok_iff_ref : Unknown
+[wp] [Qed] Goal typed_frame_assert_ok_formal : Valid
+[wp] [Qed] Goal typed_frame_assert_ok_global : Valid
 [wp] Proved goals:    3 / 4
-     Qed:             0 
-     Alt-Ergo:        3  (unknown: 1)
+     Qed:             2 
+     Alt-Ergo:        1  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-f                   -       1 (19)     1       100%
-frame               -       2 (52)     3      66.7%
+f                   -       1 (13)     1       100%
+frame                2     -           3      66.7%
 ----------------------------------------------------------

@@ -3,9 +3,7 @@
 [kernel] Parsing tests/wp_hoare/logicref.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-[wp] Collecting variable usage
 ------------------------------------------------------------
   Function fvrange_n
 ------------------------------------------------------------
@@ -20,9 +18,9 @@ Let a_1 = shift_sint32(a, i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(k) /\ is_sint32(Mint_0[a_1]).
   (* Heap *)
-  Have: linked(Malloc_0) /\ (region(a.base) <= 0).
+  Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: (i < k) /\ (0 <= i) /\ P_vrange(Malloc_0, a, k).
+  Have: (0 <= i) /\ (i < k) /\ P_vrange(Malloc_0, a, k).
 }
 Prove: valid_rw(Malloc_0, a_1, 1).
 

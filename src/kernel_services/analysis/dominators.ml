@@ -99,7 +99,7 @@ let nearest_common_ancestor find_domtree ord1 ord2 =
    predecessor or that all its ancestors are at None *)
 (* based on "A Simple, Fast Dominance Algorithm" by K.D. Cooper et al *)
 let domtree () =
-  let domtree = Array.create D.nb_stmts None in
+  let domtree = Array.make D.nb_stmts None in
 
   (* Initialize the dataflow: for each root, add itself to its own
      set of dominators. *)

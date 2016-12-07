@@ -3,11 +3,11 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/cast_return.c:55.
+        Called from tests/value/cast_return.c:63.
 [value] computing for function f <- main1 <- main.
         Called from tests/value/cast_return.c:26.
 [value] Recording results for f
@@ -16,57 +16,70 @@
         Called from tests/value/cast_return.c:27.
 [value] Recording results for g
 [value] Done for function g
-tests/value/cast_return.c:27:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized(&tmp_0);
-                  (tmp_0 from g())
+tests/value/cast_return.c:27:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp_0);
+                 (tmp_0 from g())
 [value] computing for function h <- main1 <- main.
         Called from tests/value/cast_return.c:31.
 [value] Recording results for h
 [value] Done for function h
-tests/value/cast_return.c:31:[kernel] warning: out of bounds write. assert \valid(*p);
+tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid(*p);
 tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/cast_return.c:56.
+        Called from tests/value/cast_return.c:64.
 [value] computing for function fl1 <- main2 <- main.
         Called from tests/value/cast_return.c:50.
 [value] Recording results for fl1
 [value] Done for function fl1
-tests/value/cast_return.c:50:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized(&tmp);
-                  (tmp from fl1())
+tests/value/cast_return.c:50:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp);
+                 (tmp from fl1())
 [value] computing for function fl2 <- main2 <- main.
         Called from tests/value/cast_return.c:51.
 [value] Recording results for fl2
 [value] Done for function fl2
-tests/value/cast_return.c:51:[kernel] warning: accessing uninitialized left-value.
-                  assert \initialized(&tmp_0);
-                  (tmp_0 from fl2())
+tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp_0);
+                 (tmp_0 from fl2())
 [value] Recording results for main2
 [value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/value/cast_return.c:65.
+[value] computing for function ret_float <- main3 <- main.
+        Called from tests/value/cast_return.c:58.
+[value] using specification for function ret_float
+[value] Done for function ret_float
+tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(tmp);
+                                         (tmp from ret_float())
+[value] Recording results for main3
+[value] Done for function main3
 [value] Recording results for main
 [value] done for function main
 tests/value/cast_return.c:31:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
-[value] Values at end of function fl1:
+[value:final-states] Values at end of function fl1:
   v[bits 0 to 7] ∈ {1}
    [bits 8 to 31] ∈ UNINITIALIZED
-[value] Values at end of function fl2:
+[value:final-states] Values at end of function fl2:
   v ∈ {1.} or UNINITIALIZED
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   x ∈ {1} or UNINITIALIZED
-[value] Values at end of function h:
+[value:final-states] Values at end of function h:
   __retres ∈ {1}
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   d1 ∈ UNINITIALIZED
   d2 ∈ {1.}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main3:
+  f1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  f2 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+[value:final-states] Values at end of function main:
   
 [from] Computing for function f
 [from] Done for function f
@@ -82,6 +95,10 @@ tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final 
 [from] Done for function main1
 [from] Computing for function main2
 [from] Done for function main2
+[from] Computing for function main3
+[from] Computing for function ret_float <-main3
+[from] Done for function ret_float
+[from] Done for function main3
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -99,6 +116,10 @@ tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final 
 [from] Function main1:
   NO EFFECTS
 [from] Function main2:
+  NO EFFECTS
+[from] Function ret_float:
+  \result FROM \nothing
+[from] Function main3:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
@@ -131,6 +152,10 @@ tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final 
           d1; d2; tmp; tmp_0
 [inout] Inputs for function main2:
           c
+[inout] Out (internal) for function main3:
+          f1; tmp; f2
+[inout] Inputs for function main3:
+          \nothing
 [inout] Out (internal) for function main:
           \nothing
 [inout] Inputs for function main:
@@ -223,10 +248,27 @@ void main2(void)
   return;
 }
 
+/*@ assigns \result;
+    assigns \result \from \nothing; */
+extern float ret_float();
+
+void main3(void)
+{
+  float f1;
+  float tmp;
+  float f2;
+  tmp = ret_float();
+  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp); */
+  f1 = tmp;
+  f2 = f1 + (float)1;
+  return;
+}
+
 void main(void)
 {
   main1();
   main2();
+  main3();
   return;
 }
 

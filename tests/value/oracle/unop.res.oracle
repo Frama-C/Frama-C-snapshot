@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
         Called from tests/value/unop.c:22.
@@ -15,7 +15,7 @@
 [value] computing for function main2 <- main.
         Called from tests/value/unop.c:23.
 [value] Called Frama_C_show_each_2([-2147483648..2147483647])
-tests/value/unop.c:12:[kernel] warning: signed overflow. assert -i ≤ 2147483647;
+tests/value/unop.c:12:[value] warning: signed overflow. assert -i ≤ 2147483647;
 [value] Called Frama_C_show_each_2_then([-2147483647..-3])
 [value] Called Frama_C_show_each_2_else([-2..2147483647])
 [value] Recording results for main2
@@ -23,11 +23,11 @@ tests/value/unop.c:12:[kernel] warning: signed overflow. assert -i ≤ 214748364
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main1:
+[value:final-states] Values at end of function main1:
   
-[value] Values at end of function main2:
+[value:final-states] Values at end of function main2:
   
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   
 [from] Computing for function main1
 [from] Done for function main1

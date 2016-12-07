@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   maybe ∈ [--..--]
   v1 ∈ {0}
   v2 ∈ {0}
@@ -16,6 +16,7 @@
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/value/deps_unitialized_locals.i:36.
+tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialized left-value. assert \initialized(&i);
 [value] Recording results for g
 [from] Computing for function g
 [from] Done for function g
@@ -31,20 +32,20 @@
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   v1.ts ∈ {1}
     .[bits 16 to 31] ∈ UNINITIALIZED
     .ti ∈ {2}
   ty.ts ∈ {1}
     .[bits 16 to 31] ∈ UNINITIALIZED
     .ti ∈ {2}
-[value] Values at end of function g:
-  v ∈ {1} or UNINITIALIZED
-  i ∈ {1} or UNINITIALIZED
-[value] Values at end of function h:
+[value:final-states] Values at end of function g:
   v ∈ {1}
   i ∈ {1}
-[value] Values at end of function main:
+[value:final-states] Values at end of function h:
+  v ∈ {1}
+  i ∈ {1}
+[value:final-states] Values at end of function main:
   v1.ts ∈ {1}
     .[bits 16 to 31] ∈ UNINITIALIZED
     .ti ∈ {2}

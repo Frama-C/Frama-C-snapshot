@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   x ∈ {1}
   y ∈ {1}
 [value] computing for function f <- main.
@@ -16,8 +16,8 @@ tests/spec/preprocess.c:25:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   __retres ∈ {84}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   y_0 ∈ {84}
   __retres ∈ {0}

@@ -158,8 +158,10 @@ object (self)
       in
       fun_dec_pre.slocals <- pre_locals;
       fun_dec_pre.sbody <- pre_block;
+      fun_dec_pre.svar.vdefined <- true;
       fun_dec_post.slocals <- post_locals; 
       fun_dec_post.sbody <- post_block;
+      fun_dec_post.svar.vdefined <- true;
       let globs = [ GFun(fun_dec_pre,loc); GFun(fun_dec_post,loc);] in
       fundec.sbody.bstmts <- Cil.mkStmtOneInstr
         (Call(None,Cil.evar ~loc vi_pre,
@@ -191,7 +193,13 @@ object (self)
             | None -> []
             | Some exp -> [Cil.copy_exp exp]
           in
-          let aux_vi = Kernel_function.Hashtbl.find aux_post_table kf in
+          let aux_vi =
+            try Kernel_function.Hashtbl.find aux_post_table kf
+            with Not_found ->
+              Aorai_option.fatal
+                "Function %a has no associated post_func"
+                Kernel_function.pretty kf
+          in
           let call =
             mkStmtOneInstr (Call (None,Cil.evar ~loc aux_vi,args,loc))
           in
@@ -223,6 +231,12 @@ object
           let vi'= List.assq vi formals in
           ChangeTo (Cil.cvar_to_lvar vi')
         with Not_found -> SkipChildren
+
+  method! vvrbl vi =
+    try
+      let vi' = List.assq vi formals in
+      ChangeTo vi'
+    with Not_found -> SkipChildren
 end
 
 (* update \result to param of f_post when it exists. Must not be called if
@@ -281,7 +295,7 @@ let get_action_post_cond kf ?init_trans return_states =
         "Getting action post-conditions for %a, from state %s to state %s@\n%a"
         Kernel_function.pretty kf
         pre_state.Promelaast.name post_state.Promelaast.name
-        (Pretty_utils.pp_list ~sep:"@\n" Printer.pp_predicate_named)
+        (Pretty_utils.pp_list ~sep:"@\n" Printer.pp_predicate)
         post_conds;
       post_conds @ acc
     end
@@ -897,7 +911,7 @@ object(self)
 
   method! vglob_aux g =
     match g with
-    | GFun(_,_)  ->
+    | GFun(f,_)  ->
       let my_kf = Extlib.the self#current_kf in
       (* don't use get_spec, as we'd generate default assigns,
          while we'll fill the spec just below. *)
@@ -906,11 +920,12 @@ object(self)
       | Pre_func kf ->
         (* must advance the automaton according to current call. *)
         let bhvs = mk_pre_fct_spec kf in
+        let vis = new change_formals kf my_kf in
         let bhvs =
-          Visitor.visitFramacBehaviors (new change_formals kf my_kf) bhvs
+          Visitor.visitFramacBehaviors vis bhvs
         in
         Annotations.add_behaviors Aorai_option.emitter my_kf bhvs;
-        
+        f.sbody <- Visitor.visitFramacBlock vis f.sbody;
         SkipChildren
       | Post_func kf -> 
           (* must advance the automaton according to return event. *)

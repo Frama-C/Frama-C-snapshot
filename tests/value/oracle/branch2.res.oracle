@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i ∈ {0}
   etat_to ∈ {0}
   changepage ∈ {0}
@@ -14,7 +14,7 @@ tests/value/branch2.i:14:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   plein ∈ {1}
   NumSsPage ∈ {9}
 [from] Computing for function main

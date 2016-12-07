@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
@@ -130,7 +130,7 @@ tests/value/behaviors2.c:306:[value] function f4, behavior b3: requires got stat
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function test1:
+[value:final-states] Values at end of function test1:
   quotient ∈ [--..--]
   remainder ∈ [--..--]
   sign ∈ {-1; 0; 1}
@@ -143,23 +143,23 @@ tests/value/behaviors2.c:306:[value] function f4, behavior b3: requires got stat
   r6 ∈ {2}
   r7 ∈ {2}
   r8 ∈ {0; 1}
-[value] Values at end of function test2:
+[value:final-states] Values at end of function test2:
   a ∈ {1}
   b ∈ {2}
   p ∈ {{ &a ; &b }}
   y ∈ {-4; -2; 2; 4}
   x ∈ {2; 4}
-[value] Values at end of function test3:
+[value:final-states] Values at end of function test3:
   a ∈ {1}
   b ∈ {2}
   p ∈ {{ &a ; &b }}
   y ∈ {-4; -2; 2; 4}
   x ∈ {2; 4}
-[value] Values at end of function test4:
+[value:final-states] Values at end of function test4:
   x ∈ {2; 4}
-[value] Values at end of function test5:
+[value:final-states] Values at end of function test5:
   x ∈ {4}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function test1
 [from] Computing for function divi <-test1

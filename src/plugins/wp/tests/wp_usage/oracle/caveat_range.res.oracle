@@ -1,0 +1,172 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/caveat_range.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function reset
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat_range.i, line 12) in 'reset':
+Let a = shift_A_S(global(G_p_69), 0).
+Assume {
+  Type: is_sint32(i_1).
+  (* Goal *)
+  When: (0 <= i) /\ (i <= 9).
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
+      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
+      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: (0 <= i_1) /\ (i_1 <= 10).
+  (* Else *)
+  Have: 10 <= i_1.
+}
+Prove: 1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i))].
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat_range.i, line 13) in 'reset':
+Let a = shift_A_S(global(G_p_69), 0).
+Assume {
+  Type: is_sint32(i_1).
+  (* Goal *)
+  When: (0 <= i) /\ (i <= 9).
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
+      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
+      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: (0 <= i_1) /\ (i_1 <= 10).
+  (* Else *)
+  Have: 10 <= i_1.
+}
+Prove: 2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i))].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 19):
+Let a = shift_A_S(global(G_p_69), 0).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(1 + i).
+  (* Loop assigns ... *)
+  Have: havoc(Mint_0, Mint_1, shift_S(a, 0), 20).
+  (* Invariant *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
+      (2 = Mint_1[shiftfield_F1_S_g(shift_S(a, i_1))]))).
+  (* Invariant *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
+      (1 = Mint_1[shiftfield_F1_S_f(shift_S(a, i_1))]))).
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= 10).
+  (* Then *)
+  Have: i <= 9.
+}
+Prove: (-1) <= i.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_usage/caveat_range.i, line 19):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 20):
+Let a = shift_A_S(global(G_p_69), 0).
+Let a_1 = shift_S(a, i).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(1 + i).
+  (* Goal *)
+  When: (0 <= i_1) /\ (i_1 <= i).
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= 10).
+  (* Then *)
+  Have: i <= 9.
+}
+Prove: 1
+         = Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+             [shiftfield_F1_S_f(shift_S(a, i_1))].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_usage/caveat_range.i, line 20):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_usage/caveat_range.i, line 21):
+Let a = shift_A_S(global(G_p_69), 0).
+Let a_1 = shift_S(a, i).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(1 + i).
+  (* Goal *)
+  When: (0 <= i_1) /\ (i_1 <= i).
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= 10).
+  (* Then *)
+  Have: i <= 9.
+}
+Prove: 2
+         = Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+             [shiftfield_F1_S_g(shift_S(a, i_1))].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_usage/caveat_range.i, line 21):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_usage/caveat_range.i, line 22) (1/3):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_usage/caveat_range.i, line 22) (2/3):
+Effect at line 25
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_usage/caveat_range.i, line 22) (3/3):
+Effect at line 26
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_usage/caveat_range.i, line 14) in 'reset' (1/2):
+Effect at line 24
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_usage/caveat_range.i, line 14) in 'reset' (2/2):
+Effect at line 24
+Prove: true.
+
+------------------------------------------------------------

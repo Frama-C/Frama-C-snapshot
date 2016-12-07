@@ -3,15 +3,15 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   u1 ∈ {0}
   u2 ∈ {0}
   f ∈ {0}
   d ∈ {0}
   big ∈ {0}
   ull ∈ {0}
-tests/float/alarms.i:9:[kernel] warning: non-finite float value. assert \is_finite(u1.f);
-tests/float/alarms.i:11:[kernel] warning: non-finite double value. assert \is_finite(u2.d);
+tests/float/alarms.i:9:[value] warning: non-finite float value. assert \is_finite(u1.f);
+tests/float/alarms.i:11:[value] warning: non-finite double value. assert \is_finite(u2.d);
 [value] DUMPING STATE of file tests/float/alarms.i line 12
         u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
           [-3.40282346639e+38 .. 3.40282346639e+38]
@@ -35,30 +35,30 @@ tests/float/alarms.i:11:[kernel] warning: non-finite double value. assert \is_fi
 tests/float/alarms.i:14:[kernel] warning: Neither code nor specification for function fd, generating default assigns from the prototype
 [value] using specification for function fd
 [value] Done for function fd
-tests/float/alarms.i:14:[kernel] warning: non-finite double value. assert \is_finite(tmp);
-                                           (tmp from fd())
-tests/float/alarms.i:14:[kernel] warning: non-finite float value. assert \is_finite((float)tmp);
+tests/float/alarms.i:14:[value] warning: non-finite double value. assert \is_finite(tmp);
                                           (tmp from fd())
+tests/float/alarms.i:14:[value] warning: non-finite float value. assert \is_finite((float)tmp);
+                                         (tmp from fd())
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:15.
 [value] Done for function fd
-tests/float/alarms.i:16:[kernel] warning: non-finite double value. assert \is_finite(vd);
-tests/float/alarms.i:16:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -9223372036854775809 < vd;
-tests/float/alarms.i:16:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert vd < 9223372036854775808;
-tests/float/alarms.i:17:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert -9223372036854775809 < vf;
-tests/float/alarms.i:17:[kernel] warning: overflow in conversion from floating-point to integer.
-                  assert vf < 9223372036854775808;
+tests/float/alarms.i:16:[value] warning: non-finite double value. assert \is_finite(vd);
+tests/float/alarms.i:16:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -9223372036854775809 < vd;
+tests/float/alarms.i:16:[value] warning: overflow in conversion from floating-point to integer.
+                 assert vd < 9223372036854775808;
+tests/float/alarms.i:17:[value] warning: overflow in conversion from floating-point to integer.
+                 assert -9223372036854775809 < vf;
+tests/float/alarms.i:17:[value] warning: overflow in conversion from floating-point to integer.
+                 assert vf < 9223372036854775808;
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:18.
 [value] Done for function fd
-tests/float/alarms.i:19:[kernel] warning: non-finite double value. assert \is_finite(vd);
+tests/float/alarms.i:19:[value] warning: non-finite double value. assert \is_finite(vd);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
     [-3.40282346639e+38 .. 3.40282346639e+38]
     {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]

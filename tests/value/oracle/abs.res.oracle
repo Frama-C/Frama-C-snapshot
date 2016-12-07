@@ -3,14 +3,14 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 tests/value/abs.i:6:[value] warning: function main: precondition got status unknown.
-tests/value/abs.i:9:[kernel] warning: signed overflow. assert -*p ≤ 2147483647;
+tests/value/abs.i:9:[value] warning: signed overflow. assert -*p ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   S_p[0] ∈ [0..2147483647]
      [1] ∈ [--..--]
 [from] Computing for function main

@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function f1 <- main.
         Called from tests/pdg/inter_alias.c:15.
@@ -22,11 +22,11 @@
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f1:
+[value:final-states] Values at end of function f1:
   a ∈ {3}
   b ∈ {0; 4}
   __retres ∈ {3; 4}
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   a ∈ {3}
   b ∈ {4}
   __retres ∈ {7}

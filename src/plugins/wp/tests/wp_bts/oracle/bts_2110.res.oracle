@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_bts/bts_2110.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 2 goals scheduled
 ---------------------------------------------
@@ -21,10 +20,10 @@ goal myMain_stmt_assign:
   let a_2 = shiftfield_F1_FD_pos(a) : addr in
   let x = t_1[a_2] : int in
   let x_1 = t_2[a_2] : int in
-  linked(t) ->
   (x <> x_1) ->
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
+  linked(t) ->
   is_sint32(x) ->
   is_sint32(x_1) ->
   valid_rd(t, a_2, 1) ->
@@ -38,6 +37,8 @@ goal myMain_stmt_assign:
 (* --- Memory Compound Updates                            --- *)
 (* ---------------------------------------------------------- *)
 
+function shiftfield_F1_FD_pos(p:addr) : addr = shift(p, 0)
+
 function shiftfield_F2_A_dummy(p:addr) : addr = shift(p, 0)
 
 function Load_S2_A
@@ -46,16 +47,12 @@ function Load_S2_A
     S2_A =
     { F2_A_dummy = Mint_0[shiftfield_F2_A_dummy(p)] }
 
-function shiftfield_F1_FD_pos(p:addr) : addr = shift(p, 0)
-
-axiom Q_Load_S2_A_havoc_Mint:
+axiom Q_Load_S2_A_update_Mint:
   forall p,q : addr.
-  forall Mint_0,Mint_1 : (addr,int) farray.
-  forall k : int
-  [havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
-    havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
-  separated(p, 1, q, k) -> havoc(Mint_0, Mint_1, q, k) ->
-    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
+  forall Mint_0 : (addr,int) farray.
+  forall v : int
+  [Load_S2_A(p, Mint_0[q <- v])].
+  (p <> q) -> (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_0[q <- v]))
 
 axiom Q_Load_S2_A_eqmem_Mint:
   forall p,q : addr.
@@ -66,12 +63,14 @@ axiom Q_Load_S2_A_eqmem_Mint:
   included(p, 1, q, k) -> eqmem(Mint_0, Mint_1, q, k) ->
     (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
 
-axiom Q_Load_S2_A_update_Mint:
+axiom Q_Load_S2_A_havoc_Mint:
   forall p,q : addr.
-  forall Mint_0 : (addr,int) farray.
-  forall v : int
-  [Load_S2_A(p, Mint_0[q <- v])].
-  (p <> q) -> (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_0[q <- v]))
+  forall Mint_0,Mint_1 : (addr,int) farray.
+  forall k : int
+  [havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
+    havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
+  separated(p, 1, q, k) -> havoc(Mint_0, Mint_1, q, k) ->
+    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
 
 ---------------------------------------------
 --- File 'typed/S2_A.ergo' 
@@ -82,9 +81,9 @@ axiom Q_Load_S2_A_update_Mint:
 
 type S2_A = { F2_A_dummy : int }
 
-predicate EqS2_A(S:S2_A, S_1:S2_A) = (S.F2_A_dummy) = (S_1.F2_A_dummy)
-
 predicate IsS2_A(S:S2_A) = is_sint32(S.F2_A_dummy)
+
+predicate EqS2_A(S:S2_A, S_1:S2_A) = (S.F2_A_dummy) = (S_1.F2_A_dummy)
 
 ---------------------------------------------
 --- File 'typed/myMain_post_KO.ergo' 

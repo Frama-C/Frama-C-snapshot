@@ -3,7 +3,6 @@
 [kernel] Parsing tests/wp_acsl/tset.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] Collecting axiomatic usage
 [wp] 4 goals scheduled
 [wp] [Coq] Goal typed_lemma_UNION_DESCR : Saved script
 [wp] [Coq] Goal typed_lemma_UNION_DESCR : Valid

@@ -3,18 +3,18 @@
 [value] Analyzing a complete application starting at fonc1
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
-tests/value/deps.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b;
-tests/value/deps.i:17:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
-tests/value/deps.i:24:[kernel] warning: signed overflow. assert -2147483648 ≤ w+v2.x;
-tests/value/deps.i:24:[kernel] warning: signed overflow. assert w+v2.x ≤ 2147483647;
-tests/value/deps.i:24:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(w+v2.x)+v3.x;
-tests/value/deps.i:24:[kernel] warning: signed overflow. assert (int)(w+v2.x)+v3.x ≤ 2147483647;
+tests/value/deps.i:17:[value] warning: signed overflow. assert -2147483648 ≤ a + b;
+tests/value/deps.i:17:[value] warning: signed overflow. assert a + b ≤ 2147483647;
+tests/value/deps.i:24:[value] warning: signed overflow. assert -2147483648 ≤ w + v2.x;
+tests/value/deps.i:24:[value] warning: signed overflow. assert w + v2.x ≤ 2147483647;
+tests/value/deps.i:24:[value] warning: signed overflow. assert -2147483648 ≤ (int)(w + v2.x) + v3.x;
+tests/value/deps.i:24:[value] warning: signed overflow. assert (int)(w + v2.x) + v3.x ≤ 2147483647;
 [value] Recording results for fonc1
 [value] done for function fonc1
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function fonc1:
+[value:final-states] Values at end of function fonc1:
   w ∈ [--..--]
   v1.x ∈ [--..--]
     .y ∈ UNINITIALIZED

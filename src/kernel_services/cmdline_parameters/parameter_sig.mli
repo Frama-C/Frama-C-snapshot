@@ -48,6 +48,12 @@ module type Input_with_arg = sig
         If empty, a generic arg_name is generated. *)
 end
 
+(** Minimal signature for collections of custom datatype *)
+module type Input_collection = sig
+  include Input_with_arg
+  val dependencies: State.t list
+end
+
 (** Signature required to build custom collection parameters in which elements
     are convertible to string.
     @since Sodium-20150201 *)
@@ -331,6 +337,11 @@ module type Collection_category = sig
   val default: unit -> t
   (** The '\@default' category. By default, it is {!none}. *)
 
+  val all: unit -> t
+  (** The '\@all' category. If this category has not been created, it is
+      {!none}, which means 'ignored'.
+      @since Silicon-20161101 *)
+
   val set_default: t -> unit
   (** Modify the '\@default' category. *)
 
@@ -511,7 +522,7 @@ module type Builder = sig
         include String_datatype_with_collections
         val of_singleton_string: string -> Set.t
       end)
-    (X: sig include Input_with_arg val default: E.Set.t end):
+    (X: sig include Input_collection val default: E.Set.t end):
     Set with type elt = E.t and type t = E.Set.t
 
   (** @plugin development guide *)
@@ -533,7 +544,7 @@ module type Builder = sig
         include String_datatype
         val of_singleton_string: string -> t list
       end)
-    (X: sig include Input_with_arg val default: E.t list end):
+    (X: sig include Input_collection val default: E.t list end):
     List with type elt = E.t and type t = E.t list
 
   module String_list(X: Input_with_arg): String_list
@@ -542,7 +553,7 @@ module type Builder = sig
   module Make_map
     (K: String_datatype_with_collections)
     (V: Value_datatype with type key = K.t)
-    (X: sig include Input_with_arg val default: V.t K.Map.t end):
+    (X: sig include Input_collection val default: V.t K.Map.t end):
     Map
     with type key = K.t and type value = V.t and type t = V.t K.Map.t
 
@@ -569,7 +580,7 @@ module type Builder = sig
   module Make_multiple_map
     (K: String_datatype_with_collections)
     (V: Multiple_value_datatype with type key = K.t)
-    (X: sig include Input_with_arg val default: V.t list K.Map.t end):
+    (X: sig include Input_collection val default: V.t list K.Map.t end):
     Multiple_map
     with type key = K.t and type value = V.t and type t = V.t list K.Map.t
 

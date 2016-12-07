@@ -3,18 +3,18 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   t[0..11] ∈ {0}
   G ∈ {0}
-tests/value/copy_paste.i:8:[kernel] warning: accessing out of bounds index. assert 0 ≤ j;
-tests/value/copy_paste.i:8:[kernel] warning: accessing out of bounds index. assert j < 12;
-tests/value/copy_paste.i:9:[kernel] warning: out of bounds read. assert \valid_read((int *)l);
+tests/value/copy_paste.i:8:[value] warning: accessing out of bounds index. assert 0 ≤ j;
+tests/value/copy_paste.i:8:[value] warning: accessing out of bounds index. assert j < 12;
+tests/value/copy_paste.i:9:[value] warning: out of bounds read. assert \valid_read((int *)l);
 [value] Recording results for main
 [value] done for function main
 tests/value/copy_paste.i:8:[value] assertion 'Value,index_bound' got final status valid.
 tests/value/copy_paste.i:9:[value] assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   t[0..2] ∈ {0}
    [3] ∈ {0; 3; 4}
    [4] ∈ {4}

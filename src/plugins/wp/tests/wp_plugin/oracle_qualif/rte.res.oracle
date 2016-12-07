@@ -1,0 +1,16 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/rte.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Alt-Ergo] Goal typed_job_post : Unknown
+[wp] [Alt-Ergo] Goal typed_job2_post : Unknown
+[wp] Proved goals:    0 / 2
+     Alt-Ergo:        0  (unknown: 2)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+job                 -      -           1       0.0%
+job2                -      -           1       0.0%
+----------------------------------------------------------

@@ -295,18 +295,15 @@ let bitwise_extraction first_bit last_bit x =
 
   let is_even v = is_zero (logand one v)
 
-  (** [pgcd u 0] is allowed and returns [u] *)
   let pgcd u v =
-    let r =
-      if is_zero v
-      then u
-      else gcd_big_int u v in
-      r
+    if is_zero v then abs u
+    else if is_zero u then abs v
+    else gcd_big_int u v
 
   let ppcm u v =
     if u = zero || v = zero
     then zero
-    else native_div (mul u v) (pgcd u v)
+    else abs (mul (divexact u (pgcd u v)) v)
 
   let length u v = succ (sub v u)
 

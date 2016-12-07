@@ -25,7 +25,9 @@
 type config = {
   cvalue : bool;
   equalities : bool;
+  symbolic_locs : bool;
   bitwise : bool;
+  gauges : bool;
   apron_oct : bool;
   apron_box : bool;
   polka_loose : bool;
@@ -36,7 +38,9 @@ type config = {
 let configure () = {
   cvalue = Value_parameters.CvalueDomain.get ();
   equalities = Value_parameters.EqualityDomain.get ();
+  symbolic_locs = Value_parameters.SymbolicLocsDomain.get ();
   bitwise = Value_parameters.BitwiseOffsmDomain.get ();
+  gauges = Value_parameters.GaugesDomain.get ();
   apron_oct = Value_parameters.ApronOctagon.get ();
   apron_box = Value_parameters.ApronBox.get ();
   polka_loose = Value_parameters.PolkaLoose.get ();
@@ -49,7 +53,9 @@ let default_config = configure ()
 let legacy_config = {
   cvalue = true;
   equalities = false;
+  symbolic_locs = false;
   bitwise = false;
+  gauges = false;
   apron_oct = false;
   apron_box = false;
   polka_loose = false;
@@ -80,7 +86,7 @@ module type V = sig
   val structure : t Abstract_value.structure
 end
 
-module Val = struct
+module CVal = struct
   include Main_values.CVal
   include Structure.Open (Structure.Key_Value) (Main_values.CVal)
 end
@@ -141,7 +147,7 @@ end
 
 (* Abstractions needed for the analysis: value, location and domain. *)
 module type Abstract = sig
-  module Val : Abstract_value.External
+  module Val : V
   module Loc : Abstract_location.Internal with type value = Val.t
                                            and type location = Precise_locs.precise_location
   module Dom : Abstract_domain.Internal with type value = Val.t
@@ -152,13 +158,13 @@ let default_root_abstraction config =
   if config.cvalue
   then
     (module struct
-      module Val = Val
+      module Val = CVal
       module Loc = Main_locations.PLoc
       module Dom = Cvalue_domain.State
     end : Abstract)
   else
     (module struct
-      module Val = Val
+      module Val = CVal
       module Loc = Main_locations.PLoc
       module Dom = Unit_domain.Make (Val) (Loc)
     end : Abstract)
@@ -219,22 +225,34 @@ let add_apron_domain abstractions apron =
 (*                            Equality Domain                                 *)
 (* -------------------------------------------------------------------------- *)
 
-module Equality = Equality.Make
-    (Equality_term.Atom)
-    (Equality_term.Atom.Hptset)
-    (struct let module_name = Equality_term.Atom.name ^ "eq" end)
+module CvalueEquality = Equality_domain.Make (CVal)
 
-let add_equalities abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module EqDom =
-    Equality_domain.Make (Equality_term.Atom) (Equality) (Abstract.Val)
-  in
+let add_generic_equalities (module Abstract : Abstract) =
+  let module EqDom = Equality_domain.Make (Abstract.Val) in
   let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (EqDom) in
   (module struct
     module Val = Abstract.Val
     module Loc = Abstract.Loc
     module Dom = Dom
   end : Abstract)
+
+let add_equalities (type v) (module Abstract : Abstract with type Val.t = v) =
+  match Abstract.Val.structure with
+  | Structure.Key_Value.Leaf key ->
+    begin
+      match Structure.Key_Value.eq_type key Main_values.cvalue_key with
+      | None -> add_generic_equalities (module Abstract)
+      | Some Structure.Eq ->
+        let module Dom =
+          Domain_product.Make (Abstract.Val) (Abstract.Dom) (CvalueEquality)
+        in
+        (module struct
+          module Val = Abstract.Val
+          module Loc = Abstract.Loc
+          module Dom = Dom
+        end : Abstract)
+    end
+  | _ -> add_generic_equalities (module Abstract)
 
 
 (* -------------------------------------------------------------------------- *)
@@ -256,6 +274,43 @@ let add_offsm abstract =
     module Dom = Dom
   end : Abstract)
 
+(* -------------------------------------------------------------------------- *)
+(*                            Symbolic locations                              *)
+(* -------------------------------------------------------------------------- *)
+
+let add_symbolic_locs abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Cvalue.V.t
+    let key = Main_values.cvalue_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module SymbLocs = Domain_lift.Make (Symbolic_locs.D) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(SymbLocs) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
+
+(* -------------------------------------------------------------------------- *)
+(*                            Gauges                                          *)
+(* -------------------------------------------------------------------------- *)
+
+let add_gauges abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Cvalue.V.t
+    let key = Main_values.cvalue_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module Gauges = Domain_lift.Make (Gauges_domain.D) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(Gauges) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
 
 (* -------------------------------------------------------------------------- *)
 (*                            Build Abstractions                              *)
@@ -296,14 +351,25 @@ let build_abstractions config =
     then add_apron_domain abstractions (module Apron_domain.Polka_Equalities)
     else abstractions
   in
+  let module A = (val abstractions : Abstract) in
   let abstractions =
     if config.equalities
-    then add_equalities abstractions
+    then add_equalities (module A)
+    else abstractions
+  in
+  let abstractions =
+    if config.symbolic_locs
+    then add_symbolic_locs abstractions
     else abstractions
   in
   let abstractions =
     if config.bitwise
     then add_offsm abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.gauges
+    then add_gauges abstractions
     else abstractions
   in
   abstractions
@@ -324,8 +390,15 @@ module Reduce (Value : Abstract_value.External) = struct
       begin
         let set_cvalue = Value.set Main_values.cvalue_key in
         let set_interval = Value.set Main_values.interval_key in
-        fun t -> match get_interval t with
-          | None -> t
+        fun t ->
+          match get_interval t with
+          | None -> begin
+              let cvalue = get_cvalue t in
+              try
+                let ival = Cvalue.V.project_ival cvalue in
+                set_interval (Some ival) t
+              with Cvalue.V.Not_based_on_null -> t
+            end
           | Some ival ->
             let cvalue = get_cvalue t in
             try

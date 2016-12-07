@@ -1,0 +1,61 @@
+# frama-c -wp -no-warn-signed-overflow [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/cint.i (no preprocessing)
+tests/wp_plugin/cint.i:22:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function signed_bitwise
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 24) in 'signed_bitwise':
+Let x = lnot(a). Assume { Type: is_sint32(a) /\ is_sint32(x). }
+Prove: P_R(x, a).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function signed_downcast
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 30) in 'signed_downcast':
+Assume { Type: is_sint32(a). }
+Prove: P_R(to_sint16(a), a).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function signed_overflow
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 36) in 'signed_overflow':
+Let x = a + b. Assume { Type: is_sint32(a) /\ is_sint32(b). }
+Prove: P_R(to_sint32(x), x).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function unsigned_bitwise
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 42) in 'unsigned_bitwise':
+Assume { Type: is_uint32(a). }
+Prove: P_R(to_uint32(lnot(a)), a).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function unsigned_downcast
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 48) in 'unsigned_downcast':
+Assume { Type: is_sint32(a). }
+Prove: P_R(to_uint32(a), a).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function unsigned_overflow
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/cint.i, line 54) in 'unsigned_overflow':
+Let x = a + b. Assume { Type: is_uint32(a) /\ is_uint32(b). }
+Prove: P_R(to_uint32(x), x).
+
+------------------------------------------------------------

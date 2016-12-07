@@ -3,7 +3,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   T[0..299] ∈ {0}
   S1{.i1; .i2} ∈ {4369}
     {.c1; .c2} ∈ {17}
@@ -40,7 +40,7 @@
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function misaligned_struct:
+[value:final-states] Values at end of function misaligned_struct:
   S1.i1[bits 0 to 7] ∈ {17}
     {.i1[bits 8 to 15]#; .i2} ∈ {4369} repeated %16, bits 8 to 31 
     {.c1; .c2} ∈ {17}
@@ -56,9 +56,9 @@
   S4{.i1#; .i2#} ∈ {17} repeated %8 
     {.c1#; .c2#} ∈ {4369}%32, bits 0 to 15 
     {.i3#; .i4#} ∈ {17} repeated %8 
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   T[0]# ∈ {1; 2}%32, bits 0 to 7 
-   [1]# ∈ {1; 2}%32, bits 8 to 15 
+   [1] ∈ {0}
    [bits 16 to 95]# ∈ {1; 2} repeated %32, bits 16 to 95 
    [12..299] ∈ {0}
   S1.i1[bits 0 to 7] ∈ {17}

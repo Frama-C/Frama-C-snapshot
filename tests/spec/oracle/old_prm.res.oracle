@@ -7,7 +7,8 @@ struct st {
 struct st S;
 int i;
 int j;
-/*@ ensures S.t[i] ≡ (\let tmp = \old(s.t); tmp[j])+*(\old(y)+\old(x)); */
+/*@ ensures S.t[i] ≡ (\let tmp = \old(s.t); tmp[j]) + *(\old(y) + \old(x));
+ */
 void main(struct st s, int x, int *y)
 {
   S.t[i] = s.t[j] + *(y + x);

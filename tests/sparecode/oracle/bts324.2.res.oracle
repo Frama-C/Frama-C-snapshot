@@ -5,7 +5,7 @@
 [value] Analyzing a complete application starting at main_ter
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   i0 ∈ {0}
   o0 ∈ {0}
   is_ko ∈ {-1}

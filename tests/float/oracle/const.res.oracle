@@ -15,7 +15,7 @@ tests/float/const.i:37:[kernel] warning: Floating-point constant 0.0000000000000
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   f0 ∈ {0}
   f_ ∈ {0}
   f00 ∈ {0}
@@ -125,7 +125,7 @@ tests/float/const.i:48:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function main:
+[value:final-states] Values at end of function main:
   f_ ∈ {-0x0.0000000000000p-1022}
   f00 ∈ {0}
   f2 ∈ {0x1.8000000000000p1}

@@ -24,7 +24,9 @@
 * has the same value then a given starting program point L. *)
 
 open Cil_types
-(*open Cil_datatype*)
+
+let cat_rm_asserts_name = "rm_asserts"
+let () = Plugin.default_msg_keys [cat_rm_asserts_name]
 
 module R =
   Plugin.Register
@@ -34,9 +36,7 @@ module R =
        let help = "data dependencies higher level functions"
      end)
 
-let cat_rm_asserts_name = "rm_asserts"
 let cat_rm_asserts = R.register_category cat_rm_asserts_name
-let () = R.add_debug_keys (R.get_category cat_rm_asserts_name)
 
 
 (** {2 Computing a mapping between zones and modifying statements}
@@ -47,7 +47,6 @@ a mapping between each zone and the statements that are modifying it.
 (** Statement identifier *)
 module StmtDefault = struct
   include Cil_datatype.Stmt
-  let default = Cil.dummyStmt
   let id s = s.sid
 end
 
@@ -58,11 +57,8 @@ module StmtSetLattice = struct
 
   let default: t = empty
 
-  let empty = bottom
-  let cardinal set = fold (fun _ n -> n+1) set 0
   let single s = inject_singleton s
 
-  let add s set = join set (single s)
 end
 
 (** A place to map each data to the state of statements that modify it. *)
@@ -72,19 +68,12 @@ module InitSid = struct
      changes, which includes every time we switch project. *)
   let () = Ast.add_hook_on_update LM.clear_caches
 
-  type t = LM.t
-
   let empty = LM.empty
   let find = LM.find
 
   let add_zone ~exact lmap zone sid =
     let new_val = StmtSetLattice.single sid in
     LM.add_binding ~reducing:false ~exact lmap zone new_val
-
-  let test_and_merge old_lmap new_lmap =
-    let new_lmap = LM.join old_lmap new_lmap in
-      if LM.is_included new_lmap old_lmap then None
-      else Some new_lmap
 
   let pretty fmt lmap =
     Format.fprintf fmt "Lmap = %a@\n" LM.pretty lmap
@@ -221,17 +210,13 @@ module State = struct
     in b
   let join = merge;;
 
-  let equal (b1 : t) b2 = (b1 = b2)
+  let equal (b1 : t) (b2: t) = (b1 = b2)
 
-  let test_and_merge ~old new_ =
-    let result = merge new_ old in
-    if equal result old then None else Some result
+  let join_and_is_included a b =
+    let j = join a b in
+    (j, equal j b)
 
-  let join_and_is_included smaller larger =
-    let result = join smaller larger in
-    (result, equal result larger)
-  let is_included smaller larger = snd (join_and_is_included smaller larger)
-
+  let is_included a b = snd (join_and_is_included a b)
 
   (* Note: the transfer function "if m = Start then SameVal else if
      modif then Modif else m" suits better visualisation by scope,
@@ -244,15 +229,12 @@ module State = struct
 end
 
 module BackwardScope (X : sig val modified : stmt -> bool end ) = struct
-  let name = "scope(back)"
-  let debug = false
 
   let transfer_stmt stmt state = match stmt.skind  with
     | Instr _ -> State.transfer (X.modified stmt) state
     | _ -> state
 
   include State
-       
     
 end
 
@@ -412,7 +394,7 @@ let check_stmt_annots (ca, stmt_ca) stmt acc =
   let check _ annot acc =
     match ca.annot_content, annot.annot_content with
     | AAssert (_, p'), AAssert (_, p) ->
-        if Logic_utils.is_same_predicate p.content p'.content then
+        if Logic_utils.is_same_predicate_node p.pred_content p'.pred_content then
           let acc, added = add_proven_annot (annot, stmt) (ca, stmt_ca) acc in
           if added then
             R.debug "annot at stmt %d could be removed: %a"

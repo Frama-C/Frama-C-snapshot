@@ -20,7 +20,7 @@
 .\"                                                                        
 .\"------------------------------------------------------------------------
 
-.TH FRAMA-C 1 2016-03-04
+.TH FRAMA-C 1 2016-11-23
 
 .SH NAME
 frama-c[.byte] \- a static analyzer for C programs
@@ -150,6 +150,10 @@ syntax. Defaults to yes.
 .B [-no]-asm-contracts-auto-validate
 automatically marks contracts generated from asm as valid. Defaults to no.
 .TP
+.B -c11
+enables (partial) C11 compatibility, e.g. typedef redefinitions.
+Defaults to no.
+.TP
 .B [-no]-collapse-call-cast
 allows implicit cast between the value returned by a function and the lvalue
 it is assigned to. Otherwise, a temporary variable is used and the cast is
@@ -212,14 +216,6 @@ See also
 .TP
 .BI -custom-annot-char\  c
 .RI uses\ character\  c \ for\ starting\ ACSL\ annotations.
-.TP
-.B [-no]-dynlink
-When on, load all the dynamic plugins found in the search path (see
-.B -print-plugin-path
-for more information on the default search path). Otherwise, only plugins
-requested by
-.B -load-modules
-will be loaded. Default behavior is on.
 .TP
 .BI -enums\  repr
 Choose the way the representation of enumerated types is determined.

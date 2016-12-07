@@ -25,7 +25,7 @@ int unroll(int c)
       loop pragma UNROLL "done", 1; */
   while (1) {
     /*@ breaks \false;
-        continues x ≡ \old(x)+1; */
+        continues x ≡ \old(x) + 1; */
     switch (x) {
       /*@ breaks x ≡ 13; */
       {
@@ -37,7 +37,7 @@ int unroll(int c)
       }
     }
     /*@ breaks x ≡ \old(x);
-        continues x ≡ \old(x)+1; */
+        continues x ≡ \old(x) + 1; */
     {
       if (x < c) {
         x ++;

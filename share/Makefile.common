@@ -52,42 +52,41 @@ FRAMAC_SRC_DIRS= plugins/slicing_types plugins/pdg_types plugins/value_types \
 	       plugins/gui
 FRAMAC_SRC_DIRS:= $(addprefix src/, $(FRAMAC_SRC_DIRS))
 
-ifeq ($(OCAMLWIN32),yes)
-ifneq ($(CYGPATH),no)
-winpath=$(shell $(CYGPATH) -m "$(1)")
-else
-winpath=$(1)
-endif #CYGPATH
-else
-winpath=$(1)
-endif #OCAMLWIN32
+#################
+# OCaml version #
+#################
+
+# Cumulative semantics: HAS_OCAMLnnn should be set if OCaml version is mmm
+# with mmm >= nnn
+
+# findstring returns an empty string if it does not match, and the value it
+# searches if it matches. Hence we compare with the empty string
+HAS_OCAML403=no
+ifeq ($(findstring 4.02,$(OCAMLVERSION)),)
+  HAS_OCAML403 = yes
+endif
+
 
 ##################
 # Flags          #
 ##################
 
-# findstring returns an empty string if it does not match, and the value it
-# searches if it matches. Hence we compare with the empty string and negate
-# the condition
-HAS_OCAML402=no
-HAS_OCAML403=no
-ifeq ($(findstring 4.00,$(OCAMLVERSION)),) # >=4.00
-  ifeq ($(findstring 4.01,$(OCAMLVERSION)),) # >=4.01
-    HAS_OCAML402 = yes
-    ifeq ($(findstring 4.02,$(OCAMLVERSION)),) # >=4.02
-      HAS_OCAML403 = yes
-    endif
-  endif
-endif
-
+# Flags to be used by ocamlc and ocamlopt when compiling Frama-C
+# itself. For development versions, we add -warn-error for most
+# warnings -warn-error has effect only for warnings that are
+# explicitely set using '-w'.
+ifeq ($(DEVELOPMENT),yes)
 # Most warnings are activated by default. The few that are deactivated are
 # impossible to silence with the current Frama-C. Those settings are inherited
-# in the compilation of external plugins. Note that -warn-error is not used
-# here: it is only set for Frama-C itself (and the standard plugins), and is
-# defined in the root Makefile
-WARNINGS= -w +a-3-4-6-9-41-44-45-48-50
+# in the compilation of external plugins.
+WARNINGS ?= -w +a-4-6-9-41-44-45-48-50
+WARN_ERROR ?= -warn-error +a-3-32-33-34-35-36-37-38-39-58
+else
+WARNINGS ?= -w -a
+endif #DEVELOPMENT
 
-FLAGS	= $(WARNINGS) $(OCAML_ANNOT_OPTION) $(OPTIM)
+FLAGS	= $(WARNINGS) $(WARN_ERROR) $(OCAML_ANNOT_OPTION) -strict-sequence \
+          -safe-string
 DEBUG	= -g
 
 #############
@@ -206,61 +205,14 @@ PRINT_HEVEA	=$(PRINT) 'Hevea       '#
 # Tests #
 #########
 
-define COMPILE_TESTS_ML_FILES
-# Function with two arguments:
-#  - $(1) is the test directory under consideration.
-#  - $(2) is the name of Frama-C component under test (plugin or some core part)
-ML_TESTS:=$(wildcard tests/$(1)/*.ml)
-.PRECIOUS: $(patsubst %.ml, %.cmo, $(ML_TESTS)) \
-	$(patsubst %.ml, %.cmx, $(ML_TESTS)) \
-	$(patsubst %.ml, %.cmxs, $(ML_TESTS)) \
-	$(patsubst %.ml, %.opt, $(ML_TESTS)) \
-	$(patsubst %.ml, %.byte, $(ML_TESTS))
-
-# [JS 2009/03/18] in the 5 rules below, don't print anything while VERBOSEMAKE
-# is not set (otherwise "make tests" is too much verbose)
-
-$(1)_TESTS_INCLUDES=$$(addprefix -I tests/, $$($(2)_TESTS_DIRS))
-
-tests/$(1)/%.cmo: BFLAGS+=$$($(2)_BFLAGS) $$($(1)_TESTS_INCLUDES)
-
-tests/$(1)/%.cmo: tests/$(1)/%.ml $$(CMO) $$($(2)_CMO) $$(GEN_BYTE_LIBS)
-	$$(OCAMLC) -c $$(BFLAGS) $$($(1)_TESTS_INCLUDES) $$<
-
-tests/$(1)/%.byte: tests/$(1)/%.cmo $(3:.cmx=.cmo) bin/toplevel.byte$$(EXE)
-	$$(OCAMLC) $$(BLINKFLAGS) $$($(1)_TESTS_INCLUDES) -o $$@ \
-	  $$(BYTE_LIBS) $$(filter-out $$(STARTUP_CMO),$$(ALL_BATCH_CMO)) $(3:.cmx=.cmo) \
-	  $$< $$(STARTUP_CMO)
-
-# [JS 2009/05/29] don't use $$(CMX)
-# [VP 2010/04/22] don't call directly ocamlopt, just refine flags of generic
-# rule, which is chosen by make anyway
-tests/$(1)/%.cmx: OFLAGS+= $$($(2)_OFLAGS) $$($(1)_TESTS_INCLUDES)
-
-$(patsubst %.ml,%.cmx,$(wildcard tests/$(1)/*.ml tests/$(1)/*/*.ml)): \
-           $$(CMO:.cmo=.cmx) $$($(2)_CMX) $$(GEN_OPT_LIBS)
-
-tests/$(1)/%.cmxs: OFLAGS+= $$($(2)_OFLAGS) $$($(1)_TESTS_INCLUDES)
-
-$(patsubst %.ml,%.cmxs,$(wildcard tests/$(1)/*.ml tests/$(1)/*/*.ml)): \
-           $$(CMO:.cmo=.cmx) $$($(2)_CMX) $$(GEN_OPT_LIBS)
-
-tests/$(1)/%.opt: tests/$(1)/%.cmx $(3) bin/toplevel.opt$$(EXE)
-	$$(OCAMLOPT) $$(OLINKFLAGS) $$($(1)_TESTS_INCLUDES) -o $$@ \
-	  $$(OPT_LIBS) $$(filter-out $$(STARTUP_CMX),$$(ALL_BATCH_CMX)) $(3) $$< $$(STARTUP_CMX)
-
-$(filter-out $(3),$(patsubst %.ml,%.cmx,$(wildcard tests/$(1)/*.ml))): $(3)
-$(filter-out $(3:.cmx=.cmo), \
-    $(patsubst %.ml,%.cmo,$(wildcard tests/$(1)/*.ml))): \
-     $(3:.cmx=.cmo)
-
-endef #COMPILE_TESTS_ML_FILES
 
 #################
 # Documentation #
 #################
 
-ifeq ("$(OCAMLDOC)","ocamldoc.opt")
+NATIVE_OCAMLDOC:=$(shell ocamlfind ocamldoc -v | grep -o ocamldoc.opt)
+
+ifeq ("$(NATIVE_OCAMLDOC)","ocamldoc.opt")
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmxs
 else
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmo
@@ -273,10 +225,13 @@ endif
 #take the name of the plugin as argument $(1)
 define include_generic_plugin_Makefile
 $(call assert_defined,PLUGIN_DIR)
-$(PLUGIN_DIR)/Makefile.plugin.generated: $(MAKECONFIG_DIR)/Makefile.plugin.template
+$(PLUGIN_DIR)/.Makefile.plugin.generated: $(MAKECONFIG_DIR)/Makefile.plugin.template
 	$(PRINT_MAKING)	$$@
 	$(SED) -e "s/@PLUGIN_NAME@/$(1)/g" $$< > $$@
+
+# We still clean the old Makefile.plugin.generated (without the dot) temporarily
 clean::
+	rm -rf $(PLUGIN_DIR)/.Makefile.plugin.generated
 	rm -rf $(PLUGIN_DIR)/Makefile.plugin.generated
 
 #We always define this variable because it can't wait the generation
@@ -284,7 +239,7 @@ clean::
 #Makefile of the plugins could use this variable
 $(1)_DIR:=$(PLUGIN_DIR)
 
-sinclude $(PLUGIN_DIR)/Makefile.plugin.generated
+sinclude $(PLUGIN_DIR)/.Makefile.plugin.generated
 
 endef
 

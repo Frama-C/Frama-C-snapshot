@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -check -slice-return main -journal-disable -then-on 'Slicing export' -print -check
+   OPT:  -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
    OPT: -sparecode
 */
 int main() {

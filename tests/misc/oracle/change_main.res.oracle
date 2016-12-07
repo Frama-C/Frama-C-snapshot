@@ -3,20 +3,20 @@
 [value] Analyzing a complete application starting at f
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function f:
+[value:final-states] Values at end of function f:
   
 [value] Analyzing a complete application starting at g
 [value] Computing initial state
 [value] Initial state computed
-[value] Values of globals at initialization
+[value:initial-state] Values of globals at initialization
   
 [value] Recording results for g
 [value] done for function g
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function g:
+[value:final-states] Values at end of function g:
   

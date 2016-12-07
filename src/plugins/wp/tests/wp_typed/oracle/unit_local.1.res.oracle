@@ -1,0 +1,33 @@
+# frama-c -wp -wp-model 'Typed (Raw)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_local.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function bar
+------------------------------------------------------------
+
+Goal Assigns nothing in 'bar':
+Effect at line 28
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: !valid_rd(Malloc_0, global(L_a_75), 1).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assigns nothing in 'foo' (1/2):
+Effect at line 18
+Assume { (* Heap *) Have: framed(Mptr_0) /\ linked(Malloc_0). }
+Prove: !valid_rd(Malloc_0, shift_PTR(global(L_pa_71), 0), 1).
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'foo' (2/2):
+Effect at line 19
+Assume { (* Heap *) Have: framed(Mptr_0) /\ linked(Malloc_0). }
+Prove: !valid_rd(Malloc_0, global(L_a_70), 1).
+
+------------------------------------------------------------
