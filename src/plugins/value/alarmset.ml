@@ -107,7 +107,7 @@ let is_empty = function
 
 let singleton a = Just (M.singleton a Unknown)
 
-let add' alarm status = function
+let set alarm status = function
   | Just m   ->
     if status = True
     then Just (M.remove alarm m)

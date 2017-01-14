@@ -185,14 +185,14 @@ let close_dereference_alarms lval typ alarms =
   let init_status = Alarmset.find init_alarm alarms
   and escap_status = Alarmset.find escap_alarm alarms in
   let reduced = init_status <> Alarmset.True || escap_status <> Alarmset.True in
-  let closed_alarms = Alarmset.add' init_alarm init_status Alarmset.none in
-  let closed_alarms = Alarmset.add' escap_alarm escap_status closed_alarms in
+  let closed_alarms = Alarmset.set init_alarm init_status Alarmset.none in
+  let closed_alarms = Alarmset.set escap_alarm escap_status closed_alarms in
   match typ with
   | TFloat (fkind, _) ->
     let expr = Cil.dummy_exp (Cil_types.Lval lval) in
     let nan_inf_alarm = Alarms.Is_nan_or_infinite (expr, fkind) in
     let nan_inf_status = Alarmset.find nan_inf_alarm alarms in
-    Alarmset.add' nan_inf_alarm nan_inf_status closed_alarms, reduced
+    Alarmset.set nan_inf_alarm nan_inf_status closed_alarms, reduced
   | _ -> closed_alarms, reduced
 
 let define_value value =
@@ -210,12 +210,12 @@ let indeterminate_copy lval result alarms =
   and escaping = not (Alarmset.find escap_alarm alarms = Alarmset.True) in
   let alarms =
     if not (initialized)
-    then Alarmset.add' init_alarm Alarmset.True alarms
+    then Alarmset.set init_alarm Alarmset.True alarms
     else alarms
   in
   let alarms =
     if escaping
-    then Alarmset.add' escap_alarm Alarmset.True alarms
+    then Alarmset.set escap_alarm Alarmset.True alarms
     else alarms
   in
   let reductness = Unreduced in
