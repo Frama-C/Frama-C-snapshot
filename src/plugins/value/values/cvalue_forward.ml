@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Eval
 open Cvalue
 open Cil_types
 
@@ -288,7 +289,7 @@ let division_alarms expr value =
     else Alarmset.add (Alarms.Pointer_comparison (None, expr)) alarms
   else Alarmset.none
 
-let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
+let forward_minus_pp ~context ~typ ev1 ev2 =
   let conv minus_offs =
     try
       let size = Int_Base.project (Bit_utils.osizeof_pointed typ) in
@@ -309,7 +310,9 @@ let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
     (* TODO: we may be able to reduce the bases that appear only on one side *)
     let minus_offs, warn = V.sub_untyped_pointwise ev1 ev2 in
     let alarms = if warn
-      then Alarmset.singleton (Alarms.Differing_blocks (e1, e2))
+      then
+        let e1 = context.left_operand and e2 = context.right_operand in
+        Alarmset.singleton (Alarms.Differing_blocks (e1, e2))
       else Alarmset.none
     in
     let offs = conv minus_offs in
@@ -318,7 +321,7 @@ let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
 (* Evaluation of some operations on Cvalue.V. [typ] is the type of [ev1].
    The function must behave as if it was acting on unbounded integers *)
 let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
-  let e1, e2, _res, _typ = context in
+  let e1 = context.left_operand and e2 = context.right_operand in
   match op with
   | PlusPI
   | IndexPI -> return (V.add_untyped (Bit_utils.osizeof_pointed typ) ev1 ev2)
@@ -389,8 +392,9 @@ let forward_binop_int ~context ~typ ev1 op ev2 =
   | Shiftlt | Mult | MinusPP | MinusPI | IndexPI | PlusPI
   | PlusA | Div | Mod | MinusA ->
     let warn_unsigned = op <> Shiftlt in
-    let _, _, exp_res, typ_res = context in
-    let res, alarms' = handle_overflow ~warn_unsigned exp_res typ_res res in
+    let res, alarms' =
+      handle_overflow ~warn_unsigned context.binary_result context.result_typ res
+    in
     res, Alarmset.union alarms alarms'
   | _ -> res, alarms
 
@@ -422,10 +426,11 @@ let forward_binop_float round ev1 op ev2 =
   | _ -> assert false
 
 let forward_binop_float_alarm ~context round flkind ev1 op ev2 =
-  let _, _, exp_res, _typ_res = context in
   let res, alarm = forward_binop_float round ev1 op ev2 in
   let alarm = if alarm
-    then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp_res, flkind))
+    then
+      let expr = context.binary_result in
+      Alarmset.singleton (Alarms.Is_nan_or_infinite (expr, flkind))
     else Alarmset.none
   in
   res, alarm
@@ -437,8 +442,7 @@ let forward_binop_float_alarm ~context round flkind ev1 op ev2 =
 
 (* This function evaluates a unary minus, but does _not_ check for overflows.
    This is left to the caller *)
-let forward_uneg ~context v t =
-  let exp, _res = context in
+let forward_uneg ~context:{operand} v t =
   match Cil.unrollType t with
   | TFloat (fkind, _) ->
     begin try
@@ -448,13 +452,13 @@ let forward_uneg ~context v t =
       with
       | V.Not_based_on_null ->
         V.topify_arith_origin v,
-        Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+        Alarmset.singleton (Alarms.Is_nan_or_infinite (operand, fkind))
       | Ival.Nan_or_infinite ->
         (* raised by project_float; probably useless *)
         if V.is_bottom v then v, Alarmset.none
         else
           V.top_float,
-          Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+          Alarmset.singleton (Alarms.Is_nan_or_infinite (operand, fkind))
     end
   | _ ->
     try
@@ -463,13 +467,13 @@ let forward_uneg ~context v t =
     with V.Not_based_on_null -> return (V.topify_arith_origin v)
 
 let forward_unop ~check_overflow ~context typ op value =
-  let exp, res = context in
   match op with
   | Neg ->
     let r, alarms = forward_uneg ~context value typ in
     if check_overflow
     then
-      let r, alarms' = handle_overflow ~warn_unsigned:true res typ r in
+      let warn_unsigned = true in
+      let r, alarms' = handle_overflow ~warn_unsigned context.result typ r in
       r, Alarmset.union alarms alarms'
     else r, alarms
   | BNot -> begin
@@ -491,7 +495,7 @@ let forward_unop ~check_overflow ~context typ op value =
         "invalid pointer negation: %a" pp_incomparable_reason reason;
     let alarms =
       if not ok
-      then Alarmset.singleton (Alarms.Pointer_comparison (None, exp))
+      then Alarmset.singleton (Alarms.Pointer_comparison (None, context.operand))
       else Alarmset.none
     in
     let value =

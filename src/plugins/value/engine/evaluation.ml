@@ -470,13 +470,16 @@ module Make
 
     | UnOp (op, e, _typ) ->
       root_forward_eval fuel state e >>= fun (v, volatile) ->
-      let context = (e, expr)
+      let context = {operand = e; result = expr}
       and typ = Cil.unrollType (Cil.typeOf e) in
       let v = Value.forward_unop ~context typ op v in
       compute_reduction v volatile
 
     | BinOp (op, e1, e2, typ) ->
-      let context = (e1, e2, expr, typ) in
+      let context =
+        {left_operand = e1; right_operand = e2;
+         binary_result = expr; result_typ = typ}
+      in
       root_forward_eval fuel state e1 >>= fun (v1, volatile1) ->
       root_forward_eval fuel state e2 >>= fun (v2, volatile2) ->
       let typ_e1 = Cil.unrollType (Cil.typeOf e1) in

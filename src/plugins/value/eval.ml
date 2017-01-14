@@ -62,14 +62,22 @@ type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
 
 (* Context for the evaluation of abstract value operators. *)
 
-(* unop e1 = e2. *)
-type unop_context = exp * exp
+(** Context for the evaluation of an unary operator: contains the involved
+    expressions needed to create the appropriate alarms. *)
+type unop_context = {
+  operand: exp;
+  result: exp;
+}
 
-(* e1 binop e2 = e3. *)
-type binop_context = exp * exp * exp * typ
-
-(* index, remaining, typ pointed, array size expression *)
-type index_context =  exp * offset * typ * exp option
+(** Context for the evaluation of a binary operator: contains the expressions
+    of both operands and of the result, needed to create the appropriate
+    alarms. *)
+type binop_context = {
+  left_operand: exp;
+  right_operand: exp;
+  binary_result: exp;
+  result_typ: typ
+}
 
 
 (* -------------------------------------------------------------------------- *)
