@@ -36,7 +36,8 @@ type inout = {
 (* Lattice structure for the abstract state above *)
 module LatticeInout = struct
 
-  (* Frama-C "datatype" for type [inout] *)
+  (* Frama-C "datatype" for type [inout]. These are "boring" utility
+     functions, that can be skipped. *)
   include Datatype.Make_with_collections(struct
       include Datatype.Serializable_undefined
       
@@ -163,8 +164,8 @@ module Transfer = struct
   let sequence s1 s2 = LatticeInout.join s1 s2
 
   (* Effects of a conditional [if (e)]. [to_z] converts the location present
-     in into zones. Nothing is written, the memory locations present in [e]
-     are read. *)
+     in into zones. Nothing is written, and the memory locations present in
+     [e] are read. *)
   let effects_assume to_z e =
     let inputs = inputs_exp to_z e in
     {
@@ -173,7 +174,8 @@ module Transfer = struct
     }
 
   (* Effects of an assigment [lv = e]. [to_z] converts the location present
-     in [lv] and [e] into zones. *)
+     in [lv] and [e] into zones. The locations involved in the computation
+     of [lv] and [e], and the location correspond to [lv] is read. *)
   let effects_assign to_z lv e =
     let inputs_e = inputs_exp to_z e in
     let inputs_lv = inputs_lv to_z lv.Eval.lval in

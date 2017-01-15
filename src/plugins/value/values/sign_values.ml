@@ -119,11 +119,11 @@ let mul v1 v2 =
   let zero = v1.zero || v2.zero in
   { neg; pos; zero }
 
-(* let div v1 v2 = TODO *)
+(* let div v1 v2 = TOWRITE *)
 
 (* Formard transformers for binary operators. The [context] argument can
    be used to build alarms, using the API in {!Alarms} and {!Alarmset}. *)
-let forward_binop ~context:((_e1, _e2, _eresult, _ty) : binop_context) (_typ: Cil_types.typ) op v1 v2 =
+let forward_binop ~context:_ (_typ: Cil_types.typ) op v1 v2 =
   match op with
   | PlusA -> `Value (plus v1 v2), Alarmset.all
   | MinusA -> `Value (plus v1 (neg_unop v2)), Alarmset.all
@@ -198,7 +198,7 @@ let backward_binop ~input_type:_ ~resulting_type:_ op ~left ~right ~result =
       backward_comp_right op ~left ~right >>- fun right' ->
       backward_comp_right (Comp.sym op) ~left:right ~right:left >>- fun left' ->
       `Value (left', right')
-    else if not result.zero then
+    else if is_included result non_zero then
       (* The comparison always holds, as it never evaluates to false. *)
       backward_comp_right op ~left ~right >>- fun right' ->
       backward_comp_right (Comp.sym op) ~left:right ~right:left >>- fun left' ->

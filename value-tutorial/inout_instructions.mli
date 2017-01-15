@@ -1,9 +1,15 @@
+(** If Merlin is properly configured on your machine, you can jump to the
+    definition of OCaml **modules** by selecting their name and using
+    C-c C-l (under emacs), then C-c C-a to switch to .mli
+*)
+    
+
 (**
 
    The Inout domain computes information about the memory locations
    that are read and written during the analysis of a function. Its
-   implementation can be found in the Inout_domain module. The OCaml
-   type of the abstract domain is {!Inout_domain.inout}. A set of
+   implementation can be found in the {!Inout_domain} module. The OCaml
+   type of the abstract domain is [Inout_domain.inout]. A set of
    read or written bits is modeled by the Frama-C type {!Locations.Zone.t}.
 
    Currently, the domain computes two things:
@@ -12,9 +18,9 @@
    - an over-approximation of the memory locations written by the
      function (field {!over_outputs})
 
-   You should familiarize yourself with the code in the modules
-   LatticeInout and Transfer, on which we will work. The functions
-   [inputs_*] can be skipped: they compute the inputs of various
+   Within {!Inout_domain}, you should familiarize yourself with the code in
+   the modules LatticeInout and Transfer, on which we will work. The
+   functions [inputs_*] can be skipped: they compute the inputs of various
    fragments of Frama-C's Ast (see {!Cil_types}), but we won't modify
    them.
 
@@ -24,11 +30,12 @@
 
    Task 1:
 
-   Read functions [assign] and [assume] in the functor [Internal.Transfer].
-   The effects of assignments and conditionals are simply accumulated using
-   function {!Locations.Zone.join}. Thus, the analysis is not really
-   path-sensitive. We are going to add two new types of inputs and outputs
-   that must be computed in a path-sensitive way.
+   Read functions [assign], [assume] and [sequence] in the functor
+   [Internal.Transfer]. The effects of assignments and conditionals
+   are simply accumulated using function {!Locations.Zone.join}. Thus,
+   the analysis is not really path-sensitive. We are going to add two
+   new types of inputs and outputs that must be computed in a
+   path-sensitive way.
 
    - *Sure outputs* are memory locations that the function is guaranteed
      to overwrite during its execution. We are going to compute an
@@ -49,10 +56,7 @@
    First, add two new fields to the type inout:
 
    type inout = {
-     (* over-approximation of the memory locations written by the function *)
-     over_outputs: Zone.t;
-     (* over-approximation of the memory locations read by the function *)
-     over_inputs: Zone.t;
+[...]
      (* under-approximation of the memory locations written by the function *)
      under_outputs: Zone.t;
      (* over-approximation of the memory locations parts read by the function
@@ -64,15 +68,16 @@
    then update all functions of LatticeInout to compute those fields. You
    will probably need the functions {!Locations.Zone.diff},
    {!Locations.Zone.meet} and {!Precise_locs.cardinal_zero_or_one}.
-   Remember that locations are themselves over-approximations. Thus
-   an assignment is "certain" only if they abstract at most one concrete
+   Locations are themselves over-approximations. Thus an assignment is
+   "certain" only if the location being written abstracts at most one concrete
    location.
 
-   Test your code on the file inout.c, with the command-line
-   ./bin/frama-c -val -eva-inout-domain value-tutorial/inout.c -value-msg-key d-inout,-final-states
+   Test your code on the file inout.c, by calling ./fc.sh inout.c
 
-   Are under-inputs properly computed for function f? If not, how should
-   the code of the function Transfer.sequence be modified?
+   Abstract states are dumped when calling the function Frama_C_dump_each(),
+   and appear in the analysis log. Are under_outputs properly computed for
+   function f? If not, how should the code of the function Transfer.sequence
+   be modified?
 
    Add option -slevel 10 to the command-line, which will unroll 10 iterations
    of simple loops. If everything goes well, sure outputs and operational

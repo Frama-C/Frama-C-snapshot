@@ -11,7 +11,8 @@
 
    - The second module is the memory domain itself. Currently, it only keeps
    track of basic variables (no support for aggregates). The implementation
-   is mostly done by {!BaseMapLattice}, which needs not be read.
+   is mostly done by {!BaseMapLattice}. These two modules need not be
+   read for this tutorial.
 
 *)
 
@@ -21,11 +22,11 @@
 
    Read in detail {!Sign_values.mul} and {!Sign_values.forward_binop}, that
    are the forward transfer functions for the sign domain. Write [div]
-   by adapting {mul}.
+   by adapting [mul].
 
    Test your code using
 
-   ./bin/frama-c -val -eva-signs-domain value-tutorial/signs.c -value-msg-key d-sign,-final-states
+   ./fc.sh signs.c
 
    and check that q is not negative.
 
@@ -42,7 +43,7 @@
 
     Modify the code for [div] so that it no longer returns {!Alarmset.all},
     but instead the set of alarms corresponding to "all alarms except
-    a division by zero". The APIs are in {!Alarms} and {!Alarmset}.
+    a division by zero". The APIs to use are in {!Alarms} and {!Alarmset}.
 
     Check that the alarm is no longer emitted on the previous example.
 *)
@@ -51,8 +52,10 @@
 
    Task 3:
 
-   The second 'if' is still analyzed imprecisely. Adapt the code for
-   [Eq] and [Ne] in {!Sign_values.backward_comp_right} for the operators
-   [Le], [Lt], [Ge], [Gt]. Test your code on the second if.
+   The second 'if' is still analyzed imprecisely. Indeed, it uses the
+   '<=" and '>=" operators, but the only abstract transformers currently
+   implemented are those for '==' and '!='.
+   Adapt the code for [Eq] and [Ne] in {!Sign_values.backward_comp_right} for
+   the operators [Le], [Lt], [Ge], [Gt]. Test your code on the second if.
 
 *)
