@@ -1,9 +1,6 @@
 #!/bin/sh
 
-
-#!/bin/sh
-
-CMD="../bin/frama-c"
+CMD="$(dirname $0)/../bin/frama-c"
 OPT=""
 
 while [ "$1" != "" ];
