@@ -143,7 +143,7 @@ module Internal : Domain_builder.InputDomain
       `Value state
 
     let start_call _stmt _call _valuation state =
-      Eval.(Compute (Continue state, true))
+      Eval.(Compute (state, true))
 
     let dump_current_state state =
       let l = fst (Cil.CurrentLoc.get ()) in

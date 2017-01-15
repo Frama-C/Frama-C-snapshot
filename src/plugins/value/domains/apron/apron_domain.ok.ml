@@ -693,7 +693,7 @@ module Make
       in
       if Abstract1.is_bottom man state
       then Result (`Bottom, Value_types.Cacheable)
-      else Compute (Continue state, true)
+      else Compute (state, true)
 
     let finalize_call _stmt call ~pre:_ ~post =
       let kf = call.kf in

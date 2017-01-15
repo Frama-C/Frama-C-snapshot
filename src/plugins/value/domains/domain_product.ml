@@ -112,14 +112,6 @@ module Make
       (Left.reduce_further left expr value)
       (Right.reduce_further right expr value)
 
-  let merge_init left right =
-    match left, right with
-    | Default, Default -> Default
-    | Continue left, Continue right -> Continue (left, right)
-    | Default, Continue right       -> Continue (Left.top, right)
-    | Continue left, Default        -> Continue (left, Right.top)
-    | _, _ -> assert false (* TODO! *)
-
   (* TODO: this function does a cartesian product, which is pretty terrible. *)
   let merge_results _kf left_list right_list =
     List.fold_left
@@ -217,7 +209,7 @@ module Make
       and right_action = Right_Transfer.start_call stmt call valuation right in
       match left_action, right_action with
       | Compute (left_init, b), Compute (right_init, b') ->
-        Compute (merge_init left_init right_init, b && b')
+        Compute ((left_init, right_init), b && b')
       | Result (left_result, c1), Result (right_result, _c2) ->
         let result =
           left_result >>- fun left_result ->

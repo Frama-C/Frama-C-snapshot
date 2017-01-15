@@ -269,7 +269,7 @@ module Internal : Domain_builder.InputDomain
       `Value (Transfer.sequence state effects)
 
     let start_call _stmt _call _valuation state =
-      Eval.(Compute (Continue state, true))
+      Eval.(Compute (state, false))
 
     let dump_current_state state =
       let l = fst (Cil.CurrentLoc.get ()) in

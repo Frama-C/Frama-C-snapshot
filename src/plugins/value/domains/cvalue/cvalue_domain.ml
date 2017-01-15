@@ -192,12 +192,6 @@ module State = struct
       T.assume stmt expr positive valuation s >>-: fun s ->
       s, clob
 
-    let init_with_clob clob = function
-      | Default     -> Default
-      | Continue s  -> Continue (s, clob)
-      | Custom list ->
-        Custom (List.map (fun (stmt, s) -> (stmt, (s, clob))) list)
-
     let result_with_clob bases result =
       let clob = Locals_scoping.bottom () in
       Locals_scoping.remember_bases_with_locals clob bases;
@@ -206,7 +200,7 @@ module State = struct
     let start_call stmt call valuation (s, _clob) =
       match T.start_call stmt call valuation s with
       | Compute (init, b), _ ->
-        Compute (init_with_clob (Locals_scoping.bottom ()) init, b)
+        Compute ((init, Locals_scoping.bottom ()), b)
       | Result (list, c), post_clob ->
         Result ((list >>-: fun l -> result_with_clob post_clob l), c)
 

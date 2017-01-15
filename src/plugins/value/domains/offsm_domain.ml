@@ -173,7 +173,7 @@ module Internal  : Domain_builder.InputDomain
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
-      Compute (Continue state, true)
+      Compute (state, true)
 
     let default_call _stmt call state =
       let kf = call.kf in

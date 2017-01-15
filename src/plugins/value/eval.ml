@@ -231,16 +231,9 @@ type 'value call = {
   rest: (exp * 'value assigned) list
 }
 
-(* Initialization of a dataflow analysis, by definig the initial value of
-    each statement. *)
-type 't init =
-  | Default
-  | Continue of 't
-  | Custom of (stmt * 't) list
-
 (* Action to perform on a call site. *)
 type 'state call_action =
-  | Compute of 'state init * bool
+  | Compute of 'state * bool
   | Result  of 'state list or_bottom * Value_types.cacheable
 
 exception InvalidCall

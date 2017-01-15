@@ -488,7 +488,7 @@ module Internal : Domain_builder.InputDomain
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
-      Compute (Continue state, true)
+      Compute (state, true)
 
     let dump_current_state state =
       let l = fst (Cil.CurrentLoc.get ()) in

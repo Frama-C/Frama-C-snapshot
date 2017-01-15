@@ -185,11 +185,10 @@ module Make
     = ref (fun _ -> assert false)
 
   let process_call call_kinstr call = function
-    | Compute (Continue state, _) ->
+    | Compute (state, _) ->
       Domain.Store.register_initial_state (Value_util.call_stack ()) state;
       !compute_call_ref call_kinstr call state
     | Result (res, cacheable) -> res, cacheable
-    | _ -> assert false (* TODO! *)
 
   (* ------------------- Retro propagation on formals ----------------------- *)
 

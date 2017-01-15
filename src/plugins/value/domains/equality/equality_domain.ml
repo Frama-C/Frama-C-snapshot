@@ -443,7 +443,7 @@ module MakeDomain
         | ISFormals -> assign_formals valuation call empty
         | ISEmpty   -> empty
       in
-      Compute (Continue state, true)
+      Compute (state, true)
 
     let finalize_call _stmt call ~pre ~post =
       let kf = call.kf in

@@ -216,27 +216,15 @@ type 'value call = {
   rest: (exp * 'value assigned) list  (** Extra-arguments. *)
 }
 
-(** Initialization of a dataflow analysis, by definig the initial value of
-    each statement. *)
-type 't init =
-  | Default
-  (** The entry point is initialized to top, and all the others to bottom. *)
-  | Continue of 't
-  (** The entry point is initialized to the current value,
-      and all the others to bottom. *)
-  | Custom of (stmt * 't) list
-  (** Custom association list for the initial values of statements. Other
-      statements are initialized to bottom. *)
-
 (** Action to perform on a call site. *)
 type 'state call_action =
-  | Compute of 'state init * bool
-  (** Analyze the called function with the given initialization. If the summary
-      of a previous analysis for this initialization has been cached, it will
+  | Compute of 'state * bool
+  (** Analyze the called function with the given initial state. If the summary
+      of a previous analysis for this initial state has been cached, it will
       be used without re-computation.
       The second boolean indicates whether the result must be cached. *)
   | Result  of 'state list or_bottom * Value_types.cacheable
-  (** Direct computation of the result. *)
+  (** Immediate computation of the result. *)
 
 exception InvalidCall
 

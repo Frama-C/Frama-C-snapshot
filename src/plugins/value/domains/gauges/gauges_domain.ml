@@ -1210,7 +1210,7 @@ module D_Impl : Abstract_domain.S_with_Structure
         with Untranslatable -> state
       in
       let state = List.fold_left aux_arg state call.arguments in
-      Compute (Continue state, true)
+      Compute (state, true)
 
     let default_call _stmt call state =
       let kf = call.kf in

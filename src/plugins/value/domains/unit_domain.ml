@@ -63,7 +63,7 @@ module MakeInternal
     let update _ _ = ()
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
-    let start_call _ _ _ _ = Compute (Continue (), true)
+    let start_call _ _ _ _ = Compute ((), true)
     let finalize_call _ _ ~pre:_ ~post:_ = `Value ()
     let default_call _ _ _ = call_result
     let enter_loop _ _ = ()

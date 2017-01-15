@@ -408,7 +408,7 @@ module Transfer
     let stack_with_call = Value_util.call_stack () in
     Db.Value.Call_Value_Callbacks.apply (with_formals, stack_with_call);
     match compute_maybe_builtin stmt call valuation state list rest with
-    | None -> Compute (Continue with_formals, true), Base.SetLattice.bottom
+    | None -> Compute (with_formals, true), Base.SetLattice.bottom
     | Some res ->
       (* Store the initial state, but do not called mark_as_called. Uninteresting
          Value builtins are intentionally skipped *)
