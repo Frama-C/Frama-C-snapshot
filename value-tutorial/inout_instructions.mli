@@ -69,9 +69,10 @@
    will probably need the functions {!Locations.Zone.diff},
    {!Locations.Zone.meet} and {!Precise_locs.cardinal_zero_or_one}.
    Locations are themselves over-approximations. Thus an assignment is
-   "certain" only if the location being written abstracts at most one concrete
-   location.
+   "certain" only if the location being written abstracts at most one
+   concrete location.
 
+   Recompile frama-c ('make -C ..').
    Test your code on the file inout.c, by calling ./fc.sh inout.c
 
    Abstract states are dumped when calling the function Frama_C_dump_each(),
