@@ -40,7 +40,7 @@ module LatticeInout = struct
      functions, that can be skipped. *)
   include Datatype.Make_with_collections(struct
       include Datatype.Serializable_undefined
-      
+
       type t = inout
       let name = "Value.Inout.t"
 
@@ -236,7 +236,7 @@ module Internal : Domain_builder.InputDomain
       else LatticeInout.top
     in
     `Value [state]
-  
+
   module Transfer (Valuation: Abstract_domain.Valuation
                    with type value = value
                     and type origin = origin
@@ -257,7 +257,7 @@ module Internal : Domain_builder.InputDomain
       | `Value loc ->
         Precise_locs.enumerate_valid_bits ~for_writing:false loc.Eval.loc
       | `Top -> Zone.top (* should not occur *)
-    
+
     let assign _ki lv e _v valuation state =
       let to_z = to_z valuation in
       let effects = Transfer.effects_assign to_z lv e in
@@ -285,12 +285,12 @@ module Internal : Domain_builder.InputDomain
          Value_parameters.is_debug_key_enabled dkey
       then dump_current_state post;
       `Value post
-    
+
     let default_call _stmt call state =
       approximate_call call.Eval.kf state
 
     let update _valuation state = state
-    
+
     let enter_loop _ state = state
     let incr_loop_counter _ state = state
     let leave_loop _ state = state
@@ -321,7 +321,7 @@ module Internal : Domain_builder.InputDomain
   let storage () = false
 
   let top_query = `Value (Cvalue.V.top, ()), Alarmset.all
-  
+
   let extract_expr _oracle _state _expr = top_query
   let extract_lval _oracle _state _lv _typ _locs = top_query
 
@@ -329,7 +329,7 @@ module Internal : Domain_builder.InputDomain
     `Value (loc, value)
 
   let reduce_further _state _expr _value = [] (*Nothing intelligent to suggest*)
-  
+
 end
 
 module D = Domain_builder.Complete (Internal)

@@ -2,7 +2,7 @@
     definition of OCaml **modules** by selecting their name and using
     C-c C-l (under emacs), then C-c C-a to switch to .mli
 *)
-    
+
 
 (**
 
