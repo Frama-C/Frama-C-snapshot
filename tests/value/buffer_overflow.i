@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input  -journal-disable
-   OPT: -val @VALUECONFIG@ -deps -out -input -ulevel 15 -journal-disable
+   STDOPT:
+   STDOPT: #"-ulevel 15"
 */
 int main(int argc, char *argv[])
 {

@@ -20,115 +20,121 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Partition based on union-find                                      --- *)
-(* -------------------------------------------------------------------------- *)
-
-module type Explain =
+module type Elt =
 sig
   type t
-  val bot : t
-  val cup : t -> t -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
 end
 
-module Unit =
-struct
-  type t = unit
-  let bot = ()
-  let cup () () = ()
-end
-
-module type S =
+module type Set =
 sig
   type t
   type elt
-  type explain
-  val empty : t
-  val join : ?explain:explain -> elt -> elt -> t -> t
-  val class_of : t -> elt -> elt
-  val is_equal : t -> elt -> elt -> bool
-  val members : t -> elt -> elt list
-  val repr : t -> elt -> elt * explain
-  val equal : t -> elt -> elt -> explain option
-  val explain : t -> elt -> elt -> explain
-  val iter : (elt -> elt list -> unit) -> t -> unit
-  val map : (elt -> elt) -> t -> t
+  val singleton : elt -> t
+  val iter : (elt -> unit) -> t -> unit
+  val union : t -> t -> t
+  val inter : t -> t -> t
 end
 
-module MakeExplain(A : Map.OrderedType)(E : Explain) =
+module type Map =
+sig
+  type 'a t
+  type key
+  val empty : 'a t
+  val is_empty : 'a t -> bool
+  val find : key -> 'a t -> 'a
+  val add : key -> 'a -> 'a t -> 'a t
+  val remove : key -> 'a t -> 'a t
+  val iter : (key -> 'a -> unit) -> 'a t -> unit
+end
+
+module Make(E : Elt)
+    (S : Set with type elt = E.t)
+    (M : Map with type key = E.t) =
 struct
 
-  module M = Map.Make(A)
-  type elt = A.t
-  type explain = E.t
+  type elt = E.t
+  type set = S.t
 
   type t = {
-    mutable color : (A.t * E.t) M.t ;
-    members : A.t list M.t ; (* sorted *)
+    mutable dag : E.t M.t ;
+    members : S.t M.t ;
+    size : int ;
   }
 
-  let empty = { color = M.empty ; members = M.empty }
-
-  let rec union ca cb =
-    match ca , cb with
-    | [] , r | r , [] -> r
-    | a :: ra , b :: rb ->
-        let cmp = A.compare a b in
-        if cmp < 0 then a :: union ra cb else
-        if cmp > 0 then b :: union ca rb else
-          a :: union ra rb
+  let empty = { size = 0 ; dag = M.empty ; members = M.empty }
 
   let rec lookup p a =
-    let ((a0,e0) as w0) = M.find a p.color in
     try
-      let (a1,e1) = lookup p a0 in
-      let w = (a1,E.cup e0 e1) in
-      p.color <- M.add a w p.color ; w
-    with Not_found -> w0
-
-  let repr p a =
-    try lookup p a
-    with Not_found -> a,E.bot
-
-  let class_of p a =
-    try fst (lookup p a)
+      let a0 = M.find a p.dag in
+      let a1 = lookup p a0 in
+      p.dag <- M.add a a1 p.dag ; a1
     with Not_found -> a
 
-  let equal t a b =
-    let (a,u) = repr t a in
-    let (b,v) = repr t b in
-    if A.compare a b = 0 then Some (E.cup u v) else None
+  let equal t a b = E.equal (lookup t a) (lookup t b)
+  let members p e =
+    try M.find e p.members with Not_found -> S.singleton e
 
-  let explain t a b =
-    let (a,u) = repr t a in
-    let (b,v) = repr t b in
-    if A.compare a b = 0 then E.cup u v else E.bot
-
-  let is_equal t a b = A.compare (class_of t a) (class_of t b) = 0
-  let k_members p e = try M.find e p.members with Not_found -> [e]
-  let members p e = k_members p (class_of p e)
-
-  let join ?(explain=E.bot) a b p =
-    let a = class_of p a in
-    let b = class_of p b in
-    let cmp = A.compare a b in
+  let merge p a b =
+    let a = lookup p a in
+    let b = lookup p b in
+    let cmp = E.compare a b in
     if cmp = 0 then p else
-      let c = union (k_members p a) (k_members p b) in
+      let c = S.union (members p a) (members p b) in
+      let size = succ p.size in
       if cmp < 0 then {
-        color = M.add b (a,explain) p.color ;
+        size ; dag = M.add b a p.dag ;
         members = M.add a c (M.remove b p.members) ;
       } else {
-        color = M.add a (b,explain) p.color ;
+        size ; dag = M.add a b p.dag ;
         members = M.add b c (M.remove a p.members) ;
       }
 
+  let rec merge_with p e = function
+    | [] -> p
+    | e'::es -> merge_with (merge p e e') e es
+
+  let merge_list p = function
+    | [] -> p
+    | e::es -> merge_with p e es
+
+  let merge_set p s =
+    let p = ref p in
+    let w = ref None in
+    S.iter
+      (fun e ->
+         match !w with
+         | None -> w := Some e
+         | Some u -> p := merge !p u e
+      ) s ;
+    !p
+
   let iter f p = M.iter f p.members
+  let unstable_iter f p = M.iter f p.dag
 
   let map f p =
-    M.fold
-      (fun a (b,explain) p -> join ~explain (f a) (f b) p)
-      p.color empty
+    let r = ref empty in
+    M.iter (fun a b -> r := merge !r (f a) (f b)) p.dag ; !r
+
+  let merge_dag p dag =
+    let r = ref p in
+    M.iter (fun a b -> r := merge !r a b) dag ; !r
+
+  let union p q =
+    if p.size < q.size
+    then merge_dag q p.dag
+    else merge_dag p q.dag
+
+  let inter p q =
+    let r = ref empty in
+    M.iter (fun _ ca ->
+        M.iter (fun _ cb ->
+            r := merge_set !r (S.inter ca cb)
+          ) q.members
+      ) p.members ;
+    !r
+
+  let is_empty p = M.is_empty p.dag
 
 end
-
-module Make(A : Map.OrderedType) = MakeExplain(A)(Unit)

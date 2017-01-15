@@ -110,7 +110,7 @@ tests/report/csv.c:33:[value] warning: builtin Frama_C_pow: out-of-range argumen
 [value] computing for function any_double <- main4 <- main.
         Called from tests/report/csv.c:49.
 [value] Done for function any_double
-tests/report/csv.c:50:[value] warning: non-finite double value. assert \is_finite(d);
+tests/report/csv.c:49:[value] warning: non-finite double value. assert \is_finite(__retres<any_double>);
 [value] computing for function __FC_assert <- main4 <- main.
         Called from tests/report/csv.c:50.
 tests/report/csv.c:37:[value] warning: function __FC_assert: precondition got status invalid.

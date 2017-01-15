@@ -34,18 +34,18 @@ struct group {
   char  **gr_mem;
 };
 
-struct group  *getgrgid(gid_t);
-struct group  *getgrnam(const char *);
-int getgrgid_r(gid_t, struct group *, char *,
+extern struct group  *getgrgid(gid_t);
+extern struct group  *getgrnam(const char *);
+extern int getgrgid_r(gid_t, struct group *, char *,
  size_t, struct group **);
-int getgrnam_r(const char *, struct group *, char *,
+extern int getgrnam_r(const char *, struct group *, char *,
  size_t , struct group **);
-struct group *getgrent(void);
-void endgrent(void);
-void setgrent(void);
+extern struct group *getgrent(void);
+extern void endgrent(void);
+extern void setgrent(void);
 
 /* BSD function */
-int initgroups (const char *user, gid_t group);
+extern int initgroups (const char *user, gid_t group);
 
 __END_DECLS
 

@@ -1,5 +1,5 @@
 /*run.config*
-  OPT: -val @VALUECONFIG@ -journal-disable -then -input -out -inout
+  OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -journal-disable -then -input -out -inout
  */
 int x, y;
 

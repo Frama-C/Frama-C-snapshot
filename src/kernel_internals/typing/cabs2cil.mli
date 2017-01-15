@@ -263,11 +263,11 @@ val compatibleTypes: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
     @since Oxygen-20120901
 *)
 
-val compatibleTypesp: Cil_types.typ -> Cil_types.typ -> bool
-(** Check that the two given types are compatible (C99, 6.2.7), and
-    return a boolean.
+val areCompatibleTypes: Cil_types.typ -> Cil_types.typ -> bool
+(** Check that the two given types are compatible (C99, 6.2.7)
 
     @since Neon-20140301
+    @modify Frama-C+dev
 *)
 
 (*

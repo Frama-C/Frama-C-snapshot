@@ -57,9 +57,9 @@ char str1[5] = {(char)'a', (char)'b', (char)'s', (char)'d', (char)'\000'};
 char str2[5] = {(char)'a', (char)'b', (char)'d', (char)'d', (char)'\000'};
 struct s s1;
 struct s s2[8];
-extern void f(void);
+void f(void);
 
-extern void g(void);
+void g(void);
 
 void main(void)
 {

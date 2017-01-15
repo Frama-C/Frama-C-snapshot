@@ -15,9 +15,9 @@ Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(d) /\
       is_sint32(x).
   (* Goal *)
-  When: a != c.
+  When: c != a.
 }
-Prove: 1 = x.
+Prove: x = 1.
 
 ------------------------------------------------------------
 
@@ -33,6 +33,6 @@ Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(d) /\
       is_sint32(x).
 }
-Prove: 1 = x.
+Prove: x = 1.
 
 ------------------------------------------------------------

@@ -446,6 +446,7 @@ let generate_specs () =
 
 let pre () =
   generate_specs ();
+  Widen.precompute_widen_hints ();
   Value_perf.reset();
   (* We may be resuming Value from a previously crashed analysis. Clear
      degeneration states *)

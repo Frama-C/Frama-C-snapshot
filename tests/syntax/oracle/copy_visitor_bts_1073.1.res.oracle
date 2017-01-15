@@ -19,7 +19,7 @@ int g(int y)
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int printf(char const * , ...);
+int printf(char const * , ...);
 
 int main(int argc, char **argv)
 {

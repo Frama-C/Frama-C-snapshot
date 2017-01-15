@@ -627,6 +627,7 @@ HAS_NATIVE_THREADS
 EXTERNAL_PLUGINS
 DEFAULT_CPP_KEEP_COMMENTS
 FRAMAC_GNU_CPP
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS
 FRAMAC_DEFAULT_CPP
 LOCAL_MACHDEP
 CYCLES_PER_USEC
@@ -5145,6 +5146,60 @@ rm -f conftest.err conftest.i conftest.$ac_ext
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&5
 $as_echo "Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&6; }
+
+
+# Test if preprocessor supports options such as -m16/-m32/-m64
+
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS=
+
+# Store original value of CPPFLAGS before doing tests
+OLD_CPPFLAGS=$CPPFLAGS
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m32"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m32 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m32\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m64"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m64 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m64\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m16"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m16 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m16\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+# revert CPPFLAGS to original value
+CPPFLAGS=$OLD_CPPFLAGS
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS" >&5
+$as_echo "Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS" >&6; }
+
 
 #################
 # Plugin wished #
@@ -10048,6 +10103,7 @@ compute_dependency
 ############################
 
 EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
+
 
 
 

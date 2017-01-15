@@ -14,15 +14,14 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_hoare/logicref.i, line 14):
-Let a_1 = shift_sint32(a, i).
 Assume {
-  Type: is_sint32(i) /\ is_sint32(k) /\ is_sint32(Mint_0[a_1]).
+  Type: is_sint32(i) /\ is_sint32(k).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i < k) /\ P_vrange(Malloc_0, a, k).
 }
-Prove: valid_rw(Malloc_0, a_1, 1).
+Prove: valid_rw(Malloc_0, shift_sint32(a, i), 1).
 
 ------------------------------------------------------------
 

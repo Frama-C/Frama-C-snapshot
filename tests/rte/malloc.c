@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-all -print -rte-precond
+   OPT: -rte -warn-signed-overflow -print -rte-precond
 */
 
 /*@ allocates \result;

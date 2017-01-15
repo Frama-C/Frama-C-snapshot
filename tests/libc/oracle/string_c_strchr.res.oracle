@@ -7,6 +7,9 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] Semantic level unrolling superposing up to 100 states
 [value] Semantic level unrolling superposing up to 200 states
 tests/libc/string_c_strchr.c:59:[value] entering loop for the first time

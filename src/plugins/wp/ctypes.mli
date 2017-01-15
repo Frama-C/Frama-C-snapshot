@@ -72,12 +72,14 @@ val object_of_logic_pointed : logic_type -> c_object
 
 (** {2 Utilities} *)
 
-val imemo : (c_int -> 'a) -> c_int -> 'a
-val fmemo : (c_float -> 'a) -> c_float -> 'a
-(** memoization function, projectified *)
+val i_iter: (c_int -> unit) -> unit
+val f_iter: (c_float -> unit) -> unit
 
-val iiter: (c_int -> unit) -> unit
-val fiter: (c_float -> unit) -> unit
+val i_memo : (c_int -> 'a) -> c_int -> 'a
+(** memoized, not-projectified *)
+
+val f_memo : (c_float -> 'a) -> c_float -> 'a
+(** memoized, not-projectified *)
 
 val is_char : c_int -> bool
 val c_char : unit -> c_int     (** Returns the type of [char] *)

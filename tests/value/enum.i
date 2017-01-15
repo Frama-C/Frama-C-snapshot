@@ -1,6 +1,6 @@
 /* run.config*
   GCC:
-  OPT: -val @VALUECONFIG@ -deps -out -input  -main f -journal-disable
+  STDOPT: #"-main f"
 */
 typedef enum counter {ZERO,ONE,TWO,LAST=TWO};
 

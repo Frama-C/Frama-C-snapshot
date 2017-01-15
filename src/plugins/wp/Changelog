@@ -1,4 +1,3 @@
-
 ###############################################################################
 # Preliminary notes:                                                          #
 # ------------------                                                          #
@@ -20,6 +19,24 @@
 #   <Model>: memory model
 #   <Prover>: prover
 ###############################################################################
+
+ - Qed         [2016/12/09] Add E_fun constructor for neutral and absorbent
+ - Wp          [2016/12/07] Trivial simplification for truncate
+ - Wp          [2016/12/07] Fix bug on negative 0x float constants
+ - Wp          [2016/11/04] Improved comparison of logic compounds
+ - Wp          [2016/11/04] Improved filtering (prevents loss of init clauses)
+ - WP          [2016/10/26] Generated HTML API (make wp-doc-api)
+ - WP          [2016/10/26] Extensible Proof Engine
+ -! WP         [2016/10/11] Deprecated Dynamic API
+ - WP          [2016/09/20] Improved sequent simplifier
+ - Qed         [2016/09/02] Negation of forall/exists qualitifers
+ - GUI         [2016/08/26] Pretty-print of memory side effects
+ - WP          [2016/08/23] Fixed bug #2246 (unsound switch)
+ - Gui         [2016/07/23] Interactive Proof Engine
+ - WP          [2016/07/21] Improved Sequent API (Conditions)
+ - WP          [2016/05/26] Simplification of ACSL sequences
+ - Qed         [2016/05/17] Mutualized type inference in Term
+ - Qed         [2016/04/12] Improved simplifiers
 
 ################################
 Plugin WP 1.1 Silicon_20161101

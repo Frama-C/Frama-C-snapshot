@@ -80,27 +80,6 @@ module DoPointerCall =
        let help = "when on, annotate functions calls through pointers"
      end)
 
-(* if DoAll is true: all other options become true, except for 
-   UnsignedOverflow, UnsignedDownCast and "PreConds"
-   <=> only "true" runtime error and 
-       some implementation-defined behaviors assertions are generated *)
-module DoAll =
-  True
-    (struct
-       let option_name = "-rte-all"
-       let help = "when on (by default), generate everything (supersedes all -rte-no-*)"
-     end)
-
-let () =
-  DoAll.add_set_hook
-    (fun _ b ->
-      DoMemAccess.set b;
-      DoDivMod.set b;
-      DoFloatToInt.set b;
-      DoPointerCall.set b;
-      Kernel.SignedOverflow.set b;
-      Kernel.SignedDowncast.set b)
-
 (* uses results of basic constant propagation in order to check
    validity / invalidity of generated assertions, emitting a status if possible
  *)  

@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then" +"-report"
+   STDOPT: +"-then -load-module report -report"
 */
 
 int x;

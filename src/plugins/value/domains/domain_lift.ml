@@ -73,10 +73,6 @@ module Make
     let list = Domain.reduce_further state expr (Convert.restrict_val value) in
     List.map (fun (e, v) -> e, Convert.extend_val v) list
 
-  module Return = Domain.Return
-  type return = Domain.return
-
-
 
   let lift_left left = { left with lloc = Convert.restrict_loc left.lloc }
   let lift_flagged_value value =
@@ -93,20 +89,6 @@ module Make
       List.map (fun (exp, assigned) -> exp, lift_assigned assigned) call.rest
     in
     { call with arguments; rest }
-
-  let extend_return return_state =
-    let extend (value, return) =
-      { value with v = value.v >>-: Convert.extend_val }, return
-    in
-    let return = Extlib.opt_map extend return_state.return in
-    { return_state with return }
-
-  let extend_call_result res = res >>-: List.map extend_return
-
-  let extend_action = function
-    | Compute _ as a -> a
-    | Result (res, cacheable) -> Result (extend_call_result res, cacheable)
-
 
   module Transfer
       (Valuation:
@@ -142,7 +124,6 @@ module Make
     module Internal_Transfer = Domain.Transfer (Internal_Valuation)
 
     type state = Domain.state
-    type return = Domain.return
     type value = Convert.extended_value
     type location = Convert.extended_location
     type valuation = Valuation.t
@@ -157,24 +138,14 @@ module Make
 
     let start_call stmt call valuation state =
       let call = lift_call call in
-      extend_action (Internal_Transfer.start_call stmt call valuation state)
-
-    let make_return kf stmt assign valuation state =
-      let assign = lift_assigned assign in
-      Internal_Transfer.make_return kf stmt assign valuation state
+      Internal_Transfer.start_call stmt call valuation state
 
     let finalize_call stmt call ~pre ~post =
       let call = lift_call call in
       Internal_Transfer.finalize_call stmt call ~pre ~post
 
-    let assign_return stmt lv kf return value valuation state =
-      let lv = lift_left lv
-      and value = lift_assigned value in
-      Internal_Transfer.assign_return stmt lv kf return value valuation state
-
     let default_call stmt call state =
-      let result = Internal_Transfer.default_call stmt (lift_call call) state in
-      extend_call_result result
+      Internal_Transfer.default_call stmt (lift_call call) state
 
     let enter_loop stmt state =
       Internal_Transfer.enter_loop stmt state
@@ -188,7 +159,7 @@ module Make
   end
 
   let compute_using_specification kinstr kf state =
-    extend_call_result (Domain.compute_using_specification kinstr kf state)
+    Domain.compute_using_specification kinstr kf state
 
   include (Domain : Abstract_domain.Logic with type state := t)
 

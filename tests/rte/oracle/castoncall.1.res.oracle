@@ -7,7 +7,7 @@
     assigns \result;
     assigns \result \from a, b;
  */
-extern int nondet(int a, int b);
+int nondet(int a, int b);
 
 /*@ ensures \result ≡ \old(a) ∨ \result ≡ \old(b);
     assigns \result;
@@ -29,7 +29,7 @@ void *nondet_ptr(void *a, void *b)
 
 /*@ ensures \result ≡ 1;
     assigns \nothing; */
-extern int f();
+int f();
 
 void g(void)
 {

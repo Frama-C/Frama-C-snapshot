@@ -528,6 +528,44 @@ AC_ARG_WITH(
 
 AC_MSG_RESULT(Default preprocessor is '$FRAMAC_DEFAULT_CPP'.)
 
+
+# Test if preprocessor supports options such as -m16/-m32/-m64
+
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS=
+
+# Store original value of CPPFLAGS before doing tests
+OLD_CPPFLAGS=$CPPFLAGS
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m32"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m32 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m32\"; ';
+  fi], [])
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m64"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m64 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m64\"; ';
+  fi], [])
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m16"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m16 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m16\"; ';
+  fi], [])
+
+# revert CPPFLAGS to original value
+CPPFLAGS=$OLD_CPPFLAGS
+
+AC_MSG_RESULT(Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS)
+
+
 #################
 # Plugin wished #
 #################
@@ -954,6 +992,7 @@ AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
 AC_SUBST(FRAMAC_DEFAULT_CPP)
+AC_SUBST(DEFAULT_CPP_SUPPORTED_ARCH_OPTS)
 AC_SUBST(FRAMAC_GNU_CPP)
 AC_SUBST(DEFAULT_CPP_KEEP_COMMENTS)
 AC_SUBST(CC)

@@ -140,15 +140,17 @@ val get_file_type: string -> output_type;;
 (** consider_function [vinfo] returns false if the varinfo is not a function we
     are interested in.
     For example, builtins should not be part of the analysis and return false.
+    If [libc] is false, do not consider functions from the Frama-C libc.
     Skip them using this auxiliary function.
 *)
-val consider_function: Cil_types.varinfo -> bool
+val consider_function: libc:bool -> Cil_types.varinfo -> bool
 
 (** [consider_variable vinfo] returns false if the varinfo is not an object
     variable we are interested in. Currently excluded variables are those
-    declared with attribute [__FRAMA_C_MODEL__]
+    declared with attribute [__FRAMA_C_MODEL__].
+    If [libc] is false, do not consider variables from the Frama-C libc.
 *)
-val consider_variable: Cil_types.varinfo -> bool
+val consider_variable: libc:bool -> Cil_types.varinfo -> bool
 
 (** Convert float to string with the following convention:
     - if the float is an integer (ie, it has no digits after the decimal point),

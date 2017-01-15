@@ -37,6 +37,8 @@ sig
   type value = loc Memory.value
   type sigma = Sigma.t
 
+  val pp_value : Format.formatter -> value -> unit
+  
   val cval : value -> term
   val cloc : value -> loc
 

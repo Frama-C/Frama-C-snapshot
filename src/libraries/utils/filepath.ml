@@ -69,7 +69,7 @@ let make dir name =
 
 let getdir p =
   match p.dir with
-  | None -> raise (Invalid_argument "Filepath.dirname")
+  | None -> (* the parent of the root directory is itself *) dummy
   | Some d -> d
 
 let rec norm path = function
@@ -104,8 +104,10 @@ let insert pwd file =
 let pwd = insert dummy (Sys.getcwd())
 
 let normalize ?base p =
+  if p = "" then raise (Invalid_argument "Filepath.normalize");
   let base = match base with None -> pwd | Some p -> insert pwd p in
-  (insert base p).path
+  let res = (insert base p).path in
+  if res = "" then "/" else res
 
 (* -------------------------------------------------------------------------- *)
 (* --- Symboling Names                                                    --- *)

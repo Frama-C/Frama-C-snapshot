@@ -1,0 +1,4 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/axiomatic_nested.i (no preprocessing)
+tests/syntax/axiomatic_nested.i:4:[kernel] user error: nested axiomatics are not allowed in ACSL
+[kernel] Frama-C aborted: invalid user input.

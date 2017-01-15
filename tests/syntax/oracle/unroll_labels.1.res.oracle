@@ -345,28 +345,28 @@ void main2(void)
   i = 0;
   if (! (i < 2)) goto unrolling_58_loop;
   {
-    int j_unroll_186;
-    j_unroll_186 = 0;
-    while (j_unroll_186 < 2) {
+    int j_unroll_192;
+    j_unroll_192 = 0;
+    while (j_unroll_192 < 2) {
       i ++;
       goto foo_unrolling_62_loop;
       i ++;
       foo_unrolling_62_loop: ;
-      j_unroll_186 ++;
+      j_unroll_192 ++;
     }
   }
   i ++;
   unrolling_61_loop: ;
   if (! (i < 2)) goto unrolling_58_loop;
   {
-    int j_unroll_178;
-    j_unroll_178 = 0;
-    while (j_unroll_178 < 2) {
+    int j_unroll_184;
+    j_unroll_184 = 0;
+    while (j_unroll_184 < 2) {
       i ++;
       goto foo_unrolling_60_loop;
       i ++;
       foo_unrolling_60_loop: ;
-      j_unroll_178 ++;
+      j_unroll_184 ++;
     }
   }
   i ++;
@@ -438,19 +438,19 @@ void main3(int c)
   if (c == 0) goto foo;
   if (! (i < 5)) goto unrolling_70_loop;
   {
-    int j_unroll_238;
-    j_unroll_238 = 0;
-    if (i == j_unroll_238) goto foo_unrolling_77_loop;
+    int j_unroll_244;
+    j_unroll_244 = 0;
+    if (i == j_unroll_244) goto foo_unrolling_77_loop;
     if (i == 1) goto unrolling_70_loop;
     if (i == 2) goto __Cont_unrolling_80_loop;
-    while (j_unroll_238 < 5) {
-      if (i == j_unroll_238) break;
-      if (i < j_unroll_238) goto foo_unrolling_77_loop;
-      if (i == j_unroll_238 + 1) goto __Cont_0_unrolling_78_loop;
-      if (i == j_unroll_238 + 2) goto up_unrolling_79_loop;
+    while (j_unroll_244 < 5) {
+      if (i == j_unroll_244) break;
+      if (i < j_unroll_244) goto foo_unrolling_77_loop;
+      if (i == j_unroll_244 + 1) goto __Cont_0_unrolling_78_loop;
+      if (i == j_unroll_244 + 2) goto up_unrolling_79_loop;
       i ++;
       foo_unrolling_77_loop: i ++;
-      __Cont_0_unrolling_78_loop: j_unroll_238 ++;
+      __Cont_0_unrolling_78_loop: j_unroll_244 ++;
     }
     up_unrolling_79_loop: ;
   }
@@ -458,19 +458,19 @@ void main3(int c)
   unrolling_76_loop: ;
   if (! (i < 5)) goto unrolling_70_loop;
   {
-    int j_unroll_216;
-    j_unroll_216 = 0;
-    if (i == j_unroll_216) goto foo_unrolling_72_loop;
+    int j_unroll_222;
+    j_unroll_222 = 0;
+    if (i == j_unroll_222) goto foo_unrolling_72_loop;
     if (i == 1) goto unrolling_70_loop;
     if (i == 2) goto __Cont_unrolling_75_loop;
-    while (j_unroll_216 < 5) {
-      if (i == j_unroll_216) break;
-      if (i < j_unroll_216) goto foo_unrolling_72_loop;
-      if (i == j_unroll_216 + 1) goto __Cont_0_unrolling_73_loop;
-      if (i == j_unroll_216 + 2) goto up_unrolling_74_loop;
+    while (j_unroll_222 < 5) {
+      if (i == j_unroll_222) break;
+      if (i < j_unroll_222) goto foo_unrolling_72_loop;
+      if (i == j_unroll_222 + 1) goto __Cont_0_unrolling_73_loop;
+      if (i == j_unroll_222 + 2) goto up_unrolling_74_loop;
       i ++;
       foo_unrolling_72_loop: i ++;
-      __Cont_0_unrolling_73_loop: j_unroll_216 ++;
+      __Cont_0_unrolling_73_loop: j_unroll_222 ++;
     }
     up_unrolling_74_loop: ;
   }

@@ -42,7 +42,7 @@ struct timezone {
 //@ ghost extern int __fc_tz __attribute__((FRAMA_C_MODEL));
 
 /*@ assigns \result \from path[0..],times[0..1]; */
-int utimes(const char *path, const struct timeval times[2]);
+extern int utimes(const char *path, const struct timeval times[2]);
 
 /*@ behavior tv_and_tz_null:
   @   assumes tv == \null && tz == \null;
@@ -70,12 +70,12 @@ int utimes(const char *path, const struct timeval times[2]);
   @ complete behaviors;
   @ disjoint behaviors;
   @*/
-int gettimeofday(struct timeval *tv, struct timezone *tz);
+extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 /*@ assigns \result,__fc_time,__fc_tz 
   @            \from      tv->tv_sec, tv->tv_usec,
   @                       tz->tz_dsttime, tz->tz_minuteswest; 
   @*/
-int settimeofday(const struct timeval *tv, const struct timezone *tz);
+extern int settimeofday(const struct timeval *tv, const struct timezone *tz);
 
 #endif

@@ -105,7 +105,7 @@ module Fieldinfo: S_with_collections_pretty with type t = fieldinfo
 module File: S with type t = file
 
 module Global: sig
-  include S_with_collections with type t = global
+  include S_with_collections_pretty with type t = global
   val loc: t -> location
 end
 
@@ -214,13 +214,13 @@ end
 
 module Funbehavior: S with type t = funbehavior
 
-module Funspec: S with type t = funspec
+module Funspec: S_with_pretty with type t = funspec
 
 (** @since Fluorine-20130401 *)
 module Fundec: S_with_collections with type t = fundec
 
 module Global_annotation: sig
-  include S_with_collections with type t = global_annotation
+  include S_with_collections_pretty with type t = global_annotation
   val loc: t -> location
 end
 module Identified_term: S_with_collections with type t = identified_term
@@ -250,9 +250,9 @@ module Term_lhost: S_with_collections with type t = term_lhost
 module Term_offset: S_with_collections_pretty with type t = term_offset
 module Term_lval: S_with_collections_pretty with type t = term_lval
 
-module Predicate: S with type t = predicate
+module Predicate: S_with_pretty with type t = predicate
 module Identified_predicate: 
-  S_with_collections with type t = identified_predicate
+  S_with_collections_pretty with type t = identified_predicate
 (** @since Neon-20140301 *)
 
 (**************************************************************************)

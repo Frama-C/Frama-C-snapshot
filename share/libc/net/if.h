@@ -30,10 +30,10 @@ __BEGIN_DECLS
 
 struct if_nameidx {unsigned if_index; char *if_name;};
 #define IF_NAMESIZE 255
-unsigned              if_nametoindex(const char * name);
-char                 *if_indextoname(unsigned index, char *name);
-struct if_nameindex  *if_nameindex(void);
-void                  if_freenameindex(struct if_nameindex *ni);
+extern unsigned              if_nametoindex(const char * name);
+extern char                 *if_indextoname(unsigned index, char *name);
+extern struct if_nameindex  *if_nameindex(void);
+extern void                  if_freenameindex(struct if_nameindex *ni);
 #define	IFF_UP		0x1		/* interface is up		*/
 #define	IFF_BROADCAST	0x2		/* broadcast address valid	*/
 #define	IFF_DEBUG	0x4		/* turn on debugging		*/

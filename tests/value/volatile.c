@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -val-initialization-padding-globals maybe
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -val-initialization-padding-globals maybe
 */
 
 int volatile G = 1;

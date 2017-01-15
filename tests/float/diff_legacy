@@ -8,17 +8,46 @@ Only in tests/float/oracle: absorb_sav.err
 Only in tests/float/oracle: absorb_sav.res
 Only in tests/float/oracle: absorb_sav2.err
 Only in tests/float/oracle: absorb_sav2.res
+diff tests/float/oracle/alarms.res.oracle tests/float/oracle_legacy/alarms.res.oracle
+38c38,39
+< tests/float/alarms.i:14:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
+---
+> tests/float/alarms.i:14:[value] warning: non-finite double value. assert \is_finite(tmp);
+>                                           (tmp from fd())
+44c45
+< tests/float/alarms.i:15:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
+---
+> tests/float/alarms.i:16:[value] warning: non-finite double value. assert \is_finite(vd);
+56c57
+< tests/float/alarms.i:18:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
+---
+> tests/float/alarms.i:19:[value] warning: non-finite double value. assert \is_finite(vd);
 diff tests/float/oracle/builtins.res.oracle tests/float/oracle_legacy/builtins.res.oracle
 130d129
 < tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
 133a133
 > tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
-138,139d137
+137,138d136
+< tests/float/builtins.c:26:[value] Assigning imprecise value to tmp.
+<         The imprecision originates from Arithmetic
+140,143d137
 < tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
 <                                           (tmp from Frama_C_log(d))
-265,266d262
+< tests/float/builtins.c:26:[value] Assigning imprecise value to __retres<log>.
+<         The imprecision originates from Arithmetic
+146,148d139
+< tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
+< tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
+<         The imprecision originates from Arithmetic
+272,273d262
 < tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
 <                                           (tmp from Frama_C_log(d))
+276d264
+< tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
+334,336d321
+< tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
+< tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
+<         The imprecision originates from Arithmetic {tests/float/builtins.c:107}
 diff tests/float/oracle/cond_cast_int_to_float.res.oracle tests/float/oracle_legacy/cond_cast_int_to_float.res.oracle
 13c13
 < tests/float/cond_cast_int_to_float.c:3:[value] function assert: precondition got status valid.

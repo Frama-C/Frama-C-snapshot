@@ -58,6 +58,12 @@ type loc = unit
 type chunk = Chunk.t
 type sigma = Sigma.t
 type segment = loc rloc
+type state = unit
+let state _ = ()
+let iter _ _ = ()
+let lookup _ _ = Mterm
+let updates _ _ = Bag.empty
+let apply _ _ = ()
 
 let pretty _fmt () = ()
 let vars _l = Vars.empty

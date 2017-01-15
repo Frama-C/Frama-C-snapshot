@@ -35,6 +35,8 @@ type t = private Just of s | AllBut of s
 type alarm = Alarms.t
 type status = True | False | Unknown
 
+val pretty_status : Format.formatter -> status -> unit
+
 type 'a if_consistent = [ `Value of 'a | `Inconsistent ]
 
 module Status : sig
@@ -81,12 +83,13 @@ val for_all: (alarm -> status -> bool) -> default:(status -> bool) -> t -> bool
 
 val iter: (alarm -> status -> unit) -> t -> unit
 
-(** Emits the alarms according to the given warn mode. *)
-val emit: CilE.warn_mode -> t -> unit
+(** Emits the alarms according to the given warn mode, at the given 
+    instruction. *)
+val emit: CilE.warn_mode -> Cil_types.kinstr -> t -> unit
 
-val start_stmt : Cil_types.kinstr -> unit
-val end_stmt : unit -> unit
-val current_stmt : unit -> Cil_types.kinstr
+(** Calls the functions registered in the [warn_mode] according to the
+    set of alarms. *)
+val notify: CilE.warn_mode -> t -> unit
 
 val pretty : Format.formatter -> t -> unit
 

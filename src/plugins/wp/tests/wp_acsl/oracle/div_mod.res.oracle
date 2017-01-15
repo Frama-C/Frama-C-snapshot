@@ -41,7 +41,7 @@ Prove: P_Peq(x_1, x_1).
 ------------------------------------------------------------
 
 Goal Post-condition 'd6,div_0_x' in 'f':
-Assume { Type: is_sint32(x). (* Goal *) When: 0 != x. }
+Assume { Type: is_sint32(x). (* Goal *) When: x != 0. }
 Prove: P_Peq(0 / x, 0).
 
 ------------------------------------------------------------
@@ -124,7 +124,7 @@ Prove: P_Peq(x % (-1), 0).
 ------------------------------------------------------------
 
 Goal Post-condition 'm6,mod_0_x' in 'f':
-Assume { Type: is_sint32(x). (* Goal *) When: 0 != x. }
+Assume { Type: is_sint32(x). (* Goal *) When: x != 0. }
 Prove: P_Peq(0 % x, 0).
 
 ------------------------------------------------------------

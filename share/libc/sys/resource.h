@@ -59,26 +59,26 @@ struct rusage {
 #define RLIMIT_AS 6
 
 /*@ assigns \result \from which,who; */
-int getpriority(int which, id_t who);
+extern int getpriority(int which, id_t who);
 
 /*@ assigns \result \from which,who,prio; */
-int setpriority(int which, id_t who, int prio);
+extern int setpriority(int which, id_t who, int prio);
 
 /*@ assigns \result \from r;
   @ assigns rl->rlim_cur \from r;
   @ assigns rl->rlim_max \from r;
 */
-int getrlimit(int r, struct rlimit *rl);
+extern int getrlimit(int r, struct rlimit *rl);
 
 /*@ assigns \result \from r;
   @ assigns ru->ru_utime \from r;
   @ assigns ru->ru_stime \from r;
 */
-int getrusage(int r, struct rusage *ru);
+extern int getrusage(int r, struct rusage *ru);
 
 /*@ assigns \result \from r,rl->rlim_cur,rl->rlim_max;
 */
-int setrlimit(int r, const struct rlimit * rl);
+extern int setrlimit(int r, const struct rlimit * rl);
 
 __END_DECLS
 #endif

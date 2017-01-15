@@ -277,7 +277,7 @@ typedef struct
   requires (intmax_t)(-c) != c ;
   assigns \result \from c ; 
 */
-intmax_t imaxabs(intmax_t c);
+extern intmax_t imaxabs(intmax_t c);
 
 /*@
   requires denom != 0;
@@ -285,20 +285,20 @@ intmax_t imaxabs(intmax_t c);
   ensures \result.quot == numer / denom;
   ensures \result.rem == numer % denom;
 */
-imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
+extern imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
 
 #include "__fc_define_wchar_t.h"
 /*@ assigns \result \from nptr[..], base ;
   assigns endptr[..] \from nptr[..], base ;
   assigns __FC_errno \from nptr[..], base ;
 */
-intmax_t strtoimax(const char * restrict nptr,
+extern intmax_t strtoimax(const char * restrict nptr,
      char ** restrict endptr, int base);
-uintmax_t strtoumax(const char * restrict nptr,
+extern uintmax_t strtoumax(const char * restrict nptr,
      char ** restrict endptr, int base);
-intmax_t wcstoimax(const wchar_t * restrict nptr,
+extern intmax_t wcstoimax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
-uintmax_t wcstoumax(const wchar_t * restrict nptr,
+extern uintmax_t wcstoumax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
 
 __END_DECLS

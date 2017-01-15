@@ -166,6 +166,7 @@ let number = [ '0'-'9' ]+
              and command = parse
                          | blank* '@' (ident as cmd) blank* { CMD cmd }
                          | blank* '@' (ident as cmd) blank+ '"' ([^ '"']* as arg) '"' blank* { ARG(cmd,arg) }
+                         | eof { TEXT }
                          | _ { TEXT }
 
                              {

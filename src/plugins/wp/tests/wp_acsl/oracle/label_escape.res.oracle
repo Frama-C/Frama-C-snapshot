@@ -9,9 +9,9 @@
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ko,oracle_ko' (file tests/wp_acsl/label_escape.i, line 12):
-Assume { Type: is_sint32(x) /\ is_sint32(y). If 0 != x Else { Have: 1 = y. }
+Assume { Type: is_sint32(x) /\ is_sint32(y). If x != 0 Else { Have: y = 1. }
 }
-Prove: 0 = y.
+Prove: y = 0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

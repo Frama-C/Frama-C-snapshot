@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -big-ints-hex 256 -val @VALUECONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,value -big-ints-hex 256 -val @VALUECONFIG@ -journal-disable
 */
 #include "__fc_builtin.h"
 

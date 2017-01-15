@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: +" -report-print-properties -val-warn-undefined-pointer-comparison none -then -report -then -val-warn-undefined-pointer-comparison pointer -then -report -then -val-warn-undefined-pointer-comparison all -then -report"
-   STDOPT: +" -report-print-properties -undefined-pointer-comparison-propagate-all -val-warn-undefined-pointer-comparison none -then -report -then -val-warn-undefined-pointer-comparison pointer -then -report -then -val-warn-undefined-pointer-comparison all -then -report"
+   STDOPT: +" -load-module report -report-print-properties -val-warn-undefined-pointer-comparison none -value-msg-key pointer-comparison -then -report -then -val-warn-undefined-pointer-comparison pointer -then -report -then -val-warn-undefined-pointer-comparison all -then -report"
+   STDOPT: +" -load-module report -report-print-properties -undefined-pointer-comparison-propagate-all -val-warn-undefined-pointer-comparison none -value-msg-key pointer-comparison -then -report -then -val-warn-undefined-pointer-comparison pointer -then -report -then -val-warn-undefined-pointer-comparison all -then -report"
 */
 int x,y,*p;
 main(){

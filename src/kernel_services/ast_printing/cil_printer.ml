@@ -997,8 +997,8 @@ class cil_printer () = object (self)
     pp_close_box fmt ();
     pp_close_box fmt ()
 
-  method private require_braces ?(has_annot=self#has_annot) blk = 
-    force_brace 
+  method private require_braces ?(has_annot=self#has_annot) blk =
+    force_brace
     || verbose || Kernel.is_debug_key_enabled debug_sid
     (* If one the of condition above is true, /* sid:... */ will be printed
        on its own line before s. Braces are needed *)
@@ -1008,9 +1008,24 @@ class cil_printer () = object (self)
     | [ { skind = Block b } ], _, _ -> has_annot || self#require_braces b
     | _, _, _ -> has_annot
 
+  method private has_multiple_stmts b =
+    match b.bstmts with
+    | [] -> false
+    | [ { skind = Block blk } as s ] ->
+      (* checks whether we will inline the block. This requires a little
+         dance, as it depends on whether we have a code_annot attached to
+         it, the detection of which in turn depends on whether we are printing
+         a pure AST or a an AST whose annotations are in external tables... *)
+      self#push_stmt s;
+      let res = self#require_braces blk in
+      self#pop_stmt ();
+      if res then self#has_multiple_stmts blk else false
+    | [ _ ] -> false
+    | _ -> true
+
   method private inline_block ?has_annot blk = match blk.bstmts with
-    | [] | [ { skind = (Instr _ | Return _ | Goto _ | Break _ | Continue _ ) } ] 
-      -> 
+    | [] | [ { skind = (Instr _ | Return _ | Goto _ | Break _ | Continue _ ) } ]
+      ->
       not (self#require_braces ?has_annot blk)
     | [ { skind = Block blk } ] -> self#inline_block blk
     | _ -> false
@@ -1311,13 +1326,12 @@ class cil_printer () = object (self)
          specifically limits the number of braces in that case. But that
          assumes that the required braces have already been put before by the
          callers *)
-      let braces = 
+      let braces =
         b.blocals <> [] || b.battrs <> [] ||
         (Kernel.is_debug_key_enabled debug_sid) || verbose
-        || (self#has_annot 
+        || (self#has_annot
 	    && logic_printer_enabled
-	    && (* at least two statements inside *) 
-	    match b.bstmts with [] | [ _ ] -> false | _ -> true)
+	    && self#has_multiple_stmts b)
       in
       self#block fmt ~braces b
 

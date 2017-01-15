@@ -69,7 +69,7 @@ type env = {
 }
 
 let add env wpo =
-  match ProverWhy3.assemble_wpo wpo with
+  match ProverWhy3.assemble_goal wpo with
   | None -> ()
   | Some (includes,goal) ->
       let open ProverWhy3 in

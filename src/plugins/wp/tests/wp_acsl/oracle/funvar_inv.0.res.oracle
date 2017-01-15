@@ -20,11 +20,11 @@ tests/wp_acsl/funvar_inv.i:23: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]).
   If i <= 3
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
-Prove: 0 != x.
+Prove: x != 0.
 
 ------------------------------------------------------------
 
@@ -34,11 +34,11 @@ tests/wp_acsl/funvar_inv.i:24: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = G[1]).
+  When: (x != 0) /\ (G[1] = 0).
   If i <= 3
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: false.
 
@@ -58,11 +58,11 @@ tests/wp_acsl/funvar_inv.i:37: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]).
   If (4 * i) <= 15
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
-Prove: 0 != x.
+Prove: x != 0.
 
 ------------------------------------------------------------
 
@@ -72,11 +72,11 @@ tests/wp_acsl/funvar_inv.i:38: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = G[1]).
+  When: (x != 0) /\ (G[1] = 0).
   If (4 * i) <= 15
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: false.
 
@@ -96,11 +96,11 @@ tests/wp_acsl/funvar_inv.i:52: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]).
   If (16 * i) <= 63
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
-Prove: 0 != x.
+Prove: x != 0.
 
 ------------------------------------------------------------
 
@@ -110,11 +110,11 @@ tests/wp_acsl/funvar_inv.i:53: warning from Empty Model:
    Reason: Can not compare pointers in Empty model
 Let x = G[0].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[i_1]).
+  Type: is_sint32(i) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = G[1]).
+  When: (x != 0) /\ (G[1] = 0).
   If (16 * i) <= 63
-  Then { (* Else *) Have: 0 = G[i]. }
+  Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: false.
 

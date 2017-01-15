@@ -31,7 +31,7 @@ __BEGIN_DECLS
   terminates \false; 
   assigns \nothing;
 */
-void __FC_assert(const char* file,int line,const char*expr);
+extern void __FC_assert(const char* file,int line,const char*expr);
 
 __END_DECLS
 

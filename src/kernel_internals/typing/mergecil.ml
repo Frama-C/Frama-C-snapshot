@@ -405,21 +405,48 @@ module PlainMerging =
       let output = Format.pp_print_string
      end)
 
+type volatile_kind = R | W
+
+let equal_volatile_kind v1 v2 =
+  match v1, v2 with
+  | R, R | W, W -> true
+  | (R | W), _ -> false
+
+let compare_volatile_kind v1 v2 =
+  match v1, v2 with
+  | R, W -> 1
+  | R, R -> 0
+  | W, W -> 0
+  | W, R -> -1
+
+let pretty_volatile_kind fmt v =
+  let s = match v with
+    | R -> "reads"
+    | W -> "writes"
+  in
+  Format.pp_print_string fmt s
+
 module VolatileMerging =
   Merging
     (struct
-        type t = identified_term list
+        type t = identified_term * volatile_kind
+        let hash_term it = Logic_utils.hash_term it.it_content
         let hash = function
-	  | [] -> 0
-          | h::_ -> Logic_utils.hash_term h.it_content
-        let equal = Logic_utils.is_same_list Logic_utils.is_same_identified_term
-        let compare =
-          Extlib.list_compare 
-            (fun t1 t2 -> Logic_utils.compare_term t1.it_content t2.it_content)
+          | ts,R -> 1 + 5 * hash_term ts
+          | ts,W -> 2 + 5 * hash_term ts
+        let equal (t1,v1) (t2,v2) =
+          equal_volatile_kind v1 v2 &&
+          Logic_utils.is_same_identified_term t1 t2
+        let compare (t1,v1) (t2,v2) =
+          let cmp = compare_volatile_kind v1 v2 in
+          if cmp <> 0 then cmp else
+            Logic_utils.compare_term t1.it_content t2.it_content
 
         let merge_synonym _ = true
-        let output fmt x = 
-	  Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term fmt x
+        let output fmt (hs,kind) =
+          Format.fprintf fmt "%a function for %a volatile location"
+            pretty_volatile_kind kind
+            Cil_printer.pp_identified_term hs
      end)
 
 let hash_type t =
@@ -726,11 +753,27 @@ let init ?(all=true) () =
   if all then Logic_env.prepare_tables ()
 
 let rec global_annot_pass1 g = match g with
-  | Dvolatile(id,rvi,wvi,loc) ->
+  | Dvolatile(hs,rvi,wvi,loc) ->
     CurrentLoc.set loc;
-    ignore (VolatileMerging.getNode 
-              lvEq lvSyn !currentFidx id (id,(rvi,wvi,loc))
-              (Some (loc,!currentDeclIdx)))
+    let process_term_kind (t,k as id) =
+      let node =
+        VolatileMerging.getNode
+          lvEq lvSyn !currentFidx id (id, g) (Some (loc, !currentFidx))
+      in
+      if not (Logic_utils.is_same_global_annotation g (snd node.ndata)) then
+        Kernel.warning ~source:(fst loc)
+          "Overlapping volatile specification: \
+           volatile location %a already associated to a %a function in \
+           annotation at loc %a. Ignoring new binding."
+          Cil_printer.pp_identified_term t
+          pretty_volatile_kind k
+          Cil_printer.pp_location (fst (Extlib.the node.nloc))
+    in
+    List.iter
+      (fun x ->
+         if Extlib.has_some rvi then process_term_kind (x,R);
+         if Extlib.has_some wvi then process_term_kind (x,W))
+      hs
   | Daxiomatic(id,decls,l) ->
     CurrentLoc.set l;
     ignore (PlainMerging.getNode laEq laSyn !currentFidx id (id,decls)
@@ -1280,27 +1323,27 @@ let matchLogicLemma oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
 	"invalid multiple lemmas or axioms  declarations for %s" id
   end
 
-let matchVolatileClause oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
-  let oldlnode = 
-    VolatileMerging.getNode lvEq lvSyn oldfidx oldid oldnode None 
+let matchVolatileClause
+    oldfidx (oldid, oldannot as oldnode) fidx (id, annot as node) =
+  let oldlnode =
+    VolatileMerging.getNode lvEq lvSyn oldfidx oldid oldnode None
   in
-  let lnode = VolatileMerging.getNode lvEq lvSyn fidx id node None in
+  let lnode =
+    VolatileMerging.getNode lvEq lvSyn fidx id node None
+  in
   if oldlnode != lnode then begin
-    let (oldid,(oldr,oldw,oldloc)) = oldlnode.ndata in
-    let oldfidx = oldlnode.nfidx in
-    let (id,(r,w,loc)) = lnode.ndata in
-    let fidx = lnode.nfidx in
-    if Logic_utils.is_same_global_annotation
-      (Dvolatile (oldid,oldr,oldw,oldloc)) (Dvolatile (id,r,w,loc))
+    if Logic_utils.is_same_global_annotation oldannot annot
     then begin
       if oldfidx < fidx then
         lnode.nrep <- oldlnode.nrep
       else
         oldlnode.nrep <- lnode.nrep
     end else
+      let (loc, kind) = oldid in
       Kernel.error ~current:true
-        "invalid multiple volatile clauses for locations %a"
-        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term) id
+        "invalid multiple volatile %a function for locations %a"
+        pretty_volatile_kind kind
+        Cil_printer.pp_identified_term loc
   end
 
 let matchModelField 
@@ -1366,6 +1409,8 @@ let oneFilePass1 (f:file) : unit =
         | Some l -> l
       in
       let oldvi = oldvinode.ndata in
+      Kernel.debug ~dkey "Merging %s(%d) to %s(%d)"
+        vi.vname vi.vid oldvi.vname oldvi.vid;
       (* There is an old definition. We must combine the types. Do this first
        * because it might fail *)
       let newtype =
@@ -1374,7 +1419,7 @@ let oneFilePass1 (f:file) : unit =
             oldvinode.nfidx oldvi.vtype
             !currentFidx vi.vtype;
         with (Failure reason) -> begin
-          Kernel.abort 
+          Kernel.abort
             "@[<hov>Incompatible declaration for %s:@ %s@\n\
              First declaration was at  %a@\n\
              Current declaration is at %a"
@@ -1384,6 +1429,7 @@ let oneFilePass1 (f:file) : unit =
         end
       in
       let newrep, _ = union oldvinode vinode in
+      newrep.ndata.vdefined <- vi.vdefined || oldvi.vdefined;
       (* We do not want to turn non-"const" globals into "const" one. That
        * can happen if one file declares the variable a non-const while
        * others declare it as "const". *)
@@ -1394,23 +1440,20 @@ let oneFilePass1 (f:file) : unit =
         end else Cil.update_var_type newrep.ndata newtype;
       (* clean up the storage.  *)
       let newstorage =
-        if vi.vstorage = oldvi.vstorage || vi.vstorage = Extern then
-          oldvi.vstorage
-        else if oldvi.vstorage = Extern then vi.vstorage
-          (* Sometimes we turn the NoStorage specifier into Static for inline
-           * functions *)
-        else if oldvi.vstorage = Static &&
-          vi.vstorage = NoStorage then Static
-        else begin
-          Kernel.warning ~current:true
-	    "Inconsistent storage specification for %s. \
-Now is %a and previous was %a at %a"
+        match oldvi.vstorage, vi.vstorage with
+        | Static, (Static | Extern) -> Static
+        | NoStorage, NoStorage -> NoStorage
+        | NoStorage, Extern -> if oldvi.vdefined then NoStorage else Extern
+        | Extern, NoStorage when vi.vdefined -> NoStorage
+        | Extern, (Extern | NoStorage) -> Extern
+        | _ ->
+          Kernel.abort ~current:true
+            "Inconsistent storage specification for %s. \
+             Now is %a and previous was %a at %a"
             vi.vname
-            Cil_printer.pp_storage vi.vstorage 
-	    Cil_printer.pp_storage oldvi.vstorage
-            Cil_printer.pp_location oldloc ;
-	  vi.vstorage
-        end
+            Cil_printer.pp_storage vi.vstorage
+            Cil_printer.pp_storage oldvi.vstorage
+            Cil_printer.pp_location oldloc
       in
       newrep.ndata.vstorage <- newstorage;
       newrep.ndata.vattr <- addAttributes oldvi.vattr vi.vattr
@@ -1930,7 +1973,8 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
         CurrentLoc.set l;
         match PlainMerging.findReplacement true lfEq !currentFidx n with
           | None ->
-	    assert (not in_axiomatic);
+            if in_axiomatic then Kernel.abort ~current:true
+                "nested axiomatics are not allowed in ACSL";
             mergePushGlobals (visitCilGlobal renameVisitor g);
             Logic_utils.add_logic_function 
               (PlainMerging.find_eq_table lfEq (!currentFidx,n)).ndata
@@ -2008,17 +2052,64 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
                 mergePushGlobals (visitCilGlobal renameVisitor g)
           | Some _ -> ()
       end
-    | Dvolatile(vi,_,_,loc) ->
-      (CurrentLoc.set loc;
-       match VolatileMerging.findReplacement true lvEq !currentFidx vi with
-           None -> mergePushGlobals (visitCilGlobal renameVisitor g)
-         | Some _ -> ())
+    | Dvolatile(vi,rd,wr,loc) ->
+      let is_representative id =
+        not
+          (Extlib.has_some
+             (VolatileMerging.findReplacement true lvEq !currentFidx id))
+      in
+      let push_volatile l rd wr =
+        match l with
+        | [] -> ()
+        | _ ->
+          let annot = Dvolatile(l,rd,wr,loc) in
+          mergePushGlobals (visitCilGlobal renameVisitor (GAnnot (annot,loc)))
+      in
+      CurrentLoc.set loc;
+      (* check whether some volatile location clashes with a previous
+         annotation. Warnings about that have been generated during pass 1
+      *)
+      let check_one_location
+          (no_drop, full_representative, only_reads, only_writes) v =
+        (* if there's only one function, only full_representative list will
+           be filled. If both are provided, we maintain three lists of volatile
+           locations:
+           - the ones which take both their reads and writes function from
+             current annotation
+           - the ones which only use rd
+           - the ones which only use wr
+           Additionally, we maintain a boolean flag indicating whether the
+           annotation can be used as is (i.e. does not overlap with a
+           preceding annotation.
+        *)
+        let reads = not (Extlib.has_some rd) || is_representative (v,R) in
+        let writes = not (Extlib.has_some wr) || is_representative (v,W) in
+        if reads then
+          if writes then
+            no_drop, v::full_representative, only_reads, only_writes
+          else
+            false, full_representative, v::only_reads, only_writes
+        else if writes then
+          false, full_representative, only_reads, v::only_writes
+        else
+          false, full_representative, only_reads, only_writes
+      in
+      let no_drop, full_representative, only_reads, only_writes =
+        List.fold_left check_one_location (true,[],[],[]) vi
+      in
+      if no_drop then mergePushGlobals (visitCilGlobal renameVisitor g)
+      else begin
+        push_volatile full_representative rd wr;
+        if Extlib.has_some rd then push_volatile only_reads rd None;
+        if Extlib.has_some wr then push_volatile only_writes None wr
+      end
     | Daxiomatic(n,l,loc) ->
       begin
         CurrentLoc.set loc;
         match PlainMerging.findReplacement true laEq !currentFidx n with
             None ->
-              assert (not in_axiomatic);
+              if in_axiomatic then Kernel.abort ~current:true
+                "nested axiomatics are not allowed in ACSL";
               mergePushGlobals (visitCilGlobal renameVisitor g);
               List.iter (logic_annot_pass2 ~in_axiomatic:true g) l
           | Some _ -> ()

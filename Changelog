@@ -14,6 +14,29 @@
 ###############################################################################
 
 ######################################
+Open Source Release <next-release>
+######################################
+
+-* Kernel     [2016/12/09] Fixes oneret normalization in presence of
+              statement contract and absence of return. See #@255 and #2235
+-  Kernel     [2016/12/06] New option -print-machdep (help group)
+-  Rte        [2016/11/25] Remove option -rte-all.
+-* Cil        [2016/11/20] Pointer subtractions with arguments of incompatible
+              types are now refused. The resulting expression is typed as
+              ptrdiff_t instead of int.
+-  Value      [2016/11/18] Widen hints directives @widen_hints now accept
+              arbitrary l-values (evaluated at analysis time) in place of
+              variables.
+-* Kernel     [2016/11/17] Fixed some issues with #pragma pack() behavior,
+              in both GCC and MSVC machdeps. Also fixed some related issues
+              with __aligned__ and __packed__ attributes (including bts #2249).
+-  Metrics    [2016/11/17] Programmatic API for some functions via Metrics.mli.
+-  Kernel     [2016/11/07] New option -no-autoload-plugins (equivalent to old
+              -no-dynlink); mostly for internal use.
+-! Kernel     [2016/10/19] Stricter verification for extern, static and inline
+              specifiers (support for CERT DCL-36-C coding rule)
+
+######################################
 Open Source Release Silicon-20161101
 ######################################
 
@@ -510,6 +533,7 @@ o!  Logic     [2015/04/08] Functions Db.Properties.Interp.lval and
 -  Cil        [2015/03/19] Fix incorrect simplifications of '!E' to 0 when
               E is either an enum with value 0 (bug #2090), or an expression
               whose value wraps.
+-! Kernel     [2015/03/17] Removed option -no-dynlink.
 -  Kernel     [2015/03/10] macro __FRAMAC__ is defined when pre-processing
               C files in Frama-C.
 o! Kernel     [2015/03/10] AST change: split GVarDecl into GVarDecl and GFunDecl

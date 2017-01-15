@@ -9,23 +9,23 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_typed/unit_labels.i, line 5) in 'duplet':
-Let x = Mint_0[pj_0].
-Let x_1 = Mint_0[pi_0].
-Let a_1 = shift_sint32(a, x_1).
-Let m = Mint_0[a_1 <- Mint_0[shift_sint32(a, x)]].
+Let x = Mint_0[pi_0].
+Let a_1 = shift_sint32(a, x).
+Let x_1 = Mint_0[pj_0].
+Let m = Mint_0[a_1 <- Mint_0[shift_sint32(a, x_1)]].
 Let x_2 = m[pj_0].
 Let x_3 = m[pi_0].
 Assume {
-  Type: is_sint32(x_1) /\ is_sint32(x) /\ is_sint32(x_3) /\ is_sint32(x_2).
+  Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_3) /\ is_sint32(x_2).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(pi_0.base) <= 0) /\
       (region(pj_0.base) <= 0).
   (* Pre-condition *)
-  Have: (pi_0 != pj_0) /\ (pi_0 != a_1) /\ (pj_0 != a_1).
+  Have: (pj_0 != pi_0) /\ (a_1 != pi_0) /\ (a_1 != pj_0).
   (* Assertion 'PI' *)
-  Have: x_1 = x_3.
+  Have: x_3 = x.
   (* Assertion 'PJ' *)
-  Have: x = x_2.
+  Have: x_2 = x_1.
 }
 Prove: P_is_duplet(m, a, x_3, x_2).
 
@@ -44,9 +44,9 @@ Assume {
   Have: (region(a.base) <= 0) /\ (region(pi_0.base) <= 0) /\
       (region(pj_0.base) <= 0).
   (* Pre-condition *)
-  Have: (pi_0 != pj_0) /\ (pi_0 != a_1) /\ (pj_0 != a_1).
+  Have: (pj_0 != pi_0) /\ (a_1 != pi_0) /\ (a_1 != pj_0).
 }
-Prove: x = x_2.
+Prove: x_2 = x.
 
 ------------------------------------------------------------
 
@@ -63,10 +63,10 @@ Assume {
   Have: (region(a.base) <= 0) /\ (region(pi_0.base) <= 0) /\
       (region(pj_0.base) <= 0).
   (* Pre-condition *)
-  Have: (pi_0 != pj_0) /\ (pi_0 != a_1) /\ (pj_0 != a_1).
+  Have: (pj_0 != pi_0) /\ (a_1 != pi_0) /\ (a_1 != pj_0).
   (* Assertion 'PI' *)
-  Have: x = x_2.
+  Have: x_2 = x.
 }
-Prove: x_1 = x_3.
+Prove: x_3 = x_1.
 
 ------------------------------------------------------------

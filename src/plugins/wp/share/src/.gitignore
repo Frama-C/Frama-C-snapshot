@@ -1,0 +1,16 @@
+/local_why3.conf
+/why3.conf
+/alt_ergo-realize.drv
+/coq-realize.drv
+/coq.drv
+/why3.drv
+/plugins
+/aux/
+/stamp/
+/*.coqdep
+/*.v.bak
+/*.vo
+/*.glob
+/*.why_theory
+/.*.aux
+/lia.cache

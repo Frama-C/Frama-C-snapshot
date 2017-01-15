@@ -16,7 +16,7 @@ Assume {
   (* Goal *)
   When: EqS1_T(s1_0, s2_0).
 }
-Prove: (s1_0.F1_T_i) = x.
+Prove: x = (s1_0.F1_T_i).
 
 ------------------------------------------------------------
 
@@ -46,10 +46,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'P1,qed_ok' in 'f':
-Assume {
-  Type: IsS1_T(s2_0) /\ is_sint32(s2_0.F1_T_i) /\ is_sint32(s2_0.F1_T_j).
-}
-Prove: EqS1_T(s2_0, s2_0).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -57,7 +54,7 @@ Goal Post-condition 'P2,qed_ok' in 'f':
 Assume {
   Type: IsArray1_sint32(t1_0) /\ IsArray1_sint32(t2_0).
   (* Goal *)
-  When: forall i : Z. ((0 <= i) -> ((i <= 9) -> (t1_0[i] = t2_0[i]))).
+  When: forall i : Z. ((0 <= i) -> ((i <= 9) -> (t2_0[i] = t1_0[i]))).
 }
 Prove: EqArray1_int(10, t1_0, t2_0).
 

@@ -1,0 +1,117 @@
+* { margin: 0; padding: 0 }
+
+body {
+    font-family: "Verdana", sans ;
+    font-size: 10pt;
+    position: relative;
+    padding: 0.7cm;
+    margin: auto;
+    width: 20cm;
+    background-color: white
+}
+
+h1 {
+    margin-top: 5mm;
+    margin-bottom: 3mm;
+    font-size: 16pt;
+    font-weight: bold
+}
+
+h2 {
+    margin-top: 5mm;
+    margin-bottom: 1mm;
+    font-size: 12pt;
+    font-weight: bold
+}
+
+h3 {
+    margin-top: 5mm;
+    margin-bottom: 1mm;
+    font-size: 10pt;
+    font-weight: bold
+}
+
+h4,h5,h6, div.h7, div.h8, div.h9 {
+    margin-left:   4mm;
+    margin-top:    1mm;
+    margin-bottom: 1mm;
+    font-size: 10pt;
+    font-style: italic;
+    font-weight: bold;
+    color: darkgreen
+}
+
+hr { border: thin solid firebrick ; margin: 2mm 0 2mm 0 }
+hr + br { display: none }
+div + hr { margin-top: 2em ; margin-bottom: 2em }
+
+a img { vertical-align: middle; background-color: inherit }
+
+a:visited { color: maroon; text-decoration: none }
+a:link    { color: maroon; text-decoration: none }
+a:hover   { background-color: lightgray }
+a:active  { background-color: orange }
+:target   { background-color: orange }
+
+.navbar {
+    padding-bottom: 2mm ;
+    font-size: 8pt ;
+}
+
+.navbar a { color: darkgreen }
+
+.keyword  { font-weight : bold; color: darkgoldenrod }
+.keywordsign { color : #C04600 }
+.superscript { font-size: 7pt }
+.subscript { font-size: 7pt }
+.warning { color: firebrick ; font-style: italic; margin-right:1ex }
+
+td.typefieldcomment { padding: 0 0 0 1em; color: darkgreen }
+td.module { padding: 0 1em 0 0 }
+td div.info {
+    color: inherit;
+    display: inline;
+    margin: 0 ;
+    padding: 0;
+    border: none
+}
+
+div.info {
+    color: #585858;
+    display: block;
+    padding: 1pt 0 1pt 0.4em;
+    margin-left: 1em;
+    border-left: thin solid darkgreen
+}
+
+div.param_info {
+    color: #585858;
+    display: block;
+    text-indent: -1em;
+    padding: 1pt 0 1pt 2em;
+    margin-left: 1em;
+    border-left: thin solid darkgreen
+}
+
+.typetable { border-style : hidden }
+.indextable {
+    margin-top: 2mm ;
+    padding: 2mm 6mm 2mm 4mm ;
+    border-style : hidden ;
+    border-top: darkgreen thin solid ;
+    border-bottom: darkgreen thin solid
+}
+.paramstable { border-style : hidden ; padding: 5pt 5pt }
+tr { font-size: 10pt }
+pre { color : #263F71 ; font-size: 10pt; font-family: monospace; margin-top: 1mm }
+pre.codepre, pre.verbatim { margin-left: 1em; padding:2pt; background-color: #f0f0f0 }
+pre.codepre br { display:none }
+.code     { color : #465F91 ; font-size: 10pt; font-family: monospace }
+.comment  { color : darkgreen }
+.constructor { color : darkblue }
+.type { color: #5C6585 }
+.string { color: navy }
+div.sig_block {margin-left: 2em}
+li { margin-left: 2em }
+p { margin-top: 2mm ; margin-bottom: 2mm }
+ul { margin-top: 2mm ; margin-bottom: 2mm }

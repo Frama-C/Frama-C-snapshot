@@ -71,15 +71,6 @@ let offsetmap_contains_imprecision offs =
     None
   with Got_imprecise v -> Some v
 
-let offsetmap_from_location location state =
-  let aux loc offsm_res =
-    let size = Int_Base.project loc.Locations.size in
-    let _, copy = Cvalue.Model.copy_offsetmap loc.Locations.loc size state in
-    Bottom.join Cvalue.V_Offsetmap.join copy offsm_res
-  in
-  Precise_locs.fold aux location `Bottom
-
-
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
                                            and type origin = bool
@@ -87,7 +78,6 @@ module Transfer
 = struct
 
   type state = Cvalue.Model.t
-  type return = Cvalue.V_Offsetmap.t option
 
   (* ---------------------------------------------------------------------- *)
   (*                               Assumptions                              *)
@@ -189,7 +179,7 @@ module Transfer
             (Cvalue.V_Or_Uninitialized.map Cvalue_forward.make_volatile) offsm
         else offsm
       in
-      if not (Cvalue_forward.offsetmap_matches_type left_typ offsetmap) then
+      if not (Eval_typ.offsetmap_matches_type left_typ offsetmap) then
         raise Do_assign_imprecise_copy;
       let () =
         match offsetmap_contains_imprecision offsetmap with
@@ -298,8 +288,14 @@ module Transfer
       }
     | _ -> assert false
 
-  let apply_abstract_builtin builtin state actuals =
-    try Some (builtin state actuals)
+  let apply_abstract_builtin stmt builtin state actuals =
+    try
+      (* RMVALUE: currently, builtins use the legacy Value code to emit
+         the alarms. We have to position the current location. *)
+      Valarms.start_stmt (Kstmt stmt);
+      let r = builtin state actuals in
+      Valarms.end_stmt ();
+      Some r
     with
     | Builtins.Invalid_nb_of_args n ->
       Value_parameters.error ~current:true
@@ -333,7 +329,7 @@ module Transfer
   (* Compute a call to a possible builtin [kf] in state [state]. [actuals] are
      the arguments of [kf], and have not been bound to its formals. Returns
      [None] if the call must be computed using the Cil function for [kf]. *)
-  let compute_maybe_builtin call valuation state actuals rest =
+  let compute_maybe_builtin stmt call valuation state actuals rest =
     let actuals = actuals @ rest in
     let name = Kernel_function.get_name call.kf in
     match Builtins.find_builtin_override call.kf with
@@ -341,7 +337,7 @@ module Transfer
       (* This is an interesting C function. Mark it as called, otherwise
          it would get skipped, eg. from the Gui. *)
       Value_results.mark_kf_as_called call.kf;
-      apply_abstract_builtin abstract_function state actuals
+      apply_abstract_builtin stmt abstract_function state actuals
     | None ->
       apply_special_builtins valuation name state actuals
 
@@ -404,14 +400,14 @@ module Transfer
     let rest = List.fold_right treat_one_rest rest [] in
     state, list, rest
 
-  let start_call _stmt call valuation state =
+  let start_call stmt call valuation state =
     let state = update valuation state in
     let with_formals, list, rest =
       actualize_formals valuation state call.arguments call.rest
     in
     let stack_with_call = Value_util.call_stack () in
     Db.Value.Call_Value_Callbacks.apply (with_formals, stack_with_call);
-    match compute_maybe_builtin call valuation state list rest with
+    match compute_maybe_builtin stmt call valuation state list rest with
     | None -> Compute (Continue with_formals, true), Base.SetLattice.bottom
     | Some res ->
       (* Store the initial state, but do not called mark_as_called. Uninteresting
@@ -419,81 +415,27 @@ module Transfer
       Db.Value.merge_initial_state (Value_util.call_stack ()) with_formals;
       Db.Value.Call_Type_Value_Callbacks.apply
         (`Builtin res, with_formals, stack_with_call);
-      let process_one_return acc (offsm, post_state) =
+      let kf = call.kf in
+      (* Generate a varinfo for the return value only if the function actually
+         returns something *)
+      let b_ret = lazy (
+        let vi_ret = Extlib.the (Library_functions.get_retres_vi kf) in
+        Base.of_varinfo vi_ret)
+      in
+      let process_one_return acc (ret, post_state) =
         if is_reachable post_state then
-          let typ = Kernel_function.get_return_type call.kf in
-          let return = match offsm with
-            | None -> None
-            | Some offsm -> Some (find_right_value typ offsm, Some offsm)
-          in
-          let result = { post_state; return; } in
-          result :: acc
+          match ret with
+          | None -> post_state :: acc
+          | Some offsm_ret ->
+            let b_ret = Lazy.force b_ret in
+            let with_ret = Cvalue.Model.add_base b_ret offsm_ret post_state in
+            with_ret :: acc
         else
           acc
       in
       let list = List.fold_left process_one_return [] res.Value_types.c_values in
       Result (Bottom.bot_of_list list, res.Value_types.c_cacheable),
       res.Value_types.c_clobbered
-
-  (* Extract the content of \result from the state. *)
-  let make_return kf _stmt assign valuation state =
-    try
-      match assign with
-      | Assign v ->
-        let typ = Kernel_function.get_return_type kf in
-        let size = Integer.of_int (Cil.bitsSizeOf typ) in
-        let v = Cvalue.V.anisotropic_cast ~size v in
-        let offsm = Eval_op.offsetmap_of_v ~typ v  in
-        Some offsm
-      | Copy (lval, _copied) ->
-        match Valuation.find_loc valuation lval with
-        | `Top -> assert false
-        | `Value record ->
-          let oret = offsetmap_from_location record.loc state in
-          match oret with
-          | `Bottom     -> assert false;
-          | `Value oret -> Some oret
-    with Int_Base.Error_Top | Cil.SizeOfError _ ->
-      Value_parameters.abort ~current:true
-        "Function %a returns a value of unknown size. Aborting"
-        Kernel_function.pretty kf
-
-
-  (* This functions stores the result of call, represented by offsetmap
-     [return], into [lv]. It is not trivial because we must handle the
-     possibility of casts between the type of the result [rettyp] and the type
-     of [lv]. With option [-no-collapse-call-cast], we only need the first part
-     of the function. This function handles one possible location in [lv]. *)
-  let assign_return_to_lv_one_loc (lv, loc, lvtyp) return value state =
-    match value, return with
-    | Assign _, Some offsm ->
-      let v = Extlib.the (Cvalue.V_Offsetmap.single_interval_value offsm) in
-      let v = Cvalue.V_Or_Uninitialized.get_v v in
-      (* TODO: perform a conversion here would make sense when the type
-         changes between the callee and the caller *)
-      (* let v = Cvalue_forward.unsafe_reinterpret lvtyp v in *)
-      let v = make_determinate v in
-      write_abstract_value state (lv, loc, lvtyp) v
-    | Copy _, Some offsm ->
-      (* Direct paste *)
-      let size = Int_Base.project loc.Locations.size in
-      snd (paste_offsetmap ~reducing:false
-             ~from:offsm ~dst_loc:loc.Locations.loc ~size ~exact:true state)
-    | _ , None -> assert false
-
-  (* Same as function above, but for multiple locations. *)
-  let assign_return _stmt {lval; ltyp; lloc} _kf return value valuation state =
-    let state = update valuation state in
-    let aux loc acc_state =
-      let state =
-        assign_return_to_lv_one_loc (lval, loc, ltyp) return value state
-      in
-      join acc_state state
-    in
-    let state = Precise_locs.fold aux lloc bottom in
-    if is_reachable state
-    then `Value state
-    else `Bottom
 
   let finalize_call _stmt _call ~pre:_ ~post:state = `Value state
 

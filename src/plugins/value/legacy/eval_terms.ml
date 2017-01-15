@@ -636,28 +636,8 @@ let rec eval_term ~with_alarms env t =
           ldeps = r.ldeps; eunder; eover }
 
     | Tif (tcond, ttrue, tfalse) ->
-        let r = eval_term ~with_alarms env tcond in
-        let ctrue =  Cvalue.V.contains_non_zero r.eover
-        and cfalse =  Cvalue.V.contains_zero r.eover in
-        (match ctrue, cfalse with
-          | true, true ->
-              let vtrue = eval_term ~with_alarms env ttrue in
-              let vfalse = eval_term ~with_alarms env tfalse in
-              if not (same_etype vtrue.etype vfalse.etype) then
-                Value_parameters.failure ~current:true
-                  "Incoherent types in conditional '%a': %a vs. %a. \
-                  Please report"
-                  Printer.pp_term t Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
-	      let eover = V.join vtrue.eover vfalse.eover in
-	      let eunder = V.meet vtrue.eunder vfalse.eunder in
-              { etype = vtrue.etype;
-                ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
-		eunder; eover }
-          | true, false -> eval_term ~with_alarms env ttrue
-          | false, true -> eval_term ~with_alarms env tfalse
-          | false, false ->
-              assert false (* a logic alarm would have been raised*)
-        )
+      eval_tif eval_term Cvalue.V.join Cvalue.V.meet ~with_alarms env
+        tcond ttrue tfalse
 
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
         let e = Cil.constFoldTerm true t in
@@ -968,7 +948,34 @@ and eval_tlval ~with_alarms env t =
       (* Logic coerce on locations (that are pointers) can only introduce
          sets, that do not change the abstract value. *)
       eval_tlval ~with_alarms env t
+  | Tif (tcond, ttrue, tfalse) ->
+    eval_tif eval_tlval Location_Bits.join Location_Bits.meet ~with_alarms env
+      tcond ttrue tfalse
   | _ -> ast_error (Format.asprintf "non-lval term %a" Printer.pp_term t)
+
+and eval_tif : 'a. (with_alarms:_ -> _ -> _ -> 'a eval_result) -> ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) -> with_alarms:_ -> _ -> _ -> _ -> _ -> 'a eval_result =
+  fun eval join meet ~with_alarms env tcond ttrue tfalse ->
+    let r = eval_term ~with_alarms env tcond in
+    let ctrue =  Cvalue.V.contains_non_zero r.eover
+    and cfalse =  Cvalue.V.contains_zero r.eover in
+    match ctrue, cfalse with
+    | true, true ->
+      let vtrue = eval ~with_alarms env ttrue in
+      let vfalse = eval ~with_alarms env tfalse in
+      if not (same_etype vtrue.etype vfalse.etype) then
+        Value_parameters.failure ~current:true
+          "Incoherent types in conditional: %a vs. %a. \
+           Please report"
+          Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
+      let eover = join vtrue.eover vfalse.eover in
+      let eunder = meet vtrue.eunder vfalse.eunder in
+      { etype = vtrue.etype;
+        ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
+        eunder; eover }
+    | true, false -> eval ~with_alarms env ttrue
+    | false, true -> eval ~with_alarms env tfalse
+    | false, false ->
+      assert false (* a logic alarm would have been raised*)
 
 let eval_tlval_as_location ~with_alarms env t =
   let r = eval_tlval ~with_alarms env t in

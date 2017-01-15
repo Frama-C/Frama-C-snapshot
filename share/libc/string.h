@@ -175,12 +175,24 @@ extern char *strpbrk(const char *s, const char *accept);
 
 /*@ requires valid_string_haystack: valid_read_string(haystack);
   @ requires valid_string_needle: valid_read_string(needle);
-  @ assigns \result \from haystack, haystack[0..], needle[0..];
+  @ assigns \result \from haystack, indirect:haystack[0..],
+  @                       indirect:needle[0..];
   @ ensures \result == 0
   @      || (\subset(\result, haystack+(0..)) && \valid_read(\result)
   @          && memcmp{Pre,Pre}(\result,needle,strlen(needle)) == 0);
   @*/
 extern char *strstr(const char *haystack, const char *needle);
+
+#ifdef __USE_GNU
+/*@ requires valid_string_haystack: valid_read_string(haystack);
+  @ requires valid_string_needle: valid_read_string(needle);
+  @ assigns \result \from haystack, indirect:haystack[0..],
+  @                       indirect:needle[0..];
+  @ ensures \result == 0
+  @      || (\subset(\result, haystack+(0..)) && \valid_read(\result));
+  @*/
+extern char *strcasestr (const char *haystack, const char *needle);
+#endif
 
 /*@ requires valid_string_src: valid_string_or_null(s);
   @ requires valid_string_delim: valid_read_string(delim);

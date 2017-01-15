@@ -4006,7 +4006,7 @@ let add_label info lab =
       let checks_reads_fct fct ty =
         let error () =
           C.error loc
-            "incompatible type of '%s' with volatile writes declaration"
+            "incompatible type of '%s' with volatile reads declaration"
             fct;
         in let ret,args,is_varg_arg,_attrib =
              if not (Cil.isFunctionType ty) then

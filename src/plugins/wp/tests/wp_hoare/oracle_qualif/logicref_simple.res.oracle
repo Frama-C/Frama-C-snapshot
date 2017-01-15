@@ -22,5 +22,5 @@ Functions           WP   Alt-Ergo    Total   Success
 fsimple              1      1 (10)     2       100%
 fsimple_array        1      1 (13)     2       100%
 ftwo_star            1      1 (12)     2       100%
-fvpositive           2      1 (9)      3       100%
+fvpositive           2      1 (8)      3       100%
 ----------------------------------------------------------

@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input -absolute-valid-range 0-0x7 -journal-disable
+   STDOPT: #"-absolute-valid-range 0-0x7"
 */
 unsigned short d,e[10]={0},c = 0;
 

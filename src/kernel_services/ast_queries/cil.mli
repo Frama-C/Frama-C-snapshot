@@ -467,7 +467,7 @@ val copyCompInfo: ?fresh:bool -> compinfo -> string -> compinfo
     do not participate in initialization and their name is not printed. *)
 val missingFieldName: string
 
-(** Get the full name of a comp *)
+(** Get the full name of a comp, including the 'struct' or 'union' prefix *)
 val compFullName: compinfo -> string
 
 (** Returns true if this is a complete type.
@@ -2050,6 +2050,11 @@ val sizeOf: loc:location -> typ -> exp
  * architecture dependent, so you should only call this after you call
  * {!Cil.initCIL}. *)
 val bytesAlignOf: typ -> int
+
+(** [intOfAttrparam a] tries to const-fold [a] into a numeric value.
+    Returns [Some n] if it succeeds, [None] otherwise.
+    @since Aluminium-20160501+dev *)
+val intOfAttrparam: attrparam -> int option
 
 (** Give a type of a base and an offset, returns the number of bits from the
  * base address and the width (also expressed in bits) for the subobject

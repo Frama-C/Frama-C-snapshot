@@ -22,44 +22,55 @@
 
 (** Union-find based partitions *)
 
-module type S =
-sig
-  type t (** Partitions *)
-  type elt (** Elements *)
-  type explain (** Explanations *)
-
-  val empty : t
-  val join : ?explain:explain -> elt -> elt -> t -> t (** Immediate. *)
-  val class_of : t -> elt -> elt (** Amortized. *)
-  val is_equal : t -> elt -> elt -> bool
-  (** Returns [true] is the two elements are in the same class. *)
-  val members : t -> elt -> elt list
-  (** All members, including self. Explanations can be recover from [explain]. *)
-
-
-  val repr : t -> elt -> elt * explain
-  (** Returns [class_of] with explaination *)
-  val equal : t -> elt -> elt -> explain option
-  (** Returns [Some e] if equal with explanation [e]. Amortized. *)
-  val explain : t -> elt -> elt -> explain
-  (** Returns [e] is [equal] returns [Some e], and [bot] otherwise. *)
-
-  val iter : (elt -> elt list -> unit) -> t -> unit (** Including selves. *)
-  val map : (elt -> elt) -> t -> t (** Rebuild all the classes. *)
-end
-
-(** Type of Explanations *)
-module type Explain =
+module type Elt =
 sig
   type t
-  val bot : t
-  val cup : t -> t -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
 end
 
-(** Partitions without Explanations *)
-module Make(A : Map.OrderedType) : S
-  with type elt = A.t and type explain = unit
+module type Set =
+sig
+  type t
+  type elt
+  val singleton : elt -> t
+  val iter : (elt -> unit) -> t -> unit
+  val union : t -> t -> t
+  val inter : t -> t -> t
+end
 
-(** Partitions with Explanations *)
-module MakeExplain(A : Map.OrderedType)(E : Explain) : S
-  with type elt = A.t and type explain = E.t
+module type Map =
+sig
+  type 'a t
+  type key
+  val empty : 'a t
+  val is_empty : 'a t -> bool
+  val find : key -> 'a t -> 'a
+  val add : key -> 'a -> 'a t -> 'a t
+  val remove : key -> 'a t -> 'a t
+  val iter : (key -> 'a -> unit) -> 'a t -> unit
+end
+
+
+module Make(E : Elt)
+    (S : Set with type elt = E.t)
+    (M : Map with type key = E.t) :
+sig
+  type t
+  type elt = E.t
+  type set = S.t
+
+  val empty : t
+  val equal : t -> elt -> elt -> bool
+  val merge : t -> elt -> elt -> t
+  val merge_list : t -> elt list -> t
+  val merge_set : t -> set -> t
+  val lookup : t -> elt -> elt
+  val members : t -> elt -> set
+  val iter : (elt -> set -> unit) -> t -> unit
+  val unstable_iter : (elt -> elt -> unit) -> t -> unit
+  val map : (elt -> elt) -> t -> t
+  val union : t -> t -> t
+  val inter : t -> t -> t
+  val is_empty : t -> bool
+end

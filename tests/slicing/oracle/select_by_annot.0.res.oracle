@@ -409,7 +409,7 @@ modifS_slice_1:
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int new_int(void);
+int new_int(void);
 
 int d;
 Print slice =
@@ -548,7 +548,7 @@ modifS_slice_1:
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int new_int(void);
+int new_int(void);
 
 int d;
 Print slice =

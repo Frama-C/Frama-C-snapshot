@@ -27,7 +27,6 @@ open Eval
 module type S = sig
   type state
   type value
-  type return
   val assign: with_alarms:CilE.warn_mode ->
     state -> kernel_function -> stmt -> lval -> exp -> state or_bottom
   val assume: with_alarms:CilE.warn_mode ->
@@ -35,9 +34,6 @@ module type S = sig
   val call: with_alarms:CilE.warn_mode ->
     stmt -> lval option -> exp -> exp list -> state ->
     state list or_bottom * Value_types.cacheable
-  val return: with_alarms:CilE.warn_mode ->
-    kernel_function -> stmt -> lval option -> state ->
-    (state, return, value) return_state or_bottom
   val enter_loop: stmt -> state -> state
   val incr_loop_counter: stmt -> state -> state
   val leave_loop: stmt -> state -> state
@@ -45,14 +41,16 @@ module type S = sig
     kernel_function -> exp -> Integer.t list -> state list -> state list list
   val check_unspecified_sequence:
     with_alarms:CilE.warn_mode ->
+    stmt ->
     state -> (stmt * lval list * lval list * lval list * stmt ref list) list ->
     unit or_bottom
-  type res = (state, return, value) call_result * Value_types.cacheable
+  type res = state list or_bottom * Value_types.cacheable
   val compute_call_ref: (kinstr -> value call -> state -> res) ref
 end
 
 module type Domain = sig
   include Abstract_domain.Transfer
+  val enter_scope: kernel_function -> varinfo list -> state -> state
   val leave_scope: kernel_function -> varinfo list -> state -> state
   module Store: Abstract_domain.Store with type state := state
   include Datatype.S with type t = state
@@ -87,7 +85,6 @@ module Make
 
   type state = Domain.state
   type value = Domain.value
-  type return = Domain.return
 
   (* Emits a warning if the evaluation of an argument leads to a bottom state. *)
   let warn_if_bottom v warn = match v with
@@ -128,9 +125,10 @@ module Make
     | _ -> None
 
   (* Assignment. *)
-  let assign ~with_alarms state kf stmt lval expr =
+  let assign_lv_or_ret ~with_alarms ~is_ret state kf stmt lval expr =
+    let ki = Kstmt stmt in 
     let eval, alarms_loc = Eva.lvaluate ~for_writing:true state lval in
-    Alarmset.emit with_alarms alarms_loc;
+    Alarmset.emit with_alarms ki alarms_loc;
     warn_if_bottom eval (fun () ->
         Valarms.do_warn with_alarms.CilE.imprecision_tracing
           (fun () -> Kernel.warning ~current:true ~once:true
@@ -138,7 +136,7 @@ module Make
                assumed to be dead.@]%t@]" Value_util.pp_callstack));
     eval >>- fun (valuation, lloc, ltyp) ->
     let eval, alarms =
-      if should_eval_lval kf lval then
+      if not is_ret && should_eval_lval kf lval then
         assign_by_eval state valuation expr
       else
         match find_lv expr with
@@ -155,10 +153,12 @@ module Make
         | None ->
           assign_by_eval state valuation expr
     in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.emit with_alarms ki alarms;
     eval >>- fun (assigned, valuation) ->
     Domain.assign (Kstmt stmt) {lval; ltyp; lloc} expr assigned valuation state
 
+  let assign = assign_lv_or_ret ~is_ret:false
+  let assign_ret = assign_lv_or_ret ~is_ret:true
 
   (* ------------------------------------------------------------------------ *)
   (*                               Assumption                                 *)
@@ -168,7 +168,7 @@ module Make
   let assume ~with_alarms state stmt expr positive =
     let eval, alarms = Eva.reduce state expr positive in
     (* TODO: check not comparable. *)
-    Alarmset.emit with_alarms alarms;
+    Alarmset.emit with_alarms (Kstmt stmt) alarms;
     eval >>- fun valuation ->
     Domain.assume stmt expr positive valuation state
 
@@ -177,7 +177,7 @@ module Make
   (*                             Function Calls                               *)
   (* ------------------------------------------------------------------------ *)
 
-  type res = (state, return, value) call_result * Value_types.cacheable
+  type res = state list or_bottom * Value_types.cacheable
 
   (* Forward reference to [Eval_funs.compute_call] *)
   let compute_call_ref
@@ -290,79 +290,22 @@ module Make
 
   (* -------------------- Treat the results of a call ----------------------- *)
 
-  let warn_infinite_return alarms =
-    let process alarm _status = match alarm with
-      | Alarms.Is_nan_or_infinite (_, fkind) ->
-        let sfkind = match fkind with
-          | FFloat -> "float"
-          | FDouble -> "double"
-          | FLongDouble -> "long double"
-        in
-        Value_messages.warning
-          "@[non-finite@ %s@ value being@ returned:@ \
-           assert(\\is_finite(\\returned_value))@]" sfkind;
-      | _ -> assert false
-    in
-    Alarmset.iter process alarms
-
-  let warn_undeterminate_return right =
-    if not right.initialized then
-      Value_messages.warning "@[returned value may be uninitialized:@ \
-                              assert \\initialized(\\returned_value)@]";
-    if right.escaping then
-      Value_messages.warning "@[returned value may be contain escaping addresses:@ \
-                              assert \\dangling(\\returned_value)@]"
-
-  let extract_return kf = function
-    | None ->
-      Format.printf "Function %a@." Kernel_function.pretty kf;
-      Value_parameters.abort ~current:true ~once:true
-        "Return value expected but none present."
-    | Some return -> return
-
-  (* [assign_returned_value determinate kf assigned_lv returned_value state]
-     assigns the returned value of the called function [kf] into the lvalue [lv].
-     [return] is an abstraction of this returned value. *)
-  let assign_returned_value with_alarms stmt lv kf return state =
-    match lv with
-    | None -> `Value state
-    | Some lval ->
-      let return_value, return = extract_return kf return in
-      let eval, alarms = Eva.lvaluate ~for_writing:true state lval in
-      Alarmset.emit with_alarms alarms;
-      eval >>- fun (valuation, lloc, ltyp) ->
-      let left_loc = {lval; ltyp; lloc} in
-      let rettype = Kernel_function.get_return_type kf in
-      let exp = Cil.dummy_exp (Lval lval) in
-      let need_cast = Eval_typ.need_cast ltyp rettype in
-      let rvalue =
-        if need_cast then
-          (* TODO: alarms of reinterpret? *)
-          return_value.v >>- fun v ->
-          let v, alarms = Eva.reinterpret exp rettype v in
-          warn_infinite_return alarms;
-          v
-        else return_value.v
-      in
-      let return_value = { return_value with v = rvalue } in
-      let return_value =
-        if need_cast
-        then
-          let () = warn_undeterminate_return return_value in
-          rvalue >>- fun rvalue ->
-          if need_cast
-          then
-            fst (Eva.do_promotion ~src_typ:rettype ~dst_typ:ltyp exp rvalue)
-            >>-: fun v -> Assign v
-          else `Value (Assign rvalue)
-        else
-          let varinfo = Library_functions.get_retres_vi kf in
-          let lval = Cil.var varinfo in
-          `Value (Copy (lval, return_value))
-      in
-      return_value >>- fun value ->
-      Domain.assign_return stmt left_loc kf return value valuation state
-
+  (* Treat the assignment of the return value in the caller: if the function
+     has a non-void type, perform the assignment if there is a lvalue at
+     the callsite, and in all cases, remove the pseudo-variable from scope. *)
+  let treat_return with_alarms ~kf_caller ~kf_callee lv stmt_caller state =
+    match Library_functions.get_retres_vi kf_callee with
+    | None -> `Value state (* void type, nothing to do *)
+    | Some vi_ret ->
+      (match lv with
+       | None -> `Value state
+       | Some lval ->
+         let lv_vi_ret = Var vi_ret, NoOffset in
+         let exp_ret_caller = Cil.dummy_exp (Lval lv_vi_ret) in
+         assign_ret ~with_alarms
+           state kf_caller stmt_caller lval exp_ret_caller
+      )
+      >>-: fun state -> Domain.leave_scope kf_callee [vi_ret] state
 
   (* ---------------------- Make a one function call ------------------------ *)
 
@@ -378,8 +321,8 @@ module Make
     Kernel_function.get_formals kf @ locals
 
   (* Do the call to one function. *)
-  let do_one_call with_alarms valuation loc lv call state =
-    let call_site_loc, stmt = loc in
+  let do_one_call with_alarms valuation (kf_caller, stmt) lv call state =
+    let kf_callee = call.kf in
     (* Choice of the action to performed by the domain. *)
     let call_action = Domain.start_call stmt call valuation state in
     (* Process the call according to the domain decision. *)
@@ -391,28 +334,28 @@ module Make
         raise e
     in
     Value_util.pop_call_stack ();
-    Cil.CurrentLoc.set call_site_loc; (* Changed by compute_call_ref *)
+    Cil.CurrentLoc.set (Cil_datatype.Stmt.loc stmt); (* Changed by compute_call_ref *)
     cacheable,
     res >>- fun result ->
-    let leaving_vars = leaving_vars call.kf in
+    let leaving_vars = leaving_vars kf_callee in
     let pre = state in
     (* Treat each result one by one. *)
-    let process_result return =
+    let process_result res =
       (* Gathers the possible reductions on the value of the concrete arguments
          at the call site, according to the value of the formals at the post
          state of the called function.
          This obviously requires the formals to still be in the post_state. *)
-      gather_reduced_arguments call_action call valuation return.post_state
+      gather_reduced_arguments call_action call valuation res
       >>- fun reductions ->
       (* The formals (and the locals) of the called function leave scope. *)
-      let post = Domain.leave_scope call.kf leaving_vars return.post_state in
+      let post = Domain.leave_scope kf_callee leaving_vars res in
       (* Computes the state after the call, from the post state at the end of
          the called function, and the pre state at the call site. *)
       Domain.finalize_call stmt call ~pre ~post >>- fun state ->
+      treat_return with_alarms ~kf_caller ~kf_callee lv stmt state
+      >>- fun state ->
       (* Backward propagates the [reductions] on the concrete arguments. *)
-      reduce_arguments reductions state >>- fun state ->
-      (* Assigns the return value of the called function. *)
-      assign_returned_value with_alarms stmt lv call.kf return.return state
+      reduce_arguments reductions state
     in
     let states =
       List.fold_left
@@ -447,7 +390,7 @@ module Make
   (* Evaluates the list of the actual arguments of a call. Returns the list
      of each argument expression associated to its assigned value, and the
      valuation resulting of the evaluations. *)
-  let compute_actuals with_alarms determinate valuation state arguments =
+  let compute_actuals with_alarms ki determinate valuation state arguments =
     let process expr acc =
       acc >>= fun (args, valuation) ->
       evaluate_actual ~determinate valuation state expr >>=:
@@ -457,7 +400,7 @@ module Make
     let eval, alarms =
       List.fold_right process arguments (`Value ([], valuation), Alarmset.none)
     in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.emit with_alarms ki alarms;
     eval
 
 
@@ -487,10 +430,10 @@ module Make
     let arguments = List.rev arguments in
     {kf; arguments; rest}
 
-  let make_call with_alarms kf arguments valuation state =
+  let make_call with_alarms kf ki arguments valuation state =
     (* Evaluate the arguments of the call. *)
     let determinate = is_determinate kf in
-    compute_actuals with_alarms determinate valuation state arguments
+    compute_actuals with_alarms ki determinate valuation state arguments
     >>-: fun (args, valuation) ->
     let call = create_call kf args in
     call, valuation
@@ -518,17 +461,17 @@ module Make
         "Recursive call to a function."
 
   let call ~with_alarms stmt lval_option funcexp arguments state =
+    let ki_call = Kstmt stmt in
     let cacheable = ref Value_types.Cacheable in
     let eval =
       (* Resolve [funcexp] into the called kernel functions. *)
       let functions, alarms = Eva.eval_function_exp funcexp state in
-      Alarmset.emit with_alarms alarms;
+      Alarmset.emit with_alarms ki_call alarms;
       functions >>- fun functions ->
-      let call_site_loc = Cil.CurrentLoc.get ()
-      and current_kf = Value_util.current_kf () in
+      let current_kf = Value_util.current_kf () in
       let process_one_function kf valuation =
         (* Create the call. *)
-        make_call with_alarms kf arguments valuation state
+        make_call with_alarms kf ki_call arguments valuation state
         >>- fun (call, valuation) ->
         (* Check the call. *)
         check_call call;
@@ -537,7 +480,7 @@ module Make
         Value_util.push_call_stack call.kf (Kstmt stmt);
         (* Do the call. *)
         let c, states =
-          do_one_call with_alarms valuation (call_site_loc, stmt)
+          do_one_call with_alarms valuation (current_kf, stmt)
             lval_option call state
         in
         InOutCallback.clear ();
@@ -569,33 +512,6 @@ module Make
   (*                            Function Return                               *)
   (* ------------------------------------------------------------------------ *)
 
-
-  let return ~with_alarms kf return_stmt return_lval state =
-    match return_lval with
-    | None -> `Value { post_state = state; return = None }
-    | Some lval ->
-      let eval, alarms = Eva.lvaluate ~for_writing:false state lval in
-      Alarmset.emit with_alarms alarms;
-      eval >>- fun (valuation, _lloc, _ltyp) ->
-      let expr = match return_stmt.skind with
-        | Return (Some expr, _) -> expr
-        | _ -> assert false
-      in
-      let eval, alarms =
-        if should_eval_lval kf lval
-        then assign_by_eval state valuation expr
-        else assign_by_copy state valuation lval
-      in
-      Alarmset.emit with_alarms alarms;
-      eval >>-: fun (assign, valuation) ->
-      let return = Domain.make_return kf return_stmt assign valuation state in
-      let value = match assign with
-        | Assign v -> { v = `Value v; initialized = true; escaping = false }
-        | Copy (_lval, v) -> v
-      in
-      { post_state = state;
-        return = Some (value, return); }
-
   let split_final_states kf return_expr expected_values states =
     let varinfo = match return_expr.enode with
       | Lval (Var varinfo, NoOffset) -> varinfo
@@ -622,7 +538,7 @@ module Make
 
   (* Not currently taking advantage of calls information. But see
      plugin Undefined Order by VP. *)
-  let check_unspecified_sequence ~with_alarms state seq =
+  let check_unspecified_sequence ~with_alarms stmt state seq =
     let rec check_one_stmt ((stmt1, _, writes1, _, _) as stmt) = function
       | [] -> `Value (), Alarmset.none
       | (stmt2, _, _, _, _) :: seq when stmt1 == stmt2 -> check_one_stmt stmt seq
@@ -648,7 +564,7 @@ module Make
         (`Value (), Alarmset.none)
         seq
     in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.emit with_alarms (Kstmt stmt) alarms;
     res
 
   let enter_loop stmt state = Domain.enter_loop stmt state

@@ -761,14 +761,15 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	slevel/stop_at_nth \
 	utils/value_perf legacy/state_set utils/value_util legacy/value_messages \
 	utils/library_functions utils/mark_noresults slevel/separate \
-	legacy/state_imp utils/widen_hints_ext utils/widen \
+	legacy/state_imp utils/widen_hints_ext \
 	legacy/valarms legacy/warn utils/eval_typ utils/backward_formals \
 	legacy/eval_op \
 	domains/cvalue/locals_scoping \
 	domains/cvalue/builtins domains/cvalue/builtins_string \
 	legacy/eval_terms legacy/eval_annots \
 	legacy/eval_behaviors legacy/mem_exec \
-	legacy/eval_exprs legacy/eval_non_linear legacy/initial_state \
+	legacy/eval_exprs utils/widen \
+	legacy/eval_non_linear legacy/initial_state \
 	domains/cvalue/builtins_malloc \
 	domains/cvalue/builtins_misc \
 	utils/value_results \
@@ -778,27 +779,32 @@ PLUGIN_CMO:= slevel/split_strategy value_parameters \
 	legacy/function_args legacy/split_return legacy/eval_stmt \
 	slevel/per_stmt_slevel legacy/eval_slevel legacy/eval_funs \
 	alarmset eval utils/structure \
+	domains/powerset engine/transfer_logic \
 	values/value_product values/location_lift \
 	values/cvalue_forward values/cvalue_backward \
 	values/main_values values/main_locations values/offsm_value \
+	values/sign_values \
 	domains/domain_store domains/domain_builder \
 	domains/domain_product domains/domain_lift domains/unit_domain \
+	domains/baseMapLattice \
 	domains/gauges/gauges_domain \
 	domains/apron/apron_domain \
 	domains/hcexprs \
 	domains/equality/equality domains/equality/equality_domain \
 	domains/offsm_domain \
 	domains/symbolic_locs\
+	domains/inout_domain \
+	domains/sign_domain \
 	domains/cvalue/cvalue_transfer domains/cvalue/cvalue_init \
+	domains/cvalue/cvalue_specification \
 	domains/cvalue/cvalue_domain domains/cvalue/builtins_float \
-	engine/evaluation engine/non_linear_evaluation \
-	engine/transfer_logic engine/transfer_stmt \
+	engine/evaluation engine/non_linear_evaluation engine/transfer_stmt \
 	engine/partitioning engine/mem_exec2 engine/partitioned_dataflow \
 	engine/initialization engine/abstractions \
 	engine/compute_functions engine/analysis register
 PLUGIN_CMI:= values/abstract_value values/abstract_location domains/abstract_domain \
 	domains/equality/equality_sig
-PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis
+PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis RteGen
 
 ifeq ($(HAS_APRON),yes)
 PLUGIN_REQUIRES:= apron.octMPQ apron.boxMPQ apron.polkaMPQ apron.apron gmp
@@ -875,7 +881,7 @@ PLUGIN_INTERNAL_TEST:=yes
 FROM_TYPES:=src/plugins/value_types/function_Froms
 PLUGIN_TYPES_CMO:=$(FROM_TYPES)
 PLUGIN_TYPES_TODOC:=$(addsuffix .mli,$(FROM_TYPES))
-PLUGIN_DEPENDENCIES:=Callgraph Value
+PLUGIN_DEPENDENCIES:=Callgraph Value Postdominators
 
 $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
@@ -985,7 +991,7 @@ PLUGIN_TYPES_CMO:=$(PDG_TYPES)
 
 PLUGIN_INTRO:=doc/code/intro_pdg.txt
 PLUGIN_TYPES_TODOC:=$(addsuffix .mli,$(PDG_TYPES))
-PLUGIN_DEPENDENCIES:=Callgraph Value
+PLUGIN_DEPENDENCIES:=Callgraph Value From
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
 

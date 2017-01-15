@@ -1765,6 +1765,8 @@ type mach = {
   __thread_is_keyword: bool (* Whether [__thread] is a keyword *);
   compiler: string;       (* Compiler being used. Currently recognized names
                              are 'gcc', 'msvc' and 'generic'. *)
+  cpp_arch_flags: string list;  (* Architecture-specific flags to be given to
+                                   the preprocessor (if supported) *)
   version: string;        (* Information on this machdep *)
 }
 

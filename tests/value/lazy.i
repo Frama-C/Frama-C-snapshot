@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT:
-   STDOPT: #"-undefined-pointer-comparison-propagate-all"
+   STDOPT: #"-value-msg-key pointer-comparison"
+   STDOPT: #"-undefined-pointer-comparison-propagate-all -value-msg-key pointer-comparison"
 */
 int a=-1;
 int b, d;

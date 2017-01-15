@@ -28,6 +28,8 @@ open Cil_types
 
 type param = NotUsed | ByValue | ByRef | InContext | InArray | InHeap
 
+val pp_param : Format.formatter -> param -> unit
+
 module type VarUsage =
 sig
   val datatype : string

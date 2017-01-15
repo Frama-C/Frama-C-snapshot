@@ -35,8 +35,8 @@ __BEGIN_DECLS
 //@ assigns { ((char *) iov[i].iov_base)[0..iov[i].iov_len - 1] | integer i; 0 <= i < iovcnt };
   @ assigns   ((char *) iov[0..iovcnt -1].iov_base)[0..];
  */
-ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
-ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+extern ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
+extern ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 __END_DECLS
 

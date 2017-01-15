@@ -43,7 +43,7 @@ __BEGIN_DECLS
 
 typedef unsigned int u_int;
 typedef unsigned char u_char;
-dev_t makedev(int maj, int min);
+extern dev_t makedev(int maj, int min);
 
 __END_DECLS
 

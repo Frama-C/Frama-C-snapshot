@@ -20,7 +20,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           
           Global metrics
           ============== 
-          Sloc = 18
+          Sloc = 20
           Decision point = 2
           Global variables = 2
           If = 2

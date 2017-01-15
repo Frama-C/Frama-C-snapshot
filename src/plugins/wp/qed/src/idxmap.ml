@@ -45,6 +45,8 @@ sig
   val interq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val diffq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val merge : (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+  val iter2 : (key -> 'a option -> 'b option -> unit) -> 'a t -> 'b t -> unit
+  val subset : (key -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
 
   (** [insert (fun key v old -> ...) key v map] *)
   val insert : (key -> 'a -> 'a -> 'a) -> key -> 'a -> 'a t -> 'a t
@@ -126,5 +128,27 @@ struct
          | None , Some(k,v) -> _pack k (f k None (Some v))
          | Some(k,v) , Some(_,v') -> _pack k (f k (Some v) (Some v'))
       ) a b
-end
 
+  let iter2 f a b =
+    Intmap.iter2
+      (fun _ u v ->
+         match u,v with
+         | None , None -> ()
+         | Some (k,v) , None -> f k (Some v) None
+         | None , Some (k,v) -> f k None (Some v)
+         | Some (k,v) , Some(_,v') -> f k (Some v) (Some v')
+      ) a b
+
+  exception SUPERSET
+  let subset f a b =
+    try
+      Intmap.iter2
+        (fun _ u v ->
+           match u,v with
+           | None , _ -> ()
+           | Some _ , None -> raise SUPERSET
+           | Some (k,v) , Some(_,v') -> if not (f k v v') then raise SUPERSET
+        ) a b ; true
+    with SUPERSET -> false
+
+end

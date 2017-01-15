@@ -16,14 +16,12 @@ Prove: true.
 
 Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29):
 Assume {
-  Type: is_sint32(Mint_0[a]) /\ is_sint32(Mint_0[b]) /\
-      is_sint32(Mint_1[a]) /\ is_sint32(Mint_2[a]) /\ is_sint32(Mint_2[b]).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rd(Malloc_0, b, 1) /\ valid_rw(Malloc_0, a, 1).
   (* Pre-condition *)
-  Have: a != b.
+  Have: b != a.
 }
 Prove: valid_rd(Malloc_0, a, 1).
 
@@ -71,14 +69,12 @@ Prove: true.
 
 Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 19):
 Assume {
-  Type: is_sint32(Mint_0[a]) /\ is_sint32(Mint_0[b]) /\
-      is_sint32(Mint_1[a]) /\ is_sint32(Mint_2[a]) /\ is_sint32(Mint_2[b]).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
   Have: valid_rd(Malloc_0, a, 1) /\ valid_rd(Malloc_0, b, 1).
   (* Pre-condition *)
-  Have: a != b.
+  Have: b != a.
 }
 Prove: valid_rw(Malloc_0, a, 1).
 

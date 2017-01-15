@@ -114,6 +114,7 @@ tests/idct/ieee_1180_1990.c:99:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:104:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:105:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:108:[value] entering loop for the first time
+tests/idct/ieee_1180_1990.c:109:[value] warning: accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
 tests/idct/ieee_1180_1990.c:109:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp1[i][j]);
 tests/idct/ieee_1180_1990.c:111:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:112:[value] entering loop for the first time
@@ -183,6 +184,7 @@ tests/idct/ieee_1180_1990.c:219:[value] warning: 2's complement assumed for over
 tests/idct/ieee_1180_1990.c:231:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:233:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:234:[value] entering loop for the first time
+tests/idct/ieee_1180_1990.c:235:[value] warning: accessing uninitialized left-value. assert \initialized(&M1[j][k]);
 [value] computing for function IEEE_1180_1990_dctf <- main.
         Called from tests/idct/ieee_1180_1990.c:236.
 [value] Recording results for IEEE_1180_1990_dctf
@@ -236,6 +238,7 @@ tests/idct/ieee_1180_1990.c:265:[value] warning: 2's complement assumed for over
 tests/idct/ieee_1180_1990.c:277:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:279:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:280:[value] entering loop for the first time
+tests/idct/ieee_1180_1990.c:281:[value] warning: accessing uninitialized left-value. assert \initialized(&M1[j][k]);
 tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_1180_1990_dctf
 tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
@@ -280,6 +283,7 @@ tests/idct/ieee_1180_1990.c:311:[value] warning: 2's complement assumed for over
 tests/idct/ieee_1180_1990.c:323:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:325:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:326:[value] entering loop for the first time
+tests/idct/ieee_1180_1990.c:327:[value] warning: accessing uninitialized left-value. assert \initialized(&M1[j][k]);
 tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_1180_1990_dctf
 tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
@@ -505,7 +509,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [value:final-states] Values at end of function IEEE_1180_1990_mkbk:
   i ∈ {8}
   j ∈ {8} or UNINITIALIZED
-  M1[0..7][0..7] ∈ [--..--]
+  M1[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   randx ∈ [--..--]
 [value:final-states] Values at end of function IEEE_1180_1990_dctf:
   i ∈ {8}
@@ -557,7 +561,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   omse ∈ [--..--] or UNINITIALIZED
   ome ∈ [--..--] or UNINITIALIZED
   err ∈ [--..--] or UNINITIALIZED
-  M1[0..7][0..7] ∈ [--..--]
+  M1[0..7][0..7] ∈ [--..--] or UNINITIALIZED
   randx ∈ [--..--]
   mcos[0..7][0..7] ∈ [-1.0000000000000000*2^-1 .. 1.0000000000000000*2^-1]
   init ∈ {0; 1}
@@ -2295,6 +2299,9 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --------------------------------------------------------------------------------
 
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 109)
+            assert Value: initialisation: \initialized(&(*(m1 + k))[j]);
+            tried with Value.
+[    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 109)
             assert Value: initialisation: \initialized(&tmp1[i][j]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 116)
@@ -2402,6 +2409,9 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 231)
             assert Value: initialisation: \initialized(&res[0].pmse[j][k]);
             tried with Value.
+[    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 235)
+            assert Value: initialisation: \initialized(&M1[j][k]);
+            tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 242)
             assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
@@ -2426,6 +2436,9 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 277)
             assert Value: initialisation: \initialized(&res[1].pmse[j][k]);
             tried with Value.
+[    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 281)
+            assert Value: initialisation: \initialized(&M1[j][k]);
+            tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 288)
             assert Value: initialisation: \initialized(&m3[j][k]);
             tried with Value.
@@ -2449,6 +2462,9 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 323)
             assert Value: initialisation: \initialized(&res[2].pmse[j][k]);
+            tried with Value.
+[    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 327)
+            assert Value: initialisation: \initialized(&M1[j][k]);
             tried with Value.
 [    -    ] Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 334)
             assert Value: initialisation: \initialized(&m3[j][k]);
@@ -2491,6 +2507,6 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
    113 Completely validated
     16 Locally validated
    250 Considered valid
-    56 To be validated
-   435 Total
+    60 To be validated
+   439 Total
 --------------------------------------------------------------------------------

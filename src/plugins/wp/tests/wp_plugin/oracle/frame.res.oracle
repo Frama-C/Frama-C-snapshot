@@ -10,14 +10,14 @@
 
 Goal Post-condition 'KO' in 'alias':
 Let a = global(P_r_86).
-Let x = Mint_0[a].
-Let x_1 = Mint_1[a].
+Let x = Mint_1[a].
+Let x_1 = Mint_0[a].
 Assume {
   Type: is_sint32(x) /\ is_sint32(x_1).
   (* Heap *)
   Have: linked(Malloc_0).
 }
-Prove: x = x_1.
+Prove: x_1 = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -26,7 +26,7 @@ Prove: x = x_1.
 
 Goal Post-condition 'KO' in 'global':
 Assume { Type: is_sint32(g) /\ is_sint32(global_0). }
-Prove: g = global_0.
+Prove: global_0 = g.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -40,7 +40,7 @@ Prove: true.
 
 Goal Post-condition 'KO' in 'local':
 Assume { Type: is_sint32(g) /\ is_sint32(local_0). }
-Prove: g = local_0.
+Prove: local_0 = g.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -48,14 +48,14 @@ Prove: g = local_0.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'localref':
-Let x = Mint_0[p].
-Let x_1 = Mint_1[p].
+Let x = Mint_1[p].
+Let x_1 = Mint_0[p].
 Assume {
   Type: is_sint32(x) /\ is_sint32(x_1).
   (* Heap *)
   Have: region(p.base) <= 0.
 }
-Prove: x = x_1.
+Prove: x_1 = x.
 
 ------------------------------------------------------------
 

@@ -47,7 +47,6 @@ let status db kf =
 let is_precond_generated = status Db.RteGen.get_precond_status
 
 let always _ = true
-let natural = function Cint.Natural -> true | Cint.Machine -> false
 
 let configure ~update ~generate kf cint rte =
   if not rte.cint || rte.kernel () then

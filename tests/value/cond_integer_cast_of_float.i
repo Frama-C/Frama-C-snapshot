@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -no-results -then -float-hex -main mainbis
+   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -no-results -then -float-hex -main mainbis
 */
 typedef double D;
 typedef float F;

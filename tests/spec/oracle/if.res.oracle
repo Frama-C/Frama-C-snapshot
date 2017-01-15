@@ -14,7 +14,7 @@ void main(void)
 /*@ predicate P(char *s) ;
 
 */
-extern void g(char *s);
+void g(char *s);
 
 void f(void)
 {

@@ -1,0 +1,34 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/unroll.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/unroll.i:20:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 1 goal scheduled
+[wp] Proved goals:    1 / 1
+     Qed:             0 
+     Script:          1
+------------------------------------------------------------
+  Function unrolled_loop
+------------------------------------------------------------
+
+Goal Post-condition 'zero' in 'unrolled_loop':
+Let a = shift_uint32(t, 0).
+Assume {
+  (* Heap *)
+  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
+  (* Pre-condition 'access' *)
+  Have: valid_rw(Malloc_0, a, 16).
+}
+Prove: P_zeroed(Mint_0[a <- 0][shift_uint32(t, 1) <- 0][shift_uint32(t, 2)
+                  <- 0][shift_uint32(t, 3) <- 0][shift_uint32(t, 4) <- 0]
+                  [shift_uint32(t, 5) <- 0][shift_uint32(t, 6) <- 0]
+                  [shift_uint32(t, 7) <- 0][shift_uint32(t, 8) <- 0]
+                  [shift_uint32(t, 9) <- 0][shift_uint32(t, 10) <- 0]
+                  [shift_uint32(t, 11) <- 0][shift_uint32(t, 12) <- 0]
+                  [shift_uint32(t, 13) <- 0][shift_uint32(t, 14) <- 0]
+                  [shift_uint32(t, 15) <- 0], t, 0, 15).
+Prover Tactical returns Valid
+
+------------------------------------------------------------

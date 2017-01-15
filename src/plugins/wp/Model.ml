@@ -115,6 +115,7 @@ let back = function None -> () | Some c -> bind c.tuning
 let with_model m f x =
   let current = Context.push model m in
   try
+    Context.configure () ;
     bind m.tuning ;
     let result = f x in
     Context.pop model current ;
@@ -152,6 +153,8 @@ sig
   val mem : key -> bool
   val find : key -> data
   val get : key -> data option
+  val clear : unit -> unit
+  val remove : key -> unit
   val define : key -> data -> unit
   val update : key -> data -> unit
   val memoize : (key -> data) -> key -> data
@@ -205,10 +208,24 @@ struct
     with Not_found ->
       let e = { index=MAP.empty ; lock=SET.empty } in
       REGISTRY.add mid e ; e
+
+  let clear () =
+    begin
+      let e = entries () in
+      e.index <- MAP.empty ;
+      e.lock <- SET.empty ;
+    end
+
+  let remove k =
+    begin
+      let e = entries () in
+      e.index <- MAP.remove k e.index ;
+      e.lock <- SET.remove k e.lock ;
+    end
   
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
-
   let find k = let e = entries () in MAP.find k e.index
+
   let get k = try Some (find k) with Not_found -> None
 
   let fire k d =
@@ -293,10 +310,24 @@ struct
         let dependencies = [Ast.self]
         let default () = { index=MAP.empty ; lock=SET.empty }
       end)
-  (* Projectified entry map, indexed by model *)
+  (* Projectified entry map *)
 
   let entries () : entries = REGISTRY.get ()
 
+  let clear () =
+    begin
+      let e = entries () in
+      e.index <- MAP.empty ;
+      e.lock <- SET.empty ;
+    end
+
+  let remove k =
+    begin
+      let e = entries () in
+      e.index <- MAP.remove k e.index ;
+      e.lock <- SET.remove k e.lock ;
+    end
+  
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
 
   let find k = let e = entries () in MAP.find k e.index
@@ -369,6 +400,9 @@ sig
   type key
   type data
   val get : key -> data
+  val mem : key -> bool
+  val clear : unit -> unit
+  val remove : key -> unit
 end
 
 module StaticGenerator(K : Key)(D : Data with type key = K.t) =
@@ -383,7 +417,9 @@ struct
   type key = D.key
   type data = D.data
   let get = G.memoize D.compile
-
+  let mem = G.mem
+  let clear = G.clear
+  let remove = G.remove
 end
 
 module Generator(K : Key)(D : Data with type key = K.t) =
@@ -398,20 +434,10 @@ struct
   type key = D.key
   type data = D.data
   let get = G.memoize D.compile
-
+  let mem = G.mem
+  let clear = G.clear
+  let remove = G.remove
 end
 
 module S = D
 type t = S.t
-
-
-let run_once_for_each_ast ~name f =
-  let module B = State_builder.False_ref(struct
-      let name = "run_once_for_each_ast_"^name
-      let dependencies = [Ast.self]
-    end) in
-  fun () ->
-    if not (B.get ()) then begin
-      B.set true;
-      f ()
-    end

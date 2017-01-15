@@ -81,6 +81,13 @@ val preprocessor_is_gnu_like: bool
       @since Sodium-20150201
    *)
 
+val preprocessor_supported_arch_options: string list
+  (** architecture-related options (e.g. -m32) known to be supported by
+      the default preprocessor. Used to match preprocessor commands to
+      selected machdeps.
+      @since Frama-C+dev
+   *)
+
 val preprocessor_keep_comments: bool
   (** [true] if the default preprocessor selected during compilation is
       able to keep comments (hence ACSL annotations) in its output.

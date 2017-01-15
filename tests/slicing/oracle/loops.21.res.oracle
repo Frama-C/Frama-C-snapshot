@@ -82,7 +82,7 @@ void loop_slice_1(void)
   return;
 }
 
-extern void may_write_Y_from_Z_slice_1(void);
+void may_write_Y_from_Z_slice_1(void);
 
 void main(void)
 {

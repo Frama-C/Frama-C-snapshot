@@ -11,7 +11,7 @@ tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns cla
 
 Goal Post-condition 'KO' in 'extra':
 Let x = A[2]. Assume { Type: is_sint32(x). }
-Prove: 12 = x.
+Prove: x = 12.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -31,17 +31,17 @@ Let x = A[2].
 Assume {
   Type: IsArray1_sint32(A) /\ IsArray1_sint32(A_1) /\ is_sint32(x).
   (* Initializer *)
-  Init: 10 = A_1[0].
+  Init: A_1[0] = 10.
   (* Initializer *)
-  Init: 11 = A_1[1].
+  Init: A_1[1] = 11.
   (* Initializer *)
-  Init: 12 = A_1[2].
+  Init: A_1[2] = 12.
   (* Initializer *)
-  Init: forall i : Z. ((3 <= i) -> ((i <= 19) -> (0 = A_1[i]))).
+  Init: forall i : Z. ((3 <= i) -> ((i <= 19) -> (A_1[i] = 0))).
   (* Pre-condition 'Init' *)
   Have: EqArray1_int(20, A, A_1).
 }
-Prove: 12 = x.
+Prove: x = 12.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

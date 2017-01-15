@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: #"-remove-redundant-alarms"
-   OPT: -rte-all -rte -then -val @VALUECONFIG@
+   STDOPT: #"-load-module scope -remove-redundant-alarms"
+   OPT: -no-autoload-plugins -load-module value,inout -rte -then -val @VALUECONFIG@
 */
 int X,Y,Z1,Z2,T,U1,U2,V,W1,W2;
 int a,b,d1,d2,d0,e;

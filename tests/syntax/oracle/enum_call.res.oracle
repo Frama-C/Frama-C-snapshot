@@ -6,9 +6,9 @@ enum E {
     C1 = 1,
     C2 = 2
 };
-extern void f(enum E const);
+void f(enum E const);
 
-extern void f1(enum E);
+void f1(enum E);
 
 void g(void)
 {

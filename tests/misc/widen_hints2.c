@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-kernel-msg-key widen-hints"
+   STDOPT: #"-value-msg-key widen-hints"
    OPT: -print
  */
 

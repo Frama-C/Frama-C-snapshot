@@ -1,0 +1,10 @@
+[kernel] normalize(/): /
+[kernel] normalize(/..): /
+[kernel] normalize(/../../.): /
+[kernel] normalize(///): //
+[kernel] normalize(//tmp//): //tmp/
+[kernel] normalize(/../tmp/../..): /
+[kernel] normalize(/tmp/inexistent_directory/..): /tmp
+[kernel] caught the expected exception
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/filepath.i (no preprocessing)

@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -deps -out -input -journal-disable
-   OPT: -val @VALUECONFIG@ -deps -out -input -journal-disable -undefined-pointer-comparison-propagate-all
+   STDOPT: #"-value-msg-key pointer-comparison"
+   STDOPT: #"-undefined-pointer-comparison-propagate-all -value-msg-key pointer-comparison"
 */
 
 int a;

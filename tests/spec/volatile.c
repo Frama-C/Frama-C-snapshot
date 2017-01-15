@@ -3,6 +3,12 @@
 */
 
 #include "tests/spec/volatile.h"
+
+//@volatile x,y writes w ;
+//@volatile y,z reads r writes w; // partially KO: y already has a writes
+//@volatile x writes w; //KO: already a write function for x
+//@ volatile y reads r; //KO: already a reads function for x
+
 const int c = 1 ;
 volatile int v ;
 int * p;

@@ -59,4 +59,46 @@ int f5(int x)
   return y;
 }
 
+int job_inline(int a)
+{
+  int __retres;
+  if (a > 10) {
+    __retres = 10;
+    goto return_label;
+  }
+  if (a > 20) {
+    __retres = 20;
+    goto return_label;
+  }
+  /*@ returns \result ≡ 0;
+      ensures \false; */
+  {
+    __retres = 0;
+    /*@ assert __retres ≡ 0; */ ;
+    goto return_label;
+  }
+  return_label: return __retres;
+}
+
+int job_block(int a)
+{
+  int __retres;
+  if (a > 10) {
+    __retres = 10;
+    goto return_label;
+  }
+  if (a > 20) {
+    __retres = 20;
+    goto return_label;
+  }
+  /*@ returns \result ≡ 0;
+      ensures \false; */
+  {
+    __retres = 0;
+    /*@ assert __retres ≡ 0; */ ;
+    goto return_label;
+  }
+  return_label: return __retres;
+}
+
 

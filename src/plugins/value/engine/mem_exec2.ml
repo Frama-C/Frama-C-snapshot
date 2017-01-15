@@ -24,9 +24,6 @@
 module type Domain = sig
   include Datatype.S_with_collections
 
-  type return
-  module Return : Datatype.S with type t = return
-
   val filter_by_bases: Base.Hptset.t -> t -> t
   val reuse: current_input:t -> previous_output:t -> t
 end
@@ -64,16 +61,8 @@ module Make
 
   incr counter;
 
-  module ReturnedValue =
-    Datatype.Triple
-      (Datatype.Option (Value)) (* None is bottom. *)
-      (Datatype.Bool)           (* initialized *)
-      (Datatype.Bool)           (* escaping *)
-
   module CallOutput =
-    Datatype.List
-      (Datatype.Pair (Domain)
-         (Datatype.Option (Datatype.Pair (ReturnedValue) (Domain.Return) )))
+    Datatype.List (Domain)
 
   module StoredResult =
     Datatype.Pair
@@ -107,41 +96,6 @@ module Make
 
   let cleanup = !cleanup_ref
   let () = cleanup_ref := fun () -> cleanup (); PreviousCalls.clear ()
-
-  let result_to_output result =
-    let open Eval in
-    let return = match result.return with
-      | None -> None
-      | Some (value, return) ->
-        let v = match value.v with
-          | `Bottom -> None
-          | `Value v -> Some v
-        in
-        Some ((v, value.initialized, value.escaping), return)
-    in
-    result.post_state, return
-
-  let output_to_result output =
-    let open Eval in
-    let post_state, return = output in
-    let return = match return with
-      | None -> None
-      | Some ((value, initialized, escaping), return) ->
-        Some
-          ({ v = (match value with None -> `Bottom | Some v -> `Value v);
-               initialized;
-               escaping;
-             },
-           return)
-    in
-    {post_state; return}
-
-  let map_to_outputs f =
-    List.map
-      (fun ((state: Domain.t),
-            (return : (ReturnedValue.t * Domain.Return.t) option)) ->
-        (f state, return))
-
 
   (** [diff_base_full_zone bases zones] remove from the set of bases [bases]
       those of which all bits are present in [zones] *)
@@ -178,7 +132,7 @@ module Make
       | Locations.Zone.Top _ -> bases (* Never happens anyway *)
 
   let store_computed_call kf input_state args
-      (call_result: (Domain.t, Domain.Return.t, Value.t) Eval.call_result) =
+      (call_result: Domain.t list Bottom.or_bottom) =
     match Transfer_stmt.current_kf_inout () with
     | None -> ()
     | Some inout ->
@@ -216,8 +170,7 @@ module Make
           | `Bottom -> []
           | `Value list -> list
         in
-        let outputs = List.map result_to_output call_result in
-        let outputs = map_to_outputs clear outputs in
+        let outputs = List.map clear call_result in
         let call_number = current_counter () in
         let map_a =
           try PreviousCalls.find kf
@@ -262,7 +215,7 @@ module Make
            [outputs]. Copy them in [state] and return this result. *)
         let process output =
           Domain.reuse ~current_input:state ~previous_output:output in
-        let outputs = map_to_outputs process outputs in
+        let outputs = List.map process outputs in
         raise (Result_found (outputs, i))
       with Not_found -> ()
     in
@@ -278,7 +231,7 @@ module Make
     with
     | Not_found -> None
     | Result_found (outputs, i) ->
-      let call_result = List.map output_to_result outputs in
+      let call_result = outputs in
       Some (Bottom.bot_of_list call_result, i)
 
 end

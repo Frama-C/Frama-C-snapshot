@@ -20,6 +20,6 @@ Prove: true.
 
 Goal Pre-condition 'r_is_q1_ko' in 'main':
 Assume { (* Heap *) Have: region(0) <= 0. }
-Prove: hardware(26360) = (1 + hardware(26352)).
+Prove: (1 + hardware(26352)) = hardware(26360).
 
 ------------------------------------------------------------

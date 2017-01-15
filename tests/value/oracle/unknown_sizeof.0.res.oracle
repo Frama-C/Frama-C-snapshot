@@ -14,6 +14,5 @@ tests/value/unknown_sizeof.i:15:[value] warning: out of bounds write. assert \va
 tests/value/unknown_sizeof.i:15:[value] warning: accessing uninitialized left-value.
                  assert \initialized((struct s *)((char *)(&s) + 1));
 tests/value/unknown_sizeof.i:15:[value] warning: out of bounds read. assert \valid_read((struct s *)((char *)(&s) + 1));
-tests/value/unknown_sizeof.i:15:[value] warning: out of bounds read. assert \valid_read(&__retres);
-tests/value/unknown_sizeof.i:15:[value] user error: Function g returns a value of unknown size. Aborting
+tests/value/unknown_sizeof.i:15:[value] user error: function g returns a value of unknown size. Aborting
 [kernel] Plug-in value aborted: invalid user input.

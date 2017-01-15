@@ -1,0 +1,13 @@
+[ { "prover": "script", "verdict": "valid" },
+  { "prover": "alt-ergo", "verdict": "unknown", "time": 0.61102604866 },
+  { "header": "Definition", "tactic": "Wp.unfold", "params": {},
+    "select": { "select": "clause-goal",
+                "target": "(P_zeroed\n  Mint_37[(shift_uint32 t_2 0)->0][(shift_uint32 t_2 1)->0]\n    [(shift_uint32 t_2 2)->0][(shift_uint32 t_2 3)->0][(shift_uint32 t_2 4)\n    ->0][(shift_uint32 t_2 5)->0][(shift_uint32 t_2 6)->0]\n    [(shift_uint32 t_2 7)->0][(shift_uint32 t_2 8)->0][(shift_uint32 t_2 9)\n    ->0][(shift_uint32 t_2 10)->0][(shift_uint32 t_2 11)->0]\n    [(shift_uint32 t_2 12)->0][(shift_uint32 t_2 13)->0]\n    [(shift_uint32 t_2 14)->0][(shift_uint32 t_2 15)->0] t_2 0 15)",
+                "pattern": "P_zeroed[=]$t015[=]shift_uint320" },
+    "children": [ [ { "prover": "alt-ergo", "verdict": "unknown",
+                      "time": 0.664113998413 },
+                    { "header": "Range", "tactic": "Wp.range",
+                      "params": { "inf": 0, "sup": 15 },
+                      "select": { "select": "inside-goal", "occur": 0,
+                                  "target": "i_0", "pattern": "$i" },
+                      "children": [] } ] ] } ]

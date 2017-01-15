@@ -25,5 +25,5 @@ tests/impact/alias.i:18:[value] assertion 'Value,mem_access' got final status in
            tests/impact/alias.i:12 (sid 7): a = *(x + 1) + 2;
            tests/impact/alias.i:13 (sid 8): *y = 2;
            tests/impact/alias.i:15 (sid 12): __retres = *(x + 1);
-           tests/impact/alias.i:14 (sid 19): return_label: return __retres;
+           tests/impact/alias.i:14 (sid 21): return_label: return __retres;
 [impact] analysis done

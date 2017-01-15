@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -deps -out -input -journal-disable
+
 */
 typedef enum {
     BDP_BITE_NORMAL, BDP_BITE_ANORMAL, BDP_BITE_TRUC

@@ -38,13 +38,13 @@ Prove: true.
 
 Goal Post-condition 'ko,l_precedence_xor_and' in 'bitwise':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: land(p, lxor(q, r)) = lxor(r, land(p, q)).
+Prove: lxor(r, land(p, q)) = land(p, lxor(q, r)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_xor_and' in 'bitwise':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: land(r, lxor(p, q)) = lxor(p, land(q, r)).
+Prove: lxor(p, land(q, r)) = land(r, lxor(p, q)).
 
 ------------------------------------------------------------
 
@@ -60,13 +60,13 @@ Prove: true.
 
 Goal Post-condition 'ko,l_precedence_or_xor' in 'bitwise':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lor(r, lxor(p, q)) = lxor(p, lor(q, r)).
+Prove: lxor(p, lor(q, r)) = lor(r, lxor(p, q)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_or_xor' in 'bitwise':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lor(p, lxor(q, r)) = lxor(r, lor(p, q)).
+Prove: lxor(r, lor(p, q)) = lor(p, lxor(q, r)).
 
 ------------------------------------------------------------
 
@@ -82,7 +82,7 @@ Prove: true.
 
 Goal Post-condition 'ko,l_precedence_implies_or' in 'bitwise':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lor(p, lor(r, lnot(q))) = lor(r, lnot(lor(p, q))).
+Prove: lor(r, lnot(lor(p, q))) = lor(p, lor(r, lnot(q))).
 
 ------------------------------------------------------------
 
@@ -104,7 +104,7 @@ Prove: true.
 Goal Post-condition 'ko,l_assoc_implies' in 'bitwise':
 Let x = lnot(p).
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lor(r, lor(x, lnot(q))) = lor(r, lnot(lor(q, x))).
+Prove: lor(r, lnot(lor(q, x))) = lor(r, lor(x, lnot(q))).
 
 ------------------------------------------------------------
 
@@ -121,14 +121,14 @@ Prove: true.
 Goal Post-condition 'ko,r_precedence_equiv_implies' in 'bitwise':
 Let x = lnot(p).
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lor(x, lxor(r, lnot(q))) = lxor(r, lnot(lor(q, x))).
+Prove: lxor(r, lnot(lor(q, x))) = lor(lxor(r, lnot(q)), x).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_equiv_implies' in 'bitwise':
 Let x = lnot(p).
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: lxor(x, lor(r, lnot(q))) = lor(r, lnot(lxor(q, x))).
+Prove: lor(r, lnot(lxor(q, x))) = lxor(lor(r, lnot(q)), x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -172,25 +172,25 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_and_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != p) <-> ((0 != q) /\ (0 != r))) <-> ((0 != r) /\ (p = q)).
+Prove: ((q = p) /\ (r != 0)) <-> (((q != 0) /\ (r != 0)) <-> (p != 0)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_and_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != r) <-> ((0 != p) /\ (0 != q))) <-> ((0 != p) /\ (q = r)).
+Prove: ((p != 0) /\ (r = q)) <-> (((p != 0) /\ (q != 0)) <-> (r != 0)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_nonassoc_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != r) <-> (p = q)) <-> ((p = q) /\ (q = r)).
+Prove: ((q = p) /\ (r = q)) <-> ((r != 0) <-> (q = p)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_nonassoc_eq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: ((0 != p) <-> (q = r)) <-> ((p = q) /\ (q = r)).
+Prove: ((q = p) /\ (r = q)) <-> ((r = q) <-> (p != 0)).
 
 ------------------------------------------------------------
 
@@ -206,13 +206,13 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_and_neq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: (!((0 != p) <-> ((0 != q) /\ (0 != r)))) <-> ((0 != r) /\ (p != q)).
+Prove: ((q != p) /\ (r != 0)) <-> (!(((q != 0) /\ (r != 0)) <-> (p != 0))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_and_neq' in 'comparison':
 Assume { Type: is_sint32(p) /\ is_sint32(q) /\ is_sint32(r). }
-Prove: (!((0 != r) <-> ((0 != p) /\ (0 != q)))) <-> ((0 != p) /\ (q != r)).
+Prove: ((p != 0) /\ (r != q)) <-> (!(((p != 0) /\ (q != 0)) <-> (r != 0))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -230,12 +230,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_xor_and' in 'predicate':
-Prove: (!(P_R <-> (P_P /\ P_Q))) <-> (P_P /\ (!(P_Q <-> P_R))).
+Prove: (P_P /\ (!(P_R <-> P_Q))) <-> (!((P_P /\ P_Q) <-> P_R)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_xor_and' in 'predicate':
-Prove: (!(P_P <-> (P_Q /\ P_R))) <-> (P_R /\ (!(P_P <-> P_Q))).
+Prove: (P_R /\ (!(P_Q <-> P_P))) <-> (!((P_Q /\ P_R) <-> P_P)).
 
 ------------------------------------------------------------
 
@@ -250,12 +250,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_or_xor' in 'predicate':
-Prove: (!(P_P <-> (P_Q \/ P_R))) <-> (P_R \/ (!(P_P <-> P_Q))).
+Prove: (P_R \/ (!(P_Q <-> P_P))) <-> (!((P_Q \/ P_R) <-> P_P)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_or_xor' in 'predicate':
-Prove: (!(P_R <-> (P_P \/ P_Q))) <-> (P_P \/ (!(P_Q <-> P_R))).
+Prove: (P_P \/ (!(P_R <-> P_Q))) <-> (!((P_P \/ P_Q) <-> P_R)).
 
 ------------------------------------------------------------
 
@@ -270,12 +270,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_implies_or' in 'predicate':
-Prove: (((P_P \/ P_Q) -> P_R)) <-> (P_P \/ ((P_Q -> P_R))).
+Prove: (P_P \/ ((P_Q -> P_R))) <-> (((P_P \/ P_Q) -> P_R)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,r_precedence_implies_or' in 'predicate':
-Prove: ((P_P -> (P_Q \/ P_R))) <-> (P_R \/ ((P_P -> P_Q))).
+Prove: (P_R \/ ((P_P -> P_Q))) <-> ((P_P -> (P_Q \/ P_R))).
 
 ------------------------------------------------------------
 
@@ -290,7 +290,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_assoc_implies' in 'predicate':
-Prove: ((P_P -> (P_Q -> P_R))) <-> ((((P_P -> P_Q)) -> P_R)).
+Prove: ((((P_P -> P_Q)) -> P_R)) <-> ((P_P -> (P_Q -> P_R))).
 
 ------------------------------------------------------------
 
@@ -305,12 +305,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_equiv_implies' in 'predicate':
-Prove: (P_R <-> ((P_P -> P_Q))) <-> ((P_P -> (P_Q <-> P_R))).
+Prove: ((P_P -> (P_R <-> P_Q))) <-> (((P_P -> P_Q)) <-> P_R).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_equiv_implies' in 'predicate':
-Prove: (P_P <-> ((P_Q -> P_R))) <-> (((P_P <-> P_Q) -> P_R)).
+Prove: (((P_Q <-> P_P) -> P_R)) <-> (((P_Q -> P_R)) <-> P_P).
 
 ------------------------------------------------------------
 
@@ -330,14 +330,14 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_precedence_ite_equiv' in 'predicate':
-Prove: (P_P <-> (((P_Q -> P_R)) /\ (((!P_Q) -> P_S)))) <->
-    ((((P_P <-> P_Q) -> P_R)) /\ (((!(P_P <-> P_Q)) -> P_S))).
+Prove: ((((P_Q <-> P_P) -> P_R)) /\ (((!(P_Q <-> P_P)) -> P_S))) <->
+    ((((P_Q -> P_R)) /\ (((!P_Q) -> P_S))) <-> P_P).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_ite_equiv' in 'predicate':
-Prove: (P_S <-> (((P_P -> P_Q)) /\ (((!P_P) -> P_R)))) <->
-    (((P_P -> P_Q)) /\ (((!P_P) -> (P_R <-> P_S)))).
+Prove: (((P_P -> P_Q)) /\ (((!P_P) -> (P_S <-> P_R)))) <->
+    ((((P_P -> P_Q)) /\ (((!P_P) -> P_R))) <-> P_S).
 
 ------------------------------------------------------------
 
@@ -347,10 +347,9 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_assoc_ite' in 'predicate':
-Prove: (((P_P -> P_Q)) /\
-        (((!P_P) -> (((P_R -> P_S)) /\ (((!P_R) -> P_U)))))) <->
-    (((((P_P -> P_Q)) -> ((((!P_P) -> P_R)) -> P_S))) /\
-     ((((P_P /\ (!P_Q)) \/ ((!P_P) /\ (!P_R))) -> P_U))).
+Prove: (((((P_P -> P_Q)) -> ((((!P_P) -> P_R)) -> P_S))) /\
+        ((((P_P /\ (!P_Q)) \/ ((!P_P) /\ (!P_R))) -> P_U))) <->
+    (((P_P -> P_Q)) /\ (((!P_P) -> (((P_R -> P_S)) /\ (((!P_R) -> P_U)))))).
 
 ------------------------------------------------------------
 
@@ -373,21 +372,21 @@ Goal Post-condition 'ko,r_precedence_forall_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
 Prove: (forall i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))) <->
     ((((forall i : Z. P_Px(i)) -> P_Qx(x))) /\
-     (((!(forall i : Z. P_Px(i))) -> P_Rx(x)))).
+     (((exists i : Z. !P_Px(i)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,m_precedence_forall_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
-    ((((!P_Px(x)) -> P_Rx(x))) /\ ((P_Px(x) -> (forall i : Z. P_Qx(i))))).
+Prove: ((((!P_Px(x)) -> P_Rx(x))) /\ ((P_Px(x) -> (forall i : Z. P_Qx(i))))) <->
+    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_forall_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
-    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> (forall i : Z. P_Rx(i))))).
+Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> (forall i : Z. P_Rx(i))))) <->
+    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
@@ -397,7 +396,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_assoc_forall' in 'predicate':
-Prove: (forall i : Z. P_Pxy(i, i)) <-> (forall i_1,i : Z. P_Pxy(i_1, i)).
+Prove: (forall i_1,i : Z. P_Pxy(i_1, i)) <-> (forall i : Z. P_Pxy(i, i)).
 
 ------------------------------------------------------------
 
@@ -420,21 +419,21 @@ Goal Post-condition 'ko,r_precedence_exists_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
 Prove: (exists i : Z. ((P_Px(i) -> P_Qx(i))) /\ (((!P_Px(i)) -> P_Rx(i)))) <->
     ((((exists i : Z. P_Px(i)) -> P_Qx(x))) /\
-     (((!(exists i : Z. P_Px(i))) -> P_Rx(x)))).
+     (((forall i : Z. !P_Px(i)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,m_precedence_exists_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
-    ((((!P_Px(x)) -> P_Rx(x))) /\ ((P_Px(x) -> (exists i : Z. P_Qx(i))))).
+Prove: ((((!P_Px(x)) -> P_Rx(x))) /\ ((P_Px(x) -> (exists i : Z. P_Qx(i))))) <->
+    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_exists_ite' in 'predicate':
 Assume { Type: is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
-    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> (exists i : Z. P_Rx(i))))).
+Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> (exists i : Z. P_Rx(i))))) <->
+    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
@@ -444,7 +443,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,r_assoc_exist' in 'predicate':
-Prove: (exists i : Z. P_Pxy(i, i)) <-> (exists i_1,i : Z. P_Pxy(i_1, i)).
+Prove: (exists i_1,i : Z. P_Pxy(i_1, i)) <-> (exists i : Z. P_Pxy(i, i)).
 
 ------------------------------------------------------------
 
@@ -465,22 +464,22 @@ Prove: true.
 
 Goal Post-condition 'ko,r_precedence_let_ite' in 'predicate':
 Assume { Type: is_sint32(a) /\ is_sint32(x). }
-Prove: (((P_Px(a) -> P_Qx(a))) /\ (((!P_Px(a)) -> P_Rx(a)))) <->
-    (((P_Px(a) -> P_Qx(x))) /\ (((!P_Px(a)) -> P_Rx(x)))).
+Prove: (((P_Px(a) -> P_Qx(x))) /\ (((!P_Px(a)) -> P_Rx(x)))) <->
+    (((P_Px(a) -> P_Qx(a))) /\ (((!P_Px(a)) -> P_Rx(a)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,m_precedence_let_ite' in 'predicate':
 Assume { Type: is_sint32(a) /\ is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(a))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
-    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
+Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
+    (((P_Px(x) -> P_Qx(a))) /\ (((!P_Px(x)) -> P_Rx(x)))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_precedence_let_ite' in 'predicate':
 Assume { Type: is_sint32(a) /\ is_sint32(x). }
-Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(a)))) <->
-    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))).
+Prove: (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(x)))) <->
+    (((P_Px(x) -> P_Qx(x))) /\ (((!P_Px(x)) -> P_Rx(a)))).
 
 ------------------------------------------------------------
 
@@ -500,8 +499,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ko,l_assoc_naming' in 'predicate':
-Prove: (((P_P -> P_Q)) /\ (((!P_P) -> P_S))) <->
-    (((P_P -> P_R)) /\ (((!P_P) -> P_S))).
+Prove: (((P_P -> P_R)) /\ (((!P_P) -> P_S))) <->
+    (((P_P -> P_Q)) /\ (((!P_P) -> P_S))).
 
 ------------------------------------------------------------
 

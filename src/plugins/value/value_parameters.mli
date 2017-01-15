@@ -35,6 +35,8 @@ module EqualityDomain: Parameter_sig.Bool
 module GaugesDomain: Parameter_sig.Bool
 module SymbolicLocsDomain: Parameter_sig.Bool
 module BitwiseOffsmDomain: Parameter_sig.Bool
+module InoutDomain: Parameter_sig.Bool
+module SignsDomain: Parameter_sig.Bool
 
 module ApronOctagon: Parameter_sig.Bool
 module ApronBox: Parameter_sig.Bool
@@ -151,6 +153,10 @@ val dkey_alarm: Log.category
 
 (** Debug category used to print garbled mix *)
 val dkey_garbled_mix: Log.category
+
+(** Debug category used to print information about invalid pointer comparisons*)
+val dkey_pointer_comparison: Log.category
+
 
 (*
 Local Variables:

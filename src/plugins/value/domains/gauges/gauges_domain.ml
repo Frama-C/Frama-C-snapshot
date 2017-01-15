@@ -37,6 +37,10 @@ type function_calls =
      are not referenced. Those variables cannot be modified by a callee,
      so this analysis is sound. Good for memexec. *)
 
+(* Silence warning *)
+let () = ignore
+    [FullInterprocedural; IntraproceduralAll; IntraproceduralNonReferenced]
+
 let function_calls_handling = ref IntraproceduralNonReferenced
 
 module G = struct
@@ -422,7 +426,7 @@ module G = struct
       if c = 0 then MC.compare i1.coeffs i2.coeffs
       else c
 
-    let equal i1 i2 =
+    let _equal i1 i2 =
       Bounds.equal i1.nb i2.nb && MC.equal i1.coeffs i2.coeffs
 
     let hash i = Bounds.hash i.nb + 17 * MC.hash i.coeffs
@@ -1084,15 +1088,6 @@ module D_Impl : Abstract_domain.S_with_Structure
 
   type origin = unit
 
-  type return = unit (* YYY: it may be useful to return a gauge here *)
-  module Return = Datatype.Unit
-
-  let top_return =
-    let top_value =
-      { v = `Value Cvalue.V.top; initialized = false; escaping = true }
-    in
-    Some (top_value, ())
-
   let approximate_call kf state =
     let post_state =
       let name = Kernel_function.get_name kf in
@@ -1105,7 +1100,7 @@ module D_Impl : Abstract_domain.S_with_Structure
         | IntraproceduralAll -> state (* unsound here *)
         | IntraproceduralNonReferenced -> state
     in
-    `Value [{ post_state; return = top_return }]
+    `Value [ post_state ]
 
   module Transfer (Valuation:
                      Abstract_domain.Valuation with type value = value
@@ -1113,7 +1108,6 @@ module D_Impl : Abstract_domain.S_with_Structure
                                                 and type loc = location)
     : Abstract_domain.Transfer
       with type state = state
-       and type return = unit
        and type value = value
        and type location = location
        and type valuation = Valuation.t
@@ -1121,7 +1115,6 @@ module D_Impl : Abstract_domain.S_with_Structure
     type value = Cvalue.V.t
     type state = G.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     let update _valuation st = st (* TODO? *)
@@ -1182,8 +1175,6 @@ module D_Impl : Abstract_domain.S_with_Structure
     let assume _ _ _ valuation state =
       `Value (Valuation.fold (assume_exp valuation) valuation state)
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
     let finalize_call _stmt _call ~pre ~post =
       let state =
         match !function_calls_handling with
@@ -1192,9 +1183,6 @@ module D_Impl : Abstract_domain.S_with_Structure
         | IntraproceduralAll -> pre (* unsound here *)
       in
       `Value state
-
-    let assign_return _stmt lv _kf () value _valuation state =
-      imprecise_assign lv value state
 
     let start_call _stmt call valuation state =
       let state =

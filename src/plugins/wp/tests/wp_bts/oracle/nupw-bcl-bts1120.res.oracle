@@ -34,14 +34,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Exit-condition 'ok' in 'g':
-Assume {
-  Type: is_sint32(max_0).
-  (* Pre-condition *)
-  Have: (P_ExitF(max_0) -> P_ExitP(max_0)).
-  (* Exit 'f' *)
-  Have: P_ExitF(max_0).
-}
-Prove: P_ExitP(max_0).
+Prove: true.
 
 ------------------------------------------------------------
 

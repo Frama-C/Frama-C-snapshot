@@ -19,6 +19,8 @@ int main(void)
   sz = (signed char)((int)sx + (int)sy);
   /*@ assert rte: unsigned_downcast: (int)sx + (int)sy ≤ 255; */
   /*@ assert rte: unsigned_downcast: 0 ≤ (int)sx + (int)sy; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)sx + (int)sy; */
+  /*@ assert rte: signed_overflow: (int)sx + (int)sy ≤ 2147483647; */
   uc = (unsigned char)((int)sx + (int)sy);
   /*@ assert rte: unsigned_downcast: x ≤ 255; */
   /*@ assert rte: unsigned_downcast: 0 ≤ x; */

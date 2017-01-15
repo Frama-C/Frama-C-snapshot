@@ -25,6 +25,7 @@ int f(int x, int *y)
 {
   int __retres;
   if (x >= 0) *y = x;
+  /*@ assert rte: signed_overflow: -2147483647 ≤ x; */
   __retres = - x;
   return __retres;
 }
@@ -78,6 +79,8 @@ int main(void)
         ensures a ≡ \old(b);
         assigns a; */
   g(b,& a);
+  /*@ assert rte: signed_overflow: -2147483648 ≤ b + a; */
+  /*@ assert rte: signed_overflow: b + a ≤ 2147483647; */
   b += a;
   return b;
 }

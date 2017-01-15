@@ -5,7 +5,7 @@
          /*@ requires \valid(p);
              ensures *\old(p) ≡ \old(x);
              assigns *p; */
-         extern void g(int *p, int x);
+         void g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
              ensures \result ≡ 2 * \old(x); */
@@ -33,12 +33,12 @@
          /*@ requires \valid(p);
              ensures *\old(p) ≡ \old(x);
              assigns *p; */
-         extern void g(int *p, int x);
+         void g(int *p, int x);
          
          /*@ requires \valid(p);
              ensures *\old(p) ≡ \old(x);
              assigns *p; */
-         extern void new_g(int *p, int x);
+         void new_g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
              ensures \result ≡ 2 * \old(x); */
@@ -66,12 +66,12 @@
          /*@ requires \valid(p);
              ensures *\old(p) ≡ \old(x);
              assigns *p; */
-         extern void g(int *p, int x);
+         void g(int *p, int x);
          
          /*@ requires \valid(p);
              ensures *\old(p) ≡ \old(x);
              assigns *p; */
-         extern void new_g(int *p, int x);
+         void new_g(int *p, int x);
          
          /*@ requires 0 ≤ x ≤ 10;
              ensures \result ≡ 2 * \old(x); */

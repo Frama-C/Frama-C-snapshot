@@ -264,38 +264,38 @@ let load_script base =
 (* --- Command-Line Entry Points                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let scan_directory pkgs dir =
-  Klog.feedback ~dkey "Loading directory '%s'" dir ;
-  try
-    let content = Sys.readdir dir in
-    Array.sort String.compare content ;
-    Array.iter
-      (fun name ->
-         if is_meta name then
-           (* name starts with "META.frama-c-" *)
-           let pkg = String.sub name 5 (String.length name - 5) in
-           pkgs := pkg :: !pkgs
-      ) content ;
-  with Sys_error error ->
-    Klog.error "impossible to read '%s' (%s)" dir error
+let set_module_load_path path =
+  let add_dir ~user d ps =
+    if is_dir d then d::ps else
+      ( if user then Klog.warning "cannot load '%s' (not a directory)" d
+      ; ps ) in
+  Klog.debug ~dkey "plugin_dir: %s" (String.concat ":" Config.plugin_dir);
+  load_path :=
+    List.fold_right (add_dir ~user:true) path
+      (List.fold_right (add_dir ~user:false) Config.plugin_dir []);
+  let findlib_path = String.concat ":" !load_path in
+  Klog.debug ~dkey "setting findlib path to %s" findlib_path;
+  Findlib.init ~env_ocamlpath:findlib_path ()
 
-let load_plugin_path path =
-  begin
-    let add_dir ~user d ps =
-      if is_dir d then d::ps else
-        ( if user then Klog.warning "cannot load '%s' (not a directory)" d
-        ; ps ) in
-    Klog.debug ~dkey "plugin_dir: %s" (String.concat ":" Config.plugin_dir);
-    load_path :=
-      List.fold_right (add_dir ~user:true) path
-        (List.fold_right (add_dir ~user:false) Config.plugin_dir []) ;
-    let pkgs = ref [] in
-    List.iter (scan_directory pkgs) !load_path ;
-    let findlib_path = String.concat ":" !load_path in
-    Klog.debug ~dkey "setting findlib path to %s" findlib_path;
-    Findlib.init ~env_ocamlpath:findlib_path ();
-    load_packages (List.rev !pkgs) ;
-  end
+let load_plugin_path () =
+  let scan_directory pkgs dir =
+    Klog.feedback ~dkey "Loading directory '%s'" dir ;
+    try
+      let content = Sys.readdir dir in
+      Array.sort String.compare content ;
+      Array.iter
+        (fun name ->
+           if is_meta name then
+             (* name starts with "META.frama-c-" *)
+             let pkg = String.sub name 5 (String.length name - 5) in
+             pkgs := pkg :: !pkgs
+        ) content ;
+    with Sys_error error ->
+      Klog.error "impossible to read '%s' (%s)" dir error
+  in
+  let pkgs = ref [] in
+  List.iter (scan_directory pkgs) !load_path ;
+  load_packages (List.rev !pkgs)
 
 let load_module m =
   let base,ext = split_ext m in

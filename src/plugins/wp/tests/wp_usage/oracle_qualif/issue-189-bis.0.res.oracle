@@ -44,6 +44,6 @@
      Alt-Ergo:       14
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-memcpy_alias_vars    9      7 (1071)  16       100%
-memcpy_context_vars  11     7 (1071)  18       100%
+memcpy_alias_vars    9      7 (1010)  16       100%
+memcpy_context_vars  11     7 (1010)  18       100%
 ----------------------------------------------------------

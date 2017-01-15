@@ -486,16 +486,14 @@ let get_edge_labels e =
     | Vstart -> assert false
     | VfctIn -> []
     | Vexit | VfctOut -> [Clabels.Post]
-    | VblkIn (Bstmt s, _) -> [Clabels.mk_stmt_label s]
-    | Vtest (false, _, _) | VblkIn _ | VblkOut _ | Vend -> []
-    | Vcall (s,_,_,_) ->
-        [Clabels.CallAt s.sid; Clabels.mk_stmt_label s]
-    | Vstmt s | Vtest (true, s, _) | Vswitch (s,_) ->
+    | VblkIn (Bstmt s, _)
+    | Vcall (s,_,_,_) | Vstmt s | Vtest (true, s, _) | Vswitch (s,_) ->
         [Clabels.mk_stmt_label s]
-    | Vloop2 _ -> []
     | Vloop (_,s) ->
         if is_back_edge e then []
         else [Clabels.mk_stmt_label s]
+    | Vtest (false, _, _) | VblkIn _ | VblkOut _ | Vend -> []
+    | Vloop2 _ -> []
   in
   let v_before =  edge_src e in
   match node_type v_before with
@@ -1220,135 +1218,6 @@ let cfg_from_proto kf =
   let _ = add_edge cfg fct_in Enone fct_out in
   let cfg = { cfg with loop_nodes = Some [] } in
   cfg
-
-(* ------------------------------------------------------------------------ *)
-(** {2 Export dot graph} *)
-
-(** {3 Printer for ocamlgraph} *)
-
-module Printer (PE : sig val edge_txt : edge -> string end) = struct
-  type t = CFG.t * (edge -> string)
-  module V = CFG.V
-  module E = CFG.E
-  let iter_edges_e f (g, _f) = CFG.iter_edges_e f g
-  let iter_vertex f (g, _) = CFG.iter_vertex f g
-
-  let graph_attributes _t = []
-
-  let pretty_raw_stmt s =
-    let s = Format.asprintf "%a" Printer.pp_stmt s in
-    let s' = if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s in
-    String.escaped s'
-
-  let vertex_name v =
-    let a,b = node_id v in
-    Printf.sprintf "%d.%d" a b
-
-  let vertex_attributes v =
-    let n = V.label v in
-    let label = match node_type n with
-      | Vstart -> "Start" | Vend -> "End" | Vexit -> "Exit"
-      | VfctIn -> "FctIn" | VfctOut -> "FctOut"
-      | VblkIn (bk,_) -> Format.asprintf "BLOCKin <%a>" pp_bkind bk
-      | VblkOut (bk,_) -> Format.asprintf "BLOCKout <%a>" pp_bkind bk
-      | Vcall _ -> Format.sprintf "CALL"
-      | Vtest (true, s, e) ->
-          Format.asprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
-      | Vtest (false, s, _e) -> Format.asprintf "IFout <%d>" s.sid
-      | Vstmt s | Vloop (_, s) | Vswitch (s, _) ->
-          begin match s.skind with
-            | Instr _ -> Format.sprintf "INSTR <%d>\n%s" s.sid (pretty_raw_stmt s)
-            | If _ -> "invalid IF ?"
-            | Return _ -> Format.sprintf "RETURN <%d>" s.sid
-            | Goto _ -> Format.sprintf "%s <%d>" (pretty_raw_stmt s) s.sid
-            | Break _ -> Format.sprintf "BREAK <%d>" s.sid
-            | Continue _ -> Format.sprintf "CONTINUE <%d>" s.sid
-            | Switch _ ->  Format.sprintf "SWITCH <%d>" s.sid
-            | Loop _ ->  Format.sprintf "WHILE(1) <%d>" s.sid
-            | Block _ ->  Format.sprintf "BLOCK??? <%d>" s.sid
-            | TryExcept _ ->  Format.sprintf "TRY EXCEPT <%d>" s.sid
-            | TryFinally _ ->  Format.sprintf "TRY FINALLY <%d>" s.sid
-            | Throw _ -> Format.sprintf "THROW <%d>" s.sid
-            | TryCatch _ -> Format.sprintf "TRY CATCH <%d>" s.sid
-            | UnspecifiedSequence _ ->  Format.sprintf "UnspecifiedSeq <%d>" s.sid
-          end
-      | Vloop2 (_, n) -> Format.sprintf "Loop-%d" n
-    in
-    let attr = match node_type n with
-      | Vstart | Vend | Vexit -> [`Color 0x0000FF; `Shape `Doublecircle]
-      | VfctIn | VfctOut -> [`Color 0x0000FF; `Shape `Box]
-      | VblkIn _ | VblkOut _ -> [`Shape `Box]
-      | Vloop _ | Vloop2 _ -> [`Color 0xFF0000; `Style `Filled]
-      | Vtest _ | Vswitch _ ->
-          [`Color 0x00FF00; `Style `Filled; `Shape `Diamond]
-      | Vcall _ | Vstmt _ -> []
-    in (`Label (String.escaped label))::attr
-
-  let default_vertex_attributes _v = []
-
-  let edge_attributes e =
-    let attr = [] in
-    let attr = (`Label (String.escaped (PE.edge_txt e)))::attr in
-    let attr =
-      if is_back_edge e then (`Constraint false)::(`Style `Bold)::attr
-      else attr
-    in
-    let attr = match (edge_type e) with
-      | Ethen | EbackThen -> (`Color 0x00FF00)::attr
-      | Eelse | EbackElse -> (`Color 0xFF0000)::attr
-      | Ecase [] -> (`Color 0x0000FF)::(`Style `Dashed)::attr
-      | Ecase _ -> (`Color 0x0000FF)::attr
-      | Enext -> (`Style `Dotted)::attr
-      | Eback -> attr (* see is_back_edge above *)
-      | Enone -> attr
-    in
-    attr
-
-  let default_edge_attributes _ = []
-
-  let get_subgraph v =
-    let mk_subgraph name attrib =
-      let attrib = (`Style `Filled) :: attrib in
-      Some { Graph.Graphviz.DotAttributes.sg_name= name;
-             sg_parent = None;
-             sg_attributes = attrib }
-    in
-    match node_type (V.label v) with
-    | Vcall (s,_,_,_) ->
-        let name = Format.sprintf "Call_%d" s.sid in
-        let call_txt = pretty_raw_stmt s in
-        let label = Format.sprintf "Call <%d> : %s" s.sid call_txt in
-        let attrib = [(`Label label)] in
-        let attrib = (`Fillcolor 0xB38B4D) :: attrib in
-        mk_subgraph name attrib
-    | _ -> None
-
-end
-
-(* ---------------------------------- *)
-(** {3 Export to dot file} *)
-
-type pp_edge_fun = Format.formatter -> edge -> unit
-
-let export ~file ?pp_edge_fun cfg =
-  Kernel.Unicode.without_unicode
-    (fun () ->
-       let edge_txt = match pp_edge_fun with
-         | None ->
-             (fun e -> match  (edge_type e) with
-                | Ecase (_::_) -> Format.asprintf "%a" EL.pretty (edge_type e)
-                | _ -> ""
-             )
-         | Some pp -> (fun e -> Format.asprintf "%a" pp e)
-       in
-       let module P = Printer (struct let edge_txt = edge_txt end) in
-       let module GPrint = Graph.Graphviz.Dot(P) in
-       (* [JS 2011/03/11] open_out and output_graph (and close_out?) may raise
-          exception. Should be caught. *)
-       let oc = open_out file in
-       GPrint.output_graph oc (cfg_graph cfg, edge_txt);
-       close_out oc
-    ) ()
 
 (* ------------------------------------------------------------------------ *)
 (** {2 CFG management} *)

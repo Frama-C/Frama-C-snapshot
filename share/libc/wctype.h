@@ -29,43 +29,43 @@
 
 __BEGIN_DECLS
 
-int iswalnum(wint_t wc);
+extern int iswalnum(wint_t wc);
 
-int iswalpha(wint_t wc);
+extern int iswalpha(wint_t wc);
 
-int iswascii(wint_t wc);
+extern int iswascii(wint_t wc);
 
-int iswblank(wint_t wc);
+extern int iswblank(wint_t wc);
 
-int iswcntrl(wint_t wc);
+extern int iswcntrl(wint_t wc);
 
-int iswdigit(wint_t wc);
+extern int iswdigit(wint_t wc);
 
-int iswgraph(wint_t wc);
+extern int iswgraph(wint_t wc);
 
-int iswhexnumber(wint_t wc);
+extern int iswhexnumber(wint_t wc);
 
-int iswideogram(wint_t wc);
+extern int iswideogram(wint_t wc);
 
-int iswlower(wint_t wc);
+extern int iswlower(wint_t wc);
 
-int iswnumber(wint_t wc);
+extern int iswnumber(wint_t wc);
 
-int iswphonogram(wint_t wc);
+extern int iswphonogram(wint_t wc);
 
-int iswprint(wint_t wc);
+extern int iswprint(wint_t wc);
 
-int iswpunct(wint_t wc);
+extern int iswpunct(wint_t wc);
 
-int iswrune(wint_t wc);
+extern int iswrune(wint_t wc);
 
-int iswspace(wint_t wc);
+extern int iswspace(wint_t wc);
 
-int iswspecial(wint_t wc);
+extern int iswspecial(wint_t wc);
 
-int iswupper(wint_t wc);
+extern int iswupper(wint_t wc);
 
-int iswxdigit(wint_t wc);
+extern int iswxdigit(wint_t wc);
 
 __END_DECLS
 

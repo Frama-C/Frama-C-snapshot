@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -print -journal-disable -no-results
+   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -print -journal-disable -no-results
 */
 int *p;
 int t[90];

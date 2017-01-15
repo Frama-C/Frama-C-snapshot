@@ -27,9 +27,8 @@ tests/pdg/pb_infinite_loop.c:48:[kernel] warning: Neither code nor specification
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
- {n6}: __retres = 1;
+ {n6}: block
    -[-c-]-> 1
-   -[a--]-> 4
    -[-c-]-> 5
  {n7}: Call30-InCtrl : exit(1);
    -[-c-]-> 1
@@ -38,24 +37,35 @@ tests/pdg/pb_infinite_loop.c:48:[kernel] warning: Neither code nor specification
    -[-c-]-> 1
    -[-c-]-> 5
    -[-c-]-> 7
- {n9}: goto return_label;
-   -[-c-]-> 1
-   -[-c-]-> 5
-   -[-c-]-> 10
- {n10}: return_label:
-   -[-c-]-> 1
- {n11}: __retres = 0;
+ {n9}: __retres = 1;
    -[-c-]-> 1
    -[a--]-> 4
    -[-c-]-> 5
- {n12}: goto return_label;
+   -[-c-]-> 6
+ {n10}: block
+   -[-c-]-> 1
+   -[-c-]-> 5
+ {n11}: goto return_label;
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[-c-]-> 6
+   -[-c-]-> 12
+ {n12}: return_label:
+   -[-c-]-> 1
+ {n13}: __retres = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+   -[-c-]-> 5
+   -[-c-]-> 10
+ {n14}: goto return_label;
    -[-c-]-> 1
    -[-c-]-> 5
    -[-c-]-> 10
- {n13}: return_label: return __retres;
+   -[-c-]-> 12
+ {n15}: return_label: return __retres;
    -[-c-]-> 1
    -[--d]-> 4
-   -[--d]-> 6
-   -[--d]-> 11
- {n14}: OutRet
+   -[--d]-> 9
    -[--d]-> 13
+ {n16}: OutRet
+   -[--d]-> 15

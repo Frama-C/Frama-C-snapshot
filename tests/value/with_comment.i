@@ -1,6 +1,6 @@
 /* run.config*
   GCC:
-  OPT: -val @VALUECONFIG@ -deps -out -input  -main main2 -journal-disable
+  STDOPT: #"-main main2"
 */
 /* Commentaire avant G comment*/ /* Commentaire avant G2 comment*/
 static int G;

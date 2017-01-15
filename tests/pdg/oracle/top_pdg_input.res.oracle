@@ -26,8 +26,14 @@ tests/pdg/top_pdg_input.c:14:[value] warning: out of bounds read. assert \valid_
 tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:13}
+tests/pdg/top_pdg_input.c:16:[value] Assigning imprecise value to __retres<f1>.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
 [value] Recording results for f1
 [value] Done for function f1
+tests/pdg/top_pdg_input.c:38:[value] Assigning imprecise value to i.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
 [value] computing for function f2 <- main.
         Called from tests/pdg/top_pdg_input.c:39.
 [value] computing for function top_input <- f2 <- main.
@@ -46,8 +52,14 @@ tests/pdg/top_pdg_input.c:24:[value] warning: signed overflow. assert s.a + s.t[
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:20}
+tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres<f2>.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
 [value] Recording results for f2
 [value] Done for function f2
+tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to tmp_0.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert -2147483648 ≤ i + tmp_0;
                                   (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert i + tmp_0 ≤ 2147483647;

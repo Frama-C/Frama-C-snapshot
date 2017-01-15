@@ -47,7 +47,9 @@ module PropId : Datatype.S with type t = prop_id
 
 val compare_prop_id : prop_id -> prop_id -> int
 
+val tactical : gid:string -> prop_id
 val is_check : prop_id -> bool
+val is_tactic : prop_id -> bool
 val is_assigns : prop_id -> bool
 val is_requires : Property.t -> bool
 val is_loop_preservation : prop_id -> stmt option
@@ -69,6 +71,7 @@ val get_propid : prop_id -> string (** Unique identifier of [prop_id] *)
 val pp_propid : Format.formatter -> prop_id -> unit (** Print unique id of [prop_id] *)
 
 type prop_kind =
+  | PKTactic      (** tactical sub-goal *)
   | PKCheck       (** internal check *)
   | PKProp        (** normal property *)
   | PKEstablished (** computation related to a loop property before the loop. *)

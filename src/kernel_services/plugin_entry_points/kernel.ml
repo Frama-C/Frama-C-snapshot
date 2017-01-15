@@ -202,6 +202,17 @@ module PrintPluginPath =
      end)
 
 let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Exiting
+let () = Parameter_customize.set_negative_option_name ""
+module PrintMachdep =
+  False
+    (struct
+      let module_name = "PrintMachdep"
+      let option_name = "-print-machdep"
+      let help = "pretty print selected machdep"
+     end)
+
+let () = Parameter_customize.set_group help
 let () = Parameter_customize.set_negative_option_name ""
 module DumpDependencies =
   P.Empty_string
@@ -215,6 +226,23 @@ let () =
     (fun () ->
        if not (DumpDependencies.is_default ()) then
          State_dependency_graph.dump (DumpDependencies.get ()))
+
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Exiting
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.set_negative_option_name ""
+module AutocompleteHelp =
+  False
+    (struct
+      let option_name = "-autocomplete"
+      let help = "displays all plugin options. Used for zsh autocompletion"
+      let module_name = "AutocompleteHelp"
+     end)
+let run_list_all_plugin_options () =
+  if AutocompleteHelp.get () then
+    Cmdline.list_all_plugin_options ~print_invisible:true
+  else Cmdline.nop
+let () = Cmdline.run_after_exiting_stage run_list_all_plugin_options
 
 (* ************************************************************************* *)
 (** {2 Output Messages} *)
@@ -579,16 +607,27 @@ module LoadModule =
        let arg_name = "SPEC,..."
        let help = "Dynamically load plug-ins, modules and scripts. \
                    Each <SPEC> can be an OCaml source or object file, with \
-                   or without extension, or a directory of object OCaml \
-                   files to load, or a Findlib package. \
+                   or without extension, or a Findlib package. \
                    Loading order is preserved and \
                    additional dependencies can be listed in *.depend files."
     end)
 let () = LoadModule.add_aliases [ "-load-script" ]
 
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
+module AutoLoadPlugins =
+  True
+    (struct
+       let option_name = "-autoload-plugins"
+       let module_name = "AutoLoadPlugins"
+       let help = "Automatically load all plugins in FRAMAC_PLUGIN."
+    end)
+
 let bootstrap_loader () =
   begin
-    Dynamic.load_plugin_path (AddPath.get()) ;
+    Dynamic.set_module_load_path (AddPath.get ());
+    if AutoLoadPlugins.get () then Dynamic.load_plugin_path () ;
     List.iter Dynamic.load_module (LoadModule.get()) ;
   end
 
@@ -711,7 +750,7 @@ module PreprocessAnnot =
           let option_name = "-pp-annot"
           let help =
             "pre-process annotations (if they are read). Set by default if \
-             the pre-processor is GNU-like (see option -cpp-gnu-like)"
+             the pre-processor is GNU-like (see option -cpp-frama-c-compliant)"
         end)
 
 let () = Parameter_customize.set_group parsing
@@ -748,7 +787,7 @@ module CppGnuLike =
   True
     (struct
       let module_name = "CppGnuLike"
-      let option_name = "-cpp-gnu-like"
+      let option_name = "-cpp-frama-c-compliant"
       let help = 
         "indicates that a custom pre-processor (see option -cpp-command) \
          accepts the same set of options as GNU cpp. Set it to false if you \
@@ -764,7 +803,7 @@ module FramaCStdLib =
       let option_name = "-frama-c-stdlib"
       let help =
         "adds -I$FRAMAC_SHARE/libc to the options given to the cpp command. \
-         If -cpp-gnu-like is not false, also adds -nostdinc to prevent \
+         If -cpp-frama-c-compliant is not false, also adds -nostdinc to prevent \
          inconsistent mix of system and Frama-C header files"
     end)
 

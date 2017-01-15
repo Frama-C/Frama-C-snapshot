@@ -1,34 +1,12 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_1180_1990.res.oracle
-104c104,107
-< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
----
+103a104,109
 > [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-215,218c218,233
-< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
----
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->         Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->         Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->         Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
->         Called from tests/idct/ieee_1180_1990.c:85.
-> [value] Recording results for IEEE_1180_1990_rand
-> [value] Done for function IEEE_1180_1990_rand
-259,262c274,289
+> tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+> tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+217,220c223,238
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -50,7 +28,29 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-299,303c326,345
+262,265c280,295
+< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+< tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
+---
+> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>         Called from tests/idct/ieee_1180_1990.c:85.
+> [value] Recording results for IEEE_1180_1990_rand
+> [value] Done for function IEEE_1180_1990_rand
+> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>         Called from tests/idct/ieee_1180_1990.c:85.
+> [value] Recording results for IEEE_1180_1990_rand
+> [value] Done for function IEEE_1180_1990_rand
+> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>         Called from tests/idct/ieee_1180_1990.c:85.
+> [value] Recording results for IEEE_1180_1990_rand
+> [value] Done for function IEEE_1180_1990_rand
+> [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
+>         Called from tests/idct/ieee_1180_1990.c:85.
+> [value] Recording results for IEEE_1180_1990_rand
+> [value] Done for function IEEE_1180_1990_rand
+303,307c333,352
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -77,14 +77,14 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-316c358,361
+320c365,368
 < tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 ---
 > [value] computing for function idct <- main.
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-322,323c367,374
+326,327c374,381
 < tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
 < tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
 ---
@@ -96,7 +96,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:238.
 > [value] Recording results for idct
 > [value] Done for function idct
-326,330c377,396
+330,334c384,403
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -123,7 +123,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-344,348c410,429
+348,352c417,436
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -150,7 +150,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-362,366c443,462
+366,370c450,469
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 < tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -177,7 +177,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:85.
 > [value] Recording results for IEEE_1180_1990_rand
 > [value] Done for function IEEE_1180_1990_rand
-375,376c471,478
+379,380c478,485
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
 < tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 ---
@@ -189,7 +189,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-394,397c496,533
+398,401c503,540
 < tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
 < tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
@@ -233,7 +233,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-415,418c551,588
+419,422c558,595
 < tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
 < tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
@@ -277,7 +277,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-436,439c606,643
+440,443c613,650
 < tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
 < tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
@@ -321,7 +321,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-457,460c661,698
+461,464c668,705
 < tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
 < tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
@@ -365,7 +365,7 @@ diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_apron/ieee_11
 >         Called from tests/idct/ieee_1180_1990.c:214.
 > [value] Recording results for idct
 > [value] Done for function idct
-478,481c716,753
+482,485c723,760
 < tests/idct/ieee_1180_1990.c:211:[value] Reusing old results for call to IEEE_1180_1990_mkbk
 < tests/idct/ieee_1180_1990.c:212:[value] Reusing old results for call to IEEE_1180_1990_dctf
 < tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf

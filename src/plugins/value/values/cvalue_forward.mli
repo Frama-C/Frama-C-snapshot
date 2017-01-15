@@ -62,8 +62,6 @@ val make_volatile: ?typ:typ -> V.t -> V.t
 
 val eval_float_constant: exp -> float -> fkind -> string option -> V.t Eval.evaluated
 
-val offsetmap_matches_type: typ -> Cvalue.Model.offsetmap -> bool
-
 
 (*
 Local Variables:

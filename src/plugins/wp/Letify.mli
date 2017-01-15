@@ -26,6 +26,13 @@
 
 open Lang.F
 
+module Ground :
+sig
+  type subst = pred -> pred
+  val singleton : pred -> subst
+  val compute : pred array -> subst array * subst
+end
+
 module Sigma :
 sig
   type t

@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  STDOPT: #"-main g -pdg-print -pdg-verbose 2"
-  STDOPT: #"-main h -pdg-print -pdg-verbose 2"
-  STDOPT: #"-main f -pdg-print -pdg-verbose 2"
+  STDOPT: #"-load-module pdg -main g -pdg-print -pdg-verbose 2"
+  STDOPT: #"-load-module pdg -main h -pdg-print -pdg-verbose 2"
+  STDOPT: #"-load-module pdg -main f -pdg-print -pdg-verbose 2"
 */
 struct Tstr;
 extern int X;

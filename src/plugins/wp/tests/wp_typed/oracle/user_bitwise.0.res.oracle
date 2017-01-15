@@ -20,8 +20,8 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, 1 + i), lor(x_1, to_uint32(lsl(x, 1))))).
+Prove: (land(lor(x_1, to_uint32(lsl(x, 1))), lsl(1, 1 + i)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -38,8 +38,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0 != land(x, lsl(1, 32 + i - n))) <->
-    (0 != land(lsl(1, i), lor(to_uint32(lsl(x, n)), x_2))).
+Prove: (land(lor(to_uint32(lsl(x, n)), x_2), lsl(1, i)) != 0) <->
+    (land(x, lsl(1, 32 + i - n)) != 0).
 
 ------------------------------------------------------------
 
@@ -53,8 +53,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, x_1), lor(to_uint32(lsl(x, n)), x_2))).
+Prove: (land(lor(to_uint32(lsl(x, n)), x_2), lsl(1, x_1)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -71,8 +71,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0 != land(x, lsl(1, 64 + i - n))) <->
-    (0 != land(lsl(1, i), lor(to_uint64(lsl(x, n)), x_2))).
+Prove: (land(lor(to_uint64(lsl(x, n)), x_2), lsl(1, i)) != 0) <->
+    (land(x, lsl(1, 64 + i - n)) != 0).
 
 ------------------------------------------------------------
 
@@ -86,8 +86,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, x_1), lor(to_uint64(lsl(x, n)), x_2))).
+Prove: (land(lor(to_uint64(lsl(x, n)), x_2), lsl(1, x_1)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -96,7 +96,7 @@ Prove: (0 != land(x, lsl(1, i))) <->
 
 Goal Post-condition 'b0' in 'rr1':
 Assume { Type: is_uint32(x) /\ is_uint32(lsr(x, 1)). }
-Prove: bit_test(x, 0) <-> (bit_test(x, 0) \/ bit_test(x, 32)).
+Prove: (bit_test(x, 0) \/ bit_test(x, 32)) <-> bit_test(x, 0).
 
 ------------------------------------------------------------
 
@@ -107,8 +107,8 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0 != land(x, lsl(1, 1 + i))) <->
-    (0 != land(lsl(1, i), lor(x_1, to_uint32(lsl(x, 31))))).
+Prove: (land(lor(x_1, to_uint32(lsl(x, 31))), lsl(1, i)) != 0) <->
+    (land(x, lsl(1, 1 + i)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -125,8 +125,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, 32 + i - n), lor(x_1, to_uint32(lsl(x, 32 - n))))).
+Prove: (land(lor(x_1, to_uint32(lsl(x, 32 - n))), lsl(1, 32 + i - n)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 
@@ -140,8 +140,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0 != land(x, lsl(1, x_1))) <->
-    (0 != land(lsl(1, i), lor(x_2, to_uint32(lsl(x, 32 - n))))).
+Prove: (land(lor(x_2, to_uint32(lsl(x, 32 - n))), lsl(1, i)) != 0) <->
+    (land(x, lsl(1, x_1)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -158,8 +158,8 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, 64 + i - n), lor(x_1, to_uint64(lsl(x, 64 - n))))).
+Prove: (land(lor(x_1, to_uint64(lsl(x, 64 - n))), lsl(1, 64 + i - n)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 
@@ -173,7 +173,7 @@ Assume {
   (* Pre-condition 'r' *)
   Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0 != land(x, lsl(1, x_1))) <->
-    (0 != land(lsl(1, i), lor(x_2, to_uint64(lsl(x, 64 - n))))).
+Prove: (land(lor(x_2, to_uint64(lsl(x, 64 - n))), lsl(1, i)) != 0) <->
+    (land(x, lsl(1, x_1)) != 0).
 
 ------------------------------------------------------------

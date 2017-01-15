@@ -1,6 +1,6 @@
 /*run.config*
-  OPT: -lib-entry -main main -val @VALUECONFIG@ -journal-disable
-  OPT: -lib-entry -main main -val @VALUECONFIG@ -val-ignore-recursive-calls -journal-disable
+  OPT: -no-autoload-plugins -load-module from,inout,value -lib-entry -main main -val @VALUECONFIG@ -journal-disable
+  OPT: -no-autoload-plugins -load-module from,inout,value -lib-entry -main main -val @VALUECONFIG@ -val-ignore-recursive-calls -journal-disable
  */
 int G;
 

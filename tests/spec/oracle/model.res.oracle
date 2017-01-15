@@ -25,7 +25,7 @@ model T { ℤ t }; */
  */
 /*@ ensures (*\old(s)).z ≡ \result;
     assigns *s; */
-extern int f(struct S *s);
+int f(struct S *s);
 
 /*@ type invariant sum(struct S s) = s.z ≡ s.x + s.y;
  */
@@ -64,7 +64,7 @@ model double { ℝ round };
     ensures \result.exact ≡ \old(x.exact) + \old(y.exact);
     ensures \result ≡ \result.exact + \result.round;
  */
-extern double add(double x, double y);
+double add(double x, double y);
 
 double foo(double x)
 {

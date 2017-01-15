@@ -241,6 +241,50 @@ let () =
 (** {2 Machdep} *)
 (* ************************************************************************* *)
 
+(* not exported, see [pretty_machdep] below. *)
+let print_machdep fmt (m : Cil_types.mach) =
+  begin
+    let open Cil_types in
+    Format.fprintf fmt "Machine: %s@\n" m.version ;
+    List.iter
+      (fun (name,size,align) ->
+         Format.fprintf fmt
+           "   sizeof %11s = %2d (%d bits, aligned on %d bits)@\n"
+           name size (size*8) (align*8))
+      [
+        "short",  m.sizeof_short, m.alignof_short ;
+        "int",    m.sizeof_int,   m.alignof_int ;
+        "long",   m.sizeof_long,  m.alignof_long ;
+        "long long", m.sizeof_longlong,  m.alignof_longlong ;
+        "float",  m.sizeof_float,  m.alignof_float ;
+        "double", m.sizeof_double, m.alignof_double ;
+        "long double", m.sizeof_longdouble, m.alignof_longdouble ;
+        "pointer", m.sizeof_ptr, m.alignof_ptr ;
+        "function", m.sizeof_fun, m.alignof_fun ;
+        "void", m.sizeof_void, 1 ;
+      ] ;
+    List.iter
+      (fun (name,typeof) ->
+         Format.fprintf fmt "   typeof %11s = %s@\n" name typeof)
+      [
+        "sizeof(T)", m.size_t ;
+        "wchar_t", m.wchar_t ;
+        "ptrdiff_t", m.ptrdiff_t ;
+      ] ;
+    Format.fprintf fmt "   char is %s@\n"
+      (if m.char_is_unsigned then "unsigned" else "signed");
+    Format.fprintf fmt "   machine is %s endian@\n"
+      (if m.little_endian then "little" else "big") ;
+    Format.fprintf fmt "   strings are %s chars@\n"
+      (if m.underscore_name then "const" else "writable") ;
+    Format.fprintf fmt "   assembly names %s leading '_'@\n"
+      (if m.underscore_name then "have" else "have no") ;
+    Format.fprintf fmt "   compiler %s builtin __va_list@\n"
+      (if m.has__builtin_va_list then "has" else "has not") ;
+    Format.fprintf fmt "   compiler %s __head as a keyword@\n"
+      (if m.__thread_is_keyword then "uses" else "does not use") ;
+  end
+
 module DatatypeMachdep = Datatype.Make_with_collections(struct
   include Datatype.Serializable_undefined
   let reprs = [Machdeps.x86_32]
@@ -336,6 +380,11 @@ let get_machdep () =
     with Not_found -> (* Should not happen given the checks above *)
       Kernel.fatal "Machdep %s not registered" m
 
+let pretty_machdep ?fmt ?machdep () =
+  let machine = match machdep with None -> get_machdep () | Some m -> m in
+  match fmt with
+  | None -> Log.print_on_output (fun fmt -> print_machdep fmt machine)
+  | Some fmt -> print_machdep fmt machine
 
 (* ************************************************************************* *)
 (** {2 Initialisations} *)
@@ -405,18 +454,18 @@ let parse_cabs = function
       let debug = Kernel.Debug_category.exists (fun x -> x = "parser") in
       let add_if_gnu opt =
         match is_gnu_like with
-          | Gnu -> opt
-          | Not_gnu -> ""
+          | Gnu -> [opt]
+          | Not_gnu -> []
           | Unknown ->
               Kernel.warning
                 ~once:true
                 "your preprocessor is not known to handle option `%s'. \
                  If pre-processing fails because of it, please add \
-                 -no-cpp-gnu-like option to Frama-C's command-line. \
-                 If you do not want to see this warning again, use explicitely \
-                 -cpp-gnu-like option."
+                 -no-cpp-frama-c-compliant option to Frama-C's command-line. \
+                 If you do not want to see this warning again, explicitly use \
+                 option -cpp-frama-c-compliant."
                 opt;
-              opt
+              [opt]
       in
       let ppf =
         try Extlib.temp_file_cleanup_at_exit ~debug (Filename.basename f) ".i"
@@ -425,45 +474,61 @@ let parse_cabs = function
       in
       (* Hypothesis: the preprocessor is POSIX compliant,
          hence understands -I and -D. *)
-      let supp_args =
-        if Kernel.FramaCStdLib.get () then begin
-          let libc = Config.datadir ^ "/libc" in
-          " -I" ^ libc
-        end else ""
+      let include_args =
+        if Kernel.FramaCStdLib.get () then [Config.datadir ^ "/libc"]
+        else []
       in
-      let supp_args =
+      let define_args =
         if Kernel.FramaCStdLib.get () && not (existing_machdep_macro ())
-        then begin
-          let machdep =
-          " -D" ^ (machdep_macro (Kernel.Machdep.get ())) in
-          machdep ^ supp_args
-        end else supp_args
+        then [machdep_macro (Kernel.Machdep.get ())]
+        else []
       in
-      let supp_args =
-        if supp_args = "" then ""
-        else (add_if_gnu " -nostdinc") ^ supp_args
+      let extra_args =
+        if include_args = [] && define_args = [] then []
+        else add_if_gnu "-nostdinc"
       in
-      let supp_args = " -D__FRAMAC__ " ^ supp_args in
-      let supp_args =
+      let define_args = "__FRAMAC__" :: define_args in
+      (* Hypothesis: the preprocessor does support the arch-related
+         options tested when 'configure' was run. *)
+      let required_cpp_arch_args = (get_machdep ()).cpp_arch_flags in
+      let supported_cpp_arch_args, unsupported_cpp_arch_args =
+        List.partition (fun arg ->
+            List.mem arg Config.preprocessor_supported_arch_options)
+          required_cpp_arch_args
+      in
+      if unsupported_cpp_arch_args <> [] then
+        Kernel.warning ~once:true
+          "your preprocessor is not known to handle option(s) `%a', \
+           considered necessary for machdep `%s'. To ensure compatibility \
+           between your preprocessor and the machdep, consider using \
+           -cpp-command with the appropriate flags. \
+           Your preprocessor is known to support these flags: %a"
+          (Pretty_utils.pp_list ~sep:" " Format.pp_print_string)
+          unsupported_cpp_arch_args (Kernel.Machdep.get ())
+          (Pretty_utils.pp_list ~sep:" " Format.pp_print_string)
+          Config.preprocessor_supported_arch_options;
+      let extra_args =
         if Kernel.ReadAnnot.get () then
           if Kernel.PreprocessAnnot.is_set () then
             if Kernel.PreprocessAnnot.get () then
-              " -dD" ^ supp_args
-            else supp_args
+              "-dD" :: extra_args
+            else extra_args
           else
             let opt = add_if_gnu "-dD" in
-            if opt = "" then supp_args
-            else " " ^ opt ^ supp_args
-        else supp_args
+            opt @ extra_args
+        else extra_args
       in
-      let add_args s =
-        Format.asprintf "%a%s"
-          (Pretty_utils.pp_list ~sep:" "
-             (fun fmt s -> Format.fprintf fmt "%s" s))
-          (Kernel.CppExtraArgs.get ())
-          s
+      let pp_str = Format.pp_print_string in
+      let string_of_supp_args includes defines extra =
+        Format.asprintf "%a%a%a"
+          (Pretty_utils.pp_list ~pre:" -I" ~sep:" -I" ~empty:"" pp_str) includes
+          (Pretty_utils.pp_list ~pre:" -D" ~sep:" -D" ~empty:"" pp_str) defines
+          (Pretty_utils.pp_list ~pre:" " ~sep:" " ~empty:"" pp_str) extra
       in
-      let supp_args = add_args supp_args in
+      let supp_args =
+        string_of_supp_args include_args define_args
+          (extra_args @ Kernel.CppExtraArgs.get () @ supported_cpp_arch_args)
+      in
       if Kernel.is_debug_key_enabled dkey_pp then
         Kernel.feedback ~dkey:dkey_pp
           "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
@@ -488,8 +553,14 @@ preprocessor command or use the option \"-cpp-command\"." cpp_command
                           "trying to preprocess annotation with an unknown \
                            preprocessor."; true))
         then begin
+          let pp_annot_supp_args =
+            Format.asprintf "-nostdinc %a"
+              (Pretty_utils.pp_list ~sep:" " Format.pp_print_string)
+              supported_cpp_arch_args
+          in
           let ppf' =
-            try Logic_preprocess.file ".c" (build_cpp_cmd cmdl "-nostdinc") ppf
+            try Logic_preprocess.file ".c"
+                  (build_cpp_cmd cmdl pp_annot_supp_args) ppf
             with Sys_error _ as e ->
               safe_remove_file ppf;
               Kernel.abort "preprocessing of annotations failed (%s)"
@@ -910,7 +981,7 @@ let register_global = function
          AST cleanup. *)
       let spec = { spec with spec_variant = spec.spec_variant } in
       Globals.Functions.add (Declaration(spec,f,args,loc))
-  | GVarDecl (({vstorage=Extern} as vi),_) ->
+  | GVarDecl (vi,_) when not vi.vdefined ->
       (* global variables declaration with no definitions *)
       Globals.Vars.add_decl vi
   | GVar (varinfo,initinfo,_) ->
@@ -1149,7 +1220,10 @@ let prepare_cil_file ast =
   Transform_before_cleanup.apply ast;
   (* Compute the list of functions and their CFG *)
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point ast;
-  (try
+  if Kernel.Check.get () then begin
+    Filecheck.check_ast ~is_normalized:false ~ast "Removed temp vars"
+  end;
+ (try
      List.iter register_global ast.globals
    with Globals.Vars.AlreadyExists(vi,_) ->
      Kernel.fatal

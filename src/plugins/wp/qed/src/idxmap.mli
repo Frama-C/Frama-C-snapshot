@@ -47,6 +47,8 @@ sig
   val interq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val diffq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val merge : (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+  val iter2 : (key -> 'a option -> 'b option -> unit) -> 'a t -> 'b t -> unit
+  val subset : (key -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
 
   (** [insert (fun key v old -> ...) key v map] *)
   val insert : (key -> 'a -> 'a -> 'a) -> key -> 'a -> 'a t -> 'a t

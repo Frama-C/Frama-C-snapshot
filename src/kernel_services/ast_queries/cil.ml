@@ -4572,23 +4572,35 @@ let rec bytesAlignOf t =
   | TFun _ as t -> raise (SizeOfError ("Undefined sizeof on a function.", t))
   | TVoid _ as t -> raise (SizeOfError ("Undefined sizeof(void).", t))
   in
-  process_aligned_attribute
+  process_aligned_attribute ~may_reduce:false
     (fun fmt -> !pp_typ_ref fmt t)
     (typeAttrs t) alignOfType
 
-(* alignment of a possibly-packed or aligned struct field. *)
+(* Alignment of a possibly-packed or aligned struct field.
+   From the GCC manual (https://gcc.gnu.org/onlinedocs/gcc/Common-Type-Attributes.html):
+   "Specifying the packed attribute for struct and union types is equivalent
+    to specifying the packed attribute on each of the structure or union members."
+   Note that is not the case for the aligned attribute, which behaves
+   differently when put into a struct, or in each of its fields.
+ *)
 and alignOfField (fi: fieldinfo) =
   let fieldIsPacked = hasAttribute "packed" fi.fattr 
     || hasAttribute "packed" fi.fcomp.cattr
   in
   if fieldIsPacked then begin
     if hasAttribute "aligned" fi.fattr then
-      Kernel.warning
-	"packed attribute overrules aligned attributes for file %s"
-	fi.fname ;
-    1
+      (* field is packed and aligned => process alignment *)
+      let field_alignment = process_aligned_attribute ~may_reduce:true
+          (fun fmt -> Format.fprintf fmt "field %s" fi.fname)
+          fi.fattr
+          (fun () -> bytesAlignOf fi.ftype)
+      in
+      field_alignment
+    else
+      (* packed and without minimum alignment => align on 1 *)
+      1
   end else
-    process_aligned_attribute
+    process_aligned_attribute ~may_reduce:false
       (fun fmt -> Format.fprintf fmt "field %s" fi.fname)
       fi.fattr
       (fun () -> bytesAlignOf fi.ftype)
@@ -4597,8 +4609,21 @@ and intOfAttrparam (a:attrparam) : int option =
   let rec doit a : int =
     match a with
     |  AInt(n) -> Integer.to_int n
-    | ABinOp(Shiftlt, a1, a2) -> (doit a1) lsl (doit a2)
+    | ABinOp(PlusA, a1, a2) -> doit a1 + doit a2
+    | ABinOp(MinusA, a1, a2) -> doit a1 - doit a2
+    | ABinOp(Mult, a1, a2) -> doit a1 * doit a2
     | ABinOp(Div, a1, a2) -> (doit a1) / (doit a2)
+    | ABinOp(Shiftlt, a1, a2) -> (doit a1) lsl (doit a2)
+    | ABinOp(Lt, a1, a2) -> if doit a1 < doit a2 then 1 else 0
+    | ABinOp(Gt, a1, a2) -> if doit a1 > doit a2 then 1 else 0
+    | ABinOp(Le, a1, a2) -> if doit a1 <= doit a2 then 1 else 0
+    | ABinOp(Ge, a1, a2) -> if doit a1 >= doit a2 then 1 else 0
+    | ABinOp(Eq, a1, a2) -> if doit a1 = doit a2 then 1 else 0
+    | ABinOp(Ne, a1, a2) -> if doit a1 <> doit a2 then 1 else 0
+    | ABinOp(BAnd, a1, a2) -> doit a1 land doit a2
+    | ABinOp(BXor, a1, a2) -> doit a1 lxor doit a2
+    | ABinOp(BOr, a1, a2) -> doit a1 lor doit a2
+    | AQuestion(c,a1,a2) -> if doit c <> 0 then doit a1 else doit a2
     | ASizeOf(t) ->
       let bs = bitsSizeOf t in
       bs / 8
@@ -4620,23 +4645,29 @@ and intOfAttrparam (a:attrparam) : int option =
   with Failure _ | SizeOfError _ -> (* Can't compile *)
     ignoreAlignmentAttrs := false;
     None
-and process_aligned_attribute (pp:Format.formatter->unit) attrs default_align = 
+and process_aligned_attribute (pp:Format.formatter->unit) ~may_reduce attrs default_align =
+  (* [may_reduce] indicates if we can reduce the alignment
+     (e.g. a "packed" attribute is present).
+     According to GCC's doc
+     (https://gcc.gnu.org/onlinedocs/gcc/Common-Type-Attributes.html):
+     "The aligned attribute can only increase alignment.
+      Alignment can be decreased by specifying the packed attribute." *)
   match filterAttributes "aligned" attrs with
   | [] -> 
       (* no __aligned__ attribute, so get the default alignment *)
       default_align ()
   | _ when !ignoreAlignmentAttrs -> 
-    Kernel.warning "ignoring recursive align attributes on %t" 
+    Kernel.warning ~current:true "ignoring recursive align attributes on %t"
       pp;
     default_align ()
   | (Attr(_, [a]) as at)::rest -> begin
     if rest <> [] then
-      Kernel.warning "ignoring duplicate align attributes on %t" 
+      Kernel.warning ~current:true "ignoring duplicate align attributes on %t"
         pp;
     match intOfAttrparam a with
-      Some n -> n
+    | Some n -> if may_reduce then n else max n (default_align ())
     | None -> 
-      Kernel.warning "alignment attribute \"%a\" not understood on %t" 
+      Kernel.warning ~current:true "alignment attribute \"%a\" not understood on %t"
         !pp_attribute_ref at pp;
       default_align ()
   end
@@ -4644,11 +4675,11 @@ and process_aligned_attribute (pp:Format.formatter->unit) attrs default_align =
        (* aligned with no arg means a power of two at least as large as
           any alignment on the system.*)
     if rest <> [] then
-      Kernel.warning "ignoring duplicate align attributes on %t" 
+      Kernel.warning ~current:true "ignoring duplicate align attributes on %t"
         pp;
     theMachine.theMachine.alignof_aligned
   | at::_ ->
-    Kernel.warning "alignment attribute \"%a\" not understood on %t" 
+    Kernel.warning ~current:true "alignment attribute \"%a\" not understood on %t"
       !pp_attribute_ref at pp;
     default_align ()
 
@@ -7137,7 +7168,18 @@ let pushGlobal (g: global)
           let aux acc v =
             if isFunctionType v.vtype
             then GFunDecl (empty_funspec (),v, loc) :: acc
-            else GVarDecl (v, loc) :: acc
+            else begin
+             let is_same_decl = function
+                | GVarDecl(v',_) -> Cil_datatype.Varinfo.equal v v'
+                | _ -> false
+              in
+              if List.exists is_same_decl !types then acc
+              else begin
+                variables :=
+                  List.filter (fun x -> not (is_same_decl x)) !variables;
+                GVarDecl (v, loc) :: acc
+              end
+            end
           in
           g :: (List.fold_left aux !types vl)
   end

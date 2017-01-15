@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -lib-entry -val-initialization-padding-globals yes -then -val-initialization-padding-globals no
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -lib-entry -val-initialization-padding-globals yes -then -val-initialization-padding-globals no
 */
 
 const int t[] = { 1, 2, 3, 4, 5 } ;

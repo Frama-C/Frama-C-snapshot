@@ -804,7 +804,7 @@ RESULT for f6:
    -[-c-]-> 88
    -[-c-]-> 93
    -[-c-]-> 94
-   -[--d]-> 103
+   -[--d]-> 105
  {n89}: n % 2
    -[-c-]-> 79
    -[--d]-> 80
@@ -868,35 +868,45 @@ RESULT for f6:
    -[--d]-> 82
    -[--d]-> 84
    -[--d]-> 92
- {n96}: __retres = 0;
+ {n96}: block
+   -[-c-]-> 79
+   -[-c-]-> 95
+ {n97}: block
+   -[-c-]-> 79
+   -[-c-]-> 95
+ {n98}: __retres = 0;
    -[-c-]-> 79
    -[a--]-> 83
    -[-c-]-> 95
- {n97}: __retres = 10 * n;
+   -[-c-]-> 96
+ {n99}: __retres = 10 * n;
    -[-c-]-> 79
    -[--d]-> 80
    -[--d]-> 81
    -[a--]-> 83
    -[--d]-> 91
    -[-c-]-> 95
- {n98}: goto return_label;
-   -[-c-]-> 79
-   -[-c-]-> 95
-   -[-c-]-> 99
- {n99}: return_label:
-   -[-c-]-> 79
+   -[-c-]-> 97
  {n100}: goto return_label;
    -[-c-]-> 79
    -[-c-]-> 95
-   -[-c-]-> 99
- {n101}: return_label: return __retres;
+   -[-c-]-> 96
+   -[-c-]-> 101
+ {n101}: return_label:
+   -[-c-]-> 79
+ {n102}: goto return_label;
+   -[-c-]-> 79
+   -[-c-]-> 95
+   -[-c-]-> 97
+   -[-c-]-> 101
+ {n103}: return_label: return __retres;
    -[-c-]-> 79
    -[--d]-> 83
-   -[--d]-> 96
-   -[--d]-> 97
- {n102}: OutRet
-   -[--d]-> 101
- {n103}: In(Unknown)
+   -[--d]-> 98
+   -[--d]-> 99
+ {n104}: OutRet
+   -[--d]-> 103
+ {n105}: In(Unknown)
 int f6(int n)
 {
   int __retres;
@@ -922,25 +932,28 @@ int f6(int n)
   }
   /* 66 */
   if (i) {
+    /* 132 */
     /* 67 */
     __retres = 0;
-    /* 132 */
+    /* 133 */
     goto return_label;
   }
   else {
+    /* 134 */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10 * n; */
     /*@ assert Value: signed_overflow: 10 * n ≤ 2147483647; */
     /* 69 */
     __retres = 10 * n;
-    /* 133 */
+    /* 135 */
     goto return_label;
   }
-  /* label */ return_label: /* 134 */
+  /* label */ return_label: /* 136 */
                             return __retres;
 }
 
 Slicing project worklist [default/slicing_1] =
-[f6_slice_1 = (n:79 ,<[-c-], [---]>)(n:95 ,<[-c-], [---]>)]
+[f6_slice_1 = (n:79 ,<[-c-], [---]>)(n:95 ,<[-c-], [---]>)(n:97 ,<[-c-],
+                                                                 [---]>)]
 
 [slicing] applying all slicing requests...
 [slicing] applying 1 actions...
@@ -976,12 +989,14 @@ f6_slice_1:
   }
   /* <[-c-], [---]> */
   if (i) {
+    /* <[---], [ S ]> */
     /* <[---], [---]> */
     __retres = 0;
     /* <[---], [---]> */
     goto return_label;
   }
   else {
+    /* <[-c-], [---]> */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10 * n; */
     /*@ assert Value: signed_overflow: 10 * n ≤ 2147483647; */
     /* <[---], [---]> */
@@ -1262,12 +1277,14 @@ f6_slice_1:
   }
   /* <[-c-], [---]> */
   if (i) {
+    /* <[---], [ S ]> */
     /* <[---], [---]> */
     __retres = 0;
     /* <[---], [---]> */
     goto return_label;
   }
   else {
+    /* <[-c-], [---]> */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10 * n; */
     /*@ assert Value: signed_overflow: 10 * n ≤ 2147483647; */
     /* <[---], [---]> */

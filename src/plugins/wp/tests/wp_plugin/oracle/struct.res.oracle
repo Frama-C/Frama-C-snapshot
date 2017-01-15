@@ -82,13 +82,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,P5' in 'g':
-Let a = p.F2_T_a.
-Let a_1 = p.F2_T_b.
-Assume {
-  Type: IsS2_T(p) /\ is_sint32(a.F1_S_i) /\ is_sint32(a.F1_S_j) /\
-      is_sint32(a_1.F1_S_i) /\ is_sint32(a_1.F1_S_j).
-}
-Prove: EqS2_T(p, p).
+Prove: true.
 
 ------------------------------------------------------------
 

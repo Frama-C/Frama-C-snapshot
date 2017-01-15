@@ -24,14 +24,25 @@ open Cil_types
 open Cvalue
 
 let backward_int_relation op v1 v2 =
+  let v1' = V.backward_comp_int_left op v1 v2 in
+  let op' = Abstract_interp.Comp.sym op in
+  let v2' = V.backward_comp_int_left op' v2 v1 in
   if Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
   && not (Cvalue_forward.are_comparable op v1 v2)
-  then None
-  else
-    let v1' = V.backward_comp_int_left op v1 v2 in
-    let op' = Abstract_interp.Comp.sym op in
-    let v2' = V.backward_comp_int_left op' v2 v1 in
-    Some (v1', v2')
+  then begin
+    if not (Cvalue.V.equal v1 v1' || Cvalue.V.is_bottom v1') then
+      Value_parameters.result
+        ~current:true ~once:true
+        ~dkey:Value_parameters.dkey_pointer_comparison
+        "not reducing %a to %a because of UPCPA" V.pretty v1 V.pretty v1';
+    if not (Cvalue.V.equal v2 v2' || Cvalue.V.is_bottom v2') then
+      Value_parameters.result
+        ~current:true ~once:true
+        ~dkey:Value_parameters.dkey_pointer_comparison
+        "not reducing %a to %a because of UPCPA" V.pretty v2 V.pretty v2';
+    None
+  end
+  else Some (v1', v2')
 
 let backward_float_relation round fkind op v1 v2 =
   let v1' = V.backward_comp_float_left op round fkind v1 v2 in

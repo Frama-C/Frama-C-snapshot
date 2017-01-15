@@ -19,9 +19,9 @@ Assume {
   Have: valid_rw(Malloc_0, shift_sint32(a, 0), 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)])))).
 }
-Prove: (reg_load_0[i] + Mint_0[shift_sint32(a, i)]) = reg_add_0[i].
+Prove: reg_add_0[i] = (reg_load_0[i] + Mint_0[shift_sint32(a, i)]).
 
 ------------------------------------------------------------
 
@@ -50,17 +50,17 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = t[i_1]))).
+      (t[i_1] = reg_load_0[i_1]))).
   (* Call 'reset_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t_1[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (t_1[i_1] = 0))).
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (t_1[i_1] = t[i_1])))).
+      (((i_1 < 0) \/ (5 <= i_1)) -> (t[i_1] = t_1[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + t_1[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + t_1[i_1])))).
 }
-Prove: reg_load_0[i] = t[i].
+Prove: t[i] = reg_load_0[i].
 
 ------------------------------------------------------------
 
@@ -70,17 +70,17 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = t_1[i_1]))).
+      (t_1[i_1] = reg_load_0[i_1]))).
   (* Call 'reset_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (t[i_1] = 0))).
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (t[i_1] = t_1[i_1])))).
+      (((i_1 < 0) \/ (5 <= i_1)) -> (t_1[i_1] = t[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + t[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + t[i_1])))).
 }
-Prove: 0 = t[i].
+Prove: t[i] = 0.
 
 ------------------------------------------------------------
 
@@ -90,17 +90,17 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = t[i_1]))).
+      (t[i_1] = reg_load_0[i_1]))).
   (* Call 'reset_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = t_1[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (t_1[i_1] = 0))).
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 19) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (t_1[i_1] = t[i_1])))).
+      (((i_1 < 0) \/ (5 <= i_1)) -> (t[i_1] = t_1[i_1])))).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + t_1[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + t_1[i_1])))).
 }
-Prove: reg_add_0[i] = t[i].
+Prove: t[i] = reg_add_0[i].
 
 ------------------------------------------------------------
 
@@ -142,14 +142,14 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = m[i_1]))).
+      (m[i_1] = reg_load_0[i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (v[i_1] = 0))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + v[i_1])))).
 }
-Prove: reg_load_0[i] = m[i].
+Prove: m[i] = reg_load_0[i].
 
 ------------------------------------------------------------
 
@@ -159,14 +159,14 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = tt_0[0][i_1]))).
+      (tt_0[0][i_1] = reg_load_0[i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (v[i_1] = 0))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + v[i_1])))).
 }
-Prove: 0 = v[i].
+Prove: v[i] = 0.
 
 ------------------------------------------------------------
 
@@ -177,14 +177,14 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = m[i_1]))).
+      (m[i_1] = reg_load_0[i_1]))).
   (* Call 'reset_1_5' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (0 = v[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) -> (v[i_1] = 0))).
   (* Call 'add_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + v[i_1]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + v[i_1])))).
 }
-Prove: reg_add_0[i] = m[i].
+Prove: m[i] = reg_add_0[i].
 
 ------------------------------------------------------------
 
@@ -230,17 +230,17 @@ Assume {
   (* Call 'load_5' *)
   Have: valid_rw(Malloc_0, a_1, 5) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)])))).
+       (Mint_0[shift_sint32(a, i_1)] = reg_load_0[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_1[shift_sint32(a, i_1)]))).
+      (Mint_1[shift_sint32(a, i_1)] = 0))).
   (* Call Effects *)
   Have: havoc(Mint_0, Mint_1, a_1, 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)])))).
 }
-Prove: reg_load_0[i] = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
+Prove: Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)] = reg_load_0[i].
 
 ------------------------------------------------------------
 
@@ -255,17 +255,17 @@ Assume {
   (* Call 'load_5' *)
   Have: valid_rw(Malloc_0, a_1, 5) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (reg_load_0[i_1] = Mint_1[shift_sint32(a, i_1)])))).
+       (Mint_1[shift_sint32(a, i_1)] = reg_load_0[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_0[shift_sint32(a, i_1)]))).
+      (Mint_0[shift_sint32(a, i_1)] = 0))).
   (* Call Effects *)
   Have: havoc(Mint_1, Mint_0, a_1, 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_0[shift_sint32(a, i_1)])))).
 }
-Prove: 0 = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
+Prove: Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)] = 0.
 
 ------------------------------------------------------------
 
@@ -280,17 +280,17 @@ Assume {
   (* Call 'load_5' *)
   Have: valid_rw(Malloc_0, a_1, 5) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)])))).
+       (Mint_0[shift_sint32(a, i_1)] = reg_load_0[i_1])))).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_1[shift_sint32(a, i_1)]))).
+      (Mint_1[shift_sint32(a, i_1)] = 0))).
   (* Call Effects *)
   Have: havoc(Mint_0, Mint_1, a_1, 5).
   (* Call 'add_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      ((reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)]) = reg_add_0[i_1]))).
+      (reg_add_0[i_1] = (reg_load_0[i_1] + Mint_1[shift_sint32(a, i_1)])))).
 }
-Prove: reg_add_0[i] = Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)].
+Prove: Mint_0[shift_sint32(shift_A5_sint32(a, 0), i)] = reg_add_0[i].
 
 ------------------------------------------------------------
 
@@ -338,9 +338,9 @@ Assume {
   Have: valid_rw(Malloc_0, shift_sint32(a, 0), 5).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = Mint_0[shift_sint32(a, i_1)]))).
+      (Mint_0[shift_sint32(a, i_1)] = reg_load_0[i_1]))).
 }
-Prove: reg_load_0[i] = Mint_0[shift_sint32(a, i)].
+Prove: Mint_0[shift_sint32(a, i)] = reg_load_0[i].
 
 ------------------------------------------------------------
 
@@ -375,11 +375,11 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 5).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_0[shift_sint32(a, i_1)]))).
+      (Mint_0[shift_sint32(a, i_1)] = 0))).
   (* Call Effects *)
   Have: havoc(Mint_1, Mint_0, a_1, 5).
 }
-Prove: 0 = Mint_0[shift_sint32(a, i)].
+Prove: Mint_0[shift_sint32(a, i)] = 0.
 
 ------------------------------------------------------------
 

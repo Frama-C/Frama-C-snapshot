@@ -46,10 +46,10 @@ struct ifmaddrs {
 	struct sockaddr	*ifma_lladdr;
 };
 
-int getifaddrs(struct ifaddrs **);
-void freeifaddrs(struct ifaddrs *);
-int getifmaddrs(struct ifmaddrs **);
-void freeifmaddrs(struct ifmaddrs *);
+extern int getifaddrs(struct ifaddrs **);
+extern void freeifaddrs(struct ifaddrs *);
+extern int getifmaddrs(struct ifmaddrs **);
+extern void freeifmaddrs(struct ifmaddrs *);
 
 __END_DECLS
 

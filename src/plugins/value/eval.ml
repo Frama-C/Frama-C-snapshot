@@ -223,15 +223,6 @@ type 'value call = {
   rest: (exp * 'value assigned) list
 }
 
-
-type ('state, 'return, 'value) return_state = {
-  post_state: 'state;
-  return: ('value flagged_value * 'return) option;
-}
-
-type ('state, 'return, 'value) call_result =
-  ('state, 'return, 'value) return_state list or_bottom
-
 (* Initialization of a dataflow analysis, by definig the initial value of
     each statement. *)
 type 't init =
@@ -240,9 +231,9 @@ type 't init =
   | Custom of (stmt * 't) list
 
 (* Action to perform on a call site. *)
-type ('state, 'summary, 'value) call_action =
+type 'state call_action =
   | Compute of 'state init * bool
-  | Result  of ('state, 'summary, 'value) call_result * Value_types.cacheable
+  | Result  of 'state list or_bottom * Value_types.cacheable
 
 exception InvalidCall
 

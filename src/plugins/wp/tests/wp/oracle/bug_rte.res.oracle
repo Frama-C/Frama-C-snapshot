@@ -10,12 +10,12 @@
 
 Goal Assertion 'rte,signed_overflow' (file tests/wp/bug_rte.i, line 7):
 Assume { Type: is_sint32(i) /\ is_sint32(j). }
-Prove: if (1 = j) then ((-2147483647) <= i) else ((-2147483648) <= i).
+Prove: if (j = 1) then ((-2147483647) <= i) else ((-2147483648) <= i).
 
 ------------------------------------------------------------
 
 Goal Assertion 'rte,signed_overflow' (file tests/wp/bug_rte.i, line 7):
 Assume { Type: is_sint32(i) /\ is_sint32(j). }
-Prove: i <= (2147483647 + (if (1 = j) then 1 else 0)).
+Prove: i <= (2147483647 + (if (j = 1) then 1 else 0)).
 
 ------------------------------------------------------------

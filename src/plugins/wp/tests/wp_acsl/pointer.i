@@ -1,6 +1,6 @@
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model Typed+ref -wp-prop="-qed_ok,-qed-ko"
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model Typed -wp-prop="-qed_ok,-qed-kok"
+   OPT: -wp-model Typed+ref -wp-prop="-qed_ok,-qed-ko"
+   OPT: -wp-model Typed -wp-prop="-qed_ok,-qed-kok"
 */
 
 // Some true properties cannot be proved. config_qualif tests them.

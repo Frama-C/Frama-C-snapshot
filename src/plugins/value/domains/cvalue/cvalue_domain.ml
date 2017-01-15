@@ -114,11 +114,6 @@ module Model = struct
       let loc = Precise_locs.inject_location_bits loc_bits in
       `Value (Precise_locs.make_precise_loc loc ~size, value)
 
-  type return = Cvalue.V_Offsetmap.t option
-  (* the value returned (ie. what is after the 'return' C keyword). *)
-
-  module Return = Datatype.Option (Cvalue.V_Offsetmap)
-
 end
 
 
@@ -168,9 +163,6 @@ module State = struct
     Model.backward_location state lval typ precise_loc value
   let reduce_further _ _ _ = []
 
-  type return = Model.return
-  module Return = Model.Return
-
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -182,7 +174,6 @@ module State = struct
     type value = Valuation.value
     type location = Valuation.loc
     type state = t
-    type return = Model.return
     type valuation = Valuation.t
 
     let update valuation (s, clob) = T.update valuation s, clob
@@ -210,9 +201,7 @@ module State = struct
     let result_with_clob bases result =
       let clob = Locals_scoping.bottom () in
       Locals_scoping.remember_bases_with_locals clob bases;
-      List.map
-        (fun return -> { return with post_state = (return.post_state, clob) })
-        result
+      List.map (fun post_state -> post_state, clob) result
 
     let start_call stmt call valuation (s, _clob) =
       match T.start_call stmt call valuation s with
@@ -221,44 +210,11 @@ module State = struct
       | Result (list, c), post_clob ->
         Result ((list >>-: fun l -> result_with_clob post_clob l), c)
 
-    (* This function extracts the return value from the abstract state
-       (from the varinfo it is stored in), and detects whether it contains
-       dangling pointers to locals and formals. The abstract state is _not_
-       checked for such pointers. For locals, this is done automatically by
-       the engine. For formals, this is done when we go back to the caller. *)
-    let make_return kf stmt assign valuation (s, clob) =
-      let return_offsm = T.make_return kf stmt assign valuation s in
-      let fundec = Kernel_function.get_definition kf in
-      let return_offsm = match return_offsm with
-        | None -> None
-        | Some offsm ->
-          let offsetmap_top_addresses_of_locals, _ =
-            Locals_scoping.top_addresses_of_locals fundec clob
-          in
-          let locals, r = offsetmap_top_addresses_of_locals offsm in
-          if not (Cvalue.V_Offsetmap.equal r offsm) then
-            Warn.warn_locals_escape_result fundec locals;
-          Some r
-      in
-      return_offsm
-
     let finalize_call stmt call ~pre ~post =
       let (post_state, post_clob) = post
       and pre_state, clob = pre in
       Locals_scoping.(remember_bases_with_locals clob post_clob.clob);
       T.finalize_call stmt call ~pre:pre_state ~post:post_state
-      >>-: fun state ->
-      state, clob
-
-    let assign_return stmt lv kf return_offsm value valuation (state, clob) =
-      (match return_offsm with
-       | Some offsm ->
-         Precise_locs.fold
-           (fun loc () ->
-              Locals_scoping.remember_if_locals_in_offsetmap clob loc offsm)
-           lv.lloc ()
-       | _ -> ());
-      T.assign_return stmt lv kf return_offsm value valuation state
       >>-: fun state ->
       state, clob
 
@@ -297,7 +253,6 @@ module State = struct
   (*                                  Logic                                   *)
   (* ------------------------------------------------------------------------ *)
 
-
   (* Evaluation environment. *)
   type eval_env = Eval_terms.eval_env * Locals_scoping.clobbered_set
   let env_current_state (env, clob) =
@@ -333,31 +288,24 @@ module State = struct
     end;
     Value_parameters.feedback ~once:true "@[using specification for function %a@]"
       Kernel_function.pretty kf;
-    let result = Eval_behaviors.compute_using_specification kf spec ~call_kinstr ~with_formals:state in
+    Cvalue_specification.compute_using_specification
+      kf spec ~call_kinstr ~with_formals:state
+    >>-: fun result ->
     let aux (offsm, post_state) =
-      let default =
-        { post_state; return = None }
-      in
       match offsm with
-      | None -> default
+      | None -> post_state
       | Some offsm ->
-        let typ = Kernel_function.get_return_type kf in
-        let right_v = Cvalue_transfer.find_right_value typ offsm in
-        { post_state;
-          return = Some (right_v, Some offsm) }
+        let vi = Extlib.the (Library_functions.get_retres_vi kf) in
+        let b = Base.of_varinfo vi in
+        Cvalue.Model.add_base b offsm post_state
     in
     List.map aux result.Value_types.c_values, result.Value_types.c_clobbered
 
   let compute_using_specification call_kinstr (kf, fundec) (state, clob) =
-    let res, sclob =
-      compute_using_specification call_kinstr (kf, fundec) state
-    in
+    compute_using_specification call_kinstr (kf, fundec) state
+    >>- fun (res, sclob) ->
     Locals_scoping.(remember_bases_with_locals clob sclob);
-    let list =
-      List.map
-        (fun return -> { return with post_state = (return.post_state, clob) })
-        res
-    in
+    let list = List.map (fun return -> return, clob) res in
     Bottom.bot_of_list list
 
 

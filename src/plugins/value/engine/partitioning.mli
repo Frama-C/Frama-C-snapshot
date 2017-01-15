@@ -22,39 +22,13 @@
 
 open Eval
 
-module type StateSet = sig
-  type state
-  type t
-
-  val empty: t
-  val is_empty: t -> bool
-  val singleton: state -> t
-  val singleton': state or_bottom -> t
-  val uncheck_add: state -> t -> t
-  val add: state -> t -> t
-  val add': state or_bottom -> t -> t
-
-  val length: t -> int
-
-  val merge: into:t -> t -> t * bool
-  val join: ?into:state or_bottom -> t -> state or_bottom
-  val fold: (state -> 'a -> 'a) -> t -> 'a -> 'a
-  val iter: (state -> unit) -> t -> unit
-  val map: (state -> state) -> t -> t
-
-  val reorder: t -> t
-  val of_list: state list -> t
-  val to_list: t -> state list
-
-  val pretty : Format.formatter -> t -> unit
+module type Domain = sig
+  include Abstract_domain.Lattice
+  include Datatype.S_with_collections with type t = state
+  include Abstract_domain.Interface with type t := state
 end
 
-module Make_Set
-    (Domain: Abstract_domain.S)
-  : StateSet with type state = Domain.t
-
-
-module type Partition = sig
+module type S = sig
   type state
   type state_set
   type t
@@ -72,11 +46,11 @@ module type Partition = sig
   val pretty : Format.formatter -> t -> unit
 end
 
-module Make_Partition
-    (Domain: Abstract_domain.External)
-    (States : StateSet with type state = Domain.t)
-  : Partition with type state = Domain.t
-               and type state_set = States.t
+module Make
+    (Domain: Domain)
+    (States : Powerset.S with type state = Domain.t)
+  : S with type state = Domain.t
+       and type state_set = States.t
 
 
 (*

@@ -248,7 +248,7 @@ struct S {
 int t[42];
 struct S s;
 /*@ assigns *(p + (..)), t[..], (s + (..))->x, (s + (..))->y[..]; */
-extern void f(int *p, struct S *s);
+void f(int *p, struct S *s);
 
 int main(void)
 {

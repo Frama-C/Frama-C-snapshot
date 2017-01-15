@@ -25,7 +25,6 @@ open Eval
 
 let dkey = Value_parameters.register_category "callbacks"
 
-
 module Make
     (Val: Abstract_value.S)
     (Loc: Abstract_location.External with type value = Val.t)
@@ -47,15 +46,16 @@ module Make
       | [] -> state
       | _ ->  leave_scope kf vars state
   end
-  module States = Partitioning.Make_Set (Domain)
+  module States = Powerset.Make (Domain)
   module Domain_Transfer = struct
     include Domain.Transfer (Eva.Valuation)
+    let enter_scope = Domain.enter_scope
     let leave_scope = Domain.leave_scope
     module Store = Domain.Store
     include (Domain : Datatype.S with type t = state)
   end
   module Transfer = Transfer_stmt.Make (Val) (Loc) (Domain_Transfer) (Eva)
-  module Logic = Transfer_logic.Make (Domain) (Partitioning.Make_Set (Domain))
+  module Logic = Transfer_logic.Make (Domain) (States)
 
   module Computer =
     Partitioned_dataflow.Computer (Domain) (States) (Transfer) (Logic)

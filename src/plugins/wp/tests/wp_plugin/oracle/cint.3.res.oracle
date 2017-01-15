@@ -29,9 +29,7 @@ Prove: P_R(signed_downcast_0, signed_downcast_0).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/cint.i, line 36) in 'signed_overflow':
-Assume {
-  Type: is_sint32(signed_overflow_0) /\ is_sint32(signed_overflow_0 - b).
-}
+Assume { Type: is_sint32(signed_overflow_0). }
 Prove: P_R(signed_overflow_0, signed_overflow_0).
 
 ------------------------------------------------------------

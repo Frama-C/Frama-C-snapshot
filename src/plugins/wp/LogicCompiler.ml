@@ -564,7 +564,7 @@ struct
           d_types = List.length l.l_tparams ;
           d_params = xs ;
           d_cluster = cluster ;
-          d_definition = Value(tau,is_recursive l,r) ;
+          d_definition = Function(tau,is_recursive l,r) ;
         } in
         Definitions.define_symbol ldef ;
         type_for_signature l ldef s ; SIG s

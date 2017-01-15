@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -then -val-initialization-padding-globals maybe
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -then -val-initialization-padding-globals maybe
 */
 
 int t[5] = { [2] = 3 };

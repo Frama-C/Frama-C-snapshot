@@ -38,8 +38,13 @@ int main(int c)
     goto return_label;
   }
   /*@ requires x ≡ 7; */
-  /*@ ensures x ≡ 7; */
-  __retres = 0;
+  {
+    /*@ ensures x ≡ 7; */
+    {
+      __retres = 0;
+      goto return_label;
+    }
+  }
   return_label: return __retres;
 }
 

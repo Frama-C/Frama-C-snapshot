@@ -93,66 +93,56 @@ Prove: true.
 Goal Post-condition for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 121) in 'non_natural_loop':
 Assume {
   Type: is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(n_2) /\
-      is_sint32(non_natural_loop_0) /\ is_sint32(x) /\ is_sint32(x_1).
+      is_sint32(non_natural_loop_0) /\ is_sint32(x).
   (* Pre-condition for 'n_neg' *)
   Have: n_2 < 0.
   (* Merge *)
   Either {
     Case:
-      Let x_2 = 2 + x.
-      Type: is_sint32(x) /\ is_sint32(x_2).
-      Have: (10 = n) /\ (10 = n_2).
+      Let x_1 = 2 + x.
+      Type: is_sint32(x) /\ is_sint32(x_1).
+      Have: (n = 10) /\ (n_2 = 10).
       (* Invariant for 'n_neg' *)
-      Have: (10 = n) /\ (0 = (x % 2)) /\ (x <= 9).
-      Have: non_natural_loop_0 = x_2.
+      Have: ((x % 2) = 0) /\ (x <= 9).
+      Have: x_1 = non_natural_loop_0.
     Case:
-      Have: n_1 = n_2.
+      Have: n_2 = n_1.
       If n_1 < 0
-      Then { Have: 0 = non_natural_loop_0. Have: 10 = n. }
-      Else {
-        Have: 1 = x.
-        Have: 20 = n.
-        Have: 1 = x.
-        Have: (1 = x) /\ (3 = non_natural_loop_0).
-      }
+      Then { Have: non_natural_loop_0 = 0. Have: n = 10. }
+      Else { Have: n = 20. Have: non_natural_loop_0 = 3. }
   }
   (* Else *)
   Have: n <= non_natural_loop_0.
 }
-Prove: 10 = non_natural_loop_0.
+Prove: non_natural_loop_0 = 10.
 
 ------------------------------------------------------------
 
 Goal Invariant for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 137):
 Assume {
   Type: is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(n_2) /\ is_sint32(x) /\
-      is_sint32(x_1) /\ is_sint32(x_2).
+      is_sint32(x_1).
   (* Pre-condition for 'n_neg' *)
   Have: n_2 < 0.
   (* Merge *)
   Either {
     Case:
-      Let x_3 = 2 + x_1.
-      Type: is_sint32(x_1) /\ is_sint32(x_3).
-      Have: (10 = n) /\ (10 = n_2).
+      Let x_2 = 2 + x_1.
+      Type: is_sint32(x_1) /\ is_sint32(x_2).
+      Have: (n = 10) /\ (n_2 = 10).
       (* Invariant for 'n_neg' *)
-      Have: (10 = n) /\ (0 = (x_1 % 2)) /\ (x_1 <= 9).
-      Have: x = x_3.
+      Have: ((x_1 % 2) = 0) /\ (x_1 <= 9).
+      Have: x_2 = x.
     Case:
-      Have: n_1 = n_2.
+      Have: n_2 = n_1.
       If n_1 < 0
-      Then { Have: 0 = x. Have: 10 = n. }
-      Else {
-        Have: 1 = x_1.
-        Have: 20 = n.
-        Have: 1 = x_1.
-        Have: (1 = x_1) /\ (3 = x).
-      }
+      Then { Have: x = 0. Have: n = 10. }
+      Else { Have: n = 20. Have: x = 3. }
   }
   (* Then *)
   Have: x < n.
 }
-Prove: (10 = n) /\ (0 = (x % 2)).
+Prove: (n = 10) /\ ((x % 2) = 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -162,66 +152,52 @@ Prove: (10 = n) /\ (0 = (x % 2)).
 Goal Post-condition for 'n_pos' (file tests/wp/wp_inv_in_loop.c, line 124) in 'non_natural_loop':
 Assume {
   Type: is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(n_2) /\
-      is_sint32(non_natural_loop_0) /\ is_sint32(x) /\ is_sint32(x_1).
+      is_sint32(non_natural_loop_0) /\ is_sint32(x).
   (* Pre-condition for 'n_pos' *)
   Have: 0 <= n_2.
   (* Merge *)
   Either {
     Case:
-      Let x_2 = 2 + x.
-      Type: is_sint32(x) /\ is_sint32(x_2).
-      Have: (20 = n) /\ (20 = n_2).
-      (* Invariant for 'n_pos' 'qed_ok' *)
-      Have: 20 = n.
-      Have: non_natural_loop_0 = x_2.
+      Let x_1 = 2 + x.
+      Type: is_sint32(x) /\ is_sint32(x_1).
+      Have: (n = 20) /\ (n_2 = 20).
+      Have: x_1 = non_natural_loop_0.
     Case:
-      Have: n_1 = n_2.
+      Have: n_2 = n_1.
       If n_1 < 0
-      Then { Have: 0 = non_natural_loop_0. Have: 10 = n. }
-      Else {
-        Have: 1 = x.
-        Have: 20 = n.
-        Have: 1 = x.
-        Have: (1 = x) /\ (3 = non_natural_loop_0).
-      }
+      Then { Have: non_natural_loop_0 = 0. Have: n = 10. }
+      Else { Have: n = 20. Have: non_natural_loop_0 = 3. }
   }
   (* Else *)
   Have: n <= non_natural_loop_0.
 }
-Prove: 21 = non_natural_loop_0.
+Prove: non_natural_loop_0 = 21.
 
 ------------------------------------------------------------
 
 Goal Invariant for 'n_pos' 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 139):
 Assume {
   Type: is_sint32(n) /\ is_sint32(n_1) /\ is_sint32(n_2) /\ is_sint32(x) /\
-      is_sint32(x_1) /\ is_sint32(x_2).
+      is_sint32(x_1).
   (* Pre-condition for 'n_pos' *)
   Have: 0 <= n_2.
   (* Merge *)
   Either {
     Case:
-      Let x_3 = 2 + x_1.
-      Type: is_sint32(x_1) /\ is_sint32(x_3).
-      Have: (20 = n) /\ (20 = n_2).
-      (* Invariant for 'n_pos' 'qed_ok' *)
-      Have: 20 = n.
-      Have: x = x_3.
+      Let x_2 = 2 + x_1.
+      Type: is_sint32(x_1) /\ is_sint32(x_2).
+      Have: (n = 20) /\ (n_2 = 20).
+      Have: x_2 = x.
     Case:
-      Have: n_1 = n_2.
+      Have: n_2 = n_1.
       If n_1 < 0
-      Then { Have: 0 = x. Have: 10 = n. }
-      Else {
-        Have: 1 = x_1.
-        Have: 20 = n.
-        Have: 1 = x_1.
-        Have: (1 = x_1) /\ (3 = x).
-      }
+      Then { Have: x = 0. Have: n = 10. }
+      Else { Have: n = 20. Have: x = 3. }
   }
   (* Then *)
   Have: x < n.
 }
-Prove: 20 = n.
+Prove: n = 20.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

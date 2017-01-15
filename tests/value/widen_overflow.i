@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@
+   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@
 */
 
 int main() {

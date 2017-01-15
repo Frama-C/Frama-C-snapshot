@@ -216,6 +216,11 @@ let ldomain ltype =
 
 let s_eq = ref (fun _ _ _ -> assert false) (* recursion for equal_object *)
 
+let rec reduce_eqcomp = function
+  | [a;b] when Lang.F.equal a b -> F.e_true
+  | _::ws -> reduce_eqcomp ws
+  | [] -> raise Not_found
+
 module EQARRAY = Model.Generator(Matrix.NATURAL)
     (struct
       open Matrix
@@ -244,6 +249,7 @@ module EQARRAY = Model.Generator(Matrix.NATURAL)
           d_definition = Predicate(Def,definition) ;
           d_cluster = cluster ;
         } ;
+        Lang.F.set_builtin lfun reduce_eqcomp ;
         (* Finally return symbol *)
         lfun
     end)
@@ -273,7 +279,9 @@ and equal_comp c a b =
               equal_typ f.ftype
                 (e_getfield ra fd) (e_getfield rb fd))
            c.cfields
-       in {
+       in
+       Lang.F.set_builtin lfun reduce_eqcomp ;
+       {
          d_lfun = lfun ; d_types = 0 ; d_params = [xa;xb] ;
          d_cluster = Definitions.compinfo c ;
          d_definition = Predicate(Def,def) ;

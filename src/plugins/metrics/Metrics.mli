@@ -22,6 +22,16 @@
 
 (** Metrics plugin. *)
 
+(** See {!Metrics_coverage}. *)
+module Metrics_coverage : sig
+  val compute_syntactic:
+    libc:bool -> Kernel_function.t -> Cil_datatype.Varinfo.Set.t
+
+  (**/**)
+  val compute_semantic:
+    libc:bool -> Cil_datatype.Varinfo.Set.t
+end
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

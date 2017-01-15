@@ -163,7 +163,7 @@ int loop2(int n, int *p)
 }
 
 /*@ assigns \nothing; */
-extern void out_char(char c);
+void out_char(char c);
 
 void out_string(char const *value)
 {

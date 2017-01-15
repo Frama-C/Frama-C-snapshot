@@ -1,5 +1,5 @@
 /* run.config
-   CMD: @frama-c@ -wp -wp-proof none -wp-check -wp-share ./share -wp-msg-key shell -wp-msg-key rte
+   CMD: @frama-c@ -wp -wp-prover none -wp-check -wp-share ./share -wp-msg-key shell -wp-msg-key rte
    OPT: -wp-rte -then -print -no-unicode
    OPT: -wp-rte -no-warn-signed-overflow -then -print -no-unicode
    OPT: -wp-rte -warn-unsigned-overflow -then -print -no-unicode

@@ -6,7 +6,7 @@ tests/rte/reqlabl.c:11:[kernel] warning: No code nor implicit assigns clause for
 /*@ requires PROP_SUR_982: x > 0;
     assigns \result;
     assigns \result \from x; */
-extern int f(int x);
+int f(int x);
 
 void g(int a)
 {

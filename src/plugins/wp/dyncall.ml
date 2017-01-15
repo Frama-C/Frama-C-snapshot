@@ -59,11 +59,6 @@ let get_call t = match t.term_node with
   | TLval (TVar { lv_origin = Some v } , TNoOffset ) -> Globals.Functions.get v
   | _ -> raise Not_found
 
-let rec either loc = function
-  | [] -> Logic_const.pfalse
-  | [p] -> p
-  | p::ps -> Logic_const.por ~loc (p,either loc ps)
-
 let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
   List.fold_right
     (fun bhv calls ->
@@ -108,8 +103,6 @@ let property ~kf ?bhv ~stmt ~calls =
 (* -------------------------------------------------------------------------- *)
 (* --- Detection                                                          --- *)
 (* -------------------------------------------------------------------------- *)
-
-let dkey = Wp_parameters.register_category "calls"
 
 class dyncall =
   object(self)

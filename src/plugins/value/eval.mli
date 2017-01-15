@@ -209,18 +209,6 @@ type 'value call = {
   rest: (exp * 'value assigned) list  (** Extra-arguments. *)
 }
 
-(** Abstraction of the return of a function:
-    - the state at the end of the function;
-    - two abstractions of the return value, if any. *)
-type ('state, 'return, 'value) return_state = {
-  post_state: 'state;
-  return: ('value flagged_value * 'return) option;
-}
-
-(** Result of a call: disjunctive list of abstractions of the function return. *)
-type ('state, 'return, 'value) call_result =
-  ('state, 'return, 'value) return_state list or_bottom
-
 (** Initialization of a dataflow analysis, by definig the initial value of
     each statement. *)
 type 't init =
@@ -234,13 +222,13 @@ type 't init =
       statements are initialized to bottom. *)
 
 (** Action to perform on a call site. *)
-type ('state, 'summary, 'value) call_action =
+type 'state call_action =
   | Compute of 'state init * bool
   (** Analyze the called function with the given initialization. If the summary
       of a previous analysis for this initialization has been cached, it will
       be used without re-computation.
       The second boolean indicates whether the result must be cached. *)
-  | Result of ('state, 'summary, 'value) call_result * Value_types.cacheable
+  | Result  of 'state list or_bottom * Value_types.cacheable
   (** Direct computation of the result. *)
 
 exception InvalidCall

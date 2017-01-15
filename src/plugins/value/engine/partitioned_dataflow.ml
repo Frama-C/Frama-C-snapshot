@@ -38,9 +38,8 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
 
 module Make_Dataflow
     (Domain : Abstract_domain.External)
-    (States : Partitioning.StateSet with type state = Domain.t)
-    (Transfer : Transfer_stmt.S with type state = Domain.t
-                                 and type return = Domain.return)
+    (States : Powerset.S with type state = Domain.t)
+    (Transfer : Transfer_stmt.S with type state = Domain.t)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
     (AnalysisParam : sig
@@ -52,7 +51,7 @@ module Make_Dataflow
 
   let with_alarms = Value_util.warn_all_quiet_mode ()
 
-  module Partition = Partitioning.Make_Partition (Domain) (States)
+  module Partition = Partitioning.Make (Domain) (States)
 
   let current_kf = AnalysisParam.kf
   let current_fundec = Kernel_function.get_definition current_kf
@@ -333,7 +332,6 @@ module Make_Dataflow
 
     let doInstr stmt (i: instr) (d: t) =
       !Db.progress ();
-      Alarmset.start_stmt (Kstmt stmt);
       let d_states = d.to_propagate in
       let unreachable = States.is_empty d_states in
       let result =
@@ -371,15 +369,14 @@ module Make_Dataflow
                                      annotation table *)
         end
       in
-      Alarmset.end_stmt ();
       result
 
-    let doStmtSpecific s _d states =
-      match s.skind with
+    let doStmtSpecific stmt _d states =
+      match stmt.skind with
       | Loop _ ->
-        let current_info = stmt_state s in
+        let current_info = stmt_state stmt in
         let counter = current_info.counter_unroll in
-        if counter > slevel s then
+        if counter > slevel stmt then
           Value_parameters.feedback ~level:1 ~once:true ~current:true
             "entering loop for the first time";
         states
@@ -389,7 +386,7 @@ module Make_Dataflow
           let with_alarms = Value_util.warn_all_mode in
           let check = Transfer.check_unspecified_sequence in
           States.fold
-            (fun s acc -> match check ~with_alarms s seq with
+            (fun s acc -> match check ~with_alarms stmt s seq with
                | `Bottom -> acc
                | `Value () -> States.add s acc)
             states
@@ -403,7 +400,6 @@ module Make_Dataflow
       | None -> fun _ acc -> acc
 
     let doStmt (s: stmt) (d: t) =
-      Alarmset.start_stmt (Kstmt s);
       check_signals ();
       (* Merge incoming states if the user requested it *)
       if merge s then
@@ -418,7 +414,6 @@ module Make_Dataflow
         (* Do this as late as possible, as a non-empty to_propagate field
            is shown in a special way in case of degeneration *)
         d.to_propagate <- States.empty;
-        Alarmset.end_stmt ();
         result
       in
       if States.is_empty states then ret Dataflow2.SDefault
@@ -511,9 +506,7 @@ module Make_Dataflow
             ret (Dataflow2.SUse { to_propagate = new_states })
 
     let doEdge s succ d =
-      let kinstr = Kstmt s in
       let states = d.to_propagate in
-      Alarmset.start_stmt kinstr;
       (* We store the state after the execution of [s] for the callback
          {Value.Record_Value_After_Callbacks}. This is done here
          because we want to see the values of the variables local to the block *)
@@ -565,7 +558,6 @@ module Make_Dataflow
       (* We do a simple 'map' here. Duplicates will be removed by States.merge
          later on. *)
       let states = States.map do_edge states in
-      Alarmset.end_stmt ();
       d.to_propagate <- states;
       d
 
@@ -573,7 +565,6 @@ module Make_Dataflow
       if States.is_empty (t.to_propagate)
       then Dataflow2.GUnreachable
       else begin
-        Alarmset.start_stmt (Kstmt stmt);
         let new_values =
           States.fold
             (fun state acc ->
@@ -583,12 +574,8 @@ module Make_Dataflow
             t.to_propagate
             States.empty
         in
-        let result =
-          if States.is_empty new_values then Dataflow2.GUnreachable
-          else Dataflow2.GUse { to_propagate = new_values}
-        in
-        Alarmset.end_stmt ();
-        result
+        if States.is_empty new_values then Dataflow2.GUnreachable
+        else Dataflow2.GUse { to_propagate = new_values}
       end
 
     let mask_then = Db.Value.mask_then
@@ -632,6 +619,15 @@ module Make_Dataflow
 
   end
 
+  let copy_return state =
+    match return_lv with
+    | None -> `Value state
+    | Some (exp, _, _) ->
+      let vi_ret = Extlib.the (Library_functions.get_retres_vi current_kf) in
+      let lv = Var vi_ret, NoOffset in
+      let state = Domain.enter_scope current_kf [vi_ret] state in
+      Transfer.assign ~with_alarms state current_kf return lv exp
+  
   (* Check that the dataflow is indeed finished *)
   let checkConvergence () =
     DataflowArg.StmtStartData.iter (fun k v ->
@@ -648,14 +644,15 @@ module Make_Dataflow
       (fun stmt v ->
          if not (States.is_empty v.to_propagate) then
            Value_util.DegenerationPoints.replace stmt false);
-    match Alarmset.current_stmt () with
+    (* TODO: keep track of the current stmt? *);;
+(*    match Alarmset.current_stmt () with
     | Kglobal -> ()
     | Kstmt s ->
       let kf = Kernel_function.find_englobing_kf s in
       if Kernel_function.equal kf current_kf then (
         Value_util.DegenerationPoints.replace s true;
         Alarmset.end_stmt ())
-
+*)
 
   let join_final_states states =
     let split i =
@@ -680,7 +677,7 @@ module Make_Dataflow
     | Split_strategy.FullSplit     -> `Value states
     | Split_strategy.SplitAuto     -> assert false (* transformed into SplitEqList*)
 
-  let results_aux () =
+  let results () =
     if DataflowArg.debug then checkConvergence ();
     let final_states = states_unmerged return in
     (* Reduce final states according to the function postcondition *)
@@ -690,27 +687,13 @@ module Make_Dataflow
     in
     Logic.check_fct_postconditions
       current_kf active_behaviors Normal
-      ~init_state:initial_state ~post_states:final_states ~result
+      ~pre_state:initial_state ~post_states:final_states ~result
     >>- fun states ->
     join_final_states states >>- fun states ->
-    let return_lval = match return_lv with
-      | Some (_, lval, _) -> Some lval
-      | None -> None
-    in
-    let process state acc =
-      let return =
-        Transfer.return ~with_alarms current_kf return return_lval state
-      in
-      Bottom.add_to_list return acc
-    in
-    let states = States.fold process states [] in
-    Bottom.bot_of_list states
-
-  let results () =
-    Alarmset.start_stmt (Kstmt return);
-    let r = results_aux () in
-    Alarmset.end_stmt ();
-    r
+    (* copy return code into proper variable *)
+    let states = States.map_or_bottom copy_return states in
+    Bottom.bot_of_list (States.to_list states)
+    
 
   module Computer = Dataflow2.Forwards (DataflowArg)
 
@@ -863,10 +846,9 @@ end
 
 module Computer
     (Domain : Abstract_domain.External)
-    (States : Partitioning.StateSet with type state = Domain.t)
+    (States : Powerset.S with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t
-                                 and type value = Domain.value
-                                 and type return = Domain.return)
+                                 and type value = Domain.value)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
 = struct

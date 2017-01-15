@@ -53,6 +53,8 @@ let sdkey_initial_state = "initial-state"
 let sdkey_final_states = "final-states"
 let sdkey_alarm = "alarm"
 let sdkey_garbled_mix = "garbled-mix" (* not activated by default *)
+let sdkey_pointer_comparison = "pointer-comparison"
+
 
 let () =
   Plugin.default_msg_keys [sdkey_initial_state; sdkey_final_states; sdkey_alarm]
@@ -238,6 +240,24 @@ module BitwiseOffsmStorage =
       let default = true
     end)
 let () = add_precision_dep BitwiseOffsmStorage.parameter
+
+let () = Parameter_customize.set_group domains
+module InoutDomain =
+  False
+    (struct
+      let option_name = "-eva-inout-domain"
+      let help = "Compute inputs and outputs within Eva. Experimental."
+    end)
+let () = add_precision_dep EqualityDomain.parameter
+
+let () = Parameter_customize.set_group domains
+module SignsDomain =
+  False
+    (struct
+      let option_name = "-eva-signs-domain"
+      let help = "Use the signs domain of Eva. For demonstration purposes only."
+    end)
+let () = add_precision_dep EqualityDomain.parameter
 
 
 (* -------------------------------------------------------------------------- *)
@@ -753,6 +773,7 @@ module LinearLevel =
 let () = add_precision_dep LinearLevel.parameter
 
 let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
 module UsePrototype =
   Kernel_function_set
     (struct
@@ -1160,6 +1181,7 @@ let dkey_initial_state = register_category sdkey_initial_state
 let dkey_final_states = register_category sdkey_final_states
 let dkey_alarm = register_category sdkey_alarm
 let dkey_garbled_mix = register_category sdkey_garbled_mix
+let dkey_pointer_comparison = register_category sdkey_pointer_comparison
 
 
 (* -------------------------------------------------------------------------- *)

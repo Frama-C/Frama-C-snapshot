@@ -1,0 +1,6 @@
+This file activates the compilation of Frama-C in developer mode
+
+ - enable warnings and warn-error
+ - create .merlin file
+ - create links in ./share to plugin share directory for
+   the bin/frama-c* script

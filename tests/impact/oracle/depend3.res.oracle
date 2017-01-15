@@ -43,5 +43,5 @@ tests/impact/depend3.c:10:[value] entering loop for the first time
            tests/impact/depend3.c:18 (sid 30): return tmp;
            tests/impact/depend3.c:24 (sid 35): b = apply(2,200);
            tests/impact/depend3.c:25 (sid 37): __retres = a + b;
-           tests/impact/depend3.c:25 (sid 44): return __retres;
+           tests/impact/depend3.c:25 (sid 46): return __retres;
 [impact] analysis done

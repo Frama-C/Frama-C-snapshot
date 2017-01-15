@@ -164,3 +164,10 @@ let rec collect t xs =
 
 let elements t = collect t []
 
+let rec sort cmp = function
+  | Empty -> []
+  | Elt x -> [x]
+  | Add(x,t) -> List.merge cmp [x] (sort cmp t)
+  | App(t,x) -> List.merge cmp (sort cmp t) [x]
+  | List ys -> List.stable_sort cmp ys
+  | Concat(a,b) -> List.merge cmp (sort cmp a) (sort cmp b)

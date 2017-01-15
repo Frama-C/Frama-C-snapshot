@@ -112,15 +112,6 @@ module Make
       (Left.reduce_further left expr value)
       (Right.reduce_further right expr value)
 
-
-  let merge_values left right =
-    let v =
-      left.v >>- fun l -> right.v >>- fun r ->
-      Value.narrow l r
-    and initialized = left.initialized || right.initialized
-    and escaping = left.escaping && right.escaping in
-    { v; initialized; escaping }
-
   let merge_init left right =
     match left, right with
     | Default, Default -> Default
@@ -129,37 +120,15 @@ module Make
     | Continue left, Default        -> Continue (left, Right.top)
     | _, _ -> assert false (* TODO! *)
 
-  let merge_return _kf left right =
-    let post_state = left.post_state, right.post_state
-    and return =
-      match left.return, right.return with
-      | None, None            -> None
-      | Some (left_value, left_return), Some (right_value, right_return) ->
-        let value = merge_values left_value right_value
-        and return = left_return, right_return in
-        Some (value, return)
-      | Some _, None -> None
-      | None, Some _ -> None (* TODO! *)
-        (*
-        Format.printf "Function %a@." Kernel_function.pretty kf;
-        Value_parameters.abort ~current:true ~once:true
-          "Return value present in right domain and not in left domain."
-        *)
-    in
-    { post_state; return; }
-
-  let merge_results kf left_list right_list =
+  (* TODO: this function does a cartesian product, which is pretty terrible. *)
+  let merge_results _kf left_list right_list =
     List.fold_left
       (fun acc left ->
          List.fold_left
-           (fun acc right -> merge_return kf left right :: acc)
+           (fun acc right -> (left, right) :: acc)
            acc right_list)
       [] left_list
 
-
-
-  module Return = Datatype.Pair (Left.Return) (Right.Return)
-  type return = Return.t
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -168,7 +137,6 @@ module Make
   = struct
 
     type state = t
-    type return = Return.t
     type value = Value.t
     type location = Left.location
     type valuation = Valuation.t
@@ -230,24 +198,12 @@ module Make
       Right_Transfer.assume stmt expr positive valuation right >>-: fun right ->
       left, right
 
-    let make_return kf stmt assign valuation (left, right) =
-      Left_Transfer.make_return kf stmt assign valuation left,
-      Right_Transfer.make_return kf stmt assign valuation right
-
     let finalize_call stmt call ~pre ~post =
       let pre_left, pre_right = pre
       and left_state, right_state = post in
       Left_Transfer.finalize_call stmt call ~pre:pre_left ~post:left_state
       >>- fun left ->
       Right_Transfer.finalize_call stmt call ~pre:pre_right ~post:right_state
-      >>-: fun right ->
-      left, right
-
-    let assign_return stmt lv kf return assign valuation (left, right) =
-      let left_return, right_return = return in
-      Left_Transfer.assign_return stmt lv kf left_return assign valuation left
-      >>- fun left ->
-      Right_Transfer.assign_return stmt lv kf right_return assign valuation right
       >>-: fun right ->
       left, right
 

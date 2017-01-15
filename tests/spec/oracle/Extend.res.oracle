@@ -8,7 +8,7 @@ int f(int x);
 /*@ behavior test:
       foo y ≡ 1;
       bar \old(y) + \result ≡ 0; */
-extern int g(int y);
+int g(int y);
 
 /*@ foo x ≡ 0;
     bar \result ≡ 0; */

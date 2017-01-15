@@ -23,6 +23,7 @@
 module Fc_config = Config
 module STRING = String
 let () = Plugin.is_share_visible ()
+let () = Plugin.is_session_visible ()
 include Plugin.Register
     (struct
       let name = "WP"
@@ -168,8 +169,8 @@ module Model =
                   * '+cast' unsafe pointer casts\n \
                   * '+raw' no logic variable\n \
                   * '+ref' by-reference-style pointers detection\n \
-                  * '+nat/+rg/+int' natural, no-range or machine-integers arithmetics\n \
-                  * '+real/+float' real or IEEE floatting point arithmetics"
+                  * '+nat/+int' natural / machine-integers arithmetics\n \
+                  * '+real/+float' real / IEEE floatting point arithmetics"
     end)
 
 let () = Parameter_customize.set_group wp_model
@@ -242,6 +243,12 @@ module Init =
     let help = "Use initializers for global const variables."
   end)
 
+module InitAlias =
+  False(struct
+    let option_name = "-wp-init-alias"
+    let help = "Use initializers for aliasing propagation."
+  end)
+
 let () = Parameter_customize.set_group wp_strategy
 module CalleePreCond =
   True(struct
@@ -261,6 +268,16 @@ module Split =
   False(struct
     let option_name = "-wp-split"
     let help = "Split conjunctions into sub-goals."
+  end)
+
+let () = Parameter_customize.set_group wp_strategy
+module SplitDepth =
+  Int(struct
+    let option_name = "-wp-split-depth"
+    let default = 0
+    let arg_name = "p"
+    let help = "Set depth of exploration for spliting conjunctions into sub-goals.\n\
+Value `-1` means an unlimited depth."
   end)
 
 let () = Parameter_customize.set_group wp_strategy
@@ -316,6 +333,13 @@ module Clean =
   True(struct
     let option_name = "-wp-clean"
     let help = "Use a simple cleaning in case of -wp-no-let."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
+module Ground =
+  True(struct
+    let option_name = "-wp-ground"
+    let help = "Use aggressive ground simplifications."
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
@@ -391,15 +415,14 @@ module Provers = String_list
       let help =
         "Submit proof obligations to external prover(s):\n\
          - 'none' to skip provers\n\
-         Directly supported provers:\n\
+         - 'script' (session scripts only)\n\
+         - 'tip' (failed scripts only)\n\
          - 'alt-ergo' (default)\n\
          - 'altgr-ergo' (gui)\n\
          - 'coq', 'coqide' (see also -wp-script)\n\
          - 'why3:<dp>' or '<dp>' (why3 prover, see -wp-detect)\n\
          - 'why3ide' (why3 gui)"
     end)
-
-let () = Provers.add_aliases [ "-wp-proof" ] (* Deprecated *)
 
 let () = Parameter_customize.set_group wp_prover
 module Generate = False
@@ -811,6 +834,14 @@ let base_output () =
       base_output := Some output;
       output
   | Some output -> output
+
+
+let get_session () = Session.dir ~error:false ()
+
+let get_session_dir d =
+  let base = get_session () in
+  let path = Printf.sprintf "%s/%s" base d in
+  make_output_dir path ; path
 
 let get_output () =
   let base = base_output () in

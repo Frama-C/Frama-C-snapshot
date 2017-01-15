@@ -330,15 +330,15 @@ let get_filename fdef =
     | _ -> assert false
 ;;
 
-let consider_function vinfo =
+let consider_function ~libc vinfo =
   not (!Db.Value.mem_builtin vinfo.vname
        || Ast_info.is_frama_c_builtin vinfo.vname
        || Cil.is_unused_builtin vinfo
-  ) && (Metrics_parameters.Libc.get () || not (is_in_libc vinfo.vdecl))
+  ) && (libc || not (is_in_libc vinfo.vdecl))
 
-let consider_variable vinfo =
+let consider_variable ~libc vinfo =
   not (Cil.hasAttribute "FRAMA_C_MODEL" vinfo.vattr) &&
-    not (is_in_libc vinfo.vdecl)
+    (libc || not (is_in_libc vinfo.vdecl))
 
 let float_to_string f =
   let s = Format.sprintf "%F" f in

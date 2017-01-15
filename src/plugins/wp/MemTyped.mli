@@ -28,3 +28,7 @@ include Memory.Model
 
 type pointer = NoCast | Fits | Unsafe
 val pointer : pointer Context.value
+val p_havoc : Lang.lfun
+val p_separated : Lang.lfun
+val a_base : Lang.F.term -> Lang.F.term
+val a_offset : Lang.F.term -> Lang.F.term

@@ -68,7 +68,7 @@ int atoi(const char *p)
 /* This malloc must not be used if the analyzer cannot determine that there is
    only a finite number of calls to malloc. */
 
-void *Frama_C_alloc_size(size_t size);
+extern void *Frama_C_alloc_size(size_t size);
 
 void *malloc(size_t size) {
   return Frama_C_alloc_size(size);
@@ -78,7 +78,7 @@ void *malloc(size_t size) {
 
 #ifdef FRAMA_C_MALLOC_STACK
 
-void * Frama_C_alloc_by_stack(size_t size);
+extern void * Frama_C_alloc_by_stack(size_t size);
 
 void *malloc(size_t size) {
   return Frama_C_alloc_by_stack(size);
@@ -89,7 +89,7 @@ void *malloc(size_t size) {
 #endif
 #endif
 
-void Frama_C_free(void*base);
+extern void Frama_C_free(void*base);
 void free(void *p) {
   if (p) Frama_C_free(p);
 }

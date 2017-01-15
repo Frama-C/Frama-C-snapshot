@@ -18,7 +18,7 @@ Prove: P_R(lnot(a), a).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/cint.i, line 30) in 'signed_downcast':
-Prove: P_R(signed_downcast_0, signed_downcast_0).
+Prove: P_R(to_sint16(a), a).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -43,8 +43,7 @@ Prove: P_R(to_uint32(lnot(a)), a).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/cint.i, line 48) in 'unsigned_downcast':
-Assume { Type: 0 <= unsigned_downcast_0. }
-Prove: P_R(unsigned_downcast_0, unsigned_downcast_0).
+Prove: P_R(to_uint32(a), a).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -52,7 +51,7 @@ Prove: P_R(unsigned_downcast_0, unsigned_downcast_0).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/cint.i, line 54) in 'unsigned_overflow':
-Assume { Type: (0 <= unsigned_overflow_0) /\ (b <= unsigned_overflow_0). }
-Prove: P_R(unsigned_overflow_0, unsigned_overflow_0).
+Let x = a + b. Assume { Type: (0 <= a) /\ (0 <= b). }
+Prove: P_R(to_uint32(x), x).
 
 ------------------------------------------------------------

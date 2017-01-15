@@ -6,7 +6,7 @@ int f(int x)
   return x;
 }
 
-extern int g(int x);
+int g(int x);
 
 int A;
 int T[5][6];

@@ -26,9 +26,6 @@ open Eval
 module type Domain = sig
   include Datatype.S_with_collections
 
-  type return
-  module Return : Datatype.S with type t = return
-
   val filter_by_bases: Base.Hptset.t -> t -> t
   val reuse: current_input:t -> previous_output:t -> t
 end
@@ -51,7 +48,7 @@ module Make
         to be reused in subsequent calls *)
     val store_computed_call:
       kernel_function -> Domain.t -> Value.t or_bottom list ->
-      (Domain.t, Domain.return, Value.t) call_result ->
+      Domain.t list or_bottom ->
       unit
 
     (** [reuse_previous_call kf init_state args] searches amongst the previous
@@ -62,7 +59,7 @@ module Make
         by the plugins that have registered Value callbacks.) *)
     val reuse_previous_call:
       kernel_function -> Domain.t -> Value.t or_bottom list ->
-      ((Domain.t, Domain.return, Value.t) call_result * int) option
+      (Domain.t list or_bottom * int) option
   end
 
 

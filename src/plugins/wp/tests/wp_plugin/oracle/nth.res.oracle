@@ -9,35 +9,33 @@
 
 Lemma access_16_16:
 Prove: (0<=k_0) -> (k_0<=15)
-       -> ((L_f k_0)=
-           (nth
+       -> ((nth
              (concat (elt (L_f 0)) (elt (L_f 1)) (elt (L_f 2)) (elt (L_f 3))
                (elt (L_f 4)) (elt (L_f 5)) (elt (L_f 6)) (elt (L_f 7))
                (elt (L_f 8)) (elt (L_f 9)) (elt (L_f 10)) (elt (L_f 11))
                (elt (L_f 12)) (elt (L_f 13)) (elt (L_f 14)) (elt (L_f 15)))
-             k_0))
+             k_0)=(L_f k_0))
 
 ------------------------------------------------------------
 
 Lemma access_4_4:
 Assume: 'access_16_16'
 Prove: (0<=k_0) -> (k_0<=3)
-       -> ((L_f k_0)=
-           (nth
+       -> ((nth
              (concat (elt (L_f 0)) (elt (L_f 1)) (elt (L_f 2)) (elt (L_f 3)))
-             k_0))
+             k_0)=(L_f k_0))
 
 ------------------------------------------------------------
 
 Lemma access_repeat_concat_3:
 Assume: 'eq_repeat_concat_3' 'access_4_4' 'access_16_16'
 Prove: (0<=k_0) -> (k_0<(3*(length x_0)))
-       -> ((nth (repeat x_0 3) k_0)=(nth (concat x_0 x_0 x_0) k_0))
+       -> ((nth (concat x_0 x_0 x_0) k_0)=(nth (repeat x_0 3) k_0))
 
 ------------------------------------------------------------
 
 Lemma eq_repeat_concat_3:
 Assume: 'access_4_4' 'access_16_16'
-Prove: (repeat x_0 3)=(concat x_0 x_0 x_0)
+Prove: true
 
 ------------------------------------------------------------

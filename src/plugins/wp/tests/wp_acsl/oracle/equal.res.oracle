@@ -23,10 +23,7 @@ Prove: EqArray1_int(2, t0_0, t1_0[0 <- x][1 <- x_1]).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/equal.i, line 12) in 'simple_struct':
-Assume {
-  Type: IsS1_S(s0_0) /\ is_sint32(s0_0.F1_S_a) /\ is_sint32(s0_0.F1_S_b).
-}
-Prove: EqS1_S(s0_0, s0_0).
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -58,7 +55,7 @@ Assume {
   Type: IsS4_Q(q0_0) /\ IsS4_Q(q1_0) /\ IsArray1_sint32(a_2) /\
       IsArray1_sint32(a_3) /\ IsS1_S(a) /\ IsS1_S(a_1).
   (* Goal *)
-  When: ((q0_0.F4_Q_qp) = (q1_0.F4_Q_qp)) /\ EqS1_S(a, a_1) /\
+  When: ((q1_0.F4_Q_qp) = (q0_0.F4_Q_qp)) /\ EqS1_S(a, a_1) /\
       EqArray1_int(2, a_2, a_3).
 }
 Prove: EqS4_Q(q0_0, q1_0).
@@ -71,7 +68,7 @@ Prove: EqS4_Q(q0_0, q1_0).
 Goal Post-condition (file tests/wp_acsl/equal.i, line 36) in 'with_ptr_array':
 Assume {
   (* Goal *)
-  When: forall i : Z. ((0 <= i) -> ((i <= 4) -> (tp0_0[i] = tp1_0[i]))).
+  When: forall i : Z. ((0 <= i) -> ((i <= 4) -> (tp1_0[i] = tp0_0[i]))).
 }
 Prove: EqArray1_pointer(5, tp0_0, tp1_0).
 
@@ -81,7 +78,7 @@ Prove: EqArray1_pointer(5, tp0_0, tp1_0).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/equal.i, line 30) in 'with_ptr_struct':
-Assume { (* Goal *) When: (sp0_0.F3_Sp_p) = (sp1_0.F3_Sp_p). }
+Assume { (* Goal *) When: (sp1_0.F3_Sp_p) = (sp0_0.F3_Sp_p). }
 Prove: EqS3_Sp(sp0_0, sp1_0).
 
 ------------------------------------------------------------

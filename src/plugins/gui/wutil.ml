@@ -52,6 +52,8 @@ let bold_font =
 let modify_font phi widget =
   widget#misc#modify_font (phi widget#misc#pango_context#font_description)
 
+let set_font w name = w#misc#modify_font_by_name name
+let set_monospace w = set_font w "monospace"
 let set_small_font w = modify_font small_font w
 let set_bold_font w = modify_font bold_font w
 let set_tooltip w m = on m w#misc#set_tooltip_text

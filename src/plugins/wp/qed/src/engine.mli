@@ -93,7 +93,7 @@ sig
   val unfold : t -> term -> unit
   val shared : t -> term -> bool
   val shareable : t -> term -> bool (** not unfolded *)
-  val lookup : t -> term -> scope
+  val force_index : t -> unit
 end
 
 (** Generic Engine Signature *)
@@ -112,11 +112,12 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
     (** {3 Global and Local Environment} *)
 
     method env : 'env (** Returns a fresh copy of the current environment. *)
+    method set_env : 'env -> unit (** Set environment. *)
     method lookup : 'term -> scope (** Term scope in the current environment. *)
     method scope : 'env -> (unit -> unit) -> unit
     (** Calls the continuation in the provided environment. 
         Previous environment is restored after return. *)
-    
+
     method local : (unit -> unit) -> unit
     (** Calls the continuation in a local copy of the environment.
         Previous environment is restored after return, but allocators
@@ -250,7 +251,9 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
 
     (** {3 Bindings} *)
 
-    method is_shareable : 'term -> bool
+    method shared : 'term -> bool
+    method shareable : 'term -> bool
+    method subterms : ('term -> unit) -> 'term -> unit
     method pp_let : formatter -> pmode -> string -> 'term -> unit
 
     (** {3 Terms} *)
@@ -260,10 +263,18 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
         	Shared sub-terms are detected on behalf of this method. *)
 
     method pp_flow : 'term printer
-    (** Printer with shared sub-terms and without parentheses. *)
+    (** Printer with shared sub-terms printed with their name and 
+        without parentheses. *)
 
     method pp_atom : 'term printer
-    (** Printer with shared sun-terms and parentheses for non-atomic expressions. *)
+    (** Printer with shared sub-terms printed with their name and 
+        within parentheses for non-atomic expressions. Additional
+        scope terminates the expression when required (typically 
+        for Coq). *)
+
+    method pp_repr : 'term printer
+    (** Raw representation of a term, as it is. This is where you should hook
+        a printer to keep sharing, parentheses, and such. *)
 
     (** {3 Top Level} *)
 

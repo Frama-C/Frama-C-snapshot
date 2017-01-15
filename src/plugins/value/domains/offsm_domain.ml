@@ -113,22 +113,12 @@ module Internal  : Domain_builder.InputDomain
 
   type origin = unit (* ???? *)
 
-  type return = unit
-  module Return = Datatype.Unit
-
-  let top_return =
-    let top_value =
-      { v = `Value Offsm_value.Offsm.top; initialized = false; escaping = true }
-    in
-    Some (top_value, ())
-
   module Transfer (Valuation:
                      Abstract_domain.Valuation with type value = value
                                                 and type origin = origin
                                                 and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
       with type state = state
-       and type return = unit
        and type value = offsm_or_top
        and type location = Precise_locs.precise_location
        and type valuation = Valuation.t
@@ -136,7 +126,6 @@ module Internal  : Domain_builder.InputDomain
     type value = offsm_or_top
     type state = Memory.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     let update _valuation st = st (* TODO? *)
@@ -180,12 +169,7 @@ module Internal  : Domain_builder.InputDomain
 
     let assume _ _ _ _ state = `Value state
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
-
-    let assign_return _stmt lv _kf () value _valuation state =
-      generic_assign lv value state
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
@@ -193,13 +177,10 @@ module Internal  : Domain_builder.InputDomain
 
     let default_call _stmt call state =
       let kf = call.kf in
-      let return, post_state =
+      let post_state =
         try
-          let stmt = Kernel_function.find_return kf in
-          match stmt.Cil_types.skind with
-          | Cil_types.Return (None, _) -> None, top
-          | Cil_types.Return (Some _, _) -> top_return, top
-          | _ -> assert false
+          ignore (Kernel_function.find_return kf);
+          top
         with Kernel_function.No_Statement ->
           let name = Kernel_function.get_name kf in
           if  Ast_info.is_frama_c_builtin name then begin
@@ -211,16 +192,11 @@ module Internal  : Domain_builder.InputDomain
                 (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
                 pretty state;
             end;
-            None, state
+            state
           end
-          else
-            let return_type = Kernel_function.get_return_type kf in
-            if Cil.isVoidType return_type
-            then None, top
-            else top_return, top
+          else top
       in
-      let return = { post_state; return } in
-      `Value [return]
+      `Value [post_state]
 
     let enter_loop _ state = state
     let incr_loop_counter _ state = state
@@ -228,9 +204,9 @@ module Internal  : Domain_builder.InputDomain
 
   end
 
+  (* TODO: this function is buggy! *)
   let compute_using_specification _ _ state =
-    let return = { post_state = state; return = top_return } in
-    `Value [return]
+    `Value [state]
 
   let extract_expr _oracle _state _exp =
     `Value (Offsm_value.Offsm.top, ()), Alarmset.all

@@ -35,6 +35,6 @@ struct tms
 
 /*@ requires \valid(buffer);
     assigns \result, *buffer \from __fc_time; */
-clock_t times (struct tms *buffer);
+extern clock_t times (struct tms *buffer);
 
 #endif

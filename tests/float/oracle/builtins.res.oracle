@@ -134,11 +134,18 @@ tests/float/builtins.c:26:[value] Reading left-value d.
 tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
                  (origin: Arithmetic) }}
 tests/float/builtins.c:26:[value] function Frama_C_log applied to address
+tests/float/builtins.c:26:[value] Assigning imprecise value to tmp.
+        The imprecision originates from Arithmetic
 tests/float/builtins.c:24:[value] warning: function log: postcondition got status unknown.
 tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
                                           (tmp from Frama_C_log(d))
+tests/float/builtins.c:26:[value] Assigning imprecise value to __retres<log>.
+        The imprecision originates from Arithmetic
 [value] Recording results for log
 [value] Done for function log
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
+tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
+        The imprecision originates from Arithmetic
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
@@ -266,6 +273,7 @@ tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_f
                                           (tmp from Frama_C_log(d))
 [value] Recording results for log
 [value] Done for function log
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
@@ -323,6 +331,9 @@ tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_
 tests/float/builtins.c:107:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
                  (origin: Arithmetic {tests/float/builtins.c:107}) }}
 tests/float/builtins.c:107:[value] function Frama_C_log applied to address
+tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite(__retres<log>);
+tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
+        The imprecision originates from Arithmetic {tests/float/builtins.c:107}
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp

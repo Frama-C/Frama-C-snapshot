@@ -102,5 +102,6 @@ type builtin =
 val logic : logic_info -> builtin
 val ctor : logic_ctor_info -> builtin
 val constant : string -> builtin
+val lookup : string -> kind list -> builtin
 
 val dump : unit -> unit

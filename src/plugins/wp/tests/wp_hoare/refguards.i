@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model +ref
+   OPT: -wp-model +ref
 */
 
 //@ ensures \separated(c,d) ;
@@ -33,8 +33,8 @@ void h( int *c, int *d, int k )
   @ ensures \separated(c,*c);
   @ ensures \separated(c,*d);
   @ ensures \separated(*c,d);
-  @ ensures \separated(*c,*d);
   @ ensures \separated(d,*d);
+  @ ensures KO: \separated(*c,*d);
 */
 void s( int **c, int **d, int k )
 {

@@ -30,4 +30,3 @@ module Complete
   : Abstract_domain.Internal with type state = Domain.state
                               and type value = Domain.value
                               and type location = Domain.location
-                              and type return = Domain.return

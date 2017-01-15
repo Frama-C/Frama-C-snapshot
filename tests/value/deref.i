@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -deref  -journal-disable
+   STDOPT: +"-no-input -no-out -deref"
 */
 int a,b,c,d,e,*p, t[10];
 

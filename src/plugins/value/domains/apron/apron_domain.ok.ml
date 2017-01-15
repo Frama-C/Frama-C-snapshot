@@ -540,30 +540,35 @@ module Make
     in
     Precise_locs.fold aux_ploc loc state
 
-  (* We coul replace this type by a Value to model the return code, but
-     this would add little expressivity compared to what is offerred by
-     the Interval domain. Another possibility would be to return the Apron
-     expression corresponding to the variable being returned in the callee.
-     But beware of scoping problems... *)
-  type return = unit
-  module Return = Datatype.Unit
-
-  let top_return =
-    let top_value = `Value Main_values.Interval.top in
-    let top_flagged_value =
-      {v = top_value; initialized = false; escaping = true; }
+  let enter_scope _kf vars state =
+    let translate acc varinfo =
+      try translate_varinfo varinfo :: acc
+      with Out_of_Scope _ -> acc
     in
-    Some (top_flagged_value, ())
+    let vars = List.fold_left translate [] vars in
+    let env = Environment.add (Abstract1.env state) (Array.of_list vars) [||] in
+    Abstract1.change_environment man state env false
+
+  let leave_scope _kf vars state =
+    forget_varinfo_list ~remove:true vars state
 
   let approximate_call kf state =
-    let post_state =
-      let name = Kernel_function.get_name kf in
+    let name = Kernel_function.get_name kf in
+    let state =
       if Ast_info.is_frama_c_builtin name ||
          (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
       then state
       else make_top (Abstract1.env state)
     in
-    `Value [{ post_state; return = top_return }]
+    (* We need to introduce the variable used to model the return code
+       (even though we do not constrain it), because it will be remove later
+       by the generic part of the evaluator. *)
+    match Library_functions.get_retres_vi kf with
+    | Some vi_ret -> enter_scope kf [vi_ret] state
+    | None -> state
+
+  let compute_using_specification _ (kf, _) state =
+    `Value [approximate_call kf state]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -571,7 +576,6 @@ module Make
   = struct
 
     type state = t
-    type return = unit
     type value = Main_values.Interval.t
     type location = Precise_locs.precise_location
     type valuation = Valuation.t
@@ -691,9 +695,7 @@ module Make
       then Result (`Bottom, Value_types.Cacheable)
       else Compute (Continue state, true)
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
-    let finalize_call _stmt call ~pre ~post =
+    let finalize_call _stmt call ~pre:_ ~post =
       let kf = call.kf in
       let name = Kernel_function.get_name kf in
       if  Ast_info.is_frama_c_builtin name then begin
@@ -707,23 +709,16 @@ module Make
             pretty post;
         end;
       end;
-      let env = Abstract1.env pre in
-      `Value (Abstract1.change_environment man post env false)
-
-    let assign_return _stmt lv _kf () _value _valuation state =
-      maybe_bottom (kill_bases lv.lloc state)
+      `Value post
 
     let default_call _stmt call state =
-      approximate_call call.kf state
+      `Value [approximate_call call.kf state]
 
     let enter_loop _ state = state
     let incr_loop_counter _ state = state
     let leave_loop _ state = state
 
   end
-
-  let compute_using_specification _ (kf, _) state =
-    approximate_call kf state
 
   type eval_env = state
   let env_current_state state = `Value state
@@ -732,18 +727,6 @@ module Make
   let env_post_f ~pre:_ ~post ~result:_ () = post
   let eval_predicate _ _ = Alarmset.Unknown
   let reduce_by_predicate state _ _ = state
-
-  let enter_scope _kf vars state =
-    let translate acc varinfo =
-      try translate_varinfo varinfo :: acc
-      with Out_of_Scope _ -> acc
-    in
-    let vars = List.fold_left translate [] vars in
-    let env = Environment.add (Abstract1.env state) (Array.of_list vars) [||] in
-    Abstract1.change_environment man state env false
-
-  let leave_scope _kf vars state =
-    forget_varinfo_list ~remove:true vars state
 
   let empty () = top
 

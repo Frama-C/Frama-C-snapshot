@@ -72,7 +72,7 @@ int f_slice_1(void)
 }
 
 /*@ requires a > 0; */
-extern int g_slice_1(int a);
+int g_slice_1(int a);
 
 /*@ requires x_0 > 0;
     ensures X > \old(X);

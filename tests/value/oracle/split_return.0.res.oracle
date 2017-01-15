@@ -30,8 +30,8 @@
         Called from tests/value/split_return.i:47.
 [value] Recording results for f2
 [value] Done for function f2
-[value] Called Frama_C_show_each_f2({0}, {0})
 [value] Called Frama_C_show_each_f2({5; 7}, {5})
+[value] Called Frama_C_show_each_f2({0}, {0})
 tests/value/split_return.i:50:[value] assertion got status valid.
 [value] Called Frama_C_show_each_f2_2({5; 7}, {5})
 tests/value/split_return.i:53:[value] assertion got status valid.
@@ -66,8 +66,8 @@ tests/value/split_return.i:98:[value] warning: assertion got status unknown.
         Called from tests/value/split_return.i:116.
 [value] Recording results for f5
 [value] Done for function f5
-[value] Called Frama_C_show_each_f5({-2}, {0})
 [value] Called Frama_C_show_each_f5({7}, {5})
+[value] Called Frama_C_show_each_f5({-2}, {0})
 tests/value/split_return.i:119:[value] assertion got status valid.
 tests/value/split_return.i:121:[value] assertion got status valid.
 [value] Recording results for main5

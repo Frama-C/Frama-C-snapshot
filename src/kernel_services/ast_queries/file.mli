@@ -235,6 +235,11 @@ val reorder_custom_ast: Cil_types.file -> unit
 (** {2 Pretty printing} *)
 (* ************************************************************************* *)
 
+val pretty_machdep :
+  ?fmt:Format.formatter -> ?machdep:Cil_types.mach -> unit -> unit
+  (** Prints the associated [machdep], or the current one in current project
+      by default. Default output formatter is [Log.print_on_output]. *)
+
 val pretty_ast : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
   (** Print the project CIL file on the given Formatter.
       The default project is the current one.

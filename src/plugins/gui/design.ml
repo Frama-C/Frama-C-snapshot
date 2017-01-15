@@ -151,6 +151,10 @@ let filetree_selector
            ~click_cb:(fun _ ->
                (* original_source callback unnecessary here *) ()) ();
          main_ui#display_globals l
+     | Filetree.Global (GVarDecl (vi, _)) ->
+       (* try to find a defintion instead of a declaration, which is more
+          informative. *)
+       main_ui#display_globals [Ast.def_or_last_decl vi]
      | Filetree.Global g -> 
          main_ui#display_globals [g];
     );

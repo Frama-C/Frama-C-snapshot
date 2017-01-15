@@ -48,15 +48,7 @@ module MakeInternal
   let backward_location _ _ _ loc value = `Value (loc, value)
   let reduce_further _ _ _  = []
 
-  module Return = Datatype.Unit
-  type return = unit
-
-  let call_return _kf =
-    let top_value =
-      { v = `Value Value.top; initialized = false; escaping = true; }
-    in
-    let return = Some (top_value, ()) in
-    `Value [ { post_state = (); return; } ]
+  let call_result = `Value [ () ]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -64,7 +56,6 @@ module MakeInternal
   = struct
 
     type state = t
-    type return = Return.t
     type value = Value.t
     type location = Loc.location
     type valuation = Valuation.t
@@ -73,10 +64,8 @@ module MakeInternal
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
     let start_call _ _ _ _ = Compute (Continue (), true)
-    let make_return _ _ _ _ _ = ()
     let finalize_call _ _ ~pre:_ ~post:_ = `Value ()
-    let assign_return _ _ _ _ _ _ _ = `Value ()
-    let default_call _ call _ = call_return call.kf
+    let default_call _ _ _ = call_result
     let enter_loop _ _ = ()
     let incr_loop_counter _ _ = ()
     let leave_loop _ _ = ()
@@ -91,7 +80,7 @@ module MakeInternal
   let eval_predicate _ _ = Alarmset.Unknown
   let reduce_by_predicate _ _ _ = ()
 
-  let compute_using_specification _ (kf, _) _ = call_return kf
+  let compute_using_specification _ _ _ = call_result
 
   let enter_scope _ _ _ = ()
   let leave_scope _ _ _ = ()

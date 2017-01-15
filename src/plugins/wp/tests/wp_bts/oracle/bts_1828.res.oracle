@@ -15,7 +15,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, one_0, 1).
 }
-Prove: one_0 != global(L_two_71).
+Prove: global(L_two_71) != one_0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -30,7 +30,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, one_0, 1) /\ valid_rw(Malloc_0, zero_0, 1).
 }
-Prove: one_0 != zero_0.
+Prove: zero_0 != one_0.
 
 ------------------------------------------------------------
 

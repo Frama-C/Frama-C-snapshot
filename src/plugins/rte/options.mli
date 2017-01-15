@@ -24,7 +24,6 @@ include Plugin.S
 
 module Enabled: Parameter_sig.Bool
 
-module DoAll: Parameter_sig.Bool
 module DoShift : Parameter_sig.Bool
 module DoDivMod : Parameter_sig.Bool
 module DoFloatToInt : Parameter_sig.Bool

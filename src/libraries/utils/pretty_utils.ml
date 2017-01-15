@@ -172,6 +172,48 @@ let pp_trail pp fmt x =
     Format.fprintf fmt "@\n **)@]" ;
   end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Margins                                                            --- *)
+(* -------------------------------------------------------------------------- *)
+
+type marger = int ref
+let marger () = ref 0
+let add_margin marger ?(margin=0) ?(min=0) ?(max=80) text =
+  let size = String.length text + margin in
+  let n = Pervasives.min max (Pervasives.max min size) in
+  if n > !marger then marger := n
+
+type align = [ `Center | `Left | `Right ]
+
+let pp_margin ?(align=`Center) ?(pp=Format.pp_print_string) marger fmt text =
+  let n = String.length text in
+  let m = !marger in
+  if n > m then
+    if m < 8 then
+      pp fmt (String.sub text 0 m)
+    else
+      pp fmt (String.sub text 0 (m-3) ^ "...")
+  else
+    let space fmt s =
+      if s > 0 then
+        Format.pp_print_string fmt (String.make s ' ') in
+    let w = m-n in
+    match align with
+    | `Center ->
+        let l = w / 2 in
+        let r = w - l in
+        space fmt l ; pp fmt text ; space fmt r ;
+    | `Left ->
+        pp fmt text ; space fmt w
+    | `Right ->
+        space fmt w ; pp fmt text
+
+let pp_items ?align ?margin ?min ?max ~title ~iter ?pp_title ~pp_item fmt =
+  let m = marger () in
+  iter (fun e -> add_margin m ?margin ?min ?max (title e)) ;
+  let pp = pp_margin ?align ?pp:pp_title m in
+  iter (pp_item pp fmt)
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

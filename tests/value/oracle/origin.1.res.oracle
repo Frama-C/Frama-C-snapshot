@@ -64,6 +64,8 @@ tests/value/origin.i:128:[value] warning: signed overflow. assert -2147483648 â‰
 tests/value/origin.i:128:[value] warning: signed overflow. assert -((int)(&x)) â‰¤ 2147483647;
 tests/value/origin.i:128:[value] Assigning imprecise value to r.t[1].
         The imprecision originates from Arithmetic {tests/value/origin.i:128}
+tests/value/origin.i:129:[value] Assigning imprecise value to __retres<origin>.
+        The imprecision originates from Misaligned {tests/value/origin.i:124}
 [value] Recording results for origin
 [value] done for function origin
 [value] ====== VALUES COMPUTED ======

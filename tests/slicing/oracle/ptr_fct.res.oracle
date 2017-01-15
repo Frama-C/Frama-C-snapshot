@@ -54,7 +54,7 @@ void f1(int x)
 }
 
 /*@ assigns \nothing; */
-extern void f2(int y);
+void f2(int y);
 
 void (*ptf)(int ) = (void (*)(int ))0;
 void g(int arg);

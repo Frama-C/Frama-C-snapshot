@@ -50,7 +50,7 @@ typedef struct DIR {
 DIR __fc_opendir[__FC_FOPEN_MAX];
 DIR* const __p_fc_opendir = __fc_opendir;
 
-int            alphasort(const struct dirent **, const struct dirent **);
+extern int            alphasort(const struct dirent **, const struct dirent **);
 
 /*@
   requires \subset(dirp,&__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
@@ -60,9 +60,9 @@ int            alphasort(const struct dirent **, const struct dirent **);
   ensures (\result == 0 && dirp->__fc_dir_inode == \null)
            || \result == -1;
 */
-int            closedir(DIR *dirp);
-int            dirfd(DIR *);
-DIR           *fdopendir(int);
+extern int            closedir(DIR *dirp);
+extern int            dirfd(DIR *);
+extern DIR           *fdopendir(int);
 
 /*@
   assigns \result \from path[0..], __p_fc_opendir;
@@ -72,7 +72,7 @@ DIR           *fdopendir(int);
              \result == &__fc_opendir[\result->__fc_dir_id];
   ensures \result != \null ==> \result->__fc_dir_inode != \null;
 */
-DIR           *opendir(const char *path);
+extern DIR           *opendir(const char *path);
 
 /*@
   requires \subset(dirp, &__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
@@ -81,18 +81,18 @@ DIR           *opendir(const char *path);
   assigns __FC_errno \from dirp, *dirp, __p_fc_opendir;
   ensures \result == \null || \valid(\result);
 */
-struct dirent *readdir(DIR *dirp);
+extern struct dirent *readdir(DIR *dirp);
 
-int            readdir_r(DIR * dirp, struct dirent * entry,
+extern int            readdir_r(DIR * dirp, struct dirent * entry,
 			 struct dirent ** result);
-void           rewinddir(DIR *);
-int            scandir(const char *, struct dirent ***,
+extern void           rewinddir(DIR *);
+extern int            scandir(const char *, struct dirent ***,
                    int (*)(const struct dirent *),
                    int (*)(const struct dirent **,
                    const struct dirent **));
 
-void           seekdir(DIR *, long);
-long           telldir(DIR *);
+extern void           seekdir(DIR *, long);
+extern long           telldir(DIR *);
 
 
 

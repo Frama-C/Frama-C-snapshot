@@ -1,1 +1,1 @@
-OPT: -metrics
+OPT: -no-autoload-plugins -load-module metrics -metrics

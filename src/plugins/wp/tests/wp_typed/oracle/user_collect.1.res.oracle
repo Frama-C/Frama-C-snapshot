@@ -28,7 +28,7 @@ Assume {
   (* Call 'job' *)
   Have: EqArray1_int(10, m_1, m[k <- x2_0]).
 }
-Prove: v = x1_0.
+Prove: x1_0 = v.
 
 ------------------------------------------------------------
 
@@ -47,16 +47,13 @@ Assume {
   (* Call 'job' *)
   Have: EqArray1_int(10, m_1, m[k <- x2_0]).
 }
-Prove: v = x2_0.
+Prove: x2_0 = v.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job'' in 'caller' at call 'job' (file tests/wp_typed/user_collect.i, line 52)
 :
-Assume {
-  Type: is_sint32(k) /\ is_sint32(p[k]) /\ is_sint32(p[1 + k]).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 8).
+Assume { Type: is_sint32(k). (* Pre-condition *) Have: (0 <= k) /\ (k <= 8).
 }
 Prove: k <= 9.
 
@@ -65,11 +62,9 @@ Prove: k <= 9.
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job'' in 'caller' at call 'job' (file tests/wp_typed/user_collect.i, line 53)
 :
 Let m = p[k <- v].
-Let x = 1 + k.
 Assume {
   Type: IsArray1_sint32(p) /\ is_sint32(k) /\ is_sint32(x1_0) /\
-      IsArray1_sint32(m) /\ is_sint32(p_1[k]) /\ is_sint32(x) /\
-      is_sint32(p_1[x]).
+      IsArray1_sint32(m) /\ is_sint32(1 + k).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
   (* Call 'job' *)
@@ -147,10 +142,7 @@ Prove: EqArray1_S1_S(10, m_1, m_2[k <- s2_0]).
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 65)
 :
-Assume {
-  Type: is_sint32(k) /\ IsS1_S(q[k]) /\ IsS1_S(q[1 + k]).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 8).
+Assume { Type: is_sint32(k). (* Pre-condition *) Have: (0 <= k) /\ (k <= 8).
 }
 Prove: k <= 9.
 
@@ -159,10 +151,9 @@ Prove: k <= 9.
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 66)
 :
 Let m = q[k <- v].
-Let x = 1 + k.
 Assume {
   Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ is_sint32(k) /\ IsArray1S1_S(m) /\
-      IsS1_S(q_1[k]) /\ is_sint32(x) /\ IsS1_S(q_1[x]).
+      is_sint32(1 + k).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
   (* Call 'job2' *)
@@ -240,10 +231,7 @@ Prove: EqArray1_S1_S(10, m_1, m_2[k <- s2_0]).
 
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 78)
 :
-Assume {
-  Type: is_sint32(k) /\ IsS1_S(q[k]) /\ IsS1_S(q[1 + k]).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 8).
+Assume { Type: is_sint32(k). (* Pre-condition *) Have: (0 <= k) /\ (k <= 8).
 }
 Prove: k <= 9.
 
@@ -252,10 +240,9 @@ Prove: k <= 9.
 Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 79)
 :
 Let m = q[k <- v].
-Let x = 1 + k.
 Assume {
   Type: IsArray1S1_S(q) /\ IsS1_S(s1_0) /\ is_sint32(k) /\ IsArray1S1_S(m) /\
-      IsS1_S(q_1[k]) /\ is_sint32(x) /\ IsS1_S(q_1[x]).
+      is_sint32(1 + k).
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 8).
   (* Call 'job3' *)
@@ -274,14 +261,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'P' in 'job':
-Let m = p[k <- x].
-Assume {
-  Type: IsArray1_sint32(p) /\ is_sint32(k) /\ is_sint32(x) /\
-      IsArray1_sint32(m).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 9).
-}
-Prove: EqArray1_int(10, m, m).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -311,13 +291,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Q' in 'job2':
-Let m = q[k <- s].
-Assume {
-  Type: IsArray1S1_S(q) /\ IsS1_S(s) /\ is_sint32(k) /\ IsArray1S1_S(m).
-  (* Pre-condition *)
-  Have: (0 <= k) /\ (k <= 9).
-}
-Prove: EqArray1_S1_S(10, m, m).
+Prove: true.
 
 ------------------------------------------------------------
 

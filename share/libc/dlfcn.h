@@ -28,10 +28,10 @@
 #define RTLD_GLOBAL 3
 #define RTLD_LOCAL 4
 __BEGIN_DECLS
-void  *dlopen(const char *, int);
-void  *dlsym(void *, const char *);
-int    dlclose(void *);
-char  *dlerror(void);
+extern void  *dlopen(const char *, int);
+extern void  *dlsym(void *, const char *);
+extern int    dlclose(void *);
+extern char  *dlerror(void);
 __END_DECLS
 #endif
 

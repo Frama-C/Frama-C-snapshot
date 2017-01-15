@@ -38,7 +38,7 @@ struct
   type value = M.loc Memory.value
   type sigma = M.Sigma.t
 
-  let print_value fmt = function
+  let pp_value fmt = function
     | Val e -> Format.fprintf fmt "Val:%a" F.pp_term e
     | Loc l-> Format.fprintf fmt "Loc:%a" M.pretty l
 

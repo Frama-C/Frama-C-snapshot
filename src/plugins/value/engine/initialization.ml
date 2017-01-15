@@ -124,7 +124,7 @@ module Make
   let init_single_initializer state lval expr =
     let eval, alarms = assign_single_initializer state lval expr in
     let with_alarms = Value_util.warn_all_quiet_mode () in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.emit with_alarms Kglobal alarms;
     match eval with
     | `Bottom ->
       Value_parameters.result ~source:(fst expr.eloc)

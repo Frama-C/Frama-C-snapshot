@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input -inout -journal-disable
+   STDOPT: #"-inout"
 */
 
 char t[100]={0,1,2,3,4,5,6,7,8,9};

@@ -171,6 +171,3 @@ sig
 end
 
 module HE (I : sig type t end) : HEsig with type ti = I.t
-
-(** type of functions to print things related to edges *)
-type pp_edge_fun = Format.formatter -> edge -> unit

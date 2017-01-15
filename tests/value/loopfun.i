@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -slevel 50 -val @VALUECONFIG@ -deps -out -input -journal-disable -no-results
+   STDOPT: +"-slevel 50 -no-results"
 */
 
 static int a = 7;

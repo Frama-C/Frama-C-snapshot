@@ -298,7 +298,12 @@ let () = Cil_datatype.Logic_type.pretty_ref := pp_logic_type
 let () = Cil_datatype.Term.pretty_ref := pp_term
 let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
 let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset
+let () = Cil_datatype.Global_annotation.pretty_ref := pp_global_annotation
+let () = Cil_datatype.Global.pretty_ref := pp_global
 let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
+let () = Cil_datatype.Predicate.pretty_ref := pp_predicate
+let () = Cil_datatype.Identified_predicate.pretty_ref := pp_identified_predicate
+let () = Cil_datatype.Funspec.pretty_ref := pp_funspec
 let () =
   Cil_datatype.Fieldinfo.pretty_ref := (fun fmt f -> pp_varname fmt f.fname)
 

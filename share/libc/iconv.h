@@ -32,16 +32,16 @@ typedef void * iconv_t;
 extern int __FC_errno;
 /*@ assigns *outbuf[0 .. *outbytesleft-1] \from *inbuf[0 .. *inbytesleft-1]; 
   assigns __FC_errno ; */
-size_t  iconv(iconv_t cd, char **restrict inbuf, size_t *restrict inbytesleft,
+extern size_t  iconv(iconv_t cd, char **restrict inbuf, size_t *restrict inbytesleft,
             char **restrict outbuf, size_t *restrict outbytesleft);
 
 /*@ assigns __FC_errno;
   ensures \result == 0 || \result == 1 ; */
-int     iconv_close(iconv_t);
+extern int     iconv_close(iconv_t);
 
 /*@ assigns \result \from tocode[..],fromcode[..];
   assigns __FC_errno; */
-iconv_t iconv_open(const char *tocode, const char *fromcode);
+extern iconv_t iconv_open(const char *tocode, const char *fromcode);
 
 __END_DECLS
 

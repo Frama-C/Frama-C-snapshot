@@ -79,6 +79,10 @@ diff tests/value/oracle/for_loops.1.res.oracle tests/value/oracle_apron/for_loop
 < [value] Called Frama_C_show_each_F([0..2147483647])
 ---
 > [value] Called Frama_C_show_each_F([0..100])
+45c44
+<   j ∈ [0..2147483647]
+---
+>   j ∈ [0..100]
 diff tests/value/oracle/for_loops.2.res.oracle tests/value/oracle_apron/for_loops.2.res.oracle
 33,34c33
 < tests/value/for_loops.c:42:[value] warning: signed overflow. assert w + T[j] ≤ 2147483647;
@@ -356,6 +360,11 @@ diff tests/value/oracle/raz.res.oracle tests/value/oracle_apron/raz.res.oracle
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [0..10]
+diff tests/value/oracle/reevaluate_alarms.res.oracle tests/value/oracle_apron/reevaluate_alarms.res.oracle
+58c58
+<   S ∈ [0..2147483647]
+---
+>   S ∈ [4..2147483647]
 diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_apron/relation_reduction.res.oracle
 24,25d23
 < tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;

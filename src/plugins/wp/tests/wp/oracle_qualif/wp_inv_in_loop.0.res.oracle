@@ -56,7 +56,7 @@ double_loop          3     -           3       100%
 razT2simple          5     -           5       100%
 razT2                6     -           6       100%
 bts618               1     -           1       100%
-non_natural_loop    -       3 (26)     4      75.0%
+non_natural_loop    -       3 (22)     4      75.0%
 test_for_tag         3     -           3       100%
 goto_natural_loop    2     -           2       100%
 ----------------------------------------------------------

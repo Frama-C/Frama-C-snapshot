@@ -240,7 +240,7 @@ tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
 int Y;
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int input();
+int input();
 
 void f_slice_1(void)
 {

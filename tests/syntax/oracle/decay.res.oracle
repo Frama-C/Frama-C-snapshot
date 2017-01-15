@@ -10,20 +10,15 @@ struct __anonstruct_A_1 {
    int A[sizeof(t)] ;
    int i ;
 };
-char t[8];
-
 struct __anonstruct_S_2 {
    int A[sizeof(&(t[0]))] ;
    int i ;
 };
-char t[8];
-
 struct __anonstruct_V_3 {
    int A[sizeof(&(t[0]))] ;
    int i ;
 };
 char t[8];
-
 void multi_dim_array_decay(void)
 {
   struct P *pp;
@@ -36,7 +31,6 @@ void multi_dim_array_decay(void)
   return;
 }
 
-char t[8];
 struct __anonstruct_A_1 A = {.A = {1, 2, 3, 4, 5, 6, 7, 8}, .i = 9};
 struct __anonstruct_S_2 S = {.A = {1, 2, 3, 4}, .i = 5};
 struct __anonstruct_V_3 V = {.A = {1, 2, 3, 4}, .i = 5};

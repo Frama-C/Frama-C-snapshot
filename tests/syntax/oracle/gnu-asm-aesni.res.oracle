@@ -628,7 +628,9 @@ extern char *strpbrk(char const *s, char const *accept);
       (\subset(\result, \old(haystack) + (0 ..)) ∧ \valid_read(\result) ∧
        memcmp{Pre, Pre}(\result, \old(needle), strlen(\old(needle))) ≡ 0);
     assigns \result;
-    assigns \result \from haystack, *(haystack + (0 ..)), *(needle + (0 ..));
+    assigns \result
+      \from haystack, (indirect: *(haystack + (0 ..))),
+            (indirect: *(needle + (0 ..)));
  */
 extern char *strstr(char const *haystack, char const *needle);
 

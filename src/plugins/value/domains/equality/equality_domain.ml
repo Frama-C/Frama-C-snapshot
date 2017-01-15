@@ -186,8 +186,6 @@ module MakeDomain
   type value = Value.t
   type location = Precise_locs.precise_location
   type origin = unit
-  type return = unit
-  module Return = Datatype.Unit
 
   let pretty fmt (eqs, _, _) =
     Format.fprintf fmt "@[<v>Eqs: %a@]" Equality.Set.pretty eqs
@@ -305,12 +303,6 @@ module MakeDomain
     let zone = List.fold_left aux_vi Locations.Zone.bottom vars in
     kill RemoveFromModified zone state
 
-  let top_return =
-    let top_value =
-      { v = `Value Value.top; initialized = false; escaping = true; }
-    in
-    Some (top_value, ())
-
   let approximate_call kf state =
     let post_state =
       let name = Kernel_function.get_name kf in
@@ -319,7 +311,7 @@ module MakeDomain
       then state
       else if unsafe_spec_calls then state else top
     in
-    `Value [{ post_state; return = top_return }]
+    `Value [post_state]
 
   module Transfer
       (Valuation: Abstract_domain.Valuation
@@ -330,7 +322,6 @@ module MakeDomain
     type state = t
     type value = Value.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     let find_loc valuation = fun lval ->
@@ -454,8 +445,6 @@ module MakeDomain
       in
       Compute (Continue state, true)
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
     let finalize_call _stmt call ~pre ~post =
       let kf = call.kf in
       let name = Kernel_function.get_name kf in
@@ -487,10 +476,6 @@ module MakeDomain
         let pre' = kill AddAsModified modif pre in
         (* then merge the two sets of equalities *)
         `Value (concat pre' post)
-
-    let assign_return _stmt lv _kf () _value _valuation state =
-      let loc = Precise_locs.imprecise_location lv.lloc in
-      `Value (kill AddAsModified (Locations.enumerate_bits loc) state)
 
     let default_call _stmt call state =
       approximate_call call.kf state

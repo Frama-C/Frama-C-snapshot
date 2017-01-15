@@ -29,9 +29,9 @@ typedef unsigned long nl_catd;
 typedef unsigned long nl_item;
 #define NL_SETD 0
 #define NL_CAT_LOCALE 1
-int       catclose(nl_catd);
-char     *catgets(nl_catd, int, int, const char *);
-nl_catd   catopen(const char *, int);
+extern int       catclose(nl_catd);
+extern char     *catgets(nl_catd, int, int, const char *);
+extern nl_catd   catopen(const char *, int);
 
 __END_DECLS
 

@@ -1,0 +1,204 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pragma-pack.c (with preprocessing)
+tests/misc/pragma-pack.c:87:[kernel] warning: ignoring #pragma pack(pop) with empty stack
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] computing for function tests1 <- main.
+        Called from tests/misc/pragma-pack.c:38.
+[value] Recording results for tests1
+[value] Done for function tests1
+[value] computing for function tests2 <- main.
+        Called from tests/misc/pragma-pack.c:38.
+[value] Recording results for tests2
+[value] Done for function tests2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function tests1:
+  S_i ∈ {0}
+  S_j ∈ {4}
+  S_sizeof ∈ {16}
+  PACK8_i ∈ {0}
+  PACK8_j ∈ {8}
+  PACK8_sizeof ∈ {24}
+  PACK1_i ∈ {0}
+  PACK1_j ∈ {1}
+  PACK1_sizeof ∈ {13}
+  PACKPUSH4_i ∈ {0}
+  PACKPUSH4_j ∈ {4}
+  PACKPUSH4_sizeof ∈ {16}
+  PACK16_i ∈ {0}
+  PACK16_j ∈ {4}
+  PACK16_sizeof ∈ {16}
+  PACKPOP_i ∈ {0}
+  PACKPOP_j ∈ {1}
+  PACKPOP_sizeof ∈ {13}
+  PACKPUSH_i ∈ {0}
+  PACKPUSH_j ∈ {1}
+  PACKPUSH_sizeof ∈ {13}
+  PACK2_i ∈ {0}
+  PACK2_j ∈ {2}
+  PACK2_sizeof ∈ {14}
+  PACKDEF_i ∈ {0}
+  PACKDEF_j ∈ {4}
+  PACKDEF_sizeof ∈ {16}
+  PACKPOPAGAIN_i ∈ {0}
+  PACKPOPAGAIN_j ∈ {1}
+  PACKPOPAGAIN_sizeof ∈ {13}
+  PACKOVERPOP_i ∈ {0}
+  PACKOVERPOP_j ∈ {1}
+  PACKOVERPOP_sizeof ∈ {13}
+  PACK8_ATTR_i ∈ {0}
+  PACK8_ATTR_j ∈ {1}
+  PACK8_ATTR_sizeof ∈ {16}
+  PACK1_ATTR_i ∈ {0}
+  PACK1_ATTR_j ∈ {1}
+  PACK1_ATTR_sizeof ∈ {13}
+  PACKPUSH4_ATTR_i ∈ {0}
+  PACKPUSH4_ATTR_j ∈ {1}
+  PACKPUSH4_ATTR_sizeof ∈ {16}
+  PACK16_ATTR_i ∈ {0}
+  PACK16_ATTR_j ∈ {1}
+  PACK16_ATTR_sizeof ∈ {16}
+  PACK2_ATTR_i ∈ {0}
+  PACK2_ATTR_j ∈ {1}
+  PACK2_ATTR_sizeof ∈ {14}
+[value:final-states] Values at end of function tests2:
+  test1_i ∈ {0}
+  test1_j ∈ {2}
+  test1_k ∈ {4}
+  test1_l ∈ {16}
+  test1_sizeof ∈ {20}
+  emul1_i ∈ {0}
+  emul1_j ∈ {2}
+  emul1_k ∈ {4}
+  emul1_l ∈ {16}
+  emul1_sizeof ∈ {20}
+  test2_i ∈ {0}
+  test2_j ∈ {1}
+  test2_k ∈ {2}
+  test2_l ∈ {14}
+  test2_sizeof ∈ {15}
+  emul2_i ∈ {0}
+  emul2_j ∈ {1}
+  emul2_k ∈ {2}
+  emul2_l ∈ {14}
+  emul2_sizeof ∈ {15}
+  test3_i ∈ {0}
+  test3_j ∈ {1}
+  test3_k ∈ {2}
+  test3_l ∈ {14}
+  test3_sizeof ∈ {15}
+  emul3_i ∈ {0}
+  emul3_j ∈ {1}
+  emul3_k ∈ {2}
+  emul3_l ∈ {14}
+  emul3_sizeof ∈ {15}
+  test4_i ∈ {0}
+  test4_j ∈ {2}
+  test4_k ∈ {3}
+  test4_l ∈ {15}
+  test4_sizeof ∈ {16}
+  emul4_i ∈ {0}
+  emul4_j ∈ {2}
+  emul4_k ∈ {3}
+  emul4_l ∈ {15}
+  emul4_sizeof ∈ {16}
+  test5_i ∈ {0}
+  test5_j ∈ {2}
+  test5_k ∈ {3}
+  test5_l ∈ {15}
+  test5_sizeof ∈ {16}
+  emul5_i ∈ {0}
+  emul5_j ∈ {2}
+  emul5_k ∈ {3}
+  emul5_l ∈ {15}
+  emul5_sizeof ∈ {16}
+  test6_i ∈ {0}
+  test6_j ∈ {2}
+  test6_k ∈ {3}
+  test6_l ∈ {15}
+  test6_sizeof ∈ {16}
+  emul6_i ∈ {0}
+  emul6_j ∈ {2}
+  emul6_k ∈ {3}
+  emul6_l ∈ {15}
+  emul6_sizeof ∈ {16}
+  test7_i ∈ {0}
+  test7_j ∈ {2}
+  test7_k ∈ {10}
+  test7_l ∈ {22}
+  test7_sizeof ∈ {24}
+  emul7_i ∈ {0}
+  emul7_j ∈ {2}
+  emul7_k ∈ {10}
+  emul7_l ∈ {22}
+  emul7_sizeof ∈ {24}
+  test7_2_i ∈ {0}
+  test7_2_j ∈ {24}
+  test7_2_k ∈ {26}
+  test7_2_l ∈ {38}
+  test7_2_sizeof ∈ {62}
+  emul7_2_i ∈ {0}
+  emul7_2_j ∈ {24}
+  emul7_2_k ∈ {26}
+  emul7_2_l ∈ {38}
+  emul7_2_sizeof ∈ {62}
+  test8_i ∈ {0}
+  test8_j ∈ {4}
+  test8_k ∈ {8}
+  test8_l ∈ {10}
+  test8_sizeof ∈ {16}
+[value:final-states] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function tests1
+[from] Done for function tests1
+[from] Computing for function tests2
+[from] Done for function tests2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function tests1:
+  NO EFFECTS
+[from] Function tests2:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function tests1:
+          S_i; S_j; S_sizeof; PACK8_i; PACK8_j; PACK8_sizeof; PACK1_i; PACK1_j;
+          PACK1_sizeof; PACKPUSH4_i; PACKPUSH4_j; PACKPUSH4_sizeof; PACK16_i;
+          PACK16_j; PACK16_sizeof; PACKPOP_i; PACKPOP_j; PACKPOP_sizeof; PACKPUSH_i;
+          PACKPUSH_j; PACKPUSH_sizeof; PACK2_i; PACK2_j; PACK2_sizeof; PACKDEF_i;
+          PACKDEF_j; PACKDEF_sizeof; PACKPOPAGAIN_i; PACKPOPAGAIN_j;
+          PACKPOPAGAIN_sizeof; PACKOVERPOP_i; PACKOVERPOP_j; PACKOVERPOP_sizeof;
+          PACK8_ATTR_i; PACK8_ATTR_j; PACK8_ATTR_sizeof; PACK1_ATTR_i; PACK1_ATTR_j;
+          PACK1_ATTR_sizeof; PACKPUSH4_ATTR_i; PACKPUSH4_ATTR_j;
+          PACKPUSH4_ATTR_sizeof; PACK16_ATTR_i; PACK16_ATTR_j; PACK16_ATTR_sizeof;
+          PACK2_ATTR_i; PACK2_ATTR_j; PACK2_ATTR_sizeof
+[inout] Inputs for function tests1:
+          \nothing
+[inout] Out (internal) for function tests2:
+          test1_i; test1_j; test1_k; test1_l; test1_sizeof; emul1_i; emul1_j;
+          emul1_k; emul1_l; emul1_sizeof; test2_i; test2_j; test2_k; test2_l;
+          test2_sizeof; emul2_i; emul2_j; emul2_k; emul2_l; emul2_sizeof; test3_i;
+          test3_j; test3_k; test3_l; test3_sizeof; emul3_i; emul3_j; emul3_k;
+          emul3_l; emul3_sizeof; test4_i; test4_j; test4_k; test4_l; test4_sizeof;
+          emul4_i; emul4_j; emul4_k; emul4_l; emul4_sizeof; test5_i; test5_j;
+          test5_k; test5_l; test5_sizeof; emul5_i; emul5_j; emul5_k; emul5_l;
+          emul5_sizeof; test6_i; test6_j; test6_k; test6_l; test6_sizeof; emul6_i;
+          emul6_j; emul6_k; emul6_l; emul6_sizeof; test7_i; test7_j; test7_k;
+          test7_l; test7_sizeof; emul7_i; emul7_j; emul7_k; emul7_l; emul7_sizeof;
+          test7_2_i; test7_2_j; test7_2_k; test7_2_l; test7_2_sizeof; emul7_2_i;
+          emul7_2_j; emul7_2_k; emul7_2_l; emul7_2_sizeof; test8_i; test8_j; 
+          test8_k; test8_l; test8_sizeof
+[inout] Inputs for function tests2:
+          \nothing
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          \nothing

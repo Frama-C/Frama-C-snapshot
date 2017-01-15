@@ -6,9 +6,9 @@ typedef char tt;
 struct T {
    int a ;
 };
-extern int normal(int n);
+int normal(int n);
 
-extern int vf(int x , ...);
+int vf(int x , ...);
 
 struct T st;
 tt abstract;
@@ -18,7 +18,7 @@ unsigned short ushort;
 unsigned long long ll;
 long double ld;
 double d;
-extern void h(int x_0, int x_1);
+void h(int x_0, int x_1);
 
 extern int ( /* missing proto */ f)(int x_0, int x_1);
 

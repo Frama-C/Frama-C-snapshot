@@ -38,12 +38,12 @@ tests/spec/assigns_result.i:16:[from] Unable to extract assigns in g
 int X;
 int Y;
 /*@ assigns \nothing; */
-extern int f(void);
+int f(void);
 
 /*@ assigns \result;
     assigns \result \from X;
     assigns \exit_status \from Y; */
-extern int g(void);
+int g(void);
 
 void main(void)
 {

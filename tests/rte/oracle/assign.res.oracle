@@ -6,20 +6,20 @@ tests/rte/assign.c:37:[kernel] warning: Neither code nor specification for funct
 int global_x;
 int global_y;
 /*@ assigns \nothing; */
-extern void g();
+void g();
 
 /*@ assigns \nothing; */
-extern int fnd1();
+int fnd1();
 
 /*@ assigns global_x; */
-extern int fnd2();
+int fnd2();
 
 /*@ assigns global_x, global_y; */
-extern int fnd3();
+int fnd3();
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int fnd4();
+int fnd4();
 
 /*@ assigns global_x;
     
@@ -31,14 +31,14 @@ extern int fnd4();
       assumes cond ≡ 0;
       assigns global_x;
  */
-extern int fnd5(int cond);
+int fnd5(int cond);
 
 /*@ assigns \nothing; */
-extern int fnd6();
+int fnd6();
 
 /*@ assigns *x;
     assigns *x \from *y; */
-extern int fnd7(int *x, int *y);
+int fnd7(int *x, int *y);
 
 int rte(int cond)
 {

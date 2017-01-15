@@ -25,7 +25,7 @@ Assume {
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0).
 }
-Prove: x = x_1.
+Prove: x_1 = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -61,12 +61,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 36) in 's':
-Assume { (* Heap *) Have: (region(c.base) <= 0) /\ (region(d.base) <= 0). }
-Prove: c != d.
+Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_hoare/refguards.i, line 37) in 's':
-Prove: true.
+Goal Post-condition 'KO' in 's':
+Assume { (* Heap *) Have: (region(c.base) <= 0) /\ (region(d.base) <= 0). }
+Prove: d != c.
 
 ------------------------------------------------------------

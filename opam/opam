@@ -32,7 +32,7 @@ authors: [
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
 dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
-doc: ["http://frama-c.com/download/user-manual-Silicon-20161101.pdf"]
+doc: ["http://frama-c.com/download/user-manual-Aluminium-20160501.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"

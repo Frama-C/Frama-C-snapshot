@@ -29,7 +29,6 @@ module type S = sig
 
   type state
   type value
-  type return
 
   val assign: with_alarms:CilE.warn_mode ->
     state -> kernel_function -> stmt -> lval -> exp -> state or_bottom
@@ -41,10 +40,6 @@ module type S = sig
     stmt -> lval option -> exp -> exp list -> state ->
     state list or_bottom * Value_types.cacheable
 
-  val return: with_alarms:CilE.warn_mode ->
-    kernel_function -> stmt -> lval option -> state ->
-    (state, return, value) return_state or_bottom
-
   val enter_loop: stmt -> state -> state
   val incr_loop_counter: stmt -> state -> state
   val leave_loop: stmt -> state -> state
@@ -54,18 +49,20 @@ module type S = sig
 
   val check_unspecified_sequence:
     with_alarms:CilE.warn_mode ->
+    Cil_types.stmt ->
     state ->
     (* TODO *)
     (stmt * lval list * lval list * lval list * stmt ref list) list ->
     unit or_bottom
 
-  type res = (state, return, value) call_result * Value_types.cacheable
+  type res = state list or_bottom * Value_types.cacheable
 
   val compute_call_ref: (kinstr -> value call -> state -> res) ref
 end
 
 module type Domain = sig
   include Abstract_domain.Transfer
+  val enter_scope: kernel_function -> varinfo list -> state -> state
   val leave_scope: kernel_function -> varinfo list -> state -> state
   module Store: Abstract_domain.Store with type state := state
   include Datatype.S with type t = state
@@ -82,7 +79,6 @@ module Make
                         and type Valuation.t = Domain.valuation)
   : S with type state = Domain.state
        and type value = Domain.value
-       and type return = Domain.return
 
 
 (*

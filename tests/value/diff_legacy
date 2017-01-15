@@ -92,7 +92,15 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                          {{ NULL + [0..4294967295] ; &b }})
 > [value] Called Frama_C_show_each_char_else({{ NULL + [0..4294967295] ; &a }},
 >                                            {{ NULL + [0..4294967295] ; &b }})
-44,45c49,55
+41,43d45
+< tests/value/backward_add_ptr.c:68:[value] Assigning imprecise value to __retres<gm>.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+46,48d47
+< tests/value/backward_add_ptr.c:75:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+50,51c49,55
 < [value] Called Frama_C_show_each_GM_only_a({{ &a + [-17179869180..0],0%4 }},
 <                                            [0..4294967295])
 ---
@@ -103,7 +111,7 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                            (origin: Arithmetic
 >                                            {tests/value/backward_add_ptr.c:68}) }},
 >                                            {{ NULL + [0..4294967295] ; &b }})
-47,48c57,62
+53,54c57,62
 < [value] Called Frama_C_show_each_GM_reduce_p_offset({{ NULL + {0; 1; 2; 3} ;
 <                                                        &a + [-4294967295..3] }},
 ---
@@ -113,7 +121,11 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 > [value] Called Frama_C_show_each_GM_reduce_p_offset({{ garbled mix of &{a}
 >                                                     (origin: Arithmetic
 >                                                     {tests/value/backward_add_ptr.c:68}) }},
-54a69,75
+60,62d67
+< tests/value/backward_add_ptr.c:91:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+63a69,75
 > tests/value/backward_add_ptr.c:97:[value] Reading left-value p.
 >         It contains a garbled mix of {a} because of Arithmetic
 >         {tests/value/backward_add_ptr.c:68}.
@@ -121,7 +133,15 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                            (origin: Arithmetic
 >                                            {tests/value/backward_add_ptr.c:68}) }},
 >                                            {{ &b }})
-72c93,99
+68,70d79
+< tests/value/backward_add_ptr.c:100:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+83,85d91
+< tests/value/backward_add_ptr.c:110:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+87c93,99
 < [value] Called Frama_C_show_each_GM_only_c({0}, {{ &c }})
 ---
 > tests/value/backward_add_ptr.c:116:[value] Reading left-value p.
@@ -131,7 +151,7 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                            (origin: Arithmetic
 >                                            {tests/value/backward_add_ptr.c:68}) }},
 >                                            {{ NULL + [0..4294967295] ; &c }})
-74,75c101,107
+89,90c101,107
 < [value] Called Frama_C_show_each_GM_only_b({{ &b + [-17179869180..0],0%4 }},
 <                                            [0..4294967295])
 ---
@@ -142,7 +162,11 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                            (origin: Arithmetic
 >                                            {tests/value/backward_add_ptr.c:68}) }},
 >                                            {{ NULL + [0..4294967295] ; &c }})
-80a113,119
+95,97d111
+< tests/value/backward_add_ptr.c:125:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+98a113,119
 > tests/value/backward_add_ptr.c:131:[value] Reading left-value p.
 >         It contains a garbled mix of {a; b} because of Arithmetic
 >         {tests/value/backward_add_ptr.c:68}.
@@ -150,75 +174,94 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >                                            (origin: Arithmetic
 >                                            {tests/value/backward_add_ptr.c:68}) }},
 >                                            {{ NULL + [0..4294967295] ; &b }})
-83c122
+101c122
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {a; b} because of Arithmetic
-85c124
+103c124
 < [value] Called Frama_C_show_each_GM_only_b_and_gm({{ garbled mix of &{b}
 ---
 > [value] Called Frama_C_show_each_GM_only_b_and_gm({{ garbled mix of &{a; b}
-117a157,159
+115,117d135
+< tests/value/backward_add_ptr.c:145:[value] Assigning imprecise value to tmp_0.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+125,127d142
+< tests/value/backward_add_ptr.c:146:[value] Assigning imprecise value to q.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+141a157,159
 > tests/value/backward_add_ptr.c:157:[value] Reading left-value q.
 >         It contains a garbled mix of {c} because of Arithmetic
 >         {tests/value/backward_add_ptr.c:68}.
-119c161
+143c161
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {a; b} because of Arithmetic
-121c163
+145c163
 < [value] Called Frama_C_show_each_2GM_only_b({{ garbled mix of &{b}
 ---
 > [value] Called Frama_C_show_each_2GM_only_b({{ garbled mix of &{a; b}
-124c166,168
+148c166,168
 <                                             [0..4294967295])
 ---
 >                                             {{ garbled mix of &{c}
 >                                             (origin: Arithmetic
 >                                             {tests/value/backward_add_ptr.c:68}) }})
-135c179
+153,155d172
+< tests/value/backward_add_ptr.c:160:[value] Assigning imprecise value to p.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+160,162d176
+< tests/value/backward_add_ptr.c:161:[value] Assigning imprecise value to q.
+<         The imprecision originates from Arithmetic
+<         {tests/value/backward_add_ptr.c:68}
+165c179
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {b; c} because of Arithmetic
-138c182
+168c182
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {a; b} because of Arithmetic
-140c184
+170c184
 < [value] Called Frama_C_show_each_2GM_TEST({{ garbled mix of &{b}
 ---
 > [value] Called Frama_C_show_each_2GM_TEST({{ garbled mix of &{a; b}
-143c187
+173c187
 <                                           {{ garbled mix of &{b}
 ---
 >                                           {{ garbled mix of &{b; c}
-148c192
+178c192
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {b; c} because of Arithmetic
-156c200
+186c200
 <                                                {{ garbled mix of &{b}
 ---
 >                                                {{ garbled mix of &{b; c}
-164c208
+194c208
 <         It contains a garbled mix of {b} because of Arithmetic
 ---
 >         It contains a garbled mix of {a; b} because of Arithmetic
-166c210
+196c210
 < [value] Called Frama_C_show_each_2GM_gm_of_b_c({{ garbled mix of &{b}
 ---
 > [value] Called Frama_C_show_each_2GM_gm_of_b_c({{ garbled mix of &{a; b}
-184,185c228,229
+241,242d254
+<                  {{ garbled mix of &{a; b}
+<                    (origin: Arithmetic {tests/value/backward_add_ptr.c:115}) }}
+263,264c275,276
 <   p ∈ {{ NULL + [0..4294967295] ; &a }}
 <   q ∈ {{ NULL + [0..4294967295] ; &b }}
 ---
 >   p ∈ {{ NULL + [--..--] ; &a }}
 >   q ∈ {{ NULL + [--..--] ; &b }}
-187c231
+266c278
 <   w ∈ {0; 1} or UNINITIALIZED
 ---
 >   w ∈ [--..--] or UNINITIALIZED
-190,193c234,236
+269,272c281,283
 <   b[bits 0 to 7] ∈ {1}
 <    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
 <   p ∈ {{ NULL + [0..4294967295] ; &a }}
@@ -227,7 +270,7 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 >   b ∈ {1}
 >   p ∈ {{ NULL + [--..--] ; &a }}
 >   q ∈ {{ NULL + [--..--] ; &b }}
-196,199c239,240
+275,278c286,287
 <   b[bits 0 to 7] ∈ {1}
 <    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
 <   c[bits 0 to 7] ∈ {2}
@@ -235,11 +278,11 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 ---
 >   b ∈ {1}
 >   c ∈ {2}
-205c246
+284c293
 <   w ∈ {0; 1} or UNINITIALIZED
 ---
 >   w ∈ [--..--] or UNINITIALIZED
-208,211c249,250
+287,290c296,297
 <   b[bits 0 to 7] ∈ {1}
 <    [bits 8 to 31]# ∈ {1}%32, bits 8 to 31 
 <   c[bits 0 to 7] ∈ {2}
@@ -247,6 +290,23 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_legacy/ba
 ---
 >   b ∈ {1}
 >   c ∈ {2}
+diff tests/value/oracle/behaviors1.res.oracle tests/value/oracle_legacy/behaviors1.res.oracle
+247,249d246
+< tests/value/behaviors1.i:473:[value] Assigning imprecise value to tmp.
+<         The imprecision originates from Library function
+<         {tests/value/behaviors1.i:473}
+256,258d252
+< tests/value/behaviors1.i:474:[value] Assigning imprecise value to tmp_0.
+<         The imprecision originates from Library function
+<         {tests/value/behaviors1.i:474}
+459c453
+<   a ∈ [--..--] or UNINITIALIZED
+---
+>   a ∈ [--..--]
+462c456
+<   a ∈ [--..--]
+---
+>   a ∈ [--..--] or UNINITIALIZED
 diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_legacy/bitfield.res.oracle
 82a83
 > tests/value/bitfield.i:135:[value] warning: locals {v} escaping the scope of main_old through h
@@ -315,7 +375,27 @@ diff tests/value/oracle/bitwise_reduction.res.oracle tests/value/oracle_legacy/b
 > [value] Called Frama_C_show_each_then2({{ &t + {4} }},
 >                                        {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000})
 diff tests/value/oracle/bts0506.0.res.oracle tests/value/oracle_legacy/bts0506.0.res.oracle
-113,120c113,117
+52c52,53
+< tests/value/bts0506.i:27:[value] warning: non-finite float value. assert \is_finite(__retres<f4>);
+---
+> tests/value/bts0506.i:27:[value] warning: non-finite float value. assert \is_finite(tmp_8);
+>                                          (tmp_8 from f4())
+56c57,58
+< tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(__retres<f4>);
+---
+> tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(tmp_9);
+>                                          (tmp_9 from f4())
+62c64,65
+< tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(__retres<f5>);
+---
+> tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(tmp_10);
+>                                           (tmp_10 from f5())
+68c71,72
+< tests/value/bts0506.i:31:[value] warning: non-finite double value. assert \is_finite(__retres<f5>);
+---
+> tests/value/bts0506.i:31:[value] warning: non-finite double value. assert \is_finite(tmp_11);
+>                                           (tmp_11 from f5())
+109,116c113,117
 <   r13 ∈
 <      {{ NULL + [0..4294967295] ; &alloced_return_f6 + [0..2147483644],0%4 }}
 <   r14 ∈
@@ -330,11 +410,54 @@ diff tests/value/oracle/bts0506.0.res.oracle tests/value/oracle_legacy/bts0506.0
 >   r15 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
 >   r16 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
 >   r17 ∈ {{ NULL + [--..--] ; &alloced_return_f7 + [0..2147483647] }}
+262d262
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f4>); */
+263a264
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_8); */
+265d265
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f4>); */
+266a267
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_9); */
+268d268
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f5>); */
+269a270
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_10); */
+272d272
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f5>); */
+273a274
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_11); */
 diff tests/value/oracle/bts0506.1.res.oracle tests/value/oracle_legacy/bts0506.1.res.oracle
-105c105
-<   r10 ∈ [--..--]
+52d51
+< tests/value/bts0506.i:27:[value] warning: non-finite float value. assert \is_finite(__retres<f4>);
+56c55
+< tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(__retres<f4>);
 ---
->   r10 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+> tests/value/bts0506.i:28:[kernel] warning: non-finite float value being returned: assert(\is_finite(\returned_value))
+62c61,62
+< tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(__retres<f5>);
+---
+> tests/value/bts0506.i:30:[value] warning: non-finite double value. assert \is_finite(tmp_10);
+>                                           (tmp_10 from f5())
+68d67
+< tests/value/bts0506.i:31:[value] warning: non-finite double value. assert \is_finite(__retres<f5>);
+105c104
+<   r9 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+---
+>   r9 ∈ [--..--]
+108c107
+<   r12 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+---
+>   r12 ∈ [--..--]
+239d237
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f4>); */
+241d238
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f4>); */
+243d239
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f5>); */
+244a241
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_10); */
+247d243
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<f5>); */
 diff tests/value/oracle/call_2.res.oracle tests/value/oracle_legacy/call_2.res.oracle
 9d8
 < tests/value/call_2.i:15:[value] warning: non-finite float value. assert \is_finite(f);
@@ -382,6 +505,115 @@ diff tests/value/oracle/cast_fun.res.oracle tests/value/oracle_legacy/cast_fun.r
 >                  assert \valid_function(p1);
 > tests/value/cast_fun.i:128:[value] warning: Function pointer and pointed function have completely incompatible types.
 >                  assert \valid_function(p4);
+diff tests/value/oracle/cast_return.0.res.oracle tests/value/oracle_legacy/cast_return.0.res.oracle
+19c19
+< tests/value/cast_return.c:27:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<g>);
+---
+> tests/value/cast_return.c:27:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+25d24
+< tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+34c33
+< tests/value/cast_return.c:50:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<fl1>);
+---
+> tests/value/cast_return.c:50:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+39c38
+< tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<fl2>);
+---
+> tests/value/cast_return.c:51:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+48c47
+< tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
+---
+> tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+53d51
+< tests/value/cast_return.c:27:[value] assertion 'Value,initialisation' got final status invalid.
+55,56d52
+< tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final status invalid.
+< tests/value/cast_return.c:51:[value] assertion 'Value,initialisation' got final status invalid.
+191d186
+<     /*@ assert Value: initialisation: \initialized(&__retres<g>); */
+223,226c218
+<   if (c) 
+<     /*@ assert Value: initialisation: \initialized(&__retres<fl1>); */
+<     d1 = (double)fl1();
+<   /*@ assert Value: initialisation: \initialized(&__retres<fl2>); */
+---
+>   if (c) d1 = (double)fl1();
+239d230
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<ret_float>); */
+240a232
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(f1); */
+297c289
+< tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
+---
+> tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+diff tests/value/oracle/cast_return.1.res.oracle tests/value/oracle_legacy/cast_return.1.res.oracle
+54c54,55
+< tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
+---
+> tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(tmp);
+>                                          (tmp from ret_float())
+259d259
+<   /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<ret_float>); */
+260a261
+>   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp); */
+diff tests/value/oracle/cmp_ptr.0.res.oracle tests/value/oracle_legacy/cmp_ptr.0.res.oracle
+37d36
+< tests/value/cmp_ptr.i:21:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+41,42d39
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+44d40
+< tests/value/cmp_ptr.i:24:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+47d42
+< tests/value/cmp_ptr.i:28:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+56d50
+< tests/value/cmp_ptr.i:30:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+59d52
+< tests/value/cmp_ptr.i:32:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+diff tests/value/oracle/cmp_ptr.1.res.oracle tests/value/oracle_legacy/cmp_ptr.1.res.oracle
+37,40d36
+< tests/value/cmp_ptr.i:21:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0; 1} because of UPCPA
+< tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
+<                                                                                        [-8589934588..16],0%4 }} because of UPCPA
+42,43d37
+< tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
+<                                                                                        [20..8589934592],0%4 }} because of UPCPA
+46,49d39
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0} because of UPCPA
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr.i:22:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+51,52d40
+< tests/value/cmp_ptr.i:24:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+< tests/value/cmp_ptr.i:24:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0; 1} because of UPCPA
+55,56d42
+< tests/value/cmp_ptr.i:28:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr.i:28:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+65,66d50
+< tests/value/cmp_ptr.i:30:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr.i:30:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+69,70d52
+< tests/value/cmp_ptr.i:32:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+73d54
+< tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+diff tests/value/oracle/cmp_ptr_follow_all_branches.0.res.oracle tests/value/oracle_legacy/cmp_ptr_follow_all_branches.0.res.oracle
+10d9
+< tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+15d13
+< tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+diff tests/value/oracle/cmp_ptr_follow_all_branches.1.res.oracle tests/value/oracle_legacy/cmp_ptr_follow_all_branches.1.res.oracle
+10,11d9
+< tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+15d12
+< tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+18,19d14
+< tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+23d17
+< tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
 diff tests/value/oracle/context_free.res.oracle tests/value/oracle_legacy/context_free.res.oracle
 91c91
 <         (pointing to S_qvoid with offsets [0..34359738360],0%8).
@@ -494,15 +726,18 @@ diff tests/value/oracle/deps_mixed.res.oracle tests/value/oracle_legacy/deps_mix
 >         Called from tests/value/deps_mixed.i:22.
 > [value] Recording results for g
 > [value] Done for function g
-39c39
+29,30d28
+< tests/value/deps_mixed.i:24:[value] Assigning imprecise value to __retres<main>.
+<         The imprecision originates from Arithmetic {tests/value/deps_mixed.i:24}
+41c39
 <   r ∈ {2}
 ---
 >   r ∈ {0; 2}
-59c59
+61c59
 <   r FROM v; c; d (and SELF)
 ---
 >   r FROM a; b; v; c; d (and SELF)
-74c74
+76c74
 <           p; q; v; t[0..1]
 ---
 >           p; q; a; b; v; t[0..1]
@@ -1364,6 +1599,9 @@ diff tests/value/oracle/inout_diff.res.oracle tests/value/oracle_legacy/inout_di
 <   c ∈ {0; 7; 14; 21; 28; 35; 42}
 ---
 >   c ∈ {0; 7; 14; 21; 28; 35; 42; 49}
+diff tests/value/oracle/invalid_loc_return.res.oracle tests/value/oracle_legacy/invalid_loc_return.res.oracle
+67d66
+< tests/value/invalid_loc_return.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 diff tests/value/oracle/label.res.oracle tests/value/oracle_legacy/label.res.oracle
 15,17d14
 <         (pointing to p with offsets {0}).
@@ -1386,6 +1624,32 @@ diff tests/value/oracle/label.res.oracle tests/value/oracle_legacy/label.res.ora
 <    {{ garbled mix of &{a; b} (origin: Misaligned {tests/value/label.i:18}) }}
 ---
 >   p ∈ {{ garbled mix of &{a; b} (origin: Merge {tests/value/label.i:18}) }}
+diff tests/value/oracle/lazy.0.res.oracle tests/value/oracle_legacy/lazy.0.res.oracle
+14d13
+< tests/value/lazy.i:11:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+16d14
+< tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+18d15
+< tests/value/lazy.i:19:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+31d27
+< tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+diff tests/value/oracle/lazy.1.res.oracle tests/value/oracle_legacy/lazy.1.res.oracle
+14,15d13
+< tests/value/lazy.i:11:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/lazy.i:11:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+17,19d14
+< tests/value/lazy.i:11:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+< tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/lazy.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+21,23d15
+< tests/value/lazy.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/lazy.i:19:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/lazy.i:19:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+25d16
+< tests/value/lazy.i:19:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+38,39d28
+< tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+< tests/value/lazy.i:14:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0} because of UPCPA
 diff tests/value/oracle/leaf.res.oracle tests/value/oracle_legacy/leaf.res.oracle
 41a42
 > tests/value/leaf.i:45:[value] warning: out of bounds write. assert \valid(p);
@@ -1406,6 +1670,16 @@ diff tests/value/oracle/leaf.res.oracle tests/value/oracle_legacy/leaf.res.oracl
 ---
 >         The location is a garbled mix of {alloced_return_f_int_star_int_star_int}
 >         because of Library function {tests/value/leaf.i:48}.
+100,101d104
+< tests/value/leaf.i:61:[value] Assigning imprecise value to st_star_cint_1.
+<         The imprecision originates from Library function {tests/value/leaf.i:61}
+107,108d109
+< tests/value/leaf.i:62:[value] Assigning imprecise value to st_star_int_1.
+<         The imprecision originates from Library function {tests/value/leaf.i:62}
+diff tests/value/oracle/leaf2.res.oracle tests/value/oracle_legacy/leaf2.res.oracle
+15,16d14
+< tests/value/leaf2.i:6:[value] Assigning imprecise value to G.
+<         The imprecision originates from Library function {tests/value/leaf2.i:6}
 diff tests/value/oracle/library.res.oracle tests/value/oracle_legacy/library.res.oracle
 81,83c81,86
 < tests/value/library.i:25:[value] warning: pointer to function with incompatible type. assert \valid_function(f);
@@ -1419,16 +1693,21 @@ diff tests/value/oracle/library.res.oracle tests/value/oracle_legacy/library.res
 > tests/value/library.i:27:[value] warning: Function pointer and pointed function have incompatible types.
 >                  assert \valid_function(h);
 diff tests/value/oracle/local.res.oracle tests/value/oracle_legacy/local.res.oracle
-15a16
+14a15,16
+> tests/value/local.i:7:[value] warning: locals {b} escaping the scope of f through \result
 > tests/value/local.i:7:[value] warning: locals {a} escaping the scope of f through X
-18d18
+17,18d18
 < tests/value/local.i:33:[value] warning: locals {a} escaping the scope of f through X
-25d24
+< tests/value/local.i:33:[value] warning: locals {b} escaping the scope of f through __retres<f>
+25,26d24
 < tests/value/local.i:13:[value] warning: locals {a} escaping the scope of f through X
-28a28
+< tests/value/local.i:13:[value] warning: locals {b} escaping the scope of f through __retres<f>
+28a27,28
+> tests/value/local.i:15:[value] warning: locals {d} escaping the scope of g through \result
 > tests/value/local.i:15:[value] warning: locals {d} escaping the scope of g through U
-31d30
+31,32d30
 < tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through U
+< tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through __retres<g>
 diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_legacy/local_slevel.res.oracle
 18,27c18,27
 < [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
@@ -1524,6 +1803,42 @@ diff tests/value/oracle/origin.0.res.oracle tests/value/oracle_legacy/origin.0.r
 < tests/value/origin.i:106:[value] warning: locals {local1} escaping the scope of local_escape_1 through esc2
 < tests/value/origin.i:106:[value] warning: locals {arg} escaping the scope of local_escape_1 through esc3
 < tests/value/origin.i:106:[value] warning: locals {local1} escaping the scope of local_escape_1 through esc4
+diff tests/value/oracle/origin.1.res.oracle tests/value/oracle_legacy/origin.1.res.oracle
+67,68d66
+< tests/value/origin.i:129:[value] Assigning imprecise value to __retres<origin>.
+<         The imprecision originates from Misaligned {tests/value/origin.i:124}
+diff tests/value/oracle/pointer_comparison.0.res.oracle tests/value/oracle_legacy/pointer_comparison.0.res.oracle
+11d10
+< tests/value/pointer_comparison.c:10:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+13d11
+< tests/value/pointer_comparison.c:12:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+15d12
+< tests/value/pointer_comparison.c:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+17d13
+< tests/value/pointer_comparison.c:16:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+20d15
+< tests/value/pointer_comparison.c:18:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+diff tests/value/oracle/pointer_comparison.1.res.oracle tests/value/oracle_legacy/pointer_comparison.1.res.oracle
+11,13d10
+< tests/value/pointer_comparison.c:10:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+16,18d12
+< tests/value/pointer_comparison.c:12:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+21,23d14
+< tests/value/pointer_comparison.c:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+26,28d16
+< tests/value/pointer_comparison.c:16:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+32,34d19
+< tests/value/pointer_comparison.c:18:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+< tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+< tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 diff tests/value/oracle/postcondition.res.oracle tests/value/oracle_legacy/postcondition.res.oracle
 36d35
 < tests/value/postcondition.i:12:[value] warning: function get_index: postcondition got status unknown.
@@ -1749,102 +2064,100 @@ diff tests/value/oracle/sizeof.res.oracle tests/value/oracle_legacy/sizeof.res.o
 ---
 >   p ∈
 >    {{ garbled mix of &{s1} (origin: Arithmetic {tests/value/sizeof.i:32}) }}
-diff tests/value/oracle/split_return.0.res.oracle tests/value/oracle_legacy/split_return.0.res.oracle
-33d32
-< [value] Called Frama_C_show_each_f2({0}, {0})
-34a34
-> [value] Called Frama_C_show_each_f2({0}, {0})
-69d68
-< [value] Called Frama_C_show_each_f5({-2}, {0})
-70a70
-> [value] Called Frama_C_show_each_f5({-2}, {0})
-diff tests/value/oracle/split_return.1.res.oracle tests/value/oracle_legacy/split_return.1.res.oracle
-36d35
-< [value] Called Frama_C_show_each_f2({0}, {0})
-37a37
-> [value] Called Frama_C_show_each_f2({0}, {0})
-49d48
-< [value] Called Frama_C_show_each_f3({-2}, {0})
-50a50
-> [value] Called Frama_C_show_each_f3({-2}, {0})
-61d60
-< [value] Called Frama_C_show_each_f4({4}, {0})
-62a62
-> [value] Called Frama_C_show_each_f4({4}, {0})
-73d72
-< [value] Called Frama_C_show_each_f5({-2}, {0})
-74a74
-> [value] Called Frama_C_show_each_f5({-2}, {0})
-105d104
-< [value] Called Frama_C_show_each_then8({-1}, {0})
-106a106
-> [value] Called Frama_C_show_each_then8({-1}, {0})
 diff tests/value/oracle/split_return.3.res.oracle tests/value/oracle_legacy/split_return.3.res.oracle
-108d107
-< [value] Called Frama_C_show_each_f5({-2}, {0})
-109a109
-> [value] Called Frama_C_show_each_f5({-2}, {0})
-157d156
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-158a158
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-167d166
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-168a168
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-177d176
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-178a178
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-187d186
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-188a188
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-diff tests/value/oracle/split_return.4.res.oracle tests/value/oracle_legacy/split_return.4.res.oracle
-111d110
-< [value] Called Frama_C_show_each_f5({-2}, {0})
-112a112
-> [value] Called Frama_C_show_each_f5({-2}, {0})
-160d159
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-161a161
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-170d169
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-171a171
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-180d179
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-181a181
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-190d189
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-191a191
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-424d423
+29,30d28
+< [value] Called Frama_C_show_each_f2({5}, {5})
 < [value] Called Frama_C_show_each_f2({0}, {0})
-425a425
+31a30,31
 > [value] Called Frama_C_show_each_f2({0}, {0})
-495d494
-< [value] Called Frama_C_show_each_f5({-2}, {0})
-496a496
-> [value] Called Frama_C_show_each_f5({-2}, {0})
-541d540
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-542a542
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-551d550
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-552a552
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-561d560
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-562a562
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-571d570
-< [value] Called Frama_C_show_each_then8({4}, {{ &x }})
-572a572
-> [value] Called Frama_C_show_each_then8({4}, {{ &x }})
+> [value] Called Frama_C_show_each_f2({5}, {5})
+33d32
+< [value] Called Frama_C_show_each_f2_2({5}, {5})
+34a34
+> [value] Called Frama_C_show_each_f2_2({5}, {5})
+44d43
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+45a45
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+56d55
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+57a57
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+66d65
+< [value] Called Frama_C_show_each_f4({4}, {0})
+67a67
+> [value] Called Frama_C_show_each_f4({4}, {0})
+78d77
+< [value] Called Frama_C_show_each_f4({4}, {0})
+79a79
+> [value] Called Frama_C_show_each_f4({4}, {0})
+88d87
+< [value] Called Frama_C_show_each_f4({4}, {0})
+89a89
+> [value] Called Frama_C_show_each_f4({4}, {0})
+98d97
+< [value] Called Frama_C_show_each_f4({4}, {0})
+99a99
+> [value] Called Frama_C_show_each_f4({4}, {0})
+diff tests/value/oracle/split_return.4.res.oracle tests/value/oracle_legacy/split_return.4.res.oracle
+32,33d31
+< [value] Called Frama_C_show_each_f2({5}, {5})
+< [value] Called Frama_C_show_each_f2({0}, {0})
+34a33,34
+> [value] Called Frama_C_show_each_f2({0}, {0})
+> [value] Called Frama_C_show_each_f2({5}, {5})
+36d35
+< [value] Called Frama_C_show_each_f2_2({5}, {5})
+37a37
+> [value] Called Frama_C_show_each_f2_2({5}, {5})
+47d46
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+48a48
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+59d58
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+60a60
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+69d68
+< [value] Called Frama_C_show_each_f4({4}, {0})
+70a70
+> [value] Called Frama_C_show_each_f4({4}, {0})
+81d80
+< [value] Called Frama_C_show_each_f4({4}, {0})
+82a82
+> [value] Called Frama_C_show_each_f4({4}, {0})
+91d90
+< [value] Called Frama_C_show_each_f4({4}, {0})
+92a92
+> [value] Called Frama_C_show_each_f4({4}, {0})
+101d100
+< [value] Called Frama_C_show_each_f4({4}, {0})
+102a102
+> [value] Called Frama_C_show_each_f4({4}, {0})
+435d434
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+436a436
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+445d444
+< [value] Called Frama_C_show_each_f3({-2}, {0})
+446a446
+> [value] Called Frama_C_show_each_f3({-2}, {0})
+455d454
+< [value] Called Frama_C_show_each_f4({4}, {0})
+456a456
+> [value] Called Frama_C_show_each_f4({4}, {0})
+465d464
+< [value] Called Frama_C_show_each_f4({4}, {0})
+466a466
+> [value] Called Frama_C_show_each_f4({4}, {0})
+475d474
+< [value] Called Frama_C_show_each_f4({4}, {0})
+476a476
+> [value] Called Frama_C_show_each_f4({4}, {0})
+485d484
+< [value] Called Frama_C_show_each_f4({4}, {0})
+486a486
+> [value] Called Frama_C_show_each_f4({4}, {0})
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_legacy/struct2.res.oracle
 46a47
 > tests/value/struct2.i:76:[value] warning: signed overflow. assert i + j ≤ 2147483647;
@@ -1873,10 +2186,14 @@ diff tests/value/oracle/test.0.res.oracle tests/value/oracle_legacy/test.0.res.o
 ---
 >   j ∈ [-1073741823..1]
 diff tests/value/oracle/unknown_sizeof.0.res.oracle tests/value/oracle_legacy/unknown_sizeof.0.res.oracle
-12a13
+10a11
+> tests/value/unknown_sizeof.i:8:[kernel] imprecise size for variable r (abstract type 'struct s')
+12a14
 > tests/value/unknown_sizeof.i:19:[kernel] imprecise size for variable __retres (abstract type 'struct s')
-17d17
-< tests/value/unknown_sizeof.i:15:[value] warning: out of bounds read. assert \valid_read(&__retres);
+17c19
+< tests/value/unknown_sizeof.i:15:[value] user error: function g returns a value of unknown size. Aborting
+---
+> tests/value/unknown_sizeof.i:15:[value] user error: Function g returns a value of unknown size. Aborting
 diff tests/value/oracle/unop.res.oracle tests/value/oracle_legacy/unop.res.oracle
 11,12c11,12
 < [value] Called Frama_C_show_each_1_then([-2147483648. .. -3.])

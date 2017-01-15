@@ -51,8 +51,7 @@ tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value
         Called from tests/value/cast_return.c:58.
 [value] using specification for function ret_float
 [value] Done for function ret_float
-tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(tmp);
-                                         (tmp from ret_float())
+tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
@@ -250,15 +249,15 @@ void main2(void)
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern float ret_float();
+float ret_float();
 
 void main3(void)
 {
   float f1;
   float tmp;
   float f2;
+  /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<ret_float>); */
   tmp = ret_float();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp); */
   f1 = tmp;
   f2 = f1 + (float)1;
   return;

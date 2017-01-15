@@ -185,7 +185,7 @@ let idx = function
   | UInt64 -> 6
   | SInt64 -> 7
 
-let imemo f =
+let i_memo f =
   let m = Array.make 8 None in
   fun i ->
     let k = idx i in
@@ -197,7 +197,7 @@ let fdx = function
   | Float32 -> 0
   | Float64 -> 1
 
-let fmemo f =
+let f_memo f =
   let m = Array.make 2 None in
   fun z ->
     let k = fdx z in
@@ -205,10 +205,10 @@ let fmemo f =
     | Some r -> r
     | None -> let r = f z in m.(k) <- Some r ; r
 
-let iiter f =
+let i_iter f =
   List.iter f [UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
 
-let fiter f =
+let f_iter f =
   List.iter f [Float32;Float64]
 
 (* -------------------------------------------------------------------------- *)
@@ -459,14 +459,11 @@ let get_array = function
 (* --- Sizeof                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let int64_max a b =
-  if Int64.compare a b < 0 then b else a
-
 let sizeof_defined = function
   | C_array { arr_flat = None } -> false
   | _ -> true
 
-let rec sizeof_object = function
+let sizeof_object = function
   | C_int i -> i_bytes i
   | C_float f -> f_bytes f
   | C_pointer _ty -> i_bytes (c_ptr())
@@ -484,8 +481,6 @@ let rec sizeof_object = function
             max_int
           else
             WpLog.fatal ~current:true "Sizeof unknown-size array"
-
-let sizeof_typ t = Cil.bitsSizeOf t / 8
 
 let field_offset fd =
   let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in

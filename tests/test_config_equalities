@@ -1,2 +1,2 @@
-MACRO: VALUECONFIG -eva-equality-domain -no-val-malloc-returns-null
+MACRO: VALUECONFIG -eva-equality-domain
 OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

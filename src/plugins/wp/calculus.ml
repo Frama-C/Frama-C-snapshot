@@ -46,17 +46,19 @@ module Cfg (W : Mcfg.S) = struct
     debug "add hyp %a@." WpPropId.pp_pred_info h;
     W.add_hyp wenv h obj
 
+  let add_goal wenv obj g =
+    debug "add goal %a@." WpPropId.pp_pred_info g;
+    W.add_goal wenv g obj
+  (*[LC] Adding scopes for loop invariant preservation: WHY ???? *)
+  (*[LC] Nevertheless, if required, this form should be used (BTS #1462)
+
   let open_scope wenv formals blocks =
     List.fold_right
       (fun b obj -> W.scope wenv b.blocals Mcfg.SC_Block_out obj)
       blocks
       (W.scope wenv formals Mcfg.SC_Function_out W.empty)
 
-  let add_goal wenv obj g =
-    debug "add goal %a@." WpPropId.pp_pred_info g;
-    W.add_goal wenv g obj
-  (*[LC] Adding scopes for loop invariant preservation: WHY ???? *)
-  (*[LC] Nevertheless, if required, this form should be used (BTS #1462)
+
     match WpPropId.is_loop_preservation (fst g) with
       | None -> W.add_goal wenv g obj
       | Some stmt ->
@@ -161,7 +163,7 @@ module Cfg (W : Mcfg.S) = struct
       type key = Olab of Clabels.c_label | Oedge of Cil2cfg.edge
 
       let cmp_key k1 k2 = match k1, k2 with
-        | Olab l1, Olab l2 when l1 = l2 -> true
+        | Olab l1, Olab l2 when Clabels.equal l1 l2 -> true
         | Oedge e1, Oedge e2 when Cil2cfg.same_edge e1 e2 -> true
         | _ -> false
 
@@ -635,7 +637,7 @@ module Cfg (W : Mcfg.S) = struct
     match init with
 
     | SingleInit exp ->
-        W.init_value  wenv lv (Cil.typeOfLval lv)(Some exp) obj
+        W.init_value wenv lv (Cil.typeOfLval lv) (Some exp) obj
 
     | CompoundInit ( ct , initl ) ->
 

@@ -8,7 +8,7 @@ tests/rte/malloc.c:13:[kernel] warning: No code nor implicit assigns clause for 
     assigns \result \from n;
     allocates \result;
  */
-extern char *my_malloc(unsigned int n);
+char *my_malloc(unsigned int n);
 
 int main(void)
 {

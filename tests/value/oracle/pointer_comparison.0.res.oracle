@@ -8,11 +8,16 @@
   y ∈ {0}
   p ∈ {0}
 [value] Called Frama_C_show_each_1t({{ &x + {4} }})
+tests/value/pointer_comparison.c:10:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 [value] Called Frama_C_show_each_2({{ &x + {8} }})
+tests/value/pointer_comparison.c:12:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 [value] Called Frama_C_show_each_3({{ &x + {12} }})
+tests/value/pointer_comparison.c:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 [value] Called Frama_C_show_each_4({{ &x + {16} }})
+tests/value/pointer_comparison.c:16:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 [value] Called Frama_C_show_each_5({{ &x + {16} }})
 tests/value/pointer_comparison.c:18:[value] entering loop for the first time
+tests/value/pointer_comparison.c:18:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 [value] Called Frama_C_show_each_6({{ &x + {20} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24; 28} }})

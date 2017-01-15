@@ -115,17 +115,17 @@ int main(void)
   return_label: return __retres;
 }
 
-extern int f1(bla x);
+int f1(bla x);
 
-extern int f2(bla x);
+int f2(bla x);
 
-extern int f3(bla x);
+int f3(bla x);
 
-extern int h1(foo x);
+int h1(foo x);
 
-extern int h2(foo x);
+int h2(foo x);
 
-extern int h3(foo x);
+int h3(foo x);
 
 int g(void)
 {

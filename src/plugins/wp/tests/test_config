@@ -1,2 +1,2 @@
-CMD: @frama-c@ -wp -wp-no-filter -wp-proof none -wp-print -wp-check -wp-share ./share -wp-msg-key shell
+CMD: @frama-c@ -no-autoload-plugins -load-module wp -wp -wp-prover none -wp-print -wp-check -wp-share ./share -wp-msg-key shell
 OPT:

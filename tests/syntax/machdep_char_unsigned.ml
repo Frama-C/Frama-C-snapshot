@@ -4,6 +4,7 @@ open Cil_types
 let md = {
 	 version          = "";
          compiler = "gcc";
+         cpp_arch_flags = ["-m32"];
 	 sizeof_short     = 2;
 	 sizeof_int       = 2;
 	 sizeof_long      = 4;

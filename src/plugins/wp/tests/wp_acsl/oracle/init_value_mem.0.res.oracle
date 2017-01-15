@@ -14,13 +14,13 @@ Let a_1 = Load_S1_St(a, Mint_0).
 Assume {
   Type: IsS1_St(w) /\ IsS1_St(a_1).
   (* Initializer *)
-  Init: 1 = (w.F1_St_a).
+  Init: (w.F1_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w.F1_St_b).
+  Init: (w.F1_St_b) = 2.
   (* Initializer *)
-  Init: 1 = Mint_0[shiftfield_F1_St_a(a)].
+  Init: Mint_0[shiftfield_F1_St_a(a)] = 1.
   (* Initializer *)
-  Init: 2 = Mint_0[shiftfield_F1_St_b(a)].
+  Init: Mint_0[shiftfield_F1_St_b(a)] = 2.
   (* Heap *)
   Have: region(G_v_67) <= 0.
 }
@@ -34,13 +34,13 @@ Let a_1 = Load_S1_St(a, Mint_0).
 Assume {
   Type: IsS1_St(w) /\ IsS1_St(a_1).
   (* Initializer *)
-  Init: 1 = (w.F1_St_a).
+  Init: (w.F1_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w.F1_St_b).
+  Init: (w.F1_St_b) = 2.
   (* Initializer *)
-  Init: 1 = Mint_0[shiftfield_F1_St_a(a)].
+  Init: Mint_0[shiftfield_F1_St_a(a)] = 1.
   (* Initializer *)
-  Init: 2 = Mint_0[shiftfield_F1_St_b(a)].
+  Init: Mint_0[shiftfield_F1_St_b(a)] = 2.
   (* Heap *)
   Have: region(G_v_67) <= 0.
 }

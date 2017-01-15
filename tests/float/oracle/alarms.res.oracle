@@ -35,14 +35,13 @@ tests/float/alarms.i:11:[value] warning: non-finite double value. assert \is_fin
 tests/float/alarms.i:14:[kernel] warning: Neither code nor specification for function fd, generating default assigns from the prototype
 [value] using specification for function fd
 [value] Done for function fd
-tests/float/alarms.i:14:[value] warning: non-finite double value. assert \is_finite(tmp);
-                                          (tmp from fd())
+tests/float/alarms.i:14:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
 tests/float/alarms.i:14:[value] warning: non-finite float value. assert \is_finite((float)tmp);
                                          (tmp from fd())
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:15.
 [value] Done for function fd
-tests/float/alarms.i:16:[value] warning: non-finite double value. assert \is_finite(vd);
+tests/float/alarms.i:15:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
 tests/float/alarms.i:16:[value] warning: overflow in conversion from floating-point to integer.
                  assert -9223372036854775809 < vd;
 tests/float/alarms.i:16:[value] warning: overflow in conversion from floating-point to integer.
@@ -54,7 +53,7 @@ tests/float/alarms.i:17:[value] warning: overflow in conversion from floating-po
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:18.
 [value] Done for function fd
-tests/float/alarms.i:19:[value] warning: non-finite double value. assert \is_finite(vd);
+tests/float/alarms.i:18:[value] warning: non-finite double value. assert \is_finite(__retres<fd>);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

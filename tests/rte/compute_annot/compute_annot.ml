@@ -14,7 +14,12 @@ let print_status () =
 	(get_precond_status kf))
 
 let main () =
-  Dynamic.Parameter.Bool.set "-rte-all" false;
+  Dynamic.Parameter.Bool.set "-rte-mem" false;
+  Dynamic.Parameter.Bool.set "-rte-pointer-call" false;
+  Dynamic.Parameter.Bool.set "-rte-float-to-int" false;
+  Dynamic.Parameter.Bool.set "-rte-div" false;
+  Kernel.SignedOverflow.off ();
+  Kernel.SignedDowncast.off ();
   Dynamic.Parameter.Bool.set "-rte-precond" true;
   print ();
   print_status ();

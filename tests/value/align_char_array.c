@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -cpp-extra-args="-DPTEST" -journal-disable
 */
 
 

@@ -5,12 +5,12 @@
 /*@ assigns *p, *p;
     assigns *p \from x;
     assigns *p \from \nothing; */
-extern int f(int *p, int x);
+int f(int *p, int x);
 
 /*@ assigns *p, *p;
     assigns *p \from \nothing;
     assigns *p \from x; */
-extern int g(int *p, int x);
+int g(int *p, int x);
 
 int main(void)
 {

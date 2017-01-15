@@ -29,7 +29,7 @@ enum T1 {
     E2 = 0
 };
 /*@ ensures \valid(\old(f1)); */
-extern int F1(int *f1);
+int F1(int *f1);
 
 int G1;
 enum T1 G2;

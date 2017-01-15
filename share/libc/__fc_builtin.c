@@ -30,7 +30,7 @@
 int volatile Frama_C_entropy_source;
 
 //@ assigns Frama_C_entropy_source \from Frama_C_entropy_source;
-void Frama_C_update_entropy(void);
+extern void Frama_C_update_entropy(void);
 
 int Frama_C_nondet(int a, int b)
 {

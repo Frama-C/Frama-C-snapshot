@@ -1,0 +1,23 @@
+# frama-c -wp -wp-rte -warn-unsigned-overflow [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/binary-multiplication-without-overflow.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function BinaryMultiplication
+[wp] Goal typed_lemma_ax1_lack : not tried
+[wp] Goal typed_lemma_ax2_ok : not tried
+[wp] Goal typed_lemma_sizeof_uint32_t_ok : trivial
+[wp] Goal typed_lemma_sizeof_uint64_t_ok : trivial
+[wp] Goal typed_BinaryMultiplication_post_product : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_deductible_established : not tried
+[wp] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow : not tried
+[wp] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_2 : not tried
+[wp] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_3 : not tried
+[wp] Goal typed_BinaryMultiplication_assert_rte_unsigned_overflow_4 : not tried
+[wp] Goal typed_BinaryMultiplication_loop_assign : trivial
+[wp] Goal typed_BinaryMultiplication_loop_term_decrease : not tried
+[wp] Goal typed_BinaryMultiplication_loop_term_positive : not tried

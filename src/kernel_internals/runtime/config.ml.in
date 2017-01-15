@@ -58,6 +58,8 @@ let preprocessor =
 let preprocessor_is_gnu_like =
   try ignore (Sys.getenv "CPP"); false with Not_found -> @FRAMAC_GNU_CPP@
 
+let preprocessor_supported_arch_options = [@DEFAULT_CPP_SUPPORTED_ARCH_OPTS@]
+
 let preprocessor_keep_comments =
   try (ignore (Sys.getenv "CPP"); true)
   with Not_found -> @DEFAULT_CPP_KEEP_COMMENTS@

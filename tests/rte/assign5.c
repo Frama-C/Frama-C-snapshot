@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -print -rte-no-all -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -print -rte-precond -journal-disable
 */
 
 /* the assigns of f shouldn't parse: 

@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then -report"
+   STDOPT: +"-load-module report -then -report"
 */
 
 //@ requires \true; assigns \nothing;

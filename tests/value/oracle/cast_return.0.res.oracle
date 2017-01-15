@@ -16,12 +16,13 @@
         Called from tests/value/cast_return.c:27.
 [value] Recording results for g
 [value] Done for function g
-tests/value/cast_return.c:27:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:27:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<g>);
 [value] computing for function h <- main1 <- main.
         Called from tests/value/cast_return.c:31.
 [value] Recording results for h
 [value] Done for function h
 tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid(*p);
+tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -30,12 +31,12 @@ tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid
         Called from tests/value/cast_return.c:50.
 [value] Recording results for fl1
 [value] Done for function fl1
-tests/value/cast_return.c:50:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:50:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<fl1>);
 [value] computing for function fl2 <- main2 <- main.
         Called from tests/value/cast_return.c:51.
 [value] Recording results for fl2
 [value] Done for function fl2
-tests/value/cast_return.c:51:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value. assert \initialized(&__retres<fl2>);
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
@@ -44,12 +45,15 @@ tests/value/cast_return.c:51:[kernel] warning: returned value may be uninitializ
         Called from tests/value/cast_return.c:58.
 [value] using specification for function ret_float
 [value] Done for function ret_float
-tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
 [value] done for function main
+tests/value/cast_return.c:27:[value] assertion 'Value,initialisation' got final status invalid.
 tests/value/cast_return.c:31:[value] assertion 'Value,mem_access' got final status invalid.
+tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final status invalid.
+tests/value/cast_return.c:51:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   
@@ -184,6 +188,7 @@ void main1(void)
   }
   if (c) {
     long long v;
+    /*@ assert Value: initialisation: \initialized(&__retres<g>); */
     v = (long long)g();
   }
   if (c) {
@@ -215,21 +220,24 @@ void main2(void)
 {
   double d1;
   double d2;
-  if (c) d1 = (double)fl1();
+  if (c) 
+    /*@ assert Value: initialisation: \initialized(&__retres<fl1>); */
+    d1 = (double)fl1();
+  /*@ assert Value: initialisation: \initialized(&__retres<fl2>); */
   d2 = (double)fl2();
   return;
 }
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern float ret_float();
+float ret_float();
 
 void main3(void)
 {
   float f1;
   float f2;
+  /*@ assert Value: is_nan_or_infinite: \is_finite(__retres<ret_float>); */
   f1 = ret_float();
-  /*@ assert Value: is_nan_or_infinite: \is_finite(f1); */
   f2 = f1 + (float)1;
   return;
 }
@@ -286,7 +294,7 @@ tests/value/cast_return.c:44:[value] warning: accessing uninitialized left-value
 [value] computing for function ret_float <- main3 <- main.
         Called from tests/value/cast_return.c:58.
 [value] Done for function ret_float
-tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+tests/value/cast_return.c:58:[value] warning: non-finite float value. assert \is_finite(__retres<ret_float>);
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main

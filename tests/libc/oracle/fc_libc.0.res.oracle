@@ -38,6 +38,9 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
   __fc_sockfds[0..1023] ∈ {0}
   __fc_socket_counter ∈ [--..--]
   __fc_open_sock_fds ∈ [--..--]
@@ -46,8 +49,7 @@
   __fc_opendir[0..511] ∈ {0}
   __p_fc_opendir ∈ {{ &__fc_opendir[0] }}
   __fc_time ∈ [--..--]
-  __fc_time_tm ∈ {0}
-  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
+  __fc_tz ∈ [--..--]
   h_errno ∈ {0}
   facilitynames[0].c_name ∈ {{ "auth" }}
                [0].c_val ∈ {32}
@@ -121,7 +123,8 @@
                [11].c_val ∈ {4}
                [12].c_name ∈ {0}
                [12].c_val ∈ {-1}
-  __fc_tz ∈ [--..--]
+  __fc_time_tm ∈ {0}
+  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
   __fc_fds[0..1023] ∈ {0}
   S_optarg[0..1] ∈ [--..--]
 tests/libc/fc_libc.c:127:[value] assertion got status valid.
@@ -152,7 +155,7 @@ tests/libc/fc_libc.c:129:[value] assertion got status valid.
            toupper (0 call); wcscat (0 call); wcscpy (0 call); wcslen (1 call);
            wcsncat (0 call); wcsncpy (0 call); wmemcpy (0 call); wmemset (0 call); 
           
-          Undefined functions (238)
+          Undefined functions (240)
           =========================
            FD_CLR (0 call); FD_ISSET (0 call); FD_SET (0 call); FD_ZERO (0 call);
            Frama_C_abort (1 call); Frama_C_char_interval (0 call);
@@ -173,11 +176,11 @@ tests/libc/fc_libc.c:129:[value] assertion got status valid.
            atol (0 call); atoll (0 call); bind (0 call); bsearch (0 call);
            bzero (0 call); ceil (0 call); ceilf (0 call); clearerr (0 call);
            clearerr_unlocked (0 call); clock (0 call); close (0 call);
-           closedir (0 call); closelog (0 call); creat (0 call); difftime (0 call);
-           div (0 call); execl (0 call); execle (0 call); execlp (0 call);
-           execv (0 call); execve (0 call); execvp (0 call); exit (0 call);
-           expf (0 call); fclose (0 call); fcntl (0 call); fdopen (0 call);
-           feof (0 call); feof_unlocked (0 call); ferror (0 call);
+           closedir (0 call); closelog (0 call); connect (0 call); creat (0 call);
+           difftime (0 call); div (0 call); execl (0 call); execle (0 call);
+           execlp (0 call); execv (0 call); execve (0 call); execvp (0 call);
+           exit (0 call); expf (0 call); fclose (0 call); fcntl (0 call);
+           fdopen (0 call); feof (0 call); feof_unlocked (0 call); ferror (0 call);
            ferror_unlocked (0 call); fflush (0 call); fgetc (0 call); fgetpos (0 call);
            fgets (0 call); fileno (0 call); fileno_unlocked (0 call);
            flockfile (0 call); floor (0 call); floorf (0 call); fmod (0 call);
@@ -187,7 +190,7 @@ tests/libc/fc_libc.c:129:[value] assertion got status valid.
            fwrite (0 call); getc (0 call); getc_unlocked (0 call); getchar (0 call);
            getchar_unlocked (0 call); getenv (0 call); getopt (0 call);
            getopt_long (0 call); getopt_long_only (0 call); getpriority (0 call);
-           getrlimit (0 call); getrusage (0 call); gets (0 call);
+           getrlimit (0 call); getrusage (0 call); gets (0 call); getsockopt (0 call);
            gettimeofday (0 call); getuid (0 call); gmtime (0 call); htonl (0 call);
            htons (0 call); iconv (0 call); iconv_close (0 call); iconv_open (0 call);
            inet_addr (0 call); inet_ntoa (0 call); inet_ntop (0 call);
@@ -223,9 +226,9 @@ tests/libc/fc_libc.c:129:[value] assertion got status valid.
            wcsspn (0 call); wcsstr (0 call); wcstombs (0 call); wctomb (0 call);
            wmemchr (0 call); wmemcmp (0 call); wmemmove (0 call); write (0 call); 
           
-          'Extern' global variables (0)
+          'Extern' global variables (3)
           =============================
-           
+           optarg; opterr; optopt
           
           Potential entry points (1)
           ==========================
@@ -233,15 +236,15 @@ tests/libc/fc_libc.c:129:[value] assertion got status valid.
           
           Global metrics
           ============== 
-          Sloc = 593
+          Sloc = 621
           Decision point = 116
-          Global variables = 0
+          Global variables = 32
           If = 114
           Loop = 31
           Goto = 34
           Assignment = 234
           Exit point = 63
-          Function = 301
+          Function = 303
           Function call = 35
           Pointer dereferencing = 79
           Cyclomatic complexity = 179
@@ -399,19 +402,14 @@ struct flock {
    off_t l_len ;
    pid_t l_pid ;
 };
-typedef unsigned int clock_t;
-struct tm {
-   int tm_sec ;
-   int tm_min ;
-   int tm_hour ;
-   int tm_mday ;
-   int tm_mon ;
-   int tm_year ;
-   int tm_wday ;
-   int tm_yday ;
-   int tm_isdst ;
+struct timeval {
+   time_t tv_sec ;
+   suseconds_t tv_usec ;
 };
-struct timeval;
+struct timezone {
+   int tz_minuteswest ;
+   int tz_dsttime ;
+};
 typedef void *iconv_t;
 typedef int jmp_buf[5];
 struct __anonstruct_sigjmp_buf_13 {
@@ -424,14 +422,6 @@ struct _code {
    int c_val ;
 };
 typedef struct _code CODE;
-struct timeval {
-   time_t tv_sec ;
-   suseconds_t tv_usec ;
-};
-struct timezone {
-   int tz_minuteswest ;
-   int tz_dsttime ;
-};
 typedef unsigned long rlim_t;
 struct rlimit {
    rlim_t rlim_cur ;
@@ -440,6 +430,18 @@ struct rlimit {
 struct rusage {
    struct timeval ru_utime ;
    struct timeval ru_stime ;
+};
+typedef unsigned int clock_t;
+struct tm {
+   int tm_sec ;
+   int tm_min ;
+   int tm_hour ;
+   int tm_mday ;
+   int tm_mon ;
+   int tm_year ;
+   int tm_wday ;
+   int tm_yday ;
+   int tm_isdst ;
 };
 struct tms {
    clock_t tms_utime ;
@@ -2074,39 +2076,113 @@ FILE *__fc_stderr = & __fc_initial_stderr;
 FILE __fc_initial_stdin =
   {.__fc_FILE_id = (unsigned int)0, .__fc_FILE_data = 0U};
 FILE *__fc_stdin = & __fc_initial_stdin;
-/*@ assigns \result;
-    assigns \result \from *(nptr + (..)); */
+/*@ requires \valid_read(nptr);
+    assigns \result;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+ */
 extern double atof(char const *nptr);
 
 int atoi(char const *p);
 
-/*@ assigns \result;
-    assigns \result \from *(nptr + (..)); */
+/*@ requires \valid_read(nptr);
+    assigns \result;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+ */
 extern long atol(char const *nptr);
 
-/*@ assigns \result;
-    assigns \result \from *(nptr + (..)); */
+/*@ requires \valid_read(nptr);
+    assigns \result;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+ */
 extern long long atoll(char const *nptr);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..));
-    assigns *endptr \from nptr, *(nptr + (0 ..));
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    assigns \result, *endptr;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern double strtod(char const *nptr, char **endptr);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..));
-    assigns *endptr \from nptr, *(nptr + (0 ..));
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    assigns \result, *endptr;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern float strtof(char const *nptr, char **endptr);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..));
-    assigns *endptr \from nptr, *(nptr + (0 ..));
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    assigns \result, *endptr;
+    assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result \from (indirect: nptr), (indirect: *(nptr + (0 ..)));
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern long double strtold(char const *nptr, char **endptr);
 
-/*@ assigns \result, *endptr;
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    requires base ≡ 0 ∨ (2 ≤ base ≤ 36);
+    assigns \result, *endptr;
     assigns \result
       \from (indirect: nptr), (indirect: *(nptr + (0 ..))), (indirect: base);
     assigns *endptr
@@ -2124,6 +2200,7 @@ extern long double strtold(char const *nptr, char **endptr);
       assumes endptr ≢ \null;
       requires \valid(endptr);
       ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
       ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
       assigns \result, *endptr;
       assigns \result
@@ -2138,21 +2215,111 @@ extern long double strtold(char const *nptr, char **endptr);
  */
 extern long strtol(char const *nptr, char **endptr, int base);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..)), base;
-    assigns *endptr \from nptr, *(nptr + (0 ..)), base;
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    requires base ≡ 0 ∨ (2 ≤ base ≤ 36);
+    assigns \result, *endptr;
+    assigns \result
+      \from (indirect: nptr), (indirect: *(nptr + (0 ..))), (indirect: base);
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+            (indirect: base);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+              (indirect: base);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern long long strtoll(char const *nptr, char **endptr, int base);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..)), base;
-    assigns *endptr \from nptr, *(nptr + (0 ..)), base;
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    requires base ≡ 0 ∨ (2 ≤ base ≤ 36);
+    assigns \result, *endptr;
+    assigns \result
+      \from (indirect: nptr), (indirect: *(nptr + (0 ..))), (indirect: base);
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+            (indirect: base);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+              (indirect: base);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern unsigned long strtoul(char const *nptr, char **endptr, int base);
 
-/*@ assigns \result, *endptr;
-    assigns \result \from *(nptr + (0 ..)), base;
-    assigns *endptr \from nptr, *(nptr + (0 ..)), base;
+/*@ requires \valid_read(nptr);
+    requires \separated(nptr, endptr);
+    requires base ≡ 0 ∨ (2 ≤ base ≤ 36);
+    assigns \result, *endptr;
+    assigns \result
+      \from (indirect: nptr), (indirect: *(nptr + (0 ..))), (indirect: base);
+    assigns *endptr
+      \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+            (indirect: base);
+    
+    behavior null_endptr:
+      assumes endptr ≡ \null;
+      assigns \result;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+    
+    behavior nonnull_endptr:
+      assumes endptr ≢ \null;
+      requires \valid(endptr);
+      ensures \initialized(\old(endptr));
+      ensures \valid_read(\old(endptr));
+      ensures \subset(*\old(endptr), \old(nptr) + (0 ..));
+      assigns \result, *endptr;
+      assigns \result
+        \from (indirect: nptr), (indirect: *(nptr + (0 ..))),
+              (indirect: base);
+      assigns *endptr
+        \from nptr, (indirect: *(nptr + (0 ..))), (indirect: endptr),
+              (indirect: base);
+    
+    complete behaviors nonnull_endptr, null_endptr;
+    disjoint behaviors nonnull_endptr, null_endptr;
  */
 extern unsigned long long strtoull(char const *nptr, char **endptr, int base);
 
@@ -2252,9 +2419,10 @@ extern  __attribute__((__noreturn__)) void exit(int status);
     assigns \nothing; */
 extern  __attribute__((__noreturn__)) void _Exit(int status);
 
-/*@ ensures \result ≡ \null ∨ \valid(\result);
+/*@ requires \valid_read(name);
+    ensures \result ≡ \null ∨ \valid(\result);
     assigns \result;
-    assigns \result \from name;
+    assigns \result \from (indirect: name), *(name + (0 ..));
  */
 extern char *getenv(char const *name);
 
@@ -2262,21 +2430,28 @@ extern char *getenv(char const *name);
     assigns \nothing; */
 extern  __attribute__((__noreturn__)) void quick_exit(int status);
 
-/*@ assigns \result;
-    assigns \result \from *(string + (..)); */
-extern int system(char const *string);
+/*@ requires \valid_read(command);
+    assigns \result;
+    assigns \result
+      \from (indirect: command), (indirect: *(command + (0 ..)));
+ */
+extern int system(char const *command);
 
-/*@ assigns *((char *)\result + (..));
-    assigns *((char *)\result + (..))
-      \from *((char *)key + (..)), *((char *)base + (..)), nmemb, size,
-            *compar;
+/*@ requires \valid_function(compar);
+    assigns *((char *)\result + (0 ..));
+    assigns *((char *)\result + (0 ..))
+      \from (indirect: key), *((char *)key + (0 ..)), (indirect: base),
+            *((char *)base + (0 ..)), (indirect: nmemb), (indirect: size),
+            (indirect: compar), (indirect: *compar);
  */
 extern void *bsearch(void const *key, void const *base, size_t nmemb,
                      size_t size, int (*compar)(void const *, void const *));
 
-/*@ assigns *((char *)base + (..));
-    assigns *((char *)base + (..))
-      \from *((char *)base + (..)), nmemb, size, *compar;
+/*@ requires \valid_function(compar);
+    assigns *((char *)base + (0 ..));
+    assigns *((char *)base + (0 ..))
+      \from (indirect: base), *((char *)base + (0 ..)), (indirect: nmemb),
+            (indirect: size), (indirect: compar), (indirect: *compar);
  */
 extern void qsort(void *base, size_t nmemb, size_t size,
                   int (*compar)(void const *, void const *));
@@ -2307,31 +2482,57 @@ extern ldiv_t ldiv(long numer, long denom);
     assigns \result \from numer, denom; */
 extern lldiv_t lldiv(long long numer, long long denom);
 
-/*@ assigns \result;
-    assigns \result \from *(s + (0 ..)), n; */
+/*@ ghost int __fc_mblen_state; */
+/*@ assigns \result, __fc_mblen_state;
+    assigns \result
+      \from (indirect: s), (indirect: *(s + (0 ..))), (indirect: n),
+            __fc_mblen_state;
+    assigns __fc_mblen_state
+      \from (indirect: s), (indirect: *(s + (0 ..))), (indirect: n),
+            __fc_mblen_state;
+ */
 extern int mblen(char const *s, size_t n);
 
-/*@ assigns \result, *(pwc + (0 .. n - 1));
-    assigns \result \from *(s + (0 .. n - 1)), n;
-    assigns *(pwc + (0 .. n - 1)) \from *(s + (0 .. n - 1)), n;
+/*@ ghost int __fc_mbtowc_state; */
+/*@ requires \separated(pwc, s);
+    ensures \result ≤ \old(n);
+    assigns \result, *(pwc + (0 .. \result - 1)), __fc_mbtowc_state;
+    assigns \result
+      \from (indirect: s), (indirect: *(s + (0 .. n - 1))), (indirect: n),
+            __fc_mbtowc_state;
+    assigns *(pwc + (0 .. \result - 1))
+      \from (indirect: s), *(s + (0 .. n - 1)), (indirect: n),
+            __fc_mbtowc_state;
+    assigns __fc_mbtowc_state
+      \from (indirect: s), *(s + (0 .. n - 1)), (indirect: n),
+            __fc_mbtowc_state;
  */
 extern int mbtowc(wchar_t *pwc, char const *s, size_t n);
 
-/*@ assigns \result, *(s + (0 ..));
-    assigns \result \from wc;
-    assigns *(s + (0 ..)) \from wc;
+/*@ ghost int __fc_wctomb_state; */
+/*@ assigns \result, *(s + (0 ..)), __fc_wctomb_state;
+    assigns \result \from (indirect: wc), __fc_wctomb_state;
+    assigns *(s + (0 ..)) \from wc, __fc_wctomb_state;
+    assigns __fc_wctomb_state \from wc, __fc_wctomb_state;
  */
 extern int wctomb(char *s, wchar_t wc);
 
-/*@ assigns \result, *(pwcs + (0 .. n - 1));
-    assigns \result \from *(s + (0 .. n - 1)), n;
-    assigns *(pwcs + (0 .. n - 1)) \from *(s + (0 .. n - 1)), n;
+/*@ requires \separated(pwcs, s);
+    assigns \result, *(pwcs + (0 .. n - 1));
+    assigns \result
+      \from (indirect: s), (indirect: *(s + (0 .. n - 1))), (indirect: n);
+    assigns *(pwcs + (0 .. n - 1))
+      \from (indirect: s), *(s + (0 .. n - 1)), (indirect: n);
  */
 extern size_t mbstowcs(wchar_t *pwcs, char const *s, size_t n);
 
-/*@ assigns \result, *(s + (0 .. n - 1));
-    assigns \result \from *(pwcs + (0 .. n - 1)), n;
-    assigns *(s + (0 .. n - 1)) \from *(pwcs + (0 .. n - 1)), n;
+/*@ requires \separated(s, pwcs);
+    assigns \result, *(s + (0 .. n - 1));
+    assigns \result
+      \from (indirect: pwcs), (indirect: *(pwcs + (0 .. n - 1))),
+            (indirect: n);
+    assigns *(s + (0 .. n - 1))
+      \from (indirect: pwcs), *(pwcs + (0 .. n - 1)), (indirect: n);
  */
 extern size_t wcstombs(char *s, wchar_t const *pwcs, size_t n);
 
@@ -2350,8 +2551,10 @@ int abs(int i)
   return_label: return __retres;
 }
 
-/*@ assigns \result;
-    assigns \result \from *(p + (..)); */
+/*@ requires \valid_read(p);
+    assigns \result;
+    assigns \result \from (indirect: p), (indirect: *(p + (0 ..)));
+ */
 int atoi(char const *p)
 {
   int __retres;
@@ -3127,7 +3330,9 @@ void *memrchr(void const *s, int c, size_t n)
       (\subset(\result, \old(haystack) + (0 ..)) ∧ \valid_read(\result) ∧
        memcmp{Pre, Pre}(\result, \old(needle), strlen(\old(needle))) ≡ 0);
     assigns \result;
-    assigns \result \from haystack, *(haystack + (0 ..)), *(needle + (0 ..));
+    assigns \result
+      \from haystack, (indirect: *(haystack + (0 ..))),
+            (indirect: *(needle + (0 ..)));
  */
 char *strstr(char const *haystack, char const *needle)
 {
@@ -3645,6 +3850,70 @@ extern int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 extern int bind(int sockfd, struct sockaddr const *addr, socklen_t addrlen);
 
 /*@ requires 0 ≤ sockfd < 1024;
+    requires \valid_read((char *)addr + (0 .. addrlen - 1));
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns __fc_sockfds[sockfd], \result;
+    assigns __fc_sockfds[sockfd]
+      \from __fc_sockfds[sockfd], (indirect: sockfd), (indirect: addr),
+            (indirect: *addr), (indirect: addrlen);
+    assigns \result
+      \from (indirect: __fc_sockfds[sockfd]), (indirect: sockfd),
+            (indirect: addr), (indirect: *addr), (indirect: addrlen);
+ */
+extern int connect(int sockfd, struct sockaddr const *addr, socklen_t addrlen);
+
+/*@ requires 0 ≤ sockfd < 1024;
+    requires \valid(optlen);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns *((char *)optval + (0 ..)), \result, *optlen;
+    assigns *((char *)optval + (0 ..))
+      \from (indirect: sockfd), (indirect: level), (indirect: optname),
+            (indirect: *optlen), (indirect: optval),
+            (indirect: __fc_sockfds[sockfd]);
+    assigns \result
+      \from (indirect: sockfd), (indirect: level), (indirect: optname),
+            (indirect: *optlen), (indirect: optval),
+            (indirect: __fc_sockfds[sockfd]);
+    assigns *optlen
+      \from (indirect: sockfd), (indirect: level), (indirect: optname),
+            *optlen, (indirect: optval), (indirect: __fc_sockfds[sockfd]);
+    
+    behavior so_error:
+      assumes level ≡ 0xffff ∧ optname ≡ 0x1007;
+      requires \valid(optlen);
+      requires *optlen ≡ sizeof(int);
+      requires \valid((int *)optval);
+      assigns *((int *)optval), \result;
+      assigns *((int *)optval)
+        \from (indirect: sockfd), (indirect: optlen),
+              (indirect: __fc_sockfds[sockfd]);
+      assigns \result
+        \from (indirect: sockfd), (indirect: optlen),
+              (indirect: __fc_sockfds[sockfd]);
+    
+    behavior other_options:
+      assumes ¬(level ≡ 0xffff ∧ optname ≡ 0x1007);
+      requires optval ≡ \null ∨ \valid((char *)optval + (0 ..));
+      assigns *((char *)optval + (0 ..)), \result, *optlen;
+      assigns *((char *)optval + (0 ..))
+        \from (indirect: sockfd), (indirect: level), (indirect: optname),
+              (indirect: *optlen), (indirect: optval),
+              (indirect: __fc_sockfds[sockfd]);
+      assigns \result
+        \from (indirect: sockfd), (indirect: level), (indirect: optname),
+              (indirect: *optlen), (indirect: optval),
+              (indirect: __fc_sockfds[sockfd]);
+      assigns *optlen
+        \from (indirect: sockfd), (indirect: level), (indirect: optname),
+              *optlen, (indirect: optval), (indirect: __fc_sockfds[sockfd]);
+    
+    complete behaviors other_options, so_error;
+    disjoint behaviors other_options, so_error;
+ */
+extern int getsockopt(int sockfd, int level, int optname, void *optval,
+                      socklen_t *optlen);
+
+/*@ requires 0 ≤ sockfd < 1024;
     ensures \result ≡ 0 ∨ \result ≡ -1;
     assigns \result, __fc_sockfds[sockfd];
     assigns \result \from sockfd, __fc_sockfds[sockfd];
@@ -3720,9 +3989,12 @@ extern int shutdown(int sockfd, int how);
 
 /*@ ensures (0 ≤ \result < 1024) ∨ \result ≡ -1;
     assigns \result, __fc_socket_counter;
-    assigns \result \from domain, type, protocol, __fc_socket_counter;
+    assigns \result
+      \from (indirect: domain), (indirect: type), (indirect: protocol),
+            (indirect: __fc_socket_counter);
     assigns __fc_socket_counter
-      \from domain, type, protocol, __fc_socket_counter;
+      \from (indirect: domain), (indirect: type), (indirect: protocol),
+            __fc_socket_counter;
  */
 extern int socket(int domain, int type, int protocol);
 
@@ -3773,8 +4045,10 @@ extern uint32_t ntohl(uint32_t arg);
     assigns \result \from arg; */
 extern uint16_t ntohs(uint16_t arg);
 
-/*@ assigns \result;
-    assigns \result \from arg; */
+/*@ requires valid_read_string(arg);
+    assigns \result;
+    assigns \result \from (indirect: *(arg + (0 ..)));
+ */
 extern in_addr_t inet_addr(char const *arg);
 
 /*@ assigns \result;
@@ -3903,57 +4177,61 @@ extern int __va_openat_mode_t(int dirfd, char const *filename, int flags,
 
 /*@ ghost unsigned int volatile __fc_time __attribute__((__FRAMA_C_MODEL__));
   */
-/*@ assigns \result;
-    assigns \result \from __fc_time; */
-extern clock_t clock(void);
+/*@ ghost extern int __fc_tz __attribute__((__FRAMA_C_MODEL__)); */
 
 /*@ assigns \result;
-    assigns \result \from time1, time0; */
-extern double difftime(time_t time1, time_t time0);
-
-/*@ assigns *timeptr, \result;
-    assigns *timeptr \from *timeptr;
-    assigns \result \from *timeptr;
+    assigns \result \from *(path + (0 ..)), *(times + (0 .. 1));
  */
-extern time_t mktime(struct tm *timeptr);
+extern int utimes(char const *path, struct timeval const * /*[2]*/ times);
 
-/*@ assigns *timer, \result;
-    assigns *timer \from __fc_time;
-    assigns \result \from __fc_time;
+/*@ behavior tv_and_tz_null:
+      assumes tv ≡ \null ∧ tz ≡ \null;
+      assigns \nothing;
     
-    behavior null:
-      assumes timer ≡ \null;
-      assigns \result;
-      assigns \result \from __fc_time;
+    behavior tv_not_null:
+      assumes tv ≢ \null ∧ tz ≡ \null;
+      ensures
+        \initialized(&\old(tv)->tv_sec) ∧ \initialized(&\old(tv)->tv_usec);
+      assigns tv->tv_sec, tv->tv_usec;
+      assigns tv->tv_sec \from __fc_time;
+      assigns tv->tv_usec \from __fc_time;
     
-    behavior not_null:
-      assumes timer ≢ \null;
-      requires \valid(timer);
-      ensures \initialized(\old(timer));
-      assigns *timer, \result;
-      assigns *timer \from __fc_time;
-      assigns \result \from __fc_time;
+    behavior tz_not_null:
+      assumes tv ≡ \null ∧ tz ≢ \null;
+      ensures \initialized(\old(tz));
+      assigns *tz;
+      assigns *tz \from __fc_tz;
     
-    complete behaviors not_null, null;
-    disjoint behaviors not_null, null;
+    behavior tv_and_tz_not_null:
+      assumes tv ≢ \null ∧ tz ≢ \null;
+      ensures
+        \initialized(&\old(tv)->tv_sec) ∧ \initialized(&\old(tv)->tv_usec);
+      ensures \initialized(&tz);
+      assigns tv->tv_sec, tv->tv_usec, *tz;
+      assigns tv->tv_sec \from __fc_time;
+      assigns tv->tv_usec \from __fc_time;
+      assigns *tz \from __fc_tz;
+    
+    complete behaviors tv_and_tz_not_null,
+                       tz_not_null,
+                       tv_not_null,
+                       tv_and_tz_null;
+    disjoint behaviors tv_and_tz_not_null,
+                       tz_not_null,
+                       tv_not_null,
+                       tv_and_tz_null;
  */
-extern time_t time(time_t *timer);
+extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-struct tm __fc_time_tm;
-struct tm * const __p_fc_time_tm = & __fc_time_tm;
-/*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
-    assigns \result, __fc_time_tm;
-    assigns \result \from __p_fc_time_tm;
-    assigns __fc_time_tm \from *timer;
+/*@ assigns \result, __fc_time, __fc_tz;
+    assigns \result
+      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
+    assigns __fc_time
+      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
+    assigns __fc_tz
+      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
  */
-extern struct tm *gmtime(time_t const *timer);
-
-/*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
-    assigns \result, __fc_time_tm;
-    assigns \result \from __p_fc_time_tm;
-    assigns __fc_time_tm \from *timer;
- */
-extern struct tm *localtime(time_t const *timer);
+extern int settimeofday(struct timeval const *tv, struct timezone const *tz);
 
 /*@ assigns *(*(outbuf + (0 .. *outbytesleft - 1))), __FC_errno;
     assigns *(*(outbuf + (0 .. *outbytesleft - 1)))
@@ -4040,62 +4318,6 @@ extern int setlogmask(int);
 /*@ assigns \nothing; */
 extern void syslog(int, char const * , ...);
 
-/*@ ghost extern int __fc_tz __attribute__((__FRAMA_C_MODEL__)); */
-
-/*@ assigns \result;
-    assigns \result \from *(path + (0 ..)), *(times + (0 .. 1));
- */
-extern int utimes(char const *path, struct timeval const * /*[2]*/ times);
-
-/*@ behavior tv_and_tz_null:
-      assumes tv ≡ \null ∧ tz ≡ \null;
-      assigns \nothing;
-    
-    behavior tv_not_null:
-      assumes tv ≢ \null ∧ tz ≡ \null;
-      ensures
-        \initialized(&\old(tv)->tv_sec) ∧ \initialized(&\old(tv)->tv_usec);
-      assigns tv->tv_sec, tv->tv_usec;
-      assigns tv->tv_sec \from __fc_time;
-      assigns tv->tv_usec \from __fc_time;
-    
-    behavior tz_not_null:
-      assumes tv ≡ \null ∧ tz ≢ \null;
-      ensures \initialized(\old(tz));
-      assigns *tz;
-      assigns *tz \from __fc_tz;
-    
-    behavior tv_and_tz_not_null:
-      assumes tv ≢ \null ∧ tz ≢ \null;
-      ensures
-        \initialized(&\old(tv)->tv_sec) ∧ \initialized(&\old(tv)->tv_usec);
-      ensures \initialized(&tz);
-      assigns tv->tv_sec, tv->tv_usec, *tz;
-      assigns tv->tv_sec \from __fc_time;
-      assigns tv->tv_usec \from __fc_time;
-      assigns *tz \from __fc_tz;
-    
-    complete behaviors tv_and_tz_not_null,
-                       tz_not_null,
-                       tv_not_null,
-                       tv_and_tz_null;
-    disjoint behaviors tv_and_tz_not_null,
-                       tz_not_null,
-                       tv_not_null,
-                       tv_and_tz_null;
- */
-extern int gettimeofday(struct timeval *tv, struct timezone *tz);
-
-/*@ assigns \result, __fc_time, __fc_tz;
-    assigns \result
-      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
-    assigns __fc_time
-      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
-    assigns __fc_tz
-      \from tv->tv_sec, tv->tv_usec, tz->tz_dsttime, tz->tz_minuteswest;
- */
-extern int settimeofday(struct timeval const *tv, struct timezone const *tz);
-
 /*@ assigns \result;
     assigns \result \from which, who; */
 extern int getpriority(int which, id_t who);
@@ -4121,6 +4343,58 @@ extern int getrusage(int r, struct rusage *ru);
 /*@ assigns \result;
     assigns \result \from r, rl->rlim_cur, rl->rlim_max; */
 extern int setrlimit(int r, struct rlimit const *rl);
+
+/*@ assigns \result;
+    assigns \result \from __fc_time; */
+extern clock_t clock(void);
+
+/*@ assigns \result;
+    assigns \result \from time1, time0; */
+extern double difftime(time_t time1, time_t time0);
+
+/*@ assigns *timeptr, \result;
+    assigns *timeptr \from *timeptr;
+    assigns \result \from *timeptr;
+ */
+extern time_t mktime(struct tm *timeptr);
+
+/*@ assigns *timer, \result;
+    assigns *timer \from __fc_time;
+    assigns \result \from __fc_time;
+    
+    behavior null:
+      assumes timer ≡ \null;
+      assigns \result;
+      assigns \result \from __fc_time;
+    
+    behavior not_null:
+      assumes timer ≢ \null;
+      requires \valid(timer);
+      ensures \initialized(\old(timer));
+      assigns *timer, \result;
+      assigns *timer \from __fc_time;
+      assigns \result \from __fc_time;
+    
+    complete behaviors not_null, null;
+    disjoint behaviors not_null, null;
+ */
+extern time_t time(time_t *timer);
+
+struct tm __fc_time_tm;
+struct tm * const __p_fc_time_tm = & __fc_time_tm;
+/*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
+    assigns \result, __fc_time_tm;
+    assigns \result \from __p_fc_time_tm;
+    assigns __fc_time_tm \from *timer;
+ */
+extern struct tm *gmtime(time_t const *timer);
+
+/*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
+    assigns \result, __fc_time_tm;
+    assigns \result \from __p_fc_time_tm;
+    assigns __fc_time_tm \from *timer;
+ */
+extern struct tm *localtime(time_t const *timer);
 
 /*@ requires \valid(buffer);
     assigns \result, *buffer;
@@ -4305,6 +4579,9 @@ void main(void)
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   __fc_sockfds[0..1023] ∈ [--..--]
   __fc_socket_counter ∈ [--..--]
   __fc_open_sock_fds ∈ [--..--]
@@ -7892,8 +8169,7 @@ void main(void)
                  &S___fc_dir_entries_1___fc_opendir[0] }}
   __p_fc_opendir ∈ {{ &__fc_opendir[0] }}
   __fc_time ∈ [--..--]
-  __fc_time_tm ∈ [--..--]
-  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
+  __fc_tz ∈ [--..--]
   h_errno ∈ [--..--]
   facilitynames[0].c_name ∈ {{ NULL ; &S_c_name_0_facilitynames[0] }}
                [0].c_val ∈ [--..--]
@@ -8031,7 +8307,8 @@ void main(void)
                {{ NULL ; &S_c_name_0_prioritynames[0] ;
                   &S_c_name_1_prioritynames[0] }}
                [12].c_val ∈ [--..--]
-  __fc_tz ∈ [--..--]
+  __fc_time_tm ∈ [--..--]
+  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
   __fc_fds[0..1023] ∈ [--..--]
   S_optarg_0[0..1] ∈ [--..--]
   S_decimal_point___C_locale[0..1] ∈ [--..--]

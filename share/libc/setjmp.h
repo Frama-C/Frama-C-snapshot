@@ -31,25 +31,25 @@ __BEGIN_DECLS
 typedef int jmp_buf[5]; // arbitrary size
 
 /*@ assigns env[0..4]; // unsound - should "assigns \anything" */
-int setjmp(jmp_buf env);
+extern int setjmp(jmp_buf env);
 
 /*@
  assigns \nothing;
  ensures \false; // never terminates
 */
-void longjmp(jmp_buf env, int val);
+extern void longjmp(jmp_buf env, int val);
 
 #include "__fc_define_sigset_t.h"
 typedef struct {jmp_buf buf; sigset_t sigs;} sigjmp_buf;
 
 
-int sigsetjmp(sigjmp_buf env, int savesigs);
+extern int sigsetjmp(sigjmp_buf env, int savesigs);
 
 /*@
  assigns \nothing;
  ensures \false; // never terminates
 */
-void siglongjmp(sigjmp_buf env, int val);
+extern void siglongjmp(sigjmp_buf env, int val);
 
 
 __END_DECLS

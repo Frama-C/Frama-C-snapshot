@@ -23,7 +23,7 @@ extern void gg(int *p);
 int X;
 int Y;
 /*@ assigns {X, Y}; */
-extern void hh();
+void hh();
 
 int main(void)
 {

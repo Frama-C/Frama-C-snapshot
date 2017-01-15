@@ -24,7 +24,15 @@
     In these functions, references to the present working directory refer
     to the result given by function Sys.getcwd. *)
 
-(** returns an absolute path leading to the given file.
+(** Returns an absolute path leading to the given file.
+    The result is similar to [realpath --no-symlinks].
+    Some special behaviors include:
+    - [normalize ""] (empty string) raises [Invalid_argument]
+      (realpath returns an error);
+    - [normalize] preserves multiple sequential '/' characters,
+      unlike [realpath];
+    - non-existing directories in [realpath] may lead to ENOTDIR errors,
+      but [normalize] may accept them.
     @modify Aluminium-20160501 optional base. *)
 val normalize: ?base:string -> string -> string
 

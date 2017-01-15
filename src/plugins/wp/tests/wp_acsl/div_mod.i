@@ -1,10 +1,10 @@
 /* run.config
-   OPT: -wp -wp-model Typed -wp-par 1 -wp-gen -wp-print
+   OPT: -wp-gen -wp-print
 */
 /* run.config_qualif
-   OPT: -wp -wp-model Typed -wp-proof alt-ergo -wp-par 1 -wp-prop="-ko"
-   OPT: -wp -wp-model Typed -wp-proof why3:alt-ergo -wp-par 1 -wp-prop="-ko"
-   OPT: -wp -wp-model Typed -wp-proof "alt-ergo" -wp-par 1 -wp-prop="ko" -wp-timeout 5
+   OPT: -wp-prop="-ko"
+   OPT: -wp-prover why3:alt-ergo -wp-prop="-ko"
+   OPT: -wp-prover "alt-ergo" -wp-prop="ko" -wp-timeout 5
 */
 
 //@ axiomatic Eq { predicate Peq(integer x,integer y) = x == y ; } 

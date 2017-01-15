@@ -33,6 +33,8 @@ type config = {
   polka_loose : bool;
   polka_strict : bool;
   polka_equalities : bool;
+  inout: bool;
+  signs: bool;
 }
 
 let configure () = {
@@ -46,6 +48,8 @@ let configure () = {
   polka_loose = Value_parameters.PolkaLoose.get ();
   polka_strict = Value_parameters.PolkaStrict.get ();
   polka_equalities = Value_parameters.PolkaEqualities.get ();
+  inout = Value_parameters.InoutDomain.get ();
+  signs = Value_parameters.SignsDomain.get ();
 }
 
 let default_config = configure ()
@@ -61,6 +65,8 @@ let legacy_config = {
   polka_loose = false;
   polka_strict = false;
   polka_equalities = false;
+  inout = false;
+  signs = false;
 }
 
 module type Value = sig
@@ -112,6 +118,11 @@ let build_value config =
     if config.bitwise
     then (module Offsm_value.CvalueOffsm : Abstract_value.Internal)
     else (module Main_values.CVal : Abstract_value.Internal)
+  in
+  let value =
+    if config.signs
+    then add_value_abstraction value (module Sign_values)
+    else value
   in
   let value =
     if has_apron config
@@ -313,6 +324,45 @@ let add_gauges abstract =
   end : Abstract)
 
 (* -------------------------------------------------------------------------- *)
+(*                            Inout                                           *)
+(* -------------------------------------------------------------------------- *)
+
+let add_inout abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Cvalue.V.t
+    let key = Main_values.cvalue_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module Inout = Domain_lift.Make (Inout_domain.D) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(Inout) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
+
+(* -------------------------------------------------------------------------- *)
+(*                            Signs Domain                                    *)
+(* -------------------------------------------------------------------------- *)
+
+let add_signs abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Sign_values.t
+    let key = Sign_values.sign_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module Sign = Domain_lift.Make (Sign_domain.D) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Sign) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
+
+
+(* -------------------------------------------------------------------------- *)
 (*                            Build Abstractions                              *)
 (* -------------------------------------------------------------------------- *)
 
@@ -370,6 +420,16 @@ let build_abstractions config =
   let abstractions =
     if config.gauges
     then add_gauges abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.inout
+    then add_inout abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.signs
+    then add_signs abstractions
     else abstractions
   in
   abstractions

@@ -48,6 +48,7 @@ sig
       method virtual link : Fun.t -> link
 
       method env : Env.t
+      method set_env : Env.t -> unit
       method marks : Env.t * T.marks
       method lookup : t -> scope
       method scope : Env.t -> (unit -> unit) -> unit
@@ -128,9 +129,13 @@ sig
       method find : var -> string
       method virtual pp_let : formatter -> pmode -> string -> term -> unit
 
-      method is_shareable : term -> bool
+      method shared : term -> bool
+      method shareable : term -> bool
+      method subterms : (term -> unit) -> term -> unit
+
       method pp_atom : term printer
       method pp_flow : term printer
+      method pp_repr : term printer
 
       method pp_tau : tau printer
       method pp_var : string printer

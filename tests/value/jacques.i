@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input -journal-disable
+   STDOPT:
 */
 
 int t[4];

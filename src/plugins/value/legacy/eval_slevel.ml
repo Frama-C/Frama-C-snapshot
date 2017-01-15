@@ -439,7 +439,6 @@ struct
             let states_after_i =
               State_set.fold
                 (fun acc (state, trace) ->
-                  Value_messages.set_current_state (state,trace);
                   State_set.add (f state, trace) acc
                 ) State_set.empty d_states
             in
@@ -639,8 +638,7 @@ struct
         with Not_found -> Cvalue.Model.bottom
       in
       let updated = State_set.fold
-	(fun acc (state, trace) ->
-          Value_messages.set_current_state (state,trace);
+	(fun acc (state, _trace) ->
           Cvalue.Model.join acc state) old states in
       Cil_datatype.Stmt.Hashtbl.replace states_after s updated
     );
@@ -683,7 +681,6 @@ struct
                 eval_expr_with_deps_state None ~with_alarms state exp
               in
               Valarms.set_syntactic_context context;
-              Value_messages.set_current_state (state,trace);
               let warn = not (Warn.are_comparable Abstract_interp.Comp.Eq
                                 V.singleton_zero test) in
               let do_it =

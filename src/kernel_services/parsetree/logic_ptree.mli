@@ -344,7 +344,7 @@ type annot =
 (** ACSL extension for external spec file **)
 type ext_decl =
   | Ext_decl of decl            (* decl contains a location *)
-  | Ext_macro of string * lexpr (* lexpr contains a location *)
+  | Ext_macro of bool * string * lexpr (* lexpr contains a location *)
   | Ext_include of bool * string * location
 
 type ext_function = 

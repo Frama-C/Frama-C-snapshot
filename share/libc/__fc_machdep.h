@@ -263,6 +263,15 @@
 /* for stdarg.h */
 #define __FC_VA_LIST_T char*
 
+/* The following macros are defined to correspond to the version of MSVC used
+   during the definition of some MSVC-specific features: Visual Studio 2010.
+   They also help detecting, in some tests, whether we are in MSVC mode. */
+#define _MSC_FULL_VER 160040219
+#define _MSC_VER 1600
+// __ptr64 is MSVC-specific and needs to be undefined for us to parse it
+#undef __ptr64
+#define __ptr64
+
 #else
 #error Must define __FC_MACHDEP_X86_32 or __FC_MACHDEP_X86_64 or \
        __FC_MACHDEP_X86_16 or __FC_MACHDEP_PPC_32 or __FC_MACHDEP_MSVC_X86_64.

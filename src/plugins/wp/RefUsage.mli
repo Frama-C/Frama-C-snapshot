@@ -24,9 +24,7 @@
 (* --- Variable Analysis                                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Ctypes
 open Cil_types
-open Cil_datatype
 
 type access =
   | NoAccess

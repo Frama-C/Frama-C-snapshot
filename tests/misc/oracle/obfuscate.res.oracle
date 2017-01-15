@@ -77,7 +77,7 @@ int F1(void)
 
 /*@ requires \valid(f1);
     ensures *\old(f1) ≡ 0; */
-extern void F2(int *f1);
+void F2(int *f1);
 
 /*@ behavior B1:
       exits P1: \false;

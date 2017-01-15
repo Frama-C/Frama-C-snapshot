@@ -71,10 +71,10 @@ typedef struct
   regoff_t rm_eo;
 } regmatch_t;
 
-int    regcomp(regex_t *, const char *, int);
-int    regexec(const regex_t *, const char *, size_t, regmatch_t[], int);
-size_t regerror(int, const regex_t *, char *, size_t);
-void   regfree(regex_t *);
+extern int    regcomp(regex_t *, const char *, int);
+extern int    regexec(const regex_t *, const char *, size_t, regmatch_t[], int);
+extern size_t regerror(int, const regex_t *, char *, size_t);
+extern void   regfree(regex_t *);
 
 __END_DECLS
 

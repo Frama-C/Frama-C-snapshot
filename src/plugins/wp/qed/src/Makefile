@@ -71,7 +71,7 @@ endif
 ../html/index.html: $(DOC) Makefile feedback.ml
 	@rm -fr ../html
 	@mkdir -p ../html
-	$(OCAMLDOC) -v -html -d ../html -t "Qed Library" -stars $(DOC) | ocaml unix.cma feedback.ml
+	$(OCAMLDOC) -html -d ../html -t "Qed Library" -stars $(DOC) | ocaml unix.cma feedback.ml
 	@cp -f ocamldoc.css ../html/style.css
 
 depend: numbers.ml

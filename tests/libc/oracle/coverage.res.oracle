@@ -8,6 +8,9 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] computing for function strlen <- main.
         Called from tests/libc/coverage.c:9.
 share/libc/string.h:91:[value] function strlen: precondition 'valid_string_src' got status valid.

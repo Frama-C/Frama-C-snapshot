@@ -1,0 +1,10 @@
+/toplevel.byte
+/viewer.byte
+/*.opt
+/toplevel.top
+/frama-c-config
+*.byte
+*.opt
+toplevel.top
+frama-c-config
+/machdep.exe

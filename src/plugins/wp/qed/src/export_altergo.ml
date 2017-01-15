@@ -34,28 +34,6 @@ let rec cartesian f = function
   | [] | [_] -> ()
   | x::xs -> List.iter (fun y -> f x y) xs ; cartesian f xs
 
-let tau_of_sort = function
-  | Sint -> Int
-  | Sreal -> Real
-  | Sbool -> Bool
-  | Sprop | Sdata | Sarray _ -> raise Not_found
-
-let tau_of_arraysort = function
-  | Sarray s -> tau_of_sort s
-  | _ -> raise Not_found
-
-let tau_merge a b =
-  match a,b with
-  | Bool , Bool -> Bool
-  | (Bool|Prop) , (Bool|Prop) -> Prop
-  | Int , Int -> Int
-  | (Int|Real) , (Int|Real) -> Real
-  | _ -> raise Not_found
-
-let rec merge_list t f = function
-  | [] -> t
-  | e::es -> merge_list (tau_merge t (f e)) f es
-
 module Make(T : Term) =
 struct
 
@@ -232,57 +210,17 @@ struct
         | _ -> T.is_simple e
 
       (* -------------------------------------------------------------------------- *)
-      (* --- Type Checking                                                      --- *)
-      (* -------------------------------------------------------------------------- *)
-
-      method typeof_getfield _ = raise Not_found
-      method typeof_setfield _ = raise Not_found
-      method typeof_call _ = raise Not_found
-
-      method typecheck e =
-        match T.sort e with
-        | Sint -> Int
-        | Sreal -> Real
-        | Sbool -> Bool
-        | Sprop -> raise Not_found
-        | Sdata | Sarray _ ->
-            match T.repr e with
-            | Bvar (_,ty) -> ty
-            | Fvar x -> tau_of_var x
-            | Aset(m,k,v) ->
-                (try self#typecheck m
-                 with Not_found -> Array(self#typecheck k,self#typecheck v))
-            | Fun(f,_) ->
-                (try tau_of_sort (Fun.sort f)
-                 with Not_found -> self#typeof_call f)
-            | Aget(m,_) ->
-                (try match self#typecheck m with
-                   | Array(_,v) -> v
-                   | _ -> raise Not_found
-                 with Not_found -> tau_of_arraysort (T.sort m))
-            | Rdef [] -> raise Not_found
-            | Rdef ((f,_)::_) -> self#typeof_setfield f
-            | Rget (_,f) -> self#typeof_getfield f
-            | True | False -> Bool
-            | Kint _ -> Int
-            | Kreal _ -> Real
-            | Times(_,e) -> self#typecheck e
-            | Add es | Mul es -> merge_list Int self#typecheck es
-            | Div (a,b) | Mod (a,b) | If(_,a,b) ->
-                tau_merge (self#typecheck a) (self#typecheck b)
-            | Eq _ | Neq _ | Leq _ | Lt _ | And _ | Or _ | Not _ | Imply _ -> Bool
-            | Apply _ | Bind _ -> raise Not_found
-
-      (* -------------------------------------------------------------------------- *)
       (* --- Lets                                                               --- *)
       (* -------------------------------------------------------------------------- *)
+
+      method typeof e = T.typeof e
 
       val mutable quantify_let = false
       method set_quantify_let e = quantify_let <- e
 
       method pp_let fmt pmode x e =
         try
-          let tau = self#typecheck e in
+          let tau = self#typeof e in
           match pmode with
           | Positive when quantify_let ->
               fprintf fmt "@[<hov 4>forall %s : %a. %s = %a ->@]@ "

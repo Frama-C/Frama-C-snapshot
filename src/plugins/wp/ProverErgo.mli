@@ -27,4 +27,4 @@ open VCS
 (* --- Alt-Ergo Theorem Prover                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-val prove : mode -> Wpo.t -> result task
+val prove : config:config -> mode:mode -> Wpo.t -> result task

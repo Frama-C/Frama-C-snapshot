@@ -11,11 +11,11 @@ tests/wp_typed/unit_call.i:7:[kernel] warning: No code nor implicit assigns clau
 
 Goal Assertion (file tests/wp_typed/unit_call.i, line 14):
 Assume {
-  Type: is_sint32(r) /\ is_sint32(r_1).
+  Type: is_sint32(r_1) /\ is_sint32(r).
   (* Call 'f' *)
-  Have: r_1 < 0.
+  Have: r < 0.
   (* Call 'f' *)
-  Have: 0 < r.
+  Have: 0 < r_1.
 }
 Prove: r != r_1.
 

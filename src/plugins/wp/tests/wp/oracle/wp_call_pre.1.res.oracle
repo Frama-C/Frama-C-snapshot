@@ -12,8 +12,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,Emain' in 'main':
-Assume { Type: is_sint32(main_0). (* Call 'f' *) Have: 0 < main_0. }
-Prove: 0 < main_0.
+Prove: true.
 
 ------------------------------------------------------------
 

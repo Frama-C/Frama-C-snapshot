@@ -224,42 +224,14 @@ let local_printer: Printer.extensible_printer =
 
 let pr_annot = local_printer#code_annotation
 
-let current_stmt_tbl =
-  let s = Stack.create () in
-  Stack.push Cil_types.Kglobal s;
-  s
-
-let start_stmt ki =
-  Valarms.start_stmt ki;
-  Stack.push ki current_stmt_tbl
-
-let end_stmt () =
-  Valarms.end_stmt ();
-  try ignore (Stack.pop current_stmt_tbl)
-  with Stack.Empty -> assert false
-
-let current_stmt () =
-  try Stack.top current_stmt_tbl
-  with Stack.Empty -> assert false
-
-let sc_kinstr_loc ki = match ki with
-  | Cil_types.Kglobal -> (* can occur in case of obscure bugs (already happended)
-                            with wacky initializers. Module Initial_state of
-                            value analysis correctly positions the loc *)
-    assert (Cil_datatype.Kinstr.equal Cil_types.Kglobal (current_stmt ()));
-    Cil.CurrentLoc.get ()
-  | Cil_types.Kstmt s -> Cil_datatype.Stmt.loc s
-
-
-let register_alarm ?kf alarm status f =
-  let ki = current_stmt () in
+let register_alarm ?kf ki alarm status f =
   let status = match status with
     | True -> Property_status.True
     | False -> Property_status.False_if_reachable
     | Unknown -> Property_status.Dont_know
   in
   let annot, _is_new =
-    Alarms.register ~loc:(sc_kinstr_loc ki) ?kf ~status emitter ki alarm
+    Alarms.register ~loc:(Value_messages.loc ki) ?kf ~status emitter ki alarm
   in
   let k =
     Format.kfprintf
@@ -268,15 +240,19 @@ let register_alarm ?kf alarm status f =
   let str = f annot k Value_util.pp_callstack in
   Value_messages.new_alarm ki alarm status annot str
 
-let do_warn {a_log; a_call} alarm status str =
+let do_warn ki {a_log; a_call} alarm status str =
   let f () =
-    register_alarm alarm status
+    register_alarm ki alarm status
       (fun annot k -> k "@[%s.@ %a@]%t" str pr_annot annot)
   in
   if a_log then f ();
   a_call ()
 
-let warn warn_mode alarm status = match alarm with
+let do_warn_only_call {a_call} _alarm _status _str =
+  a_call ()
+
+let warn do_warn warn_mode alarm (status:status) =
+  match alarm with
   | Alarms.Pointer_comparison (_, e) ->
     let emit = match Value_parameters.WarnPointerComparison.get () with
       | "none" -> false
@@ -407,15 +383,19 @@ let height_alarm = function
 let cmp a1 a2 =
   Datatype.Int.compare (height_alarm (fst a1)) (height_alarm (fst a2))
 
-let emit warn_mode = function
+let emit do_warn warn_mode = function
   | Just m ->
     let list = M.bindings m in
     let sorted_list = List.sort cmp list in
-    List.iter (fun (alarm, status) -> warn warn_mode alarm status) sorted_list
+    List.iter (fun (alarm, status) ->
+        warn do_warn warn_mode alarm status) sorted_list
   (* TODO: use GADT to avoid this assert false ? *)
   | AllBut  _ ->
     Value_parameters.abort ~current:true ~once:true
       "All alarms may arise: abstract state too imprecise to continue the analysis."
+
+let notify warn_mode alarms = emit do_warn_only_call warn_mode alarms
+let emit warn_mode ki alarms = emit (do_warn ki) warn_mode alarms
 
 
 (*

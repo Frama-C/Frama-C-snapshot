@@ -1,6 +1,9 @@
 /* run.config
-   STDOPT: +"-load-script tests/syntax/inserted_casts"
+   EXECNOW: make -s @PTEST_DIR@/@PTEST_NAME@.cmxs
+   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@.cmxs"
+   STDOPT: +"-load-module @PTEST_DIR@/@PTEST_NAME@.cmxs" +"-machdep x86_64"
 */
+#include "stddef.h"
 int f(int b)
 {
     int r;
@@ -13,6 +16,7 @@ int f(int b)
 int g(int a)
 {
   unsigned int r;
+  ptrdiff_t x = &r - &r;
   r = a + 3;
   a *= r;
   return (a - r);

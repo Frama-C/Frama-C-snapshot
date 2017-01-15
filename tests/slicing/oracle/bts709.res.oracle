@@ -116,7 +116,7 @@ void main(void)
   return;
 }
 
-extern int nondet_int();
+int nondet_int();
 
 void inputsOf_testcase_func_slice_1(void)
 {

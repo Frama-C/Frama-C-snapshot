@@ -1,6 +1,6 @@
 /* run.config*
   GCC:
-  OPT: -val @VALUECONFIG@ -deps -out -input  -main loop -journal-disable
+  STDOPT: #"-main loop"
 */
 int X;
 

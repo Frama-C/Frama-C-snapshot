@@ -67,14 +67,26 @@
 #endif
 #define __nonnull(args...)
 
-#define __attribute_deprecated__ /* Ignore */
-#define __attribute_format_arg__(x) /* Ignore */
+#ifndef __attribute_deprecated__
+# define __attribute_deprecated__ __attribute__((__deprecated__))
+#endif
+#ifndef __attribute_format_arg__
+# define __attribute_format_arg__(x) __attribute__((__format_arg__(x)))
+#endif
+#ifndef __attribute_const__
+# define __attribute_const__ __attribute__((__const__))
+#endif
+#ifndef __attribute_malloc__
+# define __attribute_malloc__ __attribute__((__malloc__))
+#endif
+#ifndef __attribute_artificial__
+# define __attribute_artificial__ /* Ignore */
+#endif
 
 #define __attribute_warn_unused_result__ /* empty */
 #ifndef __wur
 # define __wur /* Ignore */
 #endif
-#define __attribute_artificial__ /* Ignore */
 
 #ifndef __STDC_VERSION__
 #define restrict

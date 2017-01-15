@@ -168,13 +168,13 @@ struct termios {
   cc_t     c_cc[NCCS]; /* special characters */
 };
 
-speed_t cfgetispeed(const struct termios *);
-speed_t cfgetospeed(const struct termios *);
-int     cfsetispeed(struct termios *, speed_t);
-int     cfsetospeed(struct termios *, speed_t);
-int     tcdrain(int);
-int     tcflow(int, int);
-int     tcflush(int, int);
+extern speed_t cfgetispeed(const struct termios *);
+extern speed_t cfgetospeed(const struct termios *);
+extern int     cfsetispeed(struct termios *, speed_t);
+extern int     cfsetospeed(struct termios *, speed_t);
+extern int     tcdrain(int);
+extern int     tcflow(int, int);
+extern int     tcflush(int, int);
 
 /*@ requires \valid(termios_p);
     assigns \result, *termios_p \from indirect:fd,
@@ -190,10 +190,10 @@ int     tcflush(int, int);
     disjoint behaviors ok, error;
     complete behaviors ok, error;
  */
-int     tcgetattr(int fd, struct termios *termios_p);
+extern int     tcgetattr(int fd, struct termios *termios_p);
 
-pid_t   tcgetsid(int);
-int     tcsendbreak(int, int);
+extern pid_t   tcgetsid(int);
+extern int     tcsendbreak(int, int);
 
 /*@
   requires \valid(termios_p);
@@ -205,7 +205,7 @@ int     tcsendbreak(int, int);
                         indirect:*termios_p;
   ensures \result == 0 || \result == -1;
  */
-int     tcsetattr(int fd, int optional_actions, struct termios *termios_p);
+extern int     tcsetattr(int fd, int optional_actions, struct termios *termios_p);
 
 __END_DECLS
 

@@ -11,8 +11,11 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
+tests/value/lazy.i:11:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:11:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
+tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:14:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
+tests/value/lazy.i:19:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:19:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
 [value] Recording results for main
 [value] done for function main
@@ -25,6 +28,7 @@ tests/value/lazy.i:19:[value] warning: pointer comparison. assert \pointer_compa
   s ∈ {{ &a + {-4; 0} }}
   S_p[0..1] ∈ [--..--]
 [from] Computing for function main
+tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:

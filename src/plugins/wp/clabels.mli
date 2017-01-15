@@ -35,8 +35,7 @@ type c_label =
   | Pre
   | Post
   | Exit
-  | At of string list * int   (** Label name, stmt-id. *)
-  | CallAt of int        (** stmt-id *)
+  | At of string list * Cil_types.stmt (** Label name, stmt-id. *)
   | LabelParam of string (** Logic label name in user-defined
                              function or predicate *)
 

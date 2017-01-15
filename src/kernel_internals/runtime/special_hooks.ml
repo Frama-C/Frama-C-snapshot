@@ -68,8 +68,18 @@ let () = Cmdline.run_after_early_stage print_sharepath
 let print_libpath = print_config Kernel.PrintLib.get Config.libdir
 let () = Cmdline.run_after_early_stage print_libpath
 
-let print_pluginpath = print_config Kernel.PrintPluginPath.get Config.plugin_path
+let print_pluginpath =
+  print_config Kernel.PrintPluginPath.get Config.plugin_path
 let () = Cmdline.run_after_early_stage print_pluginpath
+
+let print_machdep () =
+  if Kernel.PrintMachdep.get () then begin
+    File.pretty_machdep ();
+    raise Cmdline.Exit
+  end else
+    Cmdline.nop
+let () = Cmdline.run_after_exiting_stage print_machdep
+
 
 (* Time *)
 let time () =

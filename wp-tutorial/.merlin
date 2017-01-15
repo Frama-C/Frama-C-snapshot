@@ -1,0 +1,5 @@
+S .
+B .
+B ../lib/fc
+B ../lib/plugins
+PKG zarith

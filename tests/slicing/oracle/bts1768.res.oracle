@@ -234,7 +234,7 @@ int choix;
 int state = 1;
 int step = 0;
 /*@ ensures \result ≡ 0 ∨ \result ≡ 1 ∨ \result ≡ 2; */
-extern int choisir();
+int choisir();
 
 void lecture_slice_1(void)
 {

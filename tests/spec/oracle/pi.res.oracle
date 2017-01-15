@@ -9,7 +9,7 @@
  */
 /*@ lemma simplify_dumb_4: ∀ ℤ c; c % 14 ≡ 0 ⇒ c > 0 ⇒ c ≥ 14;
  */
-extern void print4(int);
+void print4(int);
 
 int a = 10000;
 int b;

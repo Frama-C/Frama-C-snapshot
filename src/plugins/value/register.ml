@@ -297,7 +297,7 @@ let eval_expr_with_valuation ~with_alarms deps state expr =
       Some (Locations.Zone.join deps' deps)
   in
   let eval, alarms = Eva.evaluate state expr in
-  Alarmset.emit with_alarms alarms;
+  Alarmset.notify with_alarms alarms;
   match eval with
   | `Bottom -> (Cvalue.Model.bottom, deps, Cvalue.V.bottom), None
   | `Value (valuation, result) ->
@@ -311,7 +311,7 @@ module Eval = struct
   let eval_expr ~with_alarms state expr =
     let state = Cvalue_domain.inject state in
     let eval, alarms = Eva.evaluate ~reduction:false state expr in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.notify with_alarms alarms;
     bot_value (eval >>-: snd)
 
   let eval_lval ~with_alarms deps state lval =
@@ -354,7 +354,7 @@ module Eval = struct
     let eval, alarms =
       Eva.lvaluate ~for_writing:false state lval
     in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.notify with_alarms alarms;
     match eval with
       | `Bottom -> Cvalue.Model.bottom, deps, Precise_locs.loc_bottom, (Cil.typeOfLval lval)
       | `Value (valuation, loc, typ) ->
@@ -407,7 +407,7 @@ module Eval = struct
       | _ -> assert false
     in
     let kfs, alarms = Eva.eval_function_exp funcexp state in
-    Alarmset.emit with_alarms alarms;
+    Alarmset.notify with_alarms alarms;
     let kfs = match kfs with
       | `Bottom -> Kernel_function.Hptset.empty
       | `Value kfs ->

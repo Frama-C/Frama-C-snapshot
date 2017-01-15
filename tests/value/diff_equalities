@@ -311,11 +311,11 @@ diff tests/value/oracle/plevel.res.oracle tests/value/oracle_equalities/plevel.r
 15d15
 < tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
 diff tests/value/oracle/pointer_comparison.1.res.oracle tests/value/oracle_equalities/pointer_comparison.1.res.oracle
-18d17
+30d29
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-73d71
+88d86
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-157d154
+172d169
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
 diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_equalities/precise_locations.res.oracle
 221d220

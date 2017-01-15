@@ -165,7 +165,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -176,7 +176,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -274,7 +274,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -285,7 +285,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true

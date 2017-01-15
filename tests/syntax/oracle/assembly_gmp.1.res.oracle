@@ -6,10 +6,9 @@ typedef long mp_limb_t;
 typedef unsigned long UDItype;
 typedef long *mp_srcptr;
 typedef size_t mp_size_t;
-extern void ADDC_LIMB(mp_limb_t, mp_limb_t, mp_limb_t, mp_limb_t);
+void ADDC_LIMB(mp_limb_t, mp_limb_t, mp_limb_t, mp_limb_t);
 
-extern void udiv_rnnd_preinv(mp_limb_t, mp_limb_t, mp_limb_t, mp_limb_t,
-                             mp_limb_t);
+void udiv_rnnd_preinv(mp_limb_t, mp_limb_t, mp_limb_t, mp_limb_t, mp_limb_t);
 
 mp_limb_t mpn_mod_1_1p(mp_srcptr ap, mp_size_t n, mp_limb_t b,
                        mp_limb_t const * /*[4]*/ bmodb)

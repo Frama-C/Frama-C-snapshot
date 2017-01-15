@@ -106,7 +106,7 @@ let f_range_all = Lang.extern_f ~library "range_all"
 let f_singleton = Lang.extern_f ~library "singleton"
 
 let single a b = match a,b with
-  | Some x , Some y when F.equal x y -> a
+  | Some x , Some y when F.QED.equal x y -> a
   | _ -> None
 
 let test_range x y a b =

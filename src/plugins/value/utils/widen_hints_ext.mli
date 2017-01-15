@@ -29,15 +29,26 @@ val dkey: Log.category
 (** String used for hints applying to all variables. *)
 val all_vars_str : string
 
-(** Type of widening hints: an optional variable (None means "all variables")
+type hint_vars =
+  | HintAllVars (* "all" vars: static hint *)
+  | HintVar of varinfo (* static hint *)
+  | HintMem of exp * offset (* dynamic hint *)
+
+val pp_hvars : Format.formatter -> hint_vars -> unit
+
+(** Type of widening hints: a special kind of lval
     for which the hints will apply and a list of names (e.g. global). *)
 type hint_lval = {
-  vars : lval option;
+  vars : hint_vars;
   names : string list;
   loc : Cil_datatype.Location.t;
 }
 
 type t = hint_lval * term list
+
+(** [get_widen_hints_annots s] returns the list terms related to "widen_hints"
+    annotations in [s]. *)
+val get_widen_hints_annots : stmt -> term list list
 
 (** [get_stmt_widen_hint_terms s] returns the list of widen hints associated to
     [s]. *)
@@ -45,3 +56,6 @@ val get_stmt_widen_hint_terms : stmt -> t list
 
 (** [is_global wh] returns true iff widening hint [wh] has a "global" prefix. *)
 val is_global : t -> bool
+
+(** [is_dynamic wh] returns true iff widening hint [wh] has a "dynamic" prefix. *)
+val is_dynamic : t -> bool

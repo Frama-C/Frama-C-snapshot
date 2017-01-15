@@ -104,19 +104,6 @@ let default_env var value =
     add_default_env (var ^ " (set from outside)") v 
   with Not_found -> add_env var value
 
-let test_path =
-  if Sys.file_exists "tests" && Sys.is_directory "tests" then "tests"
-  else
-    if try Array.iter (fun x -> if x = "-help" then raise Exit) Sys.argv; false
-      with Exit -> true
-    then
-      (* no error when "-help" is specified on the command line *)
-      ""
-    else begin
-      Format.eprintf "No test path found. Aborting@.";
-      exit 1
-    end
-
 (** the name of the directory-wide configuration file*)
 let dir_config_file = "test_config"
 
@@ -213,48 +200,6 @@ let make_test_suite s =
 let default_suites = ref []
 let toplevel_path = ref ""
 
-let parse_config_line =
-  let regexp_blank = Str.regexp "[ ]+" in
-  fun (key, value) ->
-    match key with
-    | "DEFAULT_SUITES" ->
-      let l = Str.split regexp_blank value in
-      default_suites := l
-    | "TOPLEVEL_PATH" ->
-      toplevel_path := value
-    | _ -> default_env key value (* Environnement variable that Frama-C reads*)
-
-let () =
-  let config = "tests/ptests_config" in
-  if Sys.file_exists config then begin
-    try
-      (*Parse the plugin configuration file for tests. Format is 'Key=value' *)
-      let ch = open_in config in
-      let regexp = Str.regexp "\\([^=]+\\)=\\(.*\\)" in
-      while true do
-        let line = input_line ch in
-        if Str.string_match regexp line 0 then
-          let key = Str.matched_group 1 line in
-          let value = Str.matched_group 2 line in
-          parse_config_line (key, value)
-        else begin
-          Format.eprintf "Cannot interpret line '%s' in ptests_config@." line;
-          exit 1
-        end
-      done
-    with
-    | End_of_file ->
-      if !toplevel_path = "" then begin
-        Format.eprintf "Missing TOPLEVEL_PATH variable. Aborting.@.";
-        exit 1
-      end
-  end
-  else begin
-    Format.eprintf
-      "Cannot find configuration file tests/ptests_config. Aborting.@.";
-    exit 1
-  end
-
 let change_toplevel_to_gui () =
   let s = !toplevel_path in
   match string_del_suffix "toplevel.opt" s with
@@ -314,7 +259,6 @@ let rec argspec =
   "-examine", Arg.Unit (fun () -> behavior := Examine) ,
   " Examine the logs that are different from oracles.";
   "-gui", Arg.Unit (fun () ->
-      change_toplevel_to_gui ();
       behavior := Gui;
       n := 1; (* Disable parallelism to see which GUI is launched *)
     ) ,
@@ -378,9 +322,97 @@ let () =
     make_test_suite umsg
 ;;
 
+
 let fail s =
   Format.printf "Error: %s@." s;
   exit 2
+
+(** split the filename into before including "tests" dir and after including "tests" dir
+    NOTA: both part contains "tests" (one as suffix the other as prefix).
+ *)
+let rec get_upper_test_dir initial dir =
+  let tests = Filename.dirname dir in
+  if tests = dir then
+     (* root directory *)
+    (fail (Printf.sprintf "Can't find a tests directory below %s" initial))
+  else
+    let base = Filename.basename dir in
+  if base = "tests" then
+    dir, "tests"
+  else
+    let tests, suffix = get_upper_test_dir initial tests in
+    tests, Filename.concat suffix base
+
+let rec get_test_path = function
+  | [] ->
+    if Sys.file_exists "tests" && Sys.is_directory "tests" then "tests", []
+    else begin
+      Format.eprintf "No test path found. Aborting@.";
+      exit 1
+    end
+  | [f] -> let tests, suffix = get_upper_test_dir f f in
+    tests, [suffix]
+  | a::l ->
+    let tests, l = get_test_path l in
+    let a_tests, a = get_upper_test_dir a a in
+    if a_tests <> tests
+    then fail (Printf.sprintf "All the tests should be inside the same tests directory")
+    else tests, a::l
+
+let test_path =
+  let files, names = List.partition Sys.file_exists !suites in
+  let tests, l = get_test_path files in
+  let names = List.map (Filename.concat tests) names in
+  suites := names@l;
+  Sys.chdir (Filename.dirname tests);
+  "tests"
+
+let parse_config_line =
+  let regexp_blank = Str.regexp "[ ]+" in
+  fun (key, value) ->
+    match key with
+    | "DEFAULT_SUITES" ->
+      let l = Str.split regexp_blank value in
+      default_suites := List.map (Filename.concat test_path) l
+    | "TOPLEVEL_PATH" ->
+      toplevel_path := value
+    | _ -> default_env key value (* Environnement variable that Frama-C reads*)
+
+
+(** parse config files *)
+let () =
+  let config = "tests/ptests_config" in
+  if Sys.file_exists config then begin
+    try
+      (*Parse the plugin configuration file for tests. Format is 'Key=value' *)
+      let ch = open_in config in
+      let regexp = Str.regexp "\\([^=]+\\)=\\(.*\\)" in
+      while true do
+        let line = input_line ch in
+        if Str.string_match regexp line 0 then
+          let key = Str.matched_group 1 line in
+          let value = Str.matched_group 2 line in
+          parse_config_line (key, value)
+        else begin
+          Format.eprintf "Cannot interpret line '%s' in ptests_config@." line;
+          exit 1
+        end
+      done
+    with
+    | End_of_file ->
+      if !toplevel_path = "" then begin
+        Format.eprintf "Missing TOPLEVEL_PATH variable. Aborting.@.";
+        exit 1
+      end
+  end
+  else begin
+    Format.eprintf
+      "Cannot find configuration file %s. Aborting.@." config;
+    exit 1
+  end
+
+(** Must be done after reading config *)
+let () = if !behavior = Gui then change_toplevel_to_gui ()
 
 (* redefine name if special configuration expected *)
 let redefine_name name =
@@ -520,28 +552,36 @@ let replace_macros macros s =
     lock_printf "End macros\n%!";
   end;
   let rec aux n (ptest_file_matched,s as acc) =
-    Mutex.lock str_mutex;
     if Str.string_match macro_regex s n then begin
       let macro = Str.matched_group 2 s in
-      if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
       let ptest_file_matched = ptest_file_matched || macro = "PTEST_FILE" in
+      let start = Str.matched_group 1 s in
+      let rest = Str.matched_group 3 s in
+      let new_n = Str.group_end 1 in
       let n, new_s =
         try
-          let replacement = StringMap.find macro macros in
+          if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
+          let replacement =  StringMap.find macro macros in
           if !verbosity >= 1 then
             lock_printf "replacement for %s is %s\n%!" macro replacement;
-          Str.group_end 1,
-          String.sub s 0 n ^ 
-            Str.replace_matched ("\\1" ^ replacement ^ "\\3") s
+          new_n,
+          String.sub s 0 n ^ start ^ replacement ^ rest
         with
           | Not_found -> Str.group_end 2 + 1, s
       in
-      Mutex.unlock str_mutex;
-      if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
+       if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
       let new_acc = ptest_file_matched, new_s in
       if n <= String.length new_s then aux n new_acc else new_acc
-    end else begin Mutex.unlock str_mutex; acc end
-  in aux 0 (false,s)
+    end else acc
+  in
+  Mutex.lock str_mutex;
+  try
+    let res = aux 0 (false,s) in
+    Mutex.unlock str_mutex; res
+  with e ->
+    lock_eprintf "Uncaught exception %s\n%!" (Printexc.to_string e);
+    Mutex.unlock str_mutex;
+    raise e
 
 let scan_execnow ~once dir (s:string) =
   let rec aux (s:execnow) =
@@ -644,8 +684,8 @@ let config_options =
            (fun (cmd,opts, log) -> cmd, make_custom_opts opts s, current.dc_default_log)
            !current_default_cmds
        in
-       { current with dc_toplevels =
-           new_top @ current.dc_toplevels});
+       { current with dc_toplevels = new_top @ current.dc_toplevels;
+                      dc_default_log = !current_default_log });
 
     "FILEREG",
     (fun _ s current -> { current with dc_test_regexp = s });
@@ -1432,15 +1472,22 @@ let default_config () =
 
 let () =
   (* enqueue the test files *)
+  let default_suites () =
+    let priority = "tests/idct" in
+    let default = !default_suites in
+    if List.mem priority default
+    then priority :: (List.filter (fun name -> name <> priority) default)
+    else default
+  in
   let suites =
     match !suites with
-      [] ->
-        let priority = "idct" in
-        let default = !default_suites in
-        if List.mem priority default
-        then priority :: (List.filter (fun name -> name <> priority) default)
-        else default
-    | l -> List.rev l
+    | [] -> default_suites ()
+    | l ->
+      List.fold_left (fun acc x ->
+          if x = "tests"
+          then (default_suites ()) @ acc
+          else x::acc
+        ) [] l
   in
   let interpret_as_file suite =
         try
@@ -1457,14 +1504,14 @@ let () =
   List.iter
     (fun suite ->
        if !verbosity >= 2 then lock_printf "%% producer now treating test %s\n%!" suite;
-      (* the "suite" may be a directory in [test_path] or a single file *)
+      (* the "suite" may be a directory or a single file *)
        let interpret_as_file = interpret_as_file suite in
        let directory =
          SubDir.create (if interpret_as_file
                         then
                           Filename.dirname suite
                         else
-                          Filename.concat test_path suite)
+                          suite)
        in
        let config = SubDir.make_file directory dir_config_file in
        let dir_config =

@@ -41,7 +41,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, b, 1).
 }
-Prove: x_1 = x_2.
+Prove: x_2 = x_1.
 
 ------------------------------------------------------------
 

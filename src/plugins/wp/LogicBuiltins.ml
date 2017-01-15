@@ -114,9 +114,6 @@ let compare d d' = String.compare d.driverid d'.driverid
 let driver = Context.create "driver"
 let cdriver () = Context.get driver
 
-let chop_backslash name =
-  if name.[0] == '\\' then String.sub name 1 (String.length name - 1) else name
-
 let lookup name kinds =
   try
     let sigs = Hashtbl.find (cdriver ()).hlogic name in

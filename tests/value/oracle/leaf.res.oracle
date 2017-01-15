@@ -97,11 +97,15 @@ tests/value/leaf.i:59:[kernel] warning: Neither code nor specification for funct
 tests/value/leaf.i:61:[kernel] warning: Neither code nor specification for function f_st_star_cint_st_star_cint, generating default assigns from the prototype
 [value] using specification for function f_st_star_cint_st_star_cint
 [value] Done for function f_st_star_cint_st_star_cint
+tests/value/leaf.i:61:[value] Assigning imprecise value to st_star_cint_1.
+        The imprecision originates from Library function {tests/value/leaf.i:61}
 [value] computing for function f_st_star_int_st_star_int <- main.
         Called from tests/value/leaf.i:62.
 tests/value/leaf.i:62:[kernel] warning: Neither code nor specification for function f_st_star_int_st_star_int, generating default assigns from the prototype
 [value] using specification for function f_st_star_int_st_star_int
 [value] Done for function f_st_star_int_st_star_int
+tests/value/leaf.i:62:[value] Assigning imprecise value to st_star_int_1.
+        The imprecision originates from Library function {tests/value/leaf.i:62}
 [value] computing for function f_st_tab3_int_st_tab3_int <- main.
         Called from tests/value/leaf.i:63.
 tests/value/leaf.i:63:[kernel] warning: Neither code nor specification for function f_st_tab3_int_st_tab3_int, generating default assigns from the prototype

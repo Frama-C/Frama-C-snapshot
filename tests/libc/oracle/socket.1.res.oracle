@@ -16,9 +16,11 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
   __fc_time ∈ [--..--]
-  __fc_time_tm ∈ {0}
-  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
+  __fc_tz ∈ [--..--]
   optarg ∈ {{ NULL ; &S_optarg[0] }}
   optind ∈ [--..--]
   opterr ∈ [--..--]
@@ -39,7 +41,7 @@
 [value] computing for function socketpair <- init_sockets <- main.
         Called from tests/libc/socket.c:50.
 [value] using specification for function socketpair
-share/libc/sys/socket.h:265:[value] function socketpair: precondition got status valid.
+share/libc/sys/socket.h:326:[value] function socketpair: precondition got status valid.
 [value] Done for function socketpair
 [value] computing for function fprintf <- init_sockets <- main.
         Called from tests/libc/socket.c:52.
@@ -48,7 +50,7 @@ share/libc/sys/socket.h:265:[value] function socketpair: precondition got status
 [value] computing for function exit <- init_sockets <- main.
         Called from tests/libc/socket.c:53.
 [value] using specification for function exit
-share/libc/stdlib.h:253:[value] function exit: no state left in which to evaluate postcondition, status not computed.
+share/libc/stdlib.h:369:[value] function exit: no state left in which to evaluate postcondition, status not computed.
 [value] Done for function exit
 tests/libc/socket.c:55:[value] assertion got status valid.
 [value] Recording results for init_sockets
@@ -116,10 +118,10 @@ tests/libc/socket.c:72:[value] warning: accessing uninitialized left-value.
 [value] computing for function recvmsg <- test_recvmsg <- main.
         Called from tests/libc/socket.c:90.
 [value] using specification for function recvmsg
-share/libc/sys/socket.h:214:[value] function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:215:[value] function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:216:[value] function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:217:[value] function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:273:[value] function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:274:[value] function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:275:[value] function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:276:[value] function recvmsg: precondition got status valid.
 [value] Done for function recvmsg
 tests/libc/socket.c:92:[value] warning: accessing uninitialized left-value.
                  assert \initialized((char *)rcv_buffer_scattered1);
@@ -143,26 +145,26 @@ tests/libc/socket.c:103:[value] cannot evaluate ACSL term, unsupported ACSL cons
 [value] computing for function bind <- test_server_echo <- main.
         Called from tests/libc/socket.c:107.
 [value] using specification for function bind
-share/libc/sys/socket.h:174:[value] function bind: precondition got status valid.
-share/libc/sys/socket.h:175:[value] function bind: precondition got status valid.
+share/libc/sys/socket.h:181:[value] function bind: precondition got status valid.
+share/libc/sys/socket.h:182:[value] function bind: precondition got status valid.
 [value] Done for function bind
 [value] computing for function listen <- test_server_echo <- main.
         Called from tests/libc/socket.c:108.
 [value] using specification for function listen
-share/libc/sys/socket.h:188:[value] function listen: precondition got status valid.
+share/libc/sys/socket.h:247:[value] function listen: precondition got status valid.
 [value] Done for function listen
 [value] computing for function accept <- test_server_echo <- main.
         Called from tests/libc/socket.c:111.
 [value] using specification for function accept
-share/libc/sys/socket.h:155:[value] function accept: precondition got status valid.
+share/libc/sys/socket.h:162:[value] function accept: precondition got status valid.
 tests/libc/socket.c:111:[value] function accept, behavior addr_null: assumes got status invalid; behavior not evaluated.
-share/libc/sys/socket.h:165:[value] function accept, behavior addr_not_null: precondition got status valid.
-share/libc/sys/socket.h:166:[value] function accept, behavior addr_not_null: precondition got status valid.
+share/libc/sys/socket.h:172:[value] function accept, behavior addr_not_null: precondition got status valid.
+share/libc/sys/socket.h:173:[value] function accept, behavior addr_not_null: precondition got status valid.
 [value] Done for function accept
 [value] computing for function accept <- test_server_echo <- main.
         Called from tests/libc/socket.c:112.
 tests/libc/socket.c:112:[value] function accept, behavior addr_not_null: assumes got status invalid; behavior not evaluated.
-share/libc/sys/socket.h:161:[value] function accept, behavior addr_null: precondition got status valid.
+share/libc/sys/socket.h:168:[value] function accept, behavior addr_null: precondition got status valid.
 tests/libc/socket.c:112:[value] warning: Completely invalid destination for assigns
                  clause *((char *)addr + (0 .. *addrlen - 1)). Ignoring.
 [value] Done for function accept

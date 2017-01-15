@@ -13,13 +13,13 @@ Goal Post-condition 'P' in 'main':
 Assume {
   Type: IsS1_St(v) /\ IsS1_St(w).
   (* Initializer *)
-  Init: 1 = (w.F1_St_a).
+  Init: (w.F1_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w.F1_St_b).
+  Init: (w.F1_St_b) = 2.
   (* Initializer *)
-  Init: 1 = (v.F1_St_a).
+  Init: (v.F1_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (v.F1_St_b).
+  Init: (v.F1_St_b) = 2.
 }
 Prove: EqS1_St(v, w).
 
@@ -32,9 +32,9 @@ tests/wp_acsl/init_value_mem.i:24: warning from Empty Model:
 Assume {
   Type: IsS1_St(w_1).
   (* Initializer *)
-  Init: 1 = (w_1.F1_St_a).
+  Init: (w_1.F1_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w_1.F1_St_b).
+  Init: (w_1.F1_St_b) = 2.
 }
 Prove: EqS1_St(w, w_1).
 

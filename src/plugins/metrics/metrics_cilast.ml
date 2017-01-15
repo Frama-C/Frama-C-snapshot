@@ -25,6 +25,12 @@ open Cil_types
 open Metrics_base
 ;;
 
+type cilast_metrics = {
+  fundecl_calls: int Metrics_base.VInfoMap.t;
+  fundef_calls: int Metrics_base.VInfoMap.t;
+  extern_global_vars: Metrics_base.VInfoSet.t;
+  basic_metrics: BasicMetrics.t
+}
 
 (** Syntactic metrics
    =================
@@ -62,7 +68,7 @@ end
    These metrics are a necessary step to compute cyclomatic complexity.
 *)
 open BasicMetrics ;;
-class slocVisitor : sloc_visitor = object(self)
+class slocVisitor ~libc : sloc_visitor = object(self)
   inherit Visitor.frama_c_inplace
 
 
@@ -187,13 +193,14 @@ class slocVisitor : sloc_visitor = object(self)
   method! vvdec vi =
     if not (Varinfo.Set.mem vi seen_vars) then (
       if Cil.isFunctionType vi.vtype then (
-        if consider_function vi then begin
+        if consider_function ~libc vi then begin
           global_metrics := incr_funcs !global_metrics;
           (* Mark the function as seen, adding 0 to the number of calls *)
           self#update_call_maps vi 0;
         end
       ) else (
-        if vi.vglob && not vi.vtemp && Metrics_base.consider_variable vi
+        if vi.vglob && not vi.vtemp &&
+           Metrics_base.consider_variable ~libc vi
         then (
           global_metrics:= incr_glob_vars !global_metrics;
           if vi.vstorage = Extern then
@@ -205,7 +212,7 @@ class slocVisitor : sloc_visitor = object(self)
     Cil.SkipChildren
       
   method! vfunc fdec =
-    if consider_function fdec.svar then
+    if consider_function ~libc fdec.svar then
       begin
         (* Here, we get to a fundec definition.this function has a body,
            let's put it to the "function with source" table. *)
@@ -316,7 +323,7 @@ class slocVisitor : sloc_visitor = object(self)
     String.concat "," les_images
 
   method private update_call_maps vinfo increment =
-    if consider_function vinfo then
+    if consider_function ~libc vinfo then
       let update_call_map funcmap =
         self#add_map funcmap vinfo
           (increment + try VInfoMap.find vinfo !funcmap with Not_found-> 0)
@@ -450,19 +457,33 @@ let pp_with_funinfo fmt cil_visitor =
     pp_base_metrics cil_visitor#get_metrics
 ;;
 
-let get_metrics () =
+let get_metrics ~libc =
   let file = Ast.get () in
    (* Do as before *)
-  let cil_visitor = new slocVisitor in
+  let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
   cil_visitor#get_metrics
 ;;
 
-let compute_on_cilast () =
+let get_cilast_metrics ~libc =
   let file = Ast.get () in
   (* Do as before *)
-  let cil_visitor = new slocVisitor in
+  let cil_visitor = new slocVisitor ~libc in
+  Visitor.visitFramacFileSameGlobals
+    (cil_visitor:>Visitor.frama_c_visitor) file;
+  {
+    fundecl_calls = cil_visitor#fundecl_calls;
+    fundef_calls = cil_visitor#fundef_calls;
+    extern_global_vars = cil_visitor#extern_global_vars;
+    basic_metrics = cil_visitor#get_metrics;
+  }
+;;
+
+let compute_on_cilast ~libc =
+  let file = Ast.get () in
+  (* Do as before *)
+  let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
   if Metrics_parameters.ByFunction.get () then

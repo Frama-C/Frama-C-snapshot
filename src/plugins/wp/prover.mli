@@ -27,6 +27,7 @@ open VCS
 (* -------------------------------------------------------------------------- *)
 
 val prove : Wpo.t ->
+  ?config:config ->
   ?mode:mode ->
   ?start:(Wpo.t -> unit) ->
   ?callin:(Wpo.t -> prover -> unit) ->
@@ -34,8 +35,10 @@ val prove : Wpo.t ->
   prover -> bool Task.task
 
 val spawn : Wpo.t ->
+  ?config:config ->
   ?start:(Wpo.t -> unit) ->
   ?callin:(Wpo.t -> prover -> unit) ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
   ?success:(Wpo.t -> prover option -> unit) ->
+  ?pool:Task.pool ->
   (mode * prover) list -> unit

@@ -58,6 +58,7 @@ module Literals : Parameter_sig.Bool
 (** {2 Computation Strategies} *)
 
 module Init: Parameter_sig.Bool
+module InitAlias: Parameter_sig.Bool
 module InitWithForall: Parameter_sig.Bool
 module BoundForallUnfolding: Parameter_sig.Int
 module RTE: Parameter_sig.Bool
@@ -68,8 +69,10 @@ module Prune: Parameter_sig.Bool
 module Clean: Parameter_sig.Bool
 module Filter: Parameter_sig.Bool
 module Bits: Parameter_sig.Bool
+module Ground: Parameter_sig.Bool
 module QedChecks : Parameter_sig.String_set
 module Split: Parameter_sig.Bool
+module SplitDepth: Parameter_sig.Int
 module Invariants: Parameter_sig.Bool
 module DynCall : Parameter_sig.Bool
 module SimplifyIsCint : Parameter_sig.Bool
@@ -119,6 +122,8 @@ module Check: Parameter_sig.Bool
 
 val get_env : ?default:string -> string -> string
 val is_out : unit -> bool (* -wp-out <dir> positionned *)
+val get_session : unit -> string
+val get_session_dir : string -> string
 val get_output : unit -> string
 val get_output_dir : string -> string
 val get_includes: unit -> string list

@@ -7,7 +7,7 @@
   nondet ∈ [--..--]
   T[0..9] ∈ {0}
 [value] computing for function test_none <- main.
-        Called from tests/value/behaviors1.i:623.
+        Called from tests/value/behaviors1.i:638.
 [value] computing for function f_none <- test_none <- main.
         Called from tests/value/behaviors1.i:328.
 [value] using specification for function f_none
@@ -31,7 +31,7 @@ tests/value/behaviors1.i:330:[value] function f_none, behavior b5: assumes got s
 [value] Recording results for test_none
 [value] Done for function test_none
 [value] computing for function test_comp_disj <- main.
-        Called from tests/value/behaviors1.i:624.
+        Called from tests/value/behaviors1.i:639.
 [value] computing for function f_comp_disj <- test_comp_disj <- main.
         Called from tests/value/behaviors1.i:342.
 [value] using specification for function f_comp_disj
@@ -55,7 +55,7 @@ tests/value/behaviors1.i:358:[value] function f_comp_disj, behavior b5: assumes 
 [value] Recording results for test_comp_disj
 [value] Done for function test_comp_disj
 [value] computing for function test_comp <- main.
-        Called from tests/value/behaviors1.i:625.
+        Called from tests/value/behaviors1.i:640.
 [value] computing for function f_comp <- test_comp <- main.
         Called from tests/value/behaviors1.i:388.
 [value] using specification for function f_comp
@@ -79,7 +79,7 @@ tests/value/behaviors1.i:390:[value] function f_comp, behavior b5: assumes got s
 [value] Recording results for test_comp
 [value] Done for function test_comp
 [value] computing for function test_disj <- main.
-        Called from tests/value/behaviors1.i:626.
+        Called from tests/value/behaviors1.i:641.
 [value] computing for function f_disj <- test_disj <- main.
         Called from tests/value/behaviors1.i:377.
 [value] using specification for function f_disj
@@ -103,7 +103,7 @@ tests/value/behaviors1.i:379:[value] function f_disj, behavior b5: assumes got s
 [value] Recording results for test_disj
 [value] Done for function test_disj
 [value] computing for function test_123_comp_disj <- main.
-        Called from tests/value/behaviors1.i:627.
+        Called from tests/value/behaviors1.i:642.
 [value] computing for function f_123_comp_disj <- test_123_comp_disj <- main.
         Called from tests/value/behaviors1.i:399.
 [value] using specification for function f_123_comp_disj
@@ -127,7 +127,7 @@ tests/value/behaviors1.i:401:[value] function f_123_comp_disj, behavior b5: assu
 [value] Recording results for test_123_comp_disj
 [value] Done for function test_123_comp_disj
 [value] computing for function test_123_comp_disj_2345_disj <- main.
-        Called from tests/value/behaviors1.i:628.
+        Called from tests/value/behaviors1.i:643.
 [value] computing for function f_123_comp_disj_2345_disj <- 
                                 test_123_comp_disj_2345_disj <- main.
         Called from tests/value/behaviors1.i:410.
@@ -155,7 +155,7 @@ tests/value/behaviors1.i:412:[value] function f_123_comp_disj_2345_disj, behavio
 [value] Recording results for test_123_comp_disj_2345_disj
 [value] Done for function test_123_comp_disj_2345_disj
 [value] computing for function test_123_comp_disj_2345_comp <- main.
-        Called from tests/value/behaviors1.i:629.
+        Called from tests/value/behaviors1.i:644.
 [value] computing for function f_123_comp_disj_2345_comp <- 
                                 test_123_comp_disj_2345_comp <- main.
         Called from tests/value/behaviors1.i:421.
@@ -183,7 +183,7 @@ tests/value/behaviors1.i:423:[value] function f_123_comp_disj_2345_comp, behavio
 [value] Recording results for test_123_comp_disj_2345_comp
 [value] Done for function test_123_comp_disj_2345_comp
 [value] computing for function test_123_disj_2345_comp_disj <- main.
-        Called from tests/value/behaviors1.i:630.
+        Called from tests/value/behaviors1.i:645.
 [value] computing for function f_123_disj_2345_comp_disj <- 
                                 test_123_disj_2345_comp_disj <- main.
         Called from tests/value/behaviors1.i:432.
@@ -211,7 +211,7 @@ tests/value/behaviors1.i:434:[value] function f_123_disj_2345_comp_disj, behavio
 [value] Recording results for test_123_disj_2345_comp_disj
 [value] Done for function test_123_disj_2345_comp_disj
 [value] computing for function test_123_comp_2345_comp_disj <- main.
-        Called from tests/value/behaviors1.i:631.
+        Called from tests/value/behaviors1.i:646.
 [value] computing for function f_123_comp_2345_comp_disj <- 
                                 test_123_comp_2345_comp_disj <- main.
         Called from tests/value/behaviors1.i:443.
@@ -239,17 +239,23 @@ tests/value/behaviors1.i:445:[value] function f_123_comp_2345_comp_disj, behavio
 [value] Recording results for test_123_comp_2345_comp_disj
 [value] Done for function test_123_comp_2345_comp_disj
 [value] computing for function test_assigns <- main.
-        Called from tests/value/behaviors1.i:632.
+        Called from tests/value/behaviors1.i:647.
 [value] computing for function f <- test_assigns <- main.
         Called from tests/value/behaviors1.i:473.
 [value] using specification for function f
 [value] Done for function f
+tests/value/behaviors1.i:473:[value] Assigning imprecise value to tmp.
+        The imprecision originates from Library function
+        {tests/value/behaviors1.i:473}
 tests/value/behaviors1.i:473:[value] Assigning imprecise value to p1.
         The imprecision originates from Library function
         {tests/value/behaviors1.i:473}
 [value] computing for function f <- test_assigns <- main.
         Called from tests/value/behaviors1.i:474.
 [value] Done for function f
+tests/value/behaviors1.i:474:[value] Assigning imprecise value to tmp_0.
+        The imprecision originates from Library function
+        {tests/value/behaviors1.i:474}
 tests/value/behaviors1.i:474:[value] Assigning imprecise value to p2.
         The imprecision originates from Library function
         {tests/value/behaviors1.i:474}
@@ -259,7 +265,7 @@ tests/value/behaviors1.i:474:[value] Assigning imprecise value to p2.
 [value] Recording results for test_assigns
 [value] Done for function test_assigns
 [value] computing for function test_assigns2 <- main.
-        Called from tests/value/behaviors1.i:633.
+        Called from tests/value/behaviors1.i:648.
 [value] computing for function f2 <- test_assigns2 <- main.
         Called from tests/value/behaviors1.i:490.
 [value] using specification for function f2
@@ -268,7 +274,7 @@ tests/value/behaviors1.i:480:[value] function f2: precondition got status valid.
 [value] Recording results for test_assigns2
 [value] Done for function test_assigns2
 [value] computing for function test_small1 <- main.
-        Called from tests/value/behaviors1.i:634.
+        Called from tests/value/behaviors1.i:649.
 [value] computing for function f3 <- test_small1 <- main.
         Called from tests/value/behaviors1.i:506.
 tests/value/behaviors1.i:506:[kernel] warning: No code nor implicit assigns clause for function f3, generating default assigns from the prototype
@@ -279,7 +285,7 @@ tests/value/behaviors1.i:497:[value] warning: function f3, behavior b1: precondi
 [value] Recording results for test_small1
 [value] Done for function test_small1
 [value] computing for function test_small2 <- main.
-        Called from tests/value/behaviors1.i:635.
+        Called from tests/value/behaviors1.i:650.
 [value] computing for function f4 <- test_small2 <- main.
         Called from tests/value/behaviors1.i:521.
 tests/value/behaviors1.i:521:[kernel] warning: No code nor implicit assigns clause for function f4, generating default assigns from the prototype
@@ -292,7 +298,7 @@ tests/value/behaviors1.i:521:[value] function f4, behavior b1: requires got stat
 [value] Recording results for test_small2
 [value] Done for function test_small2
 [value] computing for function test_small3 <- main.
-        Called from tests/value/behaviors1.i:636.
+        Called from tests/value/behaviors1.i:651.
 [value] computing for function f5 <- test_small3 <- main.
         Called from tests/value/behaviors1.i:534.
 tests/value/behaviors1.i:534:[kernel] warning: No code nor implicit assigns clause for function f5, generating default assigns from the prototype
@@ -301,7 +307,7 @@ tests/value/behaviors1.i:534:[kernel] warning: No code nor implicit assigns clau
 [value] Recording results for test_small3
 [value] Done for function test_small3
 [value] computing for function test_small4 <- main.
-        Called from tests/value/behaviors1.i:637.
+        Called from tests/value/behaviors1.i:652.
 [value] computing for function f6 <- test_small4 <- main.
         Called from tests/value/behaviors1.i:548.
 tests/value/behaviors1.i:548:[kernel] warning: No code nor implicit assigns clause for function f6, generating default assigns from the prototype
@@ -310,7 +316,7 @@ tests/value/behaviors1.i:548:[kernel] warning: No code nor implicit assigns clau
 [value] Recording results for test_small4
 [value] Done for function test_small4
 [value] computing for function test_small5 <- main.
-        Called from tests/value/behaviors1.i:638.
+        Called from tests/value/behaviors1.i:653.
 [value] computing for function f7 <- test_small5 <- main.
         Called from tests/value/behaviors1.i:561.
 tests/value/behaviors1.i:561:[kernel] warning: No code nor implicit assigns clause for function f7, generating default assigns from the prototype
@@ -320,7 +326,7 @@ tests/value/behaviors1.i:552:[value] warning: function f7: precondition got stat
 [value] Recording results for test_small5
 [value] Done for function test_small5
 [value] computing for function test_small6 <- main.
-        Called from tests/value/behaviors1.i:639.
+        Called from tests/value/behaviors1.i:654.
 [value] computing for function f8 <- test_small6 <- main.
         Called from tests/value/behaviors1.i:576.
 [value] using specification for function f8
@@ -328,22 +334,31 @@ tests/value/behaviors1.i:565:[value] function f8: precondition got status valid.
 [value] Done for function f8
 [value] Recording results for test_small6
 [value] Done for function test_small6
+[value] computing for function test_small6_bis <- main.
+        Called from tests/value/behaviors1.i:655.
+[value] computing for function f8_bis <- test_small6_bis <- main.
+        Called from tests/value/behaviors1.i:591.
+[value] using specification for function f8_bis
+tests/value/behaviors1.i:580:[value] function f8_bis: precondition got status valid.
+[value] Done for function f8_bis
+[value] Recording results for test_small6_bis
+[value] Done for function test_small6_bis
 [value] computing for function test_promote <- main.
-        Called from tests/value/behaviors1.i:640.
+        Called from tests/value/behaviors1.i:656.
 [value] computing for function f9 <- test_promote <- main.
-        Called from tests/value/behaviors1.i:594.
+        Called from tests/value/behaviors1.i:609.
 [value] using specification for function f9
-tests/value/behaviors1.i:594:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/value/behaviors1.i:594:[value] function f9, behavior b1: assumes got status invalid; behavior not evaluated.
+tests/value/behaviors1.i:609:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:609:[value] function f9, behavior b1: assumes got status invalid; behavior not evaluated.
 [value] Done for function f9
 [value] Recording results for test_promote
 [value] Done for function test_promote
 [value] computing for function test_narrow <- main.
-        Called from tests/value/behaviors1.i:641.
+        Called from tests/value/behaviors1.i:657.
 [value] computing for function f10 <- test_narrow <- main.
-        Called from tests/value/behaviors1.i:619.
+        Called from tests/value/behaviors1.i:634.
 [value] using specification for function f10
-tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:634:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] Done for function f10
 [value] Recording results for test_narrow
 [value] Done for function test_narrow
@@ -441,6 +456,9 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [value:final-states] Values at end of function test_small5:
   r ∈ [--..--]
 [value:final-states] Values at end of function test_small6:
+  a ∈ [--..--] or UNINITIALIZED
+  p ∈ {{ &a }}
+[value:final-states] Values at end of function test_small6_bis:
   a ∈ [--..--]
   p ∈ {{ &a }}
 [value:final-states] Values at end of function main:
@@ -523,6 +541,10 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [from] Computing for function f8 <-test_small6
 [from] Done for function f8
 [from] Done for function test_small6
+[from] Computing for function test_small6_bis
+[from] Computing for function f8_bis <-test_small6_bis
+[from] Done for function f8_bis
+[from] Done for function test_small6_bis
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -544,6 +566,9 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [from] Function f7:
   \result FROM x
 [from] Function f8:
+  a FROM \nothing
+  \result FROM p
+[from] Function f8_bis:
   a FROM \nothing
   \result FROM p
 [from] Function f9:
@@ -603,6 +628,8 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [from] Function test_small5:
   NO EFFECTS
 [from] Function test_small6:
+  NO EFFECTS
+[from] Function test_small6_bis:
   NO EFFECTS
 [from] Function main:
   T[0..4] FROM \nothing
@@ -683,6 +710,10 @@ tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL
 [inout] Out (internal) for function test_small6:
           a; p
 [inout] Inputs for function test_small6:
+          \nothing
+[inout] Out (internal) for function test_small6_bis:
+          a; p
+[inout] Inputs for function test_small6_bis:
           \nothing
 [inout] Out (internal) for function main:
           T[0..4]; __retres

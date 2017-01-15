@@ -390,8 +390,6 @@ module Internal : Domain_builder.InputDomain
     (* removed variables revert implicity to Top *)
     Memory.remove_variables vars state
 
-  let top_return = { v = `Value V.top; initialized = false; escaping = true }
-
   (* Call in which we do not use the body. Return Top, except for builtins
      and functions that do not significantly alter the memory. *)
   let approximate_call kf state =
@@ -399,15 +397,15 @@ module Internal : Domain_builder.InputDomain
       let name = Kernel_function.get_name kf in
       if Ast_info.is_frama_c_builtin name ||
          (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
-      then state
+      then
+        match Library_functions.get_retres_vi kf with
+        | Some vi_ret -> enter_scope kf [vi_ret] state
+        | None -> state
       else top
     in
-    `Value [{ post_state; return = Some (top_return, ()) }]
+    `Value [post_state]
 
   type origin = unit
-
-  type return = unit
-  module Return = Datatype.Unit
 
   module Transfer (Valuation: Abstract_domain.Valuation
                    with type value = value
@@ -415,7 +413,6 @@ module Internal : Domain_builder.InputDomain
                     and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
       with type state = state
-       and type return = unit
        and type value = V.t
        and type location = Precise_locs.precise_location
        and type valuation = Valuation.t
@@ -423,7 +420,6 @@ module Internal : Domain_builder.InputDomain
     type value = V.t
     type state = Memory.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     (* build a [get_locs] function from a valuation *)
@@ -493,13 +489,6 @@ module Internal : Domain_builder.InputDomain
     let start_call _stmt _call valuation state =
       let state = update valuation state in
       Compute (Continue state, true)
-
-    let make_return _kf _stmt _value _valuation _state = ()
-
-    let assign_return _stmt lv _kf () v valuation state =
-      match v with
-      | Copy (_, vf) -> store_copy valuation lv lv.lloc state vf
-      | Assign v -> store_value valuation lv.lval lv.lloc state v
 
     let dump_current_state state =
       let l = fst (Cil.CurrentLoc.get ()) in

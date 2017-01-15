@@ -61,6 +61,16 @@ struct
     | Fun(f,_) -> (Fun.sort f <> Sprop && Fun.sort f <> Sbool)
     | _ -> true
 
+  let subterms f e =
+    match T.repr e with
+    | Rdef fts ->
+        begin
+          match T.record_with fts with
+          | None -> T.lc_iter f e
+          | Some(a,fts) -> f a ; List.iter (fun (_,e) -> f e) fts
+        end
+    | _ -> T.lc_iter f e
+
   (* -------------------------------------------------------------------------- *)
   (* --- Variables                                                          --- *)
   (* -------------------------------------------------------------------------- *)
@@ -114,7 +124,8 @@ struct
          env.known <- Ids.add x env.known
       ) xs ; env
 
-  let marks env = T.marks ~shareable
+  let marks env =
+    T.marks ~shareable ~subterms
       ~shared:(fun t -> Tmap.mem t env.named) ()
 
   let bind x t env =
@@ -419,7 +430,7 @@ struct
     begin
       fprintf fmt "@[<hv 0>" ;
       let shared t = Tmap.mem t env.named in
-      let ts = T.shared ~shareable ~shared [t] in
+      let ts = T.shared ~shareable ~shared ~subterms [t] in
       let env =
         List.fold_left
           (fun env t ->

@@ -25,7 +25,7 @@
 
 
 //@ assigns \nothing;
-void Frama_C_show_each_warning(const char*, ...);
+extern void Frama_C_show_each_warning(const char*, ...);
 
 void __FC_assert(const char* file,int line,const char*expr) {
   Frama_C_show_each_warning("Assertion may fail",file,line,expr);

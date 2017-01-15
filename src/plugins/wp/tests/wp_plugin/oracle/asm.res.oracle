@@ -15,7 +15,7 @@ Prove: true.
 
 Goal Assertion 'KO' (file tests/wp_plugin/asm.i, line 11):
 Assume { Type: is_sint32(dst_0). }
-Prove: 2 = dst_0.
+Prove: dst_0 = 2.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

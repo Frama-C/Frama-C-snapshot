@@ -10,7 +10,7 @@
 
 Goal Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11):
 Assume { (* Heap *) Have: linked(Malloc_0) /\ sconst(Mchar_0). }
-Prove: Str_3 != Str_4.
+Prove: Str_4 != Str_3.
 
 ------------------------------------------------------------
 
@@ -19,7 +19,7 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Assertion 'AB' *)
-  Have: Str_3 != Str_4.
+  Have: Str_4 != Str_3.
 }
 Prove: valid_rd(Malloc_0, shift_sint8(global(Str_3), 0), 3).
 
@@ -31,7 +31,7 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Assertion 'AB' *)
-  Have: Str_3 != Str_4.
+  Have: Str_4 != Str_3.
   (* Assertion 'B_valid' *)
   Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
 }
@@ -45,7 +45,7 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Assertion 'AB' *)
-  Have: Str_3 != Str_4.
+  Have: Str_4 != Str_3.
   (* Assertion 'B_valid' *)
   Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
   (* Assertion 'B_out' *)
@@ -63,7 +63,7 @@ Assume {
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Assertion 'AB' *)
-  Have: Str_3 != Str_4.
+  Have: Str_4 != Str_3.
   (* Assertion 'B_valid' *)
   Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
   (* Assertion 'B_out' *)
@@ -71,7 +71,7 @@ Assume {
   (* Assertion 'B_rw' *)
   Have: !valid_rw(Malloc_0, shift_sint8(a, 1), 1).
 }
-Prove: Mchar_0[shift_sint8(a, i)]
-         = Mchar_0[shift_sint8(global(Str_1), 3 + i)].
+Prove: Mchar_0[shift_sint8(global(Str_1), 3 + i)]
+         = Mchar_0[shift_sint8(a, i)].
 
 ------------------------------------------------------------

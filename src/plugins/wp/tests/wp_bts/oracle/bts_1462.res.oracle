@@ -34,7 +34,7 @@ Prove: true.
 
 Goal Assertion 'for_value' (file tests/wp_bts/bts_1462.i, line 5):
 Assume { Type: is_sint32(c). }
-Prove: (1 = c) \/ (c <= 0) \/ (2 <= c).
+Prove: (c = 1) \/ (c <= 0) \/ (2 <= c).
 
 ------------------------------------------------------------
 
@@ -43,21 +43,21 @@ Assume {
   Type: is_sint32(c) /\ is_sint32(i) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(y_1) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (-1) != i.
+  When: i != (-1).
   (* Assertion 'for_value' *)
-  Have: (1 = c) \/ (c <= 0) \/ (2 <= c).
-  Have: 2 != c.
+  Have: (c = 1) \/ (c <= 0) \/ (2 <= c).
+  Have: c != 2.
   (* Invariant 'C' *)
-  Have: ((0 = c) -> ((0 = i) -> (0 = x))).
+  Have: ((c = 0) -> ((i = 0) -> (x = 0))).
   (* Invariant 'A_KO' *)
-  Have: ((0 != i) -> (0 = y_1)).
+  Have: ((i != 0) -> (y_1 = 0)).
   (* Then *)
   Have: i <= 9.
-  If 1 = c
-  Then { Have: 1 = y. }
-  Else { Have: y = y_1. }
+  If c = 1
+  Then { Have: y = 1. }
+  Else { Have: y_1 = y. }
 }
-Prove: 0 = y.
+Prove: y = 0.
 
 ------------------------------------------------------------
 
@@ -90,11 +90,11 @@ Goal Assertion 'consequence_of_false_invariant' (file tests/wp_bts/bts_1462.i, l
 Assume {
   Type: is_sint32(i) /\ is_sint32(y).
   (* Invariant 'A_KO' *)
-  Have: ((0 != i) -> (0 = y)).
+  Have: ((i != 0) -> (y = 0)).
   (* Else *)
   Have: 10 <= i.
 }
-Prove: 0 = y.
+Prove: y = 0.
 
 ------------------------------------------------------------
 

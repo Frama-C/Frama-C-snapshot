@@ -12,6 +12,8 @@
 tests/value/leaf2.i:6:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
+tests/value/leaf2.i:6:[value] Assigning imprecise value to G.
+        The imprecision originates from Library function {tests/value/leaf2.i:6}
 tests/value/leaf2.i:7:[value] warning: pointer comparison.
                  assert \pointer_comparable((void *)G, (void *)((int)(-1)));
 [value] Recording results for main

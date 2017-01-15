@@ -24,8 +24,6 @@
 (* --- Variables Cleaning                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Cil_types
-open Lang
 open Lang.F
 
 type usage

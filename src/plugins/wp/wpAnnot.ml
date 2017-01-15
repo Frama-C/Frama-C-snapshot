@@ -925,10 +925,7 @@ let get_stmt_annots config v s =
     | AAssigns (_b_list, _assigns) ->
         (* loop assigns: see get_loop_annots *) acc
     | AVariant (_v, _rel) -> (* see get_loop_annots *) acc
-    | APragma _ ->
-        Wp_parameters.warning ~once:true "Ignored 'pragma' specification:@, %a"
-          Printer.pp_code_annotation a;
-        acc
+    | APragma _ -> acc
     | AStmtSpec (b_list, spec) ->
         if b_list <> [] then (* TODO ! *)
           Wp_parameters.warning ~once:true

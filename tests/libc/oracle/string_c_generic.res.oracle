@@ -7,15 +7,18 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] computing for function strcpy <- main.
         Called from tests/libc/string_c_generic.c:56.
-share/libc/string.h:208:[value] function strcpy: precondition 'valid_string_src' got status valid.
+share/libc/string.h:220:[value] function strcpy: precondition 'valid_string_src' got status valid.
 tests/libc/string_c_generic.c:56:[value] Cannot evaluate range bound strlen(src)
         (unsupported ACSL construct: logic functions or predicates). Approximating
-share/libc/string.h:209:[value] warning: function strcpy: precondition 'room_string' got status unknown.
+share/libc/string.h:221:[value] warning: function strcpy: precondition 'room_string' got status unknown.
 share/libc/string.c:173:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:212:[value] warning: function strcpy: postcondition got status unknown.
-share/libc/string.h:213:[value] function strcpy: postcondition got status valid.
+share/libc/string.h:224:[value] warning: function strcpy: postcondition got status unknown.
+share/libc/string.h:225:[value] function strcpy: postcondition got status valid.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
@@ -97,15 +100,15 @@ share/libc/string.h:85:[value] function memset: postcondition got status valid.
 [value] Done for function memset
 [value] computing for function strncpy <- main.
         Called from tests/libc/string_c_generic.c:73.
-share/libc/string.h:218:[value] function strncpy: precondition 'valid_string_src' got status valid.
-share/libc/string.h:219:[value] function strncpy: precondition 'room_nstring' got status valid.
+share/libc/string.h:230:[value] function strncpy: precondition 'valid_string_src' got status valid.
+share/libc/string.h:231:[value] function strncpy: precondition 'room_nstring' got status valid.
 tests/libc/string_c_generic.c:73:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.c:183:[value] entering loop for the first time
-share/libc/string.h:222:[value] function strncpy: postcondition got status valid.
-share/libc/string.h:223:[value] function strncpy: postcondition got status valid.
+share/libc/string.h:234:[value] function strncpy: postcondition got status valid.
+share/libc/string.h:235:[value] function strncpy: postcondition got status valid.
 share/libc/string.c:185:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:226:[value] warning: function strncpy, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:229:[value] warning: function strncpy, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:238:[value] warning: function strncpy, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:241:[value] warning: function strncpy, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strncpy
 [value] Done for function strncpy
 [value] computing for function memcmp <- main.
@@ -143,13 +146,13 @@ tests/libc/string_c_generic.c:85:[value] Cannot evaluate range bound strlen(src)
 [value] Done for function strcpy
 [value] computing for function strncat <- main.
         Called from tests/libc/string_c_generic.c:86.
-share/libc/string.h:261:[value] function strncat: precondition 'valid_string_src' got status valid.
-share/libc/string.h:262:[value] function strncat: precondition 'valid_string_dst' got status valid.
+share/libc/string.h:273:[value] function strncat: precondition 'valid_string_src' got status valid.
+share/libc/string.h:274:[value] function strncat: precondition 'valid_string_dst' got status valid.
 tests/libc/string_c_generic.c:86:[value] Cannot evaluate range bound strlen(dest)
         (unsupported ACSL construct: logic functions or predicates). Approximating
 tests/libc/string_c_generic.c:86:[value] Cannot evaluate range bound strlen(dest) + n
         (unsupported ACSL construct: logic functions or predicates). Approximating
-share/libc/string.h:263:[value] warning: function strncat: precondition 'room_string' got status unknown.
+share/libc/string.h:275:[value] warning: function strncat: precondition 'room_string' got status unknown.
 tests/libc/string_c_generic.c:86:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] computing for function strlen <- strncat <- main.
         Called from share/libc/string.c:156.
@@ -158,10 +161,10 @@ share/libc/string.c:78:[value] cannot evaluate ACSL term, unsupported ACSL const
 share/libc/string.h:93:[value] warning: function strlen: postcondition got status unknown.
 [value] Recording results for strlen
 [value] Done for function strlen
-share/libc/string.h:266:[value] function strncat: postcondition got status valid.
+share/libc/string.h:278:[value] function strncat: postcondition got status valid.
 share/libc/string.c:164:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:272:[value] warning: function strncat, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:278:[value] warning: function strncat, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:284:[value] warning: function strncat, behavior complete: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:290:[value] warning: function strncat, behavior partial: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strncat
 [value] Done for function strncat
 [value] computing for function strcmp <- main.

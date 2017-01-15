@@ -7,7 +7,7 @@ int tab[2];
 /*@ requires \valid(p + 1);
     assigns *p;
     assigns *p \from *p; */
-extern void f(int *p);
+void f(int *p);
 
 void g(void)
 {

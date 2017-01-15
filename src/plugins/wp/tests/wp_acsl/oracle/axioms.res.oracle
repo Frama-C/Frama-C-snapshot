@@ -206,6 +206,7 @@ Let x = -a.
 Let x_1 = i - a.
 Let x_2 = 1 + b - a.
 Assume {
+  Have: valid_rd(Malloc_0, a_1, x_1).
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
@@ -216,6 +217,6 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, x_1).
 }
-Prove: (valid_rd(Malloc_0, a_1, x_1) -> included(a_1, x_1, a_1, x_2)).
+Prove: included(a_1, x_1, a_1, x_2).
 
 ------------------------------------------------------------

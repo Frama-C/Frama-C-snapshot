@@ -5,16 +5,16 @@
 int x;
 /*@ ensures \result > 0;
     assigns x; */
-extern int f(void);
+int f(void);
 
 /*@ ensures \result > 0;
     assigns \nothing; */
-extern int g();
+int g();
 
 /*@ requires p > 0;
     ensures \result > 0;
     assigns \nothing; */
-extern int h(int p);
+int h(int p);
 
 void job(void)
 {

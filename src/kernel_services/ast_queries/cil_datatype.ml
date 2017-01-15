@@ -1810,14 +1810,14 @@ module Logic_label = struct
 end
 
 module Global_annotation = struct
-
+  let pretty_ref = ref (fun _ -> assert false)
   include Make_with_collections
     (struct
       type t = global_annotation
       let name = "Global_annotation"
       let reprs = List.map (fun l -> Daxiomatic ("", [], l)) Location.reprs
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt v = !pretty_ref fmt v
       let varname = Datatype.undefined
 
       let rec compare g1 g2 =
@@ -1886,14 +1886,14 @@ module Global_annotation = struct
 end
 
 module Global = struct
-
+  let pretty_ref = ref (fun _ -> assert false)
   include Make_with_collections
     (struct
       type t = global
       let name = "Global"
       let reprs = [ GText "" ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt v = !pretty_ref fmt v
       let varname = Datatype.undefined
 
       let compare g1 g2 =
@@ -2080,8 +2080,9 @@ module Code_annotation = struct
 
 end
 
-module Predicate =
-  Make
+module Predicate = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make
     (struct
       type t = predicate
       let name = "Predicate"
@@ -2090,12 +2091,14 @@ module Predicate =
             pred_loc = Location.unknown;
             pred_content = Pfalse } ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt x = !pretty_ref fmt x
       let varname _ = "p"
      end)
+end
 
-module Identified_predicate =
-  Make_with_collections
+module Identified_predicate = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
         type t = identified_predicate
         let name = "Identified_predicate"
@@ -2106,9 +2109,10 @@ module Identified_predicate =
         let copy = Datatype.undefined
         let hash x = x.ip_id
         let internal_pretty_code = Datatype.undefined
-        let pretty = Datatype.undefined
+        let pretty fmt x = !pretty_ref fmt x
         let varname _ = "id_predyes"
      end)
+end
 
 module Funbehavior =
   Datatype.Make
@@ -2128,8 +2132,9 @@ module Funbehavior =
       let mem_project = Datatype.never_any_project
      end)
 
-module Funspec =
-  Datatype.Make
+module Funspec = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Datatype.Make
     (struct
       include Datatype.Serializable_undefined
       type t = funspec
@@ -2140,8 +2145,10 @@ module Funspec =
 	    spec_terminates = None;
 	    spec_complete_behaviors = [];
 	    spec_disjoint_behaviors = [] } ]
+      let pretty fmt x = !pretty_ref fmt x
       let mem_project = Datatype.never_any_project
      end)
+end
 
 module Fundec = struct 
 

@@ -43,7 +43,6 @@ module Access :
 sig
   type t = access
   val is_bot : t -> bool
-  val leq : t -> t -> bool (* unused for now *)
   val cup : t -> t -> t
   val pretty : varinfo -> Format.formatter -> t -> unit
 end =
@@ -63,7 +62,7 @@ struct
     | ByArray -> 2
     | ByValue -> 3
     | ByAddr -> 4
-  let leq a b = (rank a) <= (rank b) (* unused for now *)
+
   let cup a b = if rank a < rank b then b else a
 end
 
@@ -635,7 +634,7 @@ let cfun_spec env kf =
     Cil.SkipChildren
   in
   let visitor = object
-    inherit Cil.nopCilVisitor as super
+    inherit Cil.nopCilVisitor
     method !vpredicate p = update_spec_env (pred env p)
     method !vterm t = update_spec_env (vterm env t)
   end in
@@ -675,7 +674,6 @@ let cvarinit vi initinfo env =
 (* --- Compilation                                                    --- *)
 (* ---------------------------------------------------------------------- *)
 
-type context = global_ctx KFmap.t
 let mk_context () = KFmap.empty
 
 let param a m = match a with
@@ -683,12 +681,6 @@ let param a m = match a with
   | ByValue -> e_value m
   | ByRef -> e_value (load m)
   | ByArray -> e_value (load (shift m E.bot))
-
-let rec call f xs ms = match xs , ms with
-  | [] , _ | _ , [] -> E.bot
-  | x::xs , m::ms ->
-      let a = E.get x f in
-      E.cup (param a m) (call f xs ms)
 
 let update_call_env (env:global_ctx) v =
   let r,differ = E.cup_differ env.code v

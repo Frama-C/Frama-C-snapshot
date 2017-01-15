@@ -27,7 +27,7 @@ tests/syntax/copy_logic.i:18:[value] warning: assertion got status unknown.
 /*@ logic ℤ g(int x) = x + 42;
  */
 /*@ frees x; */
-extern void f(int *x);
+void f(int *x);
 
 int main(int x)
 {

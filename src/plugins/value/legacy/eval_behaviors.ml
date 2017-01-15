@@ -146,12 +146,11 @@ let compute_assigns kf assigns return_used sclob ~with_formals ~per_behavior =
           List.fold_left treat_assign with_formals l
     in
     let retres_vi, state =
-      let return_type = getReturnType vi.vtype in
-      if isVoidType return_type
-      then None, state
-      else
+      match Library_functions.get_retres_vi kf with
+      | None -> None, state
+      | Some retres_vi ->
+        let return_type = getReturnType vi.vtype in
         let offsetmap = Eval_op.offsetmap_of_v return_type !returned_value in
-        let retres_vi = Library_functions.get_retres_vi kf in
         let retres_base = Base.of_varinfo retres_vi in
         let state = Cvalue.Model.add_base retres_base offsetmap state in
         Some retres_vi, state
@@ -438,7 +437,7 @@ let compute_using_specification kf spec ~call_kinstr ~with_formals =
       if isVoidType return_type || Cil.hasAttribute "noreturn" rvi.vattr
        || not (Cvalue.Model.is_reachable state)
       then None
-      else Some (Library_functions.get_retres_vi kf)
+      else Library_functions.get_retres_vi kf
     in
     let aux state =
       match infer_rvi state with

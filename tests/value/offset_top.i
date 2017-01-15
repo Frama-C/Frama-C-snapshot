@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -deps -out -input -absolute-valid-range 0-0xFF -journal-disable
+   STDOPT: #"-absolute-valid-range 0-0xFF"
 */
 
 int* T = (int*)0;

@@ -131,13 +131,13 @@ CODE prioritynames[] =
   };
 
 /*@ assigns \nothing ; */
-void  closelog(void);
+extern void  closelog(void);
 /*@ assigns \nothing ; */
-void  openlog(const char *, int, int);
+extern void  openlog(const char *, int, int);
 /*@ assigns \nothing ; */
-int   setlogmask(int);
+extern int   setlogmask(int);
 /*@ assigns \nothing ; */
-void  syslog(int, const char *, ...);
+extern void  syslog(int, const char *, ...);
 
 __END_DECLS
 

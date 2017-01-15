@@ -20,54 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** UNDOCUMENTED. *)
 
-open Cil_types;;
-
-(** Warnings can either emit ACSL (Alarm), or do not emit ACSL
-   (others). *)
-type warning =
-| Alarm of Alarms.t * code_annotation * Property_status.emitted_status
-| Bad_function_pointer
-| Uncategorized of string
-
-type value_message =
-| Warning of warning
-| Property_evaluated of Property.t * Property_status.emitted_status
-| Precision_Loss of precision_loss_message
-| Lattice_message of Lattice_messages.emitter * Lattice_messages.t
-| Feedback of unit
-
-and precision_loss_message =
-| Exhausted_slevel
-| Garbled_mix_creation of Cil_types.exp (* Expression that creates the garbled mix. *)
-| Garbled_mix_propagation
-;;
-
-type callstack = Value_types.callstack;;
-type state = Cvalue.Model.t;;
-
-module Value_Message_Callback = struct
-  include Hook.Build
-    (struct type t = value_message * kinstr * callstack * (state * Trace.t) end)
-  (* Do not emit the messages when the callstack is empty, meaning Value
-     is not running *)
-  let apply (_m, _ki, callstack, _state as args) =
-    if callstack <> [] then apply args
-end
-
-(* The before-state when the message is emitted. *)
-let curstate = ref (Cvalue.Model.bottom,Trace.top);;
-
-let set_current_state st = curstate := st;;
-
-let ki_of_callstack = function
-  | (_,ki)::_ -> ki
-  | _ -> Kglobal
-;;
-
-(****************************************************************)
-(* Alarms *)
 
 (* Default behaviour: print one alarm per kinstr. *)
 module Alarm_key = Datatype.Pair_with_collections
@@ -80,69 +33,32 @@ module Alarm_cache = State_builder.Hashtbl(Alarm_key.Hashtbl)(Datatype.Unit)(str
   let size = 35
 end)
 
+let loc ki = match ki with
+  | Cil_types.Kglobal -> (* can occur in case of obscure bugs (already happened)
+                            with wacky initializers. Module Initial_state of
+                            value analysis correctly positions the loc *)
+    Cil.CurrentLoc.get ()
+  | Cil_types.Kstmt s -> Cil_datatype.Stmt.loc s
+
 let default_alarm_report ki alarm str =
   Alarm_cache.memo (fun (_ki,_alarm) ->
-      Value_util.alarm_report ~current:true "%s" str
+      let loc = loc ki in
+      Value_util.alarm_report ~source:(fst loc) "%s" str
     ) (ki,alarm)
 ;;
 
-let new_alarm ki alarm property annot str =
-  let msg = Warning( Alarm( alarm, annot, property)) in
-  default_alarm_report ki alarm str;
-  Value_Message_Callback.apply (msg, ki, Value_util.call_stack(), !curstate)
-;;
-
-(****************************************************************)
-(* Lattice messages. *)
-
-Lattice_messages.message_destination := (fun emitter msg ->
-  let callstack = Value_util.call_stack() in
-  let vmsg = Lattice_message (emitter, msg) in
-  Value_Message_Callback.apply
-    (vmsg, ki_of_callstack callstack, callstack, !curstate);
-  match msg with
-  | Lattice_messages.Imprecision _ -> () (* Only for debug purposes *)
-  | Lattice_messages.Approximation str
-  | Lattice_messages.Costly str
-  | Lattice_messages.Unsoundness str ->
-     Kernel.feedback ~current:true ~once:true "%s" str;
-);;
-
-(****************************************************************)
-(* Property statuses *)
-
-let new_status ppt status (state,trace) =
-  let ki = Property.get_kinstr ppt in
-  let msg = Property_evaluated(ppt, status) in
-  Value_Message_Callback.apply (msg, ki, Value_util.call_stack(), (state,trace))
-;;
-
-(****************************************************************)
-(* General warnings *)
+let new_alarm ki alarm _property _annot str =
+  default_alarm_report ki alarm str
 
 let warning x =
   Format.kfprintf (fun _fmt ->
-  let str = Format.flush_str_formatter() in
-  let msg = Warning(Uncategorized(str)) in
-  Kernel.warning ~once:true ~current:true "%s" str;
-  let callstack = Value_util.call_stack() in
-  Value_Message_Callback.apply (msg, ki_of_callstack callstack,
-                                callstack, !curstate))
+      let str = Format.flush_str_formatter() in
+      Kernel.warning ~once:true ~current:true "%s" str
+    )
     Format.str_formatter x
 ;;
 
-
-(* TODO:
-   - Store the messages in a data structure.
-   - Emit the message only on its first occurrence.
-   - Complete Value_messages with the other warning and precision loss message.
-   - Use new_alarm and new_status to replace the alarm emission mechanism.
-   - Actually give callstack and state
-   - remove CilE
-
- *)
-
-
+  
 (*
 Local Variables:
 compile-command: "make -C ../../../.."

@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -absolute-valid-range 32-36
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -absolute-valid-range 32-36
 */
 
 char t[5];

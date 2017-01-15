@@ -4,12 +4,6 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ko_bug_why3_n5_ko : Unknown
-[wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ko_bug_why3_n6_ko : Unknown
-[wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (unknown: 2)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-no_calls            -      -           2       0.0%
+[wp] 0 goal scheduled
+[wp] Proved goals:    0 / 0
 ----------------------------------------------------------

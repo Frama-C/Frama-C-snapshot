@@ -290,15 +290,15 @@ void sumOne_post_func(int res)
  */
 int sumOne(char *t, int length)
 {
-  int aorai_Loop_Init_42;
+  int aorai_Loop_Init_43;
   int sum;
   int i;
   sumOne_pre_func(t,length);
   sum = 0;
   i = 0;
   i = 0;
-  /*@ ghost aorai_Loop_Init_42 = 1; */
-  aorai_loop_42:
+  /*@ ghost aorai_Loop_Init_43 = 1; */
+  aorai_loop_43:
     /*@ loop invariant ranges: 0 ≤ i ≤ length;
         loop invariant sumValue0: i ≡ 0 ⇒ sum ≡ 0;
         loop invariant
@@ -310,7 +310,7 @@ int sumOne(char *t, int length)
     */
     while (1) {
       if (! (i < length)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_42 = 0; */
+      /*@ ghost aorai_Loop_Init_43 = 0; */
       sum += (int)*(t + i);
       i ++;
     }

@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input -absolute-valid-range 0-0x3 -journal-disable
+   STDOPT: #"-absolute-valid-range 0-0x3"
 */
 
 int * f() {

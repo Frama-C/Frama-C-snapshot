@@ -28,19 +28,19 @@
 #include "__fc_define_fd_set_t.h"
 #include "__fc_define_sigset_t.h"
 
-#include "time.h"
+#include "sys/time.h"
 
 __BEGIN_DECLS
 
 /* assigns \result \from nfds, *readfds, *writefds,*errorfds,*timeout,*sigmask;
  */
-int pselect(int nfds, fd_set * readfds,
+extern int pselect(int nfds, fd_set * readfds,
        fd_set * writefds, fd_set * errorfds,
        const struct timespec * timeout,
        const sigset_t * sigmask);
 
 /* assigns \result \from nfds, *readfds, *writefds,*errorfds,*timeout ;*/
-int select(int nfds, fd_set * readfds,
+extern int select(int nfds, fd_set * readfds,
        fd_set * writefds, fd_set * errorfds,
        struct timeval * timeout);
 

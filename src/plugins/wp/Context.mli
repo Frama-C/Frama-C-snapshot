@@ -58,6 +58,8 @@ val pop : 'a value -> 'a option -> unit
 
 val name : 'a value -> string
 
-val once : (unit -> unit) -> unit -> unit
-(** A global configure, executed once. *)
+val register : (unit -> unit) -> unit
+(** Register a global configure, to be executed once per project/ast. *)
 
+val configure : unit -> unit
+(** Apply global configure hooks, once per project/ast. *)

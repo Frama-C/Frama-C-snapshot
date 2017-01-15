@@ -1,6 +1,6 @@
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-depth 16
-   OPT: -wp -wp-proof why3:alt-ergo -wp-depth 16
+   OPT: -wp-prover alt-ergo -wp-depth 16
+   OPT: -wp-prover why3:alt-ergo -wp-depth 16
 */
 
 /*@ 

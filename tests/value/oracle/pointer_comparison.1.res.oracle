@@ -8,15 +8,30 @@
   y ∈ {0}
   p ∈ {0}
 [value] Called Frama_C_show_each_1t({{ &x + {4} }})
+tests/value/pointer_comparison.c:10:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+tests/value/pointer_comparison.c:10:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Called Frama_C_show_each_2({{ &x + {8} }})
 [value] Called Frama_C_show_each_2e({{ &x + {8} }})
+tests/value/pointer_comparison.c:12:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+tests/value/pointer_comparison.c:12:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Called Frama_C_show_each_3({{ &x + {12} }})
 [value] Called Frama_C_show_each_3e({{ &x + {12} }})
+tests/value/pointer_comparison.c:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+tests/value/pointer_comparison.c:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Called Frama_C_show_each_4({{ &x + {16} }})
 [value] Called Frama_C_show_each_4e({{ &x + {16} }})
+tests/value/pointer_comparison.c:16:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+tests/value/pointer_comparison.c:16:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Called Frama_C_show_each_5({{ &x + {16} }})
 [value] Called Frama_C_show_each_5e({{ &x + {16} }})
 tests/value/pointer_comparison.c:18:[value] entering loop for the first time
+tests/value/pointer_comparison.c:18:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
+tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
+tests/value/pointer_comparison.c:18:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Called Frama_C_show_each_6({{ &x + {20} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24} }})
 [value] Called Frama_C_show_each_6({{ &x + {20; 24; 28} }})

@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm"
+   STDOPT: +"-load-module pdg -pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm"
 */
 
 int ** top_input() ;

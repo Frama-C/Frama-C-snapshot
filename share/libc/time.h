@@ -69,13 +69,13 @@ struct itimerspec {
 //@ ghost volatile unsigned int __fc_time __attribute__((FRAMA_C_MODEL));
 
 /*@ assigns \result \from __fc_time; */
-clock_t clock(void);
+extern clock_t clock(void);
 
 /*@ assigns \result \from time1, time0; */
-double difftime(time_t time1, time_t time0);
+extern double difftime(time_t time1, time_t time0);
 
 /*@ assigns *timeptr, \result \from *timeptr; */
-time_t mktime(struct tm *timeptr);
+extern time_t mktime(struct tm *timeptr);
 
 /*@
   assigns *timer, \result \from __fc_time;
@@ -90,11 +90,11 @@ time_t mktime(struct tm *timeptr);
   complete behaviors;
   disjoint behaviors;
 */
-time_t time(time_t *timer);
+extern time_t time(time_t *timer);
 
-char *asctime(const struct tm *timeptr);
+extern char *asctime(const struct tm *timeptr);
 
-char *ctime(const time_t *timer);
+extern char *ctime(const time_t *timer);
 
 struct tm __fc_time_tm;
 struct tm * const  __p_fc_time_tm = &__fc_time_tm;
@@ -103,27 +103,27 @@ struct tm * const  __p_fc_time_tm = &__fc_time_tm;
   assigns __fc_time_tm \from *timer;
   ensures \result == &__fc_time_tm || \result == \null ;
 */
-struct tm *gmtime(const time_t *timer);
+extern struct tm *gmtime(const time_t *timer);
 
 /*@ assigns \result \from __p_fc_time_tm;
   assigns __fc_time_tm \from *timer;
   ensures \result == &__fc_time_tm || \result == \null;
 */
-struct tm *localtime(const time_t *timer);
+extern struct tm *localtime(const time_t *timer);
 
-size_t strftime(char * restrict s,
+extern size_t strftime(char * restrict s,
 		size_t maxsize,
 		const char * restrict format,
 		const struct tm * restrict timeptr);
 
 /* POSIX */
-int nanosleep(const struct timespec *, struct timespec *);
+extern int nanosleep(const struct timespec *, struct timespec *);
 
 extern int daylight;
 extern long timezone;
 extern char *tzname[2];
 /* assigns tzname[0..1][0..] \from \nothing ;*/
-void tzset(void); 
+extern void tzset(void);
 
 __END_DECLS
 

@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -wp -wp-model Typed -wp-gen -wp-print
+   OPT: -wp-gen -wp-print
 */
 /* run.config_qualif
-   OPT: -wp -wp-model Typed -wp-proof alt-ergo -wp-par 1 -wp-qed-checks="e_imply"
+   OPT: -wp-qed-checks="e_imply"
 */
 
 //@ axiomatic P { predicate P(integer x); }

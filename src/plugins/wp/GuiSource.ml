@@ -216,7 +216,8 @@ class highlighter (main:Design.main_window_extension_points) =
                     path <- instructions a.VC_Annot.path ;
                     deps <- a.VC_Annot.deps ;
               end ;
-              if not (WpPropId.is_check pid) then
+              if not (WpPropId.is_check pid || WpPropId.is_tactic pid)
+              then
                 ( let ip = WpPropId.property_of_id pid in
                   goal <- Some ip ) ;
               Wutil.later self#scroll ;

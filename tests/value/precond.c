@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -lib-entry -val @VALUECONFIG@ -then -report -report-print-properties -then -report-no-specialized
+   OPT: -no-autoload-plugins -load-module from,inout,value,report -lib-entry -val @VALUECONFIG@ -then -report -report-print-properties -then -report-no-specialized
 */
 
 
