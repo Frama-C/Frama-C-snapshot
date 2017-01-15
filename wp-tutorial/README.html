@@ -1,0 +1,167 @@
+<h1 id="wp-tutorial">Wp Tutorial</h1>
+<h2 id="presentation">Presentation</h2>
+<h2 id="task-1">Task 1</h2>
+<p><strong>Objective:</strong> understand how to use WP &amp; the TIP.</p>
+<p>Enter directory <code>wp-tutorial</code>.<br />
+A shell script <code>./fc.sh</code> is provided to run <code>frama-c</code> with useful<br />
+options for the tutorial. Use <code>frama-c -wp-h</code> for more details.</p>
+<p>Open file <code>reverse.c</code>. This is an implementation of reversing all bits<br />
+of a single byte, here represented as an int. The function uses a pre-computed<br />
+table which is stored in module <code>endian.c</code>. The <code>ACSL</code> contract specifies<br />
+the expected result in terms of macro <code>BIT(x,k)</code><br />
+which tests the <code>k</code>-th bit of <code>x</code>, for <code>k</code> in <code>1..8</code>.</p>
+<pre><code>$ ./fc.sh endian.c reverse.c</code></pre>
+<p>Alt-Ergo fails to prove the <code>InRange</code> behavior of the function. This is because<br />
+it has no way to compute bitwise operations. However <code>Qed</code> is able to compute<br />
+and simplify them.</p>
+<pre><code>$ ./fc.sh endian.c reverse.c -g</code></pre>
+<p>This opens the GUI. Select <code>Wp Goals</code>, you see all the<br />
+results (use the popup menu to filter goals, e.g. select &quot;All Results&quot; to ensure<br />
+that all goals are always displayed).</p>
+<p>Double-click the non-proved goal. Select the value <code>m@pre</code> of the input parameter<br />
+of the function. The <code>Tactics</code> pane shows a list of applicable tactics.<br />
+Apply the <code>Range (0-255)</code> tactic to brute-force prove the property.<br />
+Click on the tactical buttons to open a small pane and enter the parameters.</p>
+<p>Finally, don't forget to <strong>Save</strong> your proof using the <code>Save</code> button on the toolbar.</p>
+<p>There is actually an error in the table, for <code>m = 145</code>.<br />
+File <code>endian-fix.c</code> contains the fixed table.<br />
+You shall update your script using (using either command-line or GUI):</p>
+<pre><code>$ ./fc.sh endian-fix.c reverse.c [-g]</code></pre>
+<p><strong>Remark:</strong> By default, the <code>./fc.sh</code> script always update your session scripts according to<br />
+the last execution results. Use <code>-s</code> to re-run your scripts without updating them:</p>
+<pre><code>$ ./fc.sh endian-fix.c reverse.c -s</code></pre>
+<h2 id="task-2-optional">Task 2 (optional)</h2>
+<p>Apply the same method to function <code>reverse2.c</code>. The specification<br />
+is written differently, and you need to range over the bit-number. This leads<br />
+to 8 sub-goals, all of which requiring a brute-force <code>Range (0-255)</code> range<br />
+tactic to be applied.</p>
+<p>However, instead of manually select the range tactic, you can use the <code>Strategies</code><br />
+tactic and try an <code>auto-range</code>. You get each of the 8 sub-proofs in one-click,<br />
+and the overall proof of the function in 9 clicks. Although it is acceptable,<br />
+we clearly need a more powerfull way to interact with the prover.</p>
+<h2 id="task-3">Task 3</h2>
+<p><strong>Objective:</strong> learn how to extend the TIP with user-defined tactics.</p>
+<p>Presentation:</p>
+<pre><code>$ make wp-doc-api
+$ open src/plugins/wp/doc/html/index.html</code></pre>
+<p>A tactical uses a mixture of several components:</p>
+<ul>
+<li>user's <em>selection</em>, which can be a clause (goal or hypothesis) or a term inside of a clause</li>
+<li>tactical parameters (spinners, checkbox, menu items, ...)</li>
+</ul>
+<p>Boilerplate code to write a custom tactic is shown in <code>wp-tutorial/TacDummy.ml</code><br />
+file. The tutorial source file contains a predefined <code>.merlin</code> configuration.<br />
+A custom tactic can be dynamically imported in frama-c using:</p>
+<pre><code>$ ./fc.sh -load-script TacDummy.ml ...</code></pre>
+<p>The main method of a tactical class has the following signature:</p>
+<pre><code>$ method select : feedback -&gt; selection -&gt; status</code></pre>
+<p>The feedback parameter is used to refine the tactical description with respect<br />
+to user's selection and parameters, or inform the user's or selection errors.</p>
+<p>The returned status can be either <code>Not_applicable</code> when the tactical does not<br />
+apply to user's selection, <code>Not_configured</code> if the parameters are not consistent<br />
+(e.g. range <code>10..5</code> instead of <code>5..10</code>), of <code>Applicable p</code> where <code>p</code> is a<br />
+<em>process</em>, aka, a proof transformer.</p>
+<p>Proof transformers take one sequent and produce sub-sequents.<br />
+Typically, the module <code>Wp.Auto</code> provides the following basic process combinator:</p>
+<pre><code>val t_case : pred -&gt; process -&gt; process -&gt; process</code></pre>
+<p>Given two process (proof trees) <code>A</code>, <code>B</code> and a predicate <code>p</code>,<br />
+function <code>t_cut</code> simply builds the following proof tree:</p>
+<pre><code>  A              B
+--------     ---------
+H p |- G     H !p |- G
+----------------------  t_case p A B
+       H |- G</code></pre>
+<p>Another combinator is <code>t_finally : string -&gt; process</code> which returns an identity<br />
+proof tree, with just an informative label, to be proved later on by another<br />
+tactic or an automated prover.</p>
+<p>For example, using such a combinator, it is easy to build a tactic performing<br />
+case analysis (like the Split built-in tactic):</p>
+<pre><code>(* See TacSplit.ml for all details *)
+
+class dummy_split =
+object
+   ...
+   method select feedback selection =
+     let e = Tactical.selected selection in
+       if F.is_prop e then
+       let p = F.p_bool e in
+       Applicable(t_case p
+                   (t_finally &quot;Positive&quot;)
+                   (t_finally &quot;Negative&quot;))
+     else
+       Not_applicable
+   ...
+ end</code></pre>
+<p>The tactical method reads as follows: first, compute the selected expression <code>e</code> from<br />
+user's selection. When user's selection is a boolean property, apply the <code>t_case p</code><br />
+transformer on current goal. The two remaining branches of the proof tree are left to the user<br />
+using with informative labels instead of <code>A</code> and <code>B</code> above, using <code>t_finally</code>.</p>
+<p>The complete solution is in <code>TacSplit.ml</code>. You can play with this tactic with:</p>
+<pre><code>$ ./f.sh -load-script TacSplit.ml decoder.c -g</code></pre>
+<h2 id="task-4">Task 4</h2>
+<p><strong>Objective:</strong> build and play more complex tactics.</p>
+<p>We consider now file <code>decoder.c</code>. It shows a C function apply various operations<br />
+on two integers <code>a</code> and <code>b</code> depending on a op-code <code>m</code>. Its specification is as follows:</p>
+<ul>
+<li>if bit-0 of <code>m</code> is set, <code>a</code> is transformed into <code>-a</code>,</li>
+<li>if bit-1 of <code>m</code> is set, <code>b</code> is transformed into <code>-b</code>,</li>
+<li>finally, transformed <code>a</code> and <code>b</code> are added and the sum is returned.</li>
+</ul>
+<p>The implementation proceed on a different way, and the goal is to prove that the function<br />
+is correct with respect to its specification. The basic strategy of WP decompose the proof<br />
+into 5 sub-goals (see the <code>Wp Goals</code> window):</p>
+<ul>
+<li>one for each <code>m &amp; 3 = 0</code>, <code>1</code>, <code>2</code> and <code>3</code></li>
+<li>one for exluding any other value of <code>m &amp; 3</code></li>
+</ul>
+<p>The basic idea is to perform a brute-force analysis over <code>m &amp; 3</code> over range<br />
+<code>0..3</code>. However, <code>Qed</code> is not able to further simplify hypothesis like<br />
+<code>m &amp; 3 = 2</code> in terms of <code>bit-test(m,1)</code> and <code>but-test(m,0)</code>.</p>
+<p>Moreover, <code>Qed</code> is not able to prove that <code>0 &lt;= m &amp; 3 &lt;= 3</code>.<br />
+This where tactical comes to rescue.</p>
+<p>We start by writing in <code>TacBits1.ml</code> a tactical <code>BitRange</code> to add such an hypothesis when the<br />
+user selects an expression with a logical-and (<code>&amp;</code>) with positive constants.<br />
+This is sufficient to prove automatically the last goal excluding any other<br />
+value from <code>0..3</code>.</p>
+<p>To cope with expression like <code>m &amp; 3 = 2</code>, the solution is to decompose any<br />
+equality <code>a = b</code> over the bitwise equality of bits of <code>a</code> and <code>b</code>. Since<br />
+integers can have an arbitrary number of bits, we can here restrict ourselves to<br />
+<code>8</code> bits, since <code>a</code> and <code>b</code> are small enough. However, to remain sound, the tactical<br />
+still checks for <code>a</code> and <code>b</code> to have 8 significative bits:</p>
+<pre><code>0 &lt;= a,b &lt; 255          a &amp; (1 lsl k) == b &amp; (1 lsl k)   for k = 0..7
+---------------------------------------------------------------------
+                a == b</code></pre>
+<p>This is implemented in file <code>TacBits2.ml</code>.</p>
+<h1 id="task-5">Task 5</h1>
+<p><strong>Objective:</strong> add parameters to tactics.</p>
+<p>The previous tactic only applys to 8-bits values. It is possible to add a<br />
+parameter to extend the tactic to N-bits values for any N. The original 8-bits<br />
+tactical has the following code:</p>
+<pre><code>method select feedback selection =
+  let e = T.selected selection in
+  match R.term e with
+  | R.Eq(a,b) when F.is_int a &amp;&amp; F.is_int b -&gt;
+      let inrange = F.p_and (range a 8) (range b 8) in
+      let bitwise = bitwise_eq a b 8 in
+      T.Applicable
+        (A.t_cut ~by:&quot;range&quot; inrange
+           (T.rewrite [ &quot;bitwise&quot; , F.p_true , e , bitwise ]))
+  | _ -&gt; T.Not_applicable</code></pre>
+<p>To add a spinner-selected parameter, we first need to declare it:</p>
+<pre><code>let vrange,prange = T.spinner ~id:&quot;POPL.TacBit.range&quot;
+   ~vmin:0 ~vmax:64 ~default:8
+   ~title:&quot;Bits&quot; ~descr:&quot;Number of bits for bitwise equality&quot; ()</code></pre>
+<p>Finally, we add the <code>prange</code> parameter to the tactical class, and use the associated<br />
+<code>vrange</code> field value instead of the fixed <code>8</code> value:</p>
+<pre><code>method select feedback selection =
+  let e = T.selected selection in
+  match R.term e with
+  | R.Eq(a,b) when F.is_int a &amp;&amp; F.is_int b -&gt;
+      let n = self#get_field vfield in
+      let inrange = F.p_and (range a n) (range b n) in
+      let bitwise = bitwise_eq a b n in
+      T.Applicable
+        (A.t_cut ~by:&quot;range&quot; inrange
+           (T.rewrite [ &quot;bitwise&quot; , F.p_true , e , bitwise ]))
+  | _ -&gt; T.Not_applicable</code></pre>
+<h1 id="thanks">Thanks !</h1>
