@@ -47,12 +47,18 @@ module LatticeInout = struct
       let reprs = [ {
           over_outputs = List.hd Zone.reprs;
           over_inputs = List.hd Zone.reprs;
+(* UNCOMMENT
+          under_outputs = List.hd Zone.reprs;
+          operational_inputs = List.hd Zone.reprs; *)
         } ]
 
       let structural_descr =
         Structural_descr.t_record [|
           Zone.packed_descr;
           Zone.packed_descr;
+(* UNCOMMENT
+          Zone.packed_descr;
+          Zone.packed_descr; *)
         |]
 
       let compare m1 m2 =
@@ -60,20 +66,24 @@ module LatticeInout = struct
         if c <> 0 then c
         else
           let c = Zone.compare m1.over_inputs m2.over_inputs in
-          c
+(* UNCOMMENT
+         if c <> 0 then c
+          else
+            let c = Zone.compare m1.under_outputs m2.under_outputs in
+            if c <> 0 then c
+            else
+              let c = Zone.compare m1.operational_inputs m2.operational_inputs in *)
+              c
 
       let equal = Datatype.from_compare
 
-      let pretty fmt c =
-        Format.fprintf fmt
-          "@[<v 2>Over outputs:@ @[<hov>%a@]@]@.\
-           @[<v 2>Over inputs:@ @[<hov>%a@]@]"
-          Zone.pretty c.over_outputs
-          Zone.pretty c.over_inputs
-
       let hash m =
         Hashtbl.hash (Zone.hash m.over_outputs,
-                      Zone.hash m.over_inputs)
+                      Zone.hash m.over_inputs
+(* UNCOMMENT
+                      Zone.hash m.under_outputs,
+                      Zone.hash m.operational_inputs *)
+                     )
 
       let copy c = c
 
