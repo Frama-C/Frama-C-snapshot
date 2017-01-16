@@ -77,6 +77,13 @@ module LatticeInout = struct
 
       let equal = Datatype.from_compare
 
+      let pretty fmt c =
+        Format.fprintf fmt
+          "@[<v 2>Over outputs:@ @[<hov>%a@]@]@.\
+           @[<v 2>Over inputs:@ @[<hov>%a@]@]"
+          Zone.pretty c.over_outputs
+          Zone.pretty c.over_inputs
+
       let hash m =
         Hashtbl.hash (Zone.hash m.over_outputs,
                       Zone.hash m.over_inputs
