@@ -14,6 +14,12 @@ do
             ;;
         "-g"|"--gui"|"-gui")
             CMD="../bin/frama-c-gui -gui-no-undo" ;;
+        "-inout")
+            OPT="${OPT} -eva-inout-domain -value-msg-key d-inout"
+            ;;
+        "-signs")
+            OPT="${OPT} -eva-signs-domain -value-msg-key d-sign"
+            ;;
         *)
             OPT="${OPT} $1"
             ;;
@@ -23,7 +29,6 @@ done
 
 ${CMD} \
     -val \
-    -eva-inout-domain \
-    -value-msg-key d-inout,d-sign,-final-states \
+    -value-msg-key=-final-states \
     -journal-disable \
     ${OPT} ${PRV}
