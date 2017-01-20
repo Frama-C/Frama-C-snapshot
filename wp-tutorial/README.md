@@ -1,7 +1,5 @@
 # Wp Tutorial
 
-## Presentation
-
 ## Task 1
 
 **Objective:** understand how to use WP & the TIP.
@@ -110,6 +108,7 @@ tactic or an automated prover.
 For example, using such a combinator, it is easy to build a tactic performing
 case analysis (like the Split built-in tactic):
 
+    ```
     (* See TacSplit.ml for all details *)
 
     class dummy_split =
@@ -126,6 +125,7 @@ case analysis (like the Split built-in tactic):
            Not_applicable
        ...
      end
+    ```
 
 The tactical method reads as follows: first, compute the selected expression `e` from
 user's selection. When user's selection is a boolean property, apply the `t_case p`
@@ -170,8 +170,8 @@ integers can have an arbitrary number of bits, we can here restrict ourselves to
 `8` bits, since `a` and `b` are small enough. However, to remain sound, the tactical
 still checks for `a` and `b` to have 8 significative bits:
 
-    0 <= a,b < 255          a & (1 lsl k) == b & (1 lsl k)   for k = 0..7
-    ---------------------------------------------------------------------
+    0 <= a,b <= 255          a & (1 << k) == b & (1 << k)   for k = 0..7
+    -------------------------------------------------------------------
                     a == b
 
 This is implemented in file `TacBits2.ml`.
@@ -184,6 +184,7 @@ The previous tactic only applys to 8-bits values. It is possible to add a
 parameter to extend the tactic to N-bits values for any N. The original 8-bits
 tactical has the following code:
 
+    ```
     method select feedback selection =
       let e = T.selected selection in
       match R.term e with
@@ -194,6 +195,7 @@ tactical has the following code:
             (A.t_cut ~by:"range" inrange
                (T.rewrite [ "bitwise" , F.p_true , e , bitwise ]))
       | _ -> T.Not_applicable
+    ```
 
 To add a spinner-selected parameter, we first need to declare it:
 
@@ -204,6 +206,7 @@ To add a spinner-selected parameter, we first need to declare it:
 Finally, we add the `prange` parameter to the tactical class, and use the associated
 `vrange` field value instead of the fixed `8` value:
 
+    ```
     method select feedback selection =
       let e = T.selected selection in
       match R.term e with
@@ -215,7 +218,6 @@ Finally, we add the `prange` parameter to the tactical class, and use the associ
             (A.t_cut ~by:"range" inrange
                (T.rewrite [ "bitwise" , F.p_true , e , bitwise ]))
       | _ -> T.Not_applicable
+    ```
 
 # Thanks !
-
-

@@ -22,13 +22,10 @@ class bitrange =
       let e = T.selected selection in
       match R.term e with
       | R.Call( f , es ) when R.lfun f = "land" ->
-          let max_pos w k = if 0 <= k then max w k else w in
-          let m = List.fold_left (on_int max_pos) (-1) es in
+          let land_pos w k = if 0 <= k then w land k else w in
+          let m = List.fold_left (on_int land_pos) (-1) es in
           if m < 0 then raise Not_found ;
           T.Applicable(T.insert ["range",pos_range e m])
-      | R.Call( f , _ ) ->
-          Format.eprintf "CALL %S@." (R.lfun f) ;
-          T.Not_applicable
       | _ -> T.Not_applicable
   end
 
