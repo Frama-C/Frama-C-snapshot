@@ -1,5 +1,12 @@
 ![Frama-C](share/frama-c.png?raw=true)
 
+This is a special version of Frama-C, prepared for a [tutorial](http://popl17.sigplan.org/event/popl-2017-tutorials-frama-c) given during POPL 2017.
+The usual README for Frama-C can be found below. For the tutorial itself,
+instructions can be found [here](value-tutorial) for the EVA part, and
+[here](wp-tutorial) for the WP part. Enjoy!
+
+## README
+
 [Frama-C](http://frama-c.com) is a platform dedicated to the analysis of
 source code written in C.
 
