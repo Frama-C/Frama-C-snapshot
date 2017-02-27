@@ -585,8 +585,23 @@ module type Weak_hashtbl = sig
   val remove: data -> unit
 end
 
+module type Sub_caml_weak_hashtbl =
+sig
+  include Datatype.Sub_caml_weak_hashtbl
+  val clear: t -> unit
+  val merge: t -> data -> data
+  val add: t -> data -> unit
+  val count: t -> int
+  val iter: (data->unit) -> t -> unit
+  val fold: (data->'a->'a) -> t -> 'a -> 'a
+  val find: t -> data -> data
+  val find_all: t -> data -> data list
+  val mem: t -> data -> bool
+  val remove: t -> data -> unit
+end
+
 module Weak_hashtbl
-  (W: Weak.S)
+  (W: Sub_caml_weak_hashtbl)
   (Data: Datatype.S with type t = W.data)
   (Info: Info_with_size) =
 struct

@@ -83,7 +83,7 @@ end
 module StartData(X: sig type t val size: int end) = struct
   type data = X.t
   open Cil_datatype.Stmt.Hashtbl
-  let stmtStartData = create X.size
+  let stmtStartData: data Cil_datatype.Stmt.Hashtbl.t = create X.size
   let clear () = clear stmtStartData
   let mem = mem stmtStartData
   let find = find stmtStartData
