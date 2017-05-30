@@ -14,14 +14,10 @@ struct volatile_struct vs;
 int main(void)
 {
   int __retres;
-  int tmp;
-  int tmp_3;
-  int tmp_5;
-  int tmp_7;
-  tmp = x;
-  tmp_3 = y;
-  tmp_5 = vs.a;
-  tmp_7 = vs.b;
+  int tmp = x;
+  int tmp_3 = y;
+  int tmp_5 = vs.a;
+  int tmp_7 = vs.b;
   __retres = 0;
   return __retres;
 }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,8 @@
 open Cil_types
 
 type param = NotUsed | ByValue | ByRef | InContext | InArray | InHeap
+
+val pp_param : Format.formatter -> param -> unit
 
 module type VarUsage =
 sig

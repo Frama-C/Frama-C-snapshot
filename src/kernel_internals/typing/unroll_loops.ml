@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -321,7 +321,8 @@ let copy_block kf break_continue_must_change bl =
       in new_labels, new_tbl
     in
     let new_calls_tbl = match stmt.skind with
-      | Instr(Call _) -> Cil_datatype.Stmt.Map.add stmt result calls_tbl
+      | Instr(Call _ | Local_init(_,ConsInit _,_)) ->
+        Cil_datatype.Stmt.Map.add stmt result calls_tbl
       | _ -> calls_tbl
     in
     let new_stmkind,new_labelled_stmt_tbl, new_calls_tbl =

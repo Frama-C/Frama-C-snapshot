@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/simple_intra_slice.cmxs
    CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/simple_intra_slice.cmxs
-   OPT: -deps -no-slice-callers -journal-disable 
+   OPT: -val-show-progress -deps -no-slice-callers -journal-disable 
 */
 int Unknown;
 int G;

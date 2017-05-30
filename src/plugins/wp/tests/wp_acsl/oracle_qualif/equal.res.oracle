@@ -6,20 +6,20 @@
 [wp] warning: Missing RTE guards
 [wp] 6 goals scheduled
 [wp] [Alt-Ergo] Goal typed_simple_array_post : Valid
-[wp] [Alt-Ergo] Goal typed_simple_struct_post : Valid
+[wp] [Qed] Goal typed_simple_struct_post : Valid
 [wp] [Alt-Ergo] Goal typed_with_array_struct_post : Valid
 [wp] [Alt-Ergo] Goal typed_with_ptr_and_array_struct_post : Valid
 [wp] [Alt-Ergo] Goal typed_with_ptr_array_post : Valid
 [wp] [Alt-Ergo] Goal typed_with_ptr_struct_post : Valid
 [wp] Proved goals:    6 / 6
-     Qed:             0 
-     Alt-Ergo:        6
+     Qed:             1 
+     Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-simple_struct       -       1 (6)      1       100%
-simple_array        -       1 (11)     1       100%
-with_array_struct   -       1 (12)     1       100%
-with_ptr_struct     -       1 (6)      1       100%
-with_ptr_array      -       1 (8)      1       100%
-with_ptr_and_array_struct  -     1 (28)   1    100%
+simple_struct        1     -           1       100%
+simple_array        -       1 (15)     1       100%
+with_array_struct   -       1 (13)     1       100%
+with_ptr_struct     -       1 (7)      1       100%
+with_ptr_array      -       1 (9)      1       100%
+with_ptr_and_array_struct  -     1 (29)   1    100%
 ----------------------------------------------------------

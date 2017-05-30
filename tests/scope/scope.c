@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -val -main f -journal-disable
-   OPT: -val -main f2 -journal-disable
-   OPT: -val -main loop -journal-disable
+   OPT: -val -val-show-progress -main f -journal-disable
+   OPT: -val -val-show-progress -main f2 -journal-disable
+   OPT: -val -val-show-progress -main loop -journal-disable
 */
 /*
  * bin/viewer.byte -main f tests/scope/scope.c -val

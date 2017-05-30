@@ -11,6 +11,6 @@
      Alt-Ergo:        2
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic With_consistent_antecedent  -     1 (3)   1  100%
-Axiomatic With_inconsistent_antecedent  -     1 (3)   1  100%
+Axiomatic With_consistent_antecedent  -     1 (4)   1  100%
+Axiomatic With_inconsistent_antecedent  -     1 (4)   1  100%
 ----------------------------------------------------------

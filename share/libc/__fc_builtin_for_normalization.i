@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,7 +31,7 @@
     assigns dest[0..n-1] \from \nothing;
     ensures \forall integer i; 0<= i < n ==> dest[i] == 0;
  */
-void Frama_C_bzero(unsigned char* dest, unsigned long n)
+extern void Frama_C_bzero(unsigned char* dest, unsigned long n)
       __attribute__((FC_BUILTIN)) ;
 
 /*@ requires \valid(dest+(0..(size*n-1)));
@@ -40,6 +40,6 @@ void Frama_C_bzero(unsigned char* dest, unsigned long n)
     ensures \forall integer i,j; 0<=i<size && 1<=j<n ==>
         dest[i+j*size] == dest[i];
 */
-void Frama_C_copy_block(unsigned char* dest,
+extern void Frama_C_copy_block(unsigned char* dest,
                           unsigned long size, unsigned long n)
   __attribute__((FC_BUILTIN)) ;

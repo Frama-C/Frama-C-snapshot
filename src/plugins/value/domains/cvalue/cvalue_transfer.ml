@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,21 +38,6 @@ let unbottomize = function
 (*                       Functions on Offsetmap                           *)
 (* ---------------------------------------------------------------------- *)
 
-let make_right_value cvalue =
-  let open Cvalue.V_Or_Uninitialized in
-  let value = get_v cvalue in
-  let v = if Cvalue.V.is_bottom value then `Bottom else `Value value in
-  { v; initialized = is_initialized cvalue; escaping = not (is_noesc cvalue) }
-
-let offsetmap_to_value typ offsm =
-  let size = Integer.of_int (Cil.bitsSizeOf typ) in
-  let validity = Base.validity_from_size size in
-  let offsets = Ival.zero in
-  let _, value = Cvalue.V_Offsetmap.find ~validity ~offsets ~size offsm in
-  value
-
-let find_right_value typ offsm = make_right_value (offsetmap_to_value typ offsm)
-
 let offsetmap_of_v ~typ v =
   let size = Integer.of_int (Cil.bitsSizeOf typ) in
   let v = Cvalue.V.anisotropic_cast ~size v in
@@ -71,15 +56,6 @@ let offsetmap_contains_imprecision offs =
     None
   with Got_imprecise v -> Some v
 
-let offsetmap_from_location location state =
-  let aux loc offsm_res =
-    let size = Int_Base.project loc.Locations.size in
-    let _, copy = Cvalue.Model.copy_offsetmap loc.Locations.loc size state in
-    Bottom.join Cvalue.V_Offsetmap.join copy offsm_res
-  in
-  Precise_locs.fold aux location `Bottom
-
-
 module Transfer
     (Valuation: Abstract_domain.Valuation with type value = value
                                            and type origin = bool
@@ -87,7 +63,6 @@ module Transfer
 = struct
 
   type state = Cvalue.Model.t
-  type return = Cvalue.V_Offsetmap.t option
 
   (* ---------------------------------------------------------------------- *)
   (*                               Assumptions                              *)
@@ -161,7 +136,7 @@ module Transfer
       let value =
         Cvalue.V_Or_Uninitialized.make ~initialized ~escaping value in
       (* let value = Cvalue.V_Or_Uninitialized.initialized value in *)
-      snd (add_unsafe_binding ~exact state loc value)
+      add_indeterminate_binding ~exact state loc value
 
   exception Do_assign_imprecise_copy
 
@@ -173,7 +148,7 @@ module Transfer
     (* top size is tested before this function is called, in which case
        the imprecise copy mode is used. *)
     let size = Int_Base.project right_loc.Locations.size in
-    let offsetmap = snd (copy_offsetmap right_loc.Locations.loc size state) in
+    let offsetmap = copy_offsetmap right_loc.Locations.loc size state in
     let make_volatile =
       Cil.typeHasQualifier "volatile" left_typ ||
       Cil.typeHasQualifier "volatile" right_typ
@@ -189,7 +164,7 @@ module Transfer
             (Cvalue.V_Or_Uninitialized.map Cvalue_forward.make_volatile) offsm
         else offsm
       in
-      if not (Cvalue_forward.offsetmap_matches_type left_typ offsetmap) then
+      if not (Eval_typ.offsetmap_matches_type left_typ offsetmap) then
         raise Do_assign_imprecise_copy;
       let () =
         match offsetmap_contains_imprecision offsetmap with
@@ -197,8 +172,8 @@ module Transfer
         | _ -> ()
       in
       `Value
-        (snd (paste_offsetmap ~reducing:false ~exact:true
-                ~from:offsetmap ~dst_loc:left_loc.Locations.loc ~size state))
+        (paste_offsetmap ~exact:true
+           ~from:offsetmap ~dst_loc:left_loc.Locations.loc ~size state)
 
   let make_determinate value =
     { v = `Value value; initialized = true; escaping = false }
@@ -255,11 +230,6 @@ module Transfer
   (* ---------------------------------------------------------------------- *)
   (*                               Builtins                                 *)
   (* ---------------------------------------------------------------------- *)
-
-  let add_binding ~exact state loc value =
-    let value = Cvalue.V_Or_Uninitialized.initialized value in
-    let _alarm, state = add_binding_unspecified ~exact state loc value in
-    state
 
   let va_start valuation state args =
     match args with
@@ -360,7 +330,7 @@ module Transfer
         let open Locations in
         try
           let size = Int_Base.project loc.size in
-          let _, copy = Cvalue.Model.copy_offsetmap loc.loc size state in
+          let copy = Cvalue.Model.copy_offsetmap loc.loc size state in
           Bottom.join Cvalue.V_Offsetmap.join copy offsm_res
         with
           Int_Base.Error_Top ->
@@ -419,15 +389,14 @@ module Transfer
       Db.Value.merge_initial_state (Value_util.call_stack ()) with_formals;
       Db.Value.Call_Type_Value_Callbacks.apply
         (`Builtin res, with_formals, stack_with_call);
-      let process_one_return acc (offsm, post_state) =
+      let process_one_return acc (ret, post_state) =
         if is_reachable post_state then
-          let typ = Kernel_function.get_return_type call.kf in
-          let return = match offsm with
-            | None -> None
-            | Some offsm -> Some (find_right_value typ offsm, Some offsm)
-          in
-          let result = { post_state; return; } in
-          result :: acc
+          match ret, call.return with
+          | Some offsm_ret, Some vi_ret ->
+            let b_ret = Base.of_varinfo vi_ret in
+            let with_ret = Cvalue.Model.add_base b_ret offsm_ret post_state in
+            with_ret :: acc
+          | _, _ -> post_state :: acc
         else
           acc
       in
@@ -435,71 +404,7 @@ module Transfer
       Result (Bottom.bot_of_list list, res.Value_types.c_cacheable),
       res.Value_types.c_clobbered
 
-  (* Extract the content of \result from the state. *)
-  let make_return kf _stmt assign valuation state =
-    try
-      match assign with
-      | Assign v ->
-        let typ = Kernel_function.get_return_type kf in
-        let size = Integer.of_int (Cil.bitsSizeOf typ) in
-        let v = Cvalue.V.anisotropic_cast ~size v in
-        let offsm = Eval_op.offsetmap_of_v ~typ v  in
-        Some offsm
-      | Copy (lval, _copied) ->
-        match Valuation.find_loc valuation lval with
-        | `Top -> assert false
-        | `Value record ->
-          let oret = offsetmap_from_location record.loc state in
-          match oret with
-          | `Bottom     -> assert false;
-          | `Value oret -> Some oret
-    with Int_Base.Error_Top | Cil.SizeOfError _ ->
-      Value_parameters.abort ~current:true
-        "Function %a returns a value of unknown size. Aborting"
-        Kernel_function.pretty kf
-
-
-  (* This functions stores the result of call, represented by offsetmap
-     [return], into [lv]. It is not trivial because we must handle the
-     possibility of casts between the type of the result [rettyp] and the type
-     of [lv]. With option [-no-collapse-call-cast], we only need the first part
-     of the function. This function handles one possible location in [lv]. *)
-  let assign_return_to_lv_one_loc (lv, loc, lvtyp) return value state =
-    match value, return with
-    | Assign _, Some offsm ->
-      let v = Extlib.the (Cvalue.V_Offsetmap.single_interval_value offsm) in
-      let v = Cvalue.V_Or_Uninitialized.get_v v in
-      (* TODO: perform a conversion here would make sense when the type
-         changes between the callee and the caller *)
-      (* let v = Cvalue_forward.unsafe_reinterpret lvtyp v in *)
-      let v = make_determinate v in
-      write_abstract_value state (lv, loc, lvtyp) v
-    | Copy _, Some offsm ->
-      (* Direct paste *)
-      let size = Int_Base.project loc.Locations.size in
-      snd (paste_offsetmap ~reducing:false
-             ~from:offsm ~dst_loc:loc.Locations.loc ~size ~exact:true state)
-    | _ , None -> assert false
-
-  (* Same as function above, but for multiple locations. *)
-  let assign_return _stmt {lval; ltyp; lloc} _kf return value valuation state =
-    let state = update valuation state in
-    let aux loc acc_state =
-      let state =
-        assign_return_to_lv_one_loc (lval, loc, ltyp) return value state
-      in
-      join acc_state state
-    in
-    let state = Precise_locs.fold aux lloc bottom in
-    if is_reachable state
-    then `Value state
-    else `Bottom
-
   let finalize_call _stmt _call ~pre:_ ~post:state = `Value state
 
-  let default_call _stmt _call _t = assert false
-
-  let enter_loop _ state = state
-  let incr_loop_counter _ state = state
-  let leave_loop _ state = state
+  let approximate_call _stmt _call _t = assert false
 end

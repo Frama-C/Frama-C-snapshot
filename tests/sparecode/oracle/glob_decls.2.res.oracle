@@ -39,9 +39,8 @@ int *PX;
 int main(int x, Ts s)
 {
   int __retres;
-  int y;
   /*@ slice pragma expr S2; */ ;
-  y = 3;
+  int y = 3;
   y += Y;
   y += *PX;
   /*@ assert X > 0; */ ;

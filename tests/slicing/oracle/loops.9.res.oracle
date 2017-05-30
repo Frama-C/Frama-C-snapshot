@@ -41,7 +41,7 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function loop
 tests/slicing/loops.i:187:[pdg] warning: no final state. Probably unreachable...
@@ -64,9 +64,8 @@ int X;
 void loop_slice_1(void)
 {
   /*@ loop pragma WIDEN_HINTS X, 10, 100; */
-  while (1) {
+  while (1) 
     /*@ slice pragma ctrl; */ ;
-  }
   return;
 }
 

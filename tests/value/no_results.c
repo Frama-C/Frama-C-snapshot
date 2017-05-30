@@ -1,5 +1,5 @@
 /* run.config*
-  STDOPT: #"-no-results-function init -inout-callwise -calldeps -slevel 10000" +"-inout"
+  STDOPT: #"-no-results-function init -calldeps -slevel 10000" +"-inout"
 */
 
 #define N 3000

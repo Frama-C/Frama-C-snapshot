@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -fct-pdg main -journal-disable -pdg-print -pdg-verbose 2
+   OPT: -val-show-progress -fct-pdg main -journal-disable -pdg-print -pdg-verbose 2
 */
 
 extern int G;

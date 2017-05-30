@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -124,7 +124,7 @@ PLUGIN_NO_DEFAULT_TEST?= # Set it to a non-empty value if you don't want the
 PLUGIN_INTERNAL_TEST?= # Set it to a non-empty value if the tests of the plugin
                        # are in Frama-C's tests directory and not a tests
 	               # subdirectory of the plugin (internal use only,
-                       # obsolete and not recommanded way to handle tests)
+                       # obsolete and not recommended way to handle tests)
 
 # Distribution
 # ------------
@@ -297,7 +297,7 @@ endif
 @PLUGIN_NAME@_GUI_CMX:=$(PLUGIN_GUI_CMX)
 @PLUGIN_NAME@_GUI_CMI:=$(PLUGIN_GUI_CMI)
 
-# Inteface for the the packed pluins
+# Interface for the the packed plugins
 TARGET_MLI:= $(PLUGIN_LIB_DIR)/@PLUGIN_NAME@.mli
 TARGET_CMI:= $(TARGET_MLI:.mli=.cmi)
 
@@ -318,7 +318,7 @@ else
 TARGET_TOP_CMXA:=
 endif
 
-ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+ifeq ("$(PLUGIN_DYNAMIC)","yes")
 TARGET_TOP_CMXS:= $(TARGET_TOP_CMX:.cmx=.cmxs)
 else
 TARGET_TOP_CMXS:=
@@ -332,7 +332,7 @@ TARGET_GUI_CMI:= $(TARGET_GUI_CMO:.cmo=.cmi)
 TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
 TARGET_GUI_CMA:= $(TARGET_GUI_CMO:.cmo=.cma)
 TARGET_GUI_CMXA:= $(TARGET_GUI_CMX:.cmx=.cmxa)
-ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+ifeq ("$(PLUGIN_DYNAMIC)","yes")
 TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
 else
 TARGET_GUI_CMXS:=
@@ -467,7 +467,7 @@ META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmxa
 else
 META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmx
 endif
-ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+ifeq ("$(PLUGIN_DYNAMIC)","yes")
 META.$(PLUGIN_PKG).PLUGIN :=@PLUGIN_NAME@.cmxs
 endif
 
@@ -573,7 +573,7 @@ $(TARGET_TOP_CMX): $(PLUGIN_CMX) \
 	  $(@PLUGIN_NAME@_TARGET_OFLAGS) \
 	  $(@PLUGIN_NAME@_CMI_ONLY) $(@PLUGIN_NAME@_CMX)
 
-ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+ifeq ("$(PLUGIN_DYNAMIC)","yes")
 $(TARGET_TOP_CMXS): $(TARGET_TOP_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
 	$(OCAMLOPT) -o $(call winpath,$@) -shared \
@@ -631,7 +631,7 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_CMI) $(TARGET_GUI_CMI)
 	  $(@PLUGIN_NAME@_GUI_CMI_ONLY) \
 	  $(@PLUGIN_NAME@_GUI_CMX)
 
-ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+ifeq ("$(PLUGIN_DYNAMIC)","yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
@@ -752,25 +752,24 @@ endif
 		    $(PLUGIN_DOC_DIR)/@PLUGIN_NAME@.txt \
 		    $(PLUGIN_DOC_DIR)/modules.svg \
 		    $(DOC_PLUGIN)
-	$(PRINT_DOC) $(patsubst %_DOC,%,$@)
-	$(MKDIR) $($@_DIR)
-	$(RM) $($@_DIR)/*.html
+	$(PRINT_DOC) @PLUGIN_NAME@
+	$(MKDIR) $(@PLUGIN_NAME@_DOC_DIR)
+	$(RM) $(@PLUGIN_NAME@_DOC_DIR)/*.html
 # Only generate toc for kernel's documentation if we are in Frama-C's main
 # Makefile
 ifeq ($(FRAMAC_INTERNAL),yes)
-	$(ECHO) '<li><a href="$(subst $(DOC_DIR)/,,$($@_DIR))/index.html">$(subst _, ,$(patsubst %_DOC,%,$@))</a></li>' > $(DOC_DIR)/$(patsubst %_DOC,%,$@).toc
+	$(ECHO) '<li><a href="$(subst $(DOC_DIR)/,,$(@PLUGIN_NAME@_DOC_DIR))/index.html">$(subst _, ,@PLUGIN_NAME@)</a></li>' > $(DOC_DIR)/@PLUGIN_NAME@.toc
 endif
-	$(OCAMLDOC) $($@FLAGS) \
-	  -t "$(patsubst %_DOC,%,$@) plugin" \
-	  -intro $($@_DIR)/$(patsubst %_DOC,%,$@).txt \
+	$(OCAMLDOC) $(@PLUGIN_NAME@_DOCFLAGS) \
+	  -t "@PLUGIN_NAME@ plugin" \
 	  -css-style ../style.css \
-	  -d $($@_DIR) -g $(DOC_PLUGIN) -passopt -docpath $(DOC_DIR)/html \
+	  -d $(@PLUGIN_NAME@_DOC_DIR) -g $(DOC_PLUGIN) -passopt -docpath $(DOC_DIR)/html \
 	  $(addprefix -load ,$(wildcard $(DOC_DIR)/kernel-doc.ocamldoc)) \
-	  $(wildcard $($@_SRC))
+	  $(wildcard $(@PLUGIN_NAME@_DOC_SRC))
 # [rb+js] 20090619
 # pwd is required to avoid "bad directory" message on OpenBSD
 # don't know why
-	cd `pwd`/$($(patsubst %_DOC,%_DOC_DIR,$@)); \
+	cd `pwd`/$(@PLUGIN_NAME@_DOC_DIR); \
 	for f in $(foreach f,$(@PLUGIN_NAME@_TYPES_TODOC),\
 	                     $(basename $(notdir $f))); do \
 	  for g in \
@@ -980,7 +979,6 @@ PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
 endif #EXTRA_BYTE
 endif #HAS_GUI
 
-ifeq ($(USABLE_NATIVE_DYNLINK),yes)
 PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
 PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXS) $(TARGET_TOP_CMX)
       # If P1 depends on P2, then dynamically link P1.cmxs requires to have 
@@ -990,16 +988,7 @@ PLUGIN_DYN_CMX_LIST	+= $(TARGET_TOP_CMXA)
 endif #EXTRA_OPT
 ifeq ($(HAS_GUI),yes)
 PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
-endif
-else # No native dynlink: use a static version
-PLUGIN_CMX_LIST += $(TARGET_TOP_CMX)
-ifdef PLUGIN_EXTRA_OPT
-EXTRA_OPT_LIBS+= $(PLUGIN_EXTRA_OPT)
-endif
-ifeq ($(HAS_GUI),yes)
-PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
 endif # HAS_GUI
-endif # USABLE_NATIVE_DYNLINK
 
 else # Normal plugin
 PLUGIN_LIST += $(PLUGIN_DIR)/@PLUGIN_NAME@

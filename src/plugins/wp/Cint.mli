@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Lang
 open Lang.F
 
 val of_real : c_int -> unop
-val convert : c_int -> unop (** Indenpendent from model *)
+val convert : c_int -> unop (** Independent from model *)
 
 val to_cint : lfun -> c_int (** Raises [Not_found] if not. *)
 val is_cint : lfun -> c_int (** Raises [Not_found] if not. *)
@@ -74,6 +74,6 @@ val f_bit  : lfun
 
 val is_cint_simplifier: Conditions.simplifier
 (** Remove the [is_cint] in formulas that are
-    redondant with other conditions. *)
+    redundant with other conditions. *)
 
 val is_positive_or_null: term -> bool

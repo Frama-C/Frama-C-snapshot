@@ -4,7 +4,7 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 80 goals scheduled
+[wp] 78 goals scheduled
 [wp] [Qed] Goal typed_ref_array_in_struct_param_post_Pload2 : Valid
 [wp] [Qed] Goal typed_ref_array_in_struct_param_assign : Valid
 [wp] [Qed] Goal typed_ref_call_no_ref_bd_post_Mem_n5_nr6 : Valid
@@ -53,11 +53,9 @@
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_post : Valid
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part1 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part2 : Valid
-[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part3 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part1 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part2 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part3 : Valid
-[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part4 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_valid_post_R7_N4 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_valid_assign_exit_part1 : Valid
 [wp] [Qed] Goal typed_ref_call_ref_valid_assign_exit_part2 : Valid
@@ -85,8 +83,8 @@
 [wp] [Qed] Goal typed_ref_no_ref_bd_assign_part2 : Valid
 [wp] [Qed] Goal typed_ref_ref_bd_post : Valid
 [wp] [Qed] Goal typed_ref_ref_bd_assign : Valid
-[wp] Proved goals:   80 / 80
-     Qed:            80
+[wp] Proved goals:   78 / 78
+     Qed:            78
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 call_ref_ctr         4     -           4       100%
@@ -98,7 +96,7 @@ call_ref_valid      11     -          11       100%
 no_ref_bd            3     -           3       100%
 call_no_ref_bd       9     -           9       100%
 call_ref_ctr_nr     10     -          10       100%
-call_ref_ctr_nstars   8    -           8       100%
+call_ref_ctr_nstars   6    -           6       100%
 call_two_ref         7     -           7       100%
 g                    4     -           4       100%
 array_in_struct_param   2   -          2       100%

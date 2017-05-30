@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: @VALUECONFIG@ -val-warn-copy-indeterminate=-@all,main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
+   OPT: -no-autoload-plugins -load-module inout,scope,slicing,sparecode @VALUECONFIG@ -val-warn-copy-indeterminate=-@all,main3 -scope-msg-key rm_asserts -scope-verbose 2 -remove-redundant-alarms -print -slice-threat main1 -then-on 'Slicing export' -print
  **/
 
 volatile int v;
@@ -45,10 +45,23 @@ void main4(int i) {
   }
 }
 
+void main5() {
+  int *p;
+
+  {
+    int x;
+    p = &x;
+    *p = 1;
+    //@ assert *p == 1;
+  }
+
+  //@ assert *p == 1; // Should *not* be proven
+}
 
 void main() {
   if (v) main1(v);
   main2(v);
   main3(v, v);
   if (v) main4(v);
+  main5();
 }

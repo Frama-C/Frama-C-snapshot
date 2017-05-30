@@ -8,11 +8,9 @@ static int x;
 static int f(void)
 {
   int tmp;
-  { /* sequence */
-    tmp = x;
-    x ++;
-    ;
-  }
+  tmp = x;
+  x ++;
+  ;
   return tmp;
 }
 

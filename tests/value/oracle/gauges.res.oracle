@@ -9,7 +9,7 @@
   u[0..99] ∈ {0}
   T[0..99] ∈ [--..--]
 [value] computing for function main0 <- main.
-        Called from tests/value/gauges.i:299.
+        Called from tests/value/gauges.i:336.
 tests/value/gauges.i:14:[value] entering loop for the first time
 tests/value/gauges.i:16:[value] entering loop for the first time
 [value] Called Frama_C_show_each_0({{ "in" }})
@@ -33,7 +33,7 @@ tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 21474
 [value] Recording results for main0
 [value] Done for function main0
 [value] computing for function main0_bis <- main.
-        Called from tests/value/gauges.i:300.
+        Called from tests/value/gauges.i:337.
 tests/value/gauges.i:36:[value] entering loop for the first time
 tests/value/gauges.i:38:[value] entering loop for the first time
 [value] Called Frama_C_show_each_0({{ "in" }})
@@ -57,7 +57,7 @@ tests/value/gauges.i:46:[value] warning: signed overflow. assert l + 1 ≤ 21474
 [value] Recording results for main0_bis
 [value] Done for function main0_bis
 [value] computing for function main1 <- main.
-        Called from tests/value/gauges.i:301.
+        Called from tests/value/gauges.i:338.
 tests/value/gauges.i:55:[value] entering loop for the first time
 [value] Called Frama_C_show_each({{ "in" }})
 [value] Called Frama_C_show_each({{ "in" }})
@@ -70,7 +70,7 @@ tests/value/gauges.i:56:[value] warning: accessing out of bounds index. assert j
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/gauges.i:302.
+        Called from tests/value/gauges.i:339.
 tests/value/gauges.i:68:[value] entering loop for the first time
 [value] Called Frama_C_show_each()
 [value] Called Frama_C_show_each()
@@ -85,7 +85,7 @@ tests/value/gauges.i:69:[value] warning: out of bounds write. assert \valid(tmp)
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/gauges.i:303.
+        Called from tests/value/gauges.i:340.
 tests/value/gauges.i:76:[value] entering loop for the first time
 tests/value/gauges.i:77:[value] entering loop for the first time
 [value] Called Frama_C_show_each({{ "inner" }})
@@ -105,7 +105,7 @@ tests/value/gauges.i:82:[value] warning: signed overflow. assert k + 1 ≤ 21474
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/gauges.i:304.
+        Called from tests/value/gauges.i:341.
 [value] computing for function main4_search <- main4 <- main.
         Called from tests/value/gauges.i:105.
 tests/value/gauges.i:94:[value] entering loop for the first time
@@ -121,7 +121,7 @@ tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 21474
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/gauges.i:305.
+        Called from tests/value/gauges.i:342.
 tests/value/gauges.i:111:[value] entering loop for the first time
 [value] Called Frama_C_show_each({{ &x }})
 [value] Called Frama_C_show_each({{ &x + {0; 4} }})
@@ -137,7 +137,7 @@ tests/value/gauges.i:115:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main5_bis <- main.
-        Called from tests/value/gauges.i:306.
+        Called from tests/value/gauges.i:343.
 [value] Called Frama_C_show_each({{ &x }})
 [value] Called Frama_C_show_each({{ &x + {4} }})
 [value] Called Frama_C_show_each({{ &x + {8} }})
@@ -154,13 +154,13 @@ tests/value/gauges.i:128:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for main5_bis
 [value] Done for function main5_bis
 [value] computing for function main6 <- main.
-        Called from tests/value/gauges.i:307.
+        Called from tests/value/gauges.i:344.
 tests/value/gauges.i:136:[value] entering loop for the first time
 tests/value/gauges.i:138:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-        Called from tests/value/gauges.i:308.
+        Called from tests/value/gauges.i:345.
 [value] computing for function main7_aux <- main7 <- main.
         Called from tests/value/gauges.i:162.
 [value] Called Frama_C_show_each()
@@ -181,7 +181,7 @@ tests/value/gauges.i:154:[value] warning: signed overflow. assert -2147483648 �
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main8 <- main.
-        Called from tests/value/gauges.i:309.
+        Called from tests/value/gauges.i:346.
 [value] computing for function main8_aux <- main8 <- main.
         Called from tests/value/gauges.i:176.
 [value] Called Frama_C_show_each({0})
@@ -204,7 +204,7 @@ tests/value/gauges.i:171:[value] warning: out of bounds write. assert \valid(tmp
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main9 <- main.
-        Called from tests/value/gauges.i:310.
+        Called from tests/value/gauges.i:347.
 tests/value/gauges.i:184:[value] entering loop for the first time
 tests/value/gauges.i:186:[value] warning: signed overflow. assert -2147483648 ≤ (int)p + (int)q;
 tests/value/gauges.i:186:[value] warning: signed overflow. assert (int)p + (int)q ≤ 2147483647;
@@ -218,9 +218,7 @@ tests/value/gauges.i:191:[value] warning: out of bounds write. assert \valid(q);
 [value] Recording results for main9
 [value] Done for function main9
 [value] computing for function main10 <- main.
-        Called from tests/value/gauges.i:311.
-[value] Call to builtin bzero(({{ (unsigned char *)&A }},{40}))
-[value] Call to builtin bzero(({{ (unsigned char *)&B }},{40}))
+        Called from tests/value/gauges.i:348.
 [value] computing for function main10_aux <- main10 <- main.
         Called from tests/value/gauges.i:209.
 tests/value/gauges.i:199:[value] entering loop for the first time
@@ -240,7 +238,7 @@ tests/value/gauges.i:209:[value] warning: overflow in conversion from floating-p
 [value] Recording results for main10
 [value] Done for function main10
 [value] computing for function main11 <- main.
-        Called from tests/value/gauges.i:312.
+        Called from tests/value/gauges.i:349.
 tests/value/gauges.i:215:[value] entering loop for the first time
 [value] Called Frama_C_show_each()
 [value] Called Frama_C_show_each()
@@ -255,13 +253,13 @@ tests/value/gauges.i:218:[value] warning: signed overflow. assert -2147483648 �
 [value] Recording results for main11
 [value] Done for function main11
 [value] computing for function main12 <- main.
-        Called from tests/value/gauges.i:313.
+        Called from tests/value/gauges.i:350.
 tests/value/gauges.i:223:[value] entering loop for the first time
 tests/value/gauges.i:223:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
 [value] Recording results for main12
 [value] Done for function main12
 [value] computing for function main13 <- main.
-        Called from tests/value/gauges.i:314.
+        Called from tests/value/gauges.i:351.
 [value] computing for function main13_1 <- main13 <- main.
         Called from tests/value/gauges.i:278.
 tests/value/gauges.i:236:[value] entering loop for the first time
@@ -293,13 +291,285 @@ tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147
 [value] Recording results for main13
 [value] Done for function main13
 [value] computing for function main14 <- main.
-        Called from tests/value/gauges.i:315.
+        Called from tests/value/gauges.i:352.
 tests/value/gauges.i:289:[value] entering loop for the first time
 tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
                                  [0..2147483647])
 [value] Recording results for main14
 [value] Done for function main14
+[value] computing for function main15 <- main.
+        Called from tests/value/gauges.i:353.
+tests/value/gauges.i:302:[value] entering loop for the first time
+[value] DUMPING STATE of file tests/value/gauges.i line 304
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        x ∈ UNINITIALIZED
+        y ∈ UNINITIALIZED
+        p ∈ {{ &x }}
+        i ∈ {1}
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/gauges.i line 304
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        x ∈ UNINITIALIZED
+        y ∈ UNINITIALIZED
+        p ∈ {{ &x ; &y }}
+        i ∈ {1; 2}
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/gauges.i line 304
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        x ∈ UNINITIALIZED
+        y ∈ UNINITIALIZED
+        p ∈ {{ &x ; &y }}
+        i ∈ {1; 2; 3}
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/value/gauges.i line 304
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        x ∈ UNINITIALIZED
+        y ∈ UNINITIALIZED
+        p ∈ {{ &x ; &y }}
+        i ∈ [1..11]
+        =END OF DUMP==
+[value] Recording results for main15
+[value] Done for function main15
+[value] computing for function main16 <- main.
+        Called from tests/value/gauges.i:354.
+tests/value/gauges.i:319:[value] entering loop for the first time
+tests/value/gauges.i:321:[value] entering loop for the first time
+tests/value/gauges.i:322:[value] entering loop for the first time
+[value] DUMPING STATE of file tests/value/gauges.i line 323
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        a ∈ {1}
+        b ∈ {0}
+        p ∈ {{ &a }}
+        i ∈ {2}
+        =END OF DUMP==
+tests/value/gauges.i:324:[value] entering loop for the first time
+tests/value/gauges.i:325:[value] entering loop for the first time
+[value] DUMPING STATE of file tests/value/gauges.i line 323
+        v ∈ [--..--]
+        t[0..4] ∈ {0}
+         [5] ∈ [0..48],0%3
+         [6] ∈ {0}
+         [7] ∈ [0..48],0%3
+         [8] ∈ {0}
+         [9] ∈ [0..48],0%3
+         [10] ∈ {0}
+         [11] ∈ [0..48],0%3
+         [12] ∈ {0}
+         [13] ∈ [0..48],0%3
+         [14] ∈ {0}
+         [15] ∈ [0..48],0%3
+         [16] ∈ {0}
+         [17] ∈ [0..48],0%3
+         [18] ∈ {0}
+         [19] ∈ [0..48],0%3
+         [20] ∈ {0}
+         [21] ∈ [0..48],0%3
+         [22] ∈ {0}
+         [23] ∈ [0..48],0%3
+         [24] ∈ {0}
+         [25] ∈ [0..48],0%3
+         [26] ∈ {0}
+         [27] ∈ [0..48],0%3
+         [28] ∈ {0}
+         [29] ∈ [0..48],0%3
+         [30] ∈ {0}
+         [31] ∈ [0..48],0%3
+         [32] ∈ {0}
+         [33] ∈ [0..48],0%3
+         [34] ∈ {0}
+         [35] ∈ [0..48],0%3
+         [36] ∈ {0}
+         [37] ∈ [0..48],0%3
+        u[0..99] ∈ [0..100]
+        T[0..99] ∈ [--..--]
+        a ∈ {1}
+        b ∈ {0}
+        p ∈ {{ &a ; &b }}
+        i ∈ {2}
+        =END OF DUMP==
+[value] Recording results for main16
+[value] Done for function main16
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -386,6 +656,13 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
   i ∈ {-593; -592; -591; -590; -589; -588}
   s ∈ {5; 6}
   j ∈ [0..2147483647]
+[value:final-states] Values at end of function main15:
+  p ∈ {{ &x ; &y }}
+  i ∈ {11}
+[value:final-states] Values at end of function main16:
+  a ∈ {1}
+  b ∈ {0}
+  p ∈ {{ &b }}
 [value:final-states] Values at end of function main2:
   u[0..99] ∈ [0..100]
   p ∈ {{ &u + [0..--],0%4 }}
@@ -484,8 +761,6 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
 [from] Computing for function main10_aux
 [from] Done for function main10_aux
 [from] Computing for function main10
-[from] Computing for function Frama_C_bzero <-main10
-[from] Done for function Frama_C_bzero
 [from] Done for function main10
 [from] Computing for function main11
 [from] Done for function main11
@@ -503,6 +778,12 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
 [from] Done for function main13
 [from] Computing for function main14
 [from] Done for function main14
+[from] Computing for function main15
+[from] Computing for function Frama_C_dump_each <-main15
+[from] Done for function Frama_C_dump_each
+[from] Done for function main15
+[from] Computing for function main16
+[from] Done for function main16
 [from] Computing for function main2
 [from] Done for function main2
 [from] Computing for function main3
@@ -533,9 +814,6 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function Frama_C_bzero:
-  A[0..9] FROM \nothing (and SELF)
-  B[0..9] FROM \nothing (and SELF)
 [from] Function main0:
   NO EFFECTS
 [from] Function main0_bis:
@@ -564,6 +842,10 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
 [from] Function main13:
   NO EFFECTS
 [from] Function main14:
+  NO EFFECTS
+[from] Function main15:
+  NO EFFECTS
+[from] Function main16:
   NO EFFECTS
 [from] Function main2:
   u[0..99] FROM \nothing (and SELF)
@@ -651,6 +933,14 @@ tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147
           i; s; tmp; j
 [inout] Inputs for function main14:
           v
+[inout] Out (internal) for function main15:
+          p; i
+[inout] Inputs for function main15:
+          \nothing
+[inout] Out (internal) for function main16:
+          a; b; p; i
+[inout] Inputs for function main16:
+          \nothing
 [inout] Out (internal) for function main2:
           u[0..99]; p; i; tmp
 [inout] Inputs for function main2:

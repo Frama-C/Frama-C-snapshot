@@ -22,18 +22,12 @@ typedef unsigned int tuint;
 int main(void)
 {
   int __retres;
-  tint x;
-  tint y;
-  tint z;
-  tuint ux;
-  tuint uy;
-  tuint uz;
-  x = 0;
-  y = 0;
-  z = 0;
-  ux = (unsigned int)0;
-  uy = (unsigned int)0;
-  uz = (unsigned int)0;
+  tint x = 0;
+  tint y = 0;
+  tint z = 0;
+  tuint ux = (unsigned int)0;
+  tuint uy = (unsigned int)0;
+  tuint uz = (unsigned int)0;
   /*@ assert
       rte: signed_overflow:
         (int)((int)(-2147483647) - 1) / (int)(-1) ≤ 2147483647;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -47,7 +47,7 @@ let rename_pred v1 v2 p =
   Visitor.visitFramacPredicate r p
 
 (** Given a transition a function name and a function status (call or
-    return) it returns if the cross condition can be statisfied with
+    return) it returns if the cross condition can be satisfied with
     only function status.
  *)
 let isCrossable tr func st =
@@ -109,7 +109,7 @@ let find_enum, set_enum =
 (* ************************************************************************* *)
 
 (** Given a transition a function name and a function status (call or return)
-    it returns if the cross condition can be statisfied with only
+    it returns if the cross condition can be satisfied with only
     function status. *)
 let isCrossableAtInit tr func =
   (* When in doubt, return true anyway. More clever plug-ins will take care
@@ -735,8 +735,8 @@ let is_out_of_state_pred state =
        Logic_const.tvar (Data_for_aorai.get_state_logic_var state))
 
 (* In the deterministic case, we only assign the unique state variable
-   to a specific enumerated constant. Non-determistic automata on the other
-   hand, need to have the corresponding state variable explicitely set to 0. *)
+   to a specific enumerated constant. Non-deterministic automata on the other
+   hand, need to have the corresponding state variable explicitly set to 0. *)
 let is_out_of_state_stmt (_,copy) loc = 
   if Aorai_option.Deterministic.get ()
   then
@@ -949,7 +949,7 @@ let mk_deterministic_lemma () =
     let prop = Extlib.product_fold disjoint_guards ptrue trans trans in
     let name = state.Promelaast.name ^ "_deterministic_trans" in
     let lemma =
-      Dlemma (name, false, [label],[],prop,Cil_datatype.Location.unknown)
+      Dlemma (name, false, [label],[],prop,[],Cil_datatype.Location.unknown)
     in
     Annotations.add_global Aorai_option.emitter lemma
   in
@@ -1041,6 +1041,7 @@ let initGlobals root complete =
           ("Aorai_pebble_axiomatic",
            List.map
              (fun li -> Dfun_or_pred(li,Cil_datatype.Location.unknown)) l,
+           [],
            Cil_datatype.Location.unknown)
       in
       Annotations.add_global Aorai_option.emitter annot);
@@ -1286,7 +1287,7 @@ let partition_action trans =
   List.fold_left treat_one_trans Cil_datatype.Term_lval.Map.empty trans
 
 (* TODO: this must be refined to take pebbles into account: in that
-   case, disjointness condition is on pebble set for each state. *)
+   case, disjointedness condition is on pebble set for each state. *)
 let disjoint_states loc _ states precond =
   let states = Data_for_aorai.Aorai_state.Set.elements states in
   let rec product acc l =

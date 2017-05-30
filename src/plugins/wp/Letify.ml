@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,6 +32,106 @@ let vmem x a = Vars.mem x (F.vars a)
 let occurs xs a = Vars.intersect xs (F.vars a)
 
 (* -------------------------------------------------------------------------- *)
+(* --- Trivial Simplifications                                            --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Ground =
+struct
+
+  type subst = pred -> pred
+  type env = {
+    mutable ground : bool Tmap.t ;
+    mutable domain : term Tmap.t ;
+  }
+
+  let rec is_ground env e =
+    F.is_primitive e ||
+    begin
+      try Tmap.find e env.ground with Not_found ->
+      let r = match F.repr e with
+        | Rdef fvs -> List.for_all (fun (_,e) -> is_ground env e) fvs
+        | Fun(f,es) ->
+            begin match Fun.category f with
+              | Constructor -> List.for_all (is_ground env) es
+              | _ -> false
+            end
+        | _ -> false in
+      env.ground <- Tmap.add e r env.ground ; r
+    end
+
+  let merge a b =
+    Tmap.union (fun _ u v -> if F.compare u v <= 0 then u else v) a b
+
+  let rec walk env h =
+    match F.repr h with
+    | True | False -> ()
+    | And ps -> List.iter (walk env) ps
+    | Eq(a,b) ->
+        if is_ground env b then
+          env.domain <- Tmap.add a b env.domain
+        else
+        if is_ground env a then
+          env.domain <- Tmap.add b a env.domain
+    | Not p ->
+        env.domain <- Tmap.add h F.e_true env.domain ;
+        env.domain <- Tmap.add p F.e_false env.domain
+    | _ ->
+        env.domain <- Tmap.add h F.e_true env.domain ;
+        env.domain <- Tmap.add (e_not h) F.e_false env.domain
+
+  let find mu e = try Tmap.find e mu with Not_found -> e
+  let subst mu =
+    let sigma = F.sigma () in
+    F.p_subst ~sigma (find mu)
+
+  [@@@ warning "-32"]
+  let pp_sigma fmt s =
+    begin
+      Format.fprintf fmt "@[<hov 2>[" ;
+      Tmap.iter
+        (fun a b -> Format.fprintf fmt "@ %a -> %a" F.pp_term a F.pp_term b)
+        s ;
+      Format.fprintf fmt "]@]" ;
+    end
+  [@@@ warning "+32"]
+
+  let assume env p =
+    let p = F.p_subst (find env.domain) p in
+    walk env (F.e_prop p) ; p
+
+  let compute seq =
+    let n = Array.length seq in
+    let lhs = Array.make n Tmap.empty in
+    let rhs = Array.make n Tmap.empty in
+    let env = { ground = Tmap.empty ; domain = Tmap.empty } in
+    for i = 0 to n-2 do
+      seq.(i) <- assume env seq.(i) ;
+      lhs.(succ i) <- env.domain ;
+    done ;
+    if n > 1 then
+      seq.(n-1) <- assume env seq.(n-1) ;
+    let mu = env.domain in
+    env.domain <- Tmap.empty ;
+    for i = n-1 downto 1 do
+      seq.(i) <- assume env seq.(i) ;
+      rhs.(pred i) <- env.domain ;
+    done ;
+    let gs =
+      Array.init n
+        (fun i ->
+           let mu = merge lhs.(i) rhs.(i) in
+           subst mu) in
+    let g = subst mu in
+    gs , g
+
+  let singleton p =
+    let env = { domain = Tmap.empty ; ground = Tmap.empty } in
+    ignore (assume env p) ;
+    subst env.domain
+
+end
+
+(* -------------------------------------------------------------------------- *)
 (* --- Generalized Substitution                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -57,7 +157,7 @@ sig
 end =
 struct
 
-  module Ceq = Qed.Partition.Make(Var)
+  module Ceq = Qed.Partition.Make(Var)(Vars)(Vmap)
 
   type t = {
     dvar : Vars.t ; (* Domain of def *)
@@ -107,11 +207,11 @@ struct
                   if n > 0 then raise Not_found ;
                   Tmap.find e sigma.cst
                 with Not_found ->
-                  F.f_map (m_apply sigma) n e
+                  F.QED.f_map (m_apply sigma) n e
               in
               sigma.mem.(n) <- Tmap.add e r sigma.mem.(n) ; r
           end
-        else F.f_map (m_apply sigma) n e
+        else F.QED.f_map (m_apply sigma) n e
 
   let e_apply sigma e = m_apply sigma 0 e
   let p_apply sigma p = F.p_bool (e_apply sigma (F.e_prop p))
@@ -128,7 +228,7 @@ struct
 
   let add_ceq x e ceq =
     match F.repr e with
-    | Fvar y -> Ceq.join x y ceq
+    | Fvar y -> Ceq.merge ceq x y
     | _ -> ceq
 
   let single x e =
@@ -168,7 +268,7 @@ struct
 
   let domain sigma = sigma.dvar
   let codomain sigma = sigma.dcod
-  let class_of sigma x = Ceq.members sigma.ceq x
+  let class_of sigma x = Vars.elements (Ceq.members sigma.ceq x)
 
   (* --- Constants --- *)
 
@@ -207,7 +307,7 @@ struct
           < on integer are always normalized to <=
   *)
   let extract_forall_equality fb =
-    begin match F.repr (F.lc_repr fb) with
+    begin match F.repr (F.QED.lc_repr fb) with
       | Imply ([la;lb],c) ->
           begin match F.repr c with
             | Eq _ ->
@@ -230,7 +330,7 @@ struct
     end
 
   let is_kint e = match F.repr e with Qed.Logic.Kint _ -> true | _ -> false
-
+  
   let rec add_pred sigma p = match F.repr p with
     | And ps -> List.fold_left add_pred sigma ps
     | Eq(a,b) ->
@@ -242,7 +342,11 @@ struct
               match F.is_closed a , F.is_closed b with
               | true , false -> add_cst b a sigma
               | false , true -> add_cst a b sigma
-              | _ -> add_lit p sigma
+              | true , true ->
+                  if F.compare a b < 0
+                  then add_cst b a sigma
+                  else add_cst a b sigma
+              | false , false -> add_lit p sigma
         end
     | Leq(a,b) ->
         if mem_lit (e_leq b a) sigma
@@ -262,7 +366,7 @@ struct
               let rec aux sigma i =
                 if Integer.lt cstb i then sigma
                 else begin
-                  let eq = F.lc_open_term (e_zint i) fb in
+                  let eq = F.QED.lc_open_term (e_zint i) fb in
                   (** qed should be able to simplify it directly *)
                   let sigma = add_pred sigma eq in
                   aux sigma (Integer.succ i)
@@ -340,7 +444,7 @@ struct
     | And ps -> List.iter (defs w) ps
     | Eq(a,b) ->
         begin
-          match F.congruence_eq a b with
+          match F.QED.congruence_eq a b with
           | None -> defs_eq w a b
           | Some eqs -> List.iter (fun (a,b) -> defs_eq w a b) eqs
         end

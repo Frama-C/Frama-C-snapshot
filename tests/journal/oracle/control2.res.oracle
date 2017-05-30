@@ -10,7 +10,6 @@
   d ∈ {0}
 tests/journal/control2.c:12:[value] entering loop for the first time
 tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for f
 [value] done for function f
 [from] Computing for function f
 [from] Done for function f
@@ -25,7 +24,6 @@ tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2
 tests/journal/control2.c:13:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
 tests/journal/control2.c:13:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
 tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
-[value] Recording results for f
 [value] done for function f
 [from] Computing for function f
 [from] Done for function f

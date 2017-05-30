@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,6 +84,14 @@ module Time: Parameter_sig.String
 module PrintCode : Parameter_sig.Bool
   (** Behavior of option "-print" *)
 
+module PrintMachdep : Parameter_sig.Bool
+  (** Behavior of option "-print-machdep"
+      @since Phosphorus-20170501-beta1 *)
+
+module PrintLibc: Parameter_sig.Bool
+  (** Behavior of option "-print-libc"
+      @since Phosphorus-20170501-beta1 *)
+
 module PrintComments: Parameter_sig.Bool
   (** Behavior of option "-keep-comments" *)
 
@@ -122,6 +130,9 @@ module LoadState: Parameter_sig.String
 
 module LoadModule: Parameter_sig.String_list
   (** Behavior of option "-load-module" *)
+
+module AutoLoadPlugins: Parameter_sig.Bool
+  (** Behavior of option "-autoload-plugins" *)
 
 (** Kernel for journalization. *)
 module Journal: sig
@@ -181,7 +192,7 @@ module CppExtraArgs: Parameter_sig.String_list
   (** Behavior of option "-cpp-extra-args" *)
 
 module CppGnuLike: Parameter_sig.Bool
-  (** Behavior of option "-cpp-gnu-like" *)
+  (** Behavior of option "-cpp-frama-c-compliant" *)
 
 module FramaCStdLib: Parameter_sig.Bool
   (** Behavior of option "-frama-c-stdlib" *)

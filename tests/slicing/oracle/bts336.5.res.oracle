@@ -154,7 +154,7 @@ tests/slicing/bts336.i:84:[value] warning: signed overflow. assert a2 + b4 ≤ 2
   \result FROM c
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main4
 [pdg] done for function main4
@@ -181,14 +181,10 @@ void f4_slice_1(int *p, int *q)
 int main4(int volatile c)
 {
   int __retres;
-  int a2;
-  int b2;
-  int a4;
-  int b4;
-  a2 = 3;
-  b2 = 4;
-  a4 = 7;
-  b4 = 8;
+  int a2 = 3;
+  int b2 = 4;
+  int a4 = 7;
+  int b4 = 8;
   while (c) {
     f4_slice_1(& a2,& b2);
     f4_slice_1(& a4,& b4);

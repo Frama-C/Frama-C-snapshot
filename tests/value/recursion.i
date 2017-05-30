@@ -1,6 +1,6 @@
 /*run.config*
-  OPT: -lib-entry -main main -val @VALUECONFIG@ -journal-disable
-  OPT: -lib-entry -main main -val @VALUECONFIG@ -val-ignore-recursive-calls -journal-disable
+  OPT: -no-autoload-plugins -load-module from,inout,value -lib-entry -main main -val @VALUECONFIG@ -journal-disable
+  OPT: -no-autoload-plugins -load-module from,inout,value -lib-entry -main main -val @VALUECONFIG@ -val-ignore-recursive-calls -journal-disable
  */
 int G;
 
@@ -39,7 +39,7 @@ void g() {
   g();
 }
 
-// Infer assigns clause that overwrite *p1 and *p2
+// Infer assigns clause that overwrite *p1 and *p2. Currently unsound
 void h(int *p1, int *p2) {
   h(p1, p2);
 }
@@ -48,7 +48,7 @@ void h(int *p1, int *p2) {
 int *pg;
 
 /* &i escapes. The precondition is true on all calls, but could be computed
-   false if one overwrites the value of i naively at each call */
+   false if one overwrites the value of i naively at each call. Currently unsound */
 /*@ requires stage > 0 ==> *pg == i-5;
   assigns *pg \from \nothing;
   ensures stage > 0 ==> *pg == 8;

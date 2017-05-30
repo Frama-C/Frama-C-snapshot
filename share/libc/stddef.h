@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,8 +22,9 @@
 
 #ifndef __FC_STDDEF
 #define __FC_STDDEF
-#include "__fc_machdep.h"
 #include "features.h"
+__PUSH_FC_STDLIB
+#include "__fc_machdep.h"
 __BEGIN_DECLS
 typedef __PTRDIFF_T ptrdiff_t;
 __END_DECLS
@@ -35,4 +36,5 @@ __END_DECLS
 #include "__fc_define_null.h"
 #define offsetof(type, member) __builtin_offsetof(type,member)
 
+__POP_FC_STDLIB
 #endif

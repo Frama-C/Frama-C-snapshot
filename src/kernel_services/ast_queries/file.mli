@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,8 @@ val new_machdep: string -> Cil_types.mach -> unit
     @since Nitrogen-20111001
     @modify Fluorine-20130401 Receives the machdep (as a module) as argument
     @modify Sodium-20150201 Receives directly the machdep as argument
-    @raise Invalid_argument if the given name already exists *)
+    @raise Invalid_argument if the given name already exists
+    @plugin development guide *)
 
 val machdep_macro: string -> string
  (** [machdep_macro machine] returns the name of a macro __FC_MACHDEP_XXX so
@@ -234,6 +235,11 @@ val reorder_custom_ast: Cil_types.file -> unit
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)
 (* ************************************************************************* *)
+
+val pretty_machdep :
+  ?fmt:Format.formatter -> ?machdep:Cil_types.mach -> unit -> unit
+  (** Prints the associated [machdep], or the current one in current project
+      by default. Default output formatter is [Log.print_on_output]. *)
 
 val pretty_ast : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
   (** Print the project CIL file on the given Formatter.

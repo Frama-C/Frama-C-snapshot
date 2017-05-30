@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ class tool ?label ?tooltip ?content () =
   let toggle = new Widget.toggle ~align:`Left ?label ?tooltip ~border:false () in
   let action = new Widget.button ~icon:`MEDIA_PLAY ?tooltip () in
   object(self)
-        
+
     initializer
       begin
         let color = `NAME "orange" in
@@ -35,10 +35,10 @@ class tool ?label ?tooltip ?content () =
         toggle#connect self#toggle ;
         action#connect self#action ;
         self#toggle false ;
-        action#set_relief false ;
+        action#set_border false ;
         Wutil.on content self#set_content ;
       end
-    
+
     val mutable details = None
     val mutable tooltip = None
     val mutable callback = None
@@ -53,7 +53,7 @@ class tool ?label ?tooltip ?content () =
       match callback with
       | None -> ()
       | Some f -> f ()
-    
+
     method private render =
       let hbox = GPack.hbox ~show:true () in
       hbox#pack ~expand:false status#coerce ;
@@ -68,7 +68,7 @@ class tool ?label ?tooltip ?content () =
           vbox#coerce
 
     method tool = (self :> tool)
-    
+
     method widget =
       match view with Some w -> w | None ->
         let w = new Wutil.gobj_widget self#render in
@@ -88,7 +88,7 @@ class tool ?label ?tooltip ?content () =
 
     method clear_action =
       callback <- None ;
-      action#set_visible false 
+      action#set_visible false
 
     method set_action ?icon ?tooltip ?callback:cb () =
       begin
@@ -98,7 +98,7 @@ class tool ?label ?tooltip ?content () =
         Wutil.on icon action#set_icon ;
         Wutil.on tooltip action#set_tooltip ;
       end
-    
+
     method set_content (w : widget) =
       assert ( details == None ) ;
       let frame = GBin.frame ~show:false () in
@@ -106,10 +106,9 @@ class tool ?label ?tooltip ?content () =
       padds#add w#coerce ;
       frame#add padds#coerce ;
       details <- Some frame
-    
+
   end
 
-  
 (* -------------------------------------------------------------------------- *)
 (* --- Panel                                                              --- *)
 (* -------------------------------------------------------------------------- *)

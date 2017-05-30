@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef _REGEX_H
 #define _REGEX_H 1
 #include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_define_size_t.h"
 
 __BEGIN_DECLS
@@ -71,11 +72,12 @@ typedef struct
   regoff_t rm_eo;
 } regmatch_t;
 
-int    regcomp(regex_t *, const char *, int);
-int    regexec(const regex_t *, const char *, size_t, regmatch_t[], int);
-size_t regerror(int, const regex_t *, char *, size_t);
-void   regfree(regex_t *);
+extern int    regcomp(regex_t *, const char *, int);
+extern int    regexec(const regex_t *, const char *, size_t, regmatch_t[], int);
+extern size_t regerror(int, const regex_t *, char *, size_t);
+extern void   regfree(regex_t *);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

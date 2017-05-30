@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,11 +31,12 @@ type localizable =
   | PLval of (kernel_function option * kinstr * lval)
   | PExp of (kernel_function option * kinstr * exp)
   | PTermLval of (kernel_function option * kinstr * Property.t * term_lval)
-  | PVDecl of (kernel_function option * varinfo)
+  | PVDecl of (kernel_function option * kinstr * varinfo)
   (** Declaration and definition of variables and function. Check the type
       of the varinfo to distinguish between the various possibilities.
       If the varinfo is a global or a local, the kernel_function is the
-      one in which the variable is declared. *)
+      one in which the variable is declared. The [kinstr] argument is given
+      for local variables with an explicit initializer. *)
   | PGlobal of global (** all globals but variable declarations and function
                           definitions. *)
   | PIP of Property.t

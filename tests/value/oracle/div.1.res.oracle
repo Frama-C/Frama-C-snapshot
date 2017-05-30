@@ -26,6 +26,7 @@
    [2] ∈ {3}
    [3..4] ∈ {0}
   p ∈ {0}
+tests/value/div.i:13:[value] warning: initialization of volatile variable c ignored
 tests/value/div.i:14:[value] entering loop for the first time
 tests/value/div.i:14:[value] warning: assertion 'rte,signed_overflow' got status unknown.
 tests/value/div.i:14:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
@@ -79,6 +80,7 @@ tests/value/div.i:28:[value] assertion 'rte,signed_overflow' got final status va
 tests/value/div.i:34:[value] assertion 'rte,division_by_zero' got final status valid.
 tests/value/div.i:35:[value] assertion 'rte,division_by_zero' got final status valid.
 tests/value/div.i:36:[value] assertion 'rte,division_by_zero' got final status valid.
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   X ∈ [--..--]

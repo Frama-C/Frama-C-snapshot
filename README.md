@@ -14,7 +14,7 @@ plug-ins in the platform.
 Thanks to this approach, Frama-C provides sophisticated tools, including:
 
 - an analyzer based on abstract interpretation, aimed at verifying
-  the absence of run-time errors (**Value**);
+  the absence of run-time errors (**EVA**);
 - a program proof framework based on weakest precondition calculus (**WP**);
 - a program slicer (**Slicing**);
 - a tool for verification of temporal (LTL) properties (**Aoraï**);
@@ -66,6 +66,11 @@ To list all plug-ins, run:
 Each plug-in has a help command
 (`-<plugin>-help` or `-<plugin>-h`) that describes its several
 options.
+
+Finally, the list of options governing the behavior of Frama-C's kernel itself
+is available through
+
+    frama-c -kernel-help
 
 #### Complex scenarios
 

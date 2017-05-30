@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-deps"
+   STDOPT: +"-deps -val-show-progress"
 */
 int X,Y;
 

@@ -1,5 +1,5 @@
 /* run.config
-   OPT:  -calldeps -slice-return main -slicing-level 2 -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  -no-calldeps
+   OPT: -val-show-progress  -calldeps -slice-return main -slicing-level 2 -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  -no-calldeps
 */
 
 int a = 1, b = 1, c = 1, d = 1, *p;

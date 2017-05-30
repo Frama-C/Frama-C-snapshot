@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/libc.c (with preprocessing)
+[metrics] Defined functions (1)
+          =====================
+           main (0 call); 
+          
+          Undefined functions (66)
+          ========================
+           clearerr (0 call); clearerr_unlocked (0 call); fclose (0 call);
+           fdopen (0 call); feof (0 call); feof_unlocked (0 call); ferror (0 call);
+           ferror_unlocked (0 call); fflush (0 call); fgetc (0 call); fgetpos (0 call);
+           fgets (0 call); fileno (0 call); fileno_unlocked (0 call);
+           flockfile (0 call); fopen (0 call); fputc (0 call); fputs (0 call);
+           fread (0 call); freopen (0 call); fseek (0 call); fsetpos (0 call);
+           ftell (0 call); ftrylockfile (0 call); funlockfile (0 call);
+           fwrite (0 call); getc (0 call); getc_unlocked (0 call); getchar (0 call);
+           getchar_unlocked (0 call); gets (0 call); isalnum (0 call);
+           isalpha (0 call); isascii (0 call); isblank (1 call); iscntrl (0 call);
+           isdigit (0 call); isgraph (0 call); islower (0 call); isprint (0 call);
+           ispunct (0 call); isspace (0 call); isupper (0 call); isxdigit (0 call);
+           perror (0 call); putc (0 call); putc_unlocked (0 call); putchar (0 call);
+           putchar_unlocked (0 call); puts (0 call); remove (0 call); rename (0 call);
+           rewind (0 call); setbuf (0 call); setvbuf (0 call); tmpfile (0 call);
+           tmpnam (0 call); tolower (0 call); toupper (0 call); ungetc (0 call);
+           vfprintf (0 call); vfscanf (0 call); vprintf (0 call); vscanf (0 call);
+           vsnprintf (0 call); vsprintf (0 call); 
+          
+          'Extern' global variables (3)
+          =============================
+           __fc_errno; __fc_stdin; __fc_stdout
+          
+          Potential entry points (1)
+          ==========================
+           main; 
+          
+          Global metrics
+          ============== 
+          Sloc = 2
+          Decision point = 0
+          Global variables = 5
+          If = 0
+          Loop = 0
+          Goto = 0
+          Assignment = 1
+          Exit point = 1
+          Function = 67
+          Function call = 1
+          Pointer dereferencing = 0
+          Cyclomatic complexity = 1

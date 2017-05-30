@@ -7,7 +7,7 @@ tests/slicing/horwitz.byte -deps tests/slicing/horwitz.c
 
 include LibSelect;;
 
-let () = 
+let () =
   Db.Main.extend
     (fun _ ->
        ignore (test_select_data ~do_prop_to_callers:true "incr" "*pi"));;

@@ -77,7 +77,7 @@ val is_special_builtin: string -> bool
 (** @return [true] if the given name refers to a special built-in function.
     A special built-in function can have any number of arguments. It is up to
     the plug-ins to know what to do with it.
-    @since Boron-20100401-dev *)
+    @since Carbon-20101201 *)
 
 (** register a new special built-in function *)
 val add_special_builtin: string -> unit
@@ -201,12 +201,12 @@ val setFormalsDecl: varinfo -> typ -> unit
     @since Oxygen-20120901 *)
 val removeFormalsDecl: varinfo -> unit
 
-(** replace to formals of a function declaration with the given
+(** replace formals of a function declaration with the given
     list of varinfo.
 *)
 val unsafeSetFormalsDecl: varinfo -> varinfo list -> unit
 
-(** iters the given function on declared prototypes.
+(** iterate the given function on declared prototypes.
     @since Oxygen-20120901 
 *)
 val iterFormalsDecl: (varinfo -> varinfo list -> unit) -> unit
@@ -467,7 +467,7 @@ val copyCompInfo: ?fresh:bool -> compinfo -> string -> compinfo
     do not participate in initialization and their name is not printed. *)
 val missingFieldName: string
 
-(** Get the full name of a comp *)
+(** Get the full name of a comp, including the 'struct' or 'union' prefix *)
 val compFullName: compinfo -> string
 
 (** Returns true if this is a complete type.
@@ -629,7 +629,7 @@ val splitFunctionTypeVI:
   [vtemp] field in type {!Cil_types.varinfo}.
   The [source] argument defaults to [true], and corresponds to the field
   [vsource] .
-  The first unnmamed argument specifies whether the varinfo is for a global and
+  The first unnamed argument specifies whether the varinfo is for a global and
   the second is for formals. *)
 val makeVarinfo:
   ?source:bool -> ?temp:bool -> bool -> bool -> string -> typ -> varinfo
@@ -771,7 +771,7 @@ val isConstant: exp -> bool
 (** True if the expression is a compile-time integer constant *)
 val isIntegerConstant: exp -> bool
 
-(** True if the given offset contains only field nanmes or constant indices. *)
+(** True if the given offset contains only field names or constant indices. *)
 val isConstantOffset: offset -> bool
 
 (** True if the given expression is a (possibly cast'ed) integer or character
@@ -794,7 +794,7 @@ val interpret_character_constant:
 (** Given the character c in a (CChr c), sign-extend it to 32 bits.
   (This is the official way of interpreting character constants, according to
   ISO C 6.4.4.4.10, which says that character constants are chars cast to ints)
-  Returns CInt64(sign-extened c, IInt, None) *)
+  Returns CInt64(sign-extended c, IInt, None) *)
 val charConstToInt: char -> Integer.t
 val charConstToIntConstant: char -> constant
 
@@ -968,6 +968,14 @@ val mkStmtCfg: before:bool -> new_stmtkind:stmtkind -> ref_stmt:stmt -> stmt
 (** Construct a block with no attributes, given a list of statements *)
 val mkBlock: stmt list -> block
 
+(** Construct a non-scoping block, i.e. a block that is not used to determine
+    the end of scope of local variables. Hence, the blocals of such a block
+    must always be empty.
+
+    @since Phosphorus-20170501-beta1
+*)
+val mkBlockNonScoping: stmt list -> block
+
 (** Construct a block with no attributes, given a list of statements and
     wrap it into the Cfg. *)
 val mkStmtCfgBlock: stmt list -> stmt
@@ -993,11 +1001,22 @@ val dummyInstr: instr
     @plugin development guide *)
 val dummyStmt: stmt
 
-(** Make a statement equivalent to a pure expression, 'exp;'. Despite doing
-    nothing, this statement implies that it is valid to read 'exp' and
-    therefore has consequences on program verification.
-    The statement is build as 'tmp = exp;' where tmp is a new fresh
-    variable. *)
+(** Create an instruction equivalent to a pure expression. The new instruction
+    corresponds to the initialization of a new fresh variable, i.e.
+    [int tmp = exp]. The scope of this fresh variable
+    is determined by the block given in argument, that is the instruction
+    must be placed directly (modulo non-scoping blocks) inside this block.
+*)
+val mkPureExprInstr:
+  fundec:fundec -> scope:block -> ?loc:location -> exp -> instr
+
+(** Create an instruction as above, enclosed in a block
+    of a single ([Instr]) statement, which will be the scope of the fresh
+    variable holding the value of the expression.
+
+    As usual, [ghost] defaults to [false]. [loc] defaults to the location of
+    the expression itself.
+*)
 val mkPureExpr: ?ghost:bool -> fundec:fundec -> ?loc:location -> exp -> stmt
 
 (** Make a while loop. Can contain Break or Continue *)
@@ -1018,6 +1037,32 @@ val mkFor: start:stmt list -> guard:exp -> next: stmt list ->
 (** creates a block with empty attributes from an unspecified sequence. *)
 val block_from_unspecified_sequence:
   (stmt * lval list * lval list * lval list * stmt ref list) list -> block
+
+(** [treat_constructor_as_func action v f args kind loc] calls [action] with
+    the parameters corresponding to the call to [f], of kind [kind],
+    initializing [v] with arguments [args].
+    @since Phosphorus-20170501-beta1
+*)
+val treat_constructor_as_func:
+  (lval option -> exp -> exp list -> location -> 'a) ->
+  varinfo -> varinfo -> exp list -> constructor_kind -> location -> 'a
+
+(** [find_def_stmt b v] returns the [Local_init] instruction within [b] that
+    initializes [v]. [v] must have its [vdefined] field set to true, and be
+    among [b.blocals].
+    @raise Fatal error if [v] is not a local variable of [b] with an
+    initializer.
+    @since Phosphorus-20170501-beta1
+*)
+val find_def_stmt: block -> varinfo -> stmt
+
+(** returns [true] iff the given non-scoping block contains local init
+    statements (thus of locals belonging to an outer block), either directly or
+    within a non-scoping block or undefined sequence.labels
+
+    @since Phosphorus-20170501-beta1
+*)
+val has_extern_local_init: block -> bool
 
 (* ************************************************************************* *)
 (** {2 Values for manipulating attributes} *)
@@ -1274,7 +1319,7 @@ val refresh_visit: Project.t -> visitor_behavior
       varinfo that are declared in the scope of the visit will be copied and
       provided with a new id.
       @since Sodium-20150201
-   *) 
+   *)
 
 (** true iff the behavior provides fresh id for copied structs with id.
     Always [false] for an inplace visitor.
@@ -1288,7 +1333,9 @@ val is_copy_behavior: visitor_behavior -> bool
 val reset_behavior_varinfo: visitor_behavior -> unit
 (** resets the internal tables used by the given visitor_behavior.  If you use
     fresh instances of visitor for each round of transformation, this should
-    not be needed. In place modifications do not need that at all. *)
+    not be needed. In place modifications do not need that at all.
+    @plugin development guide
+ *)
 
 val reset_behavior_compinfo: visitor_behavior -> unit
 val reset_behavior_enuminfo: visitor_behavior -> unit
@@ -1305,7 +1352,9 @@ val reset_behavior_fundec: visitor_behavior -> unit
 
 val get_varinfo: visitor_behavior -> varinfo -> varinfo
 (** retrieve the representative of a given varinfo in the current
-    state of the visitor *)
+    state of the visitor
+    @plugin development guide
+ *)
 
 val get_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_enuminfo: visitor_behavior -> enuminfo -> enuminfo
@@ -1326,7 +1375,9 @@ val get_fundec: visitor_behavior -> fundec -> fundec
 
 val get_original_varinfo: visitor_behavior -> varinfo -> varinfo
   (** retrieve the original representative of a given copy of a varinfo
-      in the current state of the visitor. *)
+      in the current state of the visitor.
+    @plugin development guide
+   *)
 
 val get_original_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_original_enuminfo: visitor_behavior -> enuminfo -> enuminfo
@@ -1347,6 +1398,7 @@ val set_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the representative of a given varinfo in the current
       state of the visitor. Use with care (i.e. makes sure that the old one
       is not referenced anywhere in the AST, or sharing will be lost.
+      @plugin development guide
   *)
 val set_compinfo: visitor_behavior -> compinfo -> compinfo -> unit
 val set_enuminfo: visitor_behavior -> enuminfo -> enuminfo -> unit
@@ -1555,8 +1607,10 @@ class type cilVisitor = object
       @plugin development guide *)
 
   method vinit: varinfo -> offset -> init -> init visitAction
-  (** Initializers for globals, pass the global where this occurs, and the
-      offset *)
+  (** Initializers. Pass the global where this occurs, and the offset *)
+
+  method vlocal_init: varinfo -> local_init -> local_init visitAction
+   (** local initializer. pass the variable under initialization. *)
 
   method vtype: typ -> typ visitAction
   (** Use of some type. For typedef, struct, union and enum, the visit is
@@ -1582,14 +1636,14 @@ class type cilVisitor = object
   (** Attribute parameters. *)
 
   method queueInstr: instr list -> unit
-  (** Add here instructions while visiting to queue them to preceede the
+  (** Add here instructions while visiting to queue them to precede the
       current statement or instruction being processed. Use this method only
       when you are visiting an expression that is inside a function body, or a
       statement, because otherwise there will no place for the visitor to place
       your instructions. *)
 
   (** Gets the queue of instructions and resets the queue. This is done
-      automatically for you when you visit statments. *)
+      automatically for you when you visit statements. *)
   method unqueueInstr: unit -> instr list
 
   method current_stmt: stmt option
@@ -1790,6 +1844,9 @@ val visitCilOffset: cilVisitor -> offset -> offset
 (** Visit an initializer offset *)
 val visitCilInitOffset: cilVisitor -> offset -> offset
 
+(** Visit a local initializer (with the local being initialized). *)
+val visitCilLocal_init: cilVisitor -> varinfo -> local_init -> local_init
+
 (** Visit an instruction *)
 val visitCilInstr: cilVisitor -> instr -> instr list
 
@@ -1798,6 +1855,47 @@ val visitCilStmt: cilVisitor -> stmt -> stmt
 
 (** Visit a block *)
 val visitCilBlock: cilVisitor -> block -> block
+
+(** Mark the given block as candidate to be flattened into its parent block,
+    after returning from its visit. This is not systematic, as the environment
+    might prevent it (e.g. if the preceding statement is a statement contract
+    or a slicing/pragma annotation, or if there are labels involved). Use
+    that whenever you're creating a block in order to hold multiple statements
+    as a result of visiting a single statement.
+
+    @raise Fatal error if the given block attempts to declare local variables
+    (in which case it can't be marked as transient anyways).
+
+    @since Phosphorus-20170501-beta1
+*)
+val transient_block: block -> block
+
+(** tells whether the block has been marked as transient
+
+    @since Phosphorus-20170501-beta1.
+*)
+val is_transient_block: block -> bool
+
+(** [flatten_transient_sub_blocks b] flattens all direct sub-blocks of [b]
+    that have been marked as cleanable, whenever possible
+
+    @since Phosphorus-20170501-beta1
+*)
+val flatten_transient_sub_blocks: block -> block
+
+(**/**)
+
+(** Internal usage only. *)
+
+(** Indicates that the potentially transient block given as argument
+    must in fact be preserved after the visit. The resulting block will
+    be marked as non-scoping.
+
+    @since Phosphorus-20170501-beta1.
+*)
+val block_of_transient: block -> block
+
+(**/**)
 
 (** Visit a type *)
 val visitCilType: cilVisitor -> typ -> typ
@@ -1943,11 +2041,11 @@ val uniqueVarNames: file -> unit
 (* ************************************************************************* *)
 
 (** A peephole optimizer that processes two adjacent statements and possibly
-    replaces them both. If some replacement happens and [agressive] is true,
+    replaces them both. If some replacement happens and [aggressive] is true,
     then the new statements are themselves subject to optimization.  Each
     statement in the list is optimized independently. *)
 val peepHole2: 
-  agressive:bool -> (stmt * stmt -> stmt list option) -> stmt list -> stmt list
+  aggressive:bool -> (stmt * stmt -> stmt list option) -> stmt list -> stmt list
 
 (** Similar to [peepHole2] except that the optimization window consists of
     one statement, not two *)
@@ -2051,6 +2149,11 @@ val sizeOf: loc:location -> typ -> exp
  * {!Cil.initCIL}. *)
 val bytesAlignOf: typ -> int
 
+(** [intOfAttrparam a] tries to const-fold [a] into a numeric value.
+    Returns [Some n] if it succeeds, [None] otherwise.
+    @since Silicium-20161101 *)
+val intOfAttrparam: attrparam -> int option
+
 (** Give a type of a base and an offset, returns the number of bits from the
  * base address and the width (also expressed in bits) for the subobject
  * denoted by the offset. Raises {!Cil.SizeOfError} when it cannot compute
@@ -2113,6 +2216,9 @@ val d_formatarg : Format.formatter -> formatArg -> unit
 (** {2 Misc} *)
 (* ************************************************************************* *)
 
+(** if the list has 2 elements or more, it will return a block with
+    [bscoping=false]
+*)
 val stmt_of_instr_list : ?loc:location -> instr list -> stmtkind
 
 (** Convert a C variable into the corresponding logic variable.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,6 +52,7 @@ exception Error of string * int * string
 
 val of_bool : bool -> t
 val of_int : int -> t
+val of_string : string -> t
 val of_float : float -> t
 val of_list : t list -> t
 val of_array : t array -> t
@@ -59,19 +60,19 @@ val of_fields : (string * t) list -> t
 
 (** {2 Parsers} Parsing raise [Error] in case of error. *)
 
-val of_lexbuf : Lexing.lexbuf -> t
-val of_channel : in_channel -> t
-val of_string : string -> t
-val of_file : string -> t (** May also raise system exception. *)
+val load_lexbuf : Lexing.lexbuf -> t (** Consumes the entire buffer. *)
+val load_channel : in_channel -> t (** Parses the stream until EOF. *)
+val load_string : string -> t (** Parses the Json in the string. *)
+val load_file : string -> t (** May also raise system exception. *)
 
 (** {2 Printers} Printers use formatting unless [~pretty:false]. *)
 
-val to_string : ?pretty:bool -> t -> string
-val to_buffer : ?pretty:bool -> Buffer.t -> t -> unit
-val to_channel : ?pretty:bool -> out_channel -> t -> unit
-val to_file : ?pretty:bool -> string -> t -> unit
+val save_string : ?pretty:bool -> t -> string
+val save_buffer : ?pretty:bool -> Buffer.t -> t -> unit
+val save_channel : ?pretty:bool -> out_channel -> t -> unit
+val save_file : ?pretty:bool -> string -> t -> unit
 
-(** {2 Accessors} 
+(** {2 Accessors}
     Accessors raise exception [Invalid_argument] in case of wrong
     format. *)
 

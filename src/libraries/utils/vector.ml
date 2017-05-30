@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -107,16 +107,22 @@ let find w ?default ?(exn=Not_found) k =
       | None -> raise exn
       | Some e -> e
 
-let update w ~default k e =
+let update w ?default k e =
+  let exn = Invalid_argument "Vector.update" in
+  if k < 0 then raise exn ;
   if k >= w.top then
     begin
       let n = succ k in
       let s = Array.length w.elt in
       if s <= k then do_grow w (max n (2*s)) ;
-      if k > 0 then Array.fill w.elt w.top k default ;
+      if k > w.top then
+        begin match default with
+          | None -> raise exn
+          | Some e -> Array.fill w.elt w.top (k-w.top) e ;
+        end ;
       w.top <- n ;
     end ;
-  w.elt.(k) <- e 
+  w.elt.(k) <- e
 
 let of_array e = {
   dumb = Obj.magic (ref ()) ;

@@ -11,7 +11,7 @@ tests/slicing/if_many_values.i:8:[value] entering loop for the first time
 tests/slicing/if_many_values.i:11:[value] warning: signed overflow. assert r + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -30,8 +30,7 @@ int r = 1;
 int main(void)
 {
   {
-    int i;
-    i = -100;
+    int i = -100;
     while (i < 100) {
       if (i != 0) r ++;
       i ++;

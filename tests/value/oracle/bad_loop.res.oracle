@@ -5,6 +5,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   c ∈ [--..--]
+tests/value/bad_loop.i:3:[value] warning: initialization of volatile variable d ignored
+tests/value/bad_loop.i:3:[value] warning: initialization of volatile variable e ignored
 tests/value/bad_loop.i:6:[value] entering loop for the first time
 tests/value/bad_loop.i:12:[value] entering loop for the first time
 [value] Recording results for main

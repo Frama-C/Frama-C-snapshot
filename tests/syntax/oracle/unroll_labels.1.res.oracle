@@ -17,11 +17,9 @@ enum __anonenum_1 {
 int volatile foo;
 void main(void)
 {
-  int j;
-  j = 0;
+  int j = 0;
   {
-    int i;
-    i = 1;
+    int i = 1;
     if (! (i < 4)) goto unrolling_2_loop;
     switch (i) {
       case 1: j ++;
@@ -32,8 +30,7 @@ void main(void)
       break;
       case 4: j += 7;
       break;
-      default: ;
-      j = 0;
+      default: j = 0;
     }
     i ++;
     unrolling_6_loop: ;
@@ -47,8 +44,7 @@ void main(void)
       break;
       case 4: j += 7;
       break;
-      default: ;
-      j = 0;
+      default: j = 0;
     }
     i ++;
     unrolling_5_loop: ;
@@ -62,8 +58,7 @@ void main(void)
       break;
       case 4: j += 7;
       break;
-      default: ;
-      j = 0;
+      default: j = 0;
     }
     i ++;
     unrolling_4_loop: ;
@@ -77,8 +72,7 @@ void main(void)
       break;
       case 4: j += 7;
       break;
-      default: ;
-      j = 0;
+      default: j = 0;
     }
     i ++;
     unrolling_3_loop: ;
@@ -96,50 +90,44 @@ void main(void)
         break;
         case 4: j += 7;
         break;
-        default: ;
-        j = 0;
+        default: j = 0;
       }
       i ++;
     }
     unrolling_2_loop: ;
   }
   {
-    int x;
-    x = 0;
+    int x = 0;
     L:
-      if (! (x < 5)) goto unrolling_8_loop;
-      {
-        int y_unroll_32;
-        y_unroll_32 = 0;
-        x ++;
-        y_unroll_32 ++;
-      }
-      unrolling_11_loop: ;
-      if (! (x < 5)) goto unrolling_8_loop;
-      {
-        int y_unroll_28;
-        y_unroll_28 = 0;
-        x ++;
-        y_unroll_28 ++;
-      }
-      unrolling_10_loop: ;
-      if (! (x < 5)) goto unrolling_8_loop;
-      {
-        int y_unroll_24;
-        y_unroll_24 = 0;
-        x ++;
-        y_unroll_24 ++;
-      }
-      unrolling_9_loop: ;
-      /*@ loop pragma UNROLL 3;
-          loop pragma UNROLL "done", 3; */
-      while (x < 5) {
-        int y;
-        y = 0;
-        x ++;
-        y ++;
-      }
-      unrolling_8_loop: ;
+    if (! (x < 5)) goto unrolling_8_loop;
+    {
+      int y_unroll_32 = 0;
+      x ++;
+      y_unroll_32 ++;
+    }
+    unrolling_11_loop: ;
+    if (! (x < 5)) goto unrolling_8_loop;
+    {
+      int y_unroll_28 = 0;
+      x ++;
+      y_unroll_28 ++;
+    }
+    unrolling_10_loop: ;
+    if (! (x < 5)) goto unrolling_8_loop;
+    {
+      int y_unroll_24 = 0;
+      x ++;
+      y_unroll_24 ++;
+    }
+    unrolling_9_loop: ;
+    /*@ loop pragma UNROLL 3;
+        loop pragma UNROLL "done", 3; */
+    while (x < 5) {
+      int y = 0;
+      x ++;
+      y ++;
+    }
+    unrolling_8_loop: ;
   }
   j = 0;
   if (! foo) goto unrolling_18_loop;
@@ -147,19 +135,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
-      j ++;
-      unrolling_16_loop_unrolling_45_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
-      j ++;
-      unrolling_15_loop_unrolling_46_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
-      j ++;
-      unrolling_14_loop_unrolling_47_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_48_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
+    j ++;
+    unrolling_16_loop_unrolling_45_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
+    j ++;
+    unrolling_15_loop_unrolling_46_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_48_loop;
+    j ++;
+    unrolling_14_loop_unrolling_47_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_48_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -172,19 +160,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
-      j ++;
-      unrolling_16_loop_unrolling_40_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
-      j ++;
-      unrolling_15_loop_unrolling_41_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
-      j ++;
-      unrolling_14_loop_unrolling_42_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_43_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
+    j ++;
+    unrolling_16_loop_unrolling_40_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
+    j ++;
+    unrolling_15_loop_unrolling_41_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_43_loop;
+    j ++;
+    unrolling_14_loop_unrolling_42_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_43_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -197,19 +185,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
-      j ++;
-      unrolling_16_loop_unrolling_35_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
-      j ++;
-      unrolling_15_loop_unrolling_36_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
-      j ++;
-      unrolling_14_loop_unrolling_37_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_38_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
+    j ++;
+    unrolling_16_loop_unrolling_35_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
+    j ++;
+    unrolling_15_loop_unrolling_36_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_38_loop;
+    j ++;
+    unrolling_14_loop_unrolling_37_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_38_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -222,19 +210,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
-      j ++;
-      unrolling_16_loop_unrolling_30_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
-      j ++;
-      unrolling_15_loop_unrolling_31_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
-      j ++;
-      unrolling_14_loop_unrolling_32_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_33_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
+    j ++;
+    unrolling_16_loop_unrolling_30_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
+    j ++;
+    unrolling_15_loop_unrolling_31_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_33_loop;
+    j ++;
+    unrolling_14_loop_unrolling_32_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_33_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -247,19 +235,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
-      j ++;
-      unrolling_16_loop_unrolling_25_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
-      j ++;
-      unrolling_15_loop_unrolling_26_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
-      j ++;
-      unrolling_14_loop_unrolling_27_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_28_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
+    j ++;
+    unrolling_16_loop_unrolling_25_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
+    j ++;
+    unrolling_15_loop_unrolling_26_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_28_loop;
+    j ++;
+    unrolling_14_loop_unrolling_27_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_28_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -272,19 +260,19 @@ void main(void)
     case -1: j ++;
     break;
     case 0:
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
-      j ++;
-      unrolling_16_loop_unrolling_20_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
-      j ++;
-      unrolling_15_loop_unrolling_21_loop: ;
-      if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
-      j ++;
-      unrolling_14_loop_unrolling_22_loop: ;
-      /*@ loop pragma UNROLL "done", 3;
-          loop pragma UNROLL 3; */
-      while (j < 5) j ++;
-      unrolling_13_loop_unrolling_23_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
+    j ++;
+    unrolling_16_loop_unrolling_20_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
+    j ++;
+    unrolling_15_loop_unrolling_21_loop: ;
+    if (! (j < 5)) goto unrolling_13_loop_unrolling_23_loop;
+    j ++;
+    unrolling_14_loop_unrolling_22_loop: ;
+    /*@ loop pragma UNROLL "done", 3;
+        loop pragma UNROLL 3; */
+    while (j < 5) j ++;
+    unrolling_13_loop_unrolling_23_loop: ;
     break;
     case 5: j = -1;
     break;
@@ -299,19 +287,19 @@ void main(void)
       case -1: j ++;
       break;
       case 0:
-        if (! (j < 5)) goto unrolling_13_loop;
-        j ++;
-        unrolling_16_loop: ;
-        if (! (j < 5)) goto unrolling_13_loop;
-        j ++;
-        unrolling_15_loop: ;
-        if (! (j < 5)) goto unrolling_13_loop;
-        j ++;
-        unrolling_14_loop: ;
-        /*@ loop pragma UNROLL 3;
-            loop pragma UNROLL "done", 3; */
-        while (j < 5) j ++;
-        unrolling_13_loop: ;
+      if (! (j < 5)) goto unrolling_13_loop;
+      j ++;
+      unrolling_16_loop: ;
+      if (! (j < 5)) goto unrolling_13_loop;
+      j ++;
+      unrolling_15_loop: ;
+      if (! (j < 5)) goto unrolling_13_loop;
+      j ++;
+      unrolling_14_loop: ;
+      /*@ loop pragma UNROLL 3;
+          loop pragma UNROLL "done", 3; */
+      while (j < 5) j ++;
+      unrolling_13_loop: ;
       break;
       case 5: j = -1;
       break;
@@ -323,50 +311,47 @@ void main(void)
   if (j == 1) goto un;
   goto return_label;
   zero:
-    if (! (j < 5)) goto unrolling_50_loop;
-    un_unrolling_56_loop: j ++;
-    unrolling_55_loop: ;
-    if (! (j < 5)) goto unrolling_50_loop;
-    un_unrolling_54_loop: j ++;
-    unrolling_53_loop: ;
-    if (! (j < 5)) goto unrolling_50_loop;
-    un_unrolling_52_loop: j ++;
-    unrolling_51_loop: ;
-    /*@ loop pragma UNROLL 3;
-        loop pragma UNROLL "done", 3; */
-    while (j < 5) un: j ++;
-    unrolling_50_loop: ;
+  if (! (j < 5)) goto unrolling_50_loop;
+  un_unrolling_56_loop: j ++;
+  unrolling_55_loop: ;
+  if (! (j < 5)) goto unrolling_50_loop;
+  un_unrolling_54_loop: j ++;
+  unrolling_53_loop: ;
+  if (! (j < 5)) goto unrolling_50_loop;
+  un_unrolling_52_loop: j ++;
+  unrolling_51_loop: ;
+  /*@ loop pragma UNROLL 3;
+      loop pragma UNROLL "done", 3; */
+  while (j < 5) un: j ++;
+  unrolling_50_loop: ;
   return_label: return;
 }
 
 void main2(void)
 {
-  int i;
-  i = 0;
+  int i = 0;
   if (! (i < 2)) goto unrolling_58_loop;
   {
-    int j_unroll_186;
-    j_unroll_186 = 0;
-    while (j_unroll_186 < 2) {
+    int j_unroll_192 = 0;
+    while (j_unroll_192 < 2) {
       i ++;
       goto foo_unrolling_62_loop;
       i ++;
       foo_unrolling_62_loop: ;
-      j_unroll_186 ++;
+      j_unroll_192 ++;
     }
   }
   i ++;
   unrolling_61_loop: ;
   if (! (i < 2)) goto unrolling_58_loop;
   {
-    int j_unroll_178;
-    j_unroll_178 = 0;
-    while (j_unroll_178 < 2) {
+    int j_unroll_184 = 0;
+    while (j_unroll_184 < 2) {
       i ++;
       goto foo_unrolling_60_loop;
       i ++;
       foo_unrolling_60_loop: ;
-      j_unroll_178 ++;
+      j_unroll_184 ++;
     }
   }
   i ++;
@@ -375,8 +360,7 @@ void main2(void)
       loop pragma UNROLL "done", 2; */
   while (i < 2) {
     {
-      int j;
-      j = 0;
+      int j = 0;
       while (j < 2) {
         i ++;
         goto foo;
@@ -393,14 +377,12 @@ void main2(void)
 
 void main2_done(void)
 {
-  int i;
-  i = 0;
+  int i = 0;
   /*@ loop pragma UNROLL 2;
       loop pragma UNROLL "done", 2; */
   while (i < 2) {
     {
-      int j;
-      j = 0;
+      int j = 0;
       if (! (j < 2)) goto unrolling_64_loop;
       i ++;
       goto foo_unrolling_68_loop;
@@ -433,24 +415,22 @@ void main2_done(void)
 
 void main3(int c)
 {
-  int i;
-  i = 0;
+  int i = 0;
   if (c == 0) goto foo;
   if (! (i < 5)) goto unrolling_70_loop;
   {
-    int j_unroll_238;
-    j_unroll_238 = 0;
-    if (i == j_unroll_238) goto foo_unrolling_77_loop;
+    int j_unroll_244 = 0;
+    if (i == j_unroll_244) goto foo_unrolling_77_loop;
     if (i == 1) goto unrolling_70_loop;
     if (i == 2) goto __Cont_unrolling_80_loop;
-    while (j_unroll_238 < 5) {
-      if (i == j_unroll_238) break;
-      if (i < j_unroll_238) goto foo_unrolling_77_loop;
-      if (i == j_unroll_238 + 1) goto __Cont_0_unrolling_78_loop;
-      if (i == j_unroll_238 + 2) goto up_unrolling_79_loop;
+    while (j_unroll_244 < 5) {
+      if (i == j_unroll_244) break;
+      if (i < j_unroll_244) goto foo_unrolling_77_loop;
+      if (i == j_unroll_244 + 1) goto __Cont_0_unrolling_78_loop;
+      if (i == j_unroll_244 + 2) goto up_unrolling_79_loop;
       i ++;
       foo_unrolling_77_loop: i ++;
-      __Cont_0_unrolling_78_loop: j_unroll_238 ++;
+      __Cont_0_unrolling_78_loop: j_unroll_244 ++;
     }
     up_unrolling_79_loop: ;
   }
@@ -458,19 +438,18 @@ void main3(int c)
   unrolling_76_loop: ;
   if (! (i < 5)) goto unrolling_70_loop;
   {
-    int j_unroll_216;
-    j_unroll_216 = 0;
-    if (i == j_unroll_216) goto foo_unrolling_72_loop;
+    int j_unroll_222 = 0;
+    if (i == j_unroll_222) goto foo_unrolling_72_loop;
     if (i == 1) goto unrolling_70_loop;
     if (i == 2) goto __Cont_unrolling_75_loop;
-    while (j_unroll_216 < 5) {
-      if (i == j_unroll_216) break;
-      if (i < j_unroll_216) goto foo_unrolling_72_loop;
-      if (i == j_unroll_216 + 1) goto __Cont_0_unrolling_73_loop;
-      if (i == j_unroll_216 + 2) goto up_unrolling_74_loop;
+    while (j_unroll_222 < 5) {
+      if (i == j_unroll_222) break;
+      if (i < j_unroll_222) goto foo_unrolling_72_loop;
+      if (i == j_unroll_222 + 1) goto __Cont_0_unrolling_73_loop;
+      if (i == j_unroll_222 + 2) goto up_unrolling_74_loop;
       i ++;
       foo_unrolling_72_loop: i ++;
-      __Cont_0_unrolling_73_loop: j_unroll_216 ++;
+      __Cont_0_unrolling_73_loop: j_unroll_222 ++;
     }
     up_unrolling_74_loop: ;
   }
@@ -480,8 +459,7 @@ void main3(int c)
       loop pragma UNROLL "done", 2; */
   while (i < 5) {
     {
-      int j;
-      j = 0;
+      int j = 0;
       if (i == j) goto foo;
       if (i == 1) break;
       if (i == 2) goto __Cont;

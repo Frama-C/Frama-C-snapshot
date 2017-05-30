@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -246,13 +246,6 @@ let wp_panel
     ~tooltip:"Reports proof information from provers"
     ~packing:options#pack
     Wp_parameters.ProofTrace.get Wp_parameters.ProofTrace.set demon ;
-
-  let options = GPack.hbox ~spacing:8 ~packing () in
-
-  Gtk_form.check ~label:"Invariants"
-    ~tooltip:"Alternative WP for loop with arbitrary invariants"
-    ~packing:options#pack
-    Wp_parameters.Invariants.get Wp_parameters.Invariants.set demon ;
 
   let control = GPack.table ~columns:2 ~col_spacings:8 ~rows:4 ~packing () in
   let addcontrol line col w = control#attach ~left:(col-1) ~top:(line-1) ~expand:`NONE w in

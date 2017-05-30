@@ -17,7 +17,6 @@ Goal Instance of 'Pre-condition (file tests/wp_store/struct.i, line 10) in 'g'' 
 :
 Let a_1 = shift_sint32(shiftfield_F1_t_tab(a), 0).
 Assume {
-  Type: is_sint32(Mint_0[a_1]).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -50,13 +49,13 @@ Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).
   (* Initializer *)
-  Init: 1 = (w.F2_St_a).
+  Init: (w.F2_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w.F2_St_b).
+  Init: (w.F2_St_b) = 2.
   (* Initializer *)
-  Init: 1 = Mint_0[shiftfield_F2_St_a(a)].
+  Init: Mint_0[shiftfield_F2_St_a(a)] = 1.
   (* Initializer *)
-  Init: 2 = Mint_0[shiftfield_F2_St_b(a)].
+  Init: Mint_0[shiftfield_F2_St_b(a)] = 2.
   (* Heap *)
   Have: region(G_v_75) <= 0.
 }
@@ -70,13 +69,13 @@ Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).
   (* Initializer *)
-  Init: 1 = (w.F2_St_a).
+  Init: (w.F2_St_a) = 1.
   (* Initializer *)
-  Init: 2 = (w.F2_St_b).
+  Init: (w.F2_St_b) = 2.
   (* Initializer *)
-  Init: 1 = Mint_0[shiftfield_F2_St_a(a)].
+  Init: Mint_0[shiftfield_F2_St_a(a)] = 1.
   (* Initializer *)
-  Init: 2 = Mint_0[shiftfield_F2_St_b(a)].
+  Init: Mint_0[shiftfield_F2_St_b(a)] = 2.
   (* Heap *)
   Have: region(G_v_75) <= 0.
 }

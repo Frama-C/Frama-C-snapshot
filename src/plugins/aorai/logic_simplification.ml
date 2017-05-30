@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -44,13 +44,13 @@ let opposite_rel =
     | Rneq -> Req
 
 let rec condToDNF cond = 
-  (*Typage : condition --> liste de liste de termes (disjonction de conjonction de termes)
-    DNF(terme)   = {{terme}}
+  (*Typing : condition --> list of list of terms (disjunction of conjunction of terms)
+    DNF(term)   = {{term}}
     DNF(a or b)  = DNF(a) \/ DNF(b) 
     DNF(a and b) = Composition (DNF(a),DNF(b)) 
     DNF(not a)   = tmp = DNF(a) 
                    composition (tmp) 
-                   negation de chaque terme 
+                   negation of each term 
   *)
   match cond with
     | TOr  (c1, c2) -> (condToDNF c1)@(condToDNF c2)
@@ -448,7 +448,7 @@ let simplifyDNFwrtCtx dnf kf1 status =
 (*
 Tests : 
 
-Marchent :
+Working :
 ==========
 simplifyCond(PAnd(POr(PTrue,PIndexedExp("a")),PNot(PAnd(PFalse,PIndexedExp("b")))));;
 - : condition = PTrue
@@ -484,7 +484,7 @@ simplifyCond(POr (PCall "b", PCall "b"));;
 
 
 
-Simplifications a faire :
+Simplifications to be done :
 =========================
 
 

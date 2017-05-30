@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -111,7 +111,7 @@ class printerClass optional_ff = object(self)
       label_info
       super#label l
 
-  method! private require_braces ?has_annot:_ _ = true
+  method! private require_braces _ _ = true
 end
 
 let print_fct_from_pdg fmt ?ff pdg  =
@@ -134,6 +134,10 @@ let print_original_glob fmt glob =
 
 (*----------------------------------------------------------------------------*)
 module PrintProject = struct
+  (* Type project is left, instead of being replaced by
+     calls to !Db.Slicing.Project.get_project everywhere.
+     Not sure which solution is the best one.
+  *)
   type t = string * SlicingInternals.project
   type node =
     | Src of SlicingInternals.fct_info
@@ -171,7 +175,7 @@ module PrintProject = struct
       | rq :: rq_list -> f (Action (n, rq)) ; do_act (n+1) rq_list
     in do_act 1 proj.SlicingInternals.actions;
     let do_kf kf =
-      let fi = SlicingMacros.get_kf_fi proj kf in
+      let fi = SlicingMacros.get_kf_fi kf in
       let slices = SlicingMacros.fi_slices fi in
         List.iter (fun ff -> f (Slice ff)) slices;
         f (Src fi)
@@ -197,23 +201,22 @@ module PrintProject = struct
           do_act_edge (n+1) (rq2 :: rq_list)
     in do_act_edge 1 proj.SlicingInternals.actions
 
-  let iter_edges_src_fun f proj =
+  let iter_edges_src_fun f =
     let do_kf_calls kf =
-      let fi = SlicingMacros.get_kf_fi proj kf in
+      let fi = SlicingMacros.get_kf_fi kf in
       let doit (kf_caller,_) =
-        let fi_caller = SlicingMacros.get_kf_fi proj kf_caller in
+        let fi_caller = SlicingMacros.get_kf_fi kf_caller in
           f ((Src fi_caller, Src fi), None)
       in List.iter doit (!Db.Value.callers kf)
     in
       Globals.Functions.iter do_kf_calls
 
   let iter_edges_e f (_, proj) =
-    let _ = match proj.SlicingInternals.actions with [] -> ()
-      | rq :: _ -> f ((node_slice_callers (), (Action (1, rq))), None) in
-    let _ = iter_edges_slices f proj in
-    let _ = iter_edges_actions f proj in
-    let _ = iter_edges_src_fun f proj in
-      ()
+    match proj.SlicingInternals.actions with [] -> ()
+      | rq :: _ -> f ((node_slice_callers (), (Action (1, rq))), None);
+    iter_edges_slices f proj;
+    iter_edges_actions f proj;
+    iter_edges_src_fun f
 
   let color_soft_green = (0x7FFFD4)
   let color_medium_green = (0x00E598)
@@ -323,12 +326,13 @@ end
 
 module PrintProjGraph = Graph.Graphviz.Dot(PrintProject)
 
-let build_dot_project filename title project =
+let build_dot_project filename title =
+  let project = SlicingState.get () in
   let file = open_out filename in
-    PrintProjGraph.output_graph file (title, project);
-    close_out file
+  PrintProjGraph.output_graph file (title, project);
+  close_out file
 
-let print_fct_stmts fmt (_proj, kf) =
+let print_fct_stmts fmt kf =
   try
     let pdg = !Db.Pdg.get kf in
     print_fct_from_pdg fmt pdg;

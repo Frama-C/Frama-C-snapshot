@@ -21,18 +21,18 @@ Assume {
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_1) < x) ->
-      (0 != Mchar_0[shift_sint8(s, i_1)]))).
+      (Mchar_0[shift_sint8(s, i_1)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\
       addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
   (* Invariant 'BASE' *)
-  Have: x_3 = ss_0.base.
+  Have: ss_0.base = x_3.
   (* Else *)
-  Have: 0 = Mchar_0[ss_0].
+  Have: Mchar_0[ss_0] = 0.
   (* Assertion 'END' *)
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, x_2).
 }
-Prove: exists i_1 : Z. (x = (i_1 + x_1)) /\
+Prove: exists i_1 : Z. ((i_1 + x_1) = x) /\
     P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
 
 ------------------------------------------------------------
@@ -60,13 +60,13 @@ Assume {
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + s.offset) < ss_0.offset) ->
-      (0 != Mchar_0[shift_sint8(s, i_1)]))).
+      (Mchar_0[shift_sint8(s, i_1)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\ addr_le(ss_0, a).
   (* Invariant 'BASE' *)
-  Have: x_1 = ss_0.base.
+  Have: ss_0.base = x_1.
   (* Then *)
-  Have: 0 != x.
+  Have: x != 0.
 }
 Prove: addr_le(s, a_1) /\ addr_le(a_1, a).
 
@@ -74,7 +74,6 @@ Prove: addr_le(s, a_1) /\ addr_le(a_1, a).
 
 Goal Establishment of Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29):
 Assume {
-  Type: is_sint8(Mchar_0[ss_0]).
   (* Heap *)
   Have: (region(s.base) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
   (* Pre-condition *)
@@ -99,16 +98,16 @@ Assume {
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
   (* Invariant 'ZERO' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> (((i_2 + x_2) < x_3) ->
-      (0 != Mchar_0[shift_sint8(s, i_2)]))).
+      (Mchar_0[shift_sint8(s, i_2)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\
       addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
   (* Invariant 'BASE' *)
-  Have: x_1 = ss_0.base.
+  Have: ss_0.base = x_1.
   (* Then *)
-  Have: 0 != x.
+  Have: x != 0.
 }
-Prove: 0 != Mchar_0[shift_sint8(s, i)].
+Prove: Mchar_0[shift_sint8(s, i)] != 0.
 
 ------------------------------------------------------------
 
@@ -128,14 +127,14 @@ Assume {
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_1) < x_2) ->
-      (0 != Mchar_0[shift_sint8(s, i_1)]))).
+      (Mchar_0[shift_sint8(s, i_1)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\
       addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
   (* Invariant 'BASE' *)
-  Have: x = ss_0.base.
+  Have: ss_0.base = x.
   (* Else *)
-  Have: 0 = Mchar_0[ss_0].
+  Have: Mchar_0[ss_0] = 0.
 }
 Prove: P_Length_of_str_is(Malloc_0, Mchar_0, s, x_2 - x_1).
 
@@ -146,19 +145,13 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns nothing in 'strlen' (1/3):
-Effect at line 26
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns nothing in 'strlen' (2/3):
+Goal Assigns nothing in 'strlen' (1/2):
 Effect at line 34
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns nothing in 'strlen' (3/3):
+Goal Assigns nothing in 'strlen' (2/2):
 Effect at line 38
 Prove: true.
 
@@ -183,13 +176,13 @@ Assume {
   Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
   (* Invariant 'ZERO' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_3) < x_4) ->
-      (0 != Mchar_0[shift_sint8(s, i_1)]))).
+      (Mchar_0[shift_sint8(s, i_1)] != 0))).
   (* Invariant 'RANGE' *)
   Have: addr_le(s, ss_0) /\ addr_le(ss_0, shift_sint8(s, x_2)).
   (* Invariant 'BASE' *)
-  Have: x_1 = ss_0.base.
+  Have: ss_0.base = x_1.
   (* Then *)
-  Have: 0 != x.
+  Have: x != 0.
 }
 Prove: x_4 <= (x_3 + x_2).
 

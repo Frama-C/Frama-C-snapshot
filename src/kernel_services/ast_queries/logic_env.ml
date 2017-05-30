@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -92,7 +92,7 @@ module Logic_ctor_builtin =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_ctor_info)
     (struct
-       let name = "built-in logic contructors table"
+       let name = "built-in logic constructors table"
        let dependencies = []
        let size = 17
      end)
@@ -102,7 +102,7 @@ module Logic_ctor_info =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_ctor_info)
     (struct
-       let name = "logic contructors table"
+       let name = "logic constructors table"
        let dependencies = [ Logic_ctor_builtin.self ]
        let size = 17
      end)

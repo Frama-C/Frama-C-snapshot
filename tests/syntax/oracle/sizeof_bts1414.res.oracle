@@ -13,8 +13,7 @@ int g(int *a)
     int tmp_0;
     case (int)sizeof(tmp_0): __retres = 1;
     goto return_label;
-    default: ;
-    __retres = 0;
+    default: __retres = 0;
     goto return_label;
   }
   __retres = x;

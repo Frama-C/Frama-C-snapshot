@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (* -------------------------------------------------------------------------- *)
-(** Verification Conditions Database *)
+(** Verification Condition Status *)
 (* -------------------------------------------------------------------------- *)
 
 (** {2 Prover} *)
@@ -32,6 +32,7 @@ type prover =
   | AltErgo       (* Alt-Ergo *)
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)
+  | Tactical      (* Interactive Prover *)
 
 type mode =
   | BatchMode (* Only check scripts *)
@@ -47,22 +48,44 @@ type language =
 (* --- Prover Names                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
+module Pset : Set.S with type elt = prover
 module Pmap : Map.S with type key = prover
 
 val language_of_prover : prover -> language
 val language_of_name : string -> language option
 val name_of_prover : prover -> string
+val title_of_prover : prover -> string
 val filename_for_prover : prover -> string
 val prover_of_name : string -> prover option
 val language_of_prover_name: string -> language option
 val mode_of_prover_name : string -> mode
-val name_of_mode : mode -> string
+val title_of_mode : mode -> string
 
 val pp_prover : Format.formatter -> prover -> unit
 val pp_language : Format.formatter -> language -> unit
 val pp_mode : Format.formatter -> mode -> unit
 
 val cmp_prover : prover -> prover -> int
+
+(** {2 Config} 
+    [None] means current WP option default.
+    [Some 0] means prover default. *)
+
+type config = {
+  valid : bool ;
+  timeout : int option ;
+  stepout : int option ;
+  depth : int option ;
+}
+
+
+val timer : float -> int (** Suitable timeout w.r.t measured time and number of process *)
+val current : unit -> config (** Current parameters *)
+val default : config (** all None *)
+
+val get_timeout : config -> int (** 0 means no-timeout *)
+val get_stepout : config -> int (** 0 means no-stepout *)
+val get_depth : config -> int (** 0 means prover default *)
 
 (** {2 Results} *)
 
@@ -82,6 +105,7 @@ type result = {
   solver_time : float ;
   prover_time : float ;
   prover_steps : int ;
+  prover_depth : int ;
   prover_errpos : Lexing.position option ;
   prover_errmsg : string ;
 }
@@ -96,9 +120,13 @@ val timeout : int -> result
 val computing : (unit -> unit) -> result
 val failed : ?pos:Lexing.position -> string -> result
 val kfailed : ?pos:Lexing.position -> ('a,Format.formatter,unit,result) format4 -> 'a
-val result : ?solver:float -> ?time:float -> ?steps:int -> verdict -> result
+val result : ?solver:float -> ?time:float -> ?steps:int -> ?depth:int -> verdict -> result
 
+val is_auto : prover -> bool
 val is_verdict : result -> bool
+val is_valid: result -> bool
+val configure : result -> config
+val autofit : result -> bool (** Result that fits the default configuration *)
 
 val pp_result : Format.formatter -> result -> unit
 

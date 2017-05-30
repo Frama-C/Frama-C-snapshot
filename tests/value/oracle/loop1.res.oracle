@@ -9,14 +9,18 @@
    [2..99] ∈ {0}
   NULL_GLOBAL_LOOSING_BITS_ONE_BY_ONE ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/value/loop1.i:22.
+        Called from tests/value/loop1.i:25.
 tests/value/loop1.i:5:[value] entering loop for the first time
+tests/value/loop1.i:8:[value] cannot evaluate ACSL term, no environment to evaluate \at(_,LoopCurrent)
+tests/value/loop1.i:8:[value] warning: assertion got status unknown.
+tests/value/loop1.i:9:[value] cannot evaluate ACSL term, no environment to evaluate \at(_,LoopEntry)
+tests/value/loop1.i:9:[value] warning: assertion got status unknown.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/loop1.i:23.
-tests/value/loop1.i:14:[value] entering loop for the first time
-tests/value/loop1.i:16:[value] warning: accessing out of bounds index. assert i < 100;
+        Called from tests/value/loop1.i:26.
+tests/value/loop1.i:17:[value] entering loop for the first time
+tests/value/loop1.i:19:[value] warning: accessing out of bounds index. assert i < 100;
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

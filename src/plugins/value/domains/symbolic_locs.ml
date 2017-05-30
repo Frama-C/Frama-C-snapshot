@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,6 +46,14 @@ module K2V = struct
     let symmetric = true in
     let idempotent = true in
     let decide _ v1 v2 = Some (V.join v1 v2) in
+    M.inter ~cache ~symmetric ~idempotent ~decide
+
+  let widen =
+    let cache = Hptmap_sig.NoCache in
+    let symmetric = false in
+    let idempotent = true in
+    let wh = Integer.zero, fun _b -> Ival.Widen_Hints.empty in
+    let decide _ v1 v2 = Some (V.widen wh v1 v2) in
     M.inter ~cache ~symmetric ~idempotent ~decide
 
   let is_included =
@@ -246,6 +254,25 @@ module Memory = struct
       { values; zones; deps; syntactic_deps }
     with Zone.Error_Top (* unknown dependencies *) -> state
 
+  (* rebuild the state from scratch, especially [deps] and [syntactic_deps].
+     For debugging purposes. *)
+  let rebuild state =
+    let aux k v acc =
+      let z =
+        try K2Z.find k state.zones
+        with Not_found ->
+          Value_parameters.abort "Missing zone for %a@.%a"
+            K.HCE.pretty k pretty state
+      in
+      add_key k v z acc
+    in
+    K2V.fold aux state.values empty_map
+
+  (* check that a state is correct w.r.t. the invariants on [deps] and
+     [syntactic_deps]. *)
+  let _check state =
+    assert (equal state (rebuild state))
+
   (* inverse operation of [add_key] *)
   let remove_key k state =
     try
@@ -292,7 +319,8 @@ module Memory = struct
     let incl = K2V.M.equal m.values m2.values && K2Z.equal m.zones m2.zones in
     (m, incl)
 
-  let widen _kf _wh m1 m2 = join m1 m2 (* TODO: widen values? *)
+  let widen _kf _wh m1 m2 =
+    { m2 with values = K2V.widen m1.values m2.values }
 
   (* ------------------------------------------------------------------------ *)
   (* --- High-level functions                                             --- *)
@@ -387,10 +415,12 @@ module Internal : Domain_builder.InputDomain
 
   let enter_scope _kf _vars state = state
   let leave_scope _kf vars state =
-    (* removed variables revert implicity to Top *)
+    (* removed variables revert implicitly to Top *)
     Memory.remove_variables vars state
 
-  let top_return = { v = `Value V.top; initialized = false; escaping = true }
+  let enter_loop _ state = state
+  let incr_loop_counter _ state = state
+  let leave_loop _ state = state
 
   (* Call in which we do not use the body. Return Top, except for builtins
      and functions that do not significantly alter the memory. *)
@@ -402,12 +432,9 @@ module Internal : Domain_builder.InputDomain
       then state
       else top
     in
-    `Value [{ post_state; return = Some (top_return, ()) }]
+    `Value [post_state]
 
   type origin = unit
-
-  type return = unit
-  module Return = Datatype.Unit
 
   module Transfer (Valuation: Abstract_domain.Valuation
                    with type value = value
@@ -415,7 +442,6 @@ module Internal : Domain_builder.InputDomain
                     and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
       with type state = state
-       and type return = unit
        and type value = V.t
        and type location = Precise_locs.precise_location
        and type valuation = Valuation.t
@@ -423,7 +449,6 @@ module Internal : Domain_builder.InputDomain
     type value = V.t
     type state = Memory.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     (* build a [get_locs] function from a valuation *)
@@ -450,7 +475,19 @@ module Internal : Domain_builder.InputDomain
         match r.reductness, v.v, v.initialized, v.escaping with
         | (Created | Reduced), `Value v, true, false ->
           if not (is_cond e) && multiple_loc_exp (get_locs valuation) e then
-            Memory.add_exp state (get_locs valuation) e v
+            begin
+              let k = K.HCE.of_exp e in
+              (* remove the existing binding: the key may already be in
+                 the state, and [add_exp] assumes it is not the case.
+                 The new dependencies may not be the same (in rare cases
+                 where one dependency has disappeared by reduction), so
+                 we need to update the dependency inverse maps. *)
+              (* TODO: it would be more efficient to use a function that
+                 compares the previous and current dependencies, and update
+                 the inverse maps accordingly. *)
+              let state = Memory.remove_key k state in
+              Memory.add_exp state (get_locs valuation) e v
+            end
           else
             state
         | _ -> state
@@ -494,13 +531,6 @@ module Internal : Domain_builder.InputDomain
       let state = update valuation state in
       Compute (Continue state, true)
 
-    let make_return _kf _stmt _value _valuation _state = ()
-
-    let assign_return _stmt lv _kf () v valuation state =
-      match v with
-      | Copy (_, vf) -> store_copy valuation lv lv.lloc state vf
-      | Assign v -> store_value valuation lv.lval lv.lloc state v
-
     let dump_current_state state =
       let l = fst (Cil.CurrentLoc.get ()) in
       Value_parameters.result ~dkey "DUMPING SYMBLOCS STATE \
@@ -516,17 +546,13 @@ module Internal : Domain_builder.InputDomain
       then dump_current_state post;
       `Value post
 
-    let default_call _stmt call state =
+    let approximate_call _stmt call state =
       approximate_call call.kf state
-
-    let enter_loop _ state = state
-    let incr_loop_counter _ state = state
-    let leave_loop _ state = state
 
   end
 
-  let compute_using_specification _ki (kf, _spec) state =
-    approximate_call kf state
+  let compute_using_specification _ki call _spec state =
+    approximate_call call.kf state
 
   let top_query = `Value (V.top, ()), Alarmset.all
 

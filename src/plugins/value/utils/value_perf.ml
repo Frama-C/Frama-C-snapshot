@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -468,12 +468,12 @@ let reset () =
 
 (* TODO: Output files with more graphical outputs, such as
 
-   Gprof2dot-like output: (directoly output the dot)
+   Gprof2dot-like output: (directory output the dot)
    http://code.google.com/p/jrfonseca/wiki/Gprof2Dot
 
    The latter would be useful to see when imbricated loops multiply
    the number of calls to leaf functions. 
 
    TODO: Also account for the memexec hit rate; and for the individual
-   execution time of derivated plugins.
+   execution time of derived plugins.
 *)

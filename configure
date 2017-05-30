@@ -619,14 +619,14 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='LTLIBOBJS
-LIBOBJS
-LABLGTK_PATH
+ac_subst_vars='LABLGTK_PATH
 PTESTSBEST
 HAS_NATIVE_THREADS
 EXTERNAL_PLUGINS
 DEFAULT_CPP_KEEP_COMMENTS
 FRAMAC_GNU_CPP
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS
+FRAMAC_DEFAULT_CPP_ARGS
 FRAMAC_DEFAULT_CPP
 LOCAL_MACHDEP
 CYCLES_PER_USEC
@@ -640,18 +640,11 @@ EXE
 OCAML_ANNOT_OPTION
 OCAMLWIN32
 OCAMLLIB
-OCAMLVERSION
 OCAMLBEST
-APRON_PATH
+HAS_LANDMARKS
 HAS_APRON
-ZARITH_PATH
-HAS_ZARITH
 DEVELOPMENT
 VERBOSEMAKE
-HAS_USABLE_NATIVE_DYNLINK
-USABLE_NATIVE_DYNLINK
-HAS_NATIVE_DYNLINK
-NATIVE_DYNLINK
 DOT
 HAS_DOT
 HAS_LABLGTK
@@ -678,6 +671,17 @@ DYNAMIC_NONTERM
 ENABLE_NONTERM
 DYNAMIC_LOOP_ANALYSIS
 ENABLE_LOOP_ANALYSIS
+FULL_GMP
+OCAMLVERSION
+MAY_RUN_TESTS
+OPTIMIZED_RTL
+LTLIBOBJS
+LIBOBJS
+HAVE_DOT
+DOXYGEN
+UNAME
+DYNAMIC_E_ACSL
+ENABLE_E_ACSL
 LTLTOBA
 HAS_LTLTOBA
 DYNAMIC_AORAI
@@ -726,9 +730,9 @@ CFLAGS
 CC
 CYGPATH
 OTAGS
-OCAMLCP
 OCAMLMKTOP
 OCAMLDOC
+OCAMLCP
 OCAMLYACC
 OCAMLLEXDOTOPT
 OCAMLLEX
@@ -757,6 +761,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -781,7 +786,7 @@ ac_user_opts='
 enable_option_checking
 enable_verbosemake
 enable_devel_mode
-enable_zarith
+enable_landmarks
 with_cc
 enable_localmachdep
 with_cpp
@@ -821,6 +826,9 @@ with_value_analysis_static
 enable_external
 enable_aorai
 with_aorai_static
+enable_e_acsl
+with_e_acsl_static
+enable_full_gmp
 enable_loop_analysis
 with_loop_analysis_static
 enable_nonterm
@@ -887,6 +895,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1139,6 +1148,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1276,7 +1294,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1429,6 +1447,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1457,11 +1476,11 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-verbosemake    verbose makefile commands
-  --enable-devel-mode    force the devel mode (warnings and warn-error).
-  --disable-devel-mode   force the distrib mode (no warnings and no warn-error).
+  --enable-devel-mode     force the devel mode (warnings and warn-error).
+  --disable-devel-mode    force the distrib mode (no warnings and no warn-error).
 
-  --enable-zarith=<dir> use ZArith library
-  --enable-localmachdep    enable local machdep configuration
+  --enable-landmarks      enable landmarks profiling (default: yes if package installed)
+  --enable-localmachdep   enable local machdep configuration
   --enable-callgraph      support for callgraph plugin (default: yes)
   --enable-semantic_constant_folding
                           support for constant propagation plugin (default: yes)
@@ -1483,6 +1502,8 @@ Optional Features:
                           allows to compile directly from Frama-C kernel
                           some external plug-ins.
   --enable-aorai          support for Aorai plug-in (default: yes)
+  --enable-e_acsl         support for E-ACSL plug-in (default: yes)
+  --enable-full-gmp       "Disable runtime assertions in the RTL"
   --enable-loop_analysis  support for loop analysis plug-in (default: yes)
   --enable-nonterm        support for nonterm plug-in (default: yes)
   --enable-obfuscator     support for Obfuscator plug-in (default: yes)
@@ -1499,7 +1520,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
 specifies a custom C compiler and pre-processor
-  --with-cpp             customize defaut preprocessor for Frama-C
+  --with-cpp             customize default preprocessor for Frama-C
   --with-all-static       link all plug-ins statically (default: no)
   --with-no-plugin        disable all plug-ins (default: no)
   --with-callgraph-static link callgraph statically (default: no)
@@ -1523,6 +1544,7 @@ specifies a custom C compiler and pre-processor
   --with-value_analysis-static
                           link value_analysis statically (default: no)
   --with-aorai-static     link aorai statically (default: no)
+  --with-e_acsl-static    link e_acsl statically (default: no)
   --with-loop_analysis-static
                           link loop_analysis statically (default: no)
   --with-nonterm-static   link nonterm statically (default: no)
@@ -2317,7 +2339,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -2444,7 +2466,7 @@ lt_mark () {
 # $2: mark to propagate to requires
 # $3: mark to propagate to users
 check_and_propagate () {
-  # for each requiers
+  # for each requires
   r=REQUIRE_$1
   eval require="\$$r"
   for p in $require; do
@@ -2918,7 +2940,7 @@ fi
 # Select devel compilation (warnings, warn-error) #
 ###################################################
 
-# It is herited by the plugins
+# It is inherited by the plugins
 
 if test -e ".for_devel"; then
    DEFAULT_DEVEL_MODE=yes
@@ -3121,6 +3143,92 @@ if test "$OCAMLYACC" = no ; then
         as_fn_error $? "Cannot find ocamlyacc." "$LINENO" 5
 fi
 
+# ocamlcp
+# Extract the first word of "ocamlcp", so it can be a program name with args.
+set dummy ocamlcp; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_OCAMLCP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$OCAMLCP"; then
+  ac_cv_prog_OCAMLCP="$OCAMLCP" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_OCAMLCP="ocamlcp"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_OCAMLCP" && ac_cv_prog_OCAMLCP="no"
+fi
+fi
+OCAMLCP=$ac_cv_prog_OCAMLCP
+if test -n "$OCAMLCP"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLCP" >&5
+$as_echo "$OCAMLCP" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "$OCAMLCP" = no ; then
+  as_fn_error $? "Cannot find ocamlcp." "$LINENO" 5
+else
+        OCAMLCP="$OCAMLFIND ocamlcp"
+fi
+
+# ocamlgraph
+############
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ocamlgraph" >&5
+$as_echo_n "checking for ocamlgraph... " >&6; }
+
+OCAMLGRAPH=$($OCAMLFIND query ocamlgraph -format %v)
+if test -z "$OCAMLGRAPH" ; then
+  as_fn_error $? "Cannot find ocamlgraph via ocamlfind \
+(requires ocamlgraph 1.8.5 or higher)." "$LINENO" 5
+fi
+case $OCAMLGRAPH in
+      0.* | 1.[01234567].* \
+      | 1.8.0 | 1.8.0+dev \
+      | 1.8.1 | 1.8.1+dev \
+      | 1.8.2 | 1.8.2+dev \
+      | 1.8.3 | 1.8.3+dev \
+      | 1.8.4 | 1.8.4+dev)
+        as_fn_error $? "found $OCAMLGRAPH: requires 1.8.5 or higher." "$LINENO" 5;;
+      1.8.5 | 1.8.6 | 1.8.7)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; };;
+      *)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $OCAMLGRAPH: should work" >&5
+$as_echo "found $OCAMLGRAPH: should work" >&6; };;
+esac
+
+# zarith
+########
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for zarith" >&5
+$as_echo_n "checking for zarith... " >&6; }
+
+ZARITH=$($OCAMLFIND query zarith -format %v)
+if test -z "$ZARITH" ; then
+  as_fn_error $? "Cannot find zarith via ocamlfind." "$LINENO" 5
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+fi
+
 #################################################
 # Check for other (optional) tools/libraries    #
 #################################################
@@ -3217,51 +3325,6 @@ else
         OCAMLMKTOP="$OCAMLFIND ocamlmktop"
 fi
 
-# ocamlcp
-# Extract the first word of "ocamlcp", so it can be a program name with args.
-set dummy ocamlcp; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLCP+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$OCAMLCP"; then
-  ac_cv_prog_OCAMLCP="$OCAMLCP" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLCP="ocamlcp"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_OCAMLCP" && ac_cv_prog_OCAMLCP="no"
-fi
-fi
-OCAMLCP=$ac_cv_prog_OCAMLCP
-if test -n "$OCAMLCP"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLCP" >&5
-$as_echo "$OCAMLCP" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "$OCAMLCP" = no ; then
-  as_fn_error $? "Cannot find ocamlcp." "$LINENO" 5
-else
-        OCAMLCP="$OCAMLFIND ocamlcp"
-fi
-
 # Extract the first word of "otags", so it can be a program name with args.
 set dummy otags; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -3300,94 +3363,6 @@ fi
 
 
 
-##############
-# ocamlgraph #
-##############
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ocamlgraph" >&5
-$as_echo_n "checking for ocamlgraph... " >&6; }
-
-OCAMLGRAPH=$($OCAMLFIND query ocamlgraph -format %v)
-if test -z "$OCAMLGRAPH" ; then
-  as_fn_error $? "Cannot find ocamlgraph via ocamlfind \
-(requires ocamlgraph 1.8.5 or higher)." "$LINENO" 5
-fi
-case $OCAMLGRAPH in
-      0.* | 1.[01234567].* \
-      | 1.8.0 | 1.8.0+dev \
-      | 1.8.1 | 1.8.1+dev \
-      | 1.8.2 | 1.8.2+dev \
-      | 1.8.3 | 1.8.3+dev \
-      | 1.8.4 | 1.8.4+dev)
-        as_fn_error $? "found $OCAMLGRAPH: requires 1.8.5 or higher." "$LINENO" 5;;
-      1.8.5 | 1.8.6 | 1.8.7)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; };;
-      *)
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $OCAMLGRAPH: should work" >&5
-$as_echo "found $OCAMLGRAPH: should work" >&6; };;
-esac
-
-# zarith
-########
-
-# Check whether --enable-zarith was given.
-if test "${enable_zarith+set}" = set; then :
-  enableval=$enable_zarith; ZARITH_PATH=$enableval
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Zarith" >&5
-$as_echo_n "checking for Zarith... " >&6; }
-
-if test -z "$ZARITH_PATH"; then
-  # standard installation procedure of zarith diverges according to
-  # ocamlfind installation (see zarith's README)
-    ZARITH_PATH=$($OCAMLFIND query zarith 2>/dev/null | tr -d '\r\n')
-    if test -z "$ZARITH_PATH"; then
-      HAS_ZARITH="no";
-    else
-      HAS_ZARITH="yes";
-    fi;
-  if test "$HAS_ZARITH" = "no"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Zarith not found: will use the default less efficient library instead" >&5
-$as_echo "$as_me: WARNING: Zarith not found: will use the default less efficient library instead" >&2;}
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-  fi
-else
-  as_ac_File=`$as_echo "ac_cv_file_$ZARITH_PATH/zarith.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ZARITH_PATH/zarith.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $ZARITH_PATH/zarith.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$ZARITH_PATH/zarith.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_ZARITH=yes
-else
-  HAS_ZARITH=no
-fi
-
-  if test "$HAS_ZARITH" = "no"; then
-    as_fn_error $? "Zarith: file $ZARITH_PATH/zarith.$LIB_SUFFIX not found." "$LINENO" 5
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-  fi
-fi
-
 # apron
 ########
 
@@ -3405,6 +3380,36 @@ else
 $as_echo "not found. The corresponding domains won't be available in Eva" >&6; }
 fi;
 
+# landmarks (profiling tool, for developers)
+########
+
+# Check whether --enable-landmarks was given.
+if test "${enable_landmarks+set}" = set; then :
+  enableval=$enable_landmarks; ENABLE_LANDMARKS=$enableval
+else
+  ENABLE_LANDMARKS=yes
+fi
+
+
+if test "$ENABLE_LANDMARKS" = yes ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Landmarks" >&5
+$as_echo_n "checking for Landmarks... " >&6; }
+  LANDMARKS_PATH=$($OCAMLFIND query landmarks 2>/dev/null | tr -d '\r\n')
+  LANDMARKS_PPX_PATH=$($OCAMLFIND query landmarks.ppx 2>/dev/null | tr -d '\r\n')
+  if test -f "$LANDMARKS_PATH/landmarks.cmxs" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
+    HAS_LANDMARKS="yes";
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+  else
+    HAS_LANDMARKS="no";
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found." >&5
+$as_echo "not found." >&6; }
+  fi;
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: Landmarks profiling disabled" >&5
+$as_echo "Landmarks profiling disabled" >&6; };
+  HAS_LANDMARKS="no"
+fi
 
 ############
 # Platform #
@@ -5146,6 +5151,61 @@ rm -f conftest.err conftest.i conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&5
 $as_echo "Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&6; }
 
+FRAMAC_DEFAULT_CPP_ARGS=$CPPFLAGS
+
+# Test if preprocessor supports options such as -m16/-m32/-m64
+
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS=
+
+# Store original value of CPPFLAGS before doing tests
+OLD_CPPFLAGS=$CPPFLAGS
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m32"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m32 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m32\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m64"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m64 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m64\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m16"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Check if preprocessor supports option -m16 */
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m16\"; ';
+  fi
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+# revert CPPFLAGS to original value
+CPPFLAGS=$OLD_CPPFLAGS
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS" >&5
+$as_echo "Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS" >&6; }
+
+
 #################
 # Plugin wished #
 #################
@@ -5188,10 +5248,6 @@ REQUIRE_LABLGTK=
 USE_LABLGTK=
 HAS_LABLGTK=
 
-REQUIRE_NATIVE_DYNLINK=
-USE_NATIVE_DYNLINK=
-HAS_NATIVE_DYNLINK=uncheck
-
 # Tool declarations
 ####################
 
@@ -5210,7 +5266,7 @@ PLUGINS_FORCE_LIST=
 # Plug-in sections #                                                          #
 ####################                                                          #
 #                                                                             #
-# For 'internal' developpers:                                                 #
+# For 'internal' developers:                                                 #
 # Add your own plug-in here                                                   #
 #                                                                             #
 ###############################################################################
@@ -7488,7 +7544,7 @@ fi
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -7725,6 +7781,1710 @@ fi
 
 
 
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2017                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# E-ACSL as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/e-acsl/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/e-acsl/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_e_acsl_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/e-acsl/Makefile.in"; then
+  ac_cv_file_src_plugins_e_acsl_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_e_acsl_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_e_acsl_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_e_acsl_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_e_acsl_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-e_acsl was given.
+if test "${enable_e_acsl+set}" = set; then :
+  enableval=$enable_e_acsl; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "e_acsl is not available" "$LINENO" 5
+fi
+
+FORCE_E_ACSL=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_E_ACSL
+
+ENABLE_E_ACSL=$ENABLE
+NAME_E_ACSL=e_acsl
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_E_ACSL=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-e_acsl-static was given.
+if test "${with_e_acsl_static+set}" = set; then :
+  withval=$with_e_acsl_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_E_ACSL=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} e_acsl"
+     DYNAMIC_E_ACSL=yes
+   else
+     DYNAMIC_E_ACSL=no
+   fi
+
+
+
+echo "e_acsl... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_RTEGEN=$REQUIRE_RTEGEN" "e_acsl
+        REQUIRED_E_ACSL=$REQUIRED_E_ACSL" "rtegen
+
+
+
+
+
+
+# E-ACSL only works on Linux as of now. Disable it on Mac OS and Windows
+# Extract the first word of "uname", so it can be a program name with args.
+set dummy uname; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_UNAME+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$UNAME"; then
+  ac_cv_prog_UNAME="$UNAME" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_UNAME="uname"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_UNAME" && ac_cv_prog_UNAME="no"
+fi
+fi
+UNAME=$ac_cv_prog_UNAME
+if test -n "$UNAME"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $UNAME" >&5
+$as_echo "$UNAME" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+if test "$UNAME" = "no"; then
+
+
+
+  if test "FORCE_E_ACSL" = "yes"; then
+    as_fn_error $? "e_acsl requested but Not on a POSIX platform." "$LINENO" 5;
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: e_acsl disabled because Not on a POSIX platform." >&5
+$as_echo "$as_me: WARNING: e_acsl disabled because Not on a POSIX platform." >&2;};
+    ENABLE_E_ACSL=no;
+    INFO_E_ACSL=", Not on a POSIX platform."
+  fi
+fi
+
+HOST_OS=$($UNAME -s)
+case $HOST_OS in
+Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
+# BSDs haven't really be tested, but it should at least compile fine
+;;
+*)
+
+
+
+  if test "FORCE_E_ACSL" = "yes"; then
+    as_fn_error $? "e_acsl requested but unsupported system $HOST_OS" "$LINENO" 5;
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: e_acsl disabled because unsupported system $HOST_OS" >&5
+$as_echo "$as_me: WARNING: e_acsl disabled because unsupported system $HOST_OS" >&2;};
+    ENABLE_E_ACSL=no;
+    INFO_E_ACSL=", unsupported system $HOST_OS"
+  fi
+;;
+esac
+
+# perform additional checks when not compiled
+# directly with main Frama-C distribution
+ # end of configuration specific to external compilation mode
+
+# no need to continue checking other features if E-ACSL is disabled
+if test "$ENABLE_E_ACSL" != "no"; then
+
+###############################
+# C specific stuff for E-ACSL #
+###############################
+
+MAY_RUN_TESTS=yes
+
+# C compiler and stdio.h
+#########################
+
+for ac_header in stdio.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "stdio.h" "ac_cv_header_stdio_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdio_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDIO_H 1
+_ACEOF
+ HAVE_STDIO_H=yes
+fi
+
+done
+
+
+# not sure it can actually happen:
+# looks like configure stops on error if no C compiler detected
+if test -z $HAVE_STDIO_H; then
+  MAY_RUN_TESTS=no
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: stdio.h missing: non-regression tests unavailable." >&5
+$as_echo "$as_me: WARNING: stdio.h missing: non-regression tests unavailable." >&2;}
+fi
+
+# Doxygen
+#########
+
+# Extract the first word of "doxygen", so it can be a program name with args.
+set dummy doxygen; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_DOXYGEN+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$DOXYGEN"; then
+  ac_cv_prog_DOXYGEN="$DOXYGEN" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_DOXYGEN="doxygen"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_DOXYGEN" && ac_cv_prog_DOXYGEN="no"
+fi
+fi
+DOXYGEN=$ac_cv_prog_DOXYGEN
+if test -n "$DOXYGEN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DOXYGEN" >&5
+$as_echo "$DOXYGEN" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "dot", so it can be a program name with args.
+set dummy dot; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_HAVE_DOT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$HAVE_DOT"; then
+  ac_cv_prog_HAVE_DOT="$HAVE_DOT" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_HAVE_DOT="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAVE_DOT" && ac_cv_prog_HAVE_DOT="no"
+fi
+fi
+HAVE_DOT=$ac_cv_prog_HAVE_DOT
+if test -n "$HAVE_DOT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $HAVE_DOT" >&5
+$as_echo "$HAVE_DOT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+ac_config_files="$ac_config_files src/plugins/e-acsl/doc/doxygen/doxygen.cfg"
+
+ac_config_commands="$ac_config_commands default"
+
+cat >confcache <<\_ACEOF
+# This file is a shell script that caches the results of configure
+# tests run on this system so they can be shared between configure
+# scripts and configure runs, see configure's option --config-cache.
+# It is not useful on other systems.  If it contains results you don't
+# want to keep, you may remove or edit it.
+#
+# config.status only pays attention to the cache file if you give it
+# the --recheck option to rerun configure.
+#
+# `ac_cv_env_foo' variables (set or unset) will be overridden when
+# loading this file, other *unset* `ac_cv_foo' will be assigned the
+# following values.
+
+_ACEOF
+
+# The following way of writing the cache mishandles newlines in values,
+# but we know of no workaround that is simple, portable, and efficient.
+# So, we kill variables containing newlines.
+# Ultrix sh set writes to stderr and can't be redirected directly,
+# and sets the high bit in the cache file unless we assign to the vars.
+(
+  for ac_var in `(set) 2>&1 | sed -n 's/^\([a-zA-Z_][a-zA-Z0-9_]*\)=.*/\1/p'`; do
+    eval ac_val=\$$ac_var
+    case $ac_val in #(
+    *${as_nl}*)
+      case $ac_var in #(
+      *_cv_*) { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cache variable $ac_var contains a newline" >&5
+$as_echo "$as_me: WARNING: cache variable $ac_var contains a newline" >&2;} ;;
+      esac
+      case $ac_var in #(
+      _ | IFS | as_nl) ;; #(
+      BASH_ARGV | BASH_SOURCE) eval $ac_var= ;; #(
+      *) { eval $ac_var=; unset $ac_var;} ;;
+      esac ;;
+    esac
+  done
+
+  (set) 2>&1 |
+    case $as_nl`(ac_space=' '; set) 2>&1` in #(
+    *${as_nl}ac_space=\ *)
+      # `set' does not quote correctly, so add quotes: double-quote
+      # substitution turns \\\\ into \\, and sed turns \\ into \.
+      sed -n \
+	"s/'/'\\\\''/g;
+	  s/^\\([_$as_cr_alnum]*_cv_[_$as_cr_alnum]*\\)=\\(.*\\)/\\1='\\2'/p"
+      ;; #(
+    *)
+      # `set' quotes correctly as required by POSIX, so do not add quotes.
+      sed -n "/^[_$as_cr_alnum]*_cv_[_$as_cr_alnum]*=/p"
+      ;;
+    esac |
+    sort
+) |
+  sed '
+     /^ac_cv_env_/b end
+     t clear
+     :clear
+     s/^\([^=]*\)=\(.*[{}].*\)$/test "${\1+set}" = set || &/
+     t end
+     s/^\([^=]*\)=\(.*\)$/\1=${\1=\2}/
+     :end' >>confcache
+if diff "$cache_file" confcache >/dev/null 2>&1; then :; else
+  if test -w "$cache_file"; then
+    if test "x$cache_file" != "x/dev/null"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: updating cache $cache_file" >&5
+$as_echo "$as_me: updating cache $cache_file" >&6;}
+      if test ! -f "$cache_file" || test -h "$cache_file"; then
+	cat confcache >"$cache_file"
+      else
+        case $cache_file in #(
+        */* | ?:*)
+	  mv -f confcache "$cache_file"$$ &&
+	  mv -f "$cache_file"$$ "$cache_file" ;; #(
+        *)
+	  mv -f confcache "$cache_file" ;;
+	esac
+      fi
+    fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: not updating unwritable cache $cache_file" >&5
+$as_echo "$as_me: not updating unwritable cache $cache_file" >&6;}
+  fi
+fi
+rm -f confcache
+
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
+# Let make expand exec_prefix.
+test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+DEFS=-DHAVE_CONFIG_H
+
+ac_libobjs=
+ac_ltlibobjs=
+U=
+for ac_i in : $LIBOBJS; do test "x$ac_i" = x: && continue
+  # 1. Remove the extension, and $U if already installed.
+  ac_script='s/\$U\././;s/\.o$//;s/\.obj$//'
+  ac_i=`$as_echo "$ac_i" | sed "$ac_script"`
+  # 2. Prepend LIBOBJDIR.  When used with automake>=1.10 LIBOBJDIR
+  #    will be set to the directory where LIBOBJS objects are built.
+  as_fn_append ac_libobjs " \${LIBOBJDIR}$ac_i\$U.$ac_objext"
+  as_fn_append ac_ltlibobjs " \${LIBOBJDIR}$ac_i"'$U.lo'
+done
+LIBOBJS=$ac_libobjs
+
+LTLIBOBJS=$ac_ltlibobjs
+
+
+
+: "${CONFIG_STATUS=./config.status}"
+ac_write_fail=0
+ac_clean_files_save=$ac_clean_files
+ac_clean_files="$ac_clean_files $CONFIG_STATUS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: creating $CONFIG_STATUS" >&5
+$as_echo "$as_me: creating $CONFIG_STATUS" >&6;}
+as_write_fail=0
+cat >$CONFIG_STATUS <<_ASEOF || as_write_fail=1
+#! $SHELL
+# Generated by $as_me.
+# Run this file to recreate the current configuration.
+# Compiler output produced by configure, useful for debugging
+# configure, is in config.log if it exists.
+
+debug=false
+ac_cs_recheck=false
+ac_cs_silent=false
+
+SHELL=\${CONFIG_SHELL-$SHELL}
+export SHELL
+_ASEOF
+cat >>$CONFIG_STATUS <<\_ASEOF || as_write_fail=1
+## -------------------- ##
+## M4sh Initialization. ##
+## -------------------- ##
+
+# Be more Bourne compatible
+DUALCASE=1; export DUALCASE # for MKS sh
+if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then :
+  emulate sh
+  NULLCMD=:
+  # Pre-4.2 versions of Zsh do word splitting on ${1+"$@"}, which
+  # is contrary to our usage.  Disable this feature.
+  alias -g '${1+"$@"}'='"$@"'
+  setopt NO_GLOB_SUBST
+else
+  case `(set -o) 2>/dev/null` in #(
+  *posix*) :
+    set -o posix ;; #(
+  *) :
+     ;;
+esac
+fi
+
+
+as_nl='
+'
+export as_nl
+# Printing a long string crashes Solaris 7 /usr/bin/printf.
+as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
+as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
+# Prefer a ksh shell builtin over an external printf program on Solaris,
+# but without wasting forks for bash or zsh.
+if test -z "$BASH_VERSION$ZSH_VERSION" \
+    && (test "X`print -r -- $as_echo`" = "X$as_echo") 2>/dev/null; then
+  as_echo='print -r --'
+  as_echo_n='print -rn --'
+elif (test "X`printf %s $as_echo`" = "X$as_echo") 2>/dev/null; then
+  as_echo='printf %s\n'
+  as_echo_n='printf %s'
+else
+  if test "X`(/usr/ucb/echo -n -n $as_echo) 2>/dev/null`" = "X-n $as_echo"; then
+    as_echo_body='eval /usr/ucb/echo -n "$1$as_nl"'
+    as_echo_n='/usr/ucb/echo -n'
+  else
+    as_echo_body='eval expr "X$1" : "X\\(.*\\)"'
+    as_echo_n_body='eval
+      arg=$1;
+      case $arg in #(
+      *"$as_nl"*)
+	expr "X$arg" : "X\\(.*\\)$as_nl";
+	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
+      esac;
+      expr "X$arg" : "X\\(.*\\)" | tr -d "$as_nl"
+    '
+    export as_echo_n_body
+    as_echo_n='sh -c $as_echo_n_body as_echo'
+  fi
+  export as_echo_body
+  as_echo='sh -c $as_echo_body as_echo'
+fi
+
+# The user is always right.
+if test "${PATH_SEPARATOR+set}" != set; then
+  PATH_SEPARATOR=:
+  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 && {
+    (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 ||
+      PATH_SEPARATOR=';'
+  }
+fi
+
+
+# IFS
+# We need space, tab and new line, in precisely that order.  Quoting is
+# there to prevent editors from complaining about space-tab.
+# (If _AS_PATH_WALK were called with IFS unset, it would disable word
+# splitting by setting IFS to empty value.)
+IFS=" ""	$as_nl"
+
+# Find who we are.  Look in the path if we contain no directory separator.
+as_myself=
+case $0 in #((
+  *[\\/]* ) as_myself=$0 ;;
+  *) as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    test -r "$as_dir/$0" && as_myself=$as_dir/$0 && break
+  done
+IFS=$as_save_IFS
+
+     ;;
+esac
+# We did not find ourselves, most probably we were run as `sh COMMAND'
+# in which case we are not to be found in the path.
+if test "x$as_myself" = x; then
+  as_myself=$0
+fi
+if test ! -f "$as_myself"; then
+  $as_echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
+  exit 1
+fi
+
+# Unset variables that we do not need and which cause bugs (e.g. in
+# pre-3.0 UWIN ksh).  But do not cause bugs in bash 2.01; the "|| exit 1"
+# suppresses any "Segmentation fault" message there.  '((' could
+# trigger a bug in pdksh 5.2.14.
+for as_var in BASH_ENV ENV MAIL MAILPATH
+do eval test x\${$as_var+set} = xset \
+  && ( (unset $as_var) || exit 1) >/dev/null 2>&1 && unset $as_var || :
+done
+PS1='$ '
+PS2='> '
+PS4='+ '
+
+# NLS nuisances.
+LC_ALL=C
+export LC_ALL
+LANGUAGE=C
+export LANGUAGE
+
+# CDPATH.
+(unset CDPATH) >/dev/null 2>&1 && unset CDPATH
+
+
+# as_fn_error STATUS ERROR [LINENO LOG_FD]
+# ----------------------------------------
+# Output "`basename $0`: error: ERROR" to stderr. If LINENO and LOG_FD are
+# provided, also output the error to LOG_FD, referencing LINENO. Then exit the
+# script with STATUS, using 1 if that was 0.
+as_fn_error ()
+{
+  as_status=$1; test $as_status -eq 0 && as_status=1
+  if test "$4"; then
+    as_lineno=${as_lineno-"$3"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+    $as_echo "$as_me:${as_lineno-$LINENO}: error: $2" >&$4
+  fi
+  $as_echo "$as_me: error: $2" >&2
+  as_fn_exit $as_status
+} # as_fn_error
+
+
+# as_fn_set_status STATUS
+# -----------------------
+# Set $? to STATUS, without forking.
+as_fn_set_status ()
+{
+  return $1
+} # as_fn_set_status
+
+# as_fn_exit STATUS
+# -----------------
+# Exit the shell with STATUS, even in a "trap 0" or "set -e" context.
+as_fn_exit ()
+{
+  set +e
+  as_fn_set_status $1
+  exit $1
+} # as_fn_exit
+
+# as_fn_unset VAR
+# ---------------
+# Portably unset VAR.
+as_fn_unset ()
+{
+  { eval $1=; unset $1;}
+}
+as_unset=as_fn_unset
+# as_fn_append VAR VALUE
+# ----------------------
+# Append the text in VALUE to the end of the definition contained in VAR. Take
+# advantage of any shell optimizations that allow amortized linear growth over
+# repeated appends, instead of the typical quadratic growth present in naive
+# implementations.
+if (eval "as_var=1; as_var+=2; test x\$as_var = x12") 2>/dev/null; then :
+  eval 'as_fn_append ()
+  {
+    eval $1+=\$2
+  }'
+else
+  as_fn_append ()
+  {
+    eval $1=\$$1\$2
+  }
+fi # as_fn_append
+
+# as_fn_arith ARG...
+# ------------------
+# Perform arithmetic evaluation on the ARGs, and store the result in the
+# global $as_val. Take advantage of shells that can avoid forks. The arguments
+# must be portable across $(()) and expr.
+if (eval "test \$(( 1 + 1 )) = 2") 2>/dev/null; then :
+  eval 'as_fn_arith ()
+  {
+    as_val=$(( $* ))
+  }'
+else
+  as_fn_arith ()
+  {
+    as_val=`expr "$@" || test $? -eq 1`
+  }
+fi # as_fn_arith
+
+
+if expr a : '\(a\)' >/dev/null 2>&1 &&
+   test "X`expr 00001 : '.*\(...\)'`" = X001; then
+  as_expr=expr
+else
+  as_expr=false
+fi
+
+if (basename -- /) >/dev/null 2>&1 && test "X`basename -- / 2>&1`" = "X/"; then
+  as_basename=basename
+else
+  as_basename=false
+fi
+
+if (as_dir=`dirname -- /` && test "X$as_dir" = X/) >/dev/null 2>&1; then
+  as_dirname=dirname
+else
+  as_dirname=false
+fi
+
+as_me=`$as_basename -- "$0" ||
+$as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
+	 X"$0" : 'X\(//\)$' \| \
+	 X"$0" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X/"$0" |
+    sed '/^.*\/\([^/][^/]*\)\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\/\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\/\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+
+# Avoid depending upon Character Ranges.
+as_cr_letters='abcdefghijklmnopqrstuvwxyz'
+as_cr_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+as_cr_Letters=$as_cr_letters$as_cr_LETTERS
+as_cr_digits='0123456789'
+as_cr_alnum=$as_cr_Letters$as_cr_digits
+
+ECHO_C= ECHO_N= ECHO_T=
+case `echo -n x` in #(((((
+-n*)
+  case `echo 'xy\c'` in
+  *c*) ECHO_T='	';;	# ECHO_T is single tab character.
+  xy)  ECHO_C='\c';;
+  *)   echo `echo ksh88 bug on AIX 6.1` > /dev/null
+       ECHO_T='	';;
+  esac;;
+*)
+  ECHO_N='-n';;
+esac
+
+rm -f conf$$ conf$$.exe conf$$.file
+if test -d conf$$.dir; then
+  rm -f conf$$.dir/conf$$.file
+else
+  rm -f conf$$.dir
+  mkdir conf$$.dir 2>/dev/null
+fi
+if (echo >conf$$.file) 2>/dev/null; then
+  if ln -s conf$$.file conf$$ 2>/dev/null; then
+    as_ln_s='ln -s'
+    # ... but there are two gotchas:
+    # 1) On MSYS, both `ln -s file dir' and `ln file dir' fail.
+    # 2) DJGPP < 2.04 has no symlinks; `ln -s' creates a wrapper executable.
+    # In both cases, we have to default to `cp -pR'.
+    ln -s conf$$.file conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
+      as_ln_s='cp -pR'
+  elif ln conf$$.file conf$$ 2>/dev/null; then
+    as_ln_s=ln
+  else
+    as_ln_s='cp -pR'
+  fi
+else
+  as_ln_s='cp -pR'
+fi
+rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
+rmdir conf$$.dir 2>/dev/null
+
+
+# as_fn_mkdir_p
+# -------------
+# Create "$as_dir" as a directory, including parents if necessary.
+as_fn_mkdir_p ()
+{
+
+  case $as_dir in #(
+  -*) as_dir=./$as_dir;;
+  esac
+  test -d "$as_dir" || eval $as_mkdir_p || {
+    as_dirs=
+    while :; do
+      case $as_dir in #(
+      *\'*) as_qdir=`$as_echo "$as_dir" | sed "s/'/'\\\\\\\\''/g"`;; #'(
+      *) as_qdir=$as_dir;;
+      esac
+      as_dirs="'$as_qdir' $as_dirs"
+      as_dir=`$as_dirname -- "$as_dir" ||
+$as_expr X"$as_dir" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$as_dir" : 'X\(//\)[^/]' \| \
+	 X"$as_dir" : 'X\(//\)$' \| \
+	 X"$as_dir" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$as_dir" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+      test -d "$as_dir" && break
+    done
+    test -z "$as_dirs" || eval "mkdir $as_dirs"
+  } || test -d "$as_dir" || as_fn_error $? "cannot create directory $as_dir"
+
+
+} # as_fn_mkdir_p
+if mkdir -p . 2>/dev/null; then
+  as_mkdir_p='mkdir -p "$as_dir"'
+else
+  test -d ./-p && rmdir ./-p
+  as_mkdir_p=false
+fi
+
+
+# as_fn_executable_p FILE
+# -----------------------
+# Test if FILE is an executable regular file.
+as_fn_executable_p ()
+{
+  test -f "$1" && test -x "$1"
+} # as_fn_executable_p
+as_test_x='test -x'
+as_executable_p=as_fn_executable_p
+
+# Sed expression to map a string onto a valid CPP name.
+as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
+
+# Sed expression to map a string onto a valid variable name.
+as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr_alnum]%_%g'"
+
+
+exec 6>&1
+## ----------------------------------- ##
+## Main body of $CONFIG_STATUS script. ##
+## ----------------------------------- ##
+_ASEOF
+test $as_write_fail = 0 && chmod +x $CONFIG_STATUS || ac_write_fail=1
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+# Save the log message, to keep $0 and so on meaningful, and to
+# report actual input values of CONFIG_FILES etc. instead of their
+# values after options handling.
+ac_log="
+This file was extended by $as_me, which was
+generated by GNU Autoconf 2.69.  Invocation command line was
+
+  CONFIG_FILES    = $CONFIG_FILES
+  CONFIG_HEADERS  = $CONFIG_HEADERS
+  CONFIG_LINKS    = $CONFIG_LINKS
+  CONFIG_COMMANDS = $CONFIG_COMMANDS
+  $ $0 $@
+
+on `(hostname || uname -n) 2>/dev/null | sed 1q`
+"
+
+_ACEOF
+
+case $ac_config_files in *"
+"*) set x $ac_config_files; shift; ac_config_files=$*;;
+esac
+
+case $ac_config_headers in *"
+"*) set x $ac_config_headers; shift; ac_config_headers=$*;;
+esac
+
+
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+# Files that config.status was made for.
+config_files="$ac_config_files"
+config_headers="$ac_config_headers"
+config_commands="$ac_config_commands"
+
+_ACEOF
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+ac_cs_usage="\
+\`$as_me' instantiates files and other configuration actions
+from templates according to the current configuration.  Unless the files
+and actions are specified as TAGs, all are instantiated by default.
+
+Usage: $0 [OPTION]... [TAG]...
+
+  -h, --help       print this help, then exit
+  -V, --version    print version number and configuration settings, then exit
+      --config     print configuration, then exit
+  -q, --quiet, --silent
+                   do not print progress messages
+  -d, --debug      don't remove temporary files
+      --recheck    update $as_me by reconfiguring in the same conditions
+      --file=FILE[:TEMPLATE]
+                   instantiate the configuration file FILE
+      --header=FILE[:TEMPLATE]
+                   instantiate the configuration header FILE
+
+Configuration files:
+$config_files
+
+Configuration headers:
+$config_headers
+
+Configuration commands:
+$config_commands
+
+Report bugs to the package provider."
+
+_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+ac_cs_config="`$as_echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`"
+ac_cs_version="\\
+config.status
+configured by $0, generated by GNU Autoconf 2.69,
+  with options \\"\$ac_cs_config\\"
+
+Copyright (C) 2012 Free Software Foundation, Inc.
+This config.status script is free software; the Free Software Foundation
+gives unlimited permission to copy, distribute and modify it."
+
+ac_pwd='$ac_pwd'
+srcdir='$srcdir'
+test -n "\$AWK" || AWK=awk
+_ACEOF
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+# The default lists apply if the user does not specify any file.
+ac_need_defaults=:
+while test $# != 0
+do
+  case $1 in
+  --*=?*)
+    ac_option=`expr "X$1" : 'X\([^=]*\)='`
+    ac_optarg=`expr "X$1" : 'X[^=]*=\(.*\)'`
+    ac_shift=:
+    ;;
+  --*=)
+    ac_option=`expr "X$1" : 'X\([^=]*\)='`
+    ac_optarg=
+    ac_shift=:
+    ;;
+  *)
+    ac_option=$1
+    ac_optarg=$2
+    ac_shift=shift
+    ;;
+  esac
+
+  case $ac_option in
+  # Handling of the options.
+  -recheck | --recheck | --rechec | --reche | --rech | --rec | --re | --r)
+    ac_cs_recheck=: ;;
+  --version | --versio | --versi | --vers | --ver | --ve | --v | -V )
+    $as_echo "$ac_cs_version"; exit ;;
+  --config | --confi | --conf | --con | --co | --c )
+    $as_echo "$ac_cs_config"; exit ;;
+  --debug | --debu | --deb | --de | --d | -d )
+    debug=: ;;
+  --file | --fil | --fi | --f )
+    $ac_shift
+    case $ac_optarg in
+    *\'*) ac_optarg=`$as_echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"` ;;
+    '') as_fn_error $? "missing file argument" ;;
+    esac
+    as_fn_append CONFIG_FILES " '$ac_optarg'"
+    ac_need_defaults=false;;
+  --header | --heade | --head | --hea )
+    $ac_shift
+    case $ac_optarg in
+    *\'*) ac_optarg=`$as_echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"` ;;
+    esac
+    as_fn_append CONFIG_HEADERS " '$ac_optarg'"
+    ac_need_defaults=false;;
+  --he | --h)
+    # Conflict between --help and --header
+    as_fn_error $? "ambiguous option: \`$1'
+Try \`$0 --help' for more information.";;
+  --help | --hel | -h )
+    $as_echo "$ac_cs_usage"; exit ;;
+  -q | -quiet | --quiet | --quie | --qui | --qu | --q \
+  | -silent | --silent | --silen | --sile | --sil | --si | --s)
+    ac_cs_silent=: ;;
+
+  # This is an error.
+  -*) as_fn_error $? "unrecognized option: \`$1'
+Try \`$0 --help' for more information." ;;
+
+  *) as_fn_append ac_config_targets " $1"
+     ac_need_defaults=false ;;
+
+  esac
+  shift
+done
+
+ac_configure_extra_args=
+
+if $ac_cs_silent; then
+  exec 6>/dev/null
+  ac_configure_extra_args="$ac_configure_extra_args --silent"
+fi
+
+_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+if \$ac_cs_recheck; then
+  set X $SHELL '$0' $ac_configure_args \$ac_configure_extra_args --no-create --no-recursion
+  shift
+  \$as_echo "running CONFIG_SHELL=$SHELL \$*" >&6
+  CONFIG_SHELL='$SHELL'
+  export CONFIG_SHELL
+  exec "\$@"
+fi
+
+_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+exec 5>>config.log
+{
+  echo
+  sed 'h;s/./-/g;s/^.../## /;s/...$/ ##/;p;x;p;x' <<_ASBOX
+## Running $as_me. ##
+_ASBOX
+  $as_echo "$ac_log"
+} >&5
+
+_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+_ACEOF
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+
+# Handling of arguments.
+for ac_config_target in $ac_config_targets
+do
+  case $ac_config_target in
+    "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
+    "src/plugins/aorai/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/aorai/Makefile" ;;
+    "src/plugins/e-acsl/doc/doxygen/doxygen.cfg") CONFIG_FILES="$CONFIG_FILES src/plugins/e-acsl/doc/doxygen/doxygen.cfg" ;;
+    "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
+
+  *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
+  esac
+done
+
+
+# If the user did not use the arguments to specify the items to instantiate,
+# then the envvar interface is used.  Set only those that are not.
+# We use the long form for the default assignment because of an extremely
+# bizarre bug on SunOS 4.1.3.
+if $ac_need_defaults; then
+  test "${CONFIG_FILES+set}" = set || CONFIG_FILES=$config_files
+  test "${CONFIG_HEADERS+set}" = set || CONFIG_HEADERS=$config_headers
+  test "${CONFIG_COMMANDS+set}" = set || CONFIG_COMMANDS=$config_commands
+fi
+
+# Have a temporary directory for convenience.  Make it in the build tree
+# simply because there is no reason against having it here, and in addition,
+# creating and moving files from /tmp can sometimes cause problems.
+# Hook for its removal unless debugging.
+# Note that there is a small window in which the directory will not be cleaned:
+# after its creation but before its name has been assigned to `$tmp'.
+$debug ||
+{
+  tmp= ac_tmp=
+  trap 'exit_status=$?
+  : "${ac_tmp:=$tmp}"
+  { test ! -d "$ac_tmp" || rm -fr "$ac_tmp"; } && exit $exit_status
+' 0
+  trap 'as_fn_exit 1' 1 2 13 15
+}
+# Create a (secure) tmp directory for tmp files.
+
+{
+  tmp=`(umask 077 && mktemp -d "./confXXXXXX") 2>/dev/null` &&
+  test -d "$tmp"
+}  ||
+{
+  tmp=./conf$$-$RANDOM
+  (umask 077 && mkdir "$tmp")
+} || as_fn_error $? "cannot create a temporary directory in ." "$LINENO" 5
+ac_tmp=$tmp
+
+# Set up the scripts for CONFIG_FILES section.
+# No need to generate them if there are no CONFIG_FILES.
+# This happens for instance with `./config.status config.h'.
+if test -n "$CONFIG_FILES"; then
+
+
+ac_cr=`echo X | tr X '\015'`
+# On cygwin, bash can eat \r inside `` if the user requested igncr.
+# But we know of no other shell where ac_cr would be empty at this
+# point, so we can use a bashism as a fallback.
+if test "x$ac_cr" = x; then
+  eval ac_cr=\$\'\\r\'
+fi
+ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
+if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
+  ac_cs_awk_cr='\\r'
+else
+  ac_cs_awk_cr=$ac_cr
+fi
+
+echo 'BEGIN {' >"$ac_tmp/subs1.awk" &&
+_ACEOF
+
+
+{
+  echo "cat >conf$$subs.awk <<_ACEOF" &&
+  echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
+  echo "_ACEOF"
+} >conf$$subs.sh ||
+  as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+ac_delim_num=`echo "$ac_subst_vars" | grep -c '^'`
+ac_delim='%!_!# '
+for ac_last_try in false false false false false :; do
+  . ./conf$$subs.sh ||
+    as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+
+  ac_delim_n=`sed -n "s/.*$ac_delim\$/X/p" conf$$subs.awk | grep -c X`
+  if test $ac_delim_n = $ac_delim_num; then
+    break
+  elif $ac_last_try; then
+    as_fn_error $? "could not make $CONFIG_STATUS" "$LINENO" 5
+  else
+    ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
+  fi
+done
+rm -f conf$$subs.sh
+
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+cat >>"\$ac_tmp/subs1.awk" <<\\_ACAWK &&
+_ACEOF
+sed -n '
+h
+s/^/S["/; s/!.*/"]=/
+p
+g
+s/^[^!]*!//
+:repl
+t repl
+s/'"$ac_delim"'$//
+t delim
+:nl
+h
+s/\(.\{148\}\)..*/\1/
+t more1
+s/["\\]/\\&/g; s/^/"/; s/$/\\n"\\/
+p
+n
+b repl
+:more1
+s/["\\]/\\&/g; s/^/"/; s/$/"\\/
+p
+g
+s/.\{148\}//
+t nl
+:delim
+h
+s/\(.\{148\}\)..*/\1/
+t more2
+s/["\\]/\\&/g; s/^/"/; s/$/"/
+p
+b
+:more2
+s/["\\]/\\&/g; s/^/"/; s/$/"\\/
+p
+g
+s/.\{148\}//
+t delim
+' <conf$$subs.awk | sed '
+/^[^""]/{
+  N
+  s/\n//
+}
+' >>$CONFIG_STATUS || ac_write_fail=1
+rm -f conf$$subs.awk
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+_ACAWK
+cat >>"\$ac_tmp/subs1.awk" <<_ACAWK &&
+  for (key in S) S_is_set[key] = 1
+  FS = ""
+
+}
+{
+  line = $ 0
+  nfields = split(line, field, "@")
+  substed = 0
+  len = length(field[1])
+  for (i = 2; i < nfields; i++) {
+    key = field[i]
+    keylen = length(key)
+    if (S_is_set[key]) {
+      value = S[key]
+      line = substr(line, 1, len) "" value "" substr(line, len + keylen + 3)
+      len += length(value) + length(field[++i])
+      substed = 1
+    } else
+      len += 1 + keylen
+  }
+
+  print line
+}
+
+_ACAWK
+_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+if sed "s/$ac_cr//" < /dev/null > /dev/null 2>&1; then
+  sed "s/$ac_cr\$//; s/$ac_cr/$ac_cs_awk_cr/g"
+else
+  cat
+fi < "$ac_tmp/subs1.awk" > "$ac_tmp/subs.awk" \
+  || as_fn_error $? "could not setup config files machinery" "$LINENO" 5
+_ACEOF
+
+# VPATH may cause trouble with some makes, so we remove sole $(srcdir),
+# ${srcdir} and @srcdir@ entries from VPATH if srcdir is ".", strip leading and
+# trailing colons and then remove the whole line if VPATH becomes empty
+# (actually we leave an empty line to preserve line numbers).
+if test "x$srcdir" = x.; then
+  ac_vpsub='/^[	 ]*VPATH[	 ]*=[	 ]*/{
+h
+s///
+s/^/:/
+s/[	 ]*$/:/
+s/:\$(srcdir):/:/g
+s/:\${srcdir}:/:/g
+s/:@srcdir@:/:/g
+s/^:*//
+s/:*$//
+x
+s/\(=[	 ]*\).*/\1/
+G
+s/\n//
+s/^[^=]*=[	 ]*$//
+}'
+fi
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+fi # test -n "$CONFIG_FILES"
+
+# Set up the scripts for CONFIG_HEADERS section.
+# No need to generate them if there are no CONFIG_HEADERS.
+# This happens for instance with `./config.status Makefile'.
+if test -n "$CONFIG_HEADERS"; then
+cat >"$ac_tmp/defines.awk" <<\_ACAWK ||
+BEGIN {
+_ACEOF
+
+# Transform confdefs.h into an awk script `defines.awk', embedded as
+# here-document in config.status, that substitutes the proper values into
+# config.h.in to produce config.h.
+
+# Create a delimiter string that does not exist in confdefs.h, to ease
+# handling of long lines.
+ac_delim='%!_!# '
+for ac_last_try in false false :; do
+  ac_tt=`sed -n "/$ac_delim/p" confdefs.h`
+  if test -z "$ac_tt"; then
+    break
+  elif $ac_last_try; then
+    as_fn_error $? "could not make $CONFIG_HEADERS" "$LINENO" 5
+  else
+    ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
+  fi
+done
+
+# For the awk script, D is an array of macro values keyed by name,
+# likewise P contains macro parameters if any.  Preserve backslash
+# newline sequences.
+
+ac_word_re=[_$as_cr_Letters][_$as_cr_alnum]*
+sed -n '
+s/.\{148\}/&'"$ac_delim"'/g
+t rset
+:rset
+s/^[	 ]*#[	 ]*define[	 ][	 ]*/ /
+t def
+d
+:def
+s/\\$//
+t bsnl
+s/["\\]/\\&/g
+s/^ \('"$ac_word_re"'\)\(([^()]*)\)[	 ]*\(.*\)/P["\1"]="\2"\
+D["\1"]=" \3"/p
+s/^ \('"$ac_word_re"'\)[	 ]*\(.*\)/D["\1"]=" \2"/p
+d
+:bsnl
+s/["\\]/\\&/g
+s/^ \('"$ac_word_re"'\)\(([^()]*)\)[	 ]*\(.*\)/P["\1"]="\2"\
+D["\1"]=" \3\\\\\\n"\\/p
+t cont
+s/^ \('"$ac_word_re"'\)[	 ]*\(.*\)/D["\1"]=" \2\\\\\\n"\\/p
+t cont
+d
+:cont
+n
+s/.\{148\}/&'"$ac_delim"'/g
+t clear
+:clear
+s/\\$//
+t bsnlc
+s/["\\]/\\&/g; s/^/"/; s/$/"/p
+d
+:bsnlc
+s/["\\]/\\&/g; s/^/"/; s/$/\\\\\\n"\\/p
+b cont
+' <confdefs.h | sed '
+s/'"$ac_delim"'/"\\\
+"/g' >>$CONFIG_STATUS || ac_write_fail=1
+
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+  for (key in D) D_is_set[key] = 1
+  FS = ""
+}
+/^[\t ]*#[\t ]*(define|undef)[\t ]+$ac_word_re([\t (]|\$)/ {
+  line = \$ 0
+  split(line, arg, " ")
+  if (arg[1] == "#") {
+    defundef = arg[2]
+    mac1 = arg[3]
+  } else {
+    defundef = substr(arg[1], 2)
+    mac1 = arg[2]
+  }
+  split(mac1, mac2, "(") #)
+  macro = mac2[1]
+  prefix = substr(line, 1, index(line, defundef) - 1)
+  if (D_is_set[macro]) {
+    # Preserve the white space surrounding the "#".
+    print prefix "define", macro P[macro] D[macro]
+    next
+  } else {
+    # Replace #undef with comments.  This is necessary, for example,
+    # in the case of _POSIX_SOURCE, which is predefined and required
+    # on some systems where configure will not decide to define it.
+    if (defundef == "undef") {
+      print "/*", prefix defundef, macro, "*/"
+      next
+    }
+  }
+}
+{ print }
+_ACAWK
+_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+  as_fn_error $? "could not setup config headers machinery" "$LINENO" 5
+fi # test -n "$CONFIG_HEADERS"
+
+
+eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS    :C $CONFIG_COMMANDS"
+shift
+for ac_tag
+do
+  case $ac_tag in
+  :[FHLC]) ac_mode=$ac_tag; continue;;
+  esac
+  case $ac_mode$ac_tag in
+  :[FHL]*:*);;
+  :L* | :C*:*) as_fn_error $? "invalid tag \`$ac_tag'" "$LINENO" 5;;
+  :[FH]-) ac_tag=-:-;;
+  :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
+  esac
+  ac_save_IFS=$IFS
+  IFS=:
+  set x $ac_tag
+  IFS=$ac_save_IFS
+  shift
+  ac_file=$1
+  shift
+
+  case $ac_mode in
+  :L) ac_source=$1;;
+  :[FH])
+    ac_file_inputs=
+    for ac_f
+    do
+      case $ac_f in
+      -) ac_f="$ac_tmp/stdin";;
+      *) # Look for the file first in the build tree, then in the source tree
+	 # (if the path is not absolute).  The absolute path cannot be DOS-style,
+	 # because $ac_f cannot contain `:'.
+	 test -f "$ac_f" ||
+	   case $ac_f in
+	   [\\/$]*) false;;
+	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
+	   esac ||
+	   as_fn_error 1 "cannot find input file: \`$ac_f'" "$LINENO" 5;;
+      esac
+      case $ac_f in *\'*) ac_f=`$as_echo "$ac_f" | sed "s/'/'\\\\\\\\''/g"`;; esac
+      as_fn_append ac_file_inputs " '$ac_f'"
+    done
+
+    # Let's still pretend it is `configure' which instantiates (i.e., don't
+    # use $as_me), people would be surprised to read:
+    #    /* config.h.  Generated by config.status.  */
+    configure_input='Generated from '`
+	  $as_echo "$*" | sed 's|^[^:]*/||;s|:[^:]*/|, |g'
+	`' by configure.'
+    if test x"$ac_file" != x-; then
+      configure_input="$ac_file.  $configure_input"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: creating $ac_file" >&5
+$as_echo "$as_me: creating $ac_file" >&6;}
+    fi
+    # Neutralize special characters interpreted by sed in replacement strings.
+    case $configure_input in #(
+    *\&* | *\|* | *\\* )
+       ac_sed_conf_input=`$as_echo "$configure_input" |
+       sed 's/[\\\\&|]/\\\\&/g'`;; #(
+    *) ac_sed_conf_input=$configure_input;;
+    esac
+
+    case $ac_tag in
+    *:-:* | *:-) cat >"$ac_tmp/stdin" \
+      || as_fn_error $? "could not create $ac_file" "$LINENO" 5 ;;
+    esac
+    ;;
+  esac
+
+  ac_dir=`$as_dirname -- "$ac_file" ||
+$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$ac_file" : 'X\(//\)[^/]' \| \
+	 X"$ac_file" : 'X\(//\)$' \| \
+	 X"$ac_file" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$ac_file" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+  as_dir="$ac_dir"; as_fn_mkdir_p
+  ac_builddir=.
+
+case "$ac_dir" in
+.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
+*)
+  ac_dir_suffix=/`$as_echo "$ac_dir" | sed 's|^\.[\\/]||'`
+  # A ".." for each directory in $ac_dir_suffix.
+  ac_top_builddir_sub=`$as_echo "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
+  case $ac_top_builddir_sub in
+  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
+  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
+  esac ;;
+esac
+ac_abs_top_builddir=$ac_pwd
+ac_abs_builddir=$ac_pwd$ac_dir_suffix
+# for backward compatibility:
+ac_top_builddir=$ac_top_build_prefix
+
+case $srcdir in
+  .)  # We are building in place.
+    ac_srcdir=.
+    ac_top_srcdir=$ac_top_builddir_sub
+    ac_abs_top_srcdir=$ac_pwd ;;
+  [\\/]* | ?:[\\/]* )  # Absolute name.
+    ac_srcdir=$srcdir$ac_dir_suffix;
+    ac_top_srcdir=$srcdir
+    ac_abs_top_srcdir=$srcdir ;;
+  *) # Relative name.
+    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
+    ac_top_srcdir=$ac_top_build_prefix$srcdir
+    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
+esac
+ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
+
+
+  case $ac_mode in
+  :F)
+  #
+  # CONFIG_FILE
+  #
+
+_ACEOF
+
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+# If the template does not know about datarootdir, expand it.
+# FIXME: This hack should be removed a few years after 2.60.
+ac_datarootdir_hack=; ac_datarootdir_seen=
+ac_sed_dataroot='
+/datarootdir/ {
+  p
+  q
+}
+/@datadir@/p
+/@docdir@/p
+/@infodir@/p
+/@localedir@/p
+/@mandir@/p'
+case `eval "sed -n \"\$ac_sed_dataroot\" $ac_file_inputs"` in
+*datarootdir*) ac_datarootdir_seen=yes;;
+*@datadir@*|*@docdir@*|*@infodir@*|*@localedir@*|*@mandir@*)
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $ac_file_inputs seems to ignore the --datarootdir setting" >&5
+$as_echo "$as_me: WARNING: $ac_file_inputs seems to ignore the --datarootdir setting" >&2;}
+_ACEOF
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+  ac_datarootdir_hack='
+  s&@datadir@&$datadir&g
+  s&@docdir@&$docdir&g
+  s&@infodir@&$infodir&g
+  s&@localedir@&$localedir&g
+  s&@mandir@&$mandir&g
+  s&\\\${datarootdir}&$datarootdir&g' ;;
+esac
+_ACEOF
+
+# Neutralize VPATH when `$srcdir' = `.'.
+# Shell code in configure.ac might set extrasub.
+# FIXME: do we really want to maintain this feature?
+cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
+ac_sed_extra="$ac_vpsub
+$extrasub
+_ACEOF
+cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
+:t
+/@[a-zA-Z_][a-zA-Z_0-9]*@/!b
+s|@configure_input@|$ac_sed_conf_input|;t t
+s&@top_builddir@&$ac_top_builddir_sub&;t t
+s&@top_build_prefix@&$ac_top_build_prefix&;t t
+s&@srcdir@&$ac_srcdir&;t t
+s&@abs_srcdir@&$ac_abs_srcdir&;t t
+s&@top_srcdir@&$ac_top_srcdir&;t t
+s&@abs_top_srcdir@&$ac_abs_top_srcdir&;t t
+s&@builddir@&$ac_builddir&;t t
+s&@abs_builddir@&$ac_abs_builddir&;t t
+s&@abs_top_builddir@&$ac_abs_top_builddir&;t t
+$ac_datarootdir_hack
+"
+eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$ac_tmp/subs.awk" \
+  >$ac_tmp/out || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+
+test -z "$ac_datarootdir_hack$ac_datarootdir_seen" &&
+  { ac_out=`sed -n '/\${datarootdir}/p' "$ac_tmp/out"`; test -n "$ac_out"; } &&
+  { ac_out=`sed -n '/^[	 ]*datarootdir[	 ]*:*=/p' \
+      "$ac_tmp/out"`; test -z "$ac_out"; } &&
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $ac_file contains a reference to the variable \`datarootdir'
+which seems to be undefined.  Please make sure it is defined" >&5
+$as_echo "$as_me: WARNING: $ac_file contains a reference to the variable \`datarootdir'
+which seems to be undefined.  Please make sure it is defined" >&2;}
+
+  rm -f "$ac_tmp/stdin"
+  case $ac_file in
+  -) cat "$ac_tmp/out" && rm -f "$ac_tmp/out";;
+  *) rm -f "$ac_file" && mv "$ac_tmp/out" "$ac_file";;
+  esac \
+  || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+ ;;
+  :H)
+  #
+  # CONFIG_HEADER
+  #
+  if test x"$ac_file" != x-; then
+    {
+      $as_echo "/* $configure_input  */" \
+      && eval '$AWK -f "$ac_tmp/defines.awk"' "$ac_file_inputs"
+    } >"$ac_tmp/config.h" \
+      || as_fn_error $? "could not create $ac_file" "$LINENO" 5
+    if diff "$ac_file" "$ac_tmp/config.h" >/dev/null 2>&1; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: $ac_file is unchanged" >&5
+$as_echo "$as_me: $ac_file is unchanged" >&6;}
+    else
+      rm -f "$ac_file"
+      mv "$ac_tmp/config.h" "$ac_file" \
+	|| as_fn_error $? "could not create $ac_file" "$LINENO" 5
+    fi
+  else
+    $as_echo "/* $configure_input  */" \
+      && eval '$AWK -f "$ac_tmp/defines.awk"' "$ac_file_inputs" \
+      || as_fn_error $? "could not create -" "$LINENO" 5
+  fi
+ ;;
+
+  :C)  { $as_echo "$as_me:${as_lineno-$LINENO}: executing $ac_file commands" >&5
+$as_echo "$as_me: executing $ac_file commands" >&6;}
+ ;;
+  esac
+
+
+  case $ac_file$ac_mode in
+    "src/plugins/aorai/Makefile":F) chmod -w src/plugins/aorai/Makefile ;;
+    "default":C)    ;;
+
+  esac
+done # for ac_tag
+
+
+as_fn_exit 0
+_ACEOF
+ac_clean_files=$ac_clean_files_save
+
+test $ac_write_fail = 0 ||
+  as_fn_error $? "write failure creating $CONFIG_STATUS" "$LINENO" 5
+
+
+# configure is writing to config.log, and then calls config.status.
+# config.status does its own redirection, appending to config.log.
+# Unfortunately, on DOS this fails, as config.log is still kept open
+# by configure, so config.status won't be able to write to it; its
+# output is simply discarded.  So we exec the FD to /dev/null,
+# effectively closing config.log, so it can be properly (re)opened and
+# appended to by config.status.  When coming back to configure, we
+# need to make the FD available again.
+if test "$no_create" != yes; then
+  ac_cs_success=:
+  ac_config_status_args=
+  test "$silent" = yes &&
+    ac_config_status_args="$ac_config_status_args --quiet"
+  exec 5>/dev/null
+  $SHELL $CONFIG_STATUS $ac_config_status_args || ac_cs_success=false
+  exec 5>>config.log
+  # Use ||, not &&, to avoid exiting from the if with $? = 1, which
+  # would make configure fail if this is the last instruction.
+  $ac_cs_success || as_fn_exit 1
+fi
+if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
+$as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
+fi
+
+
+# GMP
+#####
+# Check whether --enable-full-gmp was given.
+if test "${enable_full_gmp+set}" = set; then :
+  enableval=$enable_full_gmp; FULL_GMP="yes"
+else
+  FULL_GMP="no"
+fi
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/e-acsl/Makefile"
+
+
+
+         if test "$ENABLE_E_ACSL" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/e-acsl";
+         fi
+
+
+###############################
+# Configure contrib libraries #
+###############################
+
+
+
+# Configure libgmp
+if test "$FULL_GMP" = yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Configure libgmp" >&5
+$as_echo "$as_me: Configure libgmp" >&6;}
+  (cd src/plugins/e-acsl/contrib/libgmp && ./configure)
+fi
+
+# Configure libjemalloc
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Configure libjemalloc" >&5
+$as_echo "$as_me: Configure libjemalloc" >&6;}
+(cd src/plugins/e-acsl/contrib/libjemalloc && ./autogen.sh \
+  --with-jemalloc-prefix="__e_acsl_native_" \
+  --with-private-namespace="__e_acsl_hidden_")
+
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -7733,7 +9493,7 @@ fi
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -7907,7 +9667,7 @@ echo "loop_analysis... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8092,7 +9852,7 @@ echo "nonterm... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8384,7 +10144,7 @@ echo "print_api... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8559,7 +10319,7 @@ echo "report... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8782,7 +10542,7 @@ echo "security_slicing... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8955,7 +10715,7 @@ echo "variadic... $ENABLE"
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9412,164 +11172,29 @@ fi
 
 
 
-# Native dynlink
-################
-
-
-
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_NATIVE_DYNLINK=no
-    if test "$HAS_NATIVE_DYNLINK" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$OCAMLLIB/dynlink.cmxa" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $OCAMLLIB/dynlink.cmxa" >&5
-$as_echo_n "checking for $OCAMLLIB/dynlink.cmxa... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $OCAMLLIB/dynlink.cmxa existence when cross compiling" "$LINENO" 5
-if test -r "$OCAMLLIB/dynlink.cmxa"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_NATIVE_DYNLINK=yes
-else
-  HAS_NATIVE_DYNLINK=no
-fi
-
-          if test "$HAS_NATIVE_DYNLINK" = "yes"; then SELECTED_NATIVE_DYNLINK=$OCAMLLIB/dynlink.cmxa
-          fi
-       fi
-
-    NATIVE_DYNLINK=$SELECTED_NATIVE_DYNLINK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Checking some other things which cannot be done too early
 ###########################################################
 
-# Usable native dynlink
+# Check that native dynlink works
 
-# Checking internal invariant
-if test "$HAS_NATIVE_DYNLINK" = "uncheck"; then
-   as_fn_error $? "Internal error with check of native dynlink. Please report." "$LINENO" 5
-fi
-
-HAS_USABLE_NATIVE_DYNLINK=no
-
-if test "$HAS_NATIVE_DYNLINK" != "no" ; then
-  echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
-  if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
-    2> /dev/null ; \
-  then
-    HAS_USABLE_NATIVE_DYNLINK=yes
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: native dynlink works fine. Great." >&5
+echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
+if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
+  2> /dev/null ; \
+then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: native dynlink works fine. Great." >&5
 $as_echo "native dynlink works fine. Great." >&6; }
-  else
-    REQUIRE_USABLE_NATIVE_DYNLINK=$REQUIRE_NATIVE_DYNLINK
-    USE_USABLE_NATIVE_DYNLINK=$USE_NATIVE_DYNLINK
-    HAS_USABLE_NATIVE_DYNLINK=no
-#   we know that dynlink does not work:
-#   configure a dummy library "dynlink" in order to
-#   configure plug-ins depending on dynlink in a proper way
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_USABLE_NATIVE_DYNLINK=no
-    if test "$HAS_USABLE_NATIVE_DYNLINK" != "yes"; then
-          { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dynlink" >&5
-$as_echo_n "checking for dynlink... " >&6; }
-if ${ac_cv_file_dynlink+:} false; then :
-  $as_echo_n "(cached) " >&6
 else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for dynlink existence when cross compiling" "$LINENO" 5
-if test -r "dynlink"; then
-  ac_cv_file_dynlink=yes
-else
-  ac_cv_file_dynlink=no
+  as_fn_error $? "native dynlink does not work." "$LINENO" 5
 fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_dynlink" >&5
-$as_echo "$ac_cv_file_dynlink" >&6; }
-if test "x$ac_cv_file_dynlink" = xyes; then :
-  HAS_USABLE_NATIVE_DYNLINK=yes
-else
-  HAS_USABLE_NATIVE_DYNLINK=no
-fi
-
-          if test "$HAS_USABLE_NATIVE_DYNLINK" = "yes"; then SELECTED_USABLE_NATIVE_DYNLINK=dynlink
-          fi
-       fi
-
-    USABLE_NATIVE_DYNLINK=$SELECTED_USABLE_NATIVE_DYNLINK
-
-
-
-
-
-
-
-
-
-
-
-
-
-  fi
-  rm -f test_dynlink.*
-fi
+rm -f test_dynlink.*
 
 # Native version of ptests can be used only if
 # - a native compiler exists
-# - native dynlink is usable
 # - native threads are usable
 
 PTESTSBEST=byte
 if test \
      "$OCAMLBEST" = "opt" -a \
-     "$HAS_USABLE_NATIVE_DYNLINK" = "yes" -a \
      "$HAS_NATIVE_THREADS" = "yes"; \
 then
    PTESTSBEST=opt;
@@ -9921,114 +11546,6 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
     fi
   fi
 
-    if test -n "$REQUIRE_NATIVE_DYNLINK" -o -n "$USE_NATIVE_DYNLINK" -o "$no" = "yes"; then
-      if test "$HAS_NATIVE_DYNLINK" = "no"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: native dynlink unavailable" >&5
-$as_echo "$as_me: WARNING: native dynlink unavailable" >&2;}
-        reason="$OCAMLLIB/dynlink.cmxa missing"
-        # compile statically all dynamic plug-ins
-   # except contrary instructions
-   USE_NATIVE_DYNLINK="";
-   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
-     n=NAME_$plugin
-     d=DYNAMIC_$plugin
-     s=STATIC_$plugin
-     eval np=\$$n
-     eval dp=\$$d
-     eval sp=\$$s
-     if test "$dp" = "yes"; then
-       if test "$sp" = "no"; then
-         # force to be dynamic
-         USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} $np";
-       else
-         eval STATIC_$plugin=yes;
-         eval DYNAMIC_$plugin=no;
-       fi
-     fi
-   done
-        for p in $REQUIRE_NATIVE_DYNLINK; do
-	  up=`upper "$p"`
-          ep=ENABLE_$up
-          eval enable_p=\$$ep
-          if test "$enable_p" != "no"; then
-            fp=FORCE_`upper "$p"`
-	    if eval test "\$$fp" = "yes"; then
-	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
-	    fi
-	    eval $ep="no\ \(see\ warning\ about\ $OCAMLLIB/dynlink.cmxa\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-        for p in $USE_NATIVE_DYNLINK; do
-          up=`upper "$p"`
-          ep=ENABLE_$up
-          eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ $OCAMLLIB/dynlink.cmxa\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-      fi
-    fi
-
-    if test -n "$REQUIRE_USABLE_NATIVE_DYNLINK" -o -n "$USE_USABLE_NATIVE_DYNLINK" -o "$no" = "yes"; then
-      if test "$HAS_USABLE_NATIVE_DYNLINK" = "no"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: native dynlink unsupported on this platform" >&5
-$as_echo "$as_me: WARNING: native dynlink unsupported on this platform" >&2;}
-        reason="dynlink missing"
-        # compile statically all dynamic plug-ins
-   # except contrary instructions
-   USE_NATIVE_DYNLINK="";
-   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
-     n=NAME_$plugin
-     d=DYNAMIC_$plugin
-     s=STATIC_$plugin
-     eval np=\$$n
-     eval dp=\$$d
-     eval sp=\$$s
-     if test "$dp" = "yes"; then
-       if test "$sp" = "no"; then
-         # force to be dynamic
-         USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} $np";
-       else
-         eval STATIC_$plugin=yes;
-         eval DYNAMIC_$plugin=no;
-       fi
-     fi
-   done
-        for p in $REQUIRE_USABLE_NATIVE_DYNLINK; do
-	  up=`upper "$p"`
-          ep=ENABLE_$up
-          eval enable_p=\$$ep
-          if test "$enable_p" != "no"; then
-            fp=FORCE_`upper "$p"`
-	    if eval test "\$$fp" = "yes"; then
-	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
-	    fi
-	    eval $ep="no\ \(see\ warning\ about\ dynlink\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-        for p in $USE_USABLE_NATIVE_DYNLINK; do
-          up=`upper "$p"`
-          ep=ENABLE_$up
-          eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ dynlink\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-      fi
-    fi
-
 
 # First, initialize some variables
 for fp in ${PLUGINS_FORCE_LIST}; do
@@ -10084,9 +11601,10 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 
 
-
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
+
+
 
 
 
@@ -10681,6 +12199,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # Files that config.status was made for.
 config_files="$ac_config_files"
 config_headers="$ac_config_headers"
+config_commands="$ac_config_commands"
 
 _ACEOF
 
@@ -10709,6 +12228,9 @@ $config_files
 
 Configuration headers:
 $config_headers
+
+Configuration commands:
+$config_commands
 
 Report bugs to the package provider."
 
@@ -10839,6 +12361,9 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "src/plugins/aorai/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/aorai/Makefile" ;;
+    "src/plugins/e-acsl/doc/doxygen/doxygen.cfg") CONFIG_FILES="$CONFIG_FILES src/plugins/e-acsl/doc/doxygen/doxygen.cfg" ;;
+    "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
+    "src/plugins/e-acsl/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/e-acsl/Makefile" ;;
     "src/plugins/loop_analysis/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/loop_analysis/Makefile" ;;
     "src/plugins/nonterm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/nonterm/Makefile" ;;
     "src/plugins/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/obfuscator/Makefile" ;;
@@ -10860,6 +12385,7 @@ done
 if $ac_need_defaults; then
   test "${CONFIG_FILES+set}" = set || CONFIG_FILES=$config_files
   test "${CONFIG_HEADERS+set}" = set || CONFIG_HEADERS=$config_headers
+  test "${CONFIG_COMMANDS+set}" = set || CONFIG_COMMANDS=$config_commands
 fi
 
 # Have a temporary directory for convenience.  Make it in the build tree
@@ -11156,7 +12682,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 fi # test -n "$CONFIG_HEADERS"
 
 
-eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS    "
+eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS    :C $CONFIG_COMMANDS"
 shift
 for ac_tag
 do
@@ -11389,12 +12915,16 @@ $as_echo "$as_me: $ac_file is unchanged" >&6;}
   fi
  ;;
 
-
+  :C)  { $as_echo "$as_me:${as_lineno-$LINENO}: executing $ac_file commands" >&5
+$as_echo "$as_me: executing $ac_file commands" >&6;}
+ ;;
   esac
 
 
   case $ac_file$ac_mode in
     "src/plugins/aorai/Makefile":F) chmod -w src/plugins/aorai/Makefile ;;
+    "default":C)    ;;
+    "src/plugins/e-acsl/Makefile":F) chmod -w src/plugins/e-acsl/Makefile ;;
     "src/plugins/loop_analysis/Makefile":F) chmod -w src/plugins/loop_analysis/Makefile ;;
     "src/plugins/nonterm/Makefile":F) chmod -w src/plugins/nonterm/Makefile ;;
     "src/plugins/obfuscator/Makefile":F) chmod -w src/plugins/obfuscator/Makefile ;;
@@ -11448,7 +12978,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   d=DYNAMIC_$plugin

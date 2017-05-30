@@ -34,7 +34,7 @@
           
           Stats for function <tests/metrics/reach.c/main>
           =============================================== 
-          Sloc = 10
+          Sloc = 12
           Decision point = 1
           Global variables = 0
           If = 1
@@ -64,7 +64,7 @@
           
           Global metrics
           ============== 
-          Sloc = 13
+          Sloc = 15
           Decision point = 1
           Global variables = 2
           If = 1
@@ -83,7 +83,6 @@
   bar ∈ {0}
   t[0] ∈ {{ &baz }}
    [1] ∈ {0}
-[value] Recording results for main
 [value] done for function main
 [metrics] Value coverage statistics
           =========================
@@ -91,7 +90,7 @@
           Semantically reached functions = 1
           Coverage estimation = 33.3% 
           
-          Unseen functions (2) =
+          Unreached functions (2) =
             <tests/metrics/reach.c>: baz; foo;
 [metrics] References to non-analyzed functions
           ------------------------------------
@@ -99,5 +98,5 @@
           Initializer of t references baz (at tests/metrics/reach.c:10)
 [metrics] Statements analyzed by Value
           ----------------------------
-          10 stmts in analyzed functions, 6 stmts analyzed (60.0%)
-          main: 6 stmts out of 10 (60.0%)
+          12 stmts in analyzed functions, 7 stmts analyzed (58.3%)
+          main: 7 stmts out of 12 (58.3%)

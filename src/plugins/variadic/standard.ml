@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,16 +102,13 @@ let match_args tparams args =
 
 (* translate a call by applying argument matching/pruning and changing
    callee *)
-let match_call ~fundec stmt loc lval new_callee new_tparams args =
-  let block = Cil.mkBlock [] in
-  let block_stmt = {stmt with skind = Block block} in
+let match_call ~loc ~fundec scope mk_call new_callee new_tparams args =
   let new_args, unused_args = match_args new_tparams args in
-  let call = Build.call ~loc lval new_callee new_args in
-  let reads = List.map (Cil.mkPureExpr ~fundec ~loc) unused_args in
-  block.bstmts <- reads @ [call];
-  block_stmt
-
-
+  let call = mk_call (Cil.evar ~loc new_callee) new_args in
+  let reads =
+    List.map (fun e -> Cil.mkPureExprInstr ~fundec ~scope e) unused_args
+  in
+  reads @ [call]
 
 (* ************************************************************************ *)
 (* Aggregator calls                                                         *)
@@ -121,12 +118,9 @@ let find_null exp_list =
   List.ifind (fun e -> Cil.isZero (Cil.constFold false e)) exp_list
 
 
-let aggregator_call ~fundec {a_target; a_pos; a_type; a_param} vf stmt =
-  (* Extract call informations *)
-  let lval, args, loc = match stmt.skind with
-  | Instr(Call(lval, _, args, loc)) -> lval, args, loc
-  | _ -> assert false
-  and name = vf.vf_decl.vorig_name
+let aggregator_call
+    ~fundec {a_target; a_pos; a_type; a_param} scope loc mk_call vf args =
+  let name = vf.vf_decl.vorig_name
   and tparams = Typ.params_types a_target.vtype 
   and pname, ptyp = a_param in
 
@@ -166,22 +160,16 @@ let aggregator_call ~fundec {a_target; a_pos; a_type; a_param} vf stmt =
   Self.result ~current:true ~level:2
     "Translating call to %s to a call to %s."
     name a_target.vorig_name;
-  let block = Cil.mkBlock [] in
-  let block_stmt = {stmt with skind = Block block} in
   let pname = if pname = "" then "param" else pname in
-  let vaggr, assigns = Build.array_init ~loc fundec block
-    pname ptyp args_middle in
+  let vaggr, assigns =
+    Build.array_init ~loc fundec scope pname ptyp args_middle
+  in
   let new_arg = Cil.mkAddrOrStartOf ~loc (Cil.var vaggr) in
   let new_args = args_left @ [new_arg] @ args_right in
   let new_args,_ = match_args tparams new_args in
-  let call = Build.call ~loc lval a_target new_args in
-  let reads = List.map (Cil.mkPureExpr ~fundec ~loc) unused_args in
-  block.bstmts <- assigns @ reads @ [call];
-
-  (* Return the created block *)
-  block_stmt
-
-
+  let call = mk_call (Cil.evar ~loc a_target) new_args in
+  let reads = List.map (Cil.mkPureExprInstr ~fundec ~scope ~loc) unused_args in
+  assigns :: reads @ [call]
 
 (* ************************************************************************ *)
 (* Overloads calls                                                          *)
@@ -222,18 +210,14 @@ let filter_matching_prototypes overload args =
   List.map fst candidates
 
 
-let overloaded_call ~fundec overload vf stmt =
-  (* Extract call informations *)
-  let lval, args, loc = match stmt.skind with
-  | Instr(Call(lval, _, args, loc)) -> lval, args, loc
-  | _ -> assert false
-  and name = vf.vf_decl.vorig_name in
+let overloaded_call ~fundec overload block loc mk_call vf args =
+  let name = vf.vf_decl.vorig_name in
 
   (* Find the matching prototype *)
   let tparams, new_callee =
     match filter_matching_prototypes overload args with
     | [] -> (* No matching prototype *)
-        Self.warning ~current:true 
+        Self.warning ~current:true
           "No matching prototype found for this call to %s. \
            Candidates were: \
            %a"
@@ -255,7 +239,7 @@ let overloaded_call ~fundec overload vf stmt =
   Self.result ~current:true ~level:2
     "Translating call to the specialized version %a."
     (pp_prototype name) tparams;
-  match_call ~fundec stmt loc lval new_callee tparams args
+  match_call ~loc ~fundec block mk_call new_callee tparams args
 
 
 
@@ -269,8 +253,9 @@ let find_global env name =
   try
     Some (Environment.find_global env name)
   with Not_found ->
-    Self.warning
-      "Unable to locate global %s which should be in the Frama-C LibC."
+    Self.warning ~once:true
+      "Unable to locate global %s which should be in the Frama-C LibC. \
+       Correct specifications can't be generated."
       name;
     None
 
@@ -278,8 +263,9 @@ let find_predicate name =
   match Logic_env.find_all_logic_functions name with
   | f :: _q -> Some f (* TODO: should we warn in case of overloading? *)
   | [] ->
-    Self.warning
-      "Unable to locate ACSL predicate %s."
+    Self.warning ~once:true
+      "Unable to locate ACSL predicate %s which should be in the Frama-C LibC. \
+      Correct specifications can't be generated."
       name;
     None
 
@@ -288,7 +274,7 @@ let find_field env structname fieldname =
     let compinfo = Environment.find_struct env structname in
     Some (Cil.getCompField compinfo fieldname)
   with Not_found ->
-    Self.warning
+    Self.warning ~once:true
       "Unable to locate %s field %s."
       structname fieldname;
     None
@@ -379,39 +365,50 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   let l = List.combine vformals dirs in
   List.iter (add_var ~indirect:false) l;
 
-  (* Add format source and additionnal parameters *)
+  (* Add format source and additional parameters *)
   add_var ~indirect:true (List.nth sformals format_fun.f_format_pos, `ArgInArray);
   List.iter (fun p -> add_var ~indirect:true (List.nth sformals p, `ArgIn))
-    format_fun.f_additionnal_args;
+    format_fun.f_additional_args;
 
   (* Add buffer source/dest *)
+  let add_stream vi =
+    (* assigns stream->__fc_FILE_data
+         \from stream->__fc_FILE_data, __fc_FILE_id *)
+    begin match find_field env "__fc_FILE" "__fc_FILE_data" with
+    | Some fieldinfo ->
+        let varfield = Build.logic_varfield ~loc vi fieldinfo in
+        add_lval ~indirect:false (varfield, `ArgInOut)
+    | None ->
+        add_var ~indirect:false (vi, `ArgInOut)
+    end;
+    begin match find_field env "__fc_FILE" "__fc_FILE_id" with
+    | Some fieldinfo ->
+        let varfield = Build.logic_varfield ~loc vi fieldinfo in
+        add_lval ~indirect:true (varfield, `ArgIn)
+    | None -> ()
+    end
+  in
+
   begin match format_fun.f_buffer, format_fun.f_kind with
   | StdIO, ScanfLike ->
       begin match find_global env "__fc_stdin" with
-      | Some vi -> add_var ~indirect:true (vi, `ArgInOut)
+      | Some vi -> add_stream vi
       | None -> ()
       end
   | StdIO, PrintfLike ->
       begin match find_global env "__fc_stdout" with
-      | Some vi -> add_var ~indirect:true (vi, `ArgInOut)
+      | Some vi -> add_stream vi
       | None -> ()
       end
   | Arg i, ScanfLike -> 
       add_var ~indirect:true (List.nth sformals i, `ArgInArray)
   | Arg i, PrintfLike -> 
       add_var ~indirect:true (List.nth sformals i, `ArgOutArray)
-  | Stream _i, _ -> () (*
-      (* These generated dependencies doesn't really help analyses *)
-      (* assigns *stream \from stream->__fc_stdio_id *)
-      let stream = List.nth sformals i in
-      add_var (stream, `ArgOut);
-      begin match find_field env "__fc_FILE" "__fc_stdio_id" with
-      | Some fieldinfo ->
-          add_lval (Build.logic_varfield ~loc stream fieldinfo, `ArgIn)
-      | None -> ()
-      end
-      *)
-  | File _i, _ -> ()
+  | Stream i, _ ->
+      add_stream (List.nth sformals i)
+  | File i, _ ->
+      let file = List.nth sformals i in
+      add_var ~indirect:true (file, `ArgIn);
   | Syslog, _ -> ()
   end;
 
@@ -432,12 +429,8 @@ let build_fun_spec env loc vf format_fun tvparams formals =
 
 (* --- Call translation --- *)
 
-let format_fun_call ~fundec env format_fun vf stmt =
-  (* Extract call informations *)
-  let lval, args, loc = match stmt.skind with
-  | Instr(Call(lval, _, args, loc)) -> lval, args, loc
-  | _ -> assert false
-  and name = vf.vf_decl.vorig_name
+let format_fun_call ~fundec env format_fun scope loc mk_call vf args =
+  let name = vf.vf_decl.vorig_name
   and params = Typ.params vf.vf_decl.vtype in
   (* Remove the va_param parameter added during the declaration visit *)
   let fixed_params_count = Typ.params_count vf.vf_original_type in
@@ -453,7 +446,11 @@ let format_fun_call ~fundec env format_fun vf stmt =
           name
       in
       match  Cil.static_string format_arg with
-      | None -> raise Translate_call_exn (* No syntactic hint *)
+      | None ->
+        Self.warning ~current:true
+          "Call to function function %s with non-static format argument:@ \
+           no specification will be generated." name;
+        raise Translate_call_exn (* No syntactic hint *)
       | Some s -> Format_parser.parse_format format_fun.f_kind s
     with
     | Format_parser.Invalid_format -> raise Translate_call_exn
@@ -474,11 +471,15 @@ let format_fun_call ~fundec env format_fun vf stmt =
   let new_params = sparams @ vparams in
 
   (* Create the new callee *)
+  vf.vf_specialization_count <- vf.vf_specialization_count + 1;
   let ret_typ, _, _, attributes = Cil.splitFunctionType vf.vf_decl.vtype in
-  let new_callee_typ = TFun (ret_typ, Some new_params, false, attributes) in
-  let mk_spec formals = build_fun_spec env loc vf format_fun tvparams formals in
+  let new_callee_typ = TFun (ret_typ, Some new_params, false, attributes)
+  and new_name = name ^ "_va_" ^ (string_of_int vf.vf_specialization_count)
+  and mk_spec formals = build_fun_spec env loc vf format_fun tvparams formals
+  in
   let new_callee, glob = Build.function_declaration ~loc:vf.vf_decl.vdecl
     name new_callee_typ mk_spec in
+  new_callee.vname <- new_name;
   new_globals := glob :: !new_globals;
 
   (* Translate the call *)
@@ -486,6 +487,4 @@ let format_fun_call ~fundec env format_fun vf stmt =
     "Translating call to %s to a call to the specialized version %s."
     name new_callee.vname;
   let tparams = params_types new_params in
-  match_call ~fundec stmt loc lval new_callee tparams args
-
-
+  match_call ~loc ~fundec scope mk_call new_callee tparams args

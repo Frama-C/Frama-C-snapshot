@@ -1,5 +1,5 @@
 /*run.config
- OPT: -print -val -journal-disable
+ OPT: -print -val -val-show-progress -journal-disable
  */
 #define IP_FIELD 4
 typedef int ip_address[IP_FIELD];

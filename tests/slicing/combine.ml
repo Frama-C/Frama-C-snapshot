@@ -16,30 +16,30 @@ let f_slice_names =
     f_slice_names
 
 let main _ =
-  let project = mk_project () in
+  !S.Project.reset_slice ();
 
   let kf_main = Globals.Functions.find_def_by_name "main" in
   let kf_f = Globals.Functions.find_def_by_name "f" in
 
-  !S.Project.change_slicing_level project kf_f 2;
+  !S.Project.change_slicing_level kf_f 2;
 
-  let ff_main = !S.Slice.create project kf_main in
-  let select = select_retres project kf_main in
-  let _ = !S.Request.add_slice_selection_internal project ff_main select in
-  !S.Request.apply_all_internal project;
+  let ff_main = !S.Slice.create kf_main in
+  let select = select_retres kf_main in
+  !S.Request.add_slice_selection_internal ff_main select;
+  !S.Request.apply_all_internal ();
 
-  extract_and_print project;
+  extract_and_print ();
 
   Format.printf "Let's split 'f':@.";
 
-  let ff_f = match !S.Slice.get_all project kf_f with
+  let ff_f = match !S.Slice.get_all kf_f with
     | f :: [] -> f | _ -> assert false
   in
 
-  ignore (!S.Request.split_slice project ff_f);
-  !S.Request.apply_all_internal project;
+  ignore (!S.Request.split_slice ff_f);
+  !S.Request.apply_all_internal ();
 
-  let proj2 = !S.Project.extract "slicing_result" ~f_slice_names project in
+  let proj2 = !S.Project.extract "slicing_result" ~f_slice_names () in
   Project.set_current proj2;
   Format.printf "After Slicing :@." ; File.pretty_ast ();
 
@@ -62,11 +62,12 @@ let main _ =
     let new_cil_file = Ast.get () in
     Cil.visitCilFile infos new_cil_file (* the cil file after slicing *);;
   *)
-
+  Dynamic.Parameter.Bool.set "-val-show-progress" true;
   !Db.Value.compute ();
   let all = Cil_datatype.Fundec.Set.empty in
   let proj3 = !Db.Constant_Propagation.get all ~cast_intro:true in
   Project.set_current proj3;
+  Dynamic.Parameter.Bool.set "-val-show-progress" true;
   Format.printf "After Constant propagation :@.";
   File.pretty_ast ~prj:proj3 ();
 

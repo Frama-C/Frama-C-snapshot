@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,15 +52,27 @@ let () = match plugin_dir with
            Filepath.add_symbolic_dir path d)
         (Array.of_list ds)
 
-let preprocessor =
-  try Sys.getenv "CPP" with Not_found -> "@FRAMAC_DEFAULT_CPP@"
+let default_cpp = "@FRAMAC_DEFAULT_CPP@"
+
+let default_cpp_args = " @FRAMAC_DEFAULT_CPP_ARGS@"
+
+let env_or_default f vdefault =
+  try
+    let env = Sys.getenv "CPP" ^ default_cpp_args in
+    if env=default_cpp then vdefault else f env
+  with Not_found -> vdefault
+
+let preprocessor = env_or_default (fun x -> x) default_cpp
+
+let using_default_cpp = env_or_default (fun _ -> false) true
 
 let preprocessor_is_gnu_like =
-  try ignore (Sys.getenv "CPP"); false with Not_found -> @FRAMAC_GNU_CPP@
+  env_or_default (fun _ -> false) @FRAMAC_GNU_CPP@
+
+let preprocessor_supported_arch_options = [@DEFAULT_CPP_SUPPORTED_ARCH_OPTS@]
 
 let preprocessor_keep_comments =
-  try (ignore (Sys.getenv "CPP"); true)
-  with Not_found -> @DEFAULT_CPP_KEEP_COMMENTS@
+  env_or_default (fun _ -> true) @DEFAULT_CPP_KEEP_COMMENTS@
 
 let static_plugins = [@STATIC_PLUGINS@]
 let static_gui_plugins = [@STATIC_GUI_PLUGINS@]

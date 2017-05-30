@@ -41,11 +41,10 @@
               struct a *e[1] = {& __constr_expr_1};
               void foo(int c)
               {
-                struct a **p;
                 struct a **tmp;
                 
                 if (c) tmp = d; else tmp = e;
-                p = tmp;
+                struct a **p = tmp;
                 return;
               }
 [kernel] Parsing tests/syntax/bts1553.i (no preprocessing)
@@ -90,10 +89,9 @@ static struct a __constr_expr_1 = {.b = 2};
 struct a *e[1] = {& __constr_expr_1};
 void foo(int c)
 {
-  struct a **p;
   struct a **tmp_0;
   if (c) tmp_0 = d; else tmp_0 = e;
-  p = tmp_0;
+  struct a **p = tmp_0;
   return;
 }
 

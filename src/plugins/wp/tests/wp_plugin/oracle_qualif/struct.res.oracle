@@ -19,16 +19,15 @@
 [wp] [Qed] Goal typed_f_post_qed_ok_E11 : Valid
 [wp] [Qed] Goal typed_g_post_qed_ok_P3 : Valid
 [wp] [Qed] Goal typed_g_post_qed_ok_P4 : Valid
-[wp] [Alt-Ergo] Goal typed_g_post_qed_ok_P5 : Valid
+[wp] [Qed] Goal typed_g_post_qed_ok_P5 : Valid
 [wp] [Qed] Goal typed_g_assign : Valid
 [wp] [Qed] Goal typed_id_post_qed_ok_P1 : Valid
 [wp] [Qed] Goal typed_id_post_qed_ok_P2 : Valid
 [wp] Proved goals:   18 / 18
-     Qed:            17 
-     Alt-Ergo:        1
+     Qed:            18
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 id                   2     -           2       100%
-g                    3      1 (15)     4       100%
+g                    4     -           4       100%
 f                   12     -          12       100%
 ----------------------------------------------------------

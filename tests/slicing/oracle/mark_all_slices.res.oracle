@@ -105,7 +105,7 @@
   D2 FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
-[slicing] making slicing project 'slicing_1'...
+[slicing] initializing slicing ...
 [pdg] computing for function main
 [pdg] done for function main
 [slicing] applying all slicing requests...
@@ -142,7 +142,7 @@ void main(void)
 }
 
 
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 [all_slice_1 = (n:54(restrict to __retres) ,<[--d], [---]>)]
 
 [slicing] applying all slicing requests...
@@ -177,7 +177,7 @@ void main(void)
 }
 
 
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 [main_slice_1 = examine_calls]
 
 [slicing] applying all slicing requests...
@@ -231,8 +231,8 @@ void main(void)
 }
 
 
-[slicing] making slicing project 'slicing_2'...
-Slicing project worklist [default/slicing_2] =
+[slicing] reinitializing slicing ...
+Slicing project worklist [default] =
 
 
 [slicing] applying all slicing requests...

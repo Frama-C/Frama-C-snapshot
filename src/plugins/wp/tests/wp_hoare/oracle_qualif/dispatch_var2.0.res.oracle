@@ -45,10 +45,10 @@
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 reset                2     -           2       100%
-incr                 1      1 (7)      2       100%
-load                -       2 (8)      2       100%
-call_global          4      2 (11)     6       100%
+incr                 1      1 (8)      2       100%
+load                -       2 (9)      2       100%
+call_global          4      2 (12)     6       100%
 call_param           8     -           8       100%
-call_local           4      4 (12)     8       100%
-call_param_ref       4      2 (11)     6       100%
+call_local           4      4 (13)     8       100%
+call_param_ref       4      2 (12)     6       100%
 ----------------------------------------------------------

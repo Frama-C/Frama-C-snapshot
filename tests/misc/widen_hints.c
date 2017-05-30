@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -val -cpp-extra-args=-DSYNTAX_ERRORS -continue-annot-error
-   OPT: -val -cpp-extra-args=-DNONCONST
-   OPT: -val -slevel 1 -kernel-msg-key widen-hints
-   OPT: -val -cpp-extra-args=-DALLGLOBAL -kernel-msg-key widen-hints
+   OPT: -val -val-show-progress -cpp-extra-args=-DSYNTAX_ERRORS -continue-annot-error
+   OPT: -val -val-show-progress -cpp-extra-args=-DNONCONST
+   OPT: -val -val-show-progress -slevel 1 -value-msg-key widen-hints
+   OPT: -val -val-show-progress -cpp-extra-args=-DALLGLOBAL -value-msg-key widen-hints
 */
 #define N 2
 
@@ -52,6 +52,13 @@ int f() {
 void external_f();
 #endif
 
+void using_dynamic_global(int *i) {
+  int b;
+  //@ widen_hints *i, 87; //note: b itself is NOT in the hint
+  for (b = 0; b < *i; b++) {
+  }
+}
+
 int main() {
 #ifdef NONCONST
   const int local_const = 17; // cannot be used as widen hint
@@ -82,6 +89,39 @@ int main() {
     for (int b = 0; b < ss.i; b++) {
 
     }
+  }
+
+  int ip = 0;
+  int *p = &ip;
+  //@ widen_hints *p, 87;
+  for (*p = 0; *p < n*2+1; (*p)++) {
+    for (int b = 0; b < *p; b++) {
+
+    }
+  }
+
+  int ip2 = 0;
+  int *p2 = &ip2;
+  int **pp = &p2;
+  //@ widen_hints **pp, 87;
+  for (**pp = 0; **pp < n*2+1; (**pp)++) {
+    for (int b = 0; b < **pp; b++) {
+
+    }
+  }
+
+  typedef struct { int i; } istruct;
+  istruct iarray[2] = {{0}, {0}};
+  istruct *piarray[2] = {&iarray[0], &iarray[1]};
+  for (piarray[1]->i = 0; piarray[1]->i < n*2+1; (piarray[1]->i)++) {
+    //@ widen_hints piarray[1]->i, 87;
+    for (int b = 0; b < piarray[1]->i; b++) {
+    }
+  }
+
+  int outer_i;
+  for (outer_i = 0; outer_i < n*2+1; outer_i++) {
+    using_dynamic_global(&outer_i);
   }
 
   return 0;

@@ -2,7 +2,7 @@
    OPT: -wp -wp-model Typed -wp-par 1
 */
 
-// Test for the instanciation of axioms with labels.
+// Test for the instantiation of axioms with labels.
 // The axiomatic A is equivalent (in spirit) to the definition of predicate Q.
 
 /*@ axiomatic A {

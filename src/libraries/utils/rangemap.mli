@@ -44,7 +44,7 @@
     The implementation uses balanced binary trees, and therefore searching
     and insertion take time logarithmic in the size of the map.
 
-    Compared to Ocaml's standard libary, this implementation caches at
+    Compared to Ocaml's standard library, this implementation caches at
     each node the hash of the tree (which is computed in an associative
     manner), and contains some functions not yet present in the caml
     implementation. *)

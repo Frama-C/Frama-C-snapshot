@@ -7,6 +7,9 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
   nondet ∈ [--..--]
 [value] computing for function test1 <- main.
         Called from tests/value/behaviors2.c:314.

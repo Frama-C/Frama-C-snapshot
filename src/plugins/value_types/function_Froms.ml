@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -361,7 +361,7 @@ module Memory = struct
     let both = find_precise_offsetmap in
     let conv = convert_find_offsm in
     (* We are querying a zone for which no dependency is stored. Hence, every
-       base is implicitely bound to [Unassigned]. *)
+       base is implicitly bound to [Unassigned]. *)
     let empty_map z = Deps.from_data_deps z in
     let join = Deps.join in
     let empty = Deps.bottom in
@@ -379,24 +379,22 @@ module Memory = struct
   let add_binding_precise_loc ~exact m loc v =
     let aux_one_loc loc m =
       let loc = Locations.valid_part ~for_writing:true loc in
-      add_binding_loc
-        ~reducing:false ~exact m loc (DepsOrUnassigned.AssignedFrom v)
+      add_binding_loc ~exact m loc (DepsOrUnassigned.AssignedFrom v)
     in
     Precise_locs.fold aux_one_loc loc m
 
   let bind_var vi v m =
     let z = Locations.zone_of_varinfo vi in
-    add_binding ~reducing:true ~exact:true m z (DepsOrUnassigned.AssignedFrom v)
+    add_binding ~exact:true m z (DepsOrUnassigned.AssignedFrom v)
 
   let unbind_var vi m =
     remove_base (Base.of_varinfo vi) m
 
   let add_binding ~exact m z v =
-    add_binding ~reducing:false ~exact m z (DepsOrUnassigned.AssignedFrom v)
+    add_binding ~exact m z (DepsOrUnassigned.AssignedFrom v)
 
   let add_binding_loc ~exact m loc v =
-    add_binding_loc
-      ~reducing:false ~exact m loc (DepsOrUnassigned.AssignedFrom v)
+    add_binding_loc ~exact m loc (DepsOrUnassigned.AssignedFrom v)
 
   let is_unassigned m =
     LOffset.is_same_value m DepsOrUnassigned.Unassigned
@@ -429,7 +427,7 @@ module Memory = struct
   let substitute_data_deps =
     (* Nothing left to substitute, return z unchanged *)
     let empty_right z = Deps.from_data_deps z in
-    (* Zone to subtitute is empty *)
+    (* Zone to substitute is empty *)
     let empty_left _ = Deps.bottom in
     (* [b] is in the zone and substituted. Rewrite appropriately *)
     let both b itvs offsm =
@@ -457,7 +455,7 @@ module Memory = struct
   let substitute_indirect_deps =
     (* Nothing left to substitute, z is directly an indirect dependency *)
     let empty_right z = z in
-    (* Zone to subtitute is empty *)
+    (* Zone to substitute is empty *)
     let empty_left _ = Zone.bottom in
     let both b itvs offsm =
       (* Both the found data and indirect dependencies are computed for indirect

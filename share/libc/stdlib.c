@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -68,20 +68,20 @@ int atoi(const char *p)
 /* This malloc must not be used if the analyzer cannot determine that there is
    only a finite number of calls to malloc. */
 
-void *Frama_C_alloc_size(size_t size);
+extern void *Frama_C_malloc_fresh(size_t size);
 
 void *malloc(size_t size) {
-  return Frama_C_alloc_size(size);
+  return Frama_C_malloc_fresh(size);
 }
 
 #else
 
 #ifdef FRAMA_C_MALLOC_STACK
 
-void * Frama_C_alloc_by_stack(size_t size);
+extern void * Frama_C_malloc_by_stack(size_t size);
 
 void *malloc(size_t size) {
-  return Frama_C_alloc_by_stack(size);
+  return Frama_C_malloc_by_stack(size);
 }
 
 #else
@@ -89,7 +89,7 @@ void *malloc(size_t size) {
 #endif
 #endif
 
-void Frama_C_free(void*base);
+extern void Frama_C_free(void*base);
 void free(void *p) {
   if (p) Frama_C_free(p);
 }
@@ -97,7 +97,11 @@ void free(void *p) {
 void *calloc(size_t nmemb, size_t size)
 {
   size_t l = nmemb * size;
+  // test overflow, and fail if detected
+  if (size != 0 && l / size != nmemb) {
+    return 0;
+  }
   char *p = malloc(l);
-  Frama_C_memset(p, 0, l);
+  if (p) Frama_C_memset(p, 0, l);
   return p;
 }

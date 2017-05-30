@@ -110,75 +110,69 @@ void decode_int_post_func(int res)
  */
 int decode_int(char *s)
 {
-  int aorai_Loop_Init_81;
+  int aorai_Loop_Init_76;
   int __retres;
-  int intmax;
-  int cutlim;
-  int cutoff;
-  int value;
   char c;
   decode_int_pre_func(s);
-  intmax = ~ (1 << (sizeof(int) * (unsigned int)8 - (unsigned int)1));
-  cutlim = intmax % 10;
-  cutoff = intmax / 10;
-  value = 0;
-  /*@ ghost aorai_Loop_Init_81 = 1; */
-  aorai_loop_81:
-    /*@ loop invariant Aorai: 1 ≡ accept_S1;
-        loop invariant Aorai: 0 ≡ accept_S2;
-        loop invariant Aorai: 0 ≡ accept_init;
-    */
-    while (1) {
+  int intmax = ~ (1 << (sizeof(int) * (unsigned int)8 - (unsigned int)1));
+  int cutlim = intmax % 10;
+  int cutoff = intmax / 10;
+  int value = 0;
+  /*@ ghost aorai_Loop_Init_76 = 1; */
+  aorai_loop_76:
+  /*@ loop invariant Aorai: 1 ≡ accept_S1;
+      loop invariant Aorai: 0 ≡ accept_S2;
+      loop invariant Aorai: 0 ≡ accept_init;
+  */
+  while (1) {
+    {
+      char *tmp;
+      /*@ ghost aorai_Loop_Init_76 = 0; */
+      tmp = s;
+      s ++;
+      c = *tmp;
+      if (! c) goto while_0_break;
       {
-        char *tmp;
-        /*@ ghost aorai_Loop_Init_81 = 0; */
-        tmp = s;
-        s ++;
-        c = *tmp;
-        if (! c) goto while_0_break;
-        {
-          int v;
-          v = 0;
-          switch ((int)c) {
-            case '0': v = 0;
-            goto switch_1_break;
-            case '1': v = 1;
-            goto switch_1_break;
-            case '2': v = 2;
-            goto switch_1_break;
-            case '3': v = 3;
-            goto switch_1_break;
-            case '4': v = 4;
-            goto switch_1_break;
-            case '5': v = 5;
-            goto switch_1_break;
-            case '6': v = 6;
-            goto switch_1_break;
-            case '7': v = 7;
-            goto switch_1_break;
-            case '8': v = 8;
-            goto switch_1_break;
-            case '9': v = 9;
-            goto switch_1_break;
-            default: ;
-            __retres = -1;
-            goto return_label;
-          }
-          switch_1_break: ;
-          if (value > cutoff) {
-            __retres = -1;
-            goto return_label;
-          }
-          else 
-            if (value == cutoff) 
-              if (v > cutlim) {
-                __retres = -1;
-                goto return_label;
-              }
-          value = value * 10 + v;
+        int v = 0;
+        switch ((int)c) {
+          case '0': v = 0;
+          goto switch_1_break;
+          case '1': v = 1;
+          goto switch_1_break;
+          case '2': v = 2;
+          goto switch_1_break;
+          case '3': v = 3;
+          goto switch_1_break;
+          case '4': v = 4;
+          goto switch_1_break;
+          case '5': v = 5;
+          goto switch_1_break;
+          case '6': v = 6;
+          goto switch_1_break;
+          case '7': v = 7;
+          goto switch_1_break;
+          case '8': v = 8;
+          goto switch_1_break;
+          case '9': v = 9;
+          goto switch_1_break;
+          default: __retres = -1;
+          goto return_label;
         }
+        switch_1_break: ;
+        if (value > cutoff) {
+          __retres = -1;
+          goto return_label;
+        }
+        else 
+          if (value == cutoff) 
+            if (v > cutlim) {
+              __retres = -1;
+              goto return_label;
+            }
+        value = value * 10 + v;
       }
     }
+  }
   while_0_break: ;
   __retres = value;
   return_label: decode_int_post_func(__retres);

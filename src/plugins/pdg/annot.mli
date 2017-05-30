@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ type data_info =
   ((PdgTypes.Node.t * Locations.Zone.t option) list
   * Locations.Zone.t option) option
 
-(** [ctrl_info] correspond to control dependancies nodes *)
+(** [ctrl_info] correspond to control dependencies nodes *)
 type ctrl_info = PdgTypes.Node.t list
 
 (** [decl_info] correspond to the declarations nodes of the variables needed to

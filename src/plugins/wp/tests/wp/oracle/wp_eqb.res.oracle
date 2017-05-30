@@ -11,12 +11,12 @@
                      
                      goal f_post:
                        forall i_3,i_2,i_1,i : int.
-                       ((match_bool((eqb(i, i_1)), 1, 0)) = (match_bool((eqb(i_2, i_3)), 1, 0))) ->
+                       ((match_bool((eqb(i_3, i_2)), 1, 0)) = (match_bool((eqb(i_1, i)), 1, 0))) ->
                        is_sint32(i) ->
                        is_sint32(i_1) ->
                        is_sint32(i_2) ->
                        is_sint32(i_3) ->
-                       ((i = i_1) <-> (i_2 = i_3))
+                       ((i_3 = i_2) <-> (i_1 = i))
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f
@@ -25,8 +25,8 @@
 Goal Post-condition (file tests/wp/wp_eqb.i, line 8) in 'f':
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(d).
-  Have: (if (a = b) then 1 else 0) = (if (c = d) then 1 else 0).
+  Have: (if (d = c) then 1 else 0) = (if (b = a) then 1 else 0).
 }
-Prove: (a = b) <-> (c = d).
+Prove: (d = c) <-> (b = a).
 
 ------------------------------------------------------------

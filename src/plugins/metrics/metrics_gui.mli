@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,10 +31,10 @@ val init_panel : Design.main_window_extension_points -> GPack.box ;;
 (** @returns a value allowing to register the panel into the main GUI *)
 val coerce_panel_to_ui : < coerce : 'a; .. > -> 'b -> string * 'a * 'c option  ;;
 
-(** Diplay the list of list of strings in a LablgGTK table object *)
+(** Display the list of list of strings in a LablGTK table object *)
 val display_as_table : string list list -> GPack.box  -> unit ;;
 
-(** Reset metrics panel to pristine conditions by removeing children from
+(** Reset metrics panel to pristine conditions by removing children from
     bottom container
 *)
 val reset_panel : 'a -> unit ;;

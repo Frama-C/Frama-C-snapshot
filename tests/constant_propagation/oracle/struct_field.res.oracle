@@ -48,20 +48,13 @@ struct __anonstruct_S_1 S;
 union v v;
 void main(void)
 {
-  int *p1;
-  int *p2;
-  int *p6;
-  int **pp;
-  int *p11;
-  int *p14;
-  char *p;
-  p1 = & S.f0;
-  p2 = & S.f1[0];
-  p6 = & S.f1[4];
-  pp = & p6;
-  p11 = & S.f2[0].u1;
-  p14 = & S.f2[1].u2.b;
-  p = & v.f2.c4;
+  int *p1 = & S.f0;
+  int *p2 = & S.f1[0];
+  int *p6 = & S.f1[4];
+  int **pp = & p6;
+  int *p11 = & S.f2[0].u1;
+  int *p14 = & S.f2[1].u2.b;
+  char *p = & v.f2.c4;
   return;
 }
 

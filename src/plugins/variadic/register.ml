@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,11 +22,18 @@
 
 let category = File.register_code_transformation_category "variadic"
 
-let () = 
+let () =
+  Cmdline.run_after_extended_stage
+    begin fun () ->
+      State_dependency_graph.add_dependencies
+        ~from:Options.Enabled.self
+        [ Ast.self ]
+    end;
   Cmdline.run_after_configuring_stage
     begin fun () ->
-      if Options.Enabled.get () then
-        File.add_code_transformation_before_cleanup
-          category Translate.translate_variadics
+      let translate file =
+        if Options.Enabled.get () then
+          Translate.translate_variadics file
+      in
+      File.add_code_transformation_before_cleanup category translate
     end
-

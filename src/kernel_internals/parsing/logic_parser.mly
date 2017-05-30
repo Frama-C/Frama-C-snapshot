@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -500,7 +500,7 @@ lexpr_inner:
 | STAR  lexpr_inner %prec prec_unary_op { info (PLunop (Ustar, $2)) }
 | AMP   lexpr_inner %prec prec_unary_op { info (PLunop (Uamp, $2)) }
 | SIZEOF LPAR lexpr RPAR { info (PLsizeofE $3) }
-| SIZEOF LPAR logic_type RPAR { info (PLsizeof $3) }
+| SIZEOF LPAR cast_logic_type RPAR { info (PLsizeof $3) }
 | OLD LPAR lexpr RPAR { info (PLold $3) }
 | AT LPAR lexpr COMMA label_name RPAR { info (PLat ($3, $5)) }
 | RESULT { info PLresult }
@@ -906,7 +906,8 @@ ext_global_clauses:
 
 ext_global_clause:
 | decl  { Ext_decl (loc_decl $1) }
-| EXT_LET any_identifier EQUAL full_lexpr SEMICOLON { Ext_macro ($2, $4) }
+| EXT_LET any_identifier EQUAL full_lexpr SEMICOLON { Ext_macro (false, $2, $4) }
+| GLOBAL EXT_LET any_identifier EQUAL full_lexpr SEMICOLON { Ext_macro (true, $3, $5) }
 | INCLUDE string SEMICOLON { let b,s = $2 in Ext_include(b,s, loc()) }
 ;
 

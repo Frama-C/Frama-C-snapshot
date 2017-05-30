@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -434,10 +434,9 @@ end = struct
                          pred_content = Ptrue})))
       end
 
-    method private process_call call_stmt call =
+    method private process_call is_init_call call_stmt lval _f args loc =
       let finfo = self#get_finfo () in
       let info = (pinfo, finfo) in
-      let lval, _funcexp, args, loc = call in
       let called_info = Info.called_info info call_stmt in
       match called_info with
       | None -> call_stmt.skind
@@ -447,7 +446,28 @@ end = struct
         let new_args = filter_params called_finfo args in
         let need_lval = Info.res_call_visible finfo call_stmt in
         let new_lval = if need_lval then lval else None in
-        let new_call = Call (new_lval, new_funcexp, new_args, loc) in
+        let new_call =
+          if is_init_call then begin
+            match lval with
+            | None -> (* initializer takes address of variable *)
+              if Info.param_visible called_finfo 1 then begin
+                match new_args with
+                | { enode = AddrOf (Var v, NoOffset) } :: args ->
+                  Local_init(v, ConsInit(var_slice,args,Constructor), loc)
+                | _ -> assert false (* We have kept the first argument. *)
+              end else begin
+                (* variable is useless. *)
+                Call(None, new_funcexp, new_args, loc)
+              end
+            | Some _ ->
+              (match new_lval with
+               | None -> Call (None, new_funcexp, new_args, loc)
+               | Some (Var v, NoOffset) ->
+                 Local_init(v, ConsInit(var_slice, new_args, Plain_func), loc)
+               | Some _ -> assert false (* destination must be a variable *))
+          end
+          else Call (new_lval, new_funcexp, new_args, loc)
+        in
         debug1 "[process_call] call %s@." var_slice.vname;
         Instr (new_call)
 
@@ -516,6 +536,17 @@ end = struct
           assert false (* a block is always visible *)
         | TryFinally _ | TryExcept _ -> assert false (*TODO*)
         | Return (_,l) -> mk_new_stmt s (Return (None,l))
+        | Instr (Local_init (v, _, _)) ->
+          (* The initialization of the variable is useless (e.g. because it is
+             overwritten before being read). Just treat it as uninitialized.
+             Note that if the variable itself is invisible, we don't have
+             anything to do: it will not appear at all in the function.
+          *)
+          if Info.loc_var_visible (self#get_finfo()) v then begin
+            let v' = Cil.get_varinfo self#behavior v in
+            v'.vdefined <- false;
+          end;
+          mk_new_stmt s (mk_stmt_skip s)
         | _ -> mk_new_stmt s (mk_stmt_skip s));
         debug2 "@[<hov 10>[process_invisible_stmt] gives sid:%d@ @[%a@]@]@." 
           s.sid Printer.pp_stmt s;
@@ -525,12 +556,22 @@ end = struct
       ChangeDoChildrenPost(s, do_after)
 
     method private process_visible_stmt s =
-      debug2 "[process_visible_stmt] does sid:%d@." s.sid; 
+      debug2 "[process_visible_stmt] does sid:%d@." s.sid;
       let finfo = self#get_finfo () in
       (match s.skind with
-      | Instr (Call (lval, funcexp, args, loc)) ->
-        let call = (lval, funcexp, args, loc) in
-        let new_call = self#process_call s call in
+      | Instr (Call (lval, f, args, loc)) ->
+        let new_call = self#process_call false s lval f args loc in
+        mk_new_stmt s new_call
+      | Instr (Local_init(v, ConsInit(f, args, kind), loc)) ->
+        let new_call =
+          Cil.treat_constructor_as_func
+            (self#process_call true s) v f args kind loc
+        in
+        (match new_call with
+         | Instr(Call _) ->
+           (* initialization's result was found to be useless. *)
+           v.vdefined <- false
+         | _ -> ());
         mk_new_stmt s new_call
       | _ -> () (* copy the statement before modifying it *)
       (* mk_new_stmt s [] s.skind *)

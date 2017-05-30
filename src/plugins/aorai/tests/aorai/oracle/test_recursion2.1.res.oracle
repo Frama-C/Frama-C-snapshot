@@ -290,30 +290,27 @@ void sumOne_post_func(int res)
  */
 int sumOne(char *t, int length)
 {
-  int aorai_Loop_Init_42;
-  int sum;
-  int i;
+  int aorai_Loop_Init_43;
   sumOne_pre_func(t,length);
-  sum = 0;
+  int sum = 0;
+  int i = 0;
   i = 0;
-  i = 0;
-  /*@ ghost aorai_Loop_Init_42 = 1; */
-  aorai_loop_42:
-    /*@ loop invariant ranges: 0 ≤ i ≤ length;
-        loop invariant sumValue0: i ≡ 0 ⇒ sum ≡ 0;
-        loop invariant
-          sumValuei: i > 0 ⇒ sum ≡ sum_tab(t, length, i - 1);
-        loop invariant Aorai: 0 ≡ S1;
-        loop invariant Aorai: 0 ≡ T0_init;
-        loop invariant Aorai: 1 ≡ T1;
-        loop invariant Aorai: 0 ≡ accept_T2;
-    */
-    while (1) {
-      if (! (i < length)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_42 = 0; */
-      sum += (int)*(t + i);
-      i ++;
-    }
+  /*@ ghost aorai_Loop_Init_43 = 1; */
+  aorai_loop_43:
+  /*@ loop invariant ranges: 0 ≤ i ≤ length;
+      loop invariant sumValue0: i ≡ 0 ⇒ sum ≡ 0;
+      loop invariant sumValuei: i > 0 ⇒ sum ≡ sum_tab(t, length, i - 1);
+      loop invariant Aorai: 0 ≡ S1;
+      loop invariant Aorai: 0 ≡ T0_init;
+      loop invariant Aorai: 1 ≡ T1;
+      loop invariant Aorai: 0 ≡ accept_T2;
+  */
+  while (1) {
+    if (! (i < length)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_43 = 0; */
+    sum += (int)*(t + i);
+    i ++;
+  }
   while_0_break: ;
   sumOne_post_func(sum);
   return sum;
@@ -436,10 +433,9 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  int sum;
   int length;
   main_pre_func(argc,argv);
-  sum = 0;
+  int sum = 0;
   global_argc = argc;
   if (argc > 0) {
     length = count(*(argv + 0));

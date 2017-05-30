@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,14 +62,22 @@ type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
 
 (* Context for the evaluation of abstract value operators. *)
 
-(* unop e1 = e2. *)
-type unop_context = exp * exp
+(** Context for the evaluation of an unary operator: contains the involved
+    expressions needed to create the appropriate alarms. *)
+type unop_context = {
+  operand: exp;
+  result: exp;
+}
 
-(* e1 binop e2 = e3. *)
-type binop_context = exp * exp * exp * typ
-
-(* index, remaining, typ pointed, array size expression *)
-type index_context =  exp * offset * typ * exp option
+(** Context for the evaluation of a binary operator: contains the expressions
+    of both operands and of the result, needed to create the appropriate
+    alarms. *)
+type binop_context = {
+  left_operand: exp;
+  right_operand: exp;
+  binary_result: exp;
+  result_typ: typ
+}
 
 
 (* -------------------------------------------------------------------------- *)
@@ -128,7 +136,7 @@ end
 let compute_englobing_subexpr ~subexpr ~expr =
   let merge = Extlib.merge_opt (fun _ -> (@)) () in
   (* Returns [Some] of the list of subexpressions of [expr] that contain
-     [subexpr], apart from [expr] and [subexpr] themself, or [None] if [subexpr]
+     [subexpr], apart from [expr] and [subexpr] themselves, or [None] if [subexpr]
      does not appear in [expr]. *)
   let rec compute expr =
     if Cil_datatype.ExpStructEq.equal expr subexpr
@@ -220,19 +228,12 @@ type 'value argument = {
 type 'value call = {
   kf: kernel_function;
   arguments: 'value argument list;
-  rest: (exp * 'value assigned) list
+  rest: (exp * 'value assigned) list;
+  return: varinfo option;
+  recursive: bool;
 }
 
-
-type ('state, 'return, 'value) return_state = {
-  post_state: 'state;
-  return: ('value flagged_value * 'return) option;
-}
-
-type ('state, 'return, 'value) call_result =
-  ('state, 'return, 'value) return_state list or_bottom
-
-(* Initialization of a dataflow analysis, by definig the initial value of
+(* Initialization of a dataflow analysis, by defining the initial value of
     each statement. *)
 type 't init =
   | Default
@@ -240,9 +241,9 @@ type 't init =
   | Custom of (stmt * 't) list
 
 (* Action to perform on a call site. *)
-type ('state, 'summary, 'value) call_action =
+type 'state call_action =
   | Compute of 'state init * bool
-  | Result  of ('state, 'summary, 'value) call_result * Value_types.cacheable
+  | Result  of 'state list or_bottom * Value_types.cacheable
 
 exception InvalidCall
 

@@ -35,7 +35,7 @@
   \result FROM T[2]
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -63,8 +63,7 @@ int f_slice_1(int i)
 
 int main(void)
 {
-  int x2;
-  x2 = f_slice_1(2);
+  int x2 = f_slice_1(2);
   return x2;
 }
 

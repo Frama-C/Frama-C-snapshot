@@ -115,39 +115,39 @@ tests/value/precond.c:9:[value] warning: function f: precondition got status inv
 
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 31)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 11
+            status of 'requires i + 1 ≥ 0' of f at stmt 10
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 31)
 
-            status of 'requires i ≥ 0' of f at stmt 11
+            status of 'requires i ≥ 0' of f at stmt 10
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at call 'f' (file tests/value/precond.c, line 32)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 14
+            status of 'requires i + 1 ≥ 0' of f at stmt 13
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at call 'f' (file tests/value/precond.c, line 32)
 
-            status of 'requires i ≥ 0' of f at stmt 14
+            status of 'requires i ≥ 0' of f at stmt 13
             by Value.
 [    -    ] Instance of 'Pre-condition (file tests/value/precond.c, line 24)' at call 'g' (file tests/value/precond.c, line 34)
 
-            status of 'requires x ≤ 8' of g at stmt 17
+            status of 'requires x ≤ 8' of g at stmt 16
             tried with Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 39)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 20
+            status of 'requires i + 1 ≥ 0' of f at stmt 19
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 39)
 
-            status of 'requires i ≥ 0' of f at stmt 20
+            status of 'requires i ≥ 0' of f at stmt 19
             by Value.
 [  Valid  ] Instance of 'Pre-condition (file tests/value/precond.c, line 8)' at instruction (file tests/value/precond.c, line 40)
 
-            status of 'requires i + 1 ≥ 0' of f at stmt 21
+            status of 'requires i + 1 ≥ 0' of f at stmt 20
             by Value.
 [  Alarm  ] Instance of 'Pre-condition (file tests/value/precond.c, line 9)' at instruction (file tests/value/precond.c, line 40)
 
-            status of 'requires i ≥ 0' of f at stmt 21
+            status of 'requires i ≥ 0' of f at stmt 20
             By Value, with pending:
              - Unreachable instruction (file tests/value/precond.c, line 40)
 

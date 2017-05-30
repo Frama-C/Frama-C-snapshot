@@ -102,7 +102,7 @@ tests/sparecode/bts324_bis.i:47:[pdg] warning: no final state. Probably unreacha
 [sparecode] add selection in function 'main'
 [sparecode] look for annotations in function main_bis
 [pdg] computing for function main_bis
-[pdg] warning: unreachable entry point (sid:35, function main_bis)
+[pdg] warning: unreachable entry point (sid:32, function main_bis)
 [pdg] Bottom for function main_bis
 [sparecode] pdg bottom: skip annotations
 [sparecode] finalize call input propagation
@@ -119,8 +119,7 @@ static int si[2] = {0};
 static int so[2] = {0};
 int f(int vi, int i)
 {
-  int vo;
-  vo = so[i] / k + ki[i] * (vi - si[i]);
+  int vo = so[i] / k + ki[i] * (vi - si[i]);
   so[i] = vo;
   si[i] = vi;
   return vo;
@@ -132,14 +131,10 @@ int s0;
 int s1;
 void loop_body(void)
 {
-  int acq0;
-  int acq1;
-  int val0;
-  int val1;
-  acq0 = e0;
-  acq1 = e1;
-  val0 = f(acq0,0);
-  val1 = f(acq1,1);
+  int acq0 = e0;
+  int acq1 = e1;
+  int val0 = f(acq0,0);
+  int val1 = f(acq1,1);
   s0 = val0;
   s1 = val1;
   return;

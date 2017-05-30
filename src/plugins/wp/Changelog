@@ -1,4 +1,3 @@
-
 ###############################################################################
 # Preliminary notes:                                                          #
 # ------------------                                                          #
@@ -20,6 +19,30 @@
 #   <Model>: memory model
 #   <Prover>: prover
 ###############################################################################
+
+#############################
+Plugin WP Phosphorus-20170501
+#############################
+
+-! WP          [2017/03/24] Remove support for generalized invariants (-wp-invariants)
+-o Ergo       [2017/01/12] Update qualif tests to Alt-Ergo 1.30
+- Qed         [2016/12/09] Add E_fun constructor for neutral and absorbent
+- WP          [2016/12/07] Trivial simplification for truncate
+- WP          [2016/12/07] Fix bug on negative 0x float constants
+- WP          [2016/11/04] Improved comparison of logic compounds
+- WP          [2016/11/04] Improved filtering (prevents loss of init clauses)
+- WP          [2016/10/26] Generated HTML API (make wp-doc-api)
+- WP          [2016/10/26] Extensible Proof Engine
+-! WP         [2016/10/11] Deprecated Dynamic API
+- WP          [2016/09/20] Improved sequent simplifier
+- Qed         [2016/09/02] Negation of forall/exists qualitifers
+- GUI         [2016/08/26] Pretty-print of memory side effects
+- WP          [2016/08/23] Fixed bug #2246 (unsound switch)
+- GUI         [2016/07/23] Interactive Proof Engine
+- WP          [2016/07/21] Improved Sequent API (Conditions)
+- WP          [2016/05/26] Simplification of ACSL sequences
+- Qed         [2016/05/17] Mutualized type inference in Term
+- Qed         [2016/04/12] Improved simplifiers
 
 ################################
 Plugin WP 1.1 Silicon_20161101
@@ -74,7 +97,7 @@ Plugin WP 0.9 Magnesium_20151002
 - WP	      [2015/02/28] Refactoring of compound objects modeling.
 - Qed	      [2015/02/28] Fold constant expressions in goals.
 - Qed	      [2015/02/28] More simplifications on strict inequalities.
-- Qed	      [2015/02/28] More agressive filtering and pruning (-wp-filter).
+- Qed	      [2015/02/28] More aggressive filtering and pruning (-wp-filter).
 - Qed	      [2015/02/28] Aggressive ite-lifting.
 - Qed	      [2015/02/28] Automatic introduction of existentials.
 -! Coq	      [2015/02/28] Inductive if-then-else construct.
@@ -156,7 +179,7 @@ Plugin WP 0.7 Fluorine_20130401
 -  WP         [2013/02/01] New interface to model selection (unique
 	      -wp-model option).
 -  WP         [2013/02/01] Experimental float and machine-integer models.
--  WP         [2013/02/01] 'Store' and 'Runtime' models abandonned.
+-  WP         [2013/02/01] 'Store' and 'Runtime' models abandoned.
 -  WP         [2013/01/09] 'Typed' becomes the default model.
 -  Why3       [2012/12/18] Why3 output (-wp-proof why3:xxx).
 -  Typed      [2012/10/23] Extensions of Typed model (unsafe-casts).

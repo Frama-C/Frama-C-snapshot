@@ -33,11 +33,11 @@
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 [value] computing for function f <- main.
-        Called from tests/value/behavior_statuses.i:31.
+        Called from tests/value/behavior_statuses.i:26.
 [value] using specification for function f
 [kernel:property_status] Call Preconditions emits status unknown for property requires
                          \valid_read(filename) under 2 hypothesis
-tests/value/behavior_statuses.i:15:[value] function f: precondition got status valid.
+tests/value/behavior_statuses.i:10:[value] function f: precondition got status valid.
 [kernel:property_status] Value emits status VALID for property status of 'requires
                          \valid_read(filename)' of f at stmt 4 under 0 hypothesis
 [kernel:property_status] Value emits status VALID for property status of 'requires
@@ -50,12 +50,12 @@ tests/value/behavior_statuses.i:15:[value] function f: precondition got status v
                          \valid_read(t)' of f at stmt 4 under 0 hypothesis
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/value/behavior_statuses.i:32.
+        Called from tests/value/behavior_statuses.i:27.
 [kernel:property_status] Value emits status VALID for property status of 'requires
                          \valid_read(filename)' of f at stmt 5 under 0 hypothesis
 [kernel:property_status] Value emits status VALID for property status of 'requires
                          \valid_read(filename)' of f at stmt 5 under 0 hypothesis
-tests/value/behavior_statuses.i:21:[value] function f, behavior t_not_null: precondition got status valid.
+tests/value/behavior_statuses.i:16:[value] function f, behavior t_not_null: precondition got status valid.
 [kernel:property_status] Value emits status VALID for property status of 'requires
                          \valid_read(t)' of f at stmt 5 under 0 hypothesis
 [kernel:property_status] Value emits status VALID for property status of 'requires

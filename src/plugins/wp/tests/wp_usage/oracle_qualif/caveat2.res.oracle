@@ -7,7 +7,7 @@
 tests/wp_usage/caveat2.i:22:[wp] warning: Undefined array-size (sint32[])
 tests/wp_usage/caveat2.i:25:[wp] warning: Undefined array-size (sint32[])
 tests/wp_usage/caveat2.i:14:[wp] warning: Undefined array-size (sint32[])
-[wp] 10 goals scheduled
+[wp] 9 goals scheduled
 [wp] [Qed] Goal typed_caveat_job_post_N : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_job_post_A : Unknown (Stronger, 2 warnings)
 [wp] [Alt-Ergo] Goal typed_caveat_job_loop_inv_preserved : Valid
@@ -17,11 +17,10 @@ tests/wp_usage/caveat2.i:14:[wp] warning: Undefined array-size (sint32[])
 [wp] [Qed] Goal typed_caveat_job_loop_assign : Valid
 [wp] [Qed] Goal typed_caveat_job_assign_part1 : Valid
 [wp] [Qed] Goal typed_caveat_job_assign_part2 : Valid
-[wp] [Qed] Goal typed_caveat_job_assign_part3 : Valid
-[wp] Proved goals:    8 / 10
-     Qed:             7 
+[wp] Proved goals:    7 / 9
+     Qed:             6 
      Alt-Ergo:        1  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-job                  7      1 (10)    10      80.0%
+job                  6      1 (11)     9      77.8%
 ----------------------------------------------------------

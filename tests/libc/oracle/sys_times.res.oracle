@@ -6,11 +6,11 @@
 [value:initial-state] Values of globals at initialization
   __fc_time ∈ [--..--]
   __fc_time_tm ∈ {0}
-  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
+  __fc_p_time_tm ∈ {{ &__fc_time_tm }}
 [value] computing for function times <- main.
         Called from tests/libc/sys_times.c:6.
 [value] using specification for function times
-share/libc/sys/times.h:36:[value] function times: precondition got status valid.
+share/libc/sys/times.h:38:[value] function times: precondition got status valid.
 [value] Done for function times
 [value] Recording results for main
 [value] done for function main

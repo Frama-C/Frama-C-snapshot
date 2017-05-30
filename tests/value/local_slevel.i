@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-slevel-function main2:100000 -print -then -scf -then-on propagated -val -no-scf"
+   STDOPT: +" -load-module frama-c-constant_propagation -slevel-function main2:100000 -print -then -scf -then-on propagated -val -val-show-progress -no-scf"
 */
 
 int *p;

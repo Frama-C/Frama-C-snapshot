@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -42,6 +42,11 @@ ifeq ($(HAS_GNOMECANVAS),yes)
 PLUGIN_GUI_CMO:= \
 	GuiConfig \
 	GuiList \
+	GuiSequent \
+	GuiProver \
+	GuiTactic \
+	GuiProof \
+	GuiComposer \
 	GuiGoal \
 	GuiSource \
 	GuiPanel \
@@ -58,20 +63,29 @@ PLUGIN_CMO:= \
 	Separation \
 	LogicUsage RefUsage \
 	cil2cfg normAtLabels wpPropId mcfg \
-	Context Warning Model Lang Plang Matrix Passive Splitter \
-	Letify Cleaning Conditions Pcond \
+	Context Warning Model Lang Repr Matrix Passive Splitter \
+	Letify Cleaning \
 	LogicBuiltins Definitions \
 	Cint Cfloat Vset Vlist Region Cstring Cvalues \
-	Memory \
+	Memory Mstate Conditions \
+	Filtering \
+	Plang Pcfg Pcond \
 	CodeSemantics \
 	LogicCompiler \
 	LogicSemantics LogicAssigns  \
 	Sigma MemEmpty MemZeroAlias MemVar MemTyped \
 	wpStrategy wpRTE wpAnnot \
 	VCS script proof wpo wpReport \
+	Footprint Tactical Strategy \
+	TacSplit TacChoice TacRange \
+	TacArray TacCompound TacUnfold \
+	TacHavoc TacInstance TacLemma \
+	TacFilter TacCut WpTac TacNormalForm \
+	TacRewrite Auto \
+	ProofSession ProofScript ProofEngine \
 	why3_xml \
 	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
-	driver prover \
+	driver prover ProverScript ProverSearch \
 	Generator Factory \
 	calculus cfgDump cfgWP \
 	register VC
@@ -85,7 +99,7 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/why3_xml.ml \
    $(PLUGIN_DIR)/qed/src/numbers.ml \
    $(PLUGIN_DIR)/Wp.mli
-
+PLUGIN_DEPENDENCIES:= rtegen
 PLUGIN_UNDOC+=
 PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
 PLUGIN_INTRO:=$(PLUGIN_DIR)/intro_wp.txt
@@ -137,15 +151,12 @@ PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
 
 PLUGIN_TESTS_DIRS:= \
   wp wp_plugin wp_acsl wp_bts \
-  wp_store wp_hoare wp_typed wp_usage
+  wp_store wp_hoare wp_typed wp_usage \
+  wp_gallery
 
 # --------------------------------------------------------------------------
 # --- Dynamic Plugin                                                     ---
 # --------------------------------------------------------------------------
-
-# Hide warnings that are bothersome during development
-PLUGIN_BFLAGS+=-w -32..39
-PLUGIN_OFLAGS+=-w -32..39
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
@@ -159,7 +170,26 @@ endif
 
 $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
 	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
-	#$(QUIET_MAKE) depend
+
+# --------------------------------------------------------------------------
+# --- WP API                                                             ---
+# --------------------------------------------------------------------------
+
+WP_API_BASE= \
+	ctypes.mli clabels.mli \
+	Separation.mli \
+	LogicUsage.mli RefUsage.mli \
+	normAtLabels.mli \
+	wpPropId.mli mcfg.ml \
+	Context.mli Warning.mli Model.mli \
+	Lang.mli Repr.mli Passive.mli Splitter.mli \
+	LogicBuiltins.mli Definitions.mli \
+	Cint.mli Cfloat.mli Vset.mli Cstring.mli \
+	Memory.ml Mstate.mli Conditions.mli \
+	CodeSemantics.mli LogicCompiler.mli LogicSemantics.mli \
+	Sigma.mli MemVar.mli MemTyped.mli \
+	Factory.mli VCS.mli Tactical.mli Strategy.mli Auto.mli \
+	VC.mli
 
 define WP_capitalize
 $(shell printf "%s%s" \
@@ -173,22 +203,6 @@ $(CAT) $(1) >> $(2);
 $(ECHO) "end" >> $(2);
 endef
 
-WP_API_BASE= \
-	ctypes.mli clabels.mli normAtLabels.mli \
-	Separation.mli \
-	LogicUsage.mli RefUsage.mli \
-	wpPropId.mli mcfg.ml \
-	Context.mli Warning.mli Model.mli \
-	Lang.mli Splitter.mli Definitions.mli Conditions.mli \
-	LogicBuiltins.mli Vset.mli Cstring.mli \
-	Passive.mli Memory.ml \
-	Cint.mli Cfloat.mli \
-	Sigma.mli \
-	CodeSemantics.mli LogicCompiler.mli LogicSemantics.mli \
-	MemVar.mli MemTyped.mli \
-	Factory.mli \
-	VCS.mli VC.mli
-
 WP_MLI=$(addprefix $(Wp_DIR)/, $(WP_API_BASE))
 
 $(Wp_DIR)/Wp.mli: $(WP_MLI)
@@ -199,8 +213,22 @@ $(Wp_DIR)/Wp.mli: $(WP_MLI)
 	$(CHMOD_RO) $@.tmp
 	$(MV) $@.tmp $@
 
+.PHONY: wp-doc-api
+
+wp-doc-api: $(Wp_DIR)/Wp.mli $(Wp_DIR)/doc/ocamldoc.css $(Wp_DIR)/doc/wp-api.odoc
+	$(ECHO) "Generating WP documentation"
+	@mkdir -p $(Wp_DIR)/doc/html
+	$(RM) -fr $(Wp_DIR)/doc/html/*
+	$(CP) $(Wp_DIR)/doc/ocamldoc.css $(Wp_DIR)/doc/html/style.css
+	$(OCAMLDOC) -I lib/fc -I $(Wp_DIR) -I $(Wp_DIR)/qed/src -stars \
+		-html -d $(Wp_DIR)/doc/html -charset utf-8 \
+		-t "Frama-C/WP API Documentation" \
+		-intro $(Wp_DIR)/doc/wp-api.odoc \
+		-colorize-code -short-functors $(Wp_DIR)/Wp.mli
+
 clean::
 	$(RM) $(Wp_DIR)/Wp.mli
+	$(RM) -fr $(Wp_DIR)/doc/html
 
 # --------------------------------------------------------------------------
 # --- Qed Dependencies                                                   ---

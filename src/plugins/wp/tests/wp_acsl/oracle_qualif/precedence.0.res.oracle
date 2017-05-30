@@ -80,7 +80,7 @@ tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Igno
      Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-predicate           29      1 (8)     30       100%
+predicate           29      1 (9)     30       100%
 comparison           9     -           9       100%
 bitwise             11     -          11       100%
 predicate_bitwise    2     -           2       100%

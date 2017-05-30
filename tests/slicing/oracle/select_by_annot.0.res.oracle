@@ -138,7 +138,7 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
   d FROM \nothing
   \result FROM d
 [from] ====== END OF DEPENDENCIES ======
-[slicing] making slicing project 'slicing_1'...
+[slicing] initializing slicing ...
 [pdg] computing for function main
 [pdg] done for function main
 [slicing] applying all slicing requests...
@@ -149,18 +149,18 @@ RESULT for main:
  {n3}: VarDecl : b
  {n4}: VarDecl : c
  {n5}: VarDecl : x
- {n6}: a = 0;
+ {n6}: int a = 0;
    -[-c-]-> 1
    -[a--]-> 2
- {n7}: b = 0;
+ {n7}: int b = 0;
    -[-c-]-> 1
    -[a--]-> 3
- {n8}: c = 0;
+ {n8}: int c = 0;
    -[-c-]-> 1
    -[a--]-> 4
  {n9}: d > 0
    -[-c-]-> 1
-   -[--d]-> 58
+   -[--d]-> 57
  {n10}: ;
    -[-c-]-> 1
    -[-c-]-> 9
@@ -170,9 +170,7 @@ RESULT for main:
    -[-c-]-> 9
  {n12}: ;
    -[-c-]-> 1
- {n13}: block
-   -[-c-]-> 1
- {n14}: x = ((a + b) + c) + d;
+ {n13}: int x = ((a + b) + c) + d;
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
@@ -182,197 +180,196 @@ RESULT for main:
    -[--d]-> 7
    -[--d]-> 8
    -[--d]-> 11
-   -[-c-]-> 13
-   -[--d]-> 58
- {n15}: Call123-InCtrl : modifS(a,b);
+   -[--d]-> 57
+ {n14}: Call113-InCtrl : modifS(a,b);
    -[-c-]-> 1
- {n16}: Call123-In1 : modifS(a,b);
+ {n15}: Call113-In1 : modifS(a,b);
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 6
    -[--d]-> 11
-   -[-c-]-> 15
- {n17}: Call123-In2 : modifS(a,b);
+   -[-c-]-> 14
+ {n16}: Call113-In2 : modifS(a,b);
    -[-c-]-> 1
    -[--d]-> 3
    -[--d]-> 7
-   -[-c-]-> 15
- {n18}: Call123-Out(S.a) : modifS(a,b);
+   -[-c-]-> 14
+ {n17}: Call113-Out(S.a) : modifS(a,b);
    -[-c-]-> 1
-   -[-c-]-> 15
-   -[--d]-> 16
-   -[--d]-> 57
- {n19}: Call123-Out(S.b) : modifS(a,b);
-   -[-c-]-> 1
-   -[-c-]-> 15
-   -[--d]-> 17
+   -[-c-]-> 14
+   -[--d]-> 15
    -[--d]-> 56
- {n20}: Call124-InCtrl : d = new_int();
+ {n18}: Call113-Out(S.b) : modifS(a,b);
    -[-c-]-> 1
- {n21}: Call124-OutRet : d = new_int();
+   -[-c-]-> 14
+   -[--d]-> 16
+   -[--d]-> 55
+ {n19}: Call114-InCtrl : d = new_int();
    -[-c-]-> 1
-   -[-c-]-> 20
- {n22}: Call125-InCtrl : f1(d);
+ {n20}: Call114-OutRet : d = new_int();
    -[-c-]-> 1
- {n23}: Call125-In1 : f1(d);
+   -[-c-]-> 19
+ {n21}: Call115-InCtrl : f1(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 22
- {n24}: Call125-Out(Sa) : f1(d);
+ {n22}: Call115-In1 : f1(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 22
-   -[--d]-> 23
- {n25}: Call126-InCtrl : f2(d);
+   -[--d]-> 20
+   -[-c-]-> 21
+ {n23}: Call115-Out(Sa) : f1(d);
    -[-c-]-> 1
- {n26}: Call126-In1 : f2(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 21
+   -[--d]-> 22
+ {n24}: Call116-InCtrl : f2(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 25
- {n27}: Call126-Out(Sa) : f2(d);
+ {n25}: Call116-In1 : f2(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 25
-   -[--d]-> 26
- {n28}: Call127-InCtrl : f3(d);
+   -[--d]-> 20
+   -[-c-]-> 24
+ {n26}: Call116-Out(Sa) : f2(d);
    -[-c-]-> 1
- {n29}: Call127-In1 : f3(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 24
+   -[--d]-> 25
+ {n27}: Call117-InCtrl : f3(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 28
- {n30}: Call127-Out(Sa) : f3(d);
+ {n28}: Call117-In1 : f3(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 28
-   -[--d]-> 29
- {n31}: Call128-InCtrl : f4(d);
+   -[--d]-> 20
+   -[-c-]-> 27
+ {n29}: Call117-Out(Sa) : f3(d);
    -[-c-]-> 1
- {n32}: Call128-In1 : f4(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 27
+   -[--d]-> 28
+ {n30}: Call118-InCtrl : f4(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 31
- {n33}: Call128-Out(Sa) : f4(d);
+ {n31}: Call118-In1 : f4(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 31
-   -[--d]-> 32
- {n34}: Call129-InCtrl : f5(d);
+   -[--d]-> 20
+   -[-c-]-> 30
+ {n32}: Call118-Out(Sa) : f4(d);
    -[-c-]-> 1
- {n35}: Call129-In1 : f5(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 30
+   -[--d]-> 31
+ {n33}: Call119-InCtrl : f5(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 34
- {n36}: Call129-Out(Sa) : f5(d);
+ {n34}: Call119-In1 : f5(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 34
-   -[--d]-> 35
- {n37}: Call130-InCtrl : f6(d);
+   -[--d]-> 20
+   -[-c-]-> 33
+ {n35}: Call119-Out(Sa) : f5(d);
    -[-c-]-> 1
- {n38}: Call130-In1 : f6(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 33
+   -[--d]-> 34
+ {n36}: Call120-InCtrl : f6(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 37
- {n39}: Call130-Out(Sa) : f6(d);
+ {n37}: Call120-In1 : f6(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 37
-   -[--d]-> 38
- {n40}: Call131-InCtrl : f7(d);
+   -[--d]-> 20
+   -[-c-]-> 36
+ {n38}: Call120-Out(Sa) : f6(d);
    -[-c-]-> 1
- {n41}: Call131-In1 : f7(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 36
+   -[--d]-> 37
+ {n39}: Call121-InCtrl : f7(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 40
- {n42}: Call131-Out(Sa) : f7(d);
+ {n40}: Call121-In1 : f7(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 40
-   -[--d]-> 41
- {n43}: Call132-InCtrl : f8(d);
+   -[--d]-> 20
+   -[-c-]-> 39
+ {n41}: Call121-Out(Sa) : f7(d);
    -[-c-]-> 1
- {n44}: Call132-In1 : f8(d);
+   -[--d](S.a)-> 17
+   -[-c-]-> 39
+   -[--d]-> 40
+ {n42}: Call122-InCtrl : f8(d);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 43
- {n45}: Call132-Out(S.a) : f8(d);
+ {n43}: Call122-In1 : f8(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 43
-   -[--d]-> 44
- {n46}: Call132-Out(Sa) : f8(d);
+   -[--d]-> 20
+   -[-c-]-> 42
+ {n44}: Call122-Out(S.a) : f8(d);
    -[-c-]-> 1
-   -[--d](S.a)-> 18
-   -[-c-]-> 43
-   -[--d]-> 44
- {n47}: Call133-InCtrl : f9(d,a);
+   -[--d](S.a)-> 17
+   -[-c-]-> 42
+   -[--d]-> 43
+ {n45}: Call122-Out(Sa) : f8(d);
    -[-c-]-> 1
- {n48}: Call133-In1 : f9(d,a);
+   -[--d](S.a)-> 17
+   -[-c-]-> 42
+   -[--d]-> 43
+ {n46}: Call123-InCtrl : f9(d,a);
    -[-c-]-> 1
-   -[--d]-> 21
-   -[-c-]-> 47
- {n49}: Call133-In2 : f9(d,a);
+ {n47}: Call123-In1 : f9(d,a);
+   -[-c-]-> 1
+   -[--d]-> 20
+   -[-c-]-> 46
+ {n48}: Call123-In2 : f9(d,a);
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 6
    -[--d]-> 11
-   -[-c-]-> 47
- {n50}: Call133-Out(X9) : f9(d,a);
+   -[-c-]-> 46
+ {n49}: Call123-Out(X9) : f9(d,a);
    -[-c-]-> 1
-   -[-c-]-> 47
+   -[-c-]-> 46
+   -[--d]-> 47
    -[--d]-> 48
-   -[--d]-> 49
- {n51}: Call133-Out(Y9) : f9(d,a);
+ {n50}: Call123-Out(Y9) : f9(d,a);
    -[-c-]-> 1
-   -[-c-]-> 47
-   -[--d]-> 55
- {n52}: Call133-Out(Z9) : f9(d,a);
+   -[-c-]-> 46
+   -[--d]-> 54
+ {n51}: Call123-Out(Z9) : f9(d,a);
    -[-c-]-> 1
-   -[-c-]-> 47
-   -[--d]-> 49
- {n53}: return x;
+   -[-c-]-> 46
+   -[--d]-> 48
+ {n52}: return x;
    -[-c-]-> 1
    -[--d]-> 5
-   -[--d]-> 14
- {n54}: OutRet
-   -[--d]-> 53
- {n55}: In(Z9)
- {n56}: In(S.b)
- {n57}: In(S.a)
- {n58}: In(d)
+   -[--d]-> 13
+ {n53}: OutRet
+   -[--d]-> 52
+ {n54}: In(Z9)
+ {n55}: In(S.b)
+ {n56}: In(S.a)
+ {n57}: In(d)
 [pdg] computing for function modifS
 [pdg] done for function modifS
 [slicing] applying all slicing requests...
 [slicing] applying 1 actions...
 [slicing] applying actions: 1/1...
 RESULT for modifS:
- {n59}: InCtrl
- {n60}: VarDecl : a
-   -[a--]-> 61
- {n61}: In1
+ {n58}: InCtrl
+ {n59}: VarDecl : a
    -[a--]-> 60
- {n62}: VarDecl : b
-   -[a--]-> 63
- {n63}: In2
+ {n60}: In1
+   -[a--]-> 59
+ {n61}: VarDecl : b
    -[a--]-> 62
- {n64}: S.a += a;
-   -[-c-]-> 59
+ {n62}: In2
+   -[a--]-> 61
+ {n63}: S.a += a;
+   -[-c-]-> 58
+   -[--d]-> 59
    -[--d]-> 60
-   -[--d]-> 61
-   -[--d]-> 69
- {n65}: S.b -= b;
-   -[-c-]-> 59
-   -[--d]-> 62
-   -[--d]-> 63
    -[--d]-> 68
- {n66}: ;
-   -[-c-]-> 59
- {n67}: return;
-   -[-c-]-> 59
- {n68}: In(S.b)
- {n69}: In(S.a)
-Slicing project worklist [default/slicing_1] =
-[modifS = (n:66 ,<[ S ], [---]>)(n:64(restrict to S.a) ,<[--d], [---]>)(n:66 ,
+ {n64}: S.b -= b;
+   -[-c-]-> 58
+   -[--d]-> 61
+   -[--d]-> 62
+   -[--d]-> 67
+ {n65}: ;
+   -[-c-]-> 58
+ {n66}: return;
+   -[-c-]-> 58
+ {n67}: In(S.b)
+ {n68}: In(S.a)
+Slicing project worklist [default] =
+[modifS = (n:65 ,<[ S ], [---]>)(n:63(restrict to S.a) ,<[--d], [---]>)(n:65 ,
 <[ S ],
 [---]>)]
 
@@ -409,7 +406,7 @@ modifS_slice_1:
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int new_int(void);
+int new_int(void);
 
 int d;
 Print slice =
@@ -420,16 +417,12 @@ main_slice_1:
 
 /**/int main(void)
 {
-  /* <[--d], [---]> */ int a;
-  /* <[--d], [---]> */ int b;
-  /* <[---], [---]> */ int c;
-  /* <[---], [---]> */ int x;
   /* <[--d], [---]> */
-  a = 0;
+  /* <[--d], [---]> */ int a = 0;
   /* <[--d], [---]> */
-  b = 0;
+  /* <[--d], [---]> */ int b = 0;
   /* <[---], [---]> */
-  c = 0;
+  /* <[---], [---]> */ int c = 0;
   /* <[--d], [---]> */
   if (d > 0) {
     /*@ assert b ≡ 0; */ /* <[---], [---]> */
@@ -439,12 +432,11 @@ main_slice_1:
   }
   /*@ slice pragma expr a + b; */ /* <[ S ], [---]> */
                                   ;
-  /* <[---], [ S ]> */
   /*@ assert
       Value: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
   */
   /* <[---], [---]> */
-  x = ((a + b) + c) + d;
+  /* <[---], [---]> */ int x = ((a + b) + c) + d;
   /* sig call: (InCtrl: <[--d], [---]>)
                (In1: <[--d], [---]>) */
   /* call to modifS_slice_1:
@@ -477,7 +469,7 @@ main_slice_1:
   return x;
 }
 
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 
 
 [slicing] exporting project to 'Sliced code'...
@@ -501,10 +493,8 @@ void modifS_slice_1(int a)
 int d;
 void main(void)
 {
-  int a;
-  int b;
-  a = 0;
-  b = 0;
+  int a = 0;
+  int b = 0;
   if (d > 0) {
     /*@ assert b ≡ 0; */ ;
     a = 1;
@@ -548,7 +538,7 @@ modifS_slice_1:
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int new_int(void);
+int new_int(void);
 
 int d;
 Print slice =
@@ -559,16 +549,12 @@ main_slice_1:
 
 /**/int main(void)
 {
-  /* <[--d], [---]> */ int a;
-  /* <[--d], [---]> */ int b;
-  /* <[---], [---]> */ int c;
-  /* <[---], [---]> */ int x;
   /* <[--d], [---]> */
-  a = 0;
+  /* <[--d], [---]> */ int a = 0;
   /* <[--d], [---]> */
-  b = 0;
+  /* <[--d], [---]> */ int b = 0;
   /* <[---], [---]> */
-  c = 0;
+  /* <[---], [---]> */ int c = 0;
   /* <[--d], [---]> */
   if (d > 0) {
     /*@ assert b ≡ 0; */ /* <[---], [---]> */
@@ -578,12 +564,11 @@ main_slice_1:
   }
   /*@ slice pragma expr a + b; */ /* <[ S ], [---]> */
                                   ;
-  /* <[---], [ S ]> */
   /*@ assert
       Value: signed_overflow: (int)((int)(a + b) + c) + d ≤ 2147483647;
   */
   /* <[---], [---]> */
-  x = ((a + b) + c) + d;
+  /* <[---], [---]> */ int x = ((a + b) + c) + d;
   /* sig call: (InCtrl: <[--d], [---]>)
                (In1: <[--d], [---]>) */
   /* call to modifS_slice_1:
@@ -616,7 +601,7 @@ main_slice_1:
   return x;
 }
 
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 
 
 [slicing] exporting project to 'Sliced code'...
@@ -640,10 +625,8 @@ void modifS_slice_1(int a)
 int d;
 void main(void)
 {
-  int a;
-  int b;
-  a = 0;
-  b = 0;
+  int a = 0;
+  int b = 0;
   if (d > 0) {
     /*@ assert b ≡ 0; */ ;
     a = 1;

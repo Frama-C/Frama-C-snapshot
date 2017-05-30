@@ -3,22 +3,16 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.
 >                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
 108a110
 >                  {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
-146c148
+147c149
 <   p11 ∈ [-2147483648..0]
 ---
 >   p11 ∈ [-2147483648..0],0%4
-324a327
+325a328
 >                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
-365c368
+367c370
 <   p11 ∈ [-2147483648..0]
 ---
 >   p11 ∈ [-2147483648..0],0%4
-Only in tests/value/oracle: behavior_statuses.0.err.oracle
-Only in tests/value/oracle: behavior_statuses.0.res.oracle
-Only in tests/value/oracle: behavior_statuses.1.err.oracle
-Only in tests/value/oracle: behavior_statuses.1.res.oracle
-Only in tests/value/oracle_bitwise: behavior_statuses.err.oracle
-Only in tests/value/oracle_bitwise: behavior_statuses.res.oracle
 diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise_or.res.oracle
 54c54
 <   uand4 ∈ [8..24]
@@ -31,11 +25,11 @@ diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise
 >   v1 ∈ [0..0x1FFFC],0%4
 >   v2 ∈ [0..0x3FFFE],0%2
 diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.oracle
-63c63
+70c70
 <   G ∈ [0..12]
 ---
 >   G ∈ [2..12]
-79c79
+88c88
 <   G ∈ [0..12]
 ---
 >   G ∈ [2..12]

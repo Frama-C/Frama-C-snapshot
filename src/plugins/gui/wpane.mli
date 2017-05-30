@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,7 @@ type field =
     Fields take place in right column.
     It is also possible to add widget that spans over the two columns.
 
-    The form can be horizontaly devided into sections.
+    The form can be horizontally divided into sections.
 
     Elements must be added in left-to-right, top-down order.
 *)
@@ -50,7 +50,7 @@ class form : unit ->
     inherit widget
 
     method add_newline : unit
-    (** Inserts an emty line. *)
+    (** Inserts an empty line. *)
 
     method add_section : string -> unit
     (** Starts a new section. *)
@@ -129,7 +129,7 @@ type 'a action =
 
 (** Dialog Window.
 
-    Dialog window are asynchroneous and modal.  To open the dialog,
+    Dialog window are asynchronous and modal.  To open the dialog,
     invoke [run]. The method returns immediately.  When running, the
     main window is no more sensitive (dialog is modal).  When an
     action-button is pressed, or the method [select] is invoked, the
@@ -148,6 +148,6 @@ class ['a] dialog :
       ?label:string -> ?icon:icon -> ?tooltip:string ->
       unit -> unit (** Closes the dialog. *)
     method select : 'a -> unit (** Closes the dialog. *)
-    method run : unit -> unit (** Opens the dialog (asynchroneously). *)
+    method run : unit -> unit (** Opens the dialog (asynchronously). *)
     inherit ['a] signal (** Emitted when the dialog is closed. *)
   end

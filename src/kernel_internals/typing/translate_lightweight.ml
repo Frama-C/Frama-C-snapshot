@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -206,34 +206,13 @@ object
   | GFunDecl(_,v,_) ->
     if not v.vdefined then annotate_fun v;
     SkipChildren
-  (* )
-     else
-     let inv = annotate_var [] [] v in
-     let postaction gl =
-     match inv with [] -> gl | _ ->
-  (* Define a global string invariant *)
-     let inv =
-     List.map (fun p -> Logic_const.unamed p.ip_content) inv
-     in
-     let p = Logic_const.new_predicate (Logic_const.pands inv) in
-     let globinv =
-     Cil_const.make_logic_info (unique_logic_name ("valid_" ^ v.vname))
-     in
-     globinv.l_labels <- [ LogicLabel "Here" ];
-     globinv.l_body <- LBpred (predicate v.vdecl p.ip_content);
-     attach_globaction
-     (fun () -> Logic_utils.add_logic_function globinv);
-     gl @ [GAnnot(Dinvariant globinv,v.vdecl)]
-     in
-     ChangeDoChildrenPost ([g], postaction)
-   *)
   | GAnnot _ -> DoChildren
   | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
   | GEnumTag _ | GAsm _ | GPragma _ | GText _ | GVar _ | GVarDecl _ ->
     SkipChildren
 end
 
-let interprate file =
+let interpret file =
   let visitor = new annotateFunFromDeclspec in
   Visitor.visitFramacFile visitor file
 
@@ -241,7 +220,7 @@ let lightweight_transform =
   File.register_code_transformation_category "lightweight spec"
 
 let () =
-  File.add_code_transformation_after_cleanup lightweight_transform interprate
+  File.add_code_transformation_after_cleanup lightweight_transform interpret
 
 (*
 Local Variables:

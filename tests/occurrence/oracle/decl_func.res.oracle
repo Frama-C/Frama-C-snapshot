@@ -37,8 +37,8 @@
              variable x (parameter of f):
                specification of f: x
              variable y_0 (local of main):
-               sid 1: y_0
+               sid 2: y_0
              variable z (local of main):
-               sid 2: z
+               sid 3: z
              variable tmp_0 (local of main):
                sid 4: tmp_0

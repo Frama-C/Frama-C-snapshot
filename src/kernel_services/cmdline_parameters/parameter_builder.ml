@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -637,7 +637,7 @@ struct
           | '\\', (Start | Word _) -> read_char_in_word (fun x -> x) Escaped
 	  | ',', (Start | Word _) -> read_char_in_word (fun x -> x) Start
 	  | (' ' | '\t' | '\n' | '\r'), Start -> 
-	    (* ignore whitespaces at beginnning of words (must be escaped) *)
+	    (* ignore whitespace at beginning of words (must be escaped) *)
 	    aux acc pos next s
 	  | '@', (Start | Word true) when use_category ->
 	    read_char_in_word set_category_flag (Word false)
@@ -1201,7 +1201,7 @@ now bound to '%a'.@]"
            Treats :: as part of a word to be able to handle C++ function names
            in a non too awkward manner.
          *)
-        let split_delim d = (* handle different possible lenght of the delimiter *)
+        let split_delim d = (* handle different possible length of the delimiter *)
           let rbis = Str.regexp ":" in
 	  match Str.bounded_full_split rbis d 2 with
           | [ Str.Delim _] -> (empty_string, empty_string)

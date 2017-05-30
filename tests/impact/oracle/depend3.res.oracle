@@ -33,15 +33,7 @@ tests/impact/depend3.c:10:[value] entering loop for the first time
 [pdg] done for function main
 [pdg] computing for function apply
 [pdg] done for function apply
-[pdg] computing for function find
-[pdg] done for function find
 [impact] impacted statements of stmt(s) 34 are:
-           tests/impact/depend3.c:10 (sid 7): tmp = x;
-           tests/impact/depend3.c:10 (sid 8): ring[k] = tmp;
-           tests/impact/depend3.c:10 (sid 9): if(tmp) <..>
-           tests/impact/depend3.c:18 (sid 29): tmp = find(x);
-           tests/impact/depend3.c:18 (sid 30): return tmp;
-           tests/impact/depend3.c:24 (sid 35): b = apply(2,200);
-           tests/impact/depend3.c:25 (sid 37): __retres = a + b;
-           tests/impact/depend3.c:25 (sid 44): return __retres;
+           tests/impact/depend3.c:25 (sid 36): __retres = a + b;
+           tests/impact/depend3.c:25 (sid 45): return __retres;
 [impact] analysis done

@@ -21,8 +21,7 @@ struct s const s = {.i = 5, .j = 8, .v = {.k = 3, .l = 0}};
 int volatile c;
 void main(void)
 {
-  unsigned int i;
-  i = (unsigned int)0;
+  unsigned int i = (unsigned int)0;
   if (! c) goto unrolling_2_loop;
   i ++;
   unrolling_6_loop: ;

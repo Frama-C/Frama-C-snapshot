@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,8 +34,8 @@ class form () =
   let box = GPack.table ~columns:2 ~col_spacings:16 ~homogeneous:false () in
   object(self)
     val mutable line  = 0
-    val mutable left  = false (* left column feeded on current line *)
-    val mutable right = false (* right column feeded on current line *)
+    val mutable left  = false (* left column fed on current line *)
+    val mutable right = false (* right column fed on current line *)
     val mutable xpadding = 0  (* set with sections *)
 
     inherit Wutil.gobj_widget box

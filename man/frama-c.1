@@ -2,7 +2,7 @@
 .\"                                                                        
 .\"  This file is part of Frama-C.                                         
 .\"                                                                        
-.\"  Copyright (C) 2007-2016                                               
+.\"  Copyright (C) 2007-2017                                               
 .\"    CEA (Commissariat à l'énergie atomique et aux énergies              
 .\"         alternatives)                                                  
 .\"                                                                        
@@ -20,7 +20,7 @@
 .\"                                                                        
 .\"------------------------------------------------------------------------
 
-.TH FRAMA-C 1 2016-11-23
+.TH FRAMA-C 1 2016-12-02
 
 .SH NAME
 frama-c[.byte] \- a static analyzer for C programs
@@ -208,14 +208,24 @@ twice (such as additional include directives or macro definitions) must thus
 go there instead of
 .BR -cpp-command .
 .TP
-.B [-no]-cpp-gnu-like
-indicates that the chosen preprocessor accepts the same set of options as
-GNU cpp. Defaults depends on the installed preprocessor at configure time.
+.B [-no]-cpp-frama-c-compliant
+indicates that the chosen preprocessor complies to some Frama-C requirements,
+such as accepting the same set of options as GNU cpp, and accepting
+architecture-specific options such as -m32/-m64. Default values depend on the
+installed preprocessor at configure time.
 See also
 .BR -pp-annot .
 .TP
 .BI -custom-annot-char\  c
 .RI uses\ character\  c \ for\ starting\ ACSL\ annotations.
+.TP
+.B [-no]-autoload-plugins
+When on, load all the dynamic plugins found in the search path (see
+.B -print-plugin-path
+for more information on the default search path). Otherwise, only plugins
+requested by
+.B -load-module
+will be loaded. Default behavior is on.
 .TP
 .BI -enums\  repr
 Choose the way the representation of enumerated types is determined.
@@ -249,7 +259,7 @@ to no.
 .B [-no]-frama-c-stdlib
 .RB adds\ -I $FRAMAC_SHARE /libc
 to the options given to the cpp command.
-.RB If\  -cpp-gnu-like
+.RB If\  -cpp-frama-c-compliant
 is not false, also adds
 .B -nostdinc
 to prevent an inconsistent mix of system and Frama-C header files.
@@ -375,10 +385,15 @@ Defaults to no.
 pre-processes annotations. This is currently only possible when using gcc (or
 GNU cpp) pre-processor. The default is to pre-process annotations when the
 default pre-processor is identified as GNU or GNU-like. See also
-.B -cpp-gnu-like
+.B -cpp-frama-c-compliant
 .TP
 .B [-no]-print
 pretty-prints the source code as normalized by CIL (defaults to no).
+.TP
+.B [-no]-print-libc
+.RB expands\  #include
+directives in the pretty-printed CIL code for files in the Frama-C standard
+library (defaults to no).
 .TP
 .B -print-libpath
 outputs the directory where the Frama-C kernel library is installed.

@@ -215,9 +215,9 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [value:initial-state] Values of globals at initialization
   x ∈ [--..--]
   q ∈ {{ &x }}
-  p ∈ {{ NULL ; &S_p[0] }}
+  p ∈ {{ NULL ; &S_p_0[0] }}
   v ∈ [--..--]
-  S_p[0..1] ∈ [--..--]
+  S_p_0[0..1] ∈ [--..--]
 tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for g
 [value] done for function g

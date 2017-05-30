@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,8 +55,8 @@ module type Location_map_bitwise = sig
 
   val pretty_debug: t Pretty_utils.formatter
 
-  val add_binding : reducing:bool -> exact:bool -> t -> Zone.t -> v -> t
-  val add_binding_loc: reducing:bool -> exact:bool -> t -> location -> v -> t
+  val add_binding : exact:bool -> t -> Zone.t -> v -> t
+  val add_binding_loc: exact:bool -> t -> location -> v -> t
   val add_base: Base.t -> LOffset.t -> t -> t
   val remove_base: Base.t -> t -> t
 
@@ -266,14 +266,9 @@ struct
     in
     fold_base f' m acc
 
-  let for_writing_validity ~reducing b =
-    if not reducing && Base.is_read_only b
-    then Base.Invalid
-    else Base.validity b
-
- let add_binding ~reducing ~exact m (loc:Zone.t) v  =
+ let add_binding ~exact m (loc:Zone.t) v  =
    let aux_base_offset base offs m =
-     let validity = for_writing_validity ~reducing base in
+     let validity = Base.validity base in
      try
        let offsm = find_or_default base m in
        match LOffset.add_binding_intervals ~validity ~exact offs v offsm with
@@ -286,9 +281,9 @@ struct
    | _, Bottom -> Bottom
    | _, Map m -> Map (Zone.fold_topset_ok aux_base_offset loc m)
 
- let add_binding_loc ~reducing ~exact m loc v  =
+ let add_binding_loc ~exact m loc v  =
    let aux_base_offset base offs m =
-     let validity = for_writing_validity ~reducing base in
+     let validity = Base.validity base in
      try
        let offsm = find_or_default base m in
        let new_offsetmap =

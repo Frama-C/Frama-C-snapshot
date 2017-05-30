@@ -4,8 +4,7 @@
 int f(void)
 {
   int __retres;
-  int y;
-  y = 0;
+  int y = 0;
   y ++;
   /*@ assert y ≡ 1; */ ;
   __retres = 0;
@@ -18,9 +17,8 @@ int f(void)
 int f(void)
 {
   int __retres;
-  int y;
   /*@ assert emitter2: ∀ ℤ x; x ≡ x; */
-  y = 0;
+  int y = 0;
   /*@ assert emitter1: ∀ ℤ x; x ≡ x; */
   y ++;
   /*@ assert y ≡ 1; */
@@ -38,9 +36,8 @@ int f(void)
 int f(void)
 {
   int __retres;
-  int y;
   /*@ assert emitter2: ∀ ℤ x; x ≡ x; */
-  y = 0;
+  int y = 0;
   y ++;
   /*@ assert y ≡ 1; */
   /*@ assert emitter2: ∀ ℤ x; x ≡ x; */

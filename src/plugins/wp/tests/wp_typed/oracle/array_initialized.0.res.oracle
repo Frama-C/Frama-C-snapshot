@@ -14,9 +14,9 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
-  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) -> (0 = g[i_1]))).
+  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) -> (g[i_1] = 0))).
 }
-Prove: 0 = g[i].
+Prove: g[i] = 0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -28,211 +28,211 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
-  Init: 0 = h2_0[0].
+  Init: h2_0[0] = 0.
   (* Initializer *)
-  Init: 1 = h2_0[1].
+  Init: h2_0[1] = 1.
   (* Initializer *)
-  Init: 2 = h2_0[2].
+  Init: h2_0[2] = 2.
   (* Initializer *)
-  Init: 3 = h2_0[3].
+  Init: h2_0[3] = 3.
   (* Initializer *)
-  Init: 4 = h2_0[4].
+  Init: h2_0[4] = 4.
   (* Initializer *)
-  Init: 5 = h2_0[5].
+  Init: h2_0[5] = 5.
   (* Initializer *)
-  Init: 6 = h2_0[6].
+  Init: h2_0[6] = 6.
   (* Initializer *)
-  Init: 7 = h2_0[7].
+  Init: h2_0[7] = 7.
   (* Initializer *)
-  Init: 8 = h2_0[8].
+  Init: h2_0[8] = 8.
   (* Initializer *)
-  Init: 9 = h2_0[9].
+  Init: h2_0[9] = 9.
   (* Initializer *)
-  Init: 10 = h2_0[10].
+  Init: h2_0[10] = 10.
   (* Initializer *)
-  Init: 11 = h2_0[11].
+  Init: h2_0[11] = 11.
   (* Initializer *)
-  Init: 12 = h2_0[12].
+  Init: h2_0[12] = 12.
   (* Initializer *)
-  Init: 13 = h2_0[13].
+  Init: h2_0[13] = 13.
   (* Initializer *)
-  Init: 14 = h2_0[14].
+  Init: h2_0[14] = 14.
   (* Initializer *)
-  Init: 15 = h2_0[15].
+  Init: h2_0[15] = 15.
   (* Initializer *)
-  Init: 16 = h2_0[16].
+  Init: h2_0[16] = 16.
   (* Initializer *)
-  Init: 17 = h2_0[17].
+  Init: h2_0[17] = 17.
   (* Initializer *)
-  Init: 18 = h2_0[18].
+  Init: h2_0[18] = 18.
   (* Initializer *)
-  Init: 19 = h2_0[19].
+  Init: h2_0[19] = 19.
   (* Initializer *)
-  Init: 20 = h2_0[20].
+  Init: h2_0[20] = 20.
   (* Initializer *)
-  Init: 21 = h2_0[21].
+  Init: h2_0[21] = 21.
   (* Initializer *)
-  Init: 22 = h2_0[22].
+  Init: h2_0[22] = 22.
   (* Initializer *)
-  Init: 23 = h2_0[23].
+  Init: h2_0[23] = 23.
   (* Initializer *)
-  Init: 24 = h2_0[24].
+  Init: h2_0[24] = 24.
   (* Initializer *)
-  Init: 25 = h2_0[25].
+  Init: h2_0[25] = 25.
   (* Initializer *)
-  Init: 26 = h2_0[26].
+  Init: h2_0[26] = 26.
   (* Initializer *)
-  Init: 27 = h2_0[27].
+  Init: h2_0[27] = 27.
   (* Initializer *)
-  Init: 28 = h2_0[28].
+  Init: h2_0[28] = 28.
   (* Initializer *)
-  Init: 29 = h2_0[29].
+  Init: h2_0[29] = 29.
   (* Initializer *)
-  Init: 30 = h2_0[30].
+  Init: h2_0[30] = 30.
   (* Initializer *)
-  Init: 31 = h2_0[31].
+  Init: h2_0[31] = 31.
   (* Initializer *)
-  Init: 32 = h2_0[32].
+  Init: h2_0[32] = 32.
   (* Initializer *)
-  Init: 33 = h2_0[33].
+  Init: h2_0[33] = 33.
   (* Initializer *)
-  Init: 34 = h2_0[34].
+  Init: h2_0[34] = 34.
   (* Initializer *)
-  Init: 35 = h2_0[35].
+  Init: h2_0[35] = 35.
   (* Initializer *)
-  Init: 36 = h2_0[36].
+  Init: h2_0[36] = 36.
   (* Initializer *)
-  Init: 37 = h2_0[37].
+  Init: h2_0[37] = 37.
   (* Initializer *)
-  Init: 38 = h2_0[38].
+  Init: h2_0[38] = 38.
   (* Initializer *)
-  Init: 39 = h2_0[39].
+  Init: h2_0[39] = 39.
   (* Initializer *)
-  Init: 40 = h2_0[40].
+  Init: h2_0[40] = 40.
   (* Initializer *)
-  Init: 41 = h2_0[41].
+  Init: h2_0[41] = 41.
   (* Initializer *)
-  Init: 42 = h2_0[42].
+  Init: h2_0[42] = 42.
   (* Initializer *)
-  Init: 43 = h2_0[43].
+  Init: h2_0[43] = 43.
   (* Initializer *)
-  Init: 44 = h2_0[44].
+  Init: h2_0[44] = 44.
   (* Initializer *)
-  Init: 45 = h2_0[45].
+  Init: h2_0[45] = 45.
   (* Initializer *)
-  Init: 46 = h2_0[46].
+  Init: h2_0[46] = 46.
   (* Initializer *)
-  Init: 47 = h2_0[47].
+  Init: h2_0[47] = 47.
   (* Initializer *)
-  Init: 48 = h2_0[48].
+  Init: h2_0[48] = 48.
   (* Initializer *)
-  Init: 49 = h2_0[49].
+  Init: h2_0[49] = 49.
   (* Initializer *)
-  Init: forall i_1 : Z. ((50 <= i_1) -> ((i_1 <= 499) -> (0 = h2_0[i_1]))).
+  Init: forall i_1 : Z. ((50 <= i_1) -> ((i_1 <= 499) -> (h2_0[i_1] = 0))).
   (* Initializer *)
-  Init: 0 = h1_0[0].
+  Init: h1_0[0] = 0.
   (* Initializer *)
-  Init: 1 = h1_0[1].
+  Init: h1_0[1] = 1.
   (* Initializer *)
-  Init: 2 = h1_0[2].
+  Init: h1_0[2] = 2.
   (* Initializer *)
-  Init: 3 = h1_0[3].
+  Init: h1_0[3] = 3.
   (* Initializer *)
-  Init: 4 = h1_0[4].
+  Init: h1_0[4] = 4.
   (* Initializer *)
-  Init: 5 = h1_0[5].
+  Init: h1_0[5] = 5.
   (* Initializer *)
-  Init: 6 = h1_0[6].
+  Init: h1_0[6] = 6.
   (* Initializer *)
-  Init: 7 = h1_0[7].
+  Init: h1_0[7] = 7.
   (* Initializer *)
-  Init: 8 = h1_0[8].
+  Init: h1_0[8] = 8.
   (* Initializer *)
-  Init: 9 = h1_0[9].
+  Init: h1_0[9] = 9.
   (* Initializer *)
-  Init: 10 = h1_0[10].
+  Init: h1_0[10] = 10.
   (* Initializer *)
-  Init: 11 = h1_0[11].
+  Init: h1_0[11] = 11.
   (* Initializer *)
-  Init: 12 = h1_0[12].
+  Init: h1_0[12] = 12.
   (* Initializer *)
-  Init: 13 = h1_0[13].
+  Init: h1_0[13] = 13.
   (* Initializer *)
-  Init: 14 = h1_0[14].
+  Init: h1_0[14] = 14.
   (* Initializer *)
-  Init: 15 = h1_0[15].
+  Init: h1_0[15] = 15.
   (* Initializer *)
-  Init: 16 = h1_0[16].
+  Init: h1_0[16] = 16.
   (* Initializer *)
-  Init: 17 = h1_0[17].
+  Init: h1_0[17] = 17.
   (* Initializer *)
-  Init: 18 = h1_0[18].
+  Init: h1_0[18] = 18.
   (* Initializer *)
-  Init: 19 = h1_0[19].
+  Init: h1_0[19] = 19.
   (* Initializer *)
-  Init: 20 = h1_0[20].
+  Init: h1_0[20] = 20.
   (* Initializer *)
-  Init: 21 = h1_0[21].
+  Init: h1_0[21] = 21.
   (* Initializer *)
-  Init: 22 = h1_0[22].
+  Init: h1_0[22] = 22.
   (* Initializer *)
-  Init: 23 = h1_0[23].
+  Init: h1_0[23] = 23.
   (* Initializer *)
-  Init: 24 = h1_0[24].
+  Init: h1_0[24] = 24.
   (* Initializer *)
-  Init: 25 = h1_0[25].
+  Init: h1_0[25] = 25.
   (* Initializer *)
-  Init: 26 = h1_0[26].
+  Init: h1_0[26] = 26.
   (* Initializer *)
-  Init: 27 = h1_0[27].
+  Init: h1_0[27] = 27.
   (* Initializer *)
-  Init: 28 = h1_0[28].
+  Init: h1_0[28] = 28.
   (* Initializer *)
-  Init: 29 = h1_0[29].
+  Init: h1_0[29] = 29.
   (* Initializer *)
-  Init: 30 = h1_0[30].
+  Init: h1_0[30] = 30.
   (* Initializer *)
-  Init: 31 = h1_0[31].
+  Init: h1_0[31] = 31.
   (* Initializer *)
-  Init: 32 = h1_0[32].
+  Init: h1_0[32] = 32.
   (* Initializer *)
-  Init: 33 = h1_0[33].
+  Init: h1_0[33] = 33.
   (* Initializer *)
-  Init: 34 = h1_0[34].
+  Init: h1_0[34] = 34.
   (* Initializer *)
-  Init: 35 = h1_0[35].
+  Init: h1_0[35] = 35.
   (* Initializer *)
-  Init: 36 = h1_0[36].
+  Init: h1_0[36] = 36.
   (* Initializer *)
-  Init: 37 = h1_0[37].
+  Init: h1_0[37] = 37.
   (* Initializer *)
-  Init: 38 = h1_0[38].
+  Init: h1_0[38] = 38.
   (* Initializer *)
-  Init: 39 = h1_0[39].
+  Init: h1_0[39] = 39.
   (* Initializer *)
-  Init: 40 = h1_0[40].
+  Init: h1_0[40] = 40.
   (* Initializer *)
-  Init: 41 = h1_0[41].
+  Init: h1_0[41] = 41.
   (* Initializer *)
-  Init: 42 = h1_0[42].
+  Init: h1_0[42] = 42.
   (* Initializer *)
-  Init: 43 = h1_0[43].
+  Init: h1_0[43] = 43.
   (* Initializer *)
-  Init: 44 = h1_0[44].
+  Init: h1_0[44] = 44.
   (* Initializer *)
-  Init: 45 = h1_0[45].
+  Init: h1_0[45] = 45.
   (* Initializer *)
-  Init: 46 = h1_0[46].
+  Init: h1_0[46] = 46.
   (* Initializer *)
-  Init: 47 = h1_0[47].
+  Init: h1_0[47] = 47.
   (* Initializer *)
-  Init: 48 = h1_0[48].
+  Init: h1_0[48] = 48.
   (* Initializer *)
-  Init: 49 = h1_0[49].
+  Init: h1_0[49] = 49.
   (* Initializer *)
-  Init: forall i_1 : Z. ((50 <= i_1) -> ((i_1 <= 499) -> (0 = h1_0[i_1]))).
+  Init: forall i_1 : Z. ((50 <= i_1) -> ((i_1 <= 499) -> (h1_0[i_1] = 0))).
 }
-Prove: h1_0[i] = h2_0[i].
+Prove: h2_0[i] = h1_0[i].
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -253,7 +253,7 @@ Assume {
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (global(G_p0_75) = p[i_1]))).
+      (p[i_1] = global(G_p0_75)))).
   (* Heap *)
   Have: linked(Malloc_0).
 }
@@ -274,11 +274,11 @@ Assume {
   Have: region(t.base) <= 0.
   (* Pre-condition *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 49) ->
-      (x = Mint_0[shift_sint32(t, i_1)]))).
+      (Mint_0[shift_sint32(t, i_1)] = x))).
   If 0 <= x
-  Then { Have: 1 = simpl_0. }
-  Else { Have: 0 = simpl_0. }
+  Then { Have: simpl_0 = 1. }
+  Else { Have: simpl_0 = 0. }
 }
-Prove: (1 = simpl_0) <-> (0 <= Mint_0[shift_sint32(t, i)]).
+Prove: (0 <= Mint_0[shift_sint32(t, i)]) <-> (simpl_0 = 1).
 
 ------------------------------------------------------------

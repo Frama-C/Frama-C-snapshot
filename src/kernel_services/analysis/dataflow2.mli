@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -213,7 +213,7 @@ end
 
 val find_stmts: Cil_types.fundec -> (Cil_types.stmt list * Cil_types.stmt list)
 (** @return (all_stmts, sink_stmts), where all_stmts is a list of the statements
-    in a function, and sink_stmts is a list of the return statments (including
+    in a function, and sink_stmts is a list of the return statements (including
     statements that fall through the end of a void function).  Useful when you
     need an initial set of statements for BackwardsDataFlow.compute. *)
 

@@ -19,12 +19,9 @@ tests/constant_propagation/array_pointers.i:10:[kernel] warning: using size of '
 void *p;
 void main(void)
 {
-  void **q;
-  void **r;
-  void *s;
-  q = & p + 1;
-  r = & p + 2;
-  s = p + 1;
+  void **q = & p + 1;
+  void **r = & p + 2;
+  void *s = p + 1;
   return;
 }
 

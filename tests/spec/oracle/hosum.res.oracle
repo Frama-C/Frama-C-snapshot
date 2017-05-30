@@ -12,12 +12,10 @@ int sqsum(int *p, int n);
  */
 int sqsum(int *p, int n)
 {
-  int S;
   int tmp;
-  S = 0;
+  int S = 0;
   {
-    int i;
-    i = 0;
+    int i = 0;
     while (i < n) {
       /*@ assert *(p + i) * *(p + i) ≤ 1 << (30 - 1); */ ;
       tmp = *(p + i) * *(p + i);

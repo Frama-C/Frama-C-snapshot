@@ -4,7 +4,7 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 37 goals scheduled
+[wp] 39 goals scheduled
 [wp] [Alt-Ergo] Goal typed_caveat_loops_post_ok_first : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_loops_post_ok_last : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_loops_loop_inv_ok_id_max_preserved : Valid
@@ -30,7 +30,9 @@
 [wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ok_n2 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ok_n3 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ok_bug_why3_n5 : Valid
-[wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ok_bug_why3_n6 : Valid
+[wp] [Qed] Goal typed_caveat_no_calls_post_ok_bug_why3_n6 : Valid
+[wp] [Alt-Ergo] Goal typed_caveat_no_calls_post_ok_bug_why3_n5_ok : Valid
+[wp] [Qed] Goal typed_caveat_no_calls_post_ok_bug_why3_n6_ok : Valid
 [wp] [Qed] Goal typed_caveat_no_calls_assign : Valid
 [wp] [Qed] Goal typed_caveat_sequence_assign_exit : Valid
 [wp] [Qed] Goal typed_caveat_sequence_assign_normal : Valid
@@ -42,12 +44,12 @@
 [wp] [Alt-Ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q1 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q2 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q3 : Valid
-[wp] Proved goals:   37 / 37
-     Qed:            15 
+[wp] Proved goals:   39 / 39
+     Qed:            17 
      Alt-Ergo:       22
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-no_calls             3      5 (28)     8       100%
-sequence             2      8 (146)   10       100%
-loops               10      9 (190)   19       100%
+no_calls             5      5 (9)     10       100%
+sequence             2      8 (218)   10       100%
+loops               10      9 (334)   19       100%
 ----------------------------------------------------------

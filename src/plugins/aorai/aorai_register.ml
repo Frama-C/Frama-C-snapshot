@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -39,7 +39,7 @@ let ltl2ba_params = " -l -p -o "
 
 let ltl_to_promela = Hashtbl.create 7
 
-let set_ltl_correspondance h =
+let set_ltl_correspondence h =
   Hashtbl.clear ltl_to_promela;
   Hashtbl.iter (fun x y -> Hashtbl.add ltl_to_promela x y) h
 
@@ -85,7 +85,7 @@ let ltl_to_ltlLight f_ltl f_out =
     let (ltl_form,exprs) = Ltllexer.parse c in
     close_in c;
     Ltl_output.output ltl_form f_out;
-    set_ltl_correspondance exprs
+    set_ltl_correspondence exprs
   with 
     | Not_found -> Aorai_option.abort "Unknown LTL file %s" f_ltl
     | Ltllexer.Error (loc,msg) -> syntax_error loc msg

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Weak topological orderings (WTOs) are a hierarchical decompositions of the
+(** Weak topological orderings (WTOs) are a hierarchical decomposition of the
     a graph where each layer is topologically ordered and strongly connected
-    components are agregated and oredered recursively. This is a very
-    convenient reprentation to describe an evaluation order to reach a
+    components are aggregated and ordered recursively. This is a very
+    convenient representation to describe an evaluation order to reach a
     fixpoint. *)
 
 
@@ -36,7 +36,7 @@ type 'n component =
     (** A strongly connected component, described by its head node and the
         remaining sub-components topologically ordered *)
   | Node of 'n
-    (** A signe node without self loop *)
+    (** A single node without self loop *)
 
 (** A list of strongly connected components, sorted topologically *)
 and 'n partition = 'n component list

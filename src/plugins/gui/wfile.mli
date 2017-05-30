@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,7 +55,7 @@ class button :
     inherit dialog
     inherit [string] selector (** Holds the selected filename, [""] by default. *)
     method set_tooltip : (string -> string) -> unit
-    (** Set the pretty-printer for tooptip. *)
+    (** Set the pretty-printer for tooltip. *)
     method set_display : (string -> string) -> unit
     (** Set the pretty-printer for button. *)
   end

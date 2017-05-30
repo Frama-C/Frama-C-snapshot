@@ -17,7 +17,7 @@ void f(void)
       }
  */
 /*@ requires Q: \let v = Q(255); ¬(¬v ∨ v); */
-extern void g(void);
+void g(void);
 
 /*@ logic ℤ i= j + k;
  */
@@ -51,6 +51,6 @@ void f(void)
 
 */
 /*@ requires Q: \let v = Q(255); ¬(¬v ∨ v); */
-extern void g(void);
+void g(void);
 
 

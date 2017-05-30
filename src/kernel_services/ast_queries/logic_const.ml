@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -182,7 +182,7 @@ let is_boolean_type = function
   | Ltype ({ lt_name = s }, []) when s = Utf8_logic.boolean -> true
   | _ -> false
 
-let boolean_type = Ltype ({ lt_name = Utf8_logic.boolean ; lt_params = [] ; lt_def = None } , [])
+let boolean_type = Ltype ({ lt_name = Utf8_logic.boolean ; lt_params = [] ; lt_def = None; lt_attr = [] } , [])
 
 (** {2 Offsets} *)
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,14 +41,17 @@ sig
       in [false].) *)
 
   (** Clean the given from (that have been computed for the given function),
-      optionally save them, and return the cleant result. *)
+      optionally save them, and return the cleaned result. *)
   val cleanup_and_save : kernel_function -> Function_Froms.t -> Function_Froms.t
 end
 
 (** Function that compute the Froms from a given prototype, called
     in the given state *)
 val compute_using_prototype_for_state :
-  Db.Value.state -> Kernel_function.t -> Function_Froms.froms
+  Db.Value.state ->
+  Kernel_function.t ->
+  identified_term assigns ->
+  Function_Froms.froms
 
 
 (** Direct computation of the dependencies on expressions, offsets and

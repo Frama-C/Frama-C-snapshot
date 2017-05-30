@@ -15,6 +15,7 @@
 [value] Done for function g
 [value] computing for function foo <- main.
         Called from tests/value/folding.i:24.
+tests/value/folding.i:15:[value] warning: initialization of volatile variable unknown ignored
 [value] Recording results for foo
 [value] Done for function foo
 [value] computing for function foo <- main.

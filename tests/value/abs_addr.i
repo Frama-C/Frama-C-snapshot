@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   OPT: -val @VALUECONFIG@ -deps -out -input -absolute-valid-range 0x20000-0x3FFFF -journal-disable
+   STDOPT: #"-absolute-valid-range 0x20000-0x3FFFF"
 */
 
 unsigned short AutoTest[1000]={0};

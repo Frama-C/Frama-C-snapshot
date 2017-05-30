@@ -46,10 +46,10 @@
      Alt-Ergo:       13
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-reset_1_5            3      1 (17)     4       100%
-load_1_5             3      1 (15)     4       100%
-add_1_5              3      1 (15)     4       100%
-calls_on_array_dim_1   5    3 (9)      8       100%
-calls_on_array_dim_2_to_1   4    4 (69)   8    100%
-calls_on_array_dim_2   5    3 (12)     8       100%
+reset_1_5            3      1 (18)     4       100%
+load_1_5             3      1 (16)     4       100%
+add_1_5              3      1 (16)     4       100%
+calls_on_array_dim_1   5    3 (14)     8       100%
+calls_on_array_dim_2_to_1   4    4 (65)   8    100%
+calls_on_array_dim_2   5    3 (13)     8       100%
 ----------------------------------------------------------

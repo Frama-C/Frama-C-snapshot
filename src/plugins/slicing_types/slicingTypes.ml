@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ exception WrongSlicingLevel
 * *)
 exception OnlyOneEntryPointSlice
 
-(** raised when one triesy to select something in a function where we are not
+(** raised when one tries to select something in a function where we are not
 * able to compute the Pdg. *)
 exception NoPdg
 
@@ -76,10 +76,10 @@ type sl_mark = SlicingInternals.pdg_mark
 
 (** {3 For the journalization of values of these types} *)
 
-let pp_sl_project p_caller fmt p =
+let pp_sl_project p_caller fmt _p =
   let pp fmt =
-    Format.fprintf fmt "@[<hv 2>!Db.Slicing.Project.from_unique_name@;%S@]"
-      p.SlicingInternals.name
+    Format.fprintf fmt
+      "@[<hv 2>Extlib.the@;~exn:Db.Slicing.No_Project@;@[<hv 2>(!Db.Slicing.Project.get_project@;())@]@]"
   in
   Type.par p_caller Type.Call fmt pp
 
@@ -91,8 +91,8 @@ module Sl_project =
       let reprs = [ SlicingInternals.dummy_project ]
       let name = "SlicingTypes.Sl_project"
       let internal_pretty_code = pp_sl_project
-      let varname s = "sl_project_" ^ s.SlicingInternals.name
-      let mem_project f s = f s.SlicingInternals.application
+      let varname _s = "sl_project_"
+      let mem_project = Datatype.never_any_project
      end)
 
 module Sl_select =
@@ -112,9 +112,7 @@ module Sl_select =
 let pp_sl_fct_slice p_caller fmt ff =
   let pp fmt =
     Format.fprintf fmt
-      "@[<hv 2>!Db.Slicing.Slice.from_num_id@;%a@;%a@;%d@]"
-      (Sl_project.internal_pretty_code Type.Call)
-      ff.SlicingInternals.ff_fct.SlicingInternals.fi_project
+      "@[<hv 2>!Db.Slicing.Slice.from_num_id@;%a@;%d@]"
       (Kernel_function.internal_pretty_code Type.Call)
       ff.SlicingInternals.ff_fct.SlicingInternals.fi_kf
       ff.SlicingInternals.ff_id
@@ -130,7 +128,7 @@ module Sl_fct_slice =
       let name = "SlicingTypes.Sl_fct_slice"
       let reprs = [ dummy_fct_slice ]
       let internal_pretty_code = pp_sl_fct_slice
-      let mem_project f x = f x.ff_fct.fi_project.application
+      let mem_project = Datatype.never_any_project
      end)
 
 let dyn_sl_fct_slice = Sl_fct_slice.ty
@@ -141,7 +139,7 @@ let pp_sl_mark p fmt m =
     | _, SlicingInternals.Spare -> None
     | SlicingInternals.Cav mark1, SlicingInternals.Cav mark2 ->
         if (PdgTypes.Dpd.is_bottom mark2) then
-          (* use [!Db.Slicing.Mark.make] contructor *)
+          (* use [!Db.Slicing.Mark.make] constructor *)
           Some (fun fmt ->
                   Format.fprintf fmt "@[<hv 2>!Db.Slicing.Mark.make@;~addr:%b@;~data:%b@;~ctrl:%b@]"
                     (PdgTypes.Dpd.is_addr mark1)

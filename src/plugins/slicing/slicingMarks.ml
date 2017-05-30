@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ let debug = false
 (**/**)
 
 (** a [Mark] is used to represent some information about the status of
- * a PDF element in a slice.
+ * a PDG element in a slice.
  *)
 module Mark : sig
   val bottom : SlicingInternals.mark
@@ -337,7 +337,7 @@ module SigMarks = struct
     Signature.fold_all_inputs (fun acc (_, m) -> MarkPair.merge_user_marks acc m)
                    bottom_mark cm
 
-  (** @return an under-approxamation of the mark for the given location.
+  (** @return an under-approximation of the mark for the given location.
   * If the location is not included in the union of the implicit inputs,
   * it returns bottom.
   * Else, it returns the intersection of the inputs that intersect the location.

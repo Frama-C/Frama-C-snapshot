@@ -10,9 +10,9 @@ tests/value/plevel.i:11:[value] warning: assertion got status unknown.
 tests/value/plevel.i:13:[value] warning: assertion got status unknown.
 tests/value/plevel.i:21:[kernel] more than 40(65) locations to update in array. Approximating.
 [value] Recording results for main
+tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
 [value:final-states] Values at end of function main:
   t[0..0xFF] ∈ {0}
    [0x100..0x120] ∈ {0; 1}

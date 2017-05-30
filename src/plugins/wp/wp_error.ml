@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,60 +67,6 @@ let pp_string_list ?(sep=format_of_string "@ ") ~empty fmt l =
   match l with [] ->  Format.fprintf fmt "%s" empty
              | _ -> Format.fprintf fmt "%a"
                       (Pretty_utils.pp_list ~sep Format.pp_print_string) l
-
-
-type 'a cc =
-  | Result of 'a
-  | Warning of string * string (* model , message *)
-
-let protected = function
-  | Error (model, msg) ->
-      Some(model , msg)
-  | Log.FeatureRequest (plugin,msg) ->
-      Some(plugin , Printf.sprintf "%s not yet implemented" msg)
-  | Log.AbortError msg ->
-      Some("user error" , msg)
-  | _ -> None
-
-let protect exn =
-  match protected exn with
-  | Some(plugin,reason) -> plugin , reason
-  | None -> raise exn
-
-let protect_warning exn =
-  match protected exn with
-  | Some(src,reason) -> Warning(src,reason)
-  | None -> raise exn
-
-let protect_function f x =
-  try Result (f x)
-  with e -> protect_warning e
-
-let protect_translation f x y =
-  try Result (f x y)
-  with e -> protect_warning e
-
-let protect_translation3 f x y z =
-  try Result (f x y z)
-  with e -> protect_warning e
-
-let protect_translation4 f x y z t =
-  try Result (f x y z t)
-  with e -> protect_warning e
-
-let protect_translation5 f x y z t u =
-  try Result (f x y z t u)
-  with e -> protect_warning e
-
-let rec protect_map f = function
-  | [] -> Result []
-  | x::xs ->
-      match f x with
-      | Result y ->
-          ( match protect_map f xs with
-            | Result ys -> Result (y :: ys)
-            | Warning _ as w -> w )
-      | Warning(m,p) -> Warning(m,p)
 
 let name = function
   | [] -> ""

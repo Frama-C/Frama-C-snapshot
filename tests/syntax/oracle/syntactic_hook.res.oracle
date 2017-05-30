@@ -43,6 +43,10 @@ tests/syntax/syntactic_hook.i:27:[kernel] warning: [SH]: side effect of expressi
                   x++. It is not always executed
 tests/syntax/syntactic_hook.i:31:[kernel] user error: Declaration of f does not match previous declaration from tests/syntax/syntactic_hook.i:5 (different number of arguments).
 tests/syntax/syntactic_hook.i:31:[kernel] warning: [SH]: conflict with declaration of f at line 5: different number of arguments
-[kernel] user error: Inconsistent formals
+tests/syntax/syntactic_hook.i:31:[kernel] user error: Inconsistent formals
+                     29    }
+                     30    
+                     31    int f(int); //warns conflicting decls
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [kernel] user error: stopping on file "tests/syntax/syntactic_hook.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -267,7 +267,7 @@ end
 module G = struct
 
   (* Hashtbl to maps of nodes to dpdzone. Used to encode one-directional graphs
-     whoses nodes are Node.t, and labels on edges are DpdZone. *)
+     whose nodes are Node.t, and labels on edges are DpdZone. *)
   module E = struct
     type t = Node.t * DpdZone.t * Node.t
     type label = DpdZone.t
@@ -401,7 +401,7 @@ module G = struct
 end
 
 (** DataState is associated with a program point
-    and provide the dependancies for the data,
+    and provide the dependencies for the data,
     ie. it stores for each location the nodes of the pdg where its value
     was last defined.
     Managed in src/pdg/state.ml

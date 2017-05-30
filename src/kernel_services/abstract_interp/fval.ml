@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1177,7 +1177,7 @@ let nan_fmod = an_alarm (ANaN "division by zero")
 
 (* Emits a warning if there may be a division by zero.
    Raises [Builtin_invalid_domain] if there must be a division by zero.
-   Evalutes the function for y ∉ {+0.0,-0.0}. *)
+   Evaluates the function for y ∉ {+0.0,-0.0}. *)
 let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
   let alarms = if contains_a_zero y then nan_fmod else no_alarm in
   if is_a_zero y then
@@ -1196,10 +1196,10 @@ let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
        F.compare (F.max (abs_float b1) (abs_float e1))
          (F.min (abs_float b2) (abs_float e2)) < 0 then (alarms, `Value x)
     else
-      (* 3. x and y are within the same continuos region.
+      (* 3. x and y are within the same continuous region.
          (i.e. do not contain zero, do not cross any modulo boundaries, etc.)
          Example: x=[6,7] and y=[4,5].
-         Restriciton: [|x/y| < 2^53], otherwise truncation to an integer
+         Restriction: [|x/y| < 2^53], otherwise truncation to an integer
          (to test the above property) may return an incorrect result.
          Note: to avoid issues with rounding, we conservatively set the
          limit to 2^51 instead of 2^53. *)
@@ -1398,7 +1398,9 @@ let cast_float_to_double_inverse (FRange.I(min, max)) =
 let enlarge_1ulp fk (FRange.I(b, e)) =
   let b' = next_after fk b (-. infinity) in
   let e' = next_after fk e infinity in
-  inject b' e'
+  let ib, ie, r = inject_r_f fk b' e' in
+  if ib || ie then raise Non_finite;
+  r
 
 
 (*

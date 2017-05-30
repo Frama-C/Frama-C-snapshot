@@ -16,11 +16,11 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_2, repeat_box(cons(y,nil), i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -28,9 +28,9 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: x = nth(a, 0).
+Prove: nth(a, 0) = x.
 
 ------------------------------------------------------------
 
@@ -42,11 +42,11 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_2, repeat_box(cons(y,nil), i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -54,25 +54,24 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: z = nth(a, length(a) - 1).
+Prove: nth(a, length(a) - 1) = z.
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,id_max' (file tests/wp_plugin/sequence.i, line 97):
 Let a = L_call_obs(call_seq_2).
-Let a_1 = cons(y,nil).
-Let a_2 = L_call_obs(call_seq_1).
+Let a_1 = L_call_obs(call_seq_1).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(1 + i).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_0).
+  Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_1 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a = concat(a_2, repeat_box(a_1, i)).
+  Have: a = a_1 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -80,7 +79,7 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: L_call_obs(call_seq_3) = concat(a, a_1).
+  Have: L_call_obs(call_seq_3) = a ^ [ y ].
 }
 Prove: 0 <= n.
 
@@ -93,17 +92,16 @@ Prove: true.
 
 Goal Preservation of Invariant 'ok,id_min' (file tests/wp_plugin/sequence.i, line 96):
 Let a = L_call_obs(call_seq_2).
-Let a_1 = cons(y,nil).
-Let a_2 = L_call_obs(call_seq_1).
+Let a_1 = L_call_obs(call_seq_1).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(1 + i).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_0).
+  Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_1 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a = concat(a_2, repeat_box(a_1, i)).
+  Have: a = a_1 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -111,7 +109,7 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: L_call_obs(call_seq_3) = concat(a, a_1).
+  Have: L_call_obs(call_seq_3) = a ^ [ y ].
 }
 Prove: (-1) <= i.
 
@@ -125,18 +123,17 @@ Prove: true.
 Goal Preservation of Invariant 'ok,inv' (file tests/wp_plugin/sequence.i, line 98):
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(y,nil).
-Let a_3 = L_call_obs(call_seq_1).
+Let a_2 = L_call_obs(call_seq_1).
 Let x_1 = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(x_1).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_2).
+  Have: L_call_obs(call_seq_2) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_3.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_3, repeat_box(a_2, i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -144,9 +141,9 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ y ].
 }
-Prove: a = concat(a_3, repeat_box(a_2, x_1)).
+Prove: a = a_2 ^ ([ y ] *^ x_1).
 
 ------------------------------------------------------------
 
@@ -205,13 +202,13 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
   Have: 0 < n.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_2, repeat_box(cons(y,nil), i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: i <= n.
   (* Invariant 'ok,id_min' *)
@@ -219,30 +216,28 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: length(a) = (2 + n).
+Prove: (2 + i) = length(a).
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,u2' in 'loops':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(z,nil).
-Let a_3 = L_call_obs(call_seq_2).
-Let a_4 = cons(y,nil).
-Let a_5 = cons(x,nil).
+Let a_2 = L_call_obs(call_seq_2).
+Let a_3 = ([ y ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
   Have: 0 < n.
   (* Call 'f' *)
-  Have: a_5 = a_3.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_3, repeat_box(a_4, i)).
+  Have: a_1 = a_2 ^ a_3.
   (* Invariant 'ok,id_max' *)
   Have: i <= n.
   (* Invariant 'ok,id_min' *)
@@ -250,9 +245,9 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(concat(a_5, repeat_box(a_4, n)), a_2).
+Prove: a = [ x ] ^ a_3 ^ [ z ].
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -267,13 +262,13 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_not_called' *)
   Have: n <= 0.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_2, repeat_box(cons(y,nil), i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -281,29 +276,27 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: 2 = length(a).
+Prove: length(a) = 2.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,v2' in 'loops':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(z,nil).
-Let a_3 = L_call_obs(call_seq_2).
-Let a_4 = cons(x,nil).
+Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_not_called' *)
   Have: n <= 0.
   (* Call 'f' *)
-  Have: a_4 = a_3.
+  Have: a_2 = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = concat(a_3, repeat_box(cons(y,nil), i)).
+  Have: a_1 = a_2 ^ ([ y ] *^ i).
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -311,9 +304,9 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(a_4, a_2).
+Prove: a = [ x, z ].
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -326,8 +319,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,m2' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: nil = L_call_obs(call_seq_0). }
-Prove: 0 = length(L_call_nil).
+Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Prove: length(L_call_nil) = 0.
 
 ------------------------------------------------------------
 
@@ -337,14 +330,14 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,n2' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: nil = L_call_obs(call_seq_0). }
-Prove: nil = L_call_nil.
+Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Prove: L_call_nil = nil.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,n3' in 'no_calls':
-Assume { (* Pre-condition 'init' *) Have: nil = L_call_obs(call_seq_0). }
-Prove: nil = L_call_nil.
+Assume { (* Pre-condition 'init' *) Have: L_call_obs(call_seq_0) = nil. }
+Prove: L_call_nil = nil.
 
 ------------------------------------------------------------
 
@@ -354,41 +347,29 @@ Assume {
   (* Goal *)
   When: 0 <= a.
   (* Pre-condition 'init' *)
-  Have: nil = L_call_obs(call_seq_0).
+  Have: L_call_obs(call_seq_0) = nil.
 }
-Prove: nil = repeat_box(L_call_nil, a).
+Prove: (L_call_nil = nil) \/ (a <= 0).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,bug_why3,n6' in 'no_calls':
-Assume {
-  Type: is_sint32(a).
-  (* Goal *)
-  When: 0 <= a.
-  (* Pre-condition 'init' *)
-  Have: nil = L_call_obs(call_seq_0).
-}
-Prove: nil = repeat_box(nil, a).
+Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition 'ko,bug_why3,n5_ko' in 'no_calls':
+Goal Post-condition 'ok,bug_why3,n5_ok' in 'no_calls':
 Assume {
   Type: is_sint32(a).
   (* Pre-condition 'init' *)
-  Have: nil = L_call_obs(call_seq_0).
+  Have: L_call_obs(call_seq_0) = nil.
 }
-Prove: nil = repeat_box(L_call_nil, a).
+Prove: (L_call_nil = nil) \/ (a <= 0).
 
 ------------------------------------------------------------
 
-Goal Post-condition 'ko,bug_why3,n6_ko' in 'no_calls':
-Assume {
-  Type: is_sint32(a).
-  (* Pre-condition 'init' *)
-  Have: nil = L_call_obs(call_seq_0).
-}
-Prove: nil = repeat_box(nil, a).
+Goal Post-condition 'ok,bug_why3,n6_ok' in 'no_calls':
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -420,89 +401,80 @@ Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
-  Have: 0 != c.
+  Have: c != 0.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_2.
+  Have: a_2 = [ x ].
   (* Call 'g' *)
-  Have: a_1 = concat(a_2, cons(y,nil)).
+  Have: a_1 = a_2 ^ [ y ].
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: 3 = length(a).
+Prove: length(a) = 3.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p1' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(z,nil).
-Let a_3 = L_call_obs(call_seq_2).
-Let a_4 = cons(y,nil).
-Let a_5 = cons(x,nil).
+Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
-  Have: 0 != c.
+  Have: c != 0.
   (* Call 'f' *)
-  Have: a_5 = a_3.
+  Have: a_2 = [ x ].
   (* Call 'g' *)
-  Have: a_1 = concat(a_3, a_4).
+  Have: a_1 = a_2 ^ [ y ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(concat(a_5, a_4), a_2).
+Prove: a = [ x, y, z ].
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p2' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(z,nil).
-Let a_3 = L_call_obs(call_seq_2).
-Let a_4 = cons(y,nil).
-Let a_5 = cons(x,nil).
+Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
-  Have: 0 != c.
+  Have: c != 0.
   (* Call 'f' *)
-  Have: a_5 = a_3.
+  Have: a_2 = [ x ].
   (* Call 'g' *)
-  Have: a_1 = concat(a_3, a_4).
+  Have: a_1 = a_2 ^ [ y ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(concat(a_5, a_4), a_2).
+Prove: a = [ x, y, z ].
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p3' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = cons(z,nil).
-Let a_3 = L_call_obs(call_seq_2).
-Let a_4 = cons(y,nil).
-Let a_5 = cons(x,nil).
+Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Pre-condition for 'g_called' *)
-  Have: 0 != c.
+  Have: c != 0.
   (* Call 'f' *)
-  Have: a_5 = a_3.
+  Have: a_2 = [ x ].
   (* Call 'g' *)
-  Have: a_1 = concat(a_3, a_4).
+  Have: a_1 = a_2 ^ [ y ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(concat(concat(a_5, a_4), a_2), L_call_nil).
+Prove: a = [ x, y, z ] ^ L_call_nil.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -515,66 +487,60 @@ Let a_1 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(x) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: cons(x,nil) = a_1.
+  Have: a_1 = [ x ].
   (* Call 'f' *)
-  Have: a = concat(a_1, cons(z,nil)).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: 2 = length(a).
+Prove: length(a) = 2.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q1' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_2).
-Let a_2 = cons(z,nil).
-Let a_3 = cons(x,nil).
 Assume {
   Type: is_sint32(x) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: a_3 = a_1.
+  Have: a_1 = [ x ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(a_3, a_2).
+Prove: a = [ x, z ].
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q2' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_2).
-Let a_2 = cons(z,nil).
-Let a_3 = cons(x,nil).
 Assume {
   Type: is_sint32(x) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: a_3 = a_1.
+  Have: a_1 = [ x ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(a_3, a_2).
+Prove: a = [ x, z ].
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q3' in 'sequence':
 Let a = L_call_obs(call_seq_0).
 Let a_1 = L_call_obs(call_seq_2).
-Let a_2 = cons(z,nil).
-Let a_3 = cons(x,nil).
 Assume {
   Type: is_sint32(x) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: nil = L_call_obs(call_seq_1).
+  Have: L_call_obs(call_seq_1) = nil.
   (* Call 'f' *)
-  Have: a_3 = a_1.
+  Have: a_1 = [ x ].
   (* Call 'f' *)
-  Have: a = concat(a_1, a_2).
+  Have: a = a_1 ^ [ z ].
 }
-Prove: a = concat(concat(a_3, L_call_nil), a_2).
+Prove: a = [ x ] ^ L_call_nil ^ [ z ].
 
 ------------------------------------------------------------

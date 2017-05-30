@@ -29,7 +29,7 @@ int bts0513_bis (int x) {
   return x;
 }
 /*----------------------------------------------------------------------------*/
-// Problem of dependancies : we should be able to prove A, and the proof
+// Problem of dependencies : we should be able to prove A, and the proof
 // of E shouldn't depend on A !
 
 void dpd1 (int x) {

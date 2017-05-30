@@ -958,9 +958,9 @@ statement:
 |   CASE expression ELLIPSIS expression COLON annotated_statement
 	    { let loc = Parsing.symbol_start_pos (), Parsing.rhs_end_pos 5 in
               no_ghost [CASERANGE ($2, $4, in_block $6, loc)]}
-|   DEFAULT COLON
-	    { let loc = Parsing.symbol_start_pos(), Parsing.symbol_end_pos () in
-              no_ghost [DEFAULT (no_ghost_stmt (NOP loc), loc)]}
+|   DEFAULT COLON annotated_statement
+        { let loc = Parsing.symbol_start_pos(), Parsing.symbol_end_pos () in
+              no_ghost [DEFAULT (in_block $3, loc)]}	      
 |   RETURN SEMICOLON {
       let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
       no_ghost [RETURN ({ expr_loc = loc; expr_node = NOTHING}, loc)]

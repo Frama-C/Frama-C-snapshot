@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
+tests/value/goto.i:7:[value] warning: initialization of volatile variable c ignored
 [value] computing for function stop <- main.
         Called from tests/value/goto.i:10.
 [value] Recording results for stop

@@ -30,22 +30,22 @@ tests/sparecode/intra.i:109:[value] assertion got status valid.
 [from] Done for function Frama_C_copy_block
 [pdg] done for function Frama_C_copy_block
 [pdg] computing for function assign
-[pdg] warning: unreachable entry point (sid:35, function assign)
+[pdg] warning: unreachable entry point (sid:32, function assign)
 [pdg] Bottom for function assign
 [pdg] computing for function call_two_outputs
-[pdg] warning: unreachable entry point (sid:22, function call_two_outputs)
+[pdg] warning: unreachable entry point (sid:20, function call_two_outputs)
 [pdg] Bottom for function call_two_outputs
 [pdg] computing for function loop
-[pdg] warning: unreachable entry point (sid:38, function loop)
+[pdg] warning: unreachable entry point (sid:35, function loop)
 [pdg] Bottom for function loop
 [pdg] computing for function main
-[pdg] warning: unreachable entry point (sid:49, function main)
+[pdg] warning: unreachable entry point (sid:46, function main)
 [pdg] Bottom for function main
 [pdg] computing for function param
-[pdg] warning: unreachable entry point (sid:13, function param)
+[pdg] warning: unreachable entry point (sid:11, function param)
 [pdg] Bottom for function param
 [pdg] computing for function spare_called_fct
-[pdg] warning: unreachable entry point (sid:16, function spare_called_fct)
+[pdg] warning: unreachable entry point (sid:14, function spare_called_fct)
 [pdg] Bottom for function spare_called_fct
 [pdg] computing for function stop
 [from] Computing for function stop
@@ -53,10 +53,10 @@ tests/sparecode/intra.i:110:[kernel] warning: Neither code nor specification for
 [from] Done for function stop
 [pdg] done for function stop
 [pdg] computing for function tmp
-[pdg] warning: unreachable entry point (sid:2, function tmp)
+[pdg] warning: unreachable entry point (sid:1, function tmp)
 [pdg] Bottom for function tmp
 [pdg] computing for function two_outputs
-[pdg] warning: unreachable entry point (sid:18, function two_outputs)
+[pdg] warning: unreachable entry point (sid:16, function two_outputs)
 [pdg] Bottom for function two_outputs
 [sparecode] remove unused global declarations...
 [sparecode] result in new project 'default without sparecode'.
@@ -87,10 +87,8 @@ int main2(void)
   int tmp_0;
   Y10 = 0;
   X10.b = 0;
-  { /* sequence */
-    tmp_0 = f10(3);
-    X10.a.y += tmp_0;
-  }
+  tmp_0 = f10(3);
+  X10.a.y += tmp_0;
   __retres = X10.a.x + X10.a.y;
   return __retres;
 }

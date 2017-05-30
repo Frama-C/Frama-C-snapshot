@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,7 +82,7 @@ module BasicMetrics : sig
   (** Compute cyclomatic complexity from base_metrics record type. *)
   val compute_cyclo: t -> int;;
 
-  (** Matrix-like representation of the record in "Title: value" stytle *)
+  (** Matrix-like representation of the record in "Title: value" style *)
   val to_list : t -> string list list ;;
 
   (** Pretty printers for base metrics as text or html. *)
@@ -93,7 +93,7 @@ end
 ;;
 
 (** Local varinfo map and set where the comparison function is the
-    lexicographic one on their respectives names. *)
+    lexicographic one on their respective names. *)
 module VInfoMap: FCMap.S with type key = Cil_types.varinfo
 module VInfoSet: FCSet.S with type elt = Cil_types.varinfo
 ;;
@@ -140,15 +140,17 @@ val get_file_type: string -> output_type;;
 (** consider_function [vinfo] returns false if the varinfo is not a function we
     are interested in.
     For example, builtins should not be part of the analysis and return false.
+    If [libc] is false, do not consider functions from the Frama-C libc.
     Skip them using this auxiliary function.
 *)
-val consider_function: Cil_types.varinfo -> bool
+val consider_function: libc:bool -> Cil_types.varinfo -> bool
 
 (** [consider_variable vinfo] returns false if the varinfo is not an object
     variable we are interested in. Currently excluded variables are those
-    declared with attribute [__FRAMA_C_MODEL__]
+    declared with attribute [__FRAMA_C_MODEL__].
+    If [libc] is false, do not consider variables from the Frama-C libc.
 *)
-val consider_variable: Cil_types.varinfo -> bool
+val consider_variable: libc:bool -> Cil_types.varinfo -> bool
 
 (** Convert float to string with the following convention:
     - if the float is an integer (ie, it has no digits after the decimal point),

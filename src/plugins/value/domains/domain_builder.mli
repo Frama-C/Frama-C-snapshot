@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,4 +30,3 @@ module Complete
   : Abstract_domain.Internal with type state = Domain.state
                               and type value = Domain.value
                               and type location = Domain.location
-                              and type return = Domain.return

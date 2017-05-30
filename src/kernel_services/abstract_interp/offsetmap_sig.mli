@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -138,7 +138,7 @@ type map2_decide =
 val map2_on_values:
   Hptmap_sig.cache_type -> (t -> t -> map2_decide) -> (v -> v -> v) -> t -> t -> t
 (** [map2_on_values cache decide join m1 m2] applies [join] pointwise to
-    all the elements of [m1] and [m2] and buils the resulting map. This function
+    all the elements of [m1] and [m2] and builds the resulting map. This function
     can only be called if [m1] and [m2] contain isotropic values. [decide]
     is called during the iteration, and can be used to return early; it is
     always correct to return {!Recurse}. Depending on [cache], the results of
@@ -160,7 +160,19 @@ module Make_Narrow (X: sig
     include Lattice_type.With_Top with type t := v
     include Lattice_type.With_Narrow with type t := v
   end) : sig
-  include Lattice_type.With_Narrow with type t := t
+  val narrow: t -> t -> t
+  (** Over-approximation of the intersection of abstract values, without
+      considering (bitwise) reinterpretations.  In particular,  values with
+      equivalent representations (e.g. [-1] and [0xFF] on 8 bits) may be
+      considered different, leading to empty intersections.
+      This may result in unsound results; the function {!narrow_reinterpret}
+      below should be preferred in general. *)
+
+  val narrow_reinterpret: t -> t -> t
+  (** Variant of the function above that bitwise-reinterprets values before
+      performing the intersection (in order to get normal forms). This may
+      lead to situations where the result is not included in the arguments,
+      but this function should be preferred to {!narrow}. *)
 end
 
 
@@ -214,7 +226,7 @@ val update :
     of size [size], each [offsets] in [m]; [m] must be of the size implied by
     [validity]. [~exact=true] results in a strong update, while
     [~exact=false] performs a weak update. If [offsets] contains too many
-    offsets, or if [offsers] and [size] are not compatible, [offsets] and/or
+    offsets, or if [offsets] and [size] are not compatible, [offsets] and/or
     [v] are over-approximated. In this case, [origin] is used as the source of
     the resulting imprecision. Returns [`Bottom] when all offsets are invalid.
     The boolean returned indicates a potential alarm. *)

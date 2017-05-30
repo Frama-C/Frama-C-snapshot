@@ -20,7 +20,7 @@ Assume {
   (* Pre-condition *)
   Have: P_inv(Mint_0, p).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -37,9 +37,9 @@ Assume {
   (* Pre-condition *)
   Have: P_inv(Mint_0, p).
   (* Assertion *)
-  Have: 0 = Mint_0[shiftfield_F2_s_d(p)].
+  Have: Mint_0[shiftfield_F2_s_d(p)] = 0.
 }
-Prove: 0 = Mint_0[shiftfield_F1_t_c(shift_t(a, i))].
+Prove: Mint_0[shiftfield_F1_t_c(shift_t(a, i))] = 0.
 
 ------------------------------------------------------------
 
@@ -62,11 +62,11 @@ Assume {
   (* Pre-condition *)
   Have: P_inv(Mint_0, p).
   (* Assertion *)
-  Have: 0 = Mint_0[shiftfield_F2_s_d(p)].
+  Have: Mint_0[shiftfield_F2_s_d(p)] = 0.
   (* Assertion *)
   Have: forall i : Z. ((0 <= i) -> ((i <= 9) ->
-      (0 = Mint_0[shiftfield_F1_t_c(shift_t(shiftfield_F2_s_u(p), i))]))).
+      (Mint_0[shiftfield_F1_t_c(shift_t(shiftfield_F2_s_u(p), i))] = 0))).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------

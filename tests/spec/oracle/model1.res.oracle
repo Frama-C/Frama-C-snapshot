@@ -41,8 +41,7 @@ void main(void)
     assigns *s; */
 void reset(struct S *s)
 {
-  int tmp;
-  tmp = s->bar == 0;
+  int tmp = s->bar == 0;
   return;
 }
 

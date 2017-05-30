@@ -17,5 +17,5 @@ tests/wp_typed/unit_float.i:21:[kernel] warning: Floating-point constant 0.2 is 
      Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-main                 4      2 (2)      6       100%
+main                 4      2 (3)      6       100%
 ----------------------------------------------------------

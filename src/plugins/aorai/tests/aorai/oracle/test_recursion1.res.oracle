@@ -135,10 +135,9 @@ void countOne_post_func(int res)
 int countOne(char *argv)
 {
   int __retres;
-  int r;
   int tmp;
   countOne_pre_func(argv);
-  r = 0;
+  int r = 0;
   if ((int)*(argv + 0) == 0) {
     __retres = 0;
     goto return_label;
@@ -238,9 +237,8 @@ void count_post_func(int res)
  */
 int count(int argc, char **argv)
 {
-  int s;
   count_pre_func(argc,argv);
-  s = countOne(*(argv + 0));
+  int s = countOne(*(argv + 0));
   if (argc > 1) {
     int tmp_0;
     tmp_0 = count(argc - 1,argv + 1);
@@ -349,9 +347,8 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  int somme;
   main_pre_func(argc,argv);
-  somme = 0;
+  int somme = 0;
   if (argc > 0) somme = count(argc,argv);
   __retres = 1;
   main_post_func(__retres);

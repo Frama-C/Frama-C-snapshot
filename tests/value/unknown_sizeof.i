@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -main main1
-   OPT: -val @VALUECONFIG@ -main main2
+   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -main main1
+   OPT: -no-autoload-plugins -load-module value -val @VALUECONFIG@ -main main2
 */
 
 struct s;
@@ -16,7 +16,8 @@ struct s g() {
 }
 
 void main1() {
-  g();
+  g(); // We used to not stop on this line because the return code was not used, but now we do
+  struct s r; r = g();
 }
 
 void main2() {

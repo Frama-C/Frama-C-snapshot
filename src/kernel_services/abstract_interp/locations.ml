@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -317,23 +317,22 @@ module Location_Bytes = struct
    | Map m ->
      M.exists (fun b _ -> is_local b) m
 
-   let remove_escaping_locals is_local v =
-    match v with
-    | Top (Base.SetLattice.Top as t,_) -> t, v
-    | Top (Base.SetLattice.Set garble, orig) ->
-        let locals, nonlocals = Base.Hptset.partition is_local garble in
-        Base.SetLattice.inject locals, inject_top_origin_internal orig nonlocals
-    | Map m ->
-        let locals, clean_map =
-          M.fold
-            (fun base _ (locals, m as acc) ->
-              if is_local base
-              then (Base.Hptset.add base locals), (M.remove base m)
-              else acc)
-            m
-            (Base.Hptset.empty, m)
-        in
-        (Base.SetLattice.inject locals), Map clean_map
+ let remove_escaping_locals is_local v =
+   let non_local b = not (is_local b) in
+   match v with
+   | Top (Base.SetLattice.Top,_) -> true, v
+   | Top (Base.SetLattice.Set garble, orig) ->
+     let nonlocals = Base.Hptset.filter non_local garble in
+     if Base.Hptset.equal garble nonlocals then
+       false, v
+     else
+       true, inject_top_origin_internal orig nonlocals
+   | Map m ->
+     let nonlocals = M.filter non_local m in
+     if M.equal nonlocals m then
+       false, v
+     else
+       true, Map nonlocals
 
  let contains_addresses_of_any_locals =
    let f base _offsets = Base.is_any_formal_or_local base in

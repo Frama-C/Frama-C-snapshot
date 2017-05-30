@@ -9,7 +9,7 @@
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:13.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/value/for_loops.c:16:[value] entering loop for the first time
 [value] computing for function Frama_C_interval <- main_2.

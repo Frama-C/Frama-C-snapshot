@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,14 +46,14 @@ let exists_fun_callers fpred kf =
   in
   exists_fun_callers kf
 
-let is_src_fun_visible prj = exists_fun_callers (SlicingMacros.is_src_fun_visible prj)
+let is_src_fun_visible = exists_fun_callers SlicingMacros.is_src_fun_visible
 
-let is_src_fun_called prj kf =
+let is_src_fun_called kf =
   let kf_entry, _library = Globals.entry_point () in
   let fpred f =
     if (kf_entry == f)
-    then SlicingMacros.is_src_fun_visible prj f (* for the entry point *)
-    else SlicingMacros.is_src_fun_called  prj f (* for the others *)
+    then SlicingMacros.is_src_fun_visible f (* for the entry point *)
+    else SlicingMacros.is_src_fun_called f (* for the others *)
   in exists_fun_callers fpred kf
 
 module Visibility (SliceName : sig
@@ -63,7 +63,7 @@ module Visibility (SliceName : sig
   exception EraseAssigns
   exception EraseAllocation
 
-  type proj = SlicingInternals.project
+  type proj = unit
   type transform = {
     slice: SlicingInternals.fct_slice;
     src_visible: bool (* whether the src function of the slice is visible and
@@ -80,10 +80,12 @@ module Visibility (SliceName : sig
     Kernel_function.is_definition kf &&
       not (!Db.Value.use_spec_instead_of_definition kf)
 
-  let fct_info project kf =
-    let fi = SlicingMacros.get_kf_fi project kf in
+  (* _project is left to comply with a module signature defined outside
+     the slicing module (in filter) *)
+  let fct_info _proj kf =
+    let fi = SlicingMacros.get_kf_fi kf in
     let slices = SlicingMacros.fi_slices fi in
-    let src_visible = is_src_fun_visible project kf in
+    let src_visible = is_src_fun_visible kf in
       SlicingParameters.debug ~level:1 "[SlicingTransform.Visibility.fct_info] processing %a (%d slices/src %svisible)"
           Kernel_function.pretty kf (List.length slices)
           (if src_visible then "" else "not ");
@@ -210,7 +212,7 @@ module Visibility (SliceName : sig
 
 (* work-around to avoid outputting annotations with type errors:
    in case we end up with NotImplemented somewhere, we keep the annotation
-   iff all C variables occuring in there are visible.
+   iff all C variables occurring in there are visible.
  *)
   let all_logic_var_visible, all_logic_var_visible_identified_term, all_logic_var_visible_term,
       all_logic_var_visible_assigns, all_logic_var_visible_deps =
@@ -444,7 +446,9 @@ module Visibility (SliceName : sig
             visible_mark m
           with Not_found -> false
 
-  let called_info (project, ff) call_stmt =
+  (* _project is left to comply with a module signature defined outside
+     the slicing module (in filter) *)
+  let called_info (_project, ff) call_stmt =
     let info = match ff with
       | Isrc _ | Iproto -> None
       | Iff {slice = ff} ->
@@ -461,7 +465,7 @@ module Visibility (SliceName : sig
               | Some (Some (SlicingInternals.CallSlice ff)) ->
                   let kf_ff = SlicingMacros.get_ff_kf ff in
                   (* BY: no idea why this is not the same code as in fct_info *)
-                  let src_visible = is_src_fun_visible project kf_ff in
+                  let src_visible = is_src_fun_visible kf_ff in
                   let keep_body = keep_body kf_ff in
                   Some (kf_ff, Iff { slice = ff; src_visible; keep_body})
           with Not_found ->
@@ -483,15 +487,15 @@ let default_slice_names kf _src_visible ff_num =
   if Kernel_function.equal kf kf_entry then fname
   else Printf.sprintf "%s_slice_%d" fname ff_num
 
-let extract ~f_slice_names new_proj_name slicing_project =
+let extract ~f_slice_names new_proj_name =
   SlicingParameters.feedback ~level:1
     "exporting project to '%s'..." new_proj_name;
-  !Db.Slicing.Request.apply_all_internal slicing_project;
+  !Db.Slicing.Request.apply_all_internal ();
   let module S = struct let get = f_slice_names end in
   let module Visi = Visibility (S) in
   let module Transform = Filter.F (Visi) in
   let tmp_prj =
-    Transform.build_cil_file (new_proj_name ^ " tmp") slicing_project
+    Transform.build_cil_file (new_proj_name ^ " tmp") ()
   in
   let new_prj =
     !Db.Sparecode.rm_unused_globals ~new_proj_name ~project:tmp_prj ()

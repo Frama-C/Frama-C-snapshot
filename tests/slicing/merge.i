@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/merge.cmxs
    CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/libAnim.cmxs -load-module tests/slicing/merge.cmxs
-   OPT: -deps -slicing-level 3 -journal-disable
+   OPT: -val-show-progress -deps -slicing-level 3 -journal-disable
 */
 
 int G1, G2, G3;

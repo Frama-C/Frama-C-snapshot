@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,7 @@ type expand =
   | W (** Stay at widget's size. *)
   | H (** Expands horizontally. Typically, a text-field. *)
   | V (** Expands vertically. Typically a side-bar. *)
-  | HV (** Expanfs in both directions. Typically, a text editor. *)
+  | HV (** Expands in both directions. Typically, a text editor. *)
 
 (** Generic packing. Without [~widget], a space is created instead.
 
@@ -63,10 +63,10 @@ val label : ?fill:bool -> ?style:style -> ?align:align -> ?padding:int -> string
 val hbox : box list -> widget (** Pack a list of boxes horizontally. *)
 val vbox : box list -> widget (** Pack a list of boxes vertically. *)
 
-(** Pack a list of widgets horizontally, with all widgets sticked to the same width *)
+(** Pack a list of widgets horizontally, with all widgets stuck to the same width *)
 val hgroup : widget list -> widget
 
-(** Pack a list of widgets vertically, with all widgets sticked to the same width *)
+(** Pack a list of widgets vertically, with all widgets stuck to the same width *)
 val vgroup : widget list -> widget
 
 (** The first list is packed to the left side of the toolbar. 

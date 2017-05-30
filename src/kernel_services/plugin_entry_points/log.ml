@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -772,11 +772,11 @@ struct
 
   let internal_register_tag_handlers _c (_ope,_close) = ()
   (* BM->LOIC: I need to keep this code around to be able to handle
-     marks ands tags correctly.
+     marks and tags correctly.
      Do you think we can emulate all other features of Log but without
      using c.buffer at all?
      Everything but ensure_unique_newline seems feasible.
-     See Design.make_slash to see a usefull example.
+     See Design.make_slash to see a useful example.
 
      let start_of_line= Printf.sprintf "\n[%s] " P.label in
      let length= pred (String.length start_of_line) in

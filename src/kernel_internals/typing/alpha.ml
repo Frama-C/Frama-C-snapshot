@@ -49,7 +49,7 @@ let alphaSeparator = "_"
 let alphaSeparatorLen = String.length alphaSeparator
 
 (** For each prefix we remember the next integer suffix to use and the list 
- * of suffixes, each with some data assciated with the newAlphaName that 
+ * of suffixes, each with some data associated with the newAlphaName that 
  * created the suffix. *)
 type 'a alphaTableData = Big_int.big_int * (string * 'a) list
 

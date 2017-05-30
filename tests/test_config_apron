@@ -1,2 +1,2 @@
-MACRO: VALUECONFIG -eva-apron-oct -value-msg-key experimental-ok -no-val-malloc-returns-null
-OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps
+MACRO: VALUECONFIG -val-show-progress -load-module scope -eva-apron-oct -value-msg-key experimental-ok
+OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps -no-autoload-plugins -load-module from,inout,value

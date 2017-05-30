@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_GRP_H
 #define __FC_GRP_H
 #include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_define_uid_and_gid.h"
 #include "__fc_define_size_t.h"
 
@@ -34,20 +35,21 @@ struct group {
   char  **gr_mem;
 };
 
-struct group  *getgrgid(gid_t);
-struct group  *getgrnam(const char *);
-int getgrgid_r(gid_t, struct group *, char *,
+extern struct group  *getgrgid(gid_t);
+extern struct group  *getgrnam(const char *);
+extern int getgrgid_r(gid_t, struct group *, char *,
  size_t, struct group **);
-int getgrnam_r(const char *, struct group *, char *,
+extern int getgrnam_r(const char *, struct group *, char *,
  size_t , struct group **);
-struct group *getgrent(void);
-void endgrent(void);
-void setgrent(void);
+extern struct group *getgrent(void);
+extern void endgrent(void);
+extern void setgrent(void);
 
 /* BSD function */
-int initgroups (const char *user, gid_t group);
+extern int initgroups (const char *user, gid_t group);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif
 

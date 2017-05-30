@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -178,6 +178,15 @@ let classify_accesses (_kf, ki, lv) =
               else Write
             else Read
 
+        | Local_init (v, _, _) ->
+          (match lv with
+           | Var v', _ when Cil_datatype.Varinfo.equal v v' ->
+             (* We are initializing v. We can't read from it at the same time.
+                Hence, there's no need to perform the additional checks done
+                in the cases above. *)
+             Write
+           | _ -> Read)
+
         | Asm (_, _, Some { asm_outputs; asm_inputs },_) ->
             if List.exists (fun (_, _, out) -> is_lv out) asm_outputs then
               if List.exists (fun (_, _, inp) -> contained_exp inp) asm_inputs
@@ -216,7 +225,7 @@ let print_one fmt v l =
           | (Some kf, _, _) :: _ -> Kernel_function.get_name kf
           | (None,Kstmt _,_)::_ -> assert false
           | (None,Kglobal,_)::_ ->
-              fatal "inconsistent context for occurence of variable %s" v.vname
+              fatal "inconsistent context for occurrence of variable %s" v.vname
 	in
 	if v.vformal then "parameter of " ^ kf_name
 	else "local of " ^ kf_name);

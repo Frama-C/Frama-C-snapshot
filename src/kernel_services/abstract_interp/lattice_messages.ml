@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,56 +26,31 @@ type t =
   | Costly of string
   | Unsoundness of string
 
-type emitter = int
+type emitter = unit
 
-module Emitter_name =
-State_builder.Hashtbl(Datatype.Int.Hashtbl)(Datatype.String)(struct
-  let name = "Lattice_messages.Emitter_name";;
-  let dependencies = [];; (* This table has no dependencies, and is thus copied
-     between projects. This is the desired semantics, as message emitters
-     are global. We projectify it is so that they are saved and loaded. To
-     guarantee that Ids are always the same, we simply use the hash of the
-     name of the emitter as its id. *)
-  let size = 16
-end
-)
-
-let find_hash_conflict hash =
-  Emitter_name.fold
-    (fun hash' name acc -> if hash = hash' then Some name else acc) None
-
-let emitter_name id =
-  try Emitter_name.find id
-  with Not_found -> assert false
-
-let message_destination:(emitter -> t -> unit) ref =
-  ref (fun _msg -> Kernel.fatal "Undefined Lattice_messages message_destination function");;
-
-let register name =
-  let h = Hashtbl.hash name in
-  begin match find_hash_conflict h with
-  | None -> Emitter_name.replace h name;
-  | Some name' ->
-     if name <> name' then
-       Kernel.abort "Name conflict between emitters '%s' and '%s'" name name';
-  end;
-  h
+let emit _emitter msg =
+  match msg with
+  | Imprecision _ -> () (* Only for debug purposes *)
+  | Approximation str
+  | Costly str
+  | Unsoundness str ->
+    Kernel.feedback ~current:true ~once:true "%s" str
 ;;
 
-let emit emitter = !message_destination emitter
+let register _name = ()
 
 let emit_approximation emitter = Format.kfprintf (fun _fmt ->
   let str = Format.flush_str_formatter() in
-  !message_destination emitter (Approximation str)) Format.str_formatter
+  emit emitter (Approximation str)) Format.str_formatter
 ;;
 
 let emit_costly emitter = Format.kfprintf (fun _fmt ->
   let str = Format.flush_str_formatter() in
-  !message_destination emitter (Costly str)) Format.str_formatter
+  emit emitter (Costly str)) Format.str_formatter
 ;;
 
 let emit_imprecision emitter str =
-  !message_destination emitter (Imprecision str)
+  emit emitter (Imprecision str)
 ;;
 
 

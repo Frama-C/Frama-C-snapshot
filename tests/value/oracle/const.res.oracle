@@ -139,45 +139,12 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
    [6..9] ∈ {0}
 [value:final-states] Values at end of function modify_I:
   I ∈ {0; 2; 3}
-  J ∈ {8}
-  s.i1 ∈ {3}
-   .i2 ∈ {4}
-  t[0] ∈ {1}
-   [1] ∈ {2}
-   [2] ∈ {3}
-   [3] ∈ {4}
-   [4] ∈ {5}
-   [5] ∈ {6}
-   [6..9] ∈ {0}
 [value:final-states] Values at end of function modify_J:
-  I ∈ {0; 2; 3}
   J ∈ {0; 8; 9}
-  s.i1 ∈ {3}
-   .i2 ∈ {4}
-  t[0] ∈ {1}
-   [1] ∈ {2}
-   [2] ∈ {3}
-   [3] ∈ {4}
-   [4] ∈ {5}
-   [5] ∈ {6}
-   [6..9] ∈ {0}
 [value:final-states] Values at end of function modify_s:
-  I ∈ {0; 2; 3}
-  J ∈ {0; 8; 9}
   s.i1 ∈ {3; 4}
    .i2 ∈ {0; 4}
-  t[0] ∈ {1}
-   [1] ∈ {2}
-   [2] ∈ {3}
-   [3] ∈ {4}
-   [4] ∈ {5}
-   [5] ∈ {6}
-   [6..9] ∈ {0}
 [value:final-states] Values at end of function modify_t:
-  I ∈ {0; 2; 3}
-  J ∈ {0; 8; 9}
-  s.i1 ∈ {3; 4}
-   .i2 ∈ {0; 4}
   t[0] ∈ {1}
    [1] ∈ {2}
    [2] ∈ {0; 3}
@@ -284,19 +251,19 @@ tests/value/const.i:71:[value] warning: assertion got status unknown.
 [inout] Inputs for function pointer_to_const:
           I; J; s.i2; t[3]
 [inout] Out (internal) for function modify_I:
-          I; J; s.i2; t[2..3]
+          I
 [inout] Inputs for function modify_I:
           I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_J:
-          I; J; s.i2; t[2..3]
+          J
 [inout] Inputs for function modify_J:
           I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_s:
-          I; J; s; t[2..3]
+          s
 [inout] Inputs for function modify_s:
           I; J; v; s; t[2..3]
 [inout] Out (internal) for function modify_t:
-          I; J; s.i2; t{[2..3]; [5]}
+          t{[2..3]; [5]}
 [inout] Inputs for function modify_t:
           I; J; v; s.i2; t{[2..3]; [5]}
 [inout] Out (internal) for function pointer_to_const_logic:
@@ -437,13 +404,13 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [value:final-states] Values at end of function pointer_to_const:
   NON TERMINATING FUNCTION
 [value:final-states] Values at end of function modify_I:
-  J ∈ {8}
+  
 [value:final-states] Values at end of function modify_J:
   J ∈ {0; 8; 9}
 [value:final-states] Values at end of function modify_s:
-  J ∈ {0; 8; 9}
+  
 [value:final-states] Values at end of function modify_t:
-  J ∈ {0; 8; 9}
+  
 [value:final-states] Values at end of function pointer_to_const_logic:
   
 [value:final-states] Values at end of function main:
@@ -509,7 +476,7 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [inout] Inputs for function pointer_to_const:
           I; J; s.i2; t[3]
 [inout] Out (internal) for function modify_I:
-          J
+          \nothing
 [inout] Inputs for function modify_I:
           I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_J:
@@ -517,11 +484,11 @@ tests/value/const.i:80:[value] assertion 'Value,mem_access' got final status inv
 [inout] Inputs for function modify_J:
           I; J; v; s.i2; t[2..3]
 [inout] Out (internal) for function modify_s:
-          J
+          \nothing
 [inout] Inputs for function modify_s:
           I; J; v; s; t[2..3]
 [inout] Out (internal) for function modify_t:
-          J
+          \nothing
 [inout] Inputs for function modify_t:
           I; J; v; s.i2; t{[2..3]; [5]}
 [inout] Out (internal) for function pointer_to_const_logic:

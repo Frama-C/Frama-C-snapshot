@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -145,7 +145,7 @@ module Functions = struct
   let self = State.self
 
   (* Maintain an alphabetical ordering of the functions, so that
-     iteration stays independent from vid numerotation scheme. *)
+     iteration stays independent from vid numbering scheme. *)
   module VarinfoAlphaOrderSet = struct
     let compare_alpha x y =
       let res = String.compare x.vname y.vname in
@@ -485,7 +485,7 @@ module FileIndex = struct
   let get_symbols ~filename = snd (get_symbols ~filename)
 
  (** get all global variables as (varinfo, initinfo) list with only one
-      occurence of a varinfo *)
+      occurrence of a varinfo *)
   let get_globals ~filename =
     compute ();
     let varinfo_set =
@@ -568,7 +568,7 @@ module Types = struct
 
   module PairsExpTyp = Datatype.Pair(Cil_datatype.Exp)(Cil_datatype.Typ)
 
-  (* Map from enum constant names to an expression containg the constant,
+  (* Map from enum constant names to an expression containing the constant,
      and its type. *)
   module Enums = State_builder.Hashtbl(Datatype.String.Hashtbl)(PairsExpTyp)
     (struct

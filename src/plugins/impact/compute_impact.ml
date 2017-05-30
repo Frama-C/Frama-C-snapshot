@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ and todolist = todo NM.t
 
 (* All nodes that have been found to be impacted. Presented as a map from
    Kf, because this information cannot be recovered from the PDG nodes.
-   (Also, this speeds up somes operations *)
+   (Also, this speeds up some operations *)
 type result = nodes KFM.t
 
 (* Modelization of a call. The first function (the caller) calls the second
@@ -248,7 +248,7 @@ let add_to_do_aux ~init wl kf pdg (pn, zone as n) =
 let initial_to_do_list wl kf pdg nodes =
   List.iter (fun n -> add_to_do_aux true wl kf pdg n) nodes
 
-(** Mark a new node as impacted, and simultaneouly mark that it is equivalent
+(** Mark a new node as impacted, and simultaneously mark that it is equivalent
     to nodes that are all initial nodes *)
 let add_to_do_part_of_initial wl kf pdg n =
   add_to_do_aux ~init:true wl kf pdg n;

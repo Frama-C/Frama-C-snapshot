@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -126,7 +126,7 @@ val get_edge_labels : edge ->  Clabels.c_label list
 (** @return None when the edge leads to the end of the function. *)
 val get_edge_next_stmt : t -> edge -> stmt option
 
-(** wether an exit edge exists or not *)
+(** whether an exit edge exists or not *)
 val has_exit : t -> bool
 
 (** Find the edges where the precondition of the node statement have to be
@@ -141,7 +141,7 @@ val get_post_edges : t -> node -> edge list
 val get_post_logic_label : t -> node -> logic_label option
 
 (** Find the edges [e] that goes to the [Vexit] node inside the statement
- * begining at node [n] *)
+ * beginning at node [n] *)
 val get_exit_edges : t -> node -> edge list
 
 (** Find the edges [e] of the statement node [n] postcondition
@@ -171,6 +171,3 @@ sig
 end
 
 module HE (I : sig type t end) : HEsig with type ti = I.t
-
-(** type of functions to print things related to edges *)
-type pp_edge_fun = Format.formatter -> edge -> unit

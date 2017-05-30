@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,5 +102,6 @@ type builtin =
 val logic : logic_info -> builtin
 val ctor : logic_ctor_info -> builtin
 val constant : string -> builtin
+val lookup : string -> kind list -> builtin
 
 val dump : unit -> unit

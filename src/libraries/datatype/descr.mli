@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@
 
     This module provides a safe API on top of modules {!Unmarshal} of
     {!Structural_descr}, using module {!Type}. This module offers the same
-    powerfulness than {!Unmarshal}, but in a safe way. *)
+    power as {!Unmarshal}, but in a safe way. *)
 
 (* ********************************************************************** *)
 (** {2 Type declaration} *)
@@ -47,7 +47,7 @@ val t_int64 : int64 t
 val t_nativeint : nativeint t
 
 val unmarshable: 'a t
-(** Descriptor for unmarshalable types.
+(** Descriptor for unmarshallable types.
     @since Carbon-20101201 *)
 
 val is_unmarshable: 'a t -> bool

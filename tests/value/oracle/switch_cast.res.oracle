@@ -6,7 +6,7 @@
 [value:initial-state] Values of globals at initialization
   x ∈ [--..--]
 [value] computing for function g <- main.
-        Called from tests/value/switch_cast.i:70.
+        Called from tests/value/switch_cast.i:71.
 [value] Called Frama_C_show_each([1..241],1%2)
 [value] Recording results for g
 [value] Done for function g

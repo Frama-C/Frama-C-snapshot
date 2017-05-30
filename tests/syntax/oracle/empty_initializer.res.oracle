@@ -5,50 +5,15 @@ struct __S {
    int i ;
 };
 typedef struct __S STR;
-/*@ requires \valid(dest + (0 .. n - 1));
-    ensures ∀ ℤ i; 0 ≤ i < \old(n) ⇒ *(\old(dest) + i) ≡ 0;
-    assigns *(dest + (0 .. n - 1));
-    assigns *(dest + (0 .. n - 1)) \from \nothing;
- */
-extern  __attribute__((__FC_BUILTIN__)) void Frama_C_bzero(unsigned char *dest,
-                                                           unsigned long n);
-
 STR A[3] = {{.i = 0}, {.i = 0}, {.i = 0}};
 STR D[3] = {{.i = 0}, {.i = 1}, {.i = 0}};
 int E[2][3] = {{}, {}};
 int f(void)
 {
   int __retres;
-  STR B[3];
-  STR C[3];
-  int F[3][4];
-  B[0].i = 0;
-  B[1].i = 0;
-  B[2].i = 0;
-  C[0].i = 0;
-  C[1].i = 3;
-  C[2].i = 0;
-  /*@ behavior Frama_C_implicit_init:
-        ensures ∀ ℤ __i; 0 ≤ __i ≤ 3 ⇒ F[0][__i] ≡ 0;
-        assigns F[0][0 .. 4 - 1];
-  */
-  Frama_C_bzero((unsigned char *)(F[0]),(unsigned long)sizeof(int [4]));
-  /*@ behavior Frama_C_implicit_init:
-        ensures F[1][0] ≡ 23;
-        ensures F[1][1] ≡ 45;
-        ensures ∀ ℤ __i; 2 ≤ __i ≤ 3 ⇒ F[1][__i] ≡ 0;
-        assigns F[1][0 .. 4 - 1];
-  */
-  {
-    Frama_C_bzero((unsigned char *)(F[1]),(unsigned long)sizeof(int [4]));
-    F[1][0] = 23;
-    F[1][1] = 45;
-  }
-  /*@ behavior Frama_C_implicit_init:
-        ensures ∀ ℤ __i; 0 ≤ __i ≤ 3 ⇒ F[2][__i] ≡ 0;
-        assigns F[2][0 .. 4 - 1];
-  */
-  Frama_C_bzero((unsigned char *)(F[2]),(unsigned long)sizeof(int [4]));
+  STR B[3] = {{.i = 0}, {.i = 0}, {.i = 0}};
+  STR C[3] = {{.i = 0}, {.i = 3}, {.i = 0}};
+  int F[3][4] = {{}, {23, 45}, {}};
   __retres = B[1].i;
   return __retres;
 }

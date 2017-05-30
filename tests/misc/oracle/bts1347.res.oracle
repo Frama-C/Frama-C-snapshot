@@ -5,7 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:9:[value] warning: out of bounds read. assert \valid_read(x);
+tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x);
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
@@ -13,7 +13,7 @@ tests/misc/bts1347.i:9:[value] warning: out of bounds read. assert \valid_read(x
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(tmp);
+tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
                                      (tmp from x++)
 [value] Recording results for g
 [value] done for function g
@@ -23,22 +23,22 @@ tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
-[  Dead   ] Assertion 'emitter' (file tests/misc/bts1347.i, line 9)
+[  Dead   ] Assertion 'emitter' (file tests/misc/bts1347.i, line 5)
             Locally valid, but unreachable.
             By Value because:
-             - Unreachable return (file tests/misc/bts1347.i, line 9)
-[Unreachable] Unreachable return (file tests/misc/bts1347.i, line 9)
+             - Unreachable return (file tests/misc/bts1347.i, line 5)
+[Unreachable] Unreachable return (file tests/misc/bts1347.i, line 5)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'g'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 10)
+[    -    ] Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 6)
             tried with Value.
-[ Partial ] Assertion 'emitter' (file tests/misc/bts1347.i, line 10)
+[ Partial ] Assertion 'emitter' (file tests/misc/bts1347.i, line 6)
             By emitter, with pending:
-             - Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 10)
+             - Assertion 'Value,mem_access' (file tests/misc/bts1347.i, line 6)
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
@@ -54,8 +54,8 @@ tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:9:[value] warning: out of bounds read. assert \valid_read(x);
-tests/misc/bts1347.i:9:[value] assertion 'emitter' got status valid.
+tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x);
+tests/misc/bts1347.i:5:[value] assertion 'emitter' got status valid.
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
@@ -63,8 +63,8 @@ tests/misc/bts1347.i:9:[value] assertion 'emitter' got status valid.
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:10:[value] warning: out of bounds read. assert \valid_read(tmp);
+tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
                                      (tmp from x++)
-tests/misc/bts1347.i:10:[value] assertion 'emitter' got status valid.
+tests/misc/bts1347.i:6:[value] assertion 'emitter' got status valid.
 [value] Recording results for g
 [value] done for function g

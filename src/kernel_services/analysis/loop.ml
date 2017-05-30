@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ let pretty_natural_loops fmt loops =
        Format.fprintf fmt ")@\n";)
     loops
 
-(** Compute the start of the natural loops of the fonction. For each start,
+(** Compute the start of the natural loops of the function. For each start,
     we also return the origins of the back edges. *)
 let findNaturalLoops (f: fundec) =
   let loops =

@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
+tests/value/not.i:4:[value] warning: initialization of volatile variable loc ignored
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

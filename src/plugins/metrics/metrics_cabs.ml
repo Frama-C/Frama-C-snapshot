@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ class metricsCabsVisitor = object(self)
   val was_case = ref false
 
   (* Local metrics are kept stored after computation in this map of maps.
-     Its storing hierachy is as follows: filename -> function_name -> metrics *)
+     Its storing hierarchy is as follows: filename -> function_name -> metrics *)
   val mutable metrics_map:
       (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
     Datatype.String.Map.empty

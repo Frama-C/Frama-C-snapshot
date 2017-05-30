@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -105,8 +105,10 @@ module Fieldinfo: S_with_collections_pretty with type t = fieldinfo
 module File: S with type t = file
 
 module Global: sig
-  include S_with_collections with type t = global
+  include S_with_collections_pretty with type t = global
   val loc: t -> location
+  val attr: t -> attributes
+  (** @since Phosphorus-20170501-beta1 *)
 end
 
 module Initinfo: S with type t = initinfo
@@ -161,7 +163,13 @@ module Attributes: S_with_collections with type t = attributes
 
 
 (** Types, with comparison over struct done by key and unrolling of typedefs. *)
-module Typ: S_with_collections_pretty with type t = typ
+module Typ: sig
+  include S_with_collections_pretty with type t = typ
+  val toplevel_attr: t -> attributes
+    (** returns the attributes associated to the toplevel type, without adding
+        attributes from compinfo, enuminfo or typeinfo. Use {!Cil.typeAttrs}
+        to retrieve the complete set of attributes. *)
+end
 
 (** Types, with comparison over struct done by name and no unrolling. *)
 module TypByName: S_with_collections_pretty with type t = typ
@@ -214,15 +222,20 @@ end
 
 module Funbehavior: S with type t = funbehavior
 
-module Funspec: S with type t = funspec
+module Funspec: S_with_pretty with type t = funspec
 
 (** @since Fluorine-20130401 *)
 module Fundec: S_with_collections with type t = fundec
 
 module Global_annotation: sig
-  include S_with_collections with type t = global_annotation
+  include S_with_collections_pretty with type t = global_annotation
   val loc: t -> location
+
+  val attr: t -> attributes
+  (** attributes tied to the global annotation.
+      @since Phosphorus-20170501-beta1 *)
 end
+
 module Identified_term: S_with_collections with type t = identified_term
 
 module Logic_ctor_info: S_with_collections with type t = logic_ctor_info
@@ -250,9 +263,9 @@ module Term_lhost: S_with_collections with type t = term_lhost
 module Term_offset: S_with_collections_pretty with type t = term_offset
 module Term_lval: S_with_collections_pretty with type t = term_lval
 
-module Predicate: S with type t = predicate
+module Predicate: S_with_pretty with type t = predicate
 module Identified_predicate: 
-  S_with_collections with type t = identified_predicate
+  S_with_collections_pretty with type t = identified_predicate
 (** @since Neon-20140301 *)
 
 (**************************************************************************)

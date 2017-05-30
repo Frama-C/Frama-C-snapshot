@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -112,6 +112,7 @@ struct msghdr {
 #define PF_HYLINK       AF_HYLINK
 #define PF_APPLETALK    AF_APPLETALK
 #define PF_NETBIOS      AF_NETBIOS
+#define PF_INET6        AF_INET6
 
 #define PF_MAX          AF_MAX
 
@@ -127,11 +128,28 @@ struct msghdr {
 #define SO_LINGER       0x0080          /* linger on close if data present */
 #define SO_OOBINLINE    0x0100          /* leave received OOB data in line */
 #define SO_DONTLINGER   (unsigned int)(~SO_LINGER)
-#define SO_PEERCRED	0x0200		/* same as getpeereid */
+#define SO_PEERCRED     0x0200          /* same as getpeereid */
 
-#define SO_ERROR        0x1000
+#define SO_SNDBUF       0x1001          /* send buffer size */
+#define SO_RCVBUF       0x1002          /* receive buffer size */
+#define SO_SNDLOWAT     0x1003          /* send low-water mark */
+#define SO_RCVLOWAT     0x1004          /* receive low-water mark */
+#define SO_SNDTIMEO     0x1005          /* send timeout */
+#define SO_RCVTIMEO     0x1006          /* receive timeout */
+#define SO_ERROR        0x1007          /* get error status and clear */
+#define SO_TYPE         0x1008          /* get socket type */
 
 #define SOMAXCONN 0xFF
+
+enum {
+  SHUT_RD,
+  SHUT_WR,
+  SHUT_RDWR
+};
+// POSIX requires these SHUT_* constants to be defined as macros
+#define SHUT_RD SHUT_RD
+#define SHUT_WR SHUT_WR
+#define SHUT_RDWR SHUT_RDWR
 
 #ifndef __FC_MAX_OPEN_SOCKETS
 // arbitrary number
@@ -168,7 +186,7 @@ struct __fc_sockfds_type { int x; };
   disjoint behaviors;
   // TODO: check what to do when the buffer addr is too small
  */
-int     accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+extern int     accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 /*@
   requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
@@ -177,12 +195,64 @@ int     accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
           \from sockfd, *addr, addrlen, __fc_sockfds[sockfd];
   ensures \result == 0 || \result == -1;
  */
-int     bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+extern int     bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
-int     connect(int, const struct sockaddr *, socklen_t);
-int     getpeername(int, struct sockaddr *, socklen_t *);
-int     getsockname(int, struct sockaddr *, socklen_t *);
-int     getsockopt(int, int, int, void *, socklen_t *);
+/*@
+  // ideally, we should check whether addrlen is compatible with the kind of
+  // socket of [sockfd] (created by calling socket()).
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  requires \valid_read(((char*)addr)+(0 .. addrlen-1));
+  assigns __fc_sockfds[sockfd]
+          \from __fc_sockfds[sockfd], indirect:sockfd, indirect:addr,
+                indirect:*addr, indirect:addrlen;
+  assigns \result
+          \from indirect:__fc_sockfds[sockfd], indirect:sockfd, indirect:addr,
+                indirect:*addr, indirect:addrlen;
+  ensures \result == 0 || \result == -1;
+ */
+extern int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+extern int     getpeername(int, struct sockaddr *, socklen_t *);
+extern int     getsockname(int, struct sockaddr *, socklen_t *);
+
+// getsockopt is incrementally specified: options which are used more often
+// are gradually refined; the rest are handled by behavior "other_options".
+// Note: this specification may be more restrictive than what the manpage says,
+//       to allow for a more precise analysis. It should however correspond to
+//       expected usage.
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  requires \valid(optlen);
+  assigns ((char*)optval)[0..], \result
+          \from indirect:sockfd, indirect:level, indirect:optname,
+                indirect:*optlen, indirect:optval,
+                indirect:__fc_sockfds[sockfd];
+  assigns *optlen
+          \from indirect:sockfd, indirect:level, indirect:optname,
+                *optlen, indirect:optval, indirect:__fc_sockfds[sockfd];
+  ensures \result == 0 || \result == -1;
+  behavior so_error:
+    assumes level == SOL_SOCKET && optname == SO_ERROR;
+    requires \valid(optlen);
+    requires *optlen == sizeof(int);
+    requires \valid((int*)optval);
+    assigns *(int*)optval, \result \from indirect:sockfd, indirect:optlen,
+                                         indirect:__fc_sockfds[sockfd];
+  behavior other_options:
+    assumes !(level == SOL_SOCKET && optname == SO_ERROR);
+    requires optval == \null || \valid(((char*)optval)+(0..));
+    assigns ((char*)optval)[0..], \result
+            \from indirect:sockfd, indirect:level, indirect:optname,
+                  indirect:*optlen, indirect:optval,
+                  indirect:__fc_sockfds[sockfd];
+    assigns *optlen
+            \from indirect:sockfd, indirect:level, indirect:optname,
+                  *optlen, indirect:optval, indirect:__fc_sockfds[sockfd];
+  disjoint behaviors;
+  complete behaviors;
+*/
+extern int getsockopt(int sockfd, int level, int optname,
+                      void *optval, socklen_t *optlen);
 
 /*@
   requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
@@ -190,7 +260,7 @@ int     getsockopt(int, int, int, void *, socklen_t *);
   assigns  __fc_sockfds[sockfd] \from sockfd, backlog, __fc_sockfds[sockfd];
   ensures  \result == 0 || \result == -1;
  */
-int listen(int sockfd, int backlog);
+extern int listen(int sockfd, int backlog);
 
 /* Flags for passing to recv() and others */
 #define MSG_OOB 1
@@ -206,9 +276,9 @@ int listen(int sockfd, int backlog);
   ensures  0 <= \result <= len || \result == -1;
   ensures  \initialized(((char *)buf+(0 .. \result-1)));
  */
-ssize_t recv(int sockfd, void * buf, size_t len, int flags);
+extern ssize_t recv(int sockfd, void * buf, size_t len, int flags);
 
-ssize_t recvfrom(int, void *, size_t, int,
+extern ssize_t recvfrom(int, void *, size_t, int,
         struct sockaddr *, socklen_t *);
 
 /*@ requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
@@ -228,10 +298,10 @@ ssize_t recvfrom(int, void *, size_t, int,
   @ assigns __fc_sockfds[sockfd] \from __fc_sockfds[sockfd];
   @ ensures \result <= hdr->msg_iovlen;
 */
-ssize_t recvmsg(int sockfd, struct msghdr *hdr, int flags);
-ssize_t send(int, const void *, size_t, int);
-ssize_t sendmsg(int, const struct msghdr *, int);
-ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
+extern ssize_t recvmsg(int sockfd, struct msghdr *hdr, int flags);
+extern ssize_t send(int, const void *, size_t, int);
+extern ssize_t sendmsg(int, const struct msghdr *, int);
+extern ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
         socklen_t);
 
 /*@
@@ -242,25 +312,27 @@ ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
              ((char *)optval)[0..optlen-1], optlen;
   ensures  \result == 0 || \result == -1;
  */
-int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+extern int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
 
 /*@
   requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
   assigns \result, __fc_sockfds[sockfd] \from how, __fc_sockfds[sockfd];
   ensures \result == 0 || \result == -1;
  */
-int shutdown(int sockfd, int how);
+extern int shutdown(int sockfd, int how);
 
-int sockatmark(int);
+extern int sockatmark(int);
 
 /*@
-  assigns  \result, __fc_socket_counter
-           \from domain, type, protocol, __fc_socket_counter;
+  assigns  \result \from indirect:domain, indirect:type, indirect:protocol,
+                         indirect:__fc_socket_counter;
+  assigns  __fc_socket_counter \from indirect:domain, indirect:type,
+                                     indirect:protocol, __fc_socket_counter;
   ensures  0 <= \result < __FC_MAX_OPEN_SOCKETS || \result == -1;
 */
-int socket(int domain, int type, int protocol);
+extern int socket(int domain, int type, int protocol);
 
-int sockatmark(int);
+extern int sockatmark(int);
 
 /*@ requires \valid(&socket_vector[0..1]);
   @ assigns \result, __fc_socket_counter, socket_vector[0..1] \from
@@ -270,5 +342,5 @@ int sockatmark(int);
   @ ensures 0 <= socket_vector[0] < __FC_MAX_OPEN_SOCKETS;
   @ ensures 0 <= socket_vector[1] < __FC_MAX_OPEN_SOCKETS;
   @*/
-int socketpair(int domain, int type, int protocol, int socket_vector[2]);
+extern int socketpair(int domain, int type, int protocol, int socket_vector[2]);
 #endif

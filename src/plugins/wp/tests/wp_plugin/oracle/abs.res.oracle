@@ -12,9 +12,9 @@ Goal Post-condition (file tests/wp_plugin/abs.i, line 13) in 'abs':
 Assume {
   Type: is_sint32(abs_0) /\ is_sint32(x).
   If x < 0
-  Then { Have: 0 = (abs_0 + x). }
-  Else { Have: abs_0 = x. }
+  Then { Have: (abs_0 + x) = 0. }
+  Else { Have: x = abs_0. }
 }
-Prove: abs_0 = my_abs(x).
+Prove: my_abs(x) = abs_0.
 
 ------------------------------------------------------------

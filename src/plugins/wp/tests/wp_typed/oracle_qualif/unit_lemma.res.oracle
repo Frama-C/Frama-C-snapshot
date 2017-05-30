@@ -15,8 +15,8 @@
      Alt-Ergo:        5  (unknown: 1)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -       1 (4)      2      50.0%
-Axiomatic G1        -       2 (7)      2       100%
-Axiomatic G2        -       1 (6)      1       100%
-Axiomatic Poluted   -       1 (4)      1       100%
+Lemma               -       1 (5)      2      50.0%
+Axiomatic G1        -       2 (8)      2       100%
+Axiomatic G2        -       1 (10)     1       100%
+Axiomatic Poluted   -       1 (5)      1       100%
 ----------------------------------------------------------

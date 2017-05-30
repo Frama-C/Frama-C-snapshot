@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ let dkey_check = Kernel.register_category "check"
 (* Use category "check:strict" to enable stricter tests *)
 let dkey_check_volatile = Kernel.register_category "check:strict:volatile"
 
-
+module Base_checker = struct
 class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
   let check_abort fmt =
     Kernel.fatal ~current:true ("[AST Integrity Check]@ %s@ " ^^ fmt) what
@@ -109,7 +109,10 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
            (check_abort "variables %s and %s have the same id (%d)"
               v.vname v'.vname v.vid))
       else
-        Varinfo.Hashtbl.add known_vars v v;
+        if v.vformal || v.vglob || not v.vdefined then
+          (* A defined local will only enter scope when the corresponding
+             Local_init statement is reached. *)
+          Varinfo.Hashtbl.add known_vars v v;
       match v.vlogic_var_assoc with
       | None -> Cil.DoChildren
       | Some ({ lv_origin = Some v'} as lv) when v == v' ->
@@ -179,7 +182,12 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           "logic variable %a as an associated variable %a, but is not \
            flagged as having a C origin"
           Printer.pp_logic_var lv Printer.pp_varinfo v
-      | Some { vlogic_var_assoc = Some lv' } when lv == lv' -> Cil.DoChildren
+      | Some { vlogic_var_assoc = Some lv' } when lv == lv' ->
+        ignore
+          Visitor.(visitFramacLogicType (self:>frama_c_visitor) lv.lv_type);
+        (* DoChildren on initialized local variables would fail, as it performs
+           a vvrbl on the C variable, before having reached the initializer. *)
+        Cil.SkipChildren
       | Some v ->
         check_abort
           "logic variable %a is not properly referenced by the original \
@@ -442,9 +450,37 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           Printer.pp_varinfo v v.vid
       end
 
+    (* Stack of local variables that are supposed to be initialized in
+       each currently opened block (with [bscoping=true]), the top of the
+       stack corresponding to the innermost block. Used to check that these
+       variables have a Local_init instruction in the appropriate block.
+    *)
+    val current_block_vars = Stack.create ()
+
     method! vblock b =
+      let check_locals b =
+        List.iter
+          (fun v ->
+             if v.vdefined then
+               check_abort
+                 "Local variable %a is supposed to be defined, \
+                  but no initializer found in the block where it is in scope"
+                 Printer.pp_varinfo v)
+          (Stack.pop current_block_vars);
+        b
+      in
       List.iter self#check_local_var b.blocals;
-      Cil.DoChildren
+      if b.bscoping then begin
+        Stack.push b.blocals current_block_vars;
+        Cil.DoChildrenPost check_locals
+      end else if b.blocals <> [] then
+        (* non-scoping block mustn't declare locals *)
+        check_abort
+          "Block below is declaring local variables %a, but its attributes \
+           indicates that it is not used as a scope boundary.@\n%a"
+          (Pretty_utils.pp_list ~sep:", " Printer.pp_varinfo) b.blocals
+          Printer.pp_block b
+      else Cil.DoChildren
 
     method! vbehavior b =
       let vpred p =
@@ -830,7 +866,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
              "field %s of type %a is not present in environment"
              mi.mi_name Printer.pp_typ mi.mi_base_type);
         Cil.DoChildren
-      | Dlemma(_,_,labels,_,_,_) ->
+      | Dlemma(_,_,labels,_,_,_,_) ->
         let old_labels = logic_labels in
         logic_labels <- labels @ logic_labels;
         Cil.DoChildrenPost (fun g -> logic_labels <- old_labels; g)
@@ -950,48 +986,81 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
                                   fun e -> ignore (Stack.pop accept_array); e)
 
 
-    method! vinst i =
-      match i with
-      | Call(lvopt,{ enode = Lval(Var f, NoOffset)},args,_) ->
-        let (treturn,targs,is_variadic,_) = Cil.splitFunctionTypeVI f in
-        if Cil.isVoidType treturn && lvopt != None then
+    method private check_initialized_var v =
+      let block_vars = Stack.pop current_block_vars in
+      match List.partition (Cil_datatype.Varinfo.equal v) block_vars with
+      | [_], block_vars ->
+        Stack.push block_vars current_block_vars;
+        Cil_datatype.Varinfo.Hashtbl.add known_vars v v
+      | [], _ ->
+        if Cil_datatype.Varinfo.Hashtbl.mem known_vars v then
+          check_abort "Local variable %a is initialized twice"
+            Printer.pp_varinfo v
+        else
           check_abort
-            "in call %a, assigning result of a function returning void"
-            Printer.pp_instr i;
-        (match lvopt with
-         | None -> ()
-         | Some lv ->
-           let tlv = Cil.typeOfLval lv in
-           if not (Cabs2cil.allow_return_collapse ~tlv ~tf:treturn) then
-             check_abort "in call %a, cannot implicitly cast from \
-                          function return type %a to type of %a (%a)"
-               Printer.pp_instr i
-               Printer.pp_typ treturn
-               Printer.pp_lval lv
-               Printer.pp_typ tlv);
-        let rec aux l1 l2 =
-          match l1,l2 with
-          | [],[] -> Cil.DoChildren
-          | _::_, [] ->
-            check_abort "call %a has too few arguments" Printer.pp_instr i
-          | [],e::_ ->
-            if is_variadic then Cil.DoChildren
-            else
-              check_abort "call %a has too many arguments, starting from %a"
-                Printer.pp_instr i Printer.pp_exp e
-          | (_,ty1,_)::l1,arg::l2 ->
-            let ty2 = Cil.typeOf arg in
-            if not (is_admissible_conversion arg ty2 ty1) then
-              check_abort "in call %a, arg %a has type %a instead of %a"
-                Printer.pp_instr i
-                Printer.pp_exp arg
-                Printer.pp_typ ty2
-                Printer.pp_typ ty1;
-            aux l1 l2
-        in
-        (match targs with
-         | None -> Cil.DoChildren
-         | Some targs -> aux targs args)
+            "%a is initialized, but not marked as a local variable \
+             of the nearest enclosing block"
+            Printer.pp_varinfo v
+      | _, _ ->
+        check_abort
+          "Local variable %a is present several times in block's locals list"
+          Printer.pp_varinfo v
+
+    method! vinst i =
+      let treat_call lvopt f args _loc =
+        match f.enode with
+        | Lval (Var f, NoOffset) ->
+          let (treturn,targs,is_variadic,_) = Cil.splitFunctionTypeVI f in
+          if Cil.isVoidType treturn && lvopt != None then
+            check_abort
+              "in call %a, assigning result of a function returning void"
+              Printer.pp_instr i;
+          (match lvopt with
+           | None -> ()
+           | Some lv ->
+             let tlv = Cil.typeOfLval lv in
+             if not (Cabs2cil.allow_return_collapse ~tlv ~tf:treturn) then
+               check_abort "in call %a, cannot implicitly cast from \
+                            function return type %a to type of %a (%a)"
+                 Printer.pp_instr i
+                 Printer.pp_typ treturn
+                 Printer.pp_lval lv
+                 Printer.pp_typ tlv);
+          let rec aux l1 l2 =
+            match l1,l2 with
+            | [],[] -> Cil.DoChildren
+            | _::_, [] ->
+              check_abort "call %a has too few arguments" Printer.pp_instr i
+            | [],e::_ ->
+              if is_variadic then Cil.DoChildren
+              else
+                check_abort "call %a has too many arguments, starting from %a"
+                  Printer.pp_instr i Printer.pp_exp e
+            | (_,ty1,_)::l1,arg::l2 ->
+              let ty2 = Cil.typeOf arg in
+              if not (is_admissible_conversion arg ty2 ty1) then
+                check_abort "in call %a, arg %a has type %a instead of %a"
+                  Printer.pp_instr i
+                  Printer.pp_exp arg
+                  Printer.pp_typ ty2
+                  Printer.pp_typ ty1;
+              aux l1 l2
+          in
+          (match targs with
+           | None -> Cil.DoChildren
+           | Some targs -> aux targs args)
+        | _ -> (* indirect call. Can't check coherence with a given kf *)
+          Cil.DoChildren
+      in
+      match i with
+      | Call(lvopt,f,args,loc) ->
+        treat_call lvopt f args loc
+      | Local_init (v, AssignInit _, _) ->
+        self#check_initialized_var v;
+        Cil.DoChildren
+      | Local_init (v, ConsInit(f,args,k),loc) ->
+        self#check_initialized_var v;
+        Cil.treat_constructor_as_func treat_call v f args k loc
       | Asm(_,_,Some { asm_gotos },_) ->
         List.iter self#check_label asm_gotos; Cil.DoChildren
       | _ -> Cil.DoChildren
@@ -1034,10 +1103,26 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
       Globals.Vars.iter add_var
 
   end
+end
+
+module type Extensible_checker =
+sig
+  class check: ?is_normalized:bool -> string -> Visitor.frama_c_visitor
+end
+
+let current_checker = ref (module Base_checker: Extensible_checker)
+
+let extend_checker f = current_checker := f !current_checker
 
 let check_ast ?is_normalized ?(ast = Ast.get()) what =
+  let module M = (val !current_checker : Extensible_checker) in
+  Kernel.debug ~dkey:dkey_check
+    "Checking integrity of AST:@\n%a"
+    (if Extlib.opt_conv true is_normalized
+     then Printer.pp_file else Cil_printer.pp_file)
+    ast;
   Cil.visitCilFileSameGlobals
-    (new check ?is_normalized what :> Cil.cilVisitor) ast
+    (new M.check ?is_normalized what :> Cil.cilVisitor) ast
 
 (*
 Local Variables:

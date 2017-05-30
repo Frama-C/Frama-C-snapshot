@@ -6,7 +6,6 @@
 [value:initial-state] Values of globals at initialization
   
 tests/wp_plugin/removed.i:10:[value] warning: signed overflow. assert 1 + i ≤ 2147483647;
-[value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:

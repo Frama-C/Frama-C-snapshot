@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,14 +25,10 @@
 open Cil_types
 open Locations
 
-let dkey = Value_parameters.register_category "initial_state"
+let dkey = Value_parameters.register_category "initial-state"
 
-(** Those functions intentionally ignore 'const' attributes. Functions of
-    Eval_op should not be used in this module, unless they have a 'reducing'
-    argument. *)
 let add_initialized state loc v =
-  let value = Cvalue.V_Or_Uninitialized.initialized v in
-  Cvalue.Model.add_initial_binding state loc value
+  Cvalue.Model.add_binding ~exact:true state loc v
 
 let make_well hidden_base state loc =
   let size = Bit_utils.max_bit_size () in
@@ -111,7 +107,6 @@ let reject_empty_struct b offset typ =
 (** [initialize_var_using_type varinfo state] uses the type of [varinfo]
     to create an initial value in [state]. *)
 let initialize_var_using_type varinfo state =
-  let with_alarms = CilE.warn_none_mode in
   Cil.CurrentLoc.set varinfo.vdecl;
   let rec add_offsetmap depth b name_desc name typ offset_orig typ_orig state =
     let typ = Cil.unrollType typ in
@@ -228,7 +223,7 @@ let initialize_var_using_type varinfo state =
           if max_precise_size < size then begin
             (* Some elements remain to be initialized *)
             let offsm_of_loc loc = (* This rereads one of the first cells*)
-              let _alarm, offsm =
+              let offsm =
                 Cvalue.Model.copy_offsetmap loc size_elt !state
               in
               match offsm with `Bottom -> assert false | `Value m -> m
@@ -268,11 +263,8 @@ let initialize_var_using_type varinfo state =
               (* paste [size - max_precise_size] elements, starting from
                  the last location initialized + 1 *)
               state :=
-                Eval_op.paste_offsetmap ~reducing:true ~with_alarms
-                  ~from:offsm_repeat
-                  ~dst_loc:loc
-                  ~size:total_size
-                  ~exact:true
+                Cvalue.Model.paste_offsetmap
+                  ~from:offsm_repeat ~dst_loc:loc ~size:total_size ~exact:true
                   !state
             else (
               (* We have probably initialized a struct with different fields.
@@ -286,11 +278,8 @@ let initialize_var_using_type varinfo state =
                 loc := Location_Bits.shift
                     (Ival.inject_singleton size_elt) !loc;
                 state :=
-                  Eval_op.paste_offsetmap ~reducing:true ~with_alarms
-                    ~from:offsm_joined
-                    ~dst_loc:!loc
-                    ~size:size_elt
-                    ~exact:true
+                  Cvalue.Model.paste_offsetmap
+                    ~from:offsm_joined ~dst_loc:!loc ~size:size_elt ~exact:true
                     !state
               done);
           end;
@@ -300,7 +289,7 @@ let initialize_var_using_type varinfo state =
           Value_parameters.result ~once:true ~current:true
             "no size specified for array, assuming 0";
           (* This is either a flexible array member (for which Cil
-             implicitely returns a size of 0, so we are doing the proper
+             implicitly returns a size of 0, so we are doing the proper
              thing), or an incomplete array (which is forbidden)  *)
           state
         | Cil.SizeOfError (s, t) ->

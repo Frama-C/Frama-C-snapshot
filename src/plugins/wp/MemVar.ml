@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -287,6 +287,124 @@ struct
   let get_term s x = e_var (get_var s x)
   
   (* -------------------------------------------------------------------------- *)
+  (* ---  State Pretty Printer                                              --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type ichunk = Iref of varinfo | Ivar of varinfo
+  
+  type state = {
+    svar : ichunk Tmap.t ;
+    smem : M.state ;
+  }
+
+  module IChunk =
+    struct
+  
+      let compare_var x y =
+        let rank x = 
+          if x.vformal then 0 else
+          if x.vglob then 1 else
+          if x.vtemp then 3 else 2 in
+        let cmp = rank x - rank y in
+        if cmp <> 0 then cmp else Varinfo.compare x y
+
+      type t = ichunk
+      let hash = function Iref x | Ivar x -> Varinfo.hash x
+      let compare x y =
+        match x,y with
+        | Iref x , Iref y -> Varinfo.compare x y
+        | Iref _ , _ -> (-1)
+        | _ , Iref _ -> 1
+        | Ivar x , Ivar y -> compare_var x y
+      let equal x y =
+        match x,y with
+        | Iref x , Iref y | Ivar x , Ivar y -> Varinfo.equal x y
+        | Iref _ , Ivar _ | Ivar _ , Iref _ -> false
+      
+    end
+
+  module Icmap = Qed.Mergemap.Make(IChunk)
+  
+  let set_chunk v c m =
+    let c =
+      try
+        let c0 = Tmap.find v m in
+        if IChunk.compare c c0 < 0 then c else c0
+      with Not_found -> c in
+    Tmap.add v c m
+
+  let state s =
+    let m = ref Tmap.empty in
+    SIGMA.iter (fun x v ->
+        let c = match V.param x with ByRef -> Iref x | _ -> Ivar x in
+        m := set_chunk (e_var v) c !m
+      ) s.vars ;
+    { svar = !m ; smem = M.state s.mem }
+
+  let ilval = function
+    | Iref x -> (Mvar x,[Mindex e_zero])
+    | Ivar x -> (Mvar x,[])
+
+  let imval c = Memory.Mlval (ilval c)
+
+  let lookup s e =
+    try imval (Tmap.find e s.svar)
+    with Not_found -> M.lookup s.smem e
+
+  let apply f s =
+    let m = ref Tmap.empty in
+    Tmap.iter (fun e c ->
+        let e = f e in
+        m := set_chunk e c !m ;
+      ) s.svar ;
+    { svar = !m ; smem = M.apply f s.smem }
+
+  let iter f s =
+    Tmap.iter (fun v c -> f (imval c) v) s.svar ;
+    M.iter f s.smem
+
+  let icmap domain istate =
+    Tmap.fold (fun m c w ->
+        if Vars.intersect (F.vars m) domain
+        then Icmap.add c m w else w
+      ) istate Icmap.empty
+
+  let rec diff lv v1 v2 =
+    if v1 == v2 then Bag.empty else
+      match F.repr v2 with
+      | Qed.Logic.Aset(m , k , vk) ->
+          let upd = diff (Mstate.index lv k) (F.e_get m k) vk in
+          Bag.concat (diff lv v1 m) upd
+      | Qed.Logic.Rdef fvs ->
+          rdiff lv v1 v2 fvs
+      | _ ->
+          Bag.elt (Mstore(lv,v2))
+
+  and rdiff lv v1 v2 = function
+    | (Lang.Cfield fi as fd ,f2) :: fvs ->
+        let f1 = F.e_getfield v1 fd in
+        if f1 == f2 then rdiff lv v1 v2 fvs else
+          let upd = diff (Mstate.field lv fi) f1 f2 in
+          let m = F.e_setfield v2 fd f1 in
+          Bag.concat upd (diff lv v1 m)
+    | (Lang.Mfield _,_)::_ -> Bag.elt (Mstore(lv,v2))
+    | [] -> Bag.empty
+
+  let updates seq domain =
+    let pre = icmap domain seq.pre.svar in
+    let post = icmap domain seq.post.svar in
+    let pool = ref Bag.empty in
+    Icmap.iter2
+      (fun c v1 v2 ->
+         match v1 , v2 with
+         | _ , None -> ()
+         | None , Some v -> pool := Bag.add (Mstore(ilval c,v)) !pool
+         | Some v1 , Some v2 -> pool := Bag.concat (diff (ilval c) v1 v2) !pool
+      ) pre post ;
+    let seq_mem =  { pre = seq.pre.smem ; post = seq.post.smem } in
+    Bag.concat !pool (M.updates seq_mem domain)
+
+  (* -------------------------------------------------------------------------- *)
   (* ---  Location                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -297,16 +415,15 @@ struct
     | CARR (* In-context array *)
     | HEAP (* In-heap variable *)
 
-  
   type loc =
     | Ref of varinfo
     | Val of mem * varinfo * ofs list (* The varinfo has {i not} been contextualized yet *)
     | Loc of M.loc (* Generalized In-Heap pointer *)
-      
+
   and ofs =
     | Field of fieldinfo
     | Shift of c_object * term
-  
+
   type segment = loc rloc
 
   let rec ofs_vars xs = function
@@ -338,7 +455,7 @@ struct
     | CVAL | HEAP -> x.vtype
     | CTXT | CREF -> Cil.typeOf_pointed x.vtype
     | CARR -> Ast_info.array_type (Cil.typeOf_pointed x.vtype)
- 
+
   let vobject m x = Ctypes.object_of (vtype m x)
 
   let vbase m x =
@@ -349,7 +466,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* ---  Pretty                                                            --- *)
   (* -------------------------------------------------------------------------- *)
-  
+
   let rec pp_offset ~obj fmt = function
     | [] -> ()
     | Field f :: ofs ->
@@ -374,8 +491,8 @@ struct
     | ByValue | NotUsed -> Format.pp_print_string fmt "non-aliased" (* cf.  -wp-unalias-vars *)
     | ByRef -> Format.pp_print_string fmt "by reference" (* cf. -wp-ref-vars *)
     | InContext | InArray -> Format.pp_print_string fmt "in an isolated context" (* cf. -wp-context-vars *)
-    | InHeap -> Format.pp_print_string fmt "aliased" (* cf. -wp-alias-vars *) 
-  
+    | InHeap -> Format.pp_print_string fmt "aliased" (* cf. -wp-alias-vars *)
+
   let pretty fmt = function
     | Ref x -> VAR.pretty fmt x
     | Loc l -> M.pretty fmt l
@@ -571,8 +688,6 @@ struct
 
   exception ShiftMismatch
 
-  type alloc = c_object * int
-
   let is_heap_allocated = function
     | CREF | CVAL -> false | HEAP | CTXT | CARR -> true
   
@@ -583,7 +698,7 @@ struct
       "Validity of unsized-array not implemented yet"
   
   (* Append conditions to [cond] for [range=(elt,a,b)],
-     consiting of [a..b] elements with type [elt] to fits inside the block, 
+     consisting of [a..b] elements with type [elt] to fits inside the block,
      provided [a<=b]. *)
   let rec fits cond (block,size) ((elt,a,b) as range) =
     if Ctypes.equal block elt then
@@ -609,7 +724,7 @@ struct
         | _ -> offset_fits (fits cond (obj,1) (te,k,k)) te ofs
 
   (* Append conditions to [cond] for [range=(elt,a,b)], starting at [offset], 
-     consiting of [a..b] elements with type [elt] to fits inside the block, 
+     consisting of [a..b] elements with type [elt] to fits inside the block,
      provided [a<=b]. *)
   let rec range_fits cond alloc offset ((elt,a,b) as range) =
     match offset with
@@ -747,7 +862,7 @@ struct
   let global sigma p = M.global sigma.mem p
 
   (* -------------------------------------------------------------------------- *)
-  (* ---  Havoc allong a ranged-path                                        --- *)
+  (* ---  Havoc along a ranged-path                                        --- *)
   (* -------------------------------------------------------------------------- *)
 
   let rec assigned_path
@@ -787,7 +902,7 @@ struct
             assigned_path hs xs (y::ys) ak bk ofs
           else
             (* index [e] is not covered by [xs]:
-               any indice different from e is disjoint.
+               any index different from e is disjoint.
                explore also deeply with index [e]. *)
             let ae = e_get a e in
             let be = e_get b e in
@@ -887,9 +1002,6 @@ struct
     | [Shift(elt,k)] when Ctypes.equal elt obj ->
         [ Drange( Vset.bound_shift a k , Vset.bound_shift b k ) ]
     | d :: ofs -> dofs d :: range ofs obj a b
-
-  let dsize s = Drange(Some (e_int 0) , Some (e_int (s-1)))
-  let rsize ofs s = delta ofs @ [ dsize s ]
 
   let locseg = function
 

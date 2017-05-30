@@ -131,6 +131,7 @@ tests/value/reduce_by_valid.i:256:[value] warning: assertion got status unknown.
 [value] Done for function main11
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 12 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main1:
   t[0..2] ∈ {0}

@@ -26,6 +26,7 @@ tests/value/align_char_array.c:28:[value] warning: signed overflow. assert -2147
 tests/value/align_char_array.c:28:[value] warning: signed overflow. assert (int)((char (*)[10])t) + 2 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 4 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   d1 ∈ {1}

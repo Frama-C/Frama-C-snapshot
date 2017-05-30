@@ -16,12 +16,13 @@
         Called from tests/value/cast_return.c:27.
 [value] Recording results for g
 [value] Done for function g
-tests/value/cast_return.c:27:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:27:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
 [value] computing for function h <- main1 <- main.
         Called from tests/value/cast_return.c:31.
 [value] Recording results for h
 [value] Done for function h
 tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid(*p);
+tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -30,12 +31,12 @@ tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid
         Called from tests/value/cast_return.c:50.
 [value] Recording results for fl1
 [value] Done for function fl1
-tests/value/cast_return.c:50:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:50:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
 [value] computing for function fl2 <- main2 <- main.
         Called from tests/value/cast_return.c:51.
 [value] Recording results for fl2
 [value] Done for function fl2
-tests/value/cast_return.c:51:[kernel] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:51:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
@@ -177,20 +178,16 @@ char h(void)
 void main1(void)
 {
   if (c) {
-    float f_;
     int tmp;
     tmp = f();
-    f_ = (float)tmp;
+    float f_ = (float)tmp;
   }
   if (c) {
-    long long v;
-    v = (long long)g();
+    long long v = g();
   }
   if (c) {
-    int *x;
-    int **p;
-    x = (int *)0;
-    p = & x;
+    int *x = (int *)0;
+    int **p = & x;
     /*@ assert Value: mem_access: \valid(*p); */
     *(*p) = (int)h();
   }
@@ -222,15 +219,13 @@ void main2(void)
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern float ret_float();
+float ret_float();
 
 void main3(void)
 {
-  float f1;
-  float f2;
-  f1 = ret_float();
+  float f1 = ret_float();
   /*@ assert Value: is_nan_or_infinite: \is_finite(f1); */
-  f2 = f1 + (float)1;
+  float f2 = f1 + (float)1;
   return;
 }
 

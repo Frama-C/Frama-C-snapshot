@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -202,6 +202,17 @@ module PrintPluginPath =
      end)
 
 let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Exiting
+let () = Parameter_customize.set_negative_option_name ""
+module PrintMachdep =
+  False
+    (struct
+      let module_name = "PrintMachdep"
+      let option_name = "-print-machdep"
+      let help = "pretty print selected machdep"
+     end)
+
+let () = Parameter_customize.set_group help
 let () = Parameter_customize.set_negative_option_name ""
 module DumpDependencies =
   P.Empty_string
@@ -215,6 +226,23 @@ let () =
     (fun () ->
        if not (DumpDependencies.is_default ()) then
          State_dependency_graph.dump (DumpDependencies.get ()))
+
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Exiting
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.set_negative_option_name ""
+module AutocompleteHelp =
+  False
+    (struct
+      let option_name = "-autocomplete"
+      let help = "displays all plugin options. Used for zsh autocompletion"
+      let module_name = "AutocompleteHelp"
+     end)
+let run_list_all_plugin_options () =
+  if AutocompleteHelp.get () then
+    Cmdline.list_all_plugin_options ~print_invisible:true
+  else Cmdline.nop
+let () = Cmdline.run_after_exiting_stage run_list_all_plugin_options
 
 (* ************************************************************************* *)
 (** {2 Output Messages} *)
@@ -314,7 +342,7 @@ module Unicode = struct
        let help = "use utf8 in messages"
      end)
   (* This function behaves nicely with the Gui, that detects if command-line
-     arguments have been set by the user at some point. One possible improvment
+     arguments have been set by the user at some point. One possible improvement
      would be to bypass journalization entirely, but this requires an API
      change in Plugin *)
   let without_unicode f arg =
@@ -355,32 +383,6 @@ module Time =
        let help = "append process time and timestamp to <filename> at exit"
      end)
 
-let () = Parameter_customize.is_invisible ()
-let () = Parameter_customize.set_negative_option_name "-do-not-collect-messages"
-let () = Parameter_customize.do_not_projectify ()
-module Collect_messages = (* TODO: remove in Silicon *)
-  Bool
-    (struct
-      let module_name = "Collect_messages"
-      let option_name = "-collect-messages"
-      let help = "collect warning and error messages for displaying them in \
-                  the GUI (set by default iff the GUI is launched)"
-      let default = !Fc_config.is_gui
-      (* ok: Config.is_gui already initialised by Gui_init *)
-    end)
-let () =
-  Collect_messages.add_set_hook
-    (fun _ b ->
-       match b, !Fc_config.is_gui with
-       | true, false ->
-         warning "option -collect-messages is obsolete; messages are always \
-                  collected"
-       | false, true ->
-         error "option -do-not-collect-messages is obsolete and no longer has \
-                an effect"
-       | _ -> ())
-
-
 let () = Parameter_customize.set_group messages
 let () = Parameter_customize.do_not_projectify ()
 module SymbolicPath =
@@ -418,6 +420,18 @@ module PrintComments =
       let module_name = "PrintComments"
       let option_name = "-keep-comments"
       let help = "try to keep comments in C code"
+     end)
+
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
+module PrintLibc =
+  Bool
+    (struct
+      let module_name = "PrintLibc"
+      let option_name = "-print-libc"
+      let help = "when pretty-printing C code, keep prototypes coming \
+                  from Frama-C standard library"
+      let default = !Fc_config.is_gui (* always print by default on the GUI *)
      end)
 
 module CodeOutput = struct
@@ -579,16 +593,27 @@ module LoadModule =
        let arg_name = "SPEC,..."
        let help = "Dynamically load plug-ins, modules and scripts. \
                    Each <SPEC> can be an OCaml source or object file, with \
-                   or without extension, or a directory of object OCaml \
-                   files to load, or a Findlib package. \
+                   or without extension, or a Findlib package. \
                    Loading order is preserved and \
                    additional dependencies can be listed in *.depend files."
     end)
 let () = LoadModule.add_aliases [ "-load-script" ]
 
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
+module AutoLoadPlugins =
+  True
+    (struct
+       let option_name = "-autoload-plugins"
+       let module_name = "AutoLoadPlugins"
+       let help = "Automatically load all plugins in FRAMAC_PLUGIN."
+    end)
+
 let bootstrap_loader () =
   begin
-    Dynamic.load_plugin_path (AddPath.get()) ;
+    Dynamic.set_module_load_path (AddPath.get ());
+    if AutoLoadPlugins.get () then Dynamic.load_plugin_path () ;
     List.iter Dynamic.load_module (LoadModule.get()) ;
   end
 
@@ -711,7 +736,7 @@ module PreprocessAnnot =
           let option_name = "-pp-annot"
           let help =
             "pre-process annotations (if they are read). Set by default if \
-             the pre-processor is GNU-like (see option -cpp-gnu-like)"
+             the pre-processor is GNU-like (see option -cpp-frama-c-compliant)"
         end)
 
 let () = Parameter_customize.set_group parsing
@@ -748,7 +773,7 @@ module CppGnuLike =
   True
     (struct
       let module_name = "CppGnuLike"
-      let option_name = "-cpp-gnu-like"
+      let option_name = "-cpp-frama-c-compliant"
       let help = 
         "indicates that a custom pre-processor (see option -cpp-command) \
          accepts the same set of options as GNU cpp. Set it to false if you \
@@ -764,7 +789,7 @@ module FramaCStdLib =
       let option_name = "-frama-c-stdlib"
       let help =
         "adds -I$FRAMAC_SHARE/libc to the options given to the cpp command. \
-         If -cpp-gnu-like is not false, also adds -nostdinc to prevent \
+         If -cpp-frama-c-compliant is not false, also adds -nostdinc to prevent \
          inconsistent mix of system and Frama-C header files"
     end)
 
@@ -1068,7 +1093,7 @@ module UnspecifiedAccess =
   False(struct
          let module_name = "UnspecifiedAccess"
          let option_name = "-unspecified-access"
-         let help = "do not assume that read/write accesses occuring \
+         let help = "do not assume that read/write accesses occurring \
 between sequence points are separated"
        end)
 
@@ -1238,7 +1263,7 @@ let _ =
     (object
       method fold: 'a. (Project.t -> 'a -> 'a) -> 'a -> 'a =
         fun f acc -> Project.fold_on_projects (fun acc p -> f p acc) acc
-      method mem _p = true (* impossible to build an unregistred project *)
+      method mem _p = true (* impossible to build an unregistered project *)
      end)
 
 let _ =

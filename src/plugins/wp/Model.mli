@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,6 +76,8 @@ sig
   val mem : key -> bool
   val find : key -> data
   val get : key -> data option
+  val clear : unit -> unit
+  val remove : key -> unit
   val define : key -> data -> unit
   (** no redefinition ; circularity protected *)
   val update : key -> data -> unit
@@ -117,6 +119,9 @@ sig
   type key
   type data
   val get : key -> data
+  val mem : key -> bool
+  val clear : unit -> unit
+  val remove : key -> unit
 end
 
 (** projectified, depend on the model, not serialized *)
@@ -128,7 +133,3 @@ module Generator(K : Key)(D : Data with type key = K.t) : Generator
 module StaticGenerator(K : Key)(D : Data with type key = K.t) : Generator
   with type key = D.key
    and type data = D.data
-
-
-val run_once_for_each_ast: name:string -> (unit -> unit) -> (unit -> unit)
-(** run the function once for each ast *)

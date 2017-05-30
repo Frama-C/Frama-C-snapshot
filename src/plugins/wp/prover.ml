@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,20 +29,15 @@ open VCS
 open Task
 open Wpo
 
-let dispatch wpo mode prover =
+let dispatch ?(config=VCS.default) mode prover wpo =
   begin
     match prover with
-    | AltErgo -> ProverErgo.prove mode wpo
+    | AltErgo -> ProverErgo.prove ~config ~mode wpo
     | Coq -> ProverCoq.prove mode wpo
-    | Why3 prover -> ProverWhy3.prove ~prover wpo
-    | Qed -> Task.return VCS.unknown
+    | Why3 prover -> ProverWhy3.prove ?timeout:config.timeout ~prover wpo
+    | Qed | Tactical -> Task.return VCS.no_result
     | _ -> Task.failed "Prover '%a' not available" VCS.pp_prover prover
   end
-
-let qed_time wpo =
-  match wpo.po_formula with
-  | GoalCheck _ | GoalLemma _ -> 0.0
-  | GoalAnnot vcq -> GOAL.qed_time vcq.VC_Annot.goal
 
 let started ?start wpo =
   match start with
@@ -60,9 +55,9 @@ let update ?callback wpo prover result =
   | None -> ()
   | Some f -> f wpo prover result
 
-let run_prover wpo ?(mode=BatchMode) ?callin ?callback prover =
+let run_prover wpo ?config ?(mode=BatchMode) ?callin ?callback prover =
   signal ?callin wpo prover ;
-  dispatch wpo mode prover >>>
+  dispatch ?config mode prover wpo >>>
   fun status ->
   let result = match status with
     | Task.Result r -> r
@@ -70,15 +65,9 @@ let run_prover wpo ?(mode=BatchMode) ?callin ?callback prover =
     | Task.Timeout t -> VCS.timeout t
     | Task.Failed exn -> VCS.failed (error exn)
   in
-  let result = { result with solver_time = qed_time wpo } in
+  let result = { result with solver_time = Wpo.qed_time wpo } in
   update ?callback wpo prover result ;
-  Task.return (Wpo.is_valid result)
-
-let resolve wpo =
-  match wpo.po_formula with
-  | GoalAnnot vcq -> VC_Annot.resolve vcq
-  | GoalLemma vca -> VC_Lemma.is_trivial vca
-  | GoalCheck _ -> false
+  Task.return (VCS.is_valid result)
 
 let simplify ?start ?callback wpo =
   Task.call
@@ -95,26 +84,28 @@ let simplify ?start ?callback wpo =
        end)
     wpo
 
-let prove wpo ?mode ?start ?callin ?callback prover =
+let prove wpo ?config ?mode ?start ?callin ?callback prover =
   simplify ?start ?callback wpo >>= fun succeed ->
   if succeed
   then Task.return true
-  else (run_prover wpo ?mode ?callin ?callback prover)
+  else (run_prover wpo ?config ?mode ?callin ?callback prover)
 
-let spawn wpo ?start ?callin ?callback ?success provers =
-  let do_monitor f wpo = function
-    | None -> f wpo None
-    | Some p ->
+let spawn wpo ?config ?start ?callin ?callback ?success ?pool provers =
+  let do_monitor on_success wpo = function
+    | None -> on_success wpo None
+    | Some prover ->
         let r = Wpo.get_result wpo VCS.Qed in
-        let p = if VCS.( r.verdict == Valid ) then VCS.Qed else p in
-        f wpo (Some p) in
+        let prover = if VCS.( r.verdict == Valid ) then VCS.Qed else prover in
+        on_success wpo (Some prover)
+  in
   let monitor = match success with
     | None -> None
-    | Some f -> Some (do_monitor f wpo) in
-  ProverTask.spawn ?monitor
+    | Some on_success -> Some (do_monitor on_success wpo)
+  in
+  ProverTask.spawn ?monitor ?pool
     begin
       List.map
         (fun (mode,prover) ->
-           prover , prove wpo ~mode ?start ?callin ?callback prover)
+           prover , prove wpo ?config ~mode ?start ?callin ?callback prover)
         provers
     end

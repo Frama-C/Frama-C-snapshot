@@ -198,6 +198,7 @@ tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns cl
    value_array
 .................................................
 [wp] Loading driver 'share/wp.driver'
+[wp] [CFG] Goal by_addr_in_code_annotation_stmt_pre : Valid (Unreachable)
 [wp] [CFG] Goal by_reference_in_code_annotation_no_exit_exit : Valid (Unreachable)
 [wp] warning: Missing RTE guards
 [wp] No proof obligations

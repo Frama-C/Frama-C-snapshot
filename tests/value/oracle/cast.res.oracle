@@ -4,6 +4,7 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   G ∈ {0}
   H ∈ {0}
   K ∈ {0}
@@ -20,37 +21,43 @@
   gg ∈ {0}
   ull ∈ {0}
   ugg ∈ {0}
+  S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/cast.i:59.
+        Called from tests/value/cast.i:73.
 [value] computing for function any_int_4 <- main1 <- main.
-        Called from tests/value/cast.i:19.
+        Called from tests/value/cast.i:33.
+tests/value/cast.i:27:[value] warning: initialization of volatile variable i_0 ignored
 [value] Recording results for any_int_4
 [value] Done for function any_int_4
-[value] computing for function printf <- main1 <- main.
-        Called from tests/value/cast.i:32.
-tests/value/cast.i:32:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
-[value] using specification for function printf
-[value] Done for function printf
+[value] computing for function printf_va_1 <- main1 <- main.
+        Called from tests/value/cast.i:46.
+[value] using specification for function printf_va_1
+tests/value/cast.i:46:[value] function printf_va_1: precondition got status valid.
+[value] Done for function printf_va_1
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/cast.i:60.
-tests/value/cast.i:50:[value] entering loop for the first time
-[value] computing for function printf <- main2 <- main.
-        Called from tests/value/cast.i:53.
-[value] Done for function printf
-[value] computing for function printf <- main2 <- main.
-        Called from tests/value/cast.i:53.
-[value] Done for function printf
-[value] computing for function printf <- main2 <- main.
-        Called from tests/value/cast.i:53.
-[value] Done for function printf
-[value] computing for function printf <- main2 <- main.
-        Called from tests/value/cast.i:53.
-[value] Done for function printf
-[value] computing for function printf <- main2 <- main.
-        Called from tests/value/cast.i:55.
-[value] Done for function printf
+        Called from tests/value/cast.i:74.
+tests/value/cast.i:64:[value] entering loop for the first time
+[value] computing for function printf_va_2 <- main2 <- main.
+        Called from tests/value/cast.i:67.
+[value] using specification for function printf_va_2
+tests/value/cast.i:67:[value] function printf_va_2: precondition got status valid.
+[value] Done for function printf_va_2
+[value] computing for function printf_va_2 <- main2 <- main.
+        Called from tests/value/cast.i:67.
+[value] Done for function printf_va_2
+[value] computing for function printf_va_2 <- main2 <- main.
+        Called from tests/value/cast.i:67.
+[value] Done for function printf_va_2
+[value] computing for function printf_va_2 <- main2 <- main.
+        Called from tests/value/cast.i:67.
+[value] Done for function printf_va_2
+[value] computing for function printf_va_3 <- main2 <- main.
+        Called from tests/value/cast.i:69.
+[value] using specification for function printf_va_3
+tests/value/cast.i:69:[value] function printf_va_3: precondition got status valid.
+[value] Done for function printf_va_3
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -70,11 +77,13 @@ tests/value/cast.i:50:[value] entering loop for the first time
   e ∈ [-128..126],0%2
   uc ∈ [--..--]
   ull ∈ {1}
+  S___fc_stdout[0..1] ∈ [--..--]
 [value:final-states] Values at end of function main2:
   min ∈ {130}
   max ∈ {135}
   i_0 ∈ [136..2147483647]
   G_0 ∈ {-126; -125; -124; -123; -122; -121} or UNINITIALIZED
+  S___fc_stdout[0..1] ∈ [--..--]
 [value:final-states] Values at end of function main:
   G ∈ [0..12]
   H ∈ [-536870912..536870911]
@@ -86,16 +95,18 @@ tests/value/cast.i:50:[value] entering loop for the first time
   e ∈ [-128..126],0%2
   uc ∈ [--..--]
   ull ∈ {1}
+  S___fc_stdout[0..1] ∈ [--..--]
 [from] Computing for function any_int_4
 [from] Done for function any_int_4
 [from] Computing for function main1
-[from] Computing for function printf <-main1
-[from] Done for function printf
-tests/value/cast.i:32:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Computing for function printf_va_1 <-main1
+[from] Done for function printf_va_1
 [from] Done for function main1
 [from] Computing for function main2
-tests/value/cast.i:53:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/value/cast.i:55:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Computing for function printf_va_2 <-main2
+[from] Done for function printf_va_2
+[from] Computing for function printf_va_3 <-main2
+[from] Done for function printf_va_3
 [from] Done for function main2
 [from] Computing for function main
 [from] Done for function main
@@ -103,8 +114,11 @@ tests/value/cast.i:55:[from] warning: variadic call detected. Using only 1 argum
        These dependencies hold at termination for the executions that terminate:
 [from] Function any_int_4:
   \result FROM \nothing
-[from] Function printf:
-  NO EFFECTS
+[from] Function printf_va_1:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0];
+                    "%ud\n"[bits 0 to 39] (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "%ud\n"[bits 0 to 39]
 [from] Function main1:
   G FROM \nothing
   H FROM \nothing
@@ -116,8 +130,23 @@ tests/value/cast.i:55:[from] warning: variadic call detected. Using only 1 argum
   e FROM \nothing
   uc FROM \nothing
   ull FROM \nothing
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0]; "%ud\n"[bits 0 to 39] (and SELF)
+[from] Function printf_va_2:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; param1; S___fc_stdout[0];
+                    "cast:%d formule:%d\n"[bits 0 to 159] (and SELF)
+  \result FROM param0; param1; S___fc_stdout[0];
+               "cast:%d formule:%d\n"[bits 0 to 159]
+[from] Function printf_va_3:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0];
+                    "usc: %ud"[bits 0 to 71] (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "usc: %ud"[bits 0 to 71]
 [from] Function main2:
-  NO EFFECTS
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0]; "cast:%d formule:%d\n"[bits 0 to 159];
+                    "usc: %ud"[bits 0 to 71] (and SELF)
 [from] Function main:
   G FROM \nothing
   H FROM \nothing
@@ -129,20 +158,26 @@ tests/value/cast.i:55:[from] warning: variadic call detected. Using only 1 argum
   e FROM \nothing
   uc FROM \nothing
   ull FROM \nothing
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0]; "%ud\n"[bits 0 to 39];
+                    "cast:%d formule:%d\n"[bits 0 to 159];
+                    "usc: %ud"[bits 0 to 71] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function any_int_4:
           i_0; __retres
 [inout] Inputs for function any_int_4:
           \nothing
 [inout] Out (internal) for function main1:
-          G; H; K; L; I; c; d; e; uc; ull
+          G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main1:
-          G; H; K; L; I; c
+          G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39]
 [inout] Out (internal) for function main2:
-          min; max; i_0; G_0
+          min; max; i_0; G_0; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main2:
-          \nothing
+          S___fc_stdout[0]; "cast:%d formule:%d\n"[bits 0 to 159];
+          "usc: %ud"[bits 0 to 71]
 [inout] Out (internal) for function main:
-          G; H; K; L; I; c; d; e; uc; ull
+          G; H; K; L; I; c; d; e; uc; ull; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-          G; H; K; L; I; c
+          G; H; K; L; I; c; S___fc_stdout[0]; "%ud\n"[bits 0 to 39];
+          "cast:%d formule:%d\n"[bits 0 to 159]; "usc: %ud"[bits 0 to 71]

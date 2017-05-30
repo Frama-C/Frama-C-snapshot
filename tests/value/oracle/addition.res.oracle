@@ -108,6 +108,7 @@ tests/value/addition.i:88:[value] assertion got status valid.
                  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
+[scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t[0] ∈ {0}
@@ -326,6 +327,7 @@ tests/value/addition.i:66:[value] warning: out of bounds read. assert \valid_rea
                  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
+[scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   t[0] ∈ {0}

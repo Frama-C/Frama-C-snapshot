@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -209,7 +209,7 @@ generating default assigns from the prototype"
     in
     if bhv.b_assigns = WritesAny then
       (* case 2.2 : some assigns have to be generated *)
-      (* step 2.1: looks at ungarded behaviors and then at complete
+      (* step 2.1: looks at unguarded behaviors and then at complete
 	 behaviors *)
       let warn_if_not_builtin explicit_name name orig_name =
 	if not (is_frama_c_builtin name) then

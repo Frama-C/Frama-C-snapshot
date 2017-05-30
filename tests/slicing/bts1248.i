@@ -1,5 +1,5 @@
 /*  run.config
-OPT: -slice-rd x -main f -slicing-project-name p -then-on 'p export' -print -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i
+OPT: -val-show-progress -slice-rd x -main f -slicing-project-name p -then-on 'p export' -print -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i
 */
 
 int f(void) {

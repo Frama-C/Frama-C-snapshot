@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ val sprintf : ('a,Format.formatter,unit,string) format4 -> 'a
 val failure : ('a,Format.formatter,unit,'b) format4 -> 'a
 val to_string : (Format.formatter -> 'a -> unit) -> 'a -> string
 
-(** Printy printers *)
+(** Pretty printers *)
 
 type 'a printer = Format.formatter -> 'a -> unit
 type 'a printer2 = Format.formatter -> 'a -> 'a -> unit

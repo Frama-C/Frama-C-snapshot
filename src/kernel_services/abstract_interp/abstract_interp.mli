@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ module Make_Hashconsed_Lattice_Set
     applied. The [O] module passed as argument is the same as [O] in the
     result. It is passed here to avoid having multiple modules calling
     [Hptset.Make] on the same argument (which is forbidden by the datatype
-    library, and would cause hashconding problems) *)
+    library, and would cause hashconsing problems) *)
 
 module type Collapse = sig val collapse : bool end
 

@@ -2,18 +2,18 @@
 [kernel] Parsing tests/metrics/cabs.i (no preprocessing)
 [metrics] Halstead metrics
           ================
-          Total operators: 17 
-          Distinct operators: 11 
+          Total operators: 19 
+          Distinct operators: 12 
           Total_operands: 13 
           Distinct operands: 9 
-          Program length: 30 
-          Vocabulary size: 20 
-          Program volume: 129.66 
-          Effort: 1030.06 
-          Program level: 0.13 
-          Difficulty level: 7.94 
-          Time to implement: 57.23 
-          Bugs delivered: 0.03 
+          Program length: 32 
+          Vocabulary size: 21 
+          Program volume: 140.55 
+          Effort: 1218.14 
+          Program level: 0.12 
+          Difficulty level: 8.67 
+          Time to implement: 67.67 
+          Bugs delivered: 0.04 
           
           
           Global statistics (Halstead)
@@ -21,6 +21,7 @@
           Operators
           ---------
             for: 1
+            extern: 2
             ): 1
             {: 1
             (: 1

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,11 +36,15 @@ let check_signals, signal_abort =
 let dkey_callbacks = Value_parameters.register_category "callbacks"
 
 
+(* Reference to the current statement processed by the analysis.
+   Only needed when the analysis aborts, to mark the current statement
+   as the degeneration point.*)
+let current_ki = ref Kglobal
+
 module Make_Dataflow
     (Domain : Abstract_domain.External)
-    (States : Partitioning.StateSet with type state = Domain.t)
-    (Transfer : Transfer_stmt.S with type state = Domain.t
-                                 and type return = Domain.return)
+    (States : Powerset.S with type state = Domain.t)
+    (Transfer : Transfer_stmt.S with type state = Domain.t)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
     (AnalysisParam : sig
@@ -52,7 +56,7 @@ module Make_Dataflow
 
   let with_alarms = Value_util.warn_all_quiet_mode ()
 
-  module Partition = Partitioning.Make_Partition (Domain) (States)
+  module Partition = Partitioning.Make (Domain) (States)
 
   let current_kf = AnalysisParam.kf
   let current_fundec = Kernel_function.get_definition current_kf
@@ -107,12 +111,18 @@ module Make_Dataflow
 
   let active_behaviors = Logic.create AnalysisParam.initial_state current_kf
 
+  (* Compute the locals that we must enter in scope when we start the analysis
+     of [block]. The other ones will be introduced on the fly, when we
+     encounter a [Local_init] instruction. *)
+  let block_toplevel_locals block =
+    List.filter (fun vi -> not vi.vdefined) block.blocals
+
   let initial_states =
     let state = AnalysisParam.initial_state
     and kf = current_kf
     and call_kinstr = AnalysisParam.call_kinstr
     and ab = active_behaviors in
-    let locals = current_fundec.sbody.blocals in
+    let locals = block_toplevel_locals (current_fundec.sbody) in
     let state = Domain.enter_scope current_kf locals state in
     (* Remark: the pre-condition cannot talk about the locals. BUT
        check_fct_preconditions split the state into a stateset, hence
@@ -285,7 +295,7 @@ module Make_Dataflow
         let old_counter = current_info.counter_unroll in
         (* Check whether there is enough slevel available. If not, merge all
            states together. However, do not perform merge on return
-           instructions. This needelessly degrades precision for
+           instructions. This needlessly degrades precision for
            postconditions and option -split-return. *)
         let r =
           if old_counter > slevel stmt && not (is_return stmt)
@@ -319,67 +329,80 @@ module Make_Dataflow
         Cil.CurrentLoc.set old_loc;
         r
 
-
-    let interp_call stmt lval_option funcexp args state acc =
-      let results, call_cacheable =
-        Transfer.call with_alarms stmt lval_option funcexp args state
-      in
-      if call_cacheable = Value_types.NoCacheCallers then
-        (* Propagate info that the current call cannot be cached either *)
-        cacheable := Value_types.NoCacheCallers;
-      List.fold_left
-        (fun acc state -> States.add state acc)
-        acc (Bottom.list_of_bot results)
-
     let doInstr stmt (i: instr) (d: t) =
       !Db.progress ();
-      Alarmset.start_stmt (Kstmt stmt);
+      current_ki := Kstmt stmt;
       let d_states = d.to_propagate in
       let unreachable = States.is_empty d_states in
-      let result =
         if unreachable then d
         else begin
-          let propagate states =
-            (* Create a transient propagation result, that will be passed
-               to the successors of stmt by the dataflow module *)
-            { to_propagate = states }
+          (* Analysis of one call on [state]. Returns a list of states *)
+          let interp_call stmt lval_option funcexp args state =
+            let results, call_cacheable =
+              Transfer.call with_alarms stmt lval_option funcexp args state
+            in
+            if call_cacheable = Value_types.NoCacheCallers then
+              (* Propagate info that the current call cannot be cached either *)
+              cacheable := Value_types.NoCacheCallers;
+            Bottom.list_of_bot results
           in
-          let apply_each_state f =
+          (* higher-order function that applies [f] to each state of [d_states],
+             and adds the result(s) in a list computed using [add]. *)
+          let apply_each_state add f =
             let states_after_i =
-              States.fold
-                (fun state acc -> States.add' (f state) acc)
+              States.fold (fun state acc -> add (f state) acc)
                 d_states States.empty
             in
-            propagate states_after_i
+            (* Create a transient propagation result, that will be passed
+               to the successors of stmt by the dataflow module *)
+            { to_propagate = states_after_i }
           in
-          (* update current statement *)
+          (* appropriate function for the first argument of [apply_each_state]*)
+          let add_list_to_states states acc =
+            List.fold_left (Extlib.swap States.add) acc states
+          in
           match i with
+          | Local_init (v, AssignInit i, _loc) ->
+            let process state =
+              Transfer.init ~with_alarms state current_kf stmt v i
+            in
+            apply_each_state States.add' process
           | Set (lv,exp,_loc) ->
-            apply_each_state
-              (fun s ->
-                 Transfer.assign ~with_alarms s current_kf stmt lv exp)
+            let process state =
+              Transfer.assign ~with_alarms state current_kf stmt lv exp
+            in
+            apply_each_state States.add' process
           | Call (lval_option, funcexp, args, _loc) ->
             let process = interp_call stmt lval_option funcexp args in
-            propagate (States.fold process d_states States.empty)
+            apply_each_state add_list_to_states process
+          | Local_init (v, ConsInit (f, args, k), l) ->
+            (* argument for {!Cil.treat_constructor_as_func} *)
+            let as_func lv e args _loc state =
+              (* This variable enters the scope too early, as it should
+                 be introduced after the call to [f] but before the assignment
+                 to [v]. This is currently not possible, at least without
+                 splitting Transfer.call in two. *)
+              let state = Domain.enter_scope current_kf [v] state in
+              interp_call stmt lv e args state
+            in
+            let process = Cil.treat_constructor_as_func as_func v f args k l in
+            apply_each_state add_list_to_states process
           | Asm _ ->
             Value_util.warning_once_current
               "assuming assembly code has no effects in function %t"
               Value_util.pretty_current_cfunction_name;
             d
           | Skip _ -> d
-          | Code_annot (_,_) -> d (* processed direcly in doStmt from the
+          | Code_annot (_,_) -> d (* processed directly in doStmt from the
                                      annotation table *)
         end
-      in
-      Alarmset.end_stmt ();
-      result
 
-    let doStmtSpecific s _d states =
-      match s.skind with
+    let doStmtSpecific stmt _d states =
+      match stmt.skind with
       | Loop _ ->
-        let current_info = stmt_state s in
+        let current_info = stmt_state stmt in
         let counter = current_info.counter_unroll in
-        if counter > slevel s then
+        if counter > slevel stmt then
           Value_parameters.feedback ~level:1 ~once:true ~current:true
             "entering loop for the first time";
         states
@@ -389,7 +412,7 @@ module Make_Dataflow
           let with_alarms = Value_util.warn_all_mode in
           let check = Transfer.check_unspecified_sequence in
           States.fold
-            (fun s acc -> match check ~with_alarms s seq with
+            (fun s acc -> match check ~with_alarms stmt s seq with
                | `Bottom -> acc
                | `Value () -> States.add s acc)
             states
@@ -403,7 +426,7 @@ module Make_Dataflow
       | None -> fun _ acc -> acc
 
     let doStmt (s: stmt) (d: t) =
-      Alarmset.start_stmt (Kstmt s);
+      current_ki := Kstmt s;
       check_signals ();
       (* Merge incoming states if the user requested it *)
       if merge s then
@@ -418,7 +441,6 @@ module Make_Dataflow
         (* Do this as late as possible, as a non-empty to_propagate field
            is shown in a special way in case of degeneration *)
         d.to_propagate <- States.empty;
-        Alarmset.end_stmt ();
         result
       in
       if States.is_empty states then ret Dataflow2.SDefault
@@ -511,9 +533,8 @@ module Make_Dataflow
             ret (Dataflow2.SUse { to_propagate = new_states })
 
     let doEdge s succ d =
-      let kinstr = Kstmt s in
       let states = d.to_propagate in
-      Alarmset.start_stmt kinstr;
+      current_ki := Kstmt s;
       (* We store the state after the execution of [s] for the callback
          {Value.Record_Value_After_Callbacks}. This is done here
          because we want to see the values of the variables local to the block *)
@@ -544,18 +565,18 @@ module Make_Dataflow
          the two of them. *)
       let do_edge state =
         let enter_block state block =
-          Domain.enter_scope current_kf block.blocals state
+          Domain.enter_scope current_kf (block_toplevel_locals block) state
         in
         let close_block state block =
           Domain.leave_scope current_kf block.blocals state
         in
-        let enter_loop = Extlib.swap Transfer.enter_loop in
-        let leave_loop = Extlib.swap Transfer.leave_loop in
+        let enter_loop = Extlib.swap Domain.enter_loop in
+        let leave_loop = Extlib.swap Domain.leave_loop in
         let state = List.fold_left close_block state blocks_closed in
         let state = List.fold_left leave_loop state loops_left in
         let state =
           if succ_is_loop_head
-          then Transfer.incr_loop_counter s state
+          then Domain.incr_loop_counter s state
           else state
         in
         let state = List.fold_left enter_loop state loops_entered in
@@ -565,7 +586,6 @@ module Make_Dataflow
       (* We do a simple 'map' here. Duplicates will be removed by States.merge
          later on. *)
       let states = States.map do_edge states in
-      Alarmset.end_stmt ();
       d.to_propagate <- states;
       d
 
@@ -573,7 +593,7 @@ module Make_Dataflow
       if States.is_empty (t.to_propagate)
       then Dataflow2.GUnreachable
       else begin
-        Alarmset.start_stmt (Kstmt stmt);
+        current_ki := Kstmt stmt;
         let new_values =
           States.fold
             (fun state acc ->
@@ -583,12 +603,8 @@ module Make_Dataflow
             t.to_propagate
             States.empty
         in
-        let result =
-          if States.is_empty new_values then Dataflow2.GUnreachable
-          else Dataflow2.GUse { to_propagate = new_values}
-        in
-        Alarmset.end_stmt ();
-        result
+        if States.is_empty new_values then Dataflow2.GUnreachable
+        else Dataflow2.GUse { to_propagate = new_values}
       end
 
     let mask_then = Db.Value.mask_then
@@ -632,6 +648,29 @@ module Make_Dataflow
 
   end
 
+  let copy_return state =
+    match return_lv with
+    | None -> `Value state
+    | Some (exp, _, _) ->
+      let vi_ret = Extlib.the (Library_functions.get_retres_vi current_kf) in
+      let lv = Var vi_ret, NoOffset in
+      let state = Domain.enter_scope current_kf [vi_ret] state in
+      Transfer.assign ~with_alarms state current_kf return lv exp
+
+  (* Leave the scope of the blocks closed by the return, _except_ the
+     outermost block of the function (which is closed directly in
+     Transfer_stmt). *)
+  let leave_scope_return state =
+    let closed = Kernel_function.find_all_enclosing_blocks return in
+    let rec close state = function
+      | [] -> assert false
+      | [_] -> state (* outermost block *)
+      | b :: q ->
+        let state = Domain.leave_scope current_kf b.blocals state in
+        close state q
+    in
+    close state closed
+
   (* Check that the dataflow is indeed finished *)
   let checkConvergence () =
     DataflowArg.StmtStartData.iter (fun k v ->
@@ -648,14 +687,12 @@ module Make_Dataflow
       (fun stmt v ->
          if not (States.is_empty v.to_propagate) then
            Value_util.DegenerationPoints.replace stmt false);
-    match Alarmset.current_stmt () with
+    match !current_ki with
     | Kglobal -> ()
     | Kstmt s ->
       let kf = Kernel_function.find_englobing_kf s in
-      if Kernel_function.equal kf current_kf then (
-        Value_util.DegenerationPoints.replace s true;
-        Alarmset.end_stmt ())
-
+      if Kernel_function.equal kf current_kf then
+        Value_util.DegenerationPoints.replace s true
 
   let join_final_states states =
     let split i =
@@ -680,7 +717,8 @@ module Make_Dataflow
     | Split_strategy.FullSplit     -> `Value states
     | Split_strategy.SplitAuto     -> assert false (* transformed into SplitEqList*)
 
-  let results_aux () =
+  let results () =
+    current_ki := Kstmt return;
     if DataflowArg.debug then checkConvergence ();
     let final_states = states_unmerged return in
     (* Reduce final states according to the function postcondition *)
@@ -690,27 +728,13 @@ module Make_Dataflow
     in
     Logic.check_fct_postconditions
       current_kf active_behaviors Normal
-      ~init_state:initial_state ~post_states:final_states ~result
+      ~pre_state:initial_state ~post_states:final_states ~result
     >>- fun states ->
     join_final_states states >>- fun states ->
-    let return_lval = match return_lv with
-      | Some (_, lval, _) -> Some lval
-      | None -> None
-    in
-    let process state acc =
-      let return =
-        Transfer.return ~with_alarms current_kf return return_lval state
-      in
-      Bottom.add_to_list return acc
-    in
-    let states = States.fold process states [] in
-    Bottom.bot_of_list states
-
-  let results () =
-    Alarmset.start_stmt (Kstmt return);
-    let r = results_aux () in
-    Alarmset.end_stmt ();
-    r
+    (* copy return code into proper variable *)
+    let states = States.map_or_bottom copy_return states in
+    let states = States.map leave_scope_return states in
+    Bottom.bot_of_list (States.to_list states)
 
   module Computer = Dataflow2.Forwards (DataflowArg)
 
@@ -721,7 +745,7 @@ module Make_Dataflow
        entering a loop. *)
     let states =
       if is_loop start
-      then States.map (Transfer.enter_loop start) states
+      then States.map (Domain.enter_loop start) states
       else states
     in
     (* Init the dataflow state for the first statement *)
@@ -843,7 +867,7 @@ module Make_Dataflow
         Db.Value.Record_Value_Callbacks_New.apply
           (stack_for_callbacks,
            Value_types.NormalStore ((superposed, after_full),
-                                    (Mem_exec2.new_counter ())))
+                                    (Mem_exec.new_counter ())))
       else
         Db.Value.Record_Value_Callbacks_New.apply
           (stack_for_callbacks,
@@ -863,10 +887,9 @@ end
 
 module Computer
     (Domain : Abstract_domain.External)
-    (States : Partitioning.StateSet with type state = Domain.t)
+    (States : Powerset.S with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t
-                                 and type value = Domain.value
-                                 and type return = Domain.return)
+                                 and type value = Domain.value)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
 = struct

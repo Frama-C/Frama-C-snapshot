@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps -journal-disable
+   OPT: -val -val-show-progress -deps -journal-disable
 */
 
 int e;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -200,7 +200,8 @@ let compute_with_def_type_zone kf stmt zone =
                 change s (true, false) (* defined by formal v in 'f(v)' *)
             | PdgIndex.Signature.Out (PdgIndex.Signature.OutLoc _) -> begin
                 match s.skind with
-                  | Instr (Call (_, { enode = Lval (Var vi, NoOffset)}, _, _))
+                  | Instr (Call (_, { enode = Lval (Var vi, NoOffset)}, _, _)
+                          | Local_init (_, ConsInit(vi,_,_),_))
                       when let kf = Globals.Functions.get vi in
                            !Db.Value.use_spec_instead_of_definition kf
                       ->

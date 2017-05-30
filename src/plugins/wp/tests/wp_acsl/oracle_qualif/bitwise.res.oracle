@@ -22,21 +22,21 @@
 [wp] [Alt-Ergo] Goal typed_bxor_post : Valid
 [wp] [Qed] Goal typed_bxor_bit1_post : Valid
 [wp] [Qed] Goal typed_bxor_bit2_post : Valid
-[wp] [Qed] Goal typed_lshift_post : Valid
+[wp] [Alt-Ergo] Goal typed_lshift_post : Valid
 [wp] [Qed] Goal typed_lshift_shift1_post_lsl1 : Valid
 [wp] [Qed] Goal typed_lshift_shift1_post_lsl2 : Valid
 [wp] [Qed] Goal typed_lshift_shift2_post_lsl3 : Valid
 [wp] [Alt-Ergo] Goal typed_rshift_post : Valid
 [wp] [Qed] Goal typed_rshift_shift1_post_lsr1 : Valid
 [wp] Proved goals:   23 / 23
-     Qed:            18 
-     Alt-Ergo:        5
+     Qed:            17 
+     Alt-Ergo:        6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-band                 7      1 (21)     8       100%
-bor                  4      1 (21)     5       100%
-bxor                 2      1 (12)     3       100%
-bnot                -       1 (11)     1       100%
-lshift               4     -           4       100%
-rshift               1      1 (20)     2       100%
+band                 7      1 (32)     8       100%
+bor                  4      1 (32)     5       100%
+bxor                 2      1 (13)     3       100%
+bnot                -       1 (12)     1       100%
+lshift               3      1 (28)     4       100%
+rshift               1      1 (28)     2       100%
 ----------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -69,48 +69,48 @@ struct
   (* good sharing *)
   let remove x = Intmap.remove (E.id x)
   let is_empty = Intmap.is_empty
-  let mem x = Intmap.mem (E.id x)
-  let find x = Intmap.find (E.id x)
+  let mem x m = Intmap.mem (E.id x) m
+  let find x m = Intmap.find (E.id x) m
   let cardinal = Intmap.size
-  let compare = Intmap.compare (fun _ _ -> 0)
-  let equal = Intmap.equal (fun _ _ -> true)
+  let compare m1 m2 = Intmap.compare (fun _ _ -> 0) m1 m2
+  let equal m1 m2 = Intmap.equal (fun _ _ -> true) m1 m2
 
   let _keep _ x _ = x
   let _keepq _ x _ = Some x
   let _same _ _ _ = true
 
   (* good sharing *)
-  let union = Intmap.union _keep
+  let union m1 m2 = Intmap.union _keep m1 m2
 
   (* good sharing *)
-  let inter = Intmap.interq _keepq
+  let inter m1 m2 = Intmap.interq _keepq m1 m2
 
   (* good sharing *)
-  let diff = Intmap.diffq _keepq
-  let subset = Intmap.subset _same
-  let intersect = Intmap.intersectf _same
+  let diff m1 m2 = Intmap.diffq _keepq m1 m2
+  let subset m1 m2 = Intmap.subset _same m1 m2
+  let intersect m1 m2 = Intmap.intersectf _same m1 m2
 
   (* increasing order on id *)
-  let iter f = Intmap.iteri (fun _i x -> f x)
+  let iter f m = Intmap.iteri (fun _i x -> f x) m
 
   (* increasing order on id *)
-  let fold f = Intmap.foldi (fun _i x e -> f x e)
+  let fold f m i = Intmap.foldi (fun _i x e -> f x e) m i
 
   (* good sharing *)
-  let filter f = Intmap.filter (fun _i x -> f x)
+  let filter f m = Intmap.filter (fun _i x -> f x) m
 
   (* good sharing *)
-  let partition f = Intmap.partition (fun _i x -> f x)
+  let partition f m = Intmap.partition (fun _i x -> f x) m
 
-  let for_all f = Intmap.for_all (fun _i x -> f x)
-  let exists f = Intmap.exists (fun _i x -> f x)
+  let for_all f m = Intmap.for_all (fun _i x -> f x) m
+  let exists f m = Intmap.exists (fun _i x -> f x) m
 
   (* increasing order on id *)
-  let elements = Intmap.mapl (fun _i x -> x)
+  let elements m = Intmap.mapl (fun _i x -> x) m
 
   (* good sharing *)
-  let mapf f= Intmap.mapq (fun _i x -> f x)
+  let mapf f m = Intmap.mapq (fun _i x -> f x) m
 
   (* good sharing *)
-  let map f = Intmap.mapq (fun _i x -> Some (f x))
+  let map f m = Intmap.mapq (fun _i x -> Some (f x)) m
 end

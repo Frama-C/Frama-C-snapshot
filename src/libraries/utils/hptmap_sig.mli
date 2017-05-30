@@ -86,6 +86,9 @@ module type S = sig
   (** Same as [map], except if [f k v] returns [None]. In this case, [k] is not
       bound in the resulting map. *)
 
+  val filter: (key -> bool) -> t -> t
+  (** [filter f t] keep only the bindings of [m] whose key verify [f].  *)
+
   val fold : (key -> v -> 'b -> 'b) -> t -> 'b -> 'b
   (** [fold f m seed] invokes [f k d accu], in turn, for each binding from
       key [k] to datum [d] in the map [m]. Keys are presented to [f] in
@@ -221,7 +224,7 @@ module type S = sig
     decide_both:(key -> v -> v -> bool) ->
     t -> t -> bool
   (** Same functionality as [generic_predicate] but with a different signature.
-      All decisin functions return a boolean that are combined differently
+      All decision functions return a boolean that are combined differently
       depending on whether the predicate is existential or universal. *)
 
   val generic_symmetric_predicate :

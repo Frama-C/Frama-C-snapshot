@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,4 +27,4 @@ open VCS
 (* --- Alt-Ergo Theorem Prover                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-val prove : mode -> Wpo.t -> result task
+val prove : config:config -> mode:mode -> Wpo.t -> result task

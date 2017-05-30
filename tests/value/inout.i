@@ -1,10 +1,10 @@
 /* run.config*
    GCC:
-   OPT: @VALUECONFIG@ -inout -deps -main inout_11_0 -journal-disable
-   OPT: @VALUECONFIG@ -inout -deps -main inout_11_3 -journal-disable
-   OPT: @VALUECONFIG@ -inout -deps -main never_terminate -journal-disable
-   OPT: @VALUECONFIG@ -inout -deps -main may_not_terminate -journal-disable
-   OPT: @VALUECONFIG@ -inout -deps -main call_may_not_terminate -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -deps -main inout_11_0 -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -deps -main inout_11_3 -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -deps -main never_terminate -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -deps -main may_not_terminate -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -deps -main call_may_not_terminate -journal-disable
 */
 
 int Xt, Xs, Xs_I, Ys, Ys_I, Z, I;

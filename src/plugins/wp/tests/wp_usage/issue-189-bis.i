@@ -1,23 +1,23 @@
 /* run.config
-   OPT: -wp-model Typed -wp-alias-vars src,dst 
+   OPT: -wp-model Typed -wp-alias-vars src,dst
    OPT: -wp-model Typed -wp-context-vars src,dst -wp-fct memcpy_context_vars
 */
 
 /* run.config_qualif
-   OPT: -wp -wp-model Typed -wp-alias-vars src,dst -wp-proof alt-ergo -wp-par 1
-   OPT: -wp -wp-model Typed -wp-context-vars src,dst -wp-prop ok -wp-proof alt-ergo -wp-par 1
+   OPT: -wp -wp-model Typed -wp-alias-vars src,dst -wp-par 1
+   OPT: -wp -wp-model Typed -wp-context-vars src,dst -wp-prop ok -wp-par 1
 */
 
 //-----------------------------------------------------------------------------
-// FUNCTION memcpy_alias_vars: since input pointers are MODIFIED, Caveat 
+// FUNCTION memcpy_alias_vars: since input pointers are MODIFIED, Caveat
 // model (setting 'src' and  'dst' in context) CANNOT be used.
 //-----------------------------------------------------------------------------
 /*@ requires write_access: \valid( dst + (0 .. len-1) );
   @ requires read_access:  \valid_read( src + (0 .. len-1) );
   @ requires unaliasing:   \separated( dst + (0 .. len-1) , src + (0 .. len-1) );
   @ assigns                dst[ 0 .. len-1 ];
-  @ ensures memcpy:        \forall integer k; 0 <= k < len-1 ==> dst[k] == \old( src[k] ); 
-  @ ensures unmodified:    \forall integer k; 0 <= k < len-1 ==> src[k] == \old( src[k] ); 
+  @ ensures memcpy:        \forall integer k; 0 <= k < len-1 ==> dst[k] == \old( src[k] );
+  @ ensures unmodified:    \forall integer k; 0 <= k < len-1 ==> src[k] == \old( src[k] );
   @*/
 void memcpy_alias_vars (unsigned char *src, unsigned char *dst, int len) {
   /*@ loop invariant len: len <= \at( len, LoopEntry );

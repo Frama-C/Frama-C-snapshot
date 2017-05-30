@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-inout-callwise" +"-inout"
+   STDOPT: +"-inout"
 */
 int w(int *, int*); int unkn(void);
 int A,B,C,D,R,S;

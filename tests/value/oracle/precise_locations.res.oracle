@@ -227,6 +227,7 @@ tests/value/precise_locations.i:52:[value] warning: signed overflow. assert -214
 tests/value/precise_locations.i:52:[value] warning: signed overflow. assert q + r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function ct:
   __retres ∈ {20}
@@ -402,8 +403,9 @@ tests/value/precise_locations.i:52:[value] warning: signed overflow. assert q + 
 
 [    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 46)
             tried with Value.
-[    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
-            tried with Value.
+[ Partial ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+            By RedundantAlarms, with pending:
+             - Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 46)
 [    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 52)
             tried with Value.
 [    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 52)
@@ -419,8 +421,9 @@ tests/value/precise_locations.i:52:[value] warning: signed overflow. assert q + 
 --- Status Report Summary
 --------------------------------------------------------------------------------
      2 Completely validated
+     1 Locally validated
      2 Considered valid
-     8 To be validated
+     7 To be validated
     12 Total
 --------------------------------------------------------------------------------
 [value] Analyzing a complete application starting at main
@@ -831,6 +834,7 @@ tests/value/precise_locations.i:52:[value] warning: signed overflow. assert q + 
 tests/value/precise_locations.i:46:[value] assertion 'Value,signed_overflow' got final status valid.
 tests/value/precise_locations.i:49:[value] assertion 'Value,signed_overflow' got final status valid.
 tests/value/precise_locations.i:52:[value] assertion 'Value,signed_overflow' got final status valid.
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function ct:
   __retres ∈ {20}
@@ -1223,6 +1227,8 @@ tests/value/precise_locations.i:52:[value] assertion 'Value,signed_overflow' got
 [  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 46)
             by Value (v2).
 [  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+            by RedundantAlarms (v1).
+            by RedundantAlarms (v2).
             by Value (v2).
 [  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 52)
             by Value (v2).

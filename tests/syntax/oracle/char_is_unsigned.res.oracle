@@ -4,10 +4,8 @@
 char t[10];
 void main(void)
 {
-  int r;
-  char c;
-  r = (int)t[0] == 'a';
-  c = (char)455;
+  int r = (int)t[0] == 'a';
+  char c = (char)455;
   return;
 }
 
@@ -19,10 +17,8 @@ void main(void)
 char t[10];
 void main(void)
 {
-  int r;
-  char c;
-  r = (int)t[0] == 97;
-  c = (char)199;
+  int r = (int)t[0] == 97;
+  char c = (char)199;
   return;
 }
 

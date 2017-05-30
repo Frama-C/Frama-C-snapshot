@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,7 @@
 module Fc_config = Config
 module STRING = String
 let () = Plugin.is_share_visible ()
+let () = Plugin.is_session_visible ()
 include Plugin.Register
     (struct
       let name = "WP"
@@ -161,15 +162,15 @@ module Model =
     (struct
       let option_name = "-wp-model"
       let arg_name = "model+..."
-      let help = "Memory model selection. Available selectors:\n \
-                  * 'Hoare' logic variables only\n \
-                  * 'Typed' typed pointers only\n \
-                  * '+nocast' no pointer cast\n \
-                  * '+cast' unsafe pointer casts\n \
-                  * '+raw' no logic variable\n \
-                  * '+ref' by-reference-style pointers detection\n \
-                  * '+nat/+rg/+int' natural, no-range or machine-integers arithmetics\n \
-                  * '+real/+float' real or IEEE floatting point arithmetics"
+      let help = "Memory model selection. Available selectors:\n\
+                  * 'Hoare' logic variables only\n\
+                  * 'Typed' typed pointers only\n\
+                  * '+nocast' no pointer cast\n\
+                  * '+cast' unsafe pointer casts\n\
+                  * '+raw' no logic variable\n\
+                  * '+ref' by-reference-style pointers detection\n\
+                  * '+nat/+int' natural / machine-integers arithmetics\n\
+                  * '+real/+float' real / IEEE floating point arithmetics"
     end)
 
 let () = Parameter_customize.set_group wp_model
@@ -242,6 +243,12 @@ module Init =
     let help = "Use initializers for global const variables."
   end)
 
+module InitAlias =
+  False(struct
+    let option_name = "-wp-init-alias"
+    let help = "Use initializers for aliasing propagation."
+  end)
+
 let () = Parameter_customize.set_group wp_strategy
 module CalleePreCond =
   True(struct
@@ -264,10 +271,13 @@ module Split =
   end)
 
 let () = Parameter_customize.set_group wp_strategy
-module Invariants =
-  False(struct
-    let option_name = "-wp-invariants"
-    let help = "Handle generalized invariants inside loops."
+module SplitDepth =
+  Int(struct
+    let option_name = "-wp-split-depth"
+    let default = 0
+    let arg_name = "p"
+    let help = "Set depth of exploration for spliting conjunctions into sub-goals.\n\
+Value `-1` means an unlimited depth."
   end)
 
 let () = Parameter_customize.set_group wp_strategy
@@ -319,6 +329,13 @@ module Clean =
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
+module Ground =
+  True(struct
+    let option_name = "-wp-ground"
+    let help = "Use aggressive ground simplifications."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
 module Filter =
   True(struct
     let option_name = "-wp-filter"
@@ -336,7 +353,7 @@ let () = Parameter_customize.set_group wp_simplifier
 module SimplifyIsCint =
   True(struct
     let option_name = "-wp-simplify-is-cint"
-    let help = "Remove redondant machine integer range hypothesis."
+    let help = "Remove redundant machine integer range hypothesis."
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
@@ -372,7 +389,7 @@ let () = Parameter_customize.set_group wp_simplifier
 module BoundForallUnfolding =
   Int(struct
     let option_name = "-wp-bound-forall-unfolding"
-    let help = "Instanciate up to <n> forall-integers hypotheses."
+    let help = "Instantiate up to <n> forall-integers hypotheses."
     let arg_name="n"
     let default = 1000
   end)
@@ -391,15 +408,14 @@ module Provers = String_list
       let help =
         "Submit proof obligations to external prover(s):\n\
          - 'none' to skip provers\n\
-         Directly supported provers:\n\
+         - 'script' (session scripts only)\n\
+         - 'tip' (failed scripts only)\n\
          - 'alt-ergo' (default)\n\
          - 'altgr-ergo' (gui)\n\
          - 'coq', 'coqide' (see also -wp-script)\n\
          - 'why3:<dp>' or '<dp>' (why3 prover, see -wp-detect)\n\
          - 'why3ide' (why3 gui)"
     end)
-
-let () = Provers.add_aliases [ "-wp-proof" ] (* Deprecated *)
 
 let () = Parameter_customize.set_group wp_prover
 module Generate = False
@@ -811,6 +827,14 @@ let base_output () =
       base_output := Some output;
       output
   | Some output -> output
+
+
+let get_session () = Session.dir ~error:false ()
+
+let get_session_dir d =
+  let base = get_session () in
+  let path = Printf.sprintf "%s/%s" base d in
+  make_output_dir path ; path
 
 let get_output () =
   let base = base_output () in

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,7 +23,8 @@
 #ifndef __FC_UNISTD
 #define __FC_UNISTD
 
-extern int Frama_C_entropy_source;
+#include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_string_axiomatic.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_null.h"
@@ -34,9 +35,10 @@ extern int Frama_C_entropy_source;
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_intptr_t.h"
 #include "__fc_select.h"
-#include "features.h"
 
 #include <getopt.h>
+
+extern int Frama_C_entropy_source;
 
 /* Values for the second argument to access.
    These may be OR'd together.  */
@@ -718,105 +720,105 @@ enum
 // TODO: define __fc_fds as volatile.
 
 
-int          access(const char *, int);
-unsigned int alarm(unsigned int);
-int          brk(void *);
-int          chdir(const char *path);
-int          chroot(const char *path);
-int          chown(const char *, uid_t, gid_t);
+extern int          access(const char *, int);
+extern unsigned int alarm(unsigned int);
+extern int          brk(void *);
+extern int          chdir(const char *path);
+extern int          chroot(const char *path);
+extern int          chown(const char *, uid_t, gid_t);
 
 /*@
   requires 0 <= fd < __FC_MAX_OPEN_FILES;
   assigns \result, __fc_fds[fd] \from fd, __fc_fds[fd];
   ensures \result == 0 || \result == -1;
 */
-int          close(int fd);
-size_t       confstr(int, char *, size_t);
-char        *crypt(const char *, const char *);
-char        *ctermid(char *);
-char        *cuserid(char *s);
-int          dup(int);
-int          dup2(int, int);
-void         encrypt(char[64], int);
+extern int          close(int fd);
+extern size_t       confstr(int, char *, size_t);
+extern char        *crypt(const char *, const char *);
+extern char        *ctermid(char *);
+extern char        *cuserid(char *s);
+extern int          dup(int);
+extern int          dup2(int, int);
+extern void         encrypt(char[64], int);
 
 /*@ requires arg != \null;
     requires valid_read_string(path);
     requires valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
-int          execl(const char *path, const char *arg, ...);
+extern int          execl(const char *path, const char *arg, ...);
 /*@ requires arg != \null;
     requires valid_read_string(path);
     requires valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
-int          execle(const char *path, const char *arg, ...);
+extern int          execle(const char *path, const char *arg, ...);
 /*@ requires arg != \null;
     requires valid_read_string(path);
     requires valid_read_string(arg);
     assigns \result \from path[0..], arg[0..];
 */
-int          execlp(const char *path, const char *arg, ...);
+extern int          execlp(const char *path, const char *arg, ...);
 /*@ requires argv[0] != \null;
     requires valid_read_string(path);
     requires valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
-int          execv(const char *path, char *const argv[]);
+extern int          execv(const char *path, char *const argv[]);
 /*@ requires argv[0] != \null;
     requires valid_read_string(path);
     requires valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
-int          execve(const char *path, char *const argv[], char *const env[]);
+extern int          execve(const char *path, char *const argv[], char *const env[]);
 /*@ requires argv[0] != \null;
     requires valid_read_string(path);
     requires valid_read_string(argv[0]);
     assigns \result \from path[0..], argv[0..];
 */
-int          execvp(const char *path, char *const argv[]);
+extern int          execvp(const char *path, char *const argv[]);
 
-void         _exit(int) __attribute__ ((__noreturn__));
-int          fchown(int, uid_t, gid_t);
-int          fchdir(int);
-int          fdatasync(int);
-pid_t        fork(void);
-long int     fpathconf(int, int);
-int          fsync(int);
-int          ftruncate(int, off_t);
-char        *getcwd(char *, size_t);
-int          getdtablesize(void);
-gid_t        getegid(void);
-uid_t        geteuid(void);
-gid_t        getgid(void);
-int          getgroups(int, gid_t []);
-long         gethostid(void);
-int gethostname(char *, size_t);
-char        *getlogin(void);
-int          getlogin_r(char *, size_t);
-int          getpagesize(void);
-char        *getpass(const char *);
-pid_t        getpgid(pid_t);
-pid_t        getpgrp(void);
-pid_t        getpid(void);
-pid_t        getppid(void);
-pid_t        getsid(pid_t);
+extern void         _exit(int) __attribute__ ((__noreturn__));
+extern int          fchown(int, uid_t, gid_t);
+extern int          fchdir(int);
+extern int          fdatasync(int);
+extern pid_t        fork(void);
+extern long int     fpathconf(int, int);
+extern int          fsync(int);
+extern int          ftruncate(int, off_t);
+extern char        *getcwd(char *, size_t);
+extern int          getdtablesize(void);
+extern gid_t        getegid(void);
+extern uid_t        geteuid(void);
+extern gid_t        getgid(void);
+extern int          getgroups(int, gid_t []);
+extern long         gethostid(void);
+extern int gethostname(char *, size_t);
+extern char        *getlogin(void);
+extern int          getlogin_r(char *, size_t);
+extern int          getpagesize(void);
+extern char        *getpass(const char *);
+extern pid_t        getpgid(pid_t);
+extern pid_t        getpgrp(void);
+extern pid_t        getpid(void);
+extern pid_t        getppid(void);
+extern pid_t        getsid(pid_t);
 /*@ assigns \result \from \nothing; */
-uid_t        getuid(void);
-char        *getwd(char *);
-int          isatty(int);
-int          lchown(const char *, uid_t, gid_t);
-int          link(const char *, const char *);
-int          lockf(int, int, off_t);
-off_t        lseek(int, off_t, int);
-int          nice(int);
-long int     pathconf(const char *, int);
-int          pause(void);
-int          pipe(int [2]);
-ssize_t      pread(int, void *, size_t, off_t);
-int          pthread_atfork(void (*)(void), void (*)(void),
+extern uid_t        getuid(void);
+extern char        *getwd(char *);
+extern int          isatty(int);
+extern int          lchown(const char *, uid_t, gid_t);
+extern int          link(const char *, const char *);
+extern int          lockf(int, int, off_t);
+extern off_t        lseek(int, off_t, int);
+extern int          nice(int);
+extern long int     pathconf(const char *, int);
+extern int          pause(void);
+extern int          pipe(int [2]);
+extern ssize_t      pread(int, void *, size_t, off_t);
+extern int          pthread_atfork(void (*)(void), void (*)(void),
                  void(*)(void));
-ssize_t      pwrite(int, const void *, size_t, off_t);
+extern ssize_t      pwrite(int, const void *, size_t, off_t);
 
 /*@
   requires 0 <= fd < __FC_MAX_OPEN_FILES;
@@ -826,47 +828,47 @@ ssize_t      pwrite(int, const void *, size_t, off_t);
   ensures  0 <= \result <= count || \result == -1;
   ensures  \initialized(((char*)buf)+(0..\result-1));
 */
-ssize_t      read(int fd, void *buf, size_t count);
+extern ssize_t      read(int fd, void *buf, size_t count);
 
-int          readlink(const char *, char *, size_t);
-int          rmdir(const char *);
-void        *sbrk(intptr_t);
-int setegid(gid_t gid);
-int seteuid(uid_t uid);
-int          setgid(gid_t);
-int          setpgid(pid_t, pid_t);
-pid_t        setpgrp(void);
-int          setregid(gid_t, gid_t);
-int          setreuid(uid_t, uid_t);
-pid_t        setsid(void);
-int          setuid(uid_t uid);
-unsigned int sleep(unsigned int);
-void         swab(const void *, void *, ssize_t);
-int          symlink(const char *, const char *);
-void         sync(void);
-long int     sysconf(int);
-pid_t        tcgetpgrp(int);
-int          tcsetpgrp(int, pid_t);
-int          truncate(const char *, off_t);
-char        *ttyname(int);
-int          ttyname_r(int, char *, size_t);
-useconds_t   ualarm(useconds_t, useconds_t);
-int          unlink(const char *);
+extern int          readlink(const char *, char *, size_t);
+extern int          rmdir(const char *);
+extern void        *sbrk(intptr_t);
+extern int setegid(gid_t gid);
+extern int seteuid(uid_t uid);
+extern int          setgid(gid_t);
+extern int          setpgid(pid_t, pid_t);
+extern pid_t        setpgrp(void);
+extern int          setregid(gid_t, gid_t);
+extern int          setreuid(uid_t, uid_t);
+extern pid_t        setsid(void);
+extern int          setuid(uid_t uid);
+extern unsigned int sleep(unsigned int);
+extern void         swab(const void *, void *, ssize_t);
+extern int          symlink(const char *, const char *);
+extern void         sync(void);
+extern long int     sysconf(int);
+extern pid_t        tcgetpgrp(int);
+extern int          tcsetpgrp(int, pid_t);
+extern int          truncate(const char *, off_t);
+extern char        *ttyname(int);
+extern int          ttyname_r(int, char *, size_t);
+extern useconds_t   ualarm(useconds_t, useconds_t);
+extern int          unlink(const char *);
 
 // usleep is not POSIX anymore since 200809
 #if (_XOPEN_SOURCE >= 500) && ! (_POSIX_C_SOURCE >= 200809L) \
-  || /* Glibc since 2.19: */ _DEFAULT_SOURCE \
-  || /* Glibc versions <= 2.19: */ _BSD_SOURCE
+  || /* Glibc since 2.19: */ defined _DEFAULT_SOURCE \
+  || /* Glibc versions <= 2.19: */ defined _BSD_SOURCE
 /*@
   assigns \result \from indirect:usec, indirect:Frama_C_entropy_source;
   assigns Frama_C_entropy_source \from Frama_C_entropy_source;
   ensures \result == 0 || \result == -1;
  */
-int          usleep(useconds_t usec);
+extern int          usleep(useconds_t usec);
 
 #endif
 
-pid_t        vfork(void);
+extern pid_t        vfork(void);
 
 /*@
   requires 0 <= fd < __FC_MAX_OPEN_FILES;
@@ -874,8 +876,9 @@ pid_t        vfork(void);
   assigns  \result, __fc_fds[fd] \from fd, count, __fc_fds[fd];
   ensures -1 <= \result <= count;
 */
-ssize_t      write(int fd, const void *buf, size_t count);
+extern ssize_t      write(int fd, const void *buf, size_t count);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

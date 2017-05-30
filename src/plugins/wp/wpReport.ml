@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,12 +154,10 @@ let dstats () = {
 (* -------------------------------------------------------------------------- *)
 
 type entry =
-  | Global of string (* [JS 2012/11/27] unused *)
   | Axiom of string
   | Fun of Kernel_function.t
 
 let decode_chapter= function
-  | Global _-> "global"
   | Axiom _ -> "axiomatic"
   | Fun _   -> "function"
 
@@ -168,9 +166,6 @@ module Smap = FCMap.Make
       type t = entry
       let compare s1 s2 =
         match s1 , s2 with
-        | Global a, Global b -> String.compare a b
-        | Global _, _ -> (-1)
-        | _ , Global _ -> 1
         | Axiom a , Axiom b -> String.compare a b
         | Axiom _ , Fun _ -> (-1)
         | Fun _ , Axiom _ -> 1
@@ -472,7 +467,6 @@ let env_section ~config ~name sstat fmt cmd arg =
     in match cmd with
     | "chapter" ->
         let chapter = match entry with
-          | Global _ -> config.global_section
           | Axiom _ -> config.axiomatic_section
           | Fun _ ->  config.function_section
         in Format.pp_print_string fmt chapter
@@ -480,7 +474,6 @@ let env_section ~config ~name sstat fmt cmd arg =
         if cmd <> "name" &&  cmd <> "section" && name <> cmd then
           Wp_parameters.error "Invalid section-format '%%%s' inside a section %s" cmd name;
         let prefix,name = match entry with
-          | Global a->  config.global_prefix, a
           | Axiom "" -> config.lemma_prefix,""
           | Axiom a -> config.axiomatic_prefix,a
           | Fun kf -> config.function_prefix, ( Kernel_function.get_name kf)
@@ -501,7 +494,6 @@ let env_property ~config ~name pstat fmt cmd arg =
     in match cmd with
     | "chapter" ->
         let chapter = match entry with
-          | Global _ -> config.global_section
           | Axiom _ -> config.axiomatic_section
           | Fun _ ->  config.function_section
         in Format.pp_print_string fmt chapter
@@ -509,7 +501,6 @@ let env_property ~config ~name pstat fmt cmd arg =
         if cmd <> "section" && name <> cmd then
           Wp_parameters.error "Invalid property-format '%%%s' inside a section %s" cmd name;
         let prefix,name = match entry with
-          | Global a->  config.global_prefix, a
           | Axiom "" -> config.lemma_prefix,""
           | Axiom a -> config.axiomatic_prefix,a
           | Fun kf -> config.function_prefix, ( Kernel_function.get_name kf)

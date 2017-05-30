@@ -20,7 +20,7 @@ tests/slicing/slice_behavior.i:7:[value] assertion got status valid.
 [value:final-states] Values at end of function main:
   __retres ∈ {0}
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f
 [pdg] done for function f
@@ -42,8 +42,7 @@ tests/slicing/slice_behavior.i:7:[value] assertion got status valid.
 /*@ requires a > 0; */
 void f_slice_1(int a)
 {
-  int b;
-  b = 2 * a;
+  int b = 2 * a;
   /*@ assert a < b; */ ;
   return;
 }

@@ -1,16 +1,16 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/widen_hints2.c (with preprocessing)
-[kernel:widen-hints] computing global widen hints
-tests/misc/widen_hints2.c:47:[kernel:widen-hints] adding global hint from annotation: m, {2} (for all statements)
-tests/misc/widen_hints2.c:61:[kernel:widen-hints] adding global hint from annotation: y_0, {2} (for all statements)
-tests/misc/widen_hints2.c:20:[kernel:widen-hints] adding hint from annotation: for all variables, {88} (for all statements)
-tests/misc/widen_hints2.c:48:[kernel:widen-hints] adding hint from annotation: y_0, {5} (for all statements)
-tests/misc/widen_hints2.c:50:[kernel:widen-hints] adding hint from annotation: a, {2} (for all statements)
-tests/misc/widen_hints2.c:52:[kernel:widen-hints] adding hint from annotation: a, {88} (for all statements)
-tests/misc/widen_hints2.c:59:[kernel:widen-hints] adding hint from annotation: y_0, {1} (for all statements)
-tests/misc/widen_hints2.c:58:[kernel:widen-hints] adding hint from annotation: c, {88} (for all statements)
-tests/misc/widen_hints2.c:71:[kernel:widen-hints] adding hint from annotation: c_0, {88} (for all statements)
-tests/misc/widen_hints2.c:79:[kernel:widen-hints] adding hint from annotation: glob, {88} (for all statements)
+[value:widen-hints] computing global widen hints
+tests/misc/widen_hints2.c:47:[value:widen-hints] adding global hint from annotation: m, {2} (for all statements)
+tests/misc/widen_hints2.c:61:[value:widen-hints] adding global hint from annotation: y_0, {2} (for all statements)
+tests/misc/widen_hints2.c:20:[value:widen-hints] adding hint from annotation: for all variables, {88} (for all statements)
+tests/misc/widen_hints2.c:48:[value:widen-hints] adding hint from annotation: y_0, {5} (for all statements)
+tests/misc/widen_hints2.c:50:[value:widen-hints] adding hint from annotation: a, {2} (for all statements)
+tests/misc/widen_hints2.c:52:[value:widen-hints] adding hint from annotation: a, {88} (for all statements)
+tests/misc/widen_hints2.c:58:[value:widen-hints] adding hint from annotation: c, {88} (for all statements)
+tests/misc/widen_hints2.c:59:[value:widen-hints] adding hint from annotation: y_0, {1} (for all statements)
+tests/misc/widen_hints2.c:71:[value:widen-hints] adding hint from annotation: c_0, {88} (for all statements)
+tests/misc/widen_hints2.c:79:[value:widen-hints] adding hint from annotation: glob, {88} (for all statements)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -18,20 +18,30 @@ tests/misc/widen_hints2.c:79:[kernel:widen-hints] adding hint from annotation: g
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
   t[0..99] ∈ {0}
   x ∈ {9}
   glob ∈ {0}
   y ∈ {0}
+tests/misc/widen_hints2.c:49:[value:widen-hints] computing dynamic hints for statement 44
+tests/misc/widen_hints2.c:51:[value:widen-hints] computing dynamic hints for statement 47
 tests/misc/widen_hints2.c:51:[value] entering loop for the first time
+tests/misc/widen_hints2.c:53:[value:widen-hints] computing dynamic hints for statement 53
 tests/misc/widen_hints2.c:53:[value] entering loop for the first time
+tests/misc/widen_hints2.c:64:[value:widen-hints] computing dynamic hints for statement 65
 tests/misc/widen_hints2.c:64:[value] entering loop for the first time
 tests/misc/widen_hints2.c:65:[value] entering loop for the first time
+tests/misc/widen_hints2.c:73:[value:widen-hints] computing dynamic hints for statement 81
 tests/misc/widen_hints2.c:73:[value] entering loop for the first time
 tests/misc/widen_hints2.c:74:[value] entering loop for the first time
+tests/misc/widen_hints2.c:80:[value:widen-hints] computing dynamic hints for statement 96
 tests/misc/widen_hints2.c:80:[value] entering loop for the first time
 tests/misc/widen_hints2.c:81:[value] entering loop for the first time
 [value] computing for function f <- main.
         Called from tests/misc/widen_hints2.c:86.
+tests/misc/widen_hints2.c:22:[value:widen-hints] computing dynamic hints for statement 4
 tests/misc/widen_hints2.c:22:[value] entering loop for the first time
 tests/misc/widen_hints2.c:23:[value] entering loop for the first time
 [value] Recording results for f

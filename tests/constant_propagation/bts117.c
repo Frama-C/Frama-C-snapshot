@@ -1,7 +1,7 @@
 /* run.config
 OPT: -journal-disable -print
-OPT: -journal-disable -semantic-const-folding
-OPT: -journal-disable -sparecode-analysis
+OPT: -journal-disable -semantic-const-folding -val-show-progress
+OPT: -journal-disable -sparecode-analysis -val-show-progress
 */
 
 int main1 (void) { 

@@ -303,32 +303,30 @@ void main_post_func(int res)
 int main(void)
 {
   int aorai_Loop_Init_26;
-  int x;
   int tmp_1;
   main_pre_func();
-  x = a();
+  int x = a();
   /*@ ghost aorai_Loop_Init_26 = 1; */
   aorai_loop_26:
-    /*@ loop invariant i: 0 ≤ x ≤ 11;
-        loop invariant Aorai: 1 ≡ T0_S2 ∨ 0 ≡ T0_S2;
-        loop invariant Aorai: 0 ≡ T0_init;
-        loop invariant Aorai: 1 ≡ accept_S1 ∨ 0 ≡ accept_S1;
-        loop invariant Aorai: 1 ≡ T0_S2 ∨ 1 ≡ accept_S1;
-        loop invariant
-          Aorai:
-            aorai_Loop_Init_26 ≢ 0 ⇒
-            \at(1 ≡ T0_init,Pre) ⇒ 0 ≡ T0_S2;
-        loop invariant Aorai: aorai_Loop_Init_26 ≡ 0 ⇒ 0 ≡ accept_S1;
-    */
-    while (1) {
-      if (! (x < 10)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_26 = 0; */
-      {
-        int tmp_0;
-        tmp_0 = b();
-        x += tmp_0;
-      }
+  /*@ loop invariant i: 0 ≤ x ≤ 11;
+      loop invariant Aorai: 1 ≡ T0_S2 ∨ 0 ≡ T0_S2;
+      loop invariant Aorai: 0 ≡ T0_init;
+      loop invariant Aorai: 1 ≡ accept_S1 ∨ 0 ≡ accept_S1;
+      loop invariant Aorai: 1 ≡ T0_S2 ∨ 1 ≡ accept_S1;
+      loop invariant
+        Aorai:
+          aorai_Loop_Init_26 ≢ 0 ⇒ \at(1 ≡ T0_init,Pre) ⇒ 0 ≡ T0_S2;
+      loop invariant Aorai: aorai_Loop_Init_26 ≡ 0 ⇒ 0 ≡ accept_S1;
+  */
+  while (1) {
+    if (! (x < 10)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_26 = 0; */
+    {
+      int tmp_0;
+      tmp_0 = b();
+      x += tmp_0;
     }
+  }
   while_0_break: ;
   tmp_1 = a();
   main_post_func(tmp_1);

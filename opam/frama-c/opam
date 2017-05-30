@@ -1,8 +1,10 @@
 opam-version: "1.2"
 name: "frama-c"
-version: "20161101"
+version: "20170501"
 maintainer: "francois.bobot@cea.fr"
 authors: [
+  "Michele Alberti"
+  "Gergö Barany"
   "Patrick Baudin"
   "François Bobot"
   "Richard Bonichon"
@@ -14,6 +16,8 @@ authors: [
   "Jean-Christophe Filliâtre"
   "Philippe Herrmann"
   "Florent Kirchner"
+  "Tristan Le Gall"
+  "Jean-Christophe Léchenet"
   "Matthieu Lemerre"
   "David Maison"
   "Claude Marché"
@@ -27,12 +31,13 @@ authors: [
   "Armand Puccetti"
   "Muriel Roger"
   "Julien Signoles"
+  "Kostyantyn Vorobyov"
   "Boris Yakobowski"
 ]
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
 dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
-doc: ["http://frama-c.com/download/user-manual-Silicon-20161101.pdf"]
+doc: ["http://frama-c.com/download/user-manual-Phosphorus-20170501.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"
@@ -50,8 +55,7 @@ tags: [
 ]
 
 depends: [
-  "frama-c-base" { = "20161101" }
-  "zarith"
+  "frama-c-base" { = "20170501" }
   "lablgtk" { >= "2.18.2" } #for ocaml >= 4.02.1
   "conf-gtksourceview"
   "conf-gnomecanvas"

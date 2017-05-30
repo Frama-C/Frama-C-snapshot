@@ -15,12 +15,9 @@ typedef int tint;
 int main(void)
 {
   int __retres;
-  tint x;
-  tint y;
-  tint z;
-  x = 0;
-  y = 0;
-  z = 0;
+  tint x = 0;
+  tint y = 0;
+  tint z = 0;
   /*@ assert rte: signed_overflow: 0x7fffffff + 0x7fffffff ≤ 2147483647; */
   z = 0x7fffffff + 0x7fffffff;
   /*@ assert

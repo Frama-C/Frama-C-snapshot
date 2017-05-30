@@ -576,6 +576,21 @@ void test_small6() {
   int *p = f8(&a);
 }
 
+/*@
+  requires \valid(p);
+  assigns \result \from p;
+  assigns *p \from \nothing;
+  ensures \result == p;
+  behavior b:
+    ensures \initialized(\result);
+ */
+int *f8_bis(int *p);
+
+void test_small6_bis() {
+  int a;
+  int *p = f8_bis(&a);
+}
+
 /*@ axiomatic MyLen { logic ℤ length{L}(char *s); } */
 /*@
   assigns \result \from *s, n;
@@ -637,6 +652,7 @@ int main() {
   test_small4();
   test_small5();
   test_small6();
+  test_small6_bis();
   test_promote();
   test_narrow();
 }

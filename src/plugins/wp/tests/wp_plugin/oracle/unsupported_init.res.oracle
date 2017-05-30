@@ -25,12 +25,7 @@ tests/wp_plugin/unsupported_init.i:1: warning from wp:
  - Warning: Target turned to False, looking for context inconsistency
    Reason: Allocation, initialization and danglingness not yet implemented
 (r1: \initialized(Y + (0 .. 99)))
-Assume {
-  Type: is_sint32(Mint_0[shift_sint32(A, 0)]) /\
-      is_sint32(Mint_0[shift_sint32(B, 0)]).
-  (* Heap *)
-  Have: (region(A.base) <= 0) /\ (region(B.base) <= 0).
-}
+Assume { (* Heap *) Have: (region(A.base) <= 0) /\ (region(B.base) <= 0). }
 Prove: false.
 
 ------------------------------------------------------------

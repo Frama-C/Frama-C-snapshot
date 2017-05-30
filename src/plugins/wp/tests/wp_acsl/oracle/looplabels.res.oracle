@@ -9,30 +9,7 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/looplabels.i, line 13) in 'copy':
-Let a_1 = shift_sint32(b, 0).
-Let a_2 = shift_sint32(a, 0).
-Assume {
-  Type: is_sint32(i) /\ is_sint32(n).
-  (* Heap *)
-  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
-  (* Pre-condition *)
-  Have: 0 < n.
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_2, n).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, n).
-  (* Pre-condition *)
-  Have: separated(a_2, n, a_1, n).
-  (* Loop assigns ... *)
-  Have: havoc(Mint_1, Mint_0, a_1, n).
-  (* Invariant *)
-  Have: P_IsEqual(Mint_0, a, b, i).
-  (* Invariant *)
-  Have: (0 <= i) /\ (i <= n).
-  (* Else *)
-  Have: n <= i.
-}
-Prove: P_IsEqual(Mint_0, a, b, n).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -187,17 +164,12 @@ Prove: included(a_3, 1, a_1, n).
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_acsl/looplabels.i, line 14) in 'copy' (1/2):
-Effect at line 22
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_acsl/looplabels.i, line 14) in 'copy' (2/2):
+Goal Assigns (file tests/wp_acsl/looplabels.i, line 14) in 'copy':
 Effect at line 22
 Let a_1 = shift_sint32(b, 0).
 Let a_2 = shift_sint32(a, 0).
 Assume {
+  Have: valid_rd(Malloc_0, a_1, n).
   Type: is_sint32(n).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
@@ -212,6 +184,6 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, n).
 }
-Prove: (valid_rd(Malloc_0, a_1, n) -> included(a_1, n, a_1, n)).
+Prove: included(a_1, n, a_1, n).
 
 ------------------------------------------------------------

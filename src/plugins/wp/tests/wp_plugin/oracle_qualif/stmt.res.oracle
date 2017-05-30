@@ -1,0 +1,25 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/stmt.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] [CFG] Goal g_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_post : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_return : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
+[wp] warning: Missing RTE guards
+[wp] 7 goals scheduled
+[wp] [Qed] Goal typed_f_post : Valid
+[wp] [Qed] Goal typed_f_post_2 : Valid
+[wp] [Qed] Goal typed_f_assert : Valid
+[wp] [Qed] Goal typed_f_stmt_post : Valid
+[wp] [Qed] Goal typed_f_stmt_assign : Valid
+[wp] [Qed] Goal typed_g_post : Valid
+[wp] [Qed] Goal typed_g_assert : Valid
+[wp] Proved goals:    7 / 7
+     Qed:             7
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    5     -           5       100%
+g                    2     -           2       100%
+----------------------------------------------------------

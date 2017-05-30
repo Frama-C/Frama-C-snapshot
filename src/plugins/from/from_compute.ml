@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,10 +68,8 @@ and find_deps_lval_no_transitivity state lv =
     Zone.pretty ind_deps Zone.pretty direct_deps;
   { Function_Froms.Deps.data = direct_deps; indirect = ind_deps }
 
-let compute_using_prototype_for_state state kf =
+let compute_using_prototype_for_state state kf assigns =
   let varinfo = Kernel_function.get_vi kf in
-  let behaviors = !Db.Value.valid_behaviors kf state in
-  let assigns = Ast_info.merge_assigns behaviors in
   let return_deps,deps =
     match assigns with
       | WritesAny ->
@@ -225,8 +223,8 @@ struct
       that refer to [v] (when [v] is not guaranteed to be always assigned, or
       for padding in local structs), and that would need to be removed when v
       goes out of scope. Moreover, semantically, [v] *is* assigned (albeit to
-      "uninitalized",  which represents an indefinite part of the stack). We
-      do not attemps to track this "uninitalized" information in From, as this
+      "uninitialized",  which represents an indefinite part of the stack). We
+      do not attempts to track this "uninitialized" information in From, as this
       is redundant with the work done by Value -- hence the use of [\nothing].*)
   let bind_locals m b =
     let aux_local acc vi =
@@ -334,7 +332,7 @@ struct
     let join old new_ = fst (join_and_is_included old new_)
     let is_included old new_ = snd (join_and_is_included old new_)
 
-    (** Handle an assignement [lv = ...], the dependencies of the right-hand
+    (** Handle an assignment [lv = ...], the dependencies of the right-hand
         side being stored in [deps_right]. *)
     let transfer_assign stmt lv deps_right state =
       (* The assigned location is [loc], whose address is computed from
@@ -349,114 +347,132 @@ struct
           Function_Froms.Memory.add_binding_precise_loc
             ~exact state.deps_table loc deps }
 
+    let transfer_call stmt dest f args _loc state =
+      !Db.progress ();
+      let value_state = To_Use.get_value_state stmt in
+      let f_deps, called_vinfos =
+        !Db.Value.expr_to_kernel_function_state
+          value_state ~deps:(Some Zone.bottom) f
+      in
+      (* dependencies for the evaluation of [f] *)
+      let f_deps =
+        Function_Froms.Memory.find state.deps_table f_deps
+      in
+      let additional_deps =
+        Zone.join
+          state.additional_deps
+          f_deps
+      in
+      let args_froms =
+        List.map
+          (fun arg ->
+             (* TODO : dependencies on subfields for structs *)
+             find stmt state.deps_table arg)
+          args
+      in
+      let states_with_formals = ref [] in
+      let do_on kf =
+        let called_vinfo = Kernel_function.get_vi kf in
+        if Ast_info.is_cea_function called_vinfo.vname then
+          state
+        else
+          let froms_call = To_Use.get_from_call kf stmt in
+          let froms_call_table = froms_call.Function_Froms.deps_table in
+          if Function_Froms.Memory.is_bottom froms_call_table then
+            bottom_from
+          else
+            let formal_args = Kernel_function.get_formals kf in
+            let state_with_formals = ref state.deps_table in
+            begin try
+                List.iter2
+                  (fun vi from ->
+                     state_with_formals :=
+                       Function_Froms.Memory.bind_var
+                         vi from !state_with_formals;
+                  ) formal_args args_froms;
+              with Invalid_argument _ ->
+                From_parameters.warning ~once:true ~current:true
+                  "variadic call detected. Using only %d argument(s)."
+                  (min
+                     (List.length formal_args)
+                     (List.length args_froms))
+            end;
+            if not (Db.From.Record_From_Callbacks.is_empty ())
+            then
+              states_with_formals :=
+                (kf, !state_with_formals) :: !states_with_formals;
+            let subst_before_call =
+              substitute !state_with_formals additional_deps
+            in
+            (* From state just after the call,
+               but before the result assignment *)
+            let deps_after_call =
+              let before_call = state.deps_table in
+              let open Function_Froms in
+              let subst d = DepsOrUnassigned.subst subst_before_call d in
+              let call_substituted = Memory.map subst froms_call_table in
+              Memory.compose call_substituted before_call
+            in
+            let state = {state with deps_table = deps_after_call } in
+            (* Treatement for the possible assignment
+               of the call result *)
+            match dest with
+            | None -> state
+            | Some lv ->
+              let return_from = froms_call.Function_Froms.deps_return in
+              let deps_ret = subst_before_call return_from in
+              transfer_assign stmt lv deps_ret state
+      in
+      let f f acc =
+        let p = do_on f in
+        match acc with
+        | None -> Some p
+        | Some acc_memory ->
+          Some
+            {state with
+             deps_table = Function_Froms.Memory.join
+                 p.deps_table
+                 acc_memory.deps_table}
+      in
+      let result =
+        try
+          (match Kernel_function.Hptset.fold f called_vinfos None with
+           | None -> state
+           | Some s -> s);
+        with Call_did_not_take_place -> state
+      in
+      if not (Db.From.Record_From_Callbacks.is_empty ())
+      then
+        Stmt.Hashtbl.replace
+          callwise_states_with_formals
+          stmt
+          !states_with_formals;
+      result
+
     let transfer_instr stmt (i: instr) (state: t) =
       !Db.progress ();
       match i with
         | Set (lv, exp, _) ->
               let comp_vars = find stmt state.deps_table exp in
               transfer_assign stmt lv comp_vars state
-        | Call (lvaloption,funcexp,argl,_) ->
-              !Db.progress ();
-              let value_state = To_Use.get_value_state stmt in
-              let funcexp_deps, called_vinfos =
-                !Db.Value.expr_to_kernel_function_state
-                  value_state ~deps:(Some Zone.bottom) funcexp
-              in
-              (* dependencies for the evaluation of [funcexp] *)
-              let funcexp_deps =
-                Function_Froms.Memory.find state.deps_table funcexp_deps
-              in
-              let additional_deps =
-		Zone.join
-		  state.additional_deps
-		  funcexp_deps
-              in
-              let args_froms =
-                List.map
-                  (fun arg ->
-                    (* TODO : dependencies on subfields for structs *)
-                    find stmt state.deps_table arg)
-                  argl
-              in
-              let states_with_formals = ref [] in
-              let do_on kf =
-                let called_vinfo = Kernel_function.get_vi kf in
-                if Ast_info.is_cea_function called_vinfo.vname then
-                  state
-                else
-                  let froms_call = To_Use.get_from_call kf stmt in
-                  let froms_call_table = froms_call.Function_Froms.deps_table in
-                  if Function_Froms.Memory.is_bottom froms_call_table then
-                    bottom_from
-                  else
-                  let formal_args = Kernel_function.get_formals kf in
-                  let state_with_formals = ref state.deps_table in
-                  begin try
-                   List.iter2
-                     (fun vi from ->
-                       state_with_formals :=
-                         Function_Froms.Memory.bind_var
-                         vi from !state_with_formals;
-                     ) formal_args args_froms;
-                    with Invalid_argument _ ->
-                      From_parameters.warning ~once:true ~current:true
-                        "variadic call detected. Using only %d argument(s)."
-                        (min
-                           (List.length formal_args)
-                           (List.length args_froms))
-                  end;
-                  if not (Db.From.Record_From_Callbacks.is_empty ())
-                  then
-                    states_with_formals :=
-                      (kf, !state_with_formals) :: !states_with_formals;
-                  let subst_before_call =
-                    substitute !state_with_formals additional_deps
-                  in
-                  (* From state just after the call,
-                     but before the result assigment *)
-                  let deps_after_call =
-                    let before_call = state.deps_table in
-                    let open Function_Froms in
-                    let subst d = DepsOrUnassigned.subst subst_before_call d in
-                    let call_substituted = Memory.map subst froms_call_table in
-                    Memory.compose call_substituted before_call
-                  in
-                  let state = {state with deps_table = deps_after_call } in
-                  (* Treatement for the possible assignement
-                     of the call result *)
-                  match lvaloption with
-                  | None -> state
-                  | Some lv ->
-                    let return_from = froms_call.Function_Froms.deps_return in
-                    let deps_ret = subst_before_call return_from in
-                    transfer_assign stmt lv deps_ret state
-              in
-              let f f acc =
-                let p = do_on f in
-                match acc with
-                  | None -> Some p
-                  | Some acc_memory ->
-                    Some
-                      {state with
-                        deps_table = Function_Froms.Memory.join
-                          p.deps_table
-                          acc_memory.deps_table}
-              in
-              let result =
-                try
-                  (match Kernel_function.Hptset.fold f called_vinfos None with
-                    | None -> state
-                    | Some s -> s);
-                with Call_did_not_take_place -> state
-              in
-              if not (Db.From.Record_From_Callbacks.is_empty ())
-              then
-                Stmt.Hashtbl.replace
-                  callwise_states_with_formals
-                  stmt
-                  !states_with_formals;
-              result
-        | _ -> state
+        | Local_init(v, AssignInit i, _) ->
+          let implicit = true in
+          let rec aux lv i acc =
+            let doinit o i _ state = aux (Cil.addOffsetLval o lv) i state in
+            match i with
+            | SingleInit e ->
+              let comp_vars = find stmt acc.deps_table e in
+              transfer_assign stmt lv comp_vars acc
+            | CompoundInit (ct, initl) ->
+              Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc
+          in
+          aux (Cil.var v) i state
+        | Call (lvaloption,funcexp,argl,loc) ->
+          transfer_call stmt lvaloption funcexp argl loc state
+        | Local_init (v, ConsInit(f, args, kind), loc) ->
+          Cil.treat_constructor_as_func
+            (transfer_call stmt) v f args kind loc state
+        | Asm _ | Code_annot _ | Skip _ -> state
 
 
     let transfer_guard s e d =
@@ -639,7 +655,9 @@ struct
 
   let compute_using_prototype kf =
     let state = Db.Value.get_initial_state kf in
-    compute_using_prototype_for_state state kf
+    let behaviors = !Db.Value.valid_behaviors kf state in
+    let assigns = Ast_info.merge_assigns behaviors in
+    compute_using_prototype_for_state state kf assigns
 
   let compute_and_return kf =
     let call_site_loc = CurrentLoc.get () in

@@ -195,8 +195,6 @@ Goal Assigns 'qed_ko' in 'call_assigns_t4':
 Call Effect at line 65
 Assume {
   Type: is_sint32(i) /\ is_sint32(j).
-  (* Goal *)
-  When: ((0 <= j) -> (j <= 19)).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= j) /\ (j <= 19).
   (* Exit 'assigns_t4_sup_bound' *)
@@ -213,8 +211,6 @@ Goal Assigns 'qed_ko' in 'call_assigns_t4':
 Call Effect at line 65
 Assume {
   Type: is_sint32(i) /\ is_sint32(j).
-  (* Goal *)
-  When: ((0 <= j) -> (j <= 19)).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= j) /\ (j <= 19).
   (* Call 'assigns_t4_sup_bound' *)

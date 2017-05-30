@@ -863,7 +863,7 @@ int volatile v;
 int G;
 /*@ assigns *(s + (..));
     assigns *(s + (..)) \from *(s + (..)); */
-extern void F1(char *s);
+void F1(char *s);
 
 char T[100];
 char Tpost[100];
@@ -873,38 +873,37 @@ int t3[100000];
 /*@ assigns *(p + (0 .. 3));
     assigns *(p + (0 .. 3)) \from *(p + (4 .. 7));
  */
-extern void f(char *p);
+void f(char *p);
 
 /*@ assigns t2[(unsigned char)len + 1 .. (unsigned char)len + 1];
     assigns t2[(unsigned char)len + 1 .. (unsigned char)len + 1]
       \from \nothing;
  */
-extern void g(int len);
+void g(int len);
 
 /*@ assigns *(p + (..));
     assigns *(p + (..)) \from \nothing; */
-extern void h(int *p);
+void h(int *p);
 
 /*@ logic int foo(int p) ;
  */
 /*@ assigns *(p + (0 .. foo(*p)));
     assigns *(p + (0 .. foo(*p))) \from \nothing;
  */
-extern void j(int *p);
+void j(int *p);
 
 int x;
 int k = 53;
 /*@ assigns \at(x,Post), Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];
     assigns \at(x,Post) \from \at(x,Post);
  */
-extern void assigns_post(int i);
+void assigns_post(int i);
 
 void main1(void)
 {
   F1(T);
   {
-    int i;
-    i = 0;
+    int i = 0;
     while (i <= 5) {
       f((char *)(& t[i].f2));
       i ++;
@@ -922,41 +921,38 @@ void main1(void)
 }
 
 /*@ assigns \nothing; */
-extern int ff1();
+int ff1();
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int *ff2();
+int *ff2();
 
 /*@ assigns \nothing; */
-extern int *ff2_bis();
+int *ff2_bis();
 
 int y1;
 int y2;
 int y3;
 /*@ assigns y1, y2, y3;
     assigns y2 \from y2; */
-extern void ff3();
+void ff3();
 
 /*@ assigns \nothing; */
-extern void ff4();
+void ff4();
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int ff5();
+int ff5();
 
 int main2(void)
 {
   int __retres;
-  int l;
-  int *p;
-  int *q;
-  l = ff1();
+  int l = ff1();
   ff3();
   ff4();
   ff5();
-  p = ff2();
-  q = ff2_bis();
+  int *p = ff2();
+  int *q = ff2_bis();
   /*@ assert
       Value: ptr_comparison: \pointer_comparable((void *)p, (void *)(&x));
   */
@@ -977,7 +973,7 @@ int t_main3_2[3][4][5];
     assigns (*(b + (0 .. 2)))[0 .. 3][0 .. 4]
       \from (*a)[0 .. 7], (*(b + (0 .. 2)))[0 .. 3][0 .. 4];
  */
-extern int main3(int (*a)[8], int (* /*[3]*/ b)[4][5]);
+int main3(int (*a)[8], int (* /*[3]*/ b)[4][5]);
 
 ts t_main4[1000];
 ts u_main4[100];
@@ -985,13 +981,13 @@ ts u_main4[100];
     assigns t_main4[i].f1 \from \nothing;
     assigns u_main4[i].f1 \from \nothing;
  */
-extern void f_main4_1(int i);
+void f_main4_1(int i);
 
 /*@ assigns t_main4[0 .. 999].f1, u_main4[0 .. 99].f1;
     assigns t_main4[0 .. 999].f1 \from \nothing;
     assigns u_main4[0 .. 99].f1 \from \nothing;
  */
-extern void f_main4_2();
+void f_main4_2();
 
 void main4(void)
 {

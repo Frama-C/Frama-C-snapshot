@@ -71,7 +71,7 @@ struct __anonstruct_msg_1 {
 };
 typedef struct __anonstruct_msg_1 msg;
 /*@ assigns \empty; */
-extern void send_addr(int const * /*[4]*/ addr);
+void send_addr(int const * /*[4]*/ addr);
 
 void send_msg(msg const *msg_0)
 {
@@ -81,8 +81,7 @@ void send_msg(msg const *msg_0)
 
 void host_address(int * /*[4]*/ ip)
 {
-  unsigned int i;
-  i = sizeof(int [4]) / sizeof(int);
+  unsigned int i = sizeof(int [4]) / sizeof(int);
   *(ip + 0) = 192;
   *(ip + 1) = 100;
   *(ip + 2) = 200;

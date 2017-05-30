@@ -83,7 +83,7 @@
  {n1}: InCtrl
  {n2}: VarDecl : s
  {n3}: VarDecl : __retres
- {n4}: s = S;
+ {n4}: struct Tstr s = S;
    -[-c-]-> 1
    -[a--]-> 2
    -[--d]-> 8
@@ -131,9 +131,9 @@
  {n20}: InCtrl
  {n21}: VarDecl : a
  {n22}: VarDecl : tmp_0
- {n23}: Call11-InCtrl : a = asgn_struct();
+ {n23}: Call10-InCtrl : int a = asgn_struct();
    -[-c-]-> 20
- {n24}: Call11-OutRet : a = asgn_struct();
+ {n24}: Call10-OutRet : int a = asgn_struct();
    -[-c-]-> 20
    -[a--]-> 21
    -[-c-]-> 23
@@ -146,22 +146,22 @@
    -[-c-]-> 20
  {n27}: C = 3;
    -[-c-]-> 20
- {n28}: Call15-InCtrl : tmp_0 = f(S);
+ {n28}: Call14-InCtrl : tmp_0 = f(S);
    -[-c-]-> 20
- {n29}: Call15-In1 : tmp_0 = f(S);
+ {n29}: Call14-In1 : tmp_0 = f(S);
    -[-c-]-> 20
    -[-c-]-> 28
    -[--d]-> 36
- {n30}: Call15-Out(S.a) : tmp_0 = f(S);
+ {n30}: Call14-Out(S.a) : tmp_0 = f(S);
    -[-c-]-> 20
    -[-c-]-> 28
    -[--d]-> 35
- {n31}: Call15-Out(A) : tmp_0 = f(S);
+ {n31}: Call14-Out(A) : tmp_0 = f(S);
    -[-c-]-> 20
    -[--d]-> 25
    -[-c-]-> 28
    -[--d]-> 29
- {n32}: Call15-OutRet : tmp_0 = f(S);
+ {n32}: Call14-OutRet : tmp_0 = f(S);
    -[-c-]-> 20
    -[a--]-> 22
    -[-c-]-> 28

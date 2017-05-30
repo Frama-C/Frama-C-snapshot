@@ -28,9 +28,7 @@ Prove: P_R(to_sint16(a), a).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/cint.i, line 36) in 'signed_overflow':
-Assume {
-  Type: is_sint32(signed_overflow_0) /\ is_sint32(signed_overflow_0 - b).
-}
+Assume { Type: is_sint32(signed_overflow_0). }
 Prove: P_R(signed_overflow_0, signed_overflow_0).
 
 ------------------------------------------------------------

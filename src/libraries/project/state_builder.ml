@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -268,13 +268,17 @@ struct
     if Type.digest Datatype.ty = new_s.State.on_disk_digest then begin
       let s, computed =
         if !must_save && new_s.State.on_disk_saved then begin
-	  debug ~level:4 "unserializing" p;
+          debug ~level:4 "unserializing" p;
           !unmarshal new_s.State.on_disk_value, new_s.State.on_disk_computed
         end else
           (* invariant: the found state is equal to the default one since it
              has been just created.
              Do not call Local_state.create to don't break sharing *)
-          (find p).state, false
+          try (find p).state, false
+          with Not_found ->
+            fatal "unknown project '%s' in state '%s'"
+              (Project.get_unique_name p)
+              !internal_name
       in
       change ~force:true p { state = s; computed = computed };
     end else begin
@@ -585,8 +589,23 @@ module type Weak_hashtbl = sig
   val remove: data -> unit
 end
 
+module type Sub_caml_weak_hashtbl =
+sig
+  include Datatype.Sub_caml_weak_hashtbl
+  val clear: t -> unit
+  val merge: t -> data -> data
+  val add: t -> data -> unit
+  val count: t -> int
+  val iter: (data->unit) -> t -> unit
+  val fold: (data->'a->'a) -> t -> 'a -> 'a
+  val find: t -> data -> data
+  val find_all: t -> data -> data list
+  val mem: t -> data -> bool
+  val remove: t -> data -> unit
+end
+
 module Weak_hashtbl
-  (W: Weak.S)
+  (W: Sub_caml_weak_hashtbl)
   (Data: Datatype.S with type t = W.data)
   (Info: Info_with_size) =
 struct
@@ -739,8 +758,6 @@ struct
       HW.clear t;
       add_initial_values t
 
-    let stats _ =
-      abort "Not implemented: stats for %s (Hashconsing_tbl_no_gc)" Info.name
     let fold f = HW.fold_sorted (fun v _ acc -> f v acc)
     let iter f = HW.iter_sorted (fun v _ -> f v)
     let mem = HW.mem

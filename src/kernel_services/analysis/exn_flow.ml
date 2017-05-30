@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -191,7 +191,8 @@ object (self)
 
   method! vinst =
     function
-      | Call(_,{ enode = Lval(Var f,NoOffset) },_,_) ->
+      | Call(_,{ enode = Lval(Var f,NoOffset) },_,_)
+      | Local_init(_, ConsInit(f, _, _), _) ->
         let kf = Globals.Functions.get f in
         if self#recursive_call kf then begin
           let module Found =
@@ -392,11 +393,13 @@ let make_init_assign loc v init =
   in
   List.rev (aux (Var v, NoOffset) [] init)
 
+let find_exns_func v =
+  try Exns.find (Globals.Functions.get v)
+  with Not_found -> Cil_datatype.Typ.Set.empty
+
 let find_exns e =
   match e.enode with
-    | Lval(Var v, NoOffset) ->
-      (try Exns.find (Globals.Functions.get v)
-       with Not_found -> Cil_datatype.Typ.Set.empty)
+    | Lval(Var v, NoOffset) -> find_exns_func v
     | _ -> all_exn ()
 
 class erase_exn =
@@ -638,7 +641,7 @@ object(self)
 
   method private guard_post_cond (kind,pred as orig) =
     match kind with
-        (* If we exit explicitely with exit,
+        (* If we exit explicitly with exit,
            we haven't seen an uncaught exception anyway. *)
       | Exits | Breaks | Continues -> orig
       | Returns | Normal ->
@@ -695,49 +698,53 @@ object(self)
       else (Catch_exn (v,caught), b) :: acc
 
   method! vstmt_aux s =
-    match s.skind with
-      | Instr (Call (_,f,_,loc) as instr) ->
-        let my_exns = find_exns f in
-        if Cil_datatype.Typ.Set.is_empty my_exns then SkipChildren
-        else begin
-          self#modify_current ();
-          let make_jump t (stmts, uncaught) =
-            let t = purify t in
-            if Cil_datatype.Typ.Hashtbl.mem exn_labels t then begin
-              let e = self#exn_kind t in
-              let e = Cil.new_exp ~loc (Const (CEnum e)) in
-              let b = self#jumps_to_handler loc t in
-              let s = Cil.mkStmt (Block (Cil.mkBlock b)) in
-              s.labels <- [Case (e,loc)];
-              s::stmts, uncaught
-            end else stmts, true
-          in
-          let stmts, uncaught =
-            Cil_datatype.Typ.Set.fold make_jump my_exns ([],false)
-          in
-          let stmts =
-            if uncaught then begin
-              let default = 
+    let generate_jumps instr exns loc =
+      if Cil_datatype.Typ.Set.is_empty exns then SkipChildren
+      else begin
+        self#modify_current ();
+        let make_jump t (stmts, uncaught) =
+          let t = purify t in
+          if Cil_datatype.Typ.Hashtbl.mem exn_labels t then begin
+            let e = self#exn_kind t in
+            let e = Cil.new_exp ~loc (Const (CEnum e)) in
+            let b = self#jumps_to_handler loc t in
+            let s = Cil.mkStmt (Block (Cil.mkBlock b)) in
+            s.labels <- [Case (e,loc)];
+            s::stmts, uncaught
+          end else stmts, true
+        in
+        let stmts, uncaught =
+          Cil_datatype.Typ.Set.fold make_jump exns ([],false)
+        in
+        let stmts =
+          if uncaught then begin
+            let default =
                 Cil.mkStmt (
                   Block (Cil.mkBlock (self#jumps_to_default_handler loc)))
-              in
-              default.labels <- [Default loc];
-              List.rev_append stmts [default]
-            end else List.rev stmts
-          in
-          let test = self#test_uncaught_flag loc true in
-          let cases = Cil.new_exp ~loc (Lval self#exn_kind_field) in
-          let switch = Cil.mkStmt (Switch(cases,Cil.mkBlock stmts,stmts,loc)) in
-          let handler =
-            Cil.mkStmt (If(test,Cil.mkBlock [switch],Cil.mkBlock [],loc))
-          in
-          let instr =
-            Visitor.visitFramacInstr (self:>Visitor.frama_c_visitor) instr
-          in
-          let call = Cil.mkStmtOneInstr (List.hd instr) in
-          s.skind <- Block (Cil.mkBlock [call;handler]);
-          SkipChildren
-        end
+            in
+            default.labels <- [Default loc];
+            List.rev_append stmts [default]
+          end else List.rev stmts
+        in
+        let test = self#test_uncaught_flag loc true in
+        let cases = Cil.new_exp ~loc (Lval self#exn_kind_field) in
+        let switch = Cil.mkStmt (Switch(cases,Cil.mkBlock stmts,stmts,loc)) in
+        let handler =
+          Cil.mkStmt (If(test,Cil.mkBlock [switch],Cil.mkBlock [],loc))
+        in
+        let instr =
+          Visitor.visitFramacInstr (self:>Visitor.frama_c_visitor) instr
+        in
+        let call = Cil.mkStmtOneInstr (List.hd instr) in
+        s.skind <- Block (Cil.mkBlockNonScoping [call;handler]);
+        SkipChildren
+      end
+    in
+    match s.skind with
+      | Instr (Call (_,f,_,loc) as instr) ->
+        generate_jumps instr (find_exns f) loc
+      | Instr (Local_init(_, ConsInit(f,_,_), loc) as instr) ->
+        generate_jumps instr (find_exns_func f) loc
       | Throw _ when not can_throw ->
         Kernel.fatal "Unexpected Throw statement"
       | Throw(Some(e,t),loc) ->

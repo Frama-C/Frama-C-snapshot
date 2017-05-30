@@ -74,6 +74,7 @@ tests/value/struct2.i:185:[value] warning: signed overflow. assert tab3[l] + m â
 [value] done for function f_precis
 tests/value/struct2.i:124:[value] assertion 'Value,mem_access' got final status invalid.
 tests/value/struct2.i:130:[value] assertion 'Value,mem_access' got final status invalid.
+[scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f_precis:
   NULL[rbits 32768 to 32799] âˆˆ {{ NULL + [--..--] ; (? *)&a }}

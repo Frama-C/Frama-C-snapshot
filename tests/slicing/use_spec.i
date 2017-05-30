@@ -1,6 +1,6 @@
 /* run.config
- OPT: -val-use-spec f -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
- OPT: -main main2 -slicing-level 3 -slice-undef-functions -val-use-spec h -slice-return main2 -journal-disable -slicing-keep-annotations -then-on 'Slicing export' -set-project-as-default -print  -val -val-use-spec='-@all'
+ OPT: -val-show-progress -val-use-spec f -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
+ OPT: -val-show-progress -main main2 -slicing-level 3 -slice-undef-functions -val-use-spec h -slice-return main2 -journal-disable -slicing-keep-annotations -then-on 'Slicing export' -set-project-as-default -print  -val -val-show-progress -val-use-spec='-@all'
 
 
 

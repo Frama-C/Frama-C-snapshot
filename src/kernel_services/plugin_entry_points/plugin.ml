@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -432,7 +432,7 @@ struct
           let arg_name = "K_1:file_1,..."
           let help = "copy log messages from " ^
                      (if is_kernel () then "the Frama-C kernel" else P.name) ^
-                     " to a file. <K> is a combination of these characters: \n\
+                     " to a file. <K> is a combination of these characters:\n\
                       a: ALL messages (equivalent to 'dfiruw')\n\
                       d: debug       e: user or internal error (same as 'iu')\n\
                       f: feedback    i: internal error\n\
@@ -448,7 +448,7 @@ struct
     (* default kinds when none are specified *)
     let default_kinds_str = "erw"
 
-    (* all valid characters for specifing kinds *)
+    (* all valid characters for specifying kinds *)
     let valid_kinds_str = "adefiruw"
 
     (* [parse_kinds str] parses [str] to return a list of [kind]s. *)

@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -inout -deps -main appel_ptr_fct -fct-pdg appel_ptr_fct -journal-disable  -pdg-print -pdg-verbose 2
-   OPT: -inout -deps -main appel_ptr_fct_bis -fct-pdg appel_ptr_fct_bis -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -inout -deps -main appel_ptr_fct -val-show-progress -fct-pdg appel_ptr_fct -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -inout -deps -main appel_ptr_fct_bis -val-show-progress -fct-pdg appel_ptr_fct_bis -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 extern int G1, G2, G3, G4;

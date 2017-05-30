@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -35,10 +35,6 @@ endif
 
 ifndef PLUGIN_DYNAMIC
 PLUGIN_DYNAMIC	:=yes
-endif
-
-ifeq ($(NATIVE_DYNLINK),no)
-USABLE_NATIVE_DYNLINK ?=no
 endif
 
 #Do not generate documentation for this.
@@ -135,12 +131,7 @@ $(PLUGIN_DIR)/tests/ptests_config: $(PTESTS_DEP)
 	$(MKDIR) tests
 	$(RM) $$@
 	$(ECHO) "DEFAULT_SUITES=" $(PLUGIN_TESTS_DIRS) > $$@
-	if test "$(USABLE_NATIVE_DYNLINK)" = "yes" \
-	     -o "$(FRAMAC_INTERNAL)" = "yes"; then \
-	  $(ECHO) "TOPLEVEL_PATH=$(FRAMAC_OPT)" >> $$@; \
-	else \
-	  $(ECHO) "TOPLEVEL_PATH=./frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)\";;" >> $$@; \
-	fi
+	$(ECHO) "TOPLEVEL_PATH=$(FRAMAC_OPT)" >> $$@;
 	$(ECHO) "FRAMAC_SHARE=$(FRAMAC_SHARE)" >> $$@
 	$(ECHO) "FRAMAC_LIB=$(FRAMAC_LIB)" >> $$@
 	if test "$(FRAMAC_INTERNAL)" = "no"; then \
@@ -202,8 +193,6 @@ TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) \
 TARGETS_BYTE:= $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMO) $(TARGET_TOP_CMA)
 TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMX) $(TARGET_TOP_CMXS)
 
-include $(MAKECONFIG_DIR)/Makefile.kernel
-
 byte:: $(TARGETS_BYTE)
 opt:: $(TARGETS_OPT)
 gui:: $(TARGETS_GUI)
@@ -214,6 +203,8 @@ ifneq ($(FRAMAC_INTERNAL),yes)
 ##################
 # Static Linking #
 ##################
+
+include $(MAKECONFIG_DIR)/Makefile.kernel
 
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_TOP_CMO)
 	$(PRINT_LINKING) $@
@@ -251,11 +242,7 @@ $(PLUGIN_NAME)_CLEAN_DYNAMIC:
 
 dist-clean distclean: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
 
-ifeq ($(USABLE_NATIVE_DYNLINK),no)
-STATIC=static
-else
 STATIC=
-endif
 
 all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC) plugins_ptests_config
 

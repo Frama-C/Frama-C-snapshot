@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,37 +20,53 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type reachable_functions = {
-  syntactic : Cil_datatype.Varinfo.Set.t;
-  semantic : Cil_datatype.Varinfo.Set.t;
-}
-;;
+(** In the definitions below, setting argument [libc] to [true] will
+    include functions/variables from the C stdlib in the metrics. *)
 
-val percent_coverage : reachable_functions -> float ;;
-
-val compute : unit ->
-  reachable_functions * (Cil_datatype.Varinfo.Hashtbl.key * Cil_types.init) list
-;;
-
-val compute_syntactic: Kernel_function.t -> Cil_datatype.Varinfo.Set.t
+val compute_syntactic: libc:bool -> Kernel_function.t ->
+  Cil_datatype.Varinfo.Set.t
 (** List of functions that can be syntactically reached from the function *)
 
-val compute_semantic: unit -> Cil_datatype.Varinfo.Set.t
+val compute_semantic: libc:bool -> Cil_datatype.Varinfo.Set.t
 (** Functions analyzed by the value analysis *)
+
+type coverage_metrics = {
+  syntactic: Cil_datatype.Varinfo.Set.t; (** syntactically reachable functions *)
+  semantic: Cil_datatype.Varinfo.Set.t; (** semantically reachable functions *)
+  initializers: (Cil_types.varinfo * Cil_types.init) list;  (** initializers *)
+}
+
+val percent_coverage : coverage_metrics -> float ;;
+
+val compute : libc:bool -> coverage_metrics ;;
+(** Computes both syntactic and semantic coverage information. *)
 
 val compute_coverage_by_fun:  Cil_datatype.Varinfo.Set.t ->
   (Cil_types.kernel_function * int * int * float) list
 
-val pp_reached_from_function: Format.formatter -> Kernel_function.t -> unit
-(** Pretty-print the functions that can be syntactically reached from the
-    parameter *)
+(** Pretty-printer for syntactic coverage metrics. *)
+class syntactic_printer : libc:bool -> Cil_datatype.Varinfo.Set.t -> object
+    method pp_reached_from_function: Format.formatter -> Kernel_function.t -> unit
+    (** Pretty-print the functions that can be syntactically reached from the
+        parameter *)
+  end
 
-val pp_value_coverage:
-  unit -> (Format.formatter -> unit) * (Format.formatter -> unit)
-(** Return two fonctions that pretty-print the coverage reached by the value
-    analysis wrt. the functions syntactically reachable from main *)
+(** Pretty-printer for semantic coverage metrics. Includes syntactic coverage
+    metrics. *)
+class semantic_printer : libc:bool -> coverage_metrics -> object
+    inherit syntactic_printer
+    method pp_unreached_calls: Format.formatter -> unit
+    (** Pretty-print semantically unreachable functions that are called by
+        semantically reachable functions. *)
 
-val pp_stmts_reached_by_function: Format.formatter -> unit
+    method pp_value_coverage: Format.formatter -> unit
+    (** Pretty-print value coverage information, including functions
+        syntactically and semantically reachable from the entry point,
+        as well as coverage percentage. *)
+
+    method pp_stmts_reached_by_function: Format.formatter -> unit
+  end
+
 
 (*
 Local Variables:

@@ -22,12 +22,7 @@ tests/float/alarms.i:11:[value] warning: non-finite double value. assert \is_fin
         big ∈ {0}
         ull ∈ {0}
         l ∈ [--..--]
-        vf ∈ UNINITIALIZED
         tmp ∈ UNINITIALIZED
-        vd ∈ UNINITIALIZED
-        i ∈ UNINITIALIZED
-        j ∈ UNINITIALIZED
-        mvd ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function fd <- main.

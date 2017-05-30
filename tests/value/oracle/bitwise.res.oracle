@@ -6,24 +6,39 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main_and_or_rel <- main.
-        Called from tests/value/bitwise.i:44.
+        Called from tests/value/bitwise.i:64.
 tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [value] Recording results for main_and_or_rel
 [value] Done for function main_and_or_rel
 [value] computing for function main_bitwise <- main.
-        Called from tests/value/bitwise.i:45.
+        Called from tests/value/bitwise.i:65.
 [value] Recording results for main_bitwise
 [value] Done for function main_bitwise
 [value] computing for function main_bug1 <- main.
-        Called from tests/value/bitwise.i:46.
+        Called from tests/value/bitwise.i:66.
 [value] Recording results for main_bug1
 [value] Done for function main_bug1
 [value] computing for function main_bug2 <- main.
-        Called from tests/value/bitwise.i:47.
+        Called from tests/value/bitwise.i:67.
 [value] Called Frama_C_show_each_then()
 [value] Called Frama_C_show_each_else()
 [value] Recording results for main_bug2
 [value] Done for function main_bug2
+[value] computing for function main_bug3 <- main.
+        Called from tests/value/bitwise.i:68.
+[value] DUMPING STATE of file tests/value/bitwise.i line 47
+        v ∈ [--..--]
+        l_1180 ∈ {69166447}
+        foo ∈ {4225800849}
+        =END OF DUMP==
+[value] Recording results for main_bug3
+[value] Done for function main_bug3
+[value] computing for function main_bug4 <- main.
+        Called from tests/value/bitwise.i:69.
+[value] Called Frama_C_show_each_then()
+[value] Called Frama_C_show_each_else()
+[value] Recording results for main_bug4
+[value] Done for function main_bug4
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -44,6 +59,12 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
   p2 ∈ {0}
 [value:final-states] Values at end of function main_bug2:
   t ∈ {1; 2}
+[value:final-states] Values at end of function main_bug3:
+  l_1180 ∈ {69166447}
+  foo ∈ {4225800849}
+[value:final-states] Values at end of function main_bug4:
+  g_2 ∈ {-1; 0}
+  tmp_0 ∈ {-5496}
 [value:final-states] Values at end of function main:
   
 [from] Computing for function main_and_or_rel
@@ -54,6 +75,12 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [from] Done for function main_bug1
 [from] Computing for function main_bug2
 [from] Done for function main_bug2
+[from] Computing for function main_bug3
+[from] Computing for function Frama_C_dump_each <-main_bug3
+[from] Done for function Frama_C_dump_each
+[from] Done for function main_bug3
+[from] Computing for function main_bug4
+[from] Done for function main_bug4
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -65,6 +92,10 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [from] Function main_bug1:
   NO EFFECTS
 [from] Function main_bug2:
+  NO EFFECTS
+[from] Function main_bug3:
+  NO EFFECTS
+[from] Function main_bug4:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
@@ -84,6 +115,14 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [inout] Out (internal) for function main_bug2:
           t; tmp
 [inout] Inputs for function main_bug2:
+          v
+[inout] Out (internal) for function main_bug3:
+          l_1180; foo
+[inout] Inputs for function main_bug3:
+          \nothing
+[inout] Out (internal) for function main_bug4:
+          g_2; tmp; tmp_0
+[inout] Inputs for function main_bug4:
           v
 [inout] Out (internal) for function main:
           \nothing

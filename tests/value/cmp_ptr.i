@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: #"-main main"
-   STDOPT: #"-undefined-pointer-comparison-propagate-all"
+   STDOPT: #"-main main -value-msg-key pointer-comparison"
+   STDOPT: #"-undefined-pointer-comparison-propagate-all -value-msg-key pointer-comparison"
 */
 
 int *p,T[10]={0,1,2,3,4,5,6,7,8,9};

@@ -160,7 +160,7 @@ int h(int c)
     tmp = f1(c);
     if (__fc_exn.exn_uncaught == 1) 
       switch (__fc_exn.exn_kind) case __fc_exn_kind___fc_Smy_exn:
-                                   goto __fc_Smy_exn_1;
+                                 goto __fc_Smy_exn_1;
     __retres = tmp;
     goto return_label;
   }
@@ -179,11 +179,10 @@ int h(int c)
     }
     else 
       if (c > 360) {
-        int tmp_1;
-        tmp_1 = f3(c);
+        int x_0 = f3(c);
         if (__fc_exn.exn_uncaught == 1) 
           switch (__fc_exn.exn_kind) default: goto catch_all;
-        __retres = tmp_1;
+        __retres = x_0;
         goto return_label;
       }
       else {
@@ -191,7 +190,7 @@ int h(int c)
         tmp_2 = f4(c);
         if (__fc_exn.exn_uncaught == 1) 
           switch (__fc_exn.exn_kind) case __fc_exn_kind___fc_Smy_exn2:
-                                       goto __fc_Smy_exn2_2;
+                                     goto __fc_Smy_exn2_2;
         __retres = tmp_2;
         goto return_label;
       }

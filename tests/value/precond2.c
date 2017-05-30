@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -rte -rte-precond -then -val @VALUECONFIG@ -then -report -report-print-properties
-   OPT: -val @VALUECONFIG@ -then -rte -rte-precond -then -report -report-print-properties
+   OPT: -no-autoload-plugins -load-module from,inout,value,report,rtegen -rte -rte-precond -then -val @VALUECONFIG@ -then -report -report-print-properties
+   OPT: -no-autoload-plugins -load-module from,inout,value,report,rtegen -val @VALUECONFIG@ -then -rte -rte-precond -then -report -report-print-properties
 */
 
 // Fuse with precond.c when bts #1208 is solved

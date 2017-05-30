@@ -9,9 +9,8 @@
 int f(void)
 {
   int __retres;
-  int y;
   /*@ assert emitter2: ∀ ℤ x; x ≡ x; */
-  y = 0;
+  int y = 0;
   y ++;
   /*@ assert y ≡ 1; */
   /*@ assert emitter2: ∀ ℤ x; x ≡ x; */

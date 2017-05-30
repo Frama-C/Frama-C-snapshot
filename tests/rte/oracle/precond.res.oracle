@@ -137,54 +137,33 @@ cell *tabtop_set(top **tab_top, int i, int v)
 
 int main(void)
 {
-  int a;
-  int b;
-  cell c;
   cell *pc;
   top T;
   top tabT[2];
-  top *ptabT[3];
   top **pptop;
-  other ot;
   void *V;
-  int k;
-  int l;
-  int z;
-  int y;
   int w;
-  int tab[4];
   int *r;
   int **rr;
-  a = 2;
-  b = 3;
-  c.val = 20;
-  c.next = (struct cell *)0;
-  { /* sequence */
-    ;
-    ;
-    ;
-  }
-  ptabT[0] = & T;
-  ptabT[1] = & T;
-  ptabT[2] = & T;
-  ot.c = c;
-  k = 1;
-  l = 1;
+  int a = 2;
+  int b = 3;
+  cell c = {.val = 20, .next = (struct cell *)0};
+  top *ptabT[3] = {& T, & T, & T};
+  other ot = {.c = c};
+  int k = 1;
+  int l = 1;
   /*@ behavior pre_f:
         requires 2 > 0;
         requires (int)(2 + 3) ≢ 0; */
-  z = f(2,3,(float)1.0);
+  int z = f(2,3,(float)1.0);
   /*@ assert rte: signed_overflow: -2147483648 ≤ b - a; */
   /*@ assert rte: signed_overflow: b - a ≤ 2147483647; */
   /*@ behavior pre_f_2:
         requires (int)(b - a) > 0;
         requires (int)((int)(b - a) + a) ≢ 0;
   */
-  y = f(b - a,a,(float)2.0);
-  tab[0] = 1;
-  tab[1] = 2;
-  tab[2] = 3;
-  tab[3] = 4;
+  int y = f(b - a,a,(float)2.0);
+  int tab[4] = {1, 2, 3, 4};
   /*@ assert rte: signed_overflow: -2147483648 ≤ a + b; */
   /*@ assert rte: signed_overflow: a + b ≤ 2147483647; */
   /*@ behavior pre_f_3:

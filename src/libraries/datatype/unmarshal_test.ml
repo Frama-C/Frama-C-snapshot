@@ -251,23 +251,6 @@ test 10n;;
 test 0x7fffffffn;;
 test 0x80000000n;;
 
-open Num;;
-
-ignore Unmarshal_nums.t_num;;
-
-let test v =
-  incr counter;
-  check (string_of_num (wr (num_of_string v)) = v) (sprintf "num%d" !counter);
-;;
-
-test "0";;
-test "1";;
-test "-1";;
-test "100000000000000000000000000000000";;
-test "77777777777777777777777777777/2222222222222222222222";;
-test "-314159265358979/2718281828";;
-
-
 (* 2. Testing with transformation functions. *)
 
 let v = [1; 2; 3; 4; 5; 12847];;

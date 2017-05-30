@@ -36,8 +36,7 @@ static S2_t const G2 =
   {.p1 = (S1_t const *)(& G1.c12), .p2 = & G1.c12, .p3 = & G1.c3};
 void g(S2_t const *q)
 {
-  S1_t *s1;
-  s1 = & G1.c12;
+  S1_t *s1 = & G1.c12;
   G1.c3.s = G1.c12.s + G1.c12.s;
   G1.c12.s = 3;
   return;
@@ -46,10 +45,9 @@ void g(S2_t const *q)
 int main(int c)
 {
   int __retres;
-  int s;
   int tmp;
   if (c) tmp = 1; else tmp = 2;
-  s = tmp;
+  int s = tmp;
   G1.c12.s = s;
   g(& G2);
   __retres = G1.c3.s;

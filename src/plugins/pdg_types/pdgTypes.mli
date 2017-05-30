@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,7 +119,7 @@ module Pdg : sig
 
   exception Top
     (** can be raised by most of the functions when called with a Top PDG.
-        Top means that we were not abled to compute the PDG for this
+        Top means that we were not able to compute the PDG for this
         function. *)
 
   exception Bottom

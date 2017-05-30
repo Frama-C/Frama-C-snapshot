@@ -17,7 +17,7 @@ void doxygen_group(void)
 /* @}  */
 /* @} */
 /* @} Bly */
-extern void main();
+void main();
 
 
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
@@ -39,6 +39,6 @@ void doxygen_group(void)
 /* @}  */
 /* @} */
 /* @} Bly */
-extern void main();
+void main();
 
 

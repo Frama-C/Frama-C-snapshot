@@ -12,7 +12,7 @@ Goal Post-condition (file tests/wp_acsl/bitwise.i, line 5) in 'band':
 Let x = land(a, land(b, c)).
 Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x).
 }
-Prove: x = to_sint32(x).
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 
@@ -54,14 +54,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition for 'bit3' 'band5' in 'band':
-Assume {
-  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\
-      is_sint32(land(a, land(b, c))).
-  (* Pre-condition for 'bit3' 'bit3' *)
-  Have: (!bit_test(a, 1)) /\ ((!bit_test(a, 0)) \/ (!bit_test(b, 0))) /\
-      ((!bit_test(b, 1)) \/ (!bit_test(c, 1))).
-}
-Prove: (!bit_test(a, 0)) \/ (!bit_test(b, 0)).
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -77,12 +70,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition for 'bit5' 'band7,zbit' in 'band':
-Assume {
-  Type: is_sint32(a) /\ is_sint32(land(a, land(b, c))).
-  (* Goal *)
-  When: 85 = land(4095, a).
-}
-Prove: 21845 != land(65535, a).
+Assume { Type: is_sint32(a). (* Goal *) When: land(4095, a) = 85. }
+Prove: land(65535, a) != 21845.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -91,7 +80,7 @@ Prove: 21845 != land(65535, a).
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 55) in 'bnot':
 Let x = lnot(a). Assume { Type: is_sint32(a) /\ is_sint32(x). }
-Prove: x = to_sint32(x).
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -102,7 +91,7 @@ Goal Post-condition (file tests/wp_acsl/bitwise.i, line 28) in 'bor':
 Let x = lor(a, lor(b, c)).
 Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x).
 }
-Prove: x = to_sint32(x).
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 
@@ -141,7 +130,7 @@ Prove: true.
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 42) in 'bxor':
 Let x = lxor(a, b).
 Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(x). }
-Prove: x = to_sint32(x).
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -167,7 +156,7 @@ Prove: true.
 Goal Post-condition for 'bit3' 'zbit' in 'bxor':
 Let x = lnot(b).
 Assume { Type: is_sint32(b) /\ is_sint32(x) /\ is_sint32(lxor(b, x)). }
-Prove: b = lnot(x).
+Prove: lnot(x) = b.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -175,7 +164,9 @@ Prove: b = lnot(x).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 58) in 'lshift':
-Prove: true.
+Let x = lsl(a, n).
+Assume { Type: is_sint32(a) /\ is_sint32(n) /\ is_sint32(x). }
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -206,7 +197,7 @@ Prove: true.
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 69) in 'rshift':
 Let x = lsr(a, n).
 Assume { Type: is_sint32(a) /\ is_sint32(n) /\ is_sint32(x). }
-Prove: x = to_sint32(x).
+Prove: to_sint32(x) = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

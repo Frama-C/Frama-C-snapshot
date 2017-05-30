@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ val print_original_glob : Format.formatter -> Cil_types.global -> unit
 
 val print_fct_stmts :
   Format.formatter ->
-  (SlicingTypes.sl_project * Cil_types.kernel_function) ->
+  Cil_types.kernel_function ->
   unit
 
-val build_dot_project : string -> string -> SlicingInternals.project -> unit
+val build_dot_project : string -> string -> unit

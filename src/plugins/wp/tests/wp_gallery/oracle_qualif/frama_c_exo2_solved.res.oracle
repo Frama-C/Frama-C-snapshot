@@ -1,0 +1,47 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo2_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 22 goals scheduled
+[wp] [Alt-Ergo] Goal typed_max_subarray_post : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_3_preserved : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_inv_3_established : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_inv_4_preserved : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_inv_4_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_5_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_5_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_6_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_6_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_7_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_7_established : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_8_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_max_subarray_loop_inv_8_established : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_assign : Valid
+[wp] [Qed] Goal typed_max_subarray_assign : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_max_subarray_loop_term_positive : Valid
+[wp] Proved goals:   22 / 22
+     Qed:             9 
+     Alt-Ergo:       13
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+max_subarray         9     13 (267)   22       100%
+----------------------------------------------------------
+[wp] Running WP plugin...
+[rte] annotating function max_subarray
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_max_subarray_assert_rte_mem_access : Valid
+[wp] Proved goals:    1 / 1
+     Qed:             0 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+max_subarray         9     14 (267)   23       100%
+----------------------------------------------------------

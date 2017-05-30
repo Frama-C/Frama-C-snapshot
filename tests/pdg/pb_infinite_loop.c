@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -main test_infinite_loop -fct-pdg test_infinite_loop -journal-disable  -pdg-print -pdg-verbose 2
-   OPT: -main test_infinite_loop_2 -fct-pdg test_infinite_loop_2 -journal-disable  -pdg-print -pdg-verbose 2
-   OPT: -main test_exit -fct-pdg test_exit -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -main test_infinite_loop -val-show-progress -fct-pdg test_infinite_loop -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -main test_infinite_loop_2 -val-show-progress -fct-pdg test_infinite_loop_2 -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -main test_exit -val-show-progress -fct-pdg test_exit -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 /* This test is a problem at the moment because the postdominators are Top

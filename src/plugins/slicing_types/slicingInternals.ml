@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,9 +76,8 @@ let compare_pdg_mark p1 p2 =
 type fct_info = {
   fi_kf : Cil_types.kernel_function;
   fi_def : Cil_types.fundec option;
-  fi_project : project;
   mutable fi_top : pdg_mark option;
-          (** indicates if the function is maked top (=> src visible) *)
+          (** indicates if the function is marked top (=> src visible) *)
   mutable fi_level_option : level_option;
           (** level of specialisation for this function *)
   mutable fi_init_marks : ff_marks option;
@@ -132,9 +131,7 @@ and
   ff_marks = PdgTypes.Pdg.t * marks_index
 
 and
-  project = { name : string ;
-              application : Project.t ;
-              functions : fct_info Varinfo.Hashtbl.t;
+  project = { functions : fct_info Varinfo.Hashtbl.t;
               mutable actions : criterion list;
               }
 
@@ -153,7 +150,7 @@ and
 
 and
 (** Base criterion for the functions. These are the only one that can
-    really generate function slices. All the other criterions are
+    really generate function slices. All the other criteria are
     translated in more basic ones.
     Note that to build such a base criterion, the PDG has to be already
     computed.
@@ -212,7 +209,7 @@ and
      * When it a a slice, it might be an existing slice that will be modified,
       * or a new one will be created during application.
       * When it is the source function, it means what the criterion has to be
-      * applied on each existing slice, and stored into the inititial marks of
+      * applied on each existing slice, and stored into the initial marks of
       * the function.
       *)
   cf_info : fct_crit
@@ -230,15 +227,12 @@ let dummy_pdg_mark = {m1 = Spare ; m2 = Spare }
 
 (** The whole project. *)
 let dummy_project =
-  { name = "";
-    application = Project_skeleton.dummy;
-    functions = Varinfo.Hashtbl.create 0;
+  { functions = Varinfo.Hashtbl.create 0;
     actions = [] }
 
 let dummy_fct_info = {
   fi_kf = Kernel_function.dummy () ;
   fi_def = None;
-  fi_project = dummy_project;
   fi_top = None;
   fi_level_option = DontSlice;
   fi_init_marks = None;

@@ -11,8 +11,11 @@
   ps ∈ {{ &s }}
   v ∈ [--..--]
   BITF ∈ [--..--]
+  S9 ∈ [--..--]
+  u9[0..9] ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/volatile2.i:123.
+        Called from tests/value/volatile2.i:136.
+tests/value/volatile2.i:13:[value] warning: initialization of volatile variable c ignored
 tests/value/volatile2.i:23:[value] warning: signed overflow. assert (int)c << 8 ≤ 32767;
 tests/value/volatile2.i:24:[value] warning: signed overflow. assert (int)*p << 8 ≤ 32767;
 tests/value/volatile2.i:25:[value] warning: signed overflow. assert (int)t[1] << 8 ≤ 32767;
@@ -20,11 +23,11 @@ tests/value/volatile2.i:26:[value] warning: signed overflow. assert (int)u.f1 <<
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/volatile2.i:124.
+        Called from tests/value/volatile2.i:137.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/volatile2.i:125.
+        Called from tests/value/volatile2.i:138.
 tests/value/volatile2.i:47:[value] warning: assertion got status invalid (stopping propagation).
 tests/value/volatile2.i:52:[value] assertion got status valid.
 tests/value/volatile2.i:55:[value] warning: assertion got status unknown.
@@ -33,11 +36,14 @@ tests/value/volatile2.i:59:[value] assertion got status valid.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/volatile2.i:126.
+        Called from tests/value/volatile2.i:139.
+tests/value/volatile2.i:67:[value] warning: initialization of volatile variable p2 ignored
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/volatile2.i:127.
+        Called from tests/value/volatile2.i:140.
+tests/value/volatile2.i:74:[value] warning: initialization of volatile variable i ignored
+tests/value/volatile2.i:75:[value] warning: initialization of volatile variable j ignored
 tests/value/volatile2.i:76:[value] warning: signed overflow. assert i + 1 ≤ 32767;
 tests/value/volatile2.i:76:[value] warning: signed overflow. assert j + 1 ≤ 32767;
 tests/value/volatile2.i:76:[value] warning: signed overflow.
@@ -63,22 +69,41 @@ tests/value/volatile2.i:78:[value] warning: signed overflow. assert i + j ≤ 32
         tmp_0 ∈ [--..--]
         l ∈ [--..--]
         BITF ∈ [--..--]
+        S9 ∈ [--..--]
+        u9[0..9] ∈ [--..--]
         =END OF DUMP==
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-        Called from tests/value/volatile2.i:128.
+        Called from tests/value/volatile2.i:141.
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-        Called from tests/value/volatile2.i:129.
+        Called from tests/value/volatile2.i:142.
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main8 <- main.
-        Called from tests/value/volatile2.i:130.
+        Called from tests/value/volatile2.i:143.
+tests/value/volatile2.i:114:[value] warning: initialization of volatile variable a ignored
+tests/value/volatile2.i:115:[value] warning: initialization of volatile variable b ignored
+tests/value/volatile2.i:116:[value] warning: initialization of volatile variable c ignored
+tests/value/volatile2.i:117:[value] warning: initialization of volatile variable d ignored
+tests/value/volatile2.i:118:[value] warning: initialization of volatile variable e ignored
 [value] Called Frama_C_show_each([--..--], [--..--], [--..--], [--..--], [--..--])
 [value] Recording results for main8
 [value] Done for function main8
+[value] computing for function main9 <- main.
+        Called from tests/value/volatile2.i:144.
+tests/value/volatile2.i:129:[value] warning: accessing out of bounds index. assert 0 ≤ S9.i1;
+tests/value/volatile2.i:129:[value] warning: accessing out of bounds index. assert S9.i1 < 10;
+tests/value/volatile2.i:130:[value] warning: accessing out of bounds index. assert 0 ≤ S9.i1;
+tests/value/volatile2.i:130:[value] warning: accessing out of bounds index. assert S9.i1 < 10;
+tests/value/volatile2.i:131:[value] warning: accessing out of bounds index. assert 0 ≤ u9[1];
+tests/value/volatile2.i:131:[value] warning: accessing out of bounds index. assert u9[1] < 10;
+tests/value/volatile2.i:132:[value] warning: accessing out of bounds index. assert 0 ≤ u9[1];
+tests/value/volatile2.i:132:[value] warning: accessing out of bounds index. assert u9[1] < 10;
+[value] Recording results for main9
+[value] Done for function main9
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -98,7 +123,7 @@ tests/value/volatile2.i:78:[value] warning: signed overflow. assert i + j ≤ 32
   
 [value:final-states] Values at end of function main4:
   p1 ∈ {{ &i }}
-  p2 ∈ {{ &i + [--..--] }}
+  p2 ∈ [--..--]
 [value:final-states] Values at end of function main5:
   i ∈ [--..--]
   j ∈ [--..--]
@@ -116,6 +141,8 @@ tests/value/volatile2.i:78:[value] warning: signed overflow. assert i + j ≤ 32
   c ∈ [--..--]
   d ∈ [--..--]
   e ∈ [--..--]
+[value:final-states] Values at end of function main9:
+  t9[0..9] ∈ {1; 2; 3; 4} or UNINITIALIZED
 [value:final-states] Values at end of function main:
   
 /* Generated by Frama-C */
@@ -145,29 +172,26 @@ union __anonunion_U_3 {
 };
 typedef union __anonunion_U_3 U;
 typedef U volatile vU;
+struct __anonstruct_S9_4 {
+   int volatile i1 ;
+   int i2 ;
+};
 unsigned char volatile t[10];
 struct u volatile u;
 struct u *pu = (struct u *)(& u);
 void main1(void)
 {
-  unsigned char volatile c;
-  int x;
-  unsigned char volatile *p;
-  unsigned int i;
-  unsigned int j;
-  unsigned int k;
-  unsigned int l;
-  c = (unsigned char)1;
-  x = 1;
-  p = (unsigned char volatile *)(& x);
+  unsigned char volatile c = (unsigned char)1;
+  int x = 1;
+  unsigned char volatile *p = (unsigned char volatile *)(& x);
   /*@ assert Value: signed_overflow: (int)c << 8 ≤ 32767; */
-  i = (unsigned int)(((int)c << 8) + (int)c);
+  unsigned int i = (unsigned int)(((int)c << 8) + (int)c);
   /*@ assert Value: signed_overflow: (int)*p << 8 ≤ 32767; */
-  j = (unsigned int)(((int)*p << 8) + (int)*p);
+  unsigned int j = (unsigned int)(((int)*p << 8) + (int)*p);
   /*@ assert Value: signed_overflow: (int)t[1] << 8 ≤ 32767; */
-  k = (unsigned int)(((int)t[1] << 8) + (int)t[2]);
+  unsigned int k = (unsigned int)(((int)t[1] << 8) + (int)t[2]);
   /*@ assert Value: signed_overflow: (int)u.f1 << 8 ≤ 32767; */
-  l = (unsigned int)(((int)u.f1 << 8) + (int)u.f2);
+  unsigned int l = (unsigned int)(((int)u.f1 << 8) + (int)u.f2);
   return;
 }
 
@@ -175,12 +199,9 @@ struct s s;
 struct s volatile *ps = (struct s volatile *)(& s);
 void main2(void)
 {
-  int i;
-  int j;
-  int k;
-  i = (int)ps->i1;
-  j = (int)u.f1;
-  k = (int)t[1];
+  int i = (int)ps->i1;
+  int j = (int)u.f1;
+  int k = (int)t[1];
   return;
 }
 
@@ -201,10 +222,8 @@ void main3(void)
 void main4(void)
 {
   int volatile i;
-  int volatile *p1;
-  int volatile * volatile p2;
-  p1 = & i;
-  p2 = & i;
+  int volatile *p1 = & i;
+  int volatile * volatile p2 = & i;
   return;
 }
 
@@ -214,55 +233,42 @@ extern int ( /* missing proto */ Frama_C_dump_each)();
 
 void main5(void)
 {
-  int volatile i;
-  int volatile j;
-  int k;
   int tmp;
   int tmp_0;
-  int l;
-  i = 0;
-  j = 0;
-  { /* sequence */
-    tmp = i;
-    /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
-    i ++;
-    tmp_0 = j;
-    /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
-    j ++;
-    ;
-  }
+  int volatile i = 0;
+  int volatile j = 0;
+  tmp = i;
+  /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
+  i ++;
+  tmp_0 = j;
+  /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
+  j ++;
   /*@ assert Value: signed_overflow: -32768 ≤ tmp + tmp_0; */
   /*@ assert Value: signed_overflow: tmp + tmp_0 ≤ 32767; */
-  k = tmp + tmp_0;
-  { /* sequence */
-    /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
-    i ++;
-    /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
-    j ++;
-  }
+  int k = tmp + tmp_0;
+  /*@ assert Value: signed_overflow: i + 1 ≤ 32767; */
+  i ++;
+  /*@ assert Value: signed_overflow: j + 1 ≤ 32767; */
+  j ++;
   /*@ assert Value: signed_overflow: -32768 ≤ i + j; */
   /*@ assert Value: signed_overflow: i + j ≤ 32767; */
-  l = i + j;
+  int l = i + j;
   Frama_C_dump_each();
   return;
 }
 
 void main6(void)
 {
-  int i;
-  int j;
-  i = 1;
-  j = i;
+  int i = 1;
+  int j = i;
   return;
 }
 
 struct bitf volatile BITF;
 void main7(void)
 {
-  int i;
-  int k;
-  i = (int)BITF.i + 1;
-  k = (int)BITF.j + 1;
+  int i = (int)BITF.i + 1;
+  int k = (int)BITF.j + 1;
   return;
 }
 
@@ -272,17 +278,33 @@ extern int ( /* missing proto */ Frama_C_show_each)();
 
 void main8(void)
 {
-  S volatile a;
-  vS b;
-  vS2 c;
-  U volatile d;
-  vU e;
-  a.field = 0;
-  b.field = 0;
-  c.field = 0;
-  d.field = 0;
-  e.field = 0;
+  S volatile a = {.field = 0};
+  vS b = {.field = 0};
+  vS2 c = {.field = 0};
+  U volatile d = {.field = 0};
+  vU e = {.field = 0};
   Frama_C_show_each(a,b,c,d,e);
+  return;
+}
+
+extern struct __anonstruct_S9_4 S9;
+
+int volatile u9[10];
+void main9(void)
+{
+  int t9[10];
+  /*@ assert Value: index_bound: 0 ≤ S9.i1; */
+  /*@ assert Value: index_bound: S9.i1 < 10; */
+  t9[S9.i1] = 1;
+  /*@ assert Value: index_bound: 0 ≤ S9.i1; */
+  /*@ assert Value: index_bound: S9.i1 < 10; */
+  t9[S9.i1] = 2;
+  /*@ assert Value: index_bound: 0 ≤ u9[1]; */
+  /*@ assert Value: index_bound: u9[1] < 10; */
+  t9[u9[1]] = 3;
+  /*@ assert Value: index_bound: 0 ≤ u9[1]; */
+  /*@ assert Value: index_bound: u9[1] < 10; */
+  t9[u9[1]] = 4;
   return;
 }
 
@@ -296,6 +318,7 @@ void main(void)
   main6();
   main7();
   main8();
+  main9();
   return;
 }
 

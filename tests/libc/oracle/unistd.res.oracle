@@ -6,8 +6,7 @@ tests/libc/unistd.c:6:[kernel] warning: Calling undeclared function usleep. Old 
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   __fc_time ∈ [--..--]
-  __fc_time_tm ∈ {0}
-  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
+  __fc_tz ∈ [--..--]
   optarg ∈ {{ NULL ; &S_optarg[0] }}
   optind ∈ [--..--]
   opterr ∈ [--..--]

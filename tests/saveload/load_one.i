@@ -1,9 +1,5 @@
-/* run.config_no_native_dynlink
-   CMD: bin/toplevel.byte
-   OPT: -load-script tests/saveload/load_one.ml
-*/
 /* run.config
-   OPT: -load-script tests/saveload/load_one.ml
+   OPT: -load-script tests/saveload/load_one.ml -val-show-progress
 */
 
 int G;

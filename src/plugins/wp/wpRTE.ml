@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ let option name =
 let status db kf =
   try
     (* Absolutely forbidden to use 'set' from Db.RteGen :
-       this disables the generation of the associed RTE. *)
+       this disables the generation of the associated RTE. *)
     let (_,_,get) = (!db) () in get kf
   with Failure _ ->
     Wp_parameters.warning ~once:true
@@ -47,7 +47,6 @@ let status db kf =
 let is_precond_generated = status Db.RteGen.get_precond_status
 
 let always _ = true
-let natural = function Cint.Natural -> true | Cint.Machine -> false
 
 let configure ~update ~generate kf cint rte =
   if not rte.cint || rte.kernel () then

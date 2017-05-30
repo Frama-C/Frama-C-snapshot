@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ open Cil_datatype
 open Extlib
 open Gtk_helper
 
-(* To debug performance related to heigth of lines *)
+(* To debug performance related to height of lines *)
 let fixed_height = false
 
 type filetree_node =
@@ -254,20 +254,8 @@ module MYTREE = struct
   let comes_from_share filename =
     Filepath.is_relative ~base:Config.datadir filename
 
-  let is_stdlib_global = function
-    | GFun (_,(loc,_))
-    | GAsm (_,(loc,_))
-    | GPragma (_,(loc,_))
-    | GAnnot (_,(loc,_))
-    | GVarDecl (_,(loc,_)) 
-    | GFunDecl (_,_,(loc,_)) 
-    | GVar (_,_,(loc,_)) 
-    | GType (_,(loc,_)) 
-    | GCompTag (_,(loc,_)) 
-    | GCompTagDecl (_,(loc,_)) 
-    | GEnumTag (_,(loc,_)) 
-    | GEnumTagDecl (_,(loc,_)) -> comes_from_share loc.Lexing.pos_fname 
-    | GText _ -> false
+  let is_stdlib_global g =
+    Cil.hasAttribute "fc_stdlib" (Cil_datatype.Global.attr g)
 
   let is_function t = match t with
     | MFile _ -> false
@@ -287,9 +275,9 @@ module MYTREE = struct
     | Dfun_or_pred (li, _) ->
         Some (global_name li.l_var_info.lv_name)
     | Dvolatile _ -> Some "volatile clause"
-    | Daxiomatic (s, _, _) -> Some (global_name s)
+    | Daxiomatic (s, _, _,_) -> Some (global_name s)
     | Dtype (lti, _) -> Some (global_name lti.lt_name)
-    | Dlemma (s, _, _, _, _, _) -> Some (global_name s)
+    | Dlemma (s, _, _, _, _, _,_) -> Some (global_name s)
     | Dinvariant (li, _) -> Some (global_name li.l_var_info.lv_name)
     | Dtype_annot (li, _) -> Some (global_name li.l_var_info.lv_name)
     | Dmodel_annot (mf, _) -> Some (global_name mf.mi_name)
@@ -387,7 +375,7 @@ module State = struct
               GVarDecl(vi,_) | GFunDecl (_,vi,_)) ->
         (try Some (Varinfo.Hashtbl.find cache.cache_vars vi)
          with Not_found -> None)
-    | Global (GAnnot (ga, _)) ->
+    | Global (GAnnot (ga,_)) ->
         (try Some (Global_annotation.Hashtbl.find cache.cache_global_annot ga)
          with Not_found -> None)
     | _ -> None
@@ -403,7 +391,7 @@ module State = struct
         | [| GFun ({svar=vi},_) | GVar(vi,_,_)
            | GVarDecl(vi,_) | GFunDecl (_,vi,_)|] ->
             Varinfo.Hashtbl.add cache.cache_vars vi (path,row)
-        | [| GAnnot (ga, _) |] ->
+        | [| GAnnot (ga,_) |] ->
             Global_annotation.Hashtbl.add cache.cache_global_annot ga (path,row)
         | _ -> (* no cache for other globals yet *) ()
 

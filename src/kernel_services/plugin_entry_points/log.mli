@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ type 'a pretty_printer =
       Generic type for the various logging channels which are not aborting
       Frama-C.
       - When [current] is [false] (default for most of the channels),
-     no location is output. When it is [true], the last registred location
+     no location is output. When it is [true], the last registered location
      is used as current (see {!Cil_const.CurrentLoc}).
      - [source] is the location to be output. If nil, [current] is used to
      determine if a location should be output
@@ -148,7 +148,7 @@ module type Messages = sig
 	@plugin development guide *)
 
   val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
-    (** Debugging information dedicated to Plugin developpers.
+    (** Debugging information dedicated to Plugin developers.
         Default level is 1. The debugging key is used in message headers.
 	See also [set_debug_keys] and [set_debug_keyset].
         @since Beryllium-20090601-beta1
@@ -192,7 +192,7 @@ module type Messages = sig
 
   val not_yet_implemented : ('a,formatter,unit,'b) format4 -> 'a
     (** raises [FeatureRequest] but {i does not} send any message.
-        If the exception is not catched, Frama-C displays a feature-request
+        If the exception is not caught, Frama-C displays a feature-request
         message to the user.
         @since Beryllium-20090901 *)
 
@@ -240,8 +240,8 @@ module type Messages = sig
 
   val register_category: string -> category
   (** register a new debugging/verbose category.
-      Note: this should not be used directly by plug-in developers;
-      use instead [Plugin.S.Debug_category.add].
+      Note: categories must be added (e.g. via [add_debug_keys])
+      after registration.
       @since Fluorine-20130401
    *)
 

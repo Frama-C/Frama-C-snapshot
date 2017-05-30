@@ -296,30 +296,29 @@ void main_post_func(void)
 void main(void)
 {
   int aorai_Loop_Init_16;
-  int i;
   main_pre_func();
-  i = 0;
+  int i = 0;
   /*@ ghost aorai_Loop_Init_16 = 1; */
   aorai_loop_16:
-    /*@ loop invariant Aorai: 1 ≡ S ∨ 0 ≡ S;
-        loop invariant Aorai: 1 ≡ T ∨ 0 ≡ T;
-        loop invariant Aorai: 0 ≡ aorai_intermediate_state;
-        loop invariant Aorai: 0 ≡ aorai_intermediate_state_0;
-        loop invariant Aorai: 0 ≡ init;
-        loop invariant Aorai: 1 ≡ S ∨ 1 ≡ T;
-        loop invariant
-          Aorai: aorai_Loop_Init_16 ≢ 0 ⇒ \at(1 ≡ init,Pre) ⇒ 0 ≡ T;
-        loop assigns i, aorai_Loop_Init_16, aorai_CurOpStatus,
-                     aorai_CurOperation, S, T, aorai_intermediate_state,
-                     aorai_intermediate_state_0, init;
-        loop assigns aorai_Loop_Init_16 \from \nothing;
-    */
-    while (1) {
-      if (! (i < 10)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_16 = 0; */
-      a();
-      i ++;
-    }
+  /*@ loop invariant Aorai: 1 ≡ S ∨ 0 ≡ S;
+      loop invariant Aorai: 1 ≡ T ∨ 0 ≡ T;
+      loop invariant Aorai: 0 ≡ aorai_intermediate_state;
+      loop invariant Aorai: 0 ≡ aorai_intermediate_state_0;
+      loop invariant Aorai: 0 ≡ init;
+      loop invariant Aorai: 1 ≡ S ∨ 1 ≡ T;
+      loop invariant
+        Aorai: aorai_Loop_Init_16 ≢ 0 ⇒ \at(1 ≡ init,Pre) ⇒ 0 ≡ T;
+      loop assigns i, aorai_Loop_Init_16, aorai_CurOpStatus,
+                   aorai_CurOperation, S, T, aorai_intermediate_state,
+                   aorai_intermediate_state_0, init;
+      loop assigns aorai_Loop_Init_16 \from \nothing;
+  */
+  while (1) {
+    if (! (i < 10)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_16 = 0; */
+    a();
+    i ++;
+  }
   while_0_break: ;
   main_post_func();
   return;

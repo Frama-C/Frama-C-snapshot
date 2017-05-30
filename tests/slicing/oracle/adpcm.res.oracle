@@ -1508,7 +1508,7 @@ tests/test/adpcm.c:557:[value] warning: signed overflow. assert -2147483648 ≤ 
                  wh_code_table[0..3]; nbh; delay_dhx[0..5]; delay_bph[0..5];
                  ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..9] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
-[slicing] making slicing project 'slicing_1'...
+[slicing] initializing slicing ...
 [pdg] computing for function uppol2
 [pdg] done for function uppol2
 [slicing] applying all slicing requests...
@@ -1518,7 +1518,7 @@ tests/test/adpcm.c:557:[value] warning: signed overflow. assert -2147483648 ≤ 
 [pdg] done for function encode
 [pdg] computing for function main
 [pdg] done for function main
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 [main_slice_1 = change_call for call 280 -> encode_slice_1][encode_slice_1 = change_call for call 108 -> uppol2_slice_1][encode_slice_1 = change_call for call 81 -> uppol2_slice_1]
 
 [slicing] exporting project to 'Sliced code'...
@@ -1824,20 +1824,16 @@ void encode_slice_1(int xin1, int xin2)
   int tmp_13;
   h_ptr = h;
   tqmf_ptr = tqmf;
-  { /* sequence */
-    tmp = tqmf_ptr;
-    tqmf_ptr ++;
-    tmp_0 = h_ptr;
-    h_ptr ++;
-    xa = (long)*tmp * (long)*tmp_0;
-  }
-  { /* sequence */
-    tmp_1 = tqmf_ptr;
-    tqmf_ptr ++;
-    tmp_2 = h_ptr;
-    h_ptr ++;
-    xb = (long)*tmp_1 * (long)*tmp_2;
-  }
+  tmp = tqmf_ptr;
+  tqmf_ptr ++;
+  tmp_0 = h_ptr;
+  h_ptr ++;
+  xa = (long)*tmp * (long)*tmp_0;
+  tmp_1 = tqmf_ptr;
+  tqmf_ptr ++;
+  tmp_2 = h_ptr;
+  h_ptr ++;
+  xb = (long)*tmp_1 * (long)*tmp_2;
   i = 0;
   /*@ loop pragma UNROLL 11; */
   while (i < 10) {
@@ -1846,54 +1842,42 @@ void encode_slice_1(int xin1, int xin2)
       int *tmp_4;
       int *tmp_5;
       int *tmp_6;
-      { /* sequence */
-        tmp_3 = tqmf_ptr;
-        tqmf_ptr ++;
-        tmp_4 = h_ptr;
-        h_ptr ++;
-        xa += (long)*tmp_3 * (long)*tmp_4;
-      }
-      { /* sequence */
-        tmp_5 = tqmf_ptr;
-        tqmf_ptr ++;
-        tmp_6 = h_ptr;
-        h_ptr ++;
-        xb += (long)*tmp_5 * (long)*tmp_6;
-      }
+      tmp_3 = tqmf_ptr;
+      tqmf_ptr ++;
+      tmp_4 = h_ptr;
+      h_ptr ++;
+      xa += (long)*tmp_3 * (long)*tmp_4;
+      tmp_5 = tqmf_ptr;
+      tqmf_ptr ++;
+      tmp_6 = h_ptr;
+      h_ptr ++;
+      xb += (long)*tmp_5 * (long)*tmp_6;
     }
     i ++;
   }
-  { /* sequence */
-    tmp_7 = tqmf_ptr;
-    tqmf_ptr ++;
-    tmp_8 = h_ptr;
-    h_ptr ++;
-    xa += (long)*tmp_7 * (long)*tmp_8;
-  }
-  { /* sequence */
-    tmp_9 = h_ptr;
-    xb += (long)*tqmf_ptr * (long)*tmp_9;
-  }
+  tmp_7 = tqmf_ptr;
+  tqmf_ptr ++;
+  tmp_8 = h_ptr;
+  h_ptr ++;
+  xa += (long)*tmp_7 * (long)*tmp_8;
+  tmp_9 = h_ptr;
+  xb += (long)*tqmf_ptr * (long)*tmp_9;
   tqmf_ptr1 = tqmf_ptr - 2;
   i = 0;
   /*@ loop pragma UNROLL 23; */
   while (i < 22) {
     int *tmp_10;
     int *tmp_11;
-    { /* sequence */
-      tmp_10 = tqmf_ptr;
-      tqmf_ptr --;
-      tmp_11 = tqmf_ptr1;
-      tqmf_ptr1 --;
-      *tmp_10 = *tmp_11;
-    }
+    tmp_10 = tqmf_ptr;
+    tqmf_ptr --;
+    tmp_11 = tqmf_ptr1;
+    tqmf_ptr1 --;
+    *tmp_10 = *tmp_11;
     i ++;
   }
-  { /* sequence */
-    tmp_12 = tqmf_ptr;
-    tqmf_ptr --;
-    *tmp_12 = xin1;
-  }
+  tmp_12 = tqmf_ptr;
+  tqmf_ptr --;
+  *tmp_12 = xin1;
   *tqmf_ptr = xin2;
   xl = (int)((xa + xb) >> 15);
   xh = (int)((xa - xb) >> 15);
@@ -1920,9 +1904,7 @@ void encode_slice_1(int xin1, int xin2)
   eh = xh - sh;
   if (eh >= 0) ih = 3; else ih = 1;
   decis = (int)(564L * (long)deth >> 12L);
-  { /* sequence */
-    tmp_13 = abs_slice_1(eh);
-  }
+  tmp_13 = abs_slice_1(eh);
   if (tmp_13 > decis) ih --;
   dh = (int)((long)deth * (long)qq2_code2_table[ih] >> 15L);
   nbh = logsch_slice_1(ih,nbh);
@@ -1946,25 +1928,21 @@ int filtez_slice_1(int *bpl, int *dlt_0)
   long zl;
   int *tmp;
   int *tmp_0;
-  { /* sequence */
-    tmp = bpl;
-    bpl ++;
-    tmp_0 = dlt_0;
-    dlt_0 ++;
-    zl = (long)*tmp * (long)*tmp_0;
-  }
+  tmp = bpl;
+  bpl ++;
+  tmp_0 = dlt_0;
+  dlt_0 ++;
+  zl = (long)*tmp * (long)*tmp_0;
   i = 1;
   /*@ loop pragma UNROLL 7; */
   while (i < 6) {
     int *tmp_1;
     int *tmp_2;
-    { /* sequence */
-      tmp_1 = bpl;
-      bpl ++;
-      tmp_2 = dlt_0;
-      dlt_0 ++;
-      zl += (long)*tmp_1 * (long)*tmp_2;
-    }
+    tmp_1 = bpl;
+    bpl ++;
+    tmp_2 = dlt_0;
+    dlt_0 ++;
+    zl += (long)*tmp_1 * (long)*tmp_2;
     i ++;
   }
   __retres = (int)(zl >> 14);

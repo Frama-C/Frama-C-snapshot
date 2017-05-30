@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@
      - for natural [n], the [k]-th bit of [2^n] if [(k=n)] ;
      - for positive integer [x>=0], it is the union of the bits of its binary 
        decomposition (hence, natural powers of two) ;
-     - finaly, the bits of a negative integer [x<0] are the reverted ones 
+     - finally, the bits of a negative integer [x<0] are the reverted ones 
        of its two's complement [-(x+1)].
 
     The realization of the theory proceeds into several stages, 
@@ -88,9 +88,9 @@ Ltac Z_compare Inf EQ Sup i j :=
   [ destruct TMP as [ Inf | Sup ] | try rewrite <- EQ ];
   auto with zarith.
 
-(** For proving a symetrical relation [P], 
+(** For proving a symmetrical relation [P], 
     it is sufficient to prove [P i j] for [i<j] and [P i i]. *)
-Lemma symetrical_ind: forall (P : nat -> nat -> Prop),
+Lemma symmetrical_ind: forall (P : nat -> nat -> Prop),
    (forall i j, P i j -> P j i) ->
    (forall i, P i i) ->
    (forall i j, i < j -> P i j) ->
@@ -160,7 +160,7 @@ Qed.
 						    
 (** {@trailing:} *)
 (** * Eventually constant functions *)
-(** The bits representation of [Z] integers are eventualy constant 
+(** The bits representation of [Z] integers are eventually constant 
     [nat -> bool] functions. Positive integers finally ends with an infinite 
     sequence of 0-bits, while negative inetegers ends with 1-bits. 
 
@@ -173,7 +173,7 @@ Qed.
 (** Function [f] has constant value [b] from rank [k]. *)
 Definition trailing f (n:nat) (b:bool) := forall k, n <= k -> f k = b.
 
-(** Returns the lowest index such than [f n=b], and [n] otherwize. *)
+(** Returns the lowest index such than [f n=b], and [n] otherwise. *)
 Fixpoint last f n b {struct n} :=
   match n with
   | O => O
@@ -819,7 +819,7 @@ Proof.
 Qed.
 
 (** ** Involution of Decomposition and Recomposition *)
-(** These two fundemental lemmas allow reasoning conversely with bits or integers. *)
+(** These two fundamental lemmas allow reasoning conversely with bits or integers. *)
 
 (** [Z_of_bits] is the inverse of [bits_of_Z] *)
 Lemma Z_recomp_decomp: forall x: Z,
@@ -1117,7 +1117,7 @@ Proof.
   + generalize (two_power_nat_is_positive n). omega.
 Qed.
  
-(** Position of the highest significant bit of the predecesor of [two_power_nat]. *)
+(** Position of the highest significant bit of the predecessor of [two_power_nat]. *)
 Remark ZxHpos_of_two_power_nat_minus_one: forall n: nat,
   (ZxHpos ((two_power_nat n) - 1) = n)%nat.
 Proof.

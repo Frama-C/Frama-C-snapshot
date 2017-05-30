@@ -4,10 +4,8 @@
 int main(void)
 {
   int __retres;
-  int i;
-  int j;
-  i = 36;
-  j = 36;
+  int i = 36;
+  int j = 36;
   __retres = 0;
   return __retres;
 }

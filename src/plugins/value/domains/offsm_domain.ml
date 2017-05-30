@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ let store_redundant = false
     unsoundnesses in the domain through testing, because many more expressions
     end up being handled. *)
 
-let dkey = Value_parameters.register_category "d-offsm"
+let dkey = Value_parameters.register_category "d-bitwise"
 
 module Default_offsetmap = struct
   open Cvalue
@@ -57,7 +57,7 @@ end
     During pretty-printing, we skip them altogether.
     (In fact, it should be possible to prove inductively that everything
     is initialized except Top, because no computation introduces initialized
-    bits, and nothing is initially unitialized. *)
+    bits, and nothing is initially uninitialized. *)
 module V_Or_Uninitialized = struct
   include Cvalue.V_Or_Uninitialized
 
@@ -111,16 +111,11 @@ module Internal  : Domain_builder.InputDomain
   let leave_scope _kf vars state =
     Memory.remove_variables vars state
 
+  let enter_loop _ state = state
+  let incr_loop_counter _ state = state
+  let leave_loop _ state = state
+
   type origin = unit (* ???? *)
-
-  type return = unit
-  module Return = Datatype.Unit
-
-  let top_return =
-    let top_value =
-      { v = `Value Offsm_value.Offsm.top; initialized = false; escaping = true }
-    in
-    Some (top_value, ())
 
   module Transfer (Valuation:
                      Abstract_domain.Valuation with type value = value
@@ -128,7 +123,6 @@ module Internal  : Domain_builder.InputDomain
                                                 and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
       with type state = state
-       and type return = unit
        and type value = offsm_or_top
        and type location = Precise_locs.precise_location
        and type valuation = Valuation.t
@@ -136,14 +130,12 @@ module Internal  : Domain_builder.InputDomain
     type value = offsm_or_top
     type state = Memory.t
     type location = Precise_locs.precise_location
-    type return = unit
     type valuation = Valuation.t
 
     let update _valuation st = st (* TODO? *)
 
     let kill loc state =
-      snd (Memory.add_binding ~reducing:true ~exact:true
-             state loc V_Or_Uninitialized.top)
+      Memory.add_binding ~exact:true state loc V_Or_Uninitialized.top
 
     let store loc state v =
       let state' =
@@ -156,8 +148,8 @@ module Internal  : Domain_builder.InputDomain
             match loc.Locations.size with
             | Int_Base.Top -> assert false
             | Int_Base.Value size ->
-              snd (Memory.paste_offsetmap ~reducing:true
-                     ~from:o ~dst_loc:loc.Locations.loc ~size ~exact:true state)
+              Memory.paste_offsetmap
+                ~from:o ~dst_loc:loc.Locations.loc ~size ~exact:true state
       in
       match state' with
       | Memory.Bottom -> `Bottom
@@ -168,7 +160,7 @@ module Internal  : Domain_builder.InputDomain
       let v = Eval.value_assigned value in
       let v = match v with
         | `Value v -> v
-        (* Copy of fully indeterminate bits. We could store an unitialized
+        (* Copy of fully indeterminate bits. We could store an uninitialized
            bottom, or something like that. Since this would be redundant
            with the legacy domain, we just drop the value. *)
         | `Bottom -> Top
@@ -180,26 +172,18 @@ module Internal  : Domain_builder.InputDomain
 
     let assume _ _ _ _ state = `Value state
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
     let finalize_call _stmt _call ~pre:_ ~post = `Value post
-
-    let assign_return _stmt lv _kf () value _valuation state =
-      generic_assign lv value state
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
       Compute (Continue state, true)
 
-    let default_call _stmt call state =
+    let approximate_call _stmt call state =
       let kf = call.kf in
-      let return, post_state =
+      let post_state =
         try
-          let stmt = Kernel_function.find_return kf in
-          match stmt.Cil_types.skind with
-          | Cil_types.Return (None, _) -> None, top
-          | Cil_types.Return (Some _, _) -> top_return, top
-          | _ -> assert false
+          ignore (Kernel_function.find_return kf);
+          top
         with Kernel_function.No_Statement ->
           let name = Kernel_function.get_name kf in
           if  Ast_info.is_frama_c_builtin name then begin
@@ -211,26 +195,17 @@ module Internal  : Domain_builder.InputDomain
                 (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
                 pretty state;
             end;
-            None, state
+            state
           end
-          else
-            let return_type = Kernel_function.get_return_type kf in
-            if Cil.isVoidType return_type
-            then None, top
-            else top_return, top
+          else top
       in
-      let return = { post_state; return } in
-      `Value [return]
-
-    let enter_loop _ state = state
-    let incr_loop_counter _ state = state
-    let leave_loop _ state = state
+      `Value [post_state]
 
   end
 
-  let compute_using_specification _ _ state =
-    let return = { post_state = state; return = top_return } in
-    `Value [return]
+  (* TODO: this function is buggy! *)
+  let compute_using_specification _ _ _ state =
+    `Value [state]
 
   let extract_expr _oracle _state _exp =
     `Value (Offsm_value.Offsm.top, ()), Alarmset.all
@@ -238,7 +213,7 @@ module Internal  : Domain_builder.InputDomain
   (* Basic 'find' on a location *)
   let find_loc state loc =
     let size = Int_Base.project loc.Locations.size in
-    let _, o = Memory.copy_offsetmap loc.Locations.loc size state in
+    let o = Memory.copy_offsetmap loc.Locations.loc size state in
     o >>-: fun o ->
     if Default_offsetmap.is_top o ||
        (not store_redundant && V_Offsetmap.is_single_interval o)

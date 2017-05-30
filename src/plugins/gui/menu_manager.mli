@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ type where =
     with checkboxes in menus, or as toggle buttons in toolbars. They receive the
     after-click state as argument. The state of the button with the second
     argument of [Bool_callback]. Currently checks menus cannot have images in
-    Gtk, sor the [GtkStock.id] fields of [where] are ignored.
+    Gtk, or the [GtkStock.id] fields of [where] are ignored.
 
     @since Nitrogen-20111001 *)
 type callback_state =

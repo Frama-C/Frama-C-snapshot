@@ -12,18 +12,15 @@ tests/spec/localization.c:33:[kernel] warning: no such type S1. Ignoring global 
  */
 void ComposerPage(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   x ++;
   return;
 }
 
 void f(void)
 {
-  /*@ ghost int index; */
-  int x;
-  /*@ ghost index = 0; */
-  x = 0;
+  /*@ ghost int index = 0; */
+  int x = 0;
   return;
 }
 

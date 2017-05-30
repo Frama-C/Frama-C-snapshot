@@ -12,7 +12,7 @@
   x ∈ {0}
   v ∈ [--..--]
 [value] computing for function eq_tsets <- main.
-        Called from tests/value/logic.c:115.
+        Called from tests/value/logic.c:155.
 tests/value/logic.c:7:[value] cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#2>
 tests/value/logic.c:7:[value] warning: assertion got status unknown.
 tests/value/logic.c:9:[value] assertion got status valid.
@@ -50,20 +50,20 @@ tests/value/logic.c:47:[value] warning: assertion got status unknown.
 [value] Recording results for eq_tsets
 [value] Done for function eq_tsets
 [value] computing for function eq_char <- main.
-        Called from tests/value/logic.c:116.
+        Called from tests/value/logic.c:156.
 [value] Called Frama_C_show_each({-126})
 tests/value/logic.c:54:[value] assertion got status valid.
 tests/value/logic.c:55:[value] assertion got status valid.
 [value] Recording results for eq_char
 [value] Done for function eq_char
 [value] computing for function casts <- main.
-        Called from tests/value/logic.c:117.
+        Called from tests/value/logic.c:157.
 tests/value/logic.c:59:[value] assertion got status valid.
 tests/value/logic.c:60:[value] assertion got status valid.
 [value] Recording results for casts
 [value] Done for function casts
 [value] computing for function empty_tset <- main.
-        Called from tests/value/logic.c:118.
+        Called from tests/value/logic.c:158.
 [value] computing for function f_empty_tset <- empty_tset <- main.
         Called from tests/value/logic.c:70.
 [value] using specification for function f_empty_tset
@@ -74,7 +74,7 @@ tests/value/logic.c:71:[value] assertion got status valid.
 [value] Recording results for empty_tset
 [value] Done for function empty_tset
 [value] computing for function reduce_by_equal <- main.
-        Called from tests/value/logic.c:119.
+        Called from tests/value/logic.c:159.
 tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert 0 ≤ v;
 tests/value/logic.c:76:[value] warning: accessing out of bounds index. assert v < 10;
 tests/value/logic.c:77:[value] warning: assertion got status unknown.
@@ -82,7 +82,7 @@ tests/value/logic.c:78:[value] warning: assertion got status unknown.
 [value] Recording results for reduce_by_equal
 [value] Done for function reduce_by_equal
 [value] computing for function alarms <- main.
-        Called from tests/value/logic.c:120.
+        Called from tests/value/logic.c:160.
 tests/value/logic.c:86:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/logic.c:88:[value] warning: assertion 'UNK' got status unknown.
 [value] Called Frama_C_show_each({-1; 1})
@@ -105,8 +105,37 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [value] Called Frama_C_show_each({1})
 [value] Recording results for alarms
 [value] Done for function alarms
+[value] computing for function cond_in_lval <- main.
+        Called from tests/value/logic.c:161.
+[value] computing for function select_like <- cond_in_lval <- main.
+        Called from tests/value/logic.c:132.
+[value] using specification for function select_like
+[value] Done for function select_like
+tests/value/logic.c:133:[value] assertion got status valid.
+[value] computing for function select_like <- cond_in_lval <- main.
+        Called from tests/value/logic.c:134.
+[value] Done for function select_like
+tests/value/logic.c:135:[value] assertion got status valid.
+tests/value/logic.c:136:[value] assertion got status valid.
+tests/value/logic.c:137:[value] assertion got status valid.
+[value] computing for function select_like <- cond_in_lval <- main.
+        Called from tests/value/logic.c:138.
+[value] Done for function select_like
+tests/value/logic.c:139:[value] assertion got status valid.
+tests/value/logic.c:140:[value] assertion got status valid.
+[value] computing for function select_like <- cond_in_lval <- main.
+        Called from tests/value/logic.c:143.
+[value] Done for function select_like
+tests/value/logic.c:144:[value] assertion got status valid.
+tests/value/logic.c:145:[value] assertion got status valid.
+tests/value/logic.c:147:[value] assertion got status valid.
+tests/value/logic.c:149:[value] assertion got status valid.
+tests/value/logic.c:150:[value] warning: assertion got status unknown.
+[value] Recording results for cond_in_lval
+[value] Done for function cond_in_lval
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 4 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function alarms:
   x_0 ∈ {1}
@@ -121,6 +150,12 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [value:final-states] Values at end of function reduce_by_equal:
   a[0..8] ∈ {1}
    [9] ∈ [--..--]
+[value:final-states] Values at end of function cond_in_lval:
+  a ∈ {4}
+  out ∈ {40}
+  b.i1 ∈ {6}
+   .i2 ∈ {8}
+  x_0 ∈ [-2147483648..0]
 [value:final-states] Values at end of function main:
   
 [from] Computing for function alarms
@@ -137,6 +172,10 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [from] Done for function empty_tset
 [from] Computing for function reduce_by_equal
 [from] Done for function reduce_by_equal
+[from] Computing for function cond_in_lval
+[from] Computing for function select_like <-cond_in_lval
+[from] Done for function select_like
+[from] Done for function cond_in_lval
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -154,6 +193,12 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [from] Function empty_tset:
   NO EFFECTS
 [from] Function reduce_by_equal:
+  NO EFFECTS
+[from] Function select_like:
+  a FROM p; q; a; b (and SELF)
+  out FROM p; q; a; b
+  b FROM p; q; a; b (and SELF)
+[from] Function cond_in_lval:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
@@ -181,6 +226,10 @@ tests/value/logic.c:110:[value] assertion 'OK' got status valid.
 [inout] Out (internal) for function reduce_by_equal:
           a[0..9]
 [inout] Inputs for function reduce_by_equal:
+          v
+[inout] Out (internal) for function cond_in_lval:
+          a; out; b; x_0
+[inout] Inputs for function cond_in_lval:
           v
 [inout] Out (internal) for function main:
           \nothing

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_INTTYPES
 #define __FC_INTTYPES
 #include "features.h"
+__PUSH_FC_STDLIB
 /* ISO C: 7.8 */
 #include "stdint.h"
 #include "errno.h"
@@ -277,7 +278,7 @@ typedef struct
   requires (intmax_t)(-c) != c ;
   assigns \result \from c ; 
 */
-intmax_t imaxabs(intmax_t c);
+extern intmax_t imaxabs(intmax_t c);
 
 /*@
   requires denom != 0;
@@ -285,23 +286,24 @@ intmax_t imaxabs(intmax_t c);
   ensures \result.quot == numer / denom;
   ensures \result.rem == numer % denom;
 */
-imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
+extern imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
 
 #include "__fc_define_wchar_t.h"
 /*@ assigns \result \from nptr[..], base ;
   assigns endptr[..] \from nptr[..], base ;
-  assigns __FC_errno \from nptr[..], base ;
+  assigns __fc_errno \from nptr[..], base ;
 */
-intmax_t strtoimax(const char * restrict nptr,
+extern intmax_t strtoimax(const char * restrict nptr,
      char ** restrict endptr, int base);
-uintmax_t strtoumax(const char * restrict nptr,
+extern uintmax_t strtoumax(const char * restrict nptr,
      char ** restrict endptr, int base);
-intmax_t wcstoimax(const wchar_t * restrict nptr,
+extern intmax_t wcstoimax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
-uintmax_t wcstoumax(const wchar_t * restrict nptr,
+extern uintmax_t wcstoumax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif
 

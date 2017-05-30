@@ -25,21 +25,16 @@ model T { ℤ t }; */
  */
 /*@ ensures (*\old(s)).z ≡ \result;
     assigns *s; */
-extern int f(struct S *s);
+int f(struct S *s);
 
 /*@ type invariant sum(struct S s) = s.z ≡ s.x + s.y;
  */
 void main(void)
 {
-  struct S s;
-  T t;
-  int a;
-  s.x = 0;
-  s.y = 0;
-  t.x = 1;
-  t.y = 2;
+  struct S s = {.x = 0, .y = 0};
+  T t = {.x = 1, .y = 2};
   /*@ assert t.t ≡ 6 ∧ t.z ≡ 3; */ ;
-  a = f(& s);
+  int a = f(& s);
   if (a) {
     if (! s.x) 
       /*@ assert s.y ≢ 0; */ ;
@@ -47,8 +42,7 @@ void main(void)
   }
   else {
     _LAND: {
-             int tmp_2;
-             tmp_2 = s.x == 1;
+             int tmp_2 = s.x == 1;
            }
   }
   /*@ assert s.z ≢ 0; */ ;
@@ -64,7 +58,7 @@ model double { ℝ round };
     ensures \result.exact ≡ \old(x.exact) + \old(y.exact);
     ensures \result ≡ \result.exact + \result.round;
  */
-extern double add(double x, double y);
+double add(double x, double y);
 
 double foo(double x)
 {

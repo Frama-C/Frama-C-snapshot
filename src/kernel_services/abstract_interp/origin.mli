@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,12 +40,12 @@ end
     source locations where the operation took place. *)
 type origin =
   | Misalign_read of LocationSetLattice.t (** Read of not all the bits of a
-                                   pointer, typicaller through a pointer cast *)
+                                   pointer, typically through a pointer cast *)
   | Leaf of LocationSetLattice.t (** Result of a function without a body *)
   | Merge of LocationSetLattice.t (** Join between two control-flows *)
   | Arith of LocationSetLattice.t (** Arithmetic operation that cannot be
                                       represented, eg. ['&x * 2'] *)
-  | Well (** Imprecise variables of the intial state *)
+  | Well (** Imprecise variables of the initial state *)
   | Unknown
 
 include Datatype.S with type t = origin

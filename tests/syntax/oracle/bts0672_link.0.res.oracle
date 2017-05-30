@@ -15,8 +15,7 @@ extern int Frama_C_nondet(int a, int b);
 
 void main(void)
 {
-  int x;
-  x = Frama_C_nondet(0,59);
+  int x = Frama_C_nondet(0,59);
   return;
 }
 

@@ -12,7 +12,6 @@ tests/float/const4.i:7:[value] warning: non-finite float value. assert \is_finit
 [value] DUMPING STATE of file tests/float/const4.i line 11
         f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
         f2 ∈ {3.40282346639e+38}
-        d2 ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Recording results for main

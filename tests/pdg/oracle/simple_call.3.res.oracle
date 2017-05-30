@@ -29,23 +29,23 @@
    -[a--]-> 5
  {n5}: In2
    -[a--]-> 4
- {n6}: Call17-InCtrl : multiple_global_outputs(x,y);
+ {n6}: Call16-InCtrl : multiple_global_outputs(x,y);
    -[-c-]-> 1
- {n7}: Call17-In1 : multiple_global_outputs(x,y);
+ {n7}: Call16-In1 : multiple_global_outputs(x,y);
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
    -[-c-]-> 6
- {n8}: Call17-In2 : multiple_global_outputs(x,y);
+ {n8}: Call16-In2 : multiple_global_outputs(x,y);
    -[-c-]-> 1
    -[--d]-> 4
    -[--d]-> 5
    -[-c-]-> 6
- {n9}: Call17-Out(G) : multiple_global_outputs(x,y);
+ {n9}: Call16-Out(G) : multiple_global_outputs(x,y);
    -[-c-]-> 1
    -[-c-]-> 6
    -[--d]-> 8
- {n10}: Call17-Out(S.a) : multiple_global_outputs(x,y);
+ {n10}: Call16-Out(S.a) : multiple_global_outputs(x,y);
    -[-c-]-> 1
    -[-c-]-> 6
    -[--d]-> 7

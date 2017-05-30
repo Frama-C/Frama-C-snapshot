@@ -12,5 +12,5 @@ tests/wp_typed/unit_call.i:7:[kernel] warning: No code nor implicit assigns clau
      Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-job                 -       1 (6)      1       100%
+job                 -       1 (7)      1       100%
 ----------------------------------------------------------

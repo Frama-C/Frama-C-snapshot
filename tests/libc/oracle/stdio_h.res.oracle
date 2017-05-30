@@ -1,0 +1,48 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/stdio_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
+  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
+  __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
+  __fc_fopen[0..511] ∈ {0}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
+  Frama_C_entropy_source ∈ [--..--]
+  nondet ∈ [--..--]
+  S___fc_stdin[0..1] ∈ [--..--]
+  S___fc_stdout[0..1] ∈ [--..--]
+[value] computing for function fopen <- main.
+        Called from tests/libc/stdio_h.c:6.
+[value] using specification for function fopen
+[value] Done for function fopen
+[value] computing for function fseek <- main.
+        Called from tests/libc/stdio_h.c:8.
+[value] using specification for function fseek
+share/libc/stdio.h:258:[value] function fseek: precondition got status valid.
+share/libc/stdio.h:259:[value] function fseek: precondition got status valid.
+[value] Done for function fseek
+[value] computing for function fseek <- main.
+        Called from tests/libc/stdio_h.c:10.
+share/libc/stdio.h:258:[value] warning: function fseek: precondition got status invalid.
+[value] Done for function fseek
+[value] computing for function Frama_C_interval <- main.
+        Called from tests/libc/stdio_h.c:16.
+[value] using specification for function Frama_C_interval
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function fseek <- main.
+        Called from tests/libc/stdio_h.c:19.
+share/libc/stdio.h:259:[value] warning: function fseek: precondition got status invalid.
+[value] Done for function fseek
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  __fc_errno ∈ [--..--]
+  __fc_fopen[0..511] ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  f ∈ {{ NULL ; &__fc_fopen + [0..4088],0%8 }}
+  r ∈ [--..--]
+  __retres ∈ {0; 1}

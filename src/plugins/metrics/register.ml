@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,37 +28,39 @@ let () = Enabled.set_output_dependencies
     Libc.self ]
 ;;
 
-let syntactic () =
+let syntactic ?(libc=Metrics_parameters.Libc.get ()) () =
   begin
     match AstType.get () with
-      | "cil" -> Metrics_cilast.compute_on_cilast ()
+      | "cil" -> Metrics_cilast.compute_on_cilast ~libc
       (* Cabs metrics are experimental. unregistered, unjournalized *)
       | "cabs" -> Metrics_cabs.compute_on_cabs ()
       | "acsl" -> Metrics_acsl.dump()
       | _ -> assert false (* the possible values are checked by the kernel*)
   end;
-
   SyntacticallyReachable.iter
     (fun kf ->
-      Metrics_parameters.result "%a"
-        Metrics_coverage.pp_reached_from_function kf)
+       let reachable = Metrics_coverage.compute_syntactic ~libc kf in
+       let cov_printer = new Metrics_coverage.syntactic_printer ~libc reachable in
+       Metrics_parameters.result "%a"
+         cov_printer#pp_reached_from_function kf)
 
 let () = ValueCoverage.set_output_dependencies [Db.Value.self; Libc.self]
 
-let value () =
+let value ~libc () =
   !Db.Value.compute ();
   if Db.Value.is_computed () then begin
-    let f1, f2 = Metrics_coverage.pp_value_coverage () in
-    Metrics_parameters.result "%t" f1;
-    Metrics_parameters.result "%t" f2;
-    Metrics_parameters.result "%t" 
-      Metrics_coverage.pp_stmts_reached_by_function;
+    let cov_metrics = Metrics_coverage.compute ~libc in
+    let cov_printer = new Metrics_coverage.semantic_printer ~libc cov_metrics in
+    Metrics_parameters.result "%t" cov_printer#pp_value_coverage;
+    Metrics_parameters.result "%t" cov_printer#pp_unreached_calls;
+    Metrics_parameters.result "%t" cov_printer#pp_stmts_reached_by_function;
   end
 ;;
 
 let main () =
-  if Enabled.get () then Enabled.output syntactic;
-  if ValueCoverage.get () then ValueCoverage.output value;
+  let libc = Libc.get () in
+  if Enabled.get () then Enabled.output (syntactic ~libc);
+  if ValueCoverage.get () then ValueCoverage.output (value ~libc);
   if LocalsSize.is_set () then begin
     Ast.compute ();
     Metrics_parameters.result "function\tlocals_size_no_temps\t\

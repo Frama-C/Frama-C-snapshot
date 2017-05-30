@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -24,10 +24,6 @@ ptests/ptests_config.ml: Makefile.generating share/Makefile.config
 	$(PRINT_MAKING) $@
 	$(RM) $@
 	$(TOUCH) $@
-	$(ECHO) \
-	 "let no_native_dynlink = " \
-	 $(subst yes,false,$(subst no,true,$(USABLE_NATIVE_DYNLINK))) ";;" \
-	 >> $@
 	$(CHMOD_RO) $@
 
 tests/ptests_config: Makefile.generating share/Makefile.config
@@ -49,16 +45,6 @@ share/Makefile.kernel: Makefile.generating share/Makefile.config share/Makefile.
 	$(RM) $@
 	$(ECHO) "# This makefile was automatically generated." > $@
 	$(ECHO) "# Do not modify." >> $@
-	$(ECHO) "ifeq (\$$(FRAMAC_INTERNAL),yes)" >> $@
-	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES),$(BLINKFLAGS)) $(foreach d,$(INCLUDES:-I%=%),-I $(FRAMAC_ROOT_SRCDIR)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(GEN_BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS),$(BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(notdir $(ALL_BATCH_CMO)))" >> $@
-	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES),$(OLINKFLAGS)) $(foreach d,$(INCLUDES:-I%=%),-I $(FRAMAC_ROOT_SRCDIR)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(GEN_OPT_LIBS))" >> $@
-	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS),$(OPT_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_ROOT_SRCDIR)/,$(ALL_BATCH_CMX))" >> $@
-	$(ECHO) "else" >> $@
 	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES),$(BLINKFLAGS)) $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
 	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_BYTE_LIBS)))" >> $@
 	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS),$(BYTE_LIBS))" >> $@
@@ -67,7 +53,6 @@ share/Makefile.kernel: Makefile.generating share/Makefile.config share/Makefile.
 	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_OPT_LIBS)))" >> $@
 	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS),$(OPT_LIBS))" >> $@
 	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(ALL_BATCH_CMX)))" >> $@
-	$(ECHO) "endif" >> $@
 	$(CHMOD_RO) $@
 
 ALL_LIBRARY_NAMES=$(shell ocamlfind query -r -p-format $(LIBRARY_NAMES) $(LIBRARY_NAMES_GUI))
@@ -83,8 +68,10 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
 	  -e "s|@FRAMAC_ROOT_SRCDIR@|$(FRAMAC_ROOT_SRCDIR)|" \
 	  -e "s|@FRAMAC_PLUGINDIR@|$(FRAMAC_PLUGINDIR)|" \
 	  -e "s|@FRAMAC_DEFAULT_CPP@|$(FRAMAC_DEFAULT_CPP)|" \
+          -e "s|@FRAMAC_DEFAULT_CPP_ARGS@|$(FRAMAC_DEFAULT_CPP_ARGS)|" \
 	  -e "s|@FRAMAC_GNU_CPP@|$(FRAMAC_GNU_CPP)|" \
           -e "s|@DEFAULT_CPP_KEEP_COMMENTS@|$(DEFAULT_CPP_KEEP_COMMENTS)|" \
+          -e "s|@DEFAULT_CPP_SUPPORTED_ARCH_OPTS@|$(DEFAULT_CPP_SUPPORTED_ARCH_OPTS)|" \
 	  -e "s|@STATIC_PLUGINS@|$(STATIC_PLUGINS)|" \
           -e "s|@STATIC_GUI_PLUGINS@|$(STATIC_GUI_PLUGINS)|" \
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
@@ -120,7 +107,7 @@ $(MACHDEP_PATH)/local_machdep.ml: \
 # Now generate the type definition
 	$(ECHO) "open Cil_types" >> $@
 	if $(CC) -D_GNUCC $< -o bin/machdep.exe ;then \
-	    $(ECHO) "machdep.exe created succesfully."; \
+	    $(ECHO) "machdep.exe created successfully."; \
 	else \
 	    $(RM) $@; exit 1; \
 	fi

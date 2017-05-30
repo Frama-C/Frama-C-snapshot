@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,6 +22,8 @@
 
 open Cil_types
 open Cil_datatype
+
+let cat_blocks = Kernel.register_category "kf:blocks"
 
 (* ************************************************************************* *)
 (** {2 Getters} *)
@@ -124,20 +126,23 @@ let find_englobing_kf stmt = snd (find_from_sid stmt.sid)
 let blocks_closed_by_edge_aux s1 s2 =
   let table = compute () in
   try
-  let _,_,b1 = Datatype.Int.Hashtbl.find table s1.sid in
-  let _,_,b2 = Datatype.Int.Hashtbl.find table s2.sid in
-(*  Kernel.debug ~level:2
-    "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
-    Printer.pp_stmt s1 
-    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep Printer.pp_block) b1 
-    Printer.pp_stmt s2 
-    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep Printer.pp_block) b2;*)
-  let rec aux acc = function
-      [] -> acc
-    | inner_block::others ->
+    let _,_,b1 = Datatype.Int.Hashtbl.find table s1.sid in
+    let _,_,b2 = Datatype.Int.Hashtbl.find table s2.sid in
+    let pp_block fmt b =
+      Pretty_utils.pp_list ~sep:"@\n" Cil_printer.pp_block fmt b
+    in
+    Kernel.debug ~dkey:cat_blocks
+      "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
+      Cil_printer.pp_stmt s1 pp_block b1 Cil_printer.pp_stmt s2 pp_block b2;
+    let rec aux acc = function
+        [] -> acc
+      | inner_block::others ->
         if List.memq inner_block b2 then acc
         else aux (inner_block::acc) others
-  in aux [] b1
+    in
+    let res = aux [] b1 in
+    Kernel.debug ~dkey:cat_blocks "Result:@\n%a" pp_block res;
+    res
   with Not_found ->
     (* Invalid statement, or incorrectly filled table 'Kf' *)
     Kernel.fatal "Unknown statement sid:%d or sid:%d" s1.sid s2.sid
@@ -331,19 +336,15 @@ class callsite_visitor hmap = object (self)
 
   (* Inspect stmt calls *)
   method! vstmt stmt =
+    let add_call callee =
+      let sites = try CallSites.find hmap callee with Not_found -> [] in
+      CallSites.replace hmap callee ((self#kf,stmt)::sites)
+    in
     match stmt.skind with
       | Instr(Call(_,fct,_,_)) ->
-          begin
-            match called_kernel_function fct with
-              | None -> Cil.SkipChildren
-              | Some ckf ->
-                  let sites = 
-		    try CallSites.find hmap ckf
-		    with Not_found -> [] 
-		  in
-                  CallSites.replace hmap ckf ((self#kf,stmt)::sites) ;
-                  Cil.SkipChildren
-          end
+        Extlib.may add_call (called_kernel_function fct); Cil.SkipChildren
+      | Instr (Local_init (_, ConsInit(f,_,_),_)) ->
+        add_call (Globals.Functions.get f); Cil.SkipChildren
       | Instr _ -> Cil.SkipChildren
       | _ -> Cil.DoChildren
 

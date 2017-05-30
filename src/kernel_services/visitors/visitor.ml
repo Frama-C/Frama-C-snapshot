@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -132,9 +132,13 @@ object(self)
       end
     in
     let post_action f stmt =
-      let annots = make_children_annot self in
+      let (add, _  as new_annots) = make_children_annot self in
       let stmt = f stmt in
-      change_stmt stmt annots;
+      (match stmt.skind with
+       | Block b when annots <> [] || add <> [] ->
+         stmt.skind <- Block (Cil.block_of_transient b)
+       | _ -> ());
+      change_stmt stmt new_annots;
       stmt
     in
     let copy stmt =
@@ -659,7 +663,7 @@ object(self)
        Anyway, this is only used for SkipChildren and JustCopy/JustCopyPost
        (and for a copy visitor)
        If user sticks to DoChildren, s/he'll still have the proper
-       correspondance between annotations and emitters.
+       correspondence between annotations and emitters.
     *)
     let get_spec () = match g with
       | GFun _ | GFunDecl _ when Ast.is_def_or_last_decl g ->

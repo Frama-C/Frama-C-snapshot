@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Lang
 open Lang.F
 
 (* -------------------------------------------------------------------------- *)
-(* --- Latice                                                             --- *)
+(* --- Lattice                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
 type 'a occur =
@@ -62,30 +62,30 @@ let add_fun = add Fun.equal
 (* -------------------------------------------------------------------------- *)
 
 let rec add_pred m p =
-  match F.pred p with
+  match F.p_expr p with
   | And ps -> List.fold_left add_pred m ps
   | If(e,a,b) -> add_pred (add_pred (set_top m e) a) b
   | Eq(a,b) ->
       begin
-        match F.pred a , F.pred b with
+        match F.p_expr a , F.p_expr b with
         | Fvar x , Fvar y -> add_var x y (add_var y x m)
         | _ -> set_top m p
       end
   | Fvar x -> add_true m x
   | Not p ->
       begin
-        match F.pred p with
+        match F.p_expr p with
         | Fvar x -> add_false m x
         | _ -> set_top m p
       end
   | _ -> set_top m p
 
 let rec add_type m p =
-  match F.pred p with
+  match F.p_expr p with
   | And ps -> List.fold_left add_type m ps
   | Fun(f,[e]) ->
       begin
-        match F.pred e with
+        match F.e_expr e with
         | Fvar x -> add_fun x f m
         | _ -> set_top m p
       end
@@ -136,33 +136,31 @@ let is_var x m =
 (* --- Filtering                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let pp_vars fmt xs = Vars.iter (fun x -> Format.fprintf fmt "@ %a" F.pp_var x) xs
-
 let rec filter_pred m p =
-  match F.pred p with
+  match F.p_expr p with
   | And ps -> F.p_all (filter_pred m) ps
   | If(e,a,b) -> p_if e (filter_pred m a) (filter_pred m b)
   | Eq(a,b) ->
       begin
-        match F.pred a , F.pred b with
+        match F.p_expr a , F.p_expr b with
         | Fvar x , Fvar y when is_var x m || is_var y m -> p_true
         | _ -> p
       end
   | Fvar x when is_true x m.eq_var -> p_true
   | Not q ->
       begin
-        match F.pred q with
+        match F.p_expr q with
         | Fvar x when is_false x m.eq_var -> p_true
         | _ -> p
       end
   | _ -> p
 
 let rec filter_type m p =
-  match F.pred p with
+  match F.p_expr p with
   | And ps -> F.p_all (filter_type m) ps
   | Fun(_,[e]) ->
       begin
-        match F.pred e with
+        match F.p_expr e with
         | Fvar x when is_var x m -> p_true
         | _ -> p
       end

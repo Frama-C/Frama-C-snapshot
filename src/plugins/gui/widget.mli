@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,7 +50,7 @@ class type ['a] signal =
 
     method lock : (unit -> unit) -> unit
     (** If not locked,
-        lock and execute the continutation and {i finally} release the lock. *)
+        lock and execute the continuation and {i finally} release the lock. *)
 
     method connect : ('a -> unit) -> unit
     (** [connect f] calls [f s] on each signal [s]. *)
@@ -77,7 +77,7 @@ class type ['a] selector =
 (** {2 Labels} *)
 
 type align = [`Left | `Right | `Center]
-type style = [`Label | `Descr | `Title]
+type style = [`Label | `Descr | `Code | `Title]
 type color = [ GDraw.color | `NORMAL ]
 
 (** Default: [~style:`Label ~align:`Left] *)
@@ -85,6 +85,7 @@ class label : ?style:style -> ?align:align -> ?width:int -> ?text:string -> unit
   object
     inherit widget
     method set_text : string -> unit
+    method set_tooltip : string -> unit
     method set_fg : color -> unit
     method set_bg : color -> unit
   end
@@ -105,13 +106,13 @@ class image : icon ->
 
 (** {2 Buttons} *)
 
-class button : ?align:align -> ?icon:icon -> ?label:string -> ?tooltip:string -> unit ->
+class button : ?align:align -> ?icon:icon -> ?label:string -> ?border:bool -> ?tooltip:string -> unit ->
   object
     inherit action
     inherit [unit] signal
     method set_icon : icon -> unit
     method set_label : string -> unit
-    method set_relief : bool -> unit
+    method set_border : bool -> unit
     method default : unit -> unit
   end
 
@@ -122,7 +123,7 @@ class toggle : ?align:align -> ?icon:icon -> ?label:string -> ?border:bool -> ?t
     inherit [bool] selector
     method set_icon : icon -> unit
     method set_label : string -> unit
-    method set_relief : bool -> unit
+    method set_border : bool -> unit
   end
 
 class checkbox : label:string -> ?tooltip:string -> unit ->
@@ -140,7 +141,7 @@ class switch : ?tooltip:string -> unit ->
 (** {2 Groups} *)
 
 (** A group is not a widget ; it creates interconnected toggle or radio buttons,
-    each switching to a peculiar value. 
+    each switching to a peculiar value.
 
     Use [Wbox.hgroup] and [Wbox.vgroup] to pack several buttons into a dongle.
 *)
@@ -161,6 +162,8 @@ class spinner :
   object
     inherit action
     inherit [int] selector
+    method set_min : int -> unit
+    method set_max : int -> unit
   end
 
 class ['a] menu :
@@ -189,7 +192,7 @@ class popup : unit ->
     (** Adds an item. *)
     method add_separator : unit
     (** Inserts a separator.
-        Consecutives and trailing separators are eliminated. *)
+        Consecutive and trailing separators are eliminated. *)
     method run : unit -> unit
     (** Run the menu. *)
   end

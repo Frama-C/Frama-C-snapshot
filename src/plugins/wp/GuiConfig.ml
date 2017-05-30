@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -188,7 +188,7 @@ class dp_button ~(available:provers) ~(enabled:provers) =
       | [] -> ()
       | spec :: _ ->
           match VCS.prover_of_name spec with
-          | None | Some VCS.Qed -> button#set NoProver
+          | None | Some VCS.Qed | Some VCS.Tactical -> button#set NoProver
           | Some VCS.AltErgo -> button#set AltErgo
           | Some VCS.Coq -> button#set Coq
           | Some VCS.Why3ide -> button#set Why3ide

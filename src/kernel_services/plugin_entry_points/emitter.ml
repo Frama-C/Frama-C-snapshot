@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -191,7 +191,7 @@ module Usable_emitters_of_emitter =
     (Datatype.Pair
        (Datatype.Ref(Usable_emitter)) (* current usable emitter with the 
         				 current parameter values *)
-       (Datatype.Ref(Usable_emitter.Set))) (* existing usables emitters with
+       (Datatype.Ref(Usable_emitter.Set))) (* existing usable emitters with
         				      the old parameter values *)
     (struct 
       let name = "Emitter.Usable_emitters_of_emitter" 
@@ -355,7 +355,7 @@ let register_tuning_parameter name p =
            the previous session but not in the current one. In this case, there
            is nothing to do.
 
-           Additionnally, even if it still exists, it could be not yet restored
+           Additionally, even if it still exists, it could be not yet restored
            since the project library does not ensure that it restores the table
            of emitters before the states of parameters. In such a case, it is
            also possible to do nothing since the right table in the right state
@@ -421,17 +421,23 @@ let update_table tbl =
         !all_usable_e);
   (* register new stuff *)
   Datatype.String.Hashtbl.iter
-    (fun e_name (_, all_usable_e) -> 
+    (fun e_name (_, all_usable_e) ->
       Usable_emitter.Set.iter
-	(fun e -> 
-	  Datatype.String.Map.iter
-	    (fun p _ -> register_correctness_parameter p e.u_name e.u_kinds)
-	    e.correctness_values;
-	  Datatype.String.Map.iter
-	    (fun p _ -> 
-	      register_tuning_parameter e_name (Typed_parameter.get p))
-	    e.tuning_values)
-	!all_usable_e)
+        (fun e ->
+          Datatype.String.Map.iter
+            (fun p _ -> register_correctness_parameter p e.u_name e.u_kinds)
+            e.correctness_values;
+          Datatype.String.Map.iter
+            (fun p _ ->
+              try
+                let ty_p = Typed_parameter.get p in
+                register_tuning_parameter e_name ty_p
+              with Not_found ->
+                (* the parameter could not exist anymore in multi-sessions mode
+                   (e.g. save/load): just ignore it in that case *)
+                ())
+            e.tuning_values)
+        !all_usable_e)
     tbl
 
 let () = Usable_emitters_of_emitter.add_hook_on_update update_table

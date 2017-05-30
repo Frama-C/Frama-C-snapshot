@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,7 +87,7 @@ val pp_iter:
   'a formatter -> 'b formatter
 (** pretty prints any structure using an iterator on it. The argument
     [pre] (resp. [suf]) is output before (resp. after) the iterator
-    is started (resp. has ended). The optional argument [sep] is output bewteen
+    is started (resp. has ended). The optional argument [sep] is output between
     two calls to the ['a formatter]. Default: open a box for [pre], close
     a box for [suf], nothing for [sep]. *)
 
@@ -97,7 +97,7 @@ val pp_iter2:
   'key formatter -> 'v formatter -> 'a formatter
 (** pretty prints any map-like structure using an iterator on it. The argument
     [pre] (resp. [suf]) is output before (resp. after) the iterator
-    is started (resp. has ended). The optional argument [sep] is output bewteen
+    is started (resp. has ended). The optional argument [sep] is output between
     two calls to the ['a formatter]. The optional argument [between] is
     output between the key and the value. Default: open a box for [pre], close
     a box for [suf], nothing for [sep], break-space for [between]. *)
@@ -122,11 +122,11 @@ val pp_pair: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
     - suf: close a box.
     @since Magnesium-20151001 *)
 
-val pp_flowlist: 
-  ?left:sformat -> ?sep:sformat -> ?right:sformat -> 'a formatter -> 
+val pp_flowlist:
+  ?left:sformat -> ?sep:sformat -> ?right:sformat -> 'a formatter ->
   'a list formatter
 
-val pp_blocklist: 
+val pp_blocklist:
   ?left:sformat -> ?right:sformat -> 'a formatter -> 'a list formatter
 
 val pp_open_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
@@ -134,7 +134,93 @@ val pp_close_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
 
 val pp_trail : 'a formatter -> 'a formatter
 (** pretty-prints its contents inside an '(** ... **)' horizontal block trailed
-    with '*' *) 
+    with '*' *)
+
+(* ********************************************************************** *)
+(** {2 Description Lists (margins)} *)
+(* ********************************************************************** *)
+
+type align = [`Center | `Left | `Right]
+
+val pp_items :
+  ?align:align -> ?margin:int -> ?min:int -> ?max:int ->
+  title:('a -> string) ->
+  iter:(('a -> unit) -> unit) ->
+  ?pp_title:string formatter ->
+  pp_item:(string formatter -> 'a formatter) ->
+  Format.formatter -> unit
+(** Prints a collection of elements, with the possibility of aligning {i titles}
+    with each others.
+
+    The collection of ['a] to print is provided by iterator [~iter] which 
+    is called twice: one for computing the maximal size of {i titles},
+    obtained {i via} function [~title] for each item. The second pass
+    pretty-print each item using [~pp_item pp] where the passed [pp] printer
+    can be used to pretty-print titles with alignment.
+
+    A typical usage for printing [values], a list of [(string*int)] items:
+    {[
+      pp_items
+        ~title:(fun (a,_) -> a)
+        ~iter:(fun f -> List.iter f values)
+        ~pp_title:(fun fmt a -> Format.fprintf fmt "%s:" a)
+        ~pp_item:(fun pp fmt (a,n) -> Format.fprintf fmt "%a %d@\n" pp a n)
+        fmt
+    ]}
+
+    Alignment of titles can be centered, right or left justified. This is
+    rendered by adding spaces around each title. A min and max size can also be
+    specified and a margin can be added to all title sizes. Titles will be
+    truncated if necessary.
+
+    The pretty-printer for titles will render each (possibly truncated) title
+    with [~pp_title]. Surrounding spaces are {i not} printed via [~pp_title].
+
+    The (optional) parameters have the following meaning:
+     - [?align] alignment mode (default is [`Center])
+     - [?margin] is added to text size (default [0])
+     - [?min] minimum size ([~margin] included, default [0])
+     - [?max] maximum size ([~margin] included, default [80])
+     - [~title] returns the {i title} for each element (only size is relevant)
+     - [~iter] iterate over the elements to be printed
+     - [?pp_title] pretty-printer used to the (possibly truncated) title
+       (default is [Format.pp_print_string])
+     - [~pp_item] pretty-printer to print each element.
+
+    There is also a low-level API to this feature, provided by {!marger},
+    {!pp_margin} and {!add_margin} below.
+*)
+
+type marger (** Margin accumulator (low-level API to [pp_items]). *)
+val marger : unit -> marger (** Create an empty marger *)
+val add_margin : marger -> ?margin:int -> ?min:int -> ?max:int -> string -> unit
+(** Updates the marger with new text dimension.
+    The marger width is updated with the width of the provided text.
+    The optional parameters are used to adjust the text width as follows:
+     - [?margin] is added to text size (default [0])
+     - [?min] minimum size ([~margin] included, default [0])
+     - [?max] maximum size ([~margin] included, default [80]) *)
+
+val pp_margin : ?align:align -> ?pp:string formatter -> marger -> string formatter
+(** Prints a text with margins {i wrt} to marger. If the text does not fit
+    the marger, it would be truncated and/or ellipsed.
+    - [?align] alignment mode (default is [`Center])
+    - [?pp] pretty-printer used to the (possibly truncated) title
+       (default is [Format.pp_print_string])
+
+    Typical usage:
+    {[
+      begin
+        (* first, collect title margins *)
+        let m = marger () in
+        List.iter (fun (a,_) -> add_margin m ~margins:2 a) data ;
+        (* second, print aligned data *)
+        List.iter
+          (fun (a,d) -> Format.printf "[%a] %s@\n" (pp_margin m) a d)
+          data ;
+      end
+    ]}
+*)
 
 (*
 Local Variables:

@@ -20,10 +20,9 @@ tests/impact/alias.i:18:[value] assertion 'Value,mem_access' got final status in
 [pdg] computing for function f
 [pdg] done for function f
 [impact] impacted statements of stmt(s) 2 are:
-           tests/impact/alias.i:10 (sid 4): y = x + 1;
-           tests/impact/alias.i:11 (sid 5): *y = 4;
-           tests/impact/alias.i:12 (sid 7): a = *(x + 1) + 2;
-           tests/impact/alias.i:13 (sid 8): *y = 2;
-           tests/impact/alias.i:15 (sid 12): __retres = *(x + 1);
-           tests/impact/alias.i:14 (sid 19): return_label: return __retres;
+           tests/impact/alias.i:11 (sid 3): *y = 4;
+           tests/impact/alias.i:12 (sid 4): int a = *(x + 1) + 2;
+           tests/impact/alias.i:13 (sid 5): *y = 2;
+           tests/impact/alias.i:15 (sid 9): __retres = *(x + 1);
+           tests/impact/alias.i:14 (sid 18): return_label: return __retres;
 [impact] analysis done

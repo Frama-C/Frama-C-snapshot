@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,7 @@
 (* --- Variable Analysis                                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Ctypes
 open Cil_types
-open Cil_datatype
 
 type access =
   | NoAccess

@@ -53,7 +53,6 @@ tests/value/relations2.i:32:[value] entering loop for the first time
         t ∈ [0..511]
         n ∈ [0..512]
         s ∈ {0}
-        b3 ∈ UNINITIALIZED
         T[0] ∈ {0}
          [1] ∈ {1}
          [2] ∈ {42}
@@ -71,7 +70,6 @@ tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
         t ∈ [0..511]
         n ∈ [0..512]
         s ∈ {0; 1}
-        b3 ∈ UNINITIALIZED
         T[0] ∈ {0}
          [1] ∈ {1}
          [2] ∈ {42}
@@ -87,7 +85,6 @@ tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
         t ∈ [0..511]
         n ∈ [0..512]
         s ∈ {0; 1; 2}
-        b3 ∈ UNINITIALIZED
         T[0] ∈ {0}
          [1] ∈ {1}
          [2] ∈ {42}
@@ -103,7 +100,6 @@ tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
         t ∈ [0..511]
         n ∈ [0..512]
         s ∈ [0..2147483647]
-        b3 ∈ UNINITIALIZED
         T[0] ∈ {0}
          [1] ∈ {1}
          [2] ∈ {42}

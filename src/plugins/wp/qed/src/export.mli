@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,7 +52,7 @@ sig
 
   type trigger = (var,Fun.t) ftrigger
   type typedef = (tau,Field.t,Fun.t) ftypedef
-  
+
   class virtual engine :
     object
 
@@ -63,8 +63,10 @@ sig
       method virtual link : Fun.t -> link
 
       method env : Env.t (** A safe copy of the environment *)
+      method set_env : Env.t -> unit (** Set the environment *)
       method marks : Env.t * T.marks (** The current environment with empty marks *)
       method lookup : term -> scope
+      method set_env : Env.t -> unit
       method scope : Env.t -> (unit -> unit) -> unit
       method local : (unit -> unit) -> unit
       method global : (unit -> unit) -> unit
@@ -137,10 +139,13 @@ sig
       method virtual pp_exists : tau -> string list printer
       method virtual pp_lambda : (string * tau) list printer
 
-      method is_shareable : term -> bool
+      method shared : term -> bool
+      method shareable : term -> bool
+      method subterms : (term -> unit) -> term -> unit
       method virtual pp_let : formatter -> pmode -> string -> term -> unit
       method pp_atom : term printer
       method pp_flow : term printer
+      method pp_repr : term printer
 
       method pp_tau : tau printer
       method pp_var : string printer

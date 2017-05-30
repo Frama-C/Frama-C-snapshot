@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -141,7 +141,7 @@ let expr_fits_in_range (expr: Apron.Texpr1.expr) range =
     false (* TODO? Unclear whether those cases would add expressivity. *)
 
 (* Auxiliary function for {!coerce} below. It normalizes [expr] in an expression
-   that is guaranteed to fit withing the integer type [range], or returns
+   that is guaranteed to fit within the integer type [range], or returns
    an interval covering the entire range.
    Algorithm from Verasco.
    See section 6.5 of the paper 'A Formally-Verified C Static Analyzer'. *)
@@ -282,7 +282,7 @@ let rec translate_expr eval oracle expr = match expr.enode with
     match Cil.constFoldToInt expr with
     | None -> raise (Out_of_Scope "translate_expr sizeof alignof")
     | Some i -> Texpr1.Cst (Coeff.s_of_int (Integer.to_int i))
-(* Expresssions that cannot be translated by [translate_expr] are replaced
+(* Expressions that cannot be translated by [translate_expr] are replaced
    using an oracle. Of course, this oracle must be sound!. If the oracle
    cannot find a suitable replacement, it can re-raise the expresssion. *)
 and translate_expr_linearize eval oracle expr =
@@ -540,30 +540,41 @@ module Make
     in
     Precise_locs.fold aux_ploc loc state
 
-  (* We coul replace this type by a Value to model the return code, but
-     this would add little expressivity compared to what is offerred by
-     the Interval domain. Another possibility would be to return the Apron
-     expression corresponding to the variable being returned in the callee.
-     But beware of scoping problems... *)
-  type return = unit
-  module Return = Datatype.Unit
-
-  let top_return =
-    let top_value = `Value Main_values.Interval.top in
-    let top_flagged_value =
-      {v = top_value; initialized = false; escaping = true; }
+  let enter_scope _kf vars state =
+    let translate acc varinfo =
+      try translate_varinfo varinfo :: acc
+      with Out_of_Scope _ -> acc
     in
-    Some (top_flagged_value, ())
+    let vars = List.fold_left translate [] vars in
+    let env = Environment.add (Abstract1.env state) (Array.of_list vars) [||] in
+    Abstract1.change_environment man state env false
 
-  let approximate_call kf state =
-    let post_state =
-      let name = Kernel_function.get_name kf in
+  let leave_scope _kf vars state =
+    forget_varinfo_list ~remove:true vars state
+
+  let enter_loop _ state = state
+  let incr_loop_counter _ state = state
+  let leave_loop _ state = state
+
+  let approximate_call call state =
+    let name = Kernel_function.get_name call.kf in
+    let state =
       if Ast_info.is_frama_c_builtin name ||
-         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
+         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile call.kf)
       then state
       else make_top (Abstract1.env state)
     in
-    `Value [{ post_state; return = top_return }]
+    (* We need to introduce the variable used to model the return code
+       (even though we do not constrain it), because it will be remove later
+       by the generic part of the evaluator. *)
+    let state = match call.return with
+      | Some vi_ret -> enter_scope call.kf [vi_ret] state
+      | None -> state
+    in
+    `Value [state]
+
+  let compute_using_specification _ call _spec state =
+    approximate_call call state
 
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
@@ -571,7 +582,6 @@ module Make
   = struct
 
     type state = t
-    type return = unit
     type value = Main_values.Interval.t
     type location = Precise_locs.precise_location
     type valuation = Valuation.t
@@ -691,9 +701,7 @@ module Make
       then Result (`Bottom, Value_types.Cacheable)
       else Compute (Continue state, true)
 
-    let make_return _kf _stmt _assign _valuation _state = ()
-
-    let finalize_call _stmt call ~pre ~post =
+    let finalize_call _stmt call ~pre:_ ~post =
       let kf = call.kf in
       let name = Kernel_function.get_name kf in
       if  Ast_info.is_frama_c_builtin name then begin
@@ -707,23 +715,11 @@ module Make
             pretty post;
         end;
       end;
-      let env = Abstract1.env pre in
-      `Value (Abstract1.change_environment man post env false)
+      `Value post
 
-    let assign_return _stmt lv _kf () _value _valuation state =
-      maybe_bottom (kill_bases lv.lloc state)
-
-    let default_call _stmt call state =
-      approximate_call call.kf state
-
-    let enter_loop _ state = state
-    let incr_loop_counter _ state = state
-    let leave_loop _ state = state
+    let approximate_call _stmt call state = approximate_call call state
 
   end
-
-  let compute_using_specification _ (kf, _) state =
-    approximate_call kf state
 
   type eval_env = state
   let env_current_state state = `Value state
@@ -732,18 +728,6 @@ module Make
   let env_post_f ~pre:_ ~post ~result:_ () = post
   let eval_predicate _ _ = Alarmset.Unknown
   let reduce_by_predicate state _ _ = state
-
-  let enter_scope _kf vars state =
-    let translate acc varinfo =
-      try translate_varinfo varinfo :: acc
-      with Out_of_Scope _ -> acc
-    in
-    let vars = List.fold_left translate [] vars in
-    let env = Environment.add (Abstract1.env state) (Array.of_list vars) [||] in
-    Abstract1.change_environment man state env false
-
-  let leave_scope _kf vars state =
-    forget_varinfo_list ~remove:true vars state
 
   let empty () = top
 

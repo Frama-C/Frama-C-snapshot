@@ -24,13 +24,13 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
+      (Mint_0[shift_sint32(b, i_2)] = Mint_0[shift_sint32(a, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
   (* Else *)
   Have: n <= i_1.
 }
-Prove: Mint_0[shift_sint32(a, i)] = Mint_0[shift_sint32(b, i)].
+Prove: Mint_0[shift_sint32(b, i)] = Mint_0[shift_sint32(a, i)].
 
 ------------------------------------------------------------
 
@@ -51,19 +51,19 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
+      (Mint_0[shift_sint32(b, i_2)] = Mint_0[shift_sint32(a, i_2)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
   Have: forall i_2 : Z. let a_2 = shift_sint32(a, i_2) in ((0 <= i_2) ->
-      ((i_2 < i) -> (Mint_0[a_2] = m[a_2]))).
+      ((i_2 < i) -> (m[a_2] = Mint_0[a_2]))).
   (* Assertion 'B' *)
   Have: forall i_2 : Z. let a_2 = shift_sint32(b, i_2) in ((0 <= i_2) ->
-      ((i_2 < i) -> (Mint_0[a_2] = m[a_2]))).
+      ((i_2 < i) -> (m[a_2] = Mint_0[a_2]))).
 }
-Prove: m[shift_sint32(a, i_1)] = m[shift_sint32(b, i_1)].
+Prove: m[shift_sint32(b, i_1)] = m[shift_sint32(a, i_1)].
 
 ------------------------------------------------------------
 
@@ -87,17 +87,17 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Copy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
+      (Mint_1[shift_sint32(b, i_1)] = Mint_1[shift_sint32(a, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
   Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
+      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
   (* Assertion 'B' *)
   Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
+      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
 }
 Prove: (-1) <= i.
 
@@ -110,11 +110,11 @@ Prove: true.
 
 Goal Assertion 'A' (file tests/wp_plugin/copy.i, line 17):
 Let a_1 = shift_sint32(a, 0).
-Let a_2 = shift_sint32(a, i).
+Let a_2 = shift_sint32(a, i_1).
 Assume {
-  Type: is_sint32(i_1) /\ is_sint32(n).
+  Type: is_sint32(i) /\ is_sint32(n).
   (* Goal *)
-  When: (0 <= i) /\ (i < i_1).
+  When: (0 <= i_1) /\ (i_1 < i).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -124,26 +124,26 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (Mint_0[shift_sint32(b, i_2)] = Mint_0[shift_sint32(a, i_2)]))).
   (* Invariant 'Range' *)
-  Have: (0 <= i_1) /\ (i_1 <= n).
+  Have: (0 <= i) /\ (i <= n).
   (* Then *)
-  Have: i_1 < n.
+  Have: i < n.
 }
-Prove: Mint_0[a_2]
-         = Mint_0[shift_sint32(a, i_1) <- Mint_0[shift_sint32(b, i_1)]][a_2].
+Prove: Mint_0[shift_sint32(a, i) <- Mint_0[shift_sint32(b, i)]][a_2]
+         = Mint_0[a_2].
 
 ------------------------------------------------------------
 
 Goal Assertion 'B' (file tests/wp_plugin/copy.i, line 18):
-Let m = Mint_0[shift_sint32(a, i_1) <- Mint_0[shift_sint32(b, i_1)]].
+Let m = Mint_0[shift_sint32(a, i) <- Mint_0[shift_sint32(b, i)]].
 Let a_1 = shift_sint32(a, 0).
-Let a_2 = shift_sint32(b, i).
+Let a_2 = shift_sint32(b, i_1).
 Assume {
-  Type: is_sint32(i_1) /\ is_sint32(n).
+  Type: is_sint32(i) /\ is_sint32(n).
   (* Goal *)
-  When: (0 <= i) /\ (i < i_1).
+  When: (0 <= i_1) /\ (i_1 < i).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -153,17 +153,17 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Copy' *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (Mint_0[shift_sint32(a, i_2)] = Mint_0[shift_sint32(b, i_2)]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (Mint_0[shift_sint32(b, i_2)] = Mint_0[shift_sint32(a, i_2)]))).
   (* Invariant 'Range' *)
-  Have: (0 <= i_1) /\ (i_1 <= n).
+  Have: (0 <= i) /\ (i <= n).
   (* Then *)
-  Have: i_1 < n.
+  Have: i < n.
   (* Assertion 'A' *)
   Have: forall i_2 : Z. let a_3 = shift_sint32(a, i_2) in ((0 <= i_2) ->
-      ((i_2 < i_1) -> (Mint_0[a_3] = m[a_3]))).
+      ((i_2 < i) -> (m[a_3] = Mint_0[a_3]))).
 }
-Prove: Mint_0[a_2] = m[a_2].
+Prove: m[a_2] = Mint_0[a_2].
 
 ------------------------------------------------------------
 
@@ -190,17 +190,17 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Copy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
+      (Mint_1[shift_sint32(b, i_1)] = Mint_1[shift_sint32(a, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
   Have: forall i_1 : Z. let a_2 = shift_sint32(a, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
+      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
   (* Assertion 'B' *)
   Have: forall i_1 : Z. let a_2 = shift_sint32(b, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_2] = m[a_2]))).
+      ((i_1 < i) -> (m[a_2] = Mint_1[a_2]))).
 }
 Prove: included(a_1, n, a_1, n).
 
@@ -225,32 +225,27 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_2, n).
   (* Invariant 'Copy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (Mint_1[shift_sint32(a, i_1)] = Mint_1[shift_sint32(b, i_1)]))).
+      (Mint_1[shift_sint32(b, i_1)] = Mint_1[shift_sint32(a, i_1)]))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Assertion 'A' *)
   Have: forall i_1 : Z. let a_3 = shift_sint32(a, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_3] = m[a_3]))).
+      ((i_1 < i) -> (m[a_3] = Mint_1[a_3]))).
   (* Assertion 'B' *)
   Have: forall i_1 : Z. let a_3 = shift_sint32(b, i_1) in ((0 <= i_1) ->
-      ((i_1 < i) -> (Mint_1[a_3] = m[a_3]))).
+      ((i_1 < i) -> (m[a_3] = Mint_1[a_3]))).
 }
 Prove: included(a_1, 1, a_2, n).
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy' (1/2):
-Effect at line 14
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy' (2/2):
+Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy':
 Effect at line 14
 Let a_1 = shift_sint32(a, 0).
 Assume {
+  Have: valid_rd(Malloc_0, a_1, n).
   Type: is_sint32(n).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ (region(b.base) <= 0) /\ linked(Malloc_0).
@@ -261,6 +256,6 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, n).
 }
-Prove: (valid_rd(Malloc_0, a_1, n) -> included(a_1, n, a_1, n)).
+Prove: included(a_1, n, a_1, n).
 
 ------------------------------------------------------------

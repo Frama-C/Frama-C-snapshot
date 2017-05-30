@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,7 +63,7 @@ module type S_no_copy = sig
   (** Packed version of the descriptor. *)
 
   val reprs: t list
-  (** List of representents of the descriptor. *)
+  (** List of representants of the descriptor. *)
 
   val equal: t -> t -> bool
   (** Equality: same spec than [Pervasives.(=)]. *)
@@ -175,7 +175,7 @@ end
     end] *)
 module Undefined: Undefined
 
-(** Same as {!Undefined}, but the type is supposed to be marshalable by the
+(** Same as {!Undefined}, but the type is supposed to be marshallable by the
     standard OCaml way (in particular, no hash-consing or projects inside
     the type). 
     @plugin development guide *)

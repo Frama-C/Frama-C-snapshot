@@ -60,7 +60,7 @@ val clearFileCFG: ?clear_id:bool -> file -> unit
   filled in *)
 val cfgFun : fundec -> unit
 
-(** clear the sid, succs, and preds fields of each statment in a function *)
+(** clear the sid, succs, and preds fields of each statement in a function *)
 val clearCFGinfo: ?clear_id:bool -> fundec -> unit
 
 

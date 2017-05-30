@@ -99,9 +99,9 @@
           u[8..10]; p
 [inout] InOut (internal) for function main:
         Operational inputs:
-          length; msg
+          msg
         Operational inputs on termination:
-          length; msg
+          msg
         Sure outputs:
           ret
 [inout] InOut (with formals) for function main:
@@ -131,9 +131,9 @@
           b; t{[3..4]; [6..7]}; u[8..10]; i
 [inout] InOut (internal) for function main_main:
         Operational inputs:
-          length; b; t[6..7]; u[8..10]; msg; i
+          b; t[6..7]; u[8..10]; msg; i
         Operational inputs on termination:
-          length; b; t[6..7]; u[8..10]; msg; i
+          b; t[6..7]; u[8..10]; msg; i
         Sure outputs:
           a; c; t[0..5]
 [inout] InOut (with formals) for function main_main:

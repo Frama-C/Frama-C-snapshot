@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -478,7 +478,7 @@ and loffset_contains_result o =
     | TField(_,o) | TModel(_,o) -> loffset_contains_result o
     | TIndex(t,o) -> contains_result t || loffset_contains_result o
 
-(** @return [true] if the underlying lval contains an occurence of
+(** @return [true] if the underlying lval contains an occurrence of
     \result; [false] otherwise or if the term is not an lval. *)
 and contains_result t =
   match t.term_node with
@@ -502,6 +502,21 @@ let is_trivially_true p =
   match p.pred_content with
       Ptrue -> true
     | _ -> false
+
+let rec add_attribute_glob_annot a g =
+  match g with
+  | Dfun_or_pred ({ l_var_info },_) | Dinvariant({ l_var_info }, _)
+  | Dtype_annot ( { l_var_info }, _) ->
+    l_var_info.lv_attr <- Cil.addAttribute a l_var_info.lv_attr; g
+  | Dvolatile(v,r,w,al,l) -> Dvolatile(v,r,w,Cil.addAttribute a al,l)
+  | Daxiomatic(n,l,al,loc) ->
+    Daxiomatic(n,List.map (add_attribute_glob_annot a) l,
+               Cil.addAttribute a al,loc)
+  | Dtype(ti,_) -> ti.lt_attr <- Cil.addAttribute a ti.lt_attr; g
+  | Dlemma(n,ax,labs,t,p,al,l) ->
+    Dlemma(n,ax,labs,t,p,Cil.addAttribute a al,l)
+  | Dmodel_annot (mi,_) -> mi.mi_attr <- Cil.addAttribute a mi.mi_attr; g
+  | Dcustom_annot(c,n,al,l) -> Dcustom_annot(c,n,Cil.addAttribute a al, l)
 
 let is_same_list f l1 l2 =
   try List.for_all2 f l1 l2 with Invalid_argument _ -> false
@@ -544,17 +559,56 @@ let is_same_c_type t1 t2 =
 
 let is_same_type t1 t2 = Cil_datatype.Logic_type_ByName.equal t1 t2
 
+let is_same_string (s1: string) s2  = s1 = s2
+
+let is_same_c_unop (u1: unop) u2 = u1 = u2
+
+let is_same_c_binop (b1: binop) b2 = b1 = b2
+
+let rec is_same_attrparam p1 p2 =
+  match p1,p2 with
+  | AInt i1, AInt i2 -> Integer.equal i1 i2
+  | AStr s1, AStr s2 -> is_same_string s1 s2
+  | ACons (s1, p1), ACons (s2, p2) ->
+    is_same_string s1 s2 && is_same_list is_same_attrparam p1 p2
+  | ASizeOf t1, ASizeOf t2 -> is_same_c_type t1 t2
+  | ASizeOfE p1, ASizeOfE p2 -> is_same_attrparam p1 p2
+  | AAlignOf t1, AAlignOf t2 -> is_same_c_type t1 t2
+  | AAlignOfE p1, AAlignOfE p2 -> is_same_attrparam p1 p2
+  | AUnOp(u1,p1), AUnOp(u2,p2) ->
+    is_same_c_unop u1 u2 && is_same_attrparam p1 p2
+  | ABinOp(b1,l1,r1), ABinOp(b2,l2,r2) ->
+    is_same_c_binop b1 b2 && is_same_attrparam l1 l2 && is_same_attrparam r1 r2
+  | ADot(p1,f1), ADot(p2,f2) ->
+    is_same_string f1 f2 && is_same_attrparam p1 p2
+  | AStar p1, AStar p2 -> is_same_attrparam p1 p2
+  | AAddrOf p1, AAddrOf p2 -> is_same_attrparam p1 p2
+  | AIndex(a1,i1), AIndex(a2,i2) ->
+    is_same_attrparam a1 a2 && is_same_attrparam i1 i2
+  | AQuestion(q1,t1,e1), AQuestion(q2,t2,e2) ->
+    is_same_attrparam q1 q2 && is_same_attrparam t1 t2
+    && is_same_attrparam e1 e2
+  | _ -> false
+
+let is_same_attribute a1 a2 =
+  match a1,a2 with
+  | Attr (s1,prm1), Attr (s2,prm2) ->
+    is_same_string s1 s2 && is_same_list is_same_attrparam prm1 prm2
+  | AttrAnnot s1, AttrAnnot s2 -> is_same_string s1 s2
+  | _ -> false
+
+let is_same_attributes l1 l2 = is_same_list is_same_attribute l1 l2
+
 let is_same_var v1 v2 =
   v1.lv_name = v2.lv_name &&
-  is_same_type v1.lv_type v2.lv_type
+  is_same_type v1.lv_type v2.lv_type &&
+  is_same_attributes v1.lv_attr v2.lv_attr
 
 let compare_var v1 v2 =
   let res = String.compare v1.lv_name v2.lv_name in
   if res = 0 then
     Cil_datatype.Logic_type_ByName.compare v1.lv_type v2.lv_type
   else res
-
-let is_same_string (s1: string) s2  = s1 = s2
 
 let is_same_logic_signature l1 l2 =
   l1.l_var_info.lv_name = l2.l_var_info.lv_name &&
@@ -899,6 +953,7 @@ let is_same_logic_type_def d1 d2 =
 let is_same_logic_type_info t1 t2 =
   t1.lt_name = t2.lt_name &&
   is_same_list (=) t1.lt_params  t2.lt_params &&
+  is_same_attributes t1.lt_attr t2.lt_attr &&
   is_same_opt is_same_logic_type_def t1.lt_def t2.lt_def
 
 let is_same_loop_pragma p1 p2 =
@@ -960,26 +1015,33 @@ let is_same_code_annotation (ca1:code_annotation) (ca2:code_annotation) =
 let is_same_model_info mi1 mi2 =
   mi1.mi_name = mi2.mi_name &&
   is_same_c_type mi1.mi_base_type mi2.mi_base_type &&
-  is_same_type mi1.mi_field_type mi2.mi_field_type
+  is_same_type mi1.mi_field_type mi2.mi_field_type &&
+  is_same_attributes mi1.mi_attr mi2.mi_attr
 
 let rec is_same_global_annotation ga1 ga2 =
   match (ga1,ga2) with
     | Dfun_or_pred (li1,_), Dfun_or_pred (li2,_) -> is_same_logic_info li1 li2
-    | Daxiomatic (id1,ga1,_), Daxiomatic (id2,ga2,_) ->
+    | Daxiomatic (id1,ga1,attr1,_), Daxiomatic (id2,ga2,attr2,_) ->
         id1 = id2 && is_same_list is_same_global_annotation ga1 ga2
+        && is_same_attributes attr1 attr2
     | Dtype (t1,_), Dtype (t2,_) -> is_same_logic_type_info t1 t2
-    | Dlemma(n1,ax1,labs1,typs1,st1,_), Dlemma(n2,ax2,labs2,typs2,st2,_) ->
-        n1 = n2 && ax1 = ax2 &&
+    | Dlemma(n1,ax1,labs1,typs1,st1,attr1,_),
+      Dlemma(n2,ax2,labs2,typs2,st2,attr2,_) ->
+        is_same_string n1 n2 && ax1 = ax2 &&
         is_same_list is_same_logic_label labs1 labs2 &&
-        is_same_list (=) typs1 typs2 && is_same_predicate st1 st2
+        is_same_list (=) typs1 typs2 && is_same_predicate st1 st2 &&
+        is_same_attributes attr1 attr2
     | Dinvariant (li1,_), Dinvariant (li2,_) -> is_same_logic_info li1 li2
     | Dtype_annot (li1,_), Dtype_annot (li2,_) -> is_same_logic_info li1 li2
     | Dmodel_annot (li1,_), Dmodel_annot (li2,_) -> is_same_model_info li1 li2
-    | Dcustom_annot (c1, n1, _), Dcustom_annot (c2, n2,_) -> n1 = n2 && c1 = c2
-    | Dvolatile(t1,r1,w1,_), Dvolatile(t2,r2,w2,_) ->
+    | Dcustom_annot (c1, n1, attr1, _),
+      Dcustom_annot (c2, n2, attr2, _) ->
+      is_same_string n1 n2 && c1 = c2 && is_same_attributes attr1 attr2
+    | Dvolatile(t1,r1,w1,attr1,_), Dvolatile(t2,r2,w2,attr2,_) ->
       is_same_list is_same_identified_term t1 t2 &&
-        is_same_opt (fun x y -> x.vname = y.vname) r1 r2 &&
-        is_same_opt (fun x y -> x.vname = y.vname) w1 w2
+      is_same_opt (fun x y -> x.vname = y.vname) r1 r2 &&
+      is_same_opt (fun x y -> x.vname = y.vname) w1 w2 &&
+      is_same_attributes attr1 attr2
     | (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
       | Dinvariant _ | Dtype_annot _ | Dcustom_annot _ | Dmodel_annot _ | Dvolatile _),
         (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
@@ -2013,7 +2075,7 @@ let pointer_comparable ?loc t1 t2 =
                   this *)
                mk_cast ~loc Cil.voidPtrType t, obj_ptr
              | TVoid _ | TFun _ | TNamed _ | TComp _ | TBuiltin_va_list _
-             | TArray _ (* in logic array do not decay implicitely 
+             | TArray _ (* in logic array do not decay implicitly 
                            into pointers. *)
                ->
                  Kernel.fatal 

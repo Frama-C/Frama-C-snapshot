@@ -18,7 +18,7 @@
           
           Global metrics
           ============== 
-          Sloc = 10
+          Sloc = 12
           Decision point = 1
           Global variables = 0
           If = 1
@@ -35,7 +35,6 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value] Recording results for main
 [value] done for function main
 [metrics] Value coverage statistics
           =========================
@@ -43,21 +42,20 @@
           Semantically reached functions = 1
           Coverage estimation = 50.0% 
           
-          Unseen functions (1) =
+          Unreached functions (1) =
             <tests/metrics/unreachable.c>: foo;
 [metrics] References to non-analyzed functions
           ------------------------------------
           Function main calls foo (at tests/metrics/unreachable.c:16)
 [metrics] Statements analyzed by Value
           ----------------------------
-          8 stmts in analyzed functions, 5 stmts analyzed (62.5%)
-          main: 5 stmts out of 8 (62.5%)
+          10 stmts in analyzed functions, 6 stmts analyzed (60.0%)
+          main: 6 stmts out of 10 (60.0%)
 [value] Analyzing a complete application starting at foo
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value] Recording results for foo
 [value] done for function foo
 [metrics] Value coverage statistics
           =========================

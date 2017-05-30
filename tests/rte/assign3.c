@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-no-all -print -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -rte-no-mem -print -rte-precond -journal-disable
 */
 
 // if f() assigns i there might be a problem 

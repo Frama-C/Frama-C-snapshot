@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,7 +82,7 @@ let compute_multiple_stmts skip kf ls =
 let slice (stmts:stmt list) =
   feedback ~level:2 "beginning slicing";
   let name = "impact slicing" in
-  let slicing = !Db.Slicing.Project.mk_project name in
+  !Db.Slicing.Project.reset_slice ();
   let select sel ({ sid = id } as stmt) =
     let kf = Kernel_function.find_englobing_kf stmt in
     debug ~level:3 "selecting sid %d (of %s)" id (Kernel_function.get_name kf);
@@ -90,10 +90,10 @@ let slice (stmts:stmt list) =
   in
   let sel = List.fold_left select Db.Slicing.Select.empty_selects stmts in
   debug ~level:2 "applying slicing request";
-  !Db.Slicing.Request.add_persistent_selection slicing sel;
-  !Db.Slicing.Request.apply_all_internal slicing;
-  !Db.Slicing.Slice.remove_uncalled slicing;
-  let extracted_prj = !Db.Slicing.Project.extract name slicing in
+  !Db.Slicing.Request.add_persistent_selection sel;
+  !Db.Slicing.Request.apply_all_internal ();
+  !Db.Slicing.Slice.remove_uncalled ();
+  let extracted_prj = !Db.Slicing.Project.extract name () in
   !Db.Slicing.Project.print_extracted_project ?fmt:None ~extracted_prj ;
   feedback ~level:2 "slicing done"
 

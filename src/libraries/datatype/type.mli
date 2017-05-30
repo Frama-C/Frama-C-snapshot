@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -232,8 +232,8 @@ module Function : sig
   val instantiate:
     ?label:(string * (unit -> 'a) option) -> 'a t -> 'b t -> ('a -> 'b) t * bool
     (** Possibility to add a label for the parameter.
-         - [~label:(p,None)] for a mandatory labelized parameter [p];
-         - [~label:(p,Some f)] for an optional labelized parameter [p],
+         - [~label:(p,None)] for a mandatory labeled parameter [p];
+         - [~label:(p,Some f)] for an optional labeled parameter [p],
            with default value [f ()]. *)
   val is_instance_of: 'a t -> bool
   val get_instance: ('a -> 'b) t -> 'a t * 'b t * string option

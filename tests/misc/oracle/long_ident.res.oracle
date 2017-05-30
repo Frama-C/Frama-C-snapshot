@@ -29,15 +29,14 @@ enum T1 {
     E2 = 0
 };
 /*@ ensures \valid(\old(f1)); */
-extern int F1(int *f1);
+int F1(int *f1);
 
 int G1;
 enum T1 G2;
 /*@ ensures \valid(\old(f3)); */
 void main(int f2, int *f3)
 {
-  int V1;
-  V1 = 0;
+  int V1 = 0;
   G2 = E1;
   F1(f3);
   return;

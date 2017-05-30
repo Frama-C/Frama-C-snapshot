@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ module Typ = struct
   let is_variadic typ =
     match Cil.unrollType typ with
     | TFun (_, _, b, _) -> b
-    |  _ -> invalid_arg "is_variadic"
+    |  _ -> false
 end
 
 module Cil = struct
@@ -127,38 +127,9 @@ module Cil = struct
     | Definition (fd, _) -> fd.svar.vattr
     | Declaration (_, vi, _, _) -> vi.vattr
 
-  let get_inst_loc = function
-    | Set (_, _, l)
-    | Call (_, _, _, l)
-    | Asm (_,_,_,l)
-    | Skip l
-    | Code_annot (_, l) -> l
+  let get_inst_loc = Cil_datatype.Instr.loc
 
-  let rec get_stmt_loc s = match s.skind with
-    | Instr i -> get_inst_loc i
-    | Return (_, l)
-    | Goto (_, l)
-    | Break l
-    | Continue l
-    | If (_, _, _, l)
-    | Switch(_, _, _, l)
-    | Loop (_, _, l, _, _)
-    | Throw (_, l)
-    | TryCatch (_, _, l)
-    | TryFinally (_, _, l)
-    | TryExcept (_, _, _, l) -> l
-    | Block b ->
-      (try
-	 let first_stmt = List.hd b.bstmts in
-	 get_stmt_loc first_stmt
-       with
-       | _ -> raise (Invalid_argument "No statement found"))
-    | UnspecifiedSequence s ->
-      (try
-	 let first_stmt, _, _, _, _ = List.hd s in
-	 get_stmt_loc first_stmt
-       with
-	 _ -> raise (Invalid_argument "No statement found"))
+  let get_stmt_loc = Cil_datatype.Stmt.loc
 end
 
 module List = struct

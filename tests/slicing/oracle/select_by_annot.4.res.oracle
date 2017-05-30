@@ -139,7 +139,7 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
   \result FROM d
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f1
 [pdg] done for function f1
@@ -161,8 +161,7 @@ struct Tstr {
 struct Tstr S;
 void f1_slice_1(void)
 {
-  int *p;
-  p = & S.a;
+  int *p = & S.a;
   /*@ slice pragma expr *p; */ ;
   return;
 }

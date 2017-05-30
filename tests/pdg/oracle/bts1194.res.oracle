@@ -156,7 +156,7 @@ tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
 [pdg] PDG for f
  {n13}: InCtrl
  {n14}: VarDecl : l
- {n15}: l = 0;
+ {n15}: int l = 0;
    -[-c-]-> 13
    -[a--]-> 14
  {n16}: Call2-InCtrl : Y = input();
@@ -196,7 +196,7 @@ tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
  {n29}: In(X)
  {n30}: In(v)
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [slicing] applying all slicing requests...
 [slicing] applying 0 actions...
@@ -240,7 +240,7 @@ tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
 int Y;
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern int input();
+int input();
 
 void f_slice_1(void)
 {

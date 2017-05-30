@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -94,7 +94,7 @@ let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
   main_ui#rehighlight ()
 
 let apply_on_vi f localizable = match localizable with
-  | PVDecl(_,vi)
+  | PVDecl(_,_,vi)
   | PLval(_, _, (Var vi, NoOffset))
   | PTermLval(_, _, _, (TVar { lv_origin = Some vi }, TNoOffset)) ->
       if not (Cil.isFunctionType vi.vtype) then
@@ -127,7 +127,7 @@ let occurrence_highlighter buffer loc ~start ~stop =
               && Kinstr.equal k ki
             in
             if List.exists same_tlval result then highlight ()
-        | PVDecl(_, vi') when Varinfo.equal vi vi' ->
+        | PVDecl(_, _,vi') when Varinfo.equal vi vi' ->
             highlight ()
         | PExp _ | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
 

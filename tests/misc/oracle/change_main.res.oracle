@@ -5,7 +5,6 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value] Recording results for f
 [value] done for function f
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
@@ -15,7 +14,6 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value] Recording results for g
 [value] done for function g
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function g:

@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-metrics-by-function" +"-metrics-value-cover"
+   STDOPT: +"-metrics-by-function -metrics-value-cover -load-module scope"
 **/
 
 void (*bar) (int); void (*t[2])(int);

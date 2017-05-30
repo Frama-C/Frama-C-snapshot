@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,14 +21,20 @@
 (**************************************************************************)
 
 (** Map from alarms to status.
-    Returned by the abstract domains and the evaluation functions of an
-    abstract interpretation analysis. *)
+    Returned by the abstract semantics to report the possible undefined
+    behaviors. *)
 
-(** There are two kinds of alarms map:
-    - [Just s], where all missing properties are considered as true:
-     [s] contains the only alarms that can occur.
-    - [AllBut s], where all missing properties are considered as unknown:
-     [s] contains the only alarms whose status is known. *)
+(** An alarm is a guard against an undesirable behavior. If the status of an
+    assertion is true, then its corresponding undesirable behavior never
+    occurs. Otherwise, the undesirable behavior may occur (unknown status) or
+    definitely happens if the program point is reachable (false status). *)
+
+(** The maps are partial. Missing assertions are implicitly bound to a default
+    status. There are two kinds of alarm maps:
+    - closed maps [Just s], where all missing assertions are considered as true:
+      [s] contains the only alarms that can occur.
+    - open maps [AllBut s], where all missing assertions are considered as
+      unknown: [s] contains the only alarms whose status is known. *)
 
 type s
 type t = private Just of s | AllBut of s
@@ -37,6 +43,7 @@ type status = True | False | Unknown
 
 type 'a if_consistent = [ `Value of 'a | `Inconsistent ]
 
+(* Logical status bound to assertions. *)
 module Status : sig
   include Datatype.S_with_collections with type t := status
   val join: status -> status -> status
@@ -48,25 +55,30 @@ end
     = Just empty *)
 val none : t
 
-(** all alarms: all potential assertions have a Dont_know status.
+(** all alarms: all potential assertions have a Unknown status.
     = AllBut empty *)
 val all : t
 
+(** [set alarm status t] binds the [alarm] to the [status] in the map [t]. *)
+val set : alarm -> status -> t -> t
+
+(** ! Different semantics according to the kind of the alarm map.
+    [add alarm [Just s] = set alarm Unknown (Just s)]
+    [add alarm [AllBut s] = set alarm True (AllBut s)] *)
+val add : alarm -> t -> t
+
+(** Returns the status of a given alarm. *)
+val find : alarm -> t -> status
+
+(** Are two maps equal? *)
 val equal : t -> t -> bool
 
 (** Is there an assertion with a non True status ? *)
 val is_empty : t -> bool
 
+(** [singleton alarm] creates the map [add alarm none]:
+    [alarm] has a Unknown status, and all others have a True status. *)
 val singleton : alarm -> t
-val add' : alarm -> status -> t -> t
-
-(** ! Different semantics according to the kind of alarms map.
-    [add alarm [Just s] = add' alarm Dont_know (Just s)]
-    [add alarm [AllBut s] = add' alarm True (AllBut s)]*)
-val add : alarm -> t -> t
-
-(** Returns the status of a given alarm. *)
-val find : alarm -> t -> status
 
 (** Pointwise union of property status: the least precise status is kept. *)
 val union: t -> t -> t
@@ -78,18 +90,18 @@ val inter: t -> t -> t if_consistent
 val exists: (alarm -> status -> bool) -> default:(status -> bool) -> t -> bool
 val for_all: (alarm -> status -> bool) -> default:(status -> bool) -> t -> bool
 
-
 val iter: (alarm -> status -> unit) -> t -> unit
 
-(** Emits the alarms according to the given warn mode. *)
-val emit: CilE.warn_mode -> t -> unit
+(** Emits the alarms according to the given warn mode, at the given
+    instruction. *)
+val emit: CilE.warn_mode -> Cil_types.kinstr -> t -> unit
 
-val start_stmt : Cil_types.kinstr -> unit
-val end_stmt : unit -> unit
-val current_stmt : unit -> Cil_types.kinstr
+(** Calls the functions registered in the [warn_mode] according to the
+    set of alarms. *)
+val notify: CilE.warn_mode -> t -> unit
 
 val pretty : Format.formatter -> t -> unit
-
+val pretty_status : Format.formatter -> status -> unit
 
 (*
 Local Variables:

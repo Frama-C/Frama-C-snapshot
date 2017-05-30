@@ -249,7 +249,7 @@ let scan_ident id =
 
 let init ~(filename: string) : Lexing.lexbuf =
   init_lexicon ();
-  (* Inititialize the pointer in Errormsg *)
+  (* Initialize the pointer in Errormsg *)
   Lexerhack.add_type := add_type;
   Lexerhack.push_context := push_context;
   Lexerhack.pop_context := pop_context;
@@ -357,7 +357,7 @@ let wbtowc wstr =
   dest
 *)
 
-(* This function converst the "Hi" in L"Hi" to { L'H', L'i', L'\0' }
+(* This function converts the "Hi" in L"Hi" to { L'H', L'i', L'\0' }
   matth: this seems unused.
 let wstr_to_warray wstr =
   let len = String.length wstr in

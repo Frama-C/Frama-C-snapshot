@@ -22,7 +22,7 @@ tests/value/initialized.c:22:[value] warning: assertion got status unknown.
 [value] computing for function Frama_C_interval <- g1 <- main.
         Called from tests/value/initialized.c:24.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- g1 <- main.
         Called from tests/value/initialized.c:25.
@@ -82,7 +82,6 @@ tests/value/initialized.c:51:[value] Assigning imprecise value to t[7].
          {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
          {0x11111111; 0x22222222} or UNINITIALIZED
          [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
-        p_0 ∈ UNINITIALIZED
         v1 ∈ {0}
         i6 ∈ [--..--]
         __retres ∈ UNINITIALIZED
@@ -180,6 +179,7 @@ tests/value/initialized.c:148:[value] assertion got status valid.
 [value] done for function main
 tests/value/initialized.c:93:[value] assertion 'Value,initialisation' got final status invalid.
 tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final status invalid.
+[scope:rm_asserts] removing 3 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   t1[0] ∈ UNINITIALIZED

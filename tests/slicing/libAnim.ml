@@ -3,11 +3,11 @@
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 let use_dot =
-  Sys.os_type <> "Win32" 
-  && (Unix.WEXITED 0) = Unix.system ("which dot > /dev/null 2>&1") 
+  Sys.os_type <> "Win32"
+  && (Unix.WEXITED 0) = Unix.system ("which dot > /dev/null 2>&1")
 
 (* function to append [string_of_int n] on 3 char to basename. *)
-let nth_name basename n = 
+let nth_name basename n =
   assert (n < 1000);
   let str_n = string_of_int n in
   let str_n = if n < 100  then ("0"^str_n) else str_n in
@@ -16,11 +16,11 @@ let nth_name basename n =
 ;;
 
 (* generate the nth .jpg file (generate to .dot file and then remove it) *)
-let print_proj basename title proj n =
+let print_proj basename title n =
   let name = nth_name basename n in
   let dot_name = (name^".dot") in
   let jpg_name = (name^".jpg") in
-  !Db.Slicing.Project.print_dot ~filename:dot_name ~title:title proj;
+  !Db.Slicing.Project.print_dot ~filename:dot_name ~title:title;
   if use_dot then
     ignore (Sys.command ("dot -Tjpg -o "^jpg_name^" "^dot_name^" 2>/dev/null"));
   Sys.remove dot_name;
@@ -30,14 +30,14 @@ let print_proj basename title proj n =
 (* apply all requests of the project and generate a .jpg file for each step.
 * (begin at number [n])
 *)
-let build_all_graphs basename title proj first_n =
+let build_all_graphs basename title first_n =
   Format.printf "Processing %s : " basename;
   let rec next n =
     Format.printf ".@?";
     try
-      !Db.Slicing.Request.apply_next_internal proj;
+      !Db.Slicing.Request.apply_next_internal ();
       let title = title^" ("^(string_of_int (n - first_n))^")" in
-      let n = print_proj basename title proj n in
+      let n = print_proj basename title n in
       next n
     with Not_found -> n
   in
@@ -59,7 +59,7 @@ let print_help basename =
   Format.printf
     "After that, you can clear the generated files with:@\n\t%s@." clean_cmd
 
-let remove_all_files basename = 
+let remove_all_files basename =
   Format.printf "removing generated .jpg files@.";
   ignore (Sys.command (clean_cmd basename))
 

@@ -24,16 +24,12 @@ int f(int *x, int *y)
   int __retres;
   int *tmp;
   int *tmp_0;
-  { /* sequence */
-    tmp = x;
-    x ++;
-    ;
-  }
-  { /* sequence */
-    tmp_0 = y;
-    y ++;
-    ;
-  }
+  tmp = x;
+  x ++;
+  ;
+  tmp_0 = y;
+  y ++;
+  ;
   __retres = *x + *y;
   return __retres;
 }

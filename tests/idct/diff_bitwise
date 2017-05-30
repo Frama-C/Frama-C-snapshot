@@ -1,5 +1,5 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_bitwise/ieee_1180_1990.res.oracle
-500c500
+503c503
 <   i ∈ [0..2147483646]
 ---
 >   i ∈ [0..2147483646],0%2

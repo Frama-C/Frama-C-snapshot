@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/horwitz.cmxs
    CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/horwitz.cmxs
-   OPT: -deps -slicing-level 0 -journal-disable
+   OPT: -val-show-progress -deps -slicing-level 0 -journal-disable
 */
 
 /* bin/toplevel.opt -deps -val tests/slicing/horwitz.c */

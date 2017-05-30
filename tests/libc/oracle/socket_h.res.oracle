@@ -1,0 +1,65 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/socket_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
+  __fc_sockfds[0..1023] ∈ {0}
+  __fc_socket_counter ∈ [--..--]
+  __fc_open_sock_fds ∈ [--..--]
+  in6addr_any ∈ {0}
+  in6addr_loopback.s6_addr[0..15] ∈ {255}
+  __fc_random_counter ∈ {0}
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
+[value] computing for function socket <- main.
+        Called from tests/libc/socket_h.c:7.
+[value] using specification for function socket
+[value] Done for function socket
+[value] computing for function exit <- main.
+        Called from tests/libc/socket_h.c:8.
+[value] using specification for function exit
+[value] Done for function exit
+[value] computing for function inet_addr <- main.
+        Called from tests/libc/socket_h.c:11.
+[value] using specification for function inet_addr
+share/libc/arpa/inet.h:42:[value] function inet_addr: precondition got status valid.
+[value] Done for function inet_addr
+[value] computing for function htons <- main.
+        Called from tests/libc/socket_h.c:12.
+[value] using specification for function htons
+[value] Done for function htons
+[value] computing for function connect <- main.
+        Called from tests/libc/socket_h.c:13.
+[value] using specification for function connect
+share/libc/sys/socket.h:203:[value] function connect: precondition got status valid.
+share/libc/sys/socket.h:204:[value] function connect: precondition got status valid.
+[value] Done for function connect
+[value] computing for function exit <- main.
+        Called from tests/libc/socket_h.c:14.
+[value] Done for function exit
+[value] computing for function getsockopt <- main.
+        Called from tests/libc/socket_h.c:18.
+[value] using specification for function getsockopt
+share/libc/sys/socket.h:224:[value] function getsockopt: precondition got status valid.
+share/libc/sys/socket.h:225:[value] function getsockopt: precondition got status valid.
+share/libc/sys/socket.h:236:[value] function getsockopt, behavior so_error: precondition got status valid.
+share/libc/sys/socket.h:237:[value] function getsockopt, behavior so_error: precondition got status valid.
+share/libc/sys/socket.h:238:[value] function getsockopt, behavior so_error: precondition got status valid.
+[value] Done for function getsockopt
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  __fc_sockfds[0..1023] ∈ [--..--]
+  __fc_socket_counter ∈ [--..--]
+  sockfd ∈ [0..1023]
+  addr.sin_family ∈ {2}
+      {.sin_port; .sin_addr} ∈ [--..--]
+  rc ∈ {-1; 0}
+  optval ∈ [--..--] or UNINITIALIZED
+  optlen ∈ {4}

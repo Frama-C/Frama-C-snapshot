@@ -10,15 +10,13 @@ struct ee {
 };
 void f(void)
 {
-  struct e e1;
-  e1.i1 = 1;
+  struct e e1 = {.i1 = 1};
   return;
 }
 
 void g(void)
 {
-  struct ee e2;
-  e2.i2 = 1;
+  struct ee e2 = {.i2 = 1};
   return;
 }
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 (** Value builtins related to functions in string.h. *)
 
-(** The actual builtins are registed through {!Builtins.register_builtin}.
+(** The actual builtins are registered through {!Builtins.register_builtin}.
     The functions below are also  used for the evaluation of logical predicates
     [valid_string] and [valid_read_string]. *)
 

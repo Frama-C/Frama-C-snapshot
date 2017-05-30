@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -150,11 +150,18 @@ val load_module: string -> unit
 (** Load the module specification. See -load-module option.
     @modify Magnesium-20151001 new API. *)
 
-(**/**)
-val load_plugin_path: string list -> unit
-(** Load all plugins in FRAMAC_PLUGIN with prepend path.
+(** Sets the load path for modules in FRAMAC_PLUGIN, prepending it with [path].
+    Does not load any plugins.
     Must be invoked only once from boot during extending stage.
-    @since Magnesium-20151001 new API. *)
+    @since Phosphorus-20170501-beta1. *)
+val set_module_load_path : string list -> unit
+
+(**/**)
+val load_plugin_path: unit -> unit
+(** Load all plugins in the path set with [set_module_load_path].
+    Must be invoked only once from boot during extending stage.
+    @since Magnesium-20151001 new API.
+    @modify Phosphorus-20170501-beta1 changed signature. *)
 (**/**)
 
 (*

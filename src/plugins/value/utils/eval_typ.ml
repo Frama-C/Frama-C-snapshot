@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Abstract_interp
 open Cvalue
 
 let is_bitfield typlv =
@@ -37,11 +36,6 @@ let bitfield_size_attributes attrs =
   | [AInt size] -> Some size
   | _ -> None
 
-let bitfield_size typlv =
-  match Cil.unrollType typlv with
-  | TInt (_, attrs) | TEnum (_, attrs) -> bitfield_size_attributes attrs
-  | _ -> None
-
 let sizeof_lval_typ typlv =
   match Cil.unrollType typlv with
     | TInt (_, attrs) | TEnum (_, attrs) as t ->
@@ -49,33 +43,6 @@ let sizeof_lval_typ typlv =
            | [AInt i] -> Int_Base.Value i
            | _ -> Bit_utils.sizeof t)
     | t -> Bit_utils.sizeof t
-
-(* TODO: this should probably be also put directly in reinterpret_int *)
-let cast_lval_if_bitfield typlv size v =
-  match size with
-    | Int_Base.Top -> v (* Bitfields have known sizes *)
-    | Int_Base.Value size ->
-      if is_bitfield typlv then begin
-        try
-          ignore (V.project_ival_bottom v);
-          let signed = Bit_utils.is_signed_int_enum_pointer typlv in
-          let v, _ok = Cvalue.V.cast ~size ~signed v in
-          v (* TODO: handle not ok case as a downcast *)
-        with
-        | V.Not_based_on_null (* from [project_ival] *) ->
-          (* [v] is a pointer: check there are enough bits in
-             the bit-field to contain it. *)
-          if Int.ge size (Int.of_int (Bit_utils.sizeofpointer ())) ||
-            V.is_imprecise v
-          then v
-          else begin
-            Value_parameters.result
-              "casting address to a bit-field of %s bits: \
-                this is smaller than sizeof(void*)" (Int.to_string size);
-            V.topify_arith_origin v
-          end
-      end
-      else v
 
 let offsetmap_matches_type typ_lv o =
   let aux typ_matches = match V_Offsetmap.single_interval_value o with

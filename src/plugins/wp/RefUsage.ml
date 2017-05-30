@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,6 @@ module Access :
 sig
   type t = access
   val is_bot : t -> bool
-  val leq : t -> t -> bool (* unused for now *)
   val cup : t -> t -> t
   val pretty : varinfo -> Format.formatter -> t -> unit
 end =
@@ -63,7 +62,7 @@ struct
     | ByArray -> 2
     | ByValue -> 3
     | ByAddr -> 4
-  let leq a b = (rank a) <= (rank b) (* unused for now *)
+
   let cup a b = if rank a < rank b then b else a
 end
 
@@ -294,7 +293,7 @@ type local_ctx = {
   mutable tlet : model LVmap.t; (* for \\let var bound to a term *)
   mutable plet : value LVmap.t; (* for \\let var bound to a predicate *)
   mutable spec : value; (* for formals and globals of of spec, 
-                           before partionning the result *)
+                           before partitioning the result *)
 }
 let mk_local_ctx () = { tlet=LVmap.empty ; plet=LVmap.empty ; spec=E.bot }
 
@@ -563,6 +562,18 @@ and v_body (env:ctx) = (* locals of the logical function are removed *)
 (* --- Compilation of C Function                                      --- *)
 (* ---------------------------------------------------------------------- *)
 
+let cinit vi init =
+  let update_code_env a v = E.cup a v in
+  let einit (m:model) a exp =
+    update_code_env a (E.cup (e_value m) (vexpr exp))
+  in
+  let rec aux (m: model) a = function
+    | SingleInit (exp) ->  einit m a exp
+    | CompoundInit(_,loi) ->
+        List.fold_left (fun a (ofs,init) -> aux (offset m ofs) a init)
+          a loi
+  in aux (cval vi) E.bot init
+
 let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
   let update_code_env v = env.global.code <- E.cup env.global.code v in
   let do_term t = update_code_env (vterm env t) in
@@ -606,6 +617,14 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
           | None -> List.iter do_exp (fun_exp::args_list)
           | Some called_kf -> do_args called_kf args_list
         end
+    | Instr(Local_init (v,AssignInit i,_)) -> update_code_env (cinit v i)
+    | Instr(Local_init (v,ConsInit (f,args,kind),_)) ->
+        let kf = Globals.Functions.get f in
+        (match kind with
+         | Constructor -> do_args kf (Cil.mkAddrOfVi v :: args)
+         | Plain_func ->
+             update_code_env (e_value (cval v));
+             do_args kf args)
     | Return(Some exp,_)
     | If (exp,_,_,_)
     | Switch (exp,_,_,_) -> do_exp exp
@@ -635,13 +654,13 @@ let cfun_spec env kf =
     Cil.SkipChildren
   in
   let visitor = object
-    inherit Cil.nopCilVisitor as super
+    inherit Cil.nopCilVisitor
     method !vpredicate p = update_spec_env (pred env p)
     method !vterm t = update_spec_env (vterm env t)
   end in
   let spec = Annotations.funspec kf in
   ignore (Cil.visitCilFunspec (visitor:>Cil.cilVisitor) spec) ;
-  (* Partionning the accesses of the spec for formals vs globals *)
+  (* Partitioning the accesses of the spec for formals vs globals *)
   let formals,globals = E.partition_formals_vs_others env.local.spec in
   env.global.spec_formals <- formals ;
   env.global.spec_globals <- globals
@@ -659,23 +678,12 @@ let cfun kf =
 let cvarinit vi initinfo env =
   match initinfo.init with
   | None -> env
-  | Some init ->
-      let update_code_env a v = E.cup a v in
-      let einit (m:model) a exp =
-        update_code_env a (E.cup (e_value m) (vexpr exp)) 
-      in
-      let rec cinit (m: model) a = function
-        | SingleInit (exp) ->  einit m a exp
-        | CompoundInit(_,loi) ->
-            List.fold_left (fun a (ofs,init) -> cinit (offset m ofs) a init)
-              a loi
-      in E.cup env (cinit (cval vi) E.bot init)
+  | Some init -> E.cup env (cinit vi init)
 
 (* ---------------------------------------------------------------------- *)
 (* --- Compilation                                                    --- *)
 (* ---------------------------------------------------------------------- *)
 
-type context = global_ctx KFmap.t
 let mk_context () = KFmap.empty
 
 let param a m = match a with
@@ -683,12 +691,6 @@ let param a m = match a with
   | ByValue -> e_value m
   | ByRef -> e_value (load m)
   | ByArray -> e_value (load (shift m E.bot))
-
-let rec call f xs ms = match xs , ms with
-  | [] , _ | _ , [] -> E.bot
-  | x::xs , m::ms ->
-      let a = E.get x f in
-      E.cup (param a m) (call f xs ms)
 
 let update_call_env (env:global_ctx) v =
   let r,differ = E.cup_differ env.code v

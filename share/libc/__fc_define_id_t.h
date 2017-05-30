@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,8 +23,10 @@
 #ifndef __FC_DEFINE_ID_T
 #define __FC_DEFINE_ID_T
 #include "features.h"
+__PUSH_FC_STDLIB
 __BEGIN_DECLS
 typedef unsigned int id_t;
 __END_DECLS
+__POP_FC_STDLIB
 #endif
 

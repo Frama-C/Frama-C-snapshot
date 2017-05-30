@@ -445,34 +445,34 @@ int main(void)
   main_pre_func();
   /*@ ghost aorai_Loop_Init_31 = 1; */
   aorai_loop_31:
-    /*@ loop invariant 0 ≤ rr ≤ 50;
-        loop invariant Aorai: 0 ≡ T0_S4;
-        loop invariant Aorai: 0 ≡ T0_init;
-        loop invariant Aorai: 1 ≡ T1_S2;
-        loop invariant Aorai: 0 ≡ accept_S3;
-        loop invariant Aorai: 0 ≡ accept_all;
-    */
-    while (1) {
-      if (! (rr < 50)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_31 = 0; */
-      opa();
-    }
+  /*@ loop invariant 0 ≤ rr ≤ 50;
+      loop invariant Aorai: 0 ≡ T0_S4;
+      loop invariant Aorai: 0 ≡ T0_init;
+      loop invariant Aorai: 1 ≡ T1_S2;
+      loop invariant Aorai: 0 ≡ accept_S3;
+      loop invariant Aorai: 0 ≡ accept_all;
+  */
+  while (1) {
+    if (! (rr < 50)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_31 = 0; */
+    opa();
+  }
   while_0_break: ;
   opb();
   rr = 0;
   /*@ ghost aorai_Loop_Init_41 = 1; */
   aorai_loop_41:
-    /*@ loop invariant Aorai: 1 ≡ T0_S4;
-        loop invariant Aorai: 0 ≡ T0_init;
-        loop invariant Aorai: 0 ≡ T1_S2;
-        loop invariant Aorai: 0 ≡ accept_S3;
-        loop invariant Aorai: 0 ≡ accept_all;
-    */
-    while (1) {
-      if (! (rr < 50)) goto while_1_break;
-      /*@ ghost aorai_Loop_Init_41 = 0; */
-      opa();
-    }
+  /*@ loop invariant Aorai: 1 ≡ T0_S4;
+      loop invariant Aorai: 0 ≡ T0_init;
+      loop invariant Aorai: 0 ≡ T1_S2;
+      loop invariant Aorai: 0 ≡ accept_S3;
+      loop invariant Aorai: 0 ≡ accept_all;
+  */
+  while (1) {
+    if (! (rr < 50)) goto while_1_break;
+    /*@ ghost aorai_Loop_Init_41 = 0; */
+    opa();
+  }
   while_1_break: ;
   __retres = 1;
   main_post_func(__retres);

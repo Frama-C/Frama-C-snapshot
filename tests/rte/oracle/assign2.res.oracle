@@ -10,7 +10,7 @@ int t[10];
     assigns \result;
     assigns \result \from \nothing;
  */
-extern int any();
+int any();
 
 /*@ ensures t[i] ≡ \old(t[\at(i,Here)]) + 1;
     ensures \let j = i; t[j] ≡ \old(t[j]) + 1;
@@ -24,6 +24,7 @@ void f(void)
         assigns i \from \nothing;
   */
   i = any();
+  /*@ assert rte: signed_overflow: t[i] + 1 ≤ 2147483647; */
   (t[i]) ++;
   return;
 }

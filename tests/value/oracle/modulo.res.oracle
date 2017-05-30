@@ -94,6 +94,7 @@ tests/value/modulo.i:146:[value] warning: assertion got status unknown.
 [value] Done for function pos_rem
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function extract_bits_modulo:
   i ∈ [0..10]

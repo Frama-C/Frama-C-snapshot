@@ -59,7 +59,7 @@
 [wp] [Qed] Goal typed_cast_assert_ok_6 : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_7 : Valid
 [wp] [Qed] Goal typed_lshift_char_post_ok : Valid
-[wp] [Qed] Goal typed_lshift_int_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_lshift_int_post_ok : Valid
 [wp] [Qed] Goal typed_lshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_lshift_uint_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_char_post_ok : Valid
@@ -67,18 +67,18 @@
 [wp] [Alt-Ergo] Goal typed_rshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_uint_post_ok : Valid
 [wp] Proved goals:   61 / 61
-     Qed:            38 
-     Alt-Ergo:       23
+     Qed:            37 
+     Alt-Ergo:       24
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               10      8 (37)    18       100%
+Lemma               10      8 (54)    18       100%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 band_int             2     -           2       100%
 bor_int              1     -           1       100%
 bxor_int             1     -           1       100%
 bnot_int             1     -           1       100%
-lshift_int           1     -           1       100%
+lshift_int          -       1 (28)     1       100%
 rshift_int           1     -           1       100%
 band1_uint           1      1 (14)     2       100%
 band_uint            1     -           1       100%
@@ -99,8 +99,8 @@ bor_uchar           -       1 (11)     1       100%
 bxor_uchar           1      1 (12)     2       100%
 bnot_uchar           1     -           1       100%
 lshift_uchar         1     -           1       100%
-rshift_uchar        -       1 (16)     1       100%
+rshift_uchar        -       1 (22)     1       100%
 band1_ushort         1      1 (14)     2       100%
 band1_ulong          1      1 (14)     2       100%
-cast                 6      2 (23)     8       100%
+cast                 6      2 (30)     8       100%
 ----------------------------------------------------------

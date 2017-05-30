@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -load-script tests/report/one_hyp.ml
-   OPT: -load-script tests/report/several_hyps.ml
+   OPT: -no-autoload-plugins -load-module report -load-script tests/report/one_hyp.ml
+   OPT: -no-autoload-plugins -load-module report -load-script tests/report/several_hyps.ml
 */
 
 void f();

@@ -1,0 +1,56 @@
+# frama-c -wp -wp-rte -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo3_solved.old.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function equal_elements
+[wp] Goal typed_ref_equal_elements_post : not tried
+[wp] Goal typed_ref_equal_elements_post_2 : not tried
+[wp] Goal typed_ref_equal_elements_post_3 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access : trivial
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_2 : trivial
+[wp] Goal typed_ref_equal_elements_loop_inv_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_2_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_2_established : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound_2 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_signed_overflow : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_3_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_3_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_4_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_4_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_5_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_5_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_6_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_6_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_7_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_7_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_8_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_8_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_9_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_9_established : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_10_preserved : not tried
+[wp] Goal typed_ref_equal_elements_loop_inv_10_established : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_3 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound_3 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound_4 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_4 : trivial
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_5 : trivial
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_6 : trivial
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_7 : trivial
+[wp] Goal typed_ref_equal_elements_assert_rte_mem_access_8 : trivial
+[wp] Goal typed_ref_equal_elements_assert : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound_5 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : not tried
+[wp] Goal typed_ref_equal_elements_assert_2 : not tried
+[wp] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : not tried
+[wp] Goal typed_ref_equal_elements_loop_assign : trivial
+[wp] Goal typed_ref_equal_elements_loop_assign_2 : trivial
+[wp] Goal typed_ref_equal_elements_assign_part1 : trivial
+[wp] Goal typed_ref_equal_elements_assign_part2 : not tried
+[wp] Goal typed_ref_equal_elements_assign_part3 : not tried
+[wp] Goal typed_ref_equal_elements_loop_term_decrease : not tried
+[wp] Goal typed_ref_equal_elements_loop_term_positive : not tried
+[wp] Goal typed_ref_equal_elements_loop_term_2_decrease : not tried
+[wp] Goal typed_ref_equal_elements_loop_term_2_positive : not tried

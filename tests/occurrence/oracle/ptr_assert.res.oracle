@@ -23,12 +23,12 @@ tests/occurrence/ptr_assert.i:16:[value] assertion got status valid.
              variable n (parameter of Frama_C_copy_block):
                specification of Frama_C_copy_block: n
              variable x (global):
-               sid 2: x
+               sid 1: x
              variable y (global):
-               sid 5: y
+               sid 4: y
              variable z (parameter of main):
-               sid 12: z
+               sid 10: z
              variable p (local of main):
                sid 2: p
              variable q (local of main):
-               sid 5: q
+               sid 4: q

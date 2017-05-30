@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -700,7 +700,7 @@ end = struct
           else if tag = Obj.closure_tag then
             (* Buggy code with OCaml 4.01, deactivated for now 
             (* assumes that the first word of a closure does not change in
-               any way (even by Gc.compact invokation). *)
+               any way (even by Gc.compact invocation). *)
                Obj.magic (Obj.field x 0)*)
 	       (* to be tested (suggested by Damien D.): add a 'xor 0' *)
 (*	       Obj.magic (Obj.field x 0)*)

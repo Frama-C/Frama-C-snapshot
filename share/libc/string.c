@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdint.h> // for uintptr_t
 #include <stdlib.h> // for malloc()
+__PUSH_FC_STDLIB
 
 void* memcpy(void* restrict dest, const void* restrict src, size_t n)
 {
@@ -261,3 +262,5 @@ char *strndup(const char *s, size_t n)
   p[l] = 0;
   return p;
 }
+
+__POP_FC_STDLIB

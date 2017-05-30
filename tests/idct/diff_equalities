@@ -1,55 +1,55 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_equalities/ieee_1180_1990.res.oracle
-177a178
+180a181
 > tests/idct/ieee_1180_1990.c:219:[value] warning: 2's complement assumed for overflow
-179a181
+182a184
 > tests/idct/ieee_1180_1990.c:220:[value] warning: 2's complement assumed for overflow
-182d183
+185d186
 < tests/idct/ieee_1180_1990.c:219:[value] warning: 2's complement assumed for overflow
-202a204
+205a207
 > tests/idct/ieee_1180_1990.c:243:[value] warning: 2's complement assumed for overflow
-204a207
+207a210
 > tests/idct/ieee_1180_1990.c:244:[value] warning: 2's complement assumed for overflow
-207d209
+210d212
 < tests/idct/ieee_1180_1990.c:243:[value] warning: 2's complement assumed for overflow
-220a223,224
+223a226,227
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-230a235
+233a238
 > tests/idct/ieee_1180_1990.c:265:[value] warning: 2's complement assumed for overflow
-232a238
+235a241
 > tests/idct/ieee_1180_1990.c:266:[value] warning: 2's complement assumed for overflow
-235d240
+238d243
 < tests/idct/ieee_1180_1990.c:265:[value] warning: 2's complement assumed for overflow
-246a252
+249a255
 > tests/idct/ieee_1180_1990.c:289:[value] warning: 2's complement assumed for overflow
-248a255
+251a258
 > tests/idct/ieee_1180_1990.c:290:[value] warning: 2's complement assumed for overflow
-251d257
+254d260
 < tests/idct/ieee_1180_1990.c:289:[value] warning: 2's complement assumed for overflow
-264a271,272
+267a274,275
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-274a283
+277a286
 > tests/idct/ieee_1180_1990.c:311:[value] warning: 2's complement assumed for overflow
-276a286
+279a289
 > tests/idct/ieee_1180_1990.c:312:[value] warning: 2's complement assumed for overflow
-279d288
+282d291
 < tests/idct/ieee_1180_1990.c:311:[value] warning: 2's complement assumed for overflow
-290a300
+293a303
 > tests/idct/ieee_1180_1990.c:335:[value] warning: 2's complement assumed for overflow
-292a303
+295a306
 > tests/idct/ieee_1180_1990.c:336:[value] warning: 2's complement assumed for overflow
-295d305
+298d308
 < tests/idct/ieee_1180_1990.c:335:[value] warning: 2's complement assumed for overflow
-305a316,317
+308a319,320
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-332a345,346
+335a348,349
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-350a365,366
+353a368,369
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-361a378,379
+364a381,382
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand

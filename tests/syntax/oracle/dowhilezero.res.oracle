@@ -6,10 +6,8 @@ void f1(void)
   /*@ loop invariant \true; */
   while (1) {
     {
-      int x;
-      int y;
-      x = 1;
-      y = 2;
+      int x = 1;
+      int y = 2;
     }
     break;
   }
@@ -20,10 +18,8 @@ void f2(void)
 {
   while (1) {
     {
-      int x;
-      int y;
-      x = 1;
-      y = 2;
+      int x = 1;
+      int y = 2;
       break;
     }
     break;
@@ -35,10 +31,8 @@ void f3(void)
 {
   while (1) {
     {
-      int x;
-      int y;
-      x = 1;
-      y = 2;
+      int x = 1;
+      int y = 2;
       goto __Cont;
     }
     __Cont: break;
@@ -50,10 +44,8 @@ void f4(int c)
 {
   while (1) {
     {
-      int x;
-      int y;
-      x = 1;
-      y = 2;
+      int x = 1;
+      int y = 2;
     }
     if (! c) break;
   }
@@ -62,19 +54,15 @@ void f4(int c)
 
 void f5(void)
 {
-  int x;
-  int y;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   return;
 }
 
 void f6(void)
 {
-  int x;
-  int y;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   while (1) {
     continue;
     break;
@@ -84,10 +72,8 @@ void f6(void)
 
 void f7(void)
 {
-  int x;
-  int y;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   return;
 }
 

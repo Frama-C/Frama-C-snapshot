@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,7 +55,7 @@ class virtual ['a] cumulative_visitor : object
 
   method virtual compute_kf: kernel_function -> 'a
     (** Virtual function to use when one needs to compute the effect
-        of a function call. This function carries implictly a context:
+        of a function call. This function carries implicitly a context:
         thus calling [self#compute_kf k1; self#compute_kf k2]
         is different from calling one within the other *)
 end
@@ -124,7 +124,7 @@ sig
   (** Effects of a statement, using memoization if it contains a function call*)
   val statement: stmt -> X.t
 
-  (** Effects of the given expression (wich is supposed to be at the given
+  (** Effects of the given expression (which is supposed to be at the given
       statement *)
   val expr: stmt -> exp -> X.t
 end

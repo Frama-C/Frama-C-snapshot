@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,20 @@ let specialize_state_on_call ?stmt kf =
         if Cvalue.Model.is_top at_stmt then
           Cvalue.Model.top (* can occur with -no-results-function option *)
         else !Db.Value.add_formals_to_state at_stmt kf l
+    | Some
+        ({skind =
+            Instr(Local_init(v, ConsInit(_,args,kind),_))} as stmt) ->
+      let at_stmt = Db.Value.get_stmt_state stmt in
+      if Cvalue.Model.is_top at_stmt then
+        Cvalue.Model.top
+      else begin
+        let args =
+          match kind with
+          | Constructor -> Cil.mkAddrOfVi v :: args
+          | Plain_func -> args
+        in
+        !Db.Value.add_formals_to_state at_stmt kf args
+      end
     | _ -> Db.Value.get_initial_state kf
 
 

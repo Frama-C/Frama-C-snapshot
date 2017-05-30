@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -484,17 +484,17 @@ class annot_visitor kf to_annot on_alarm = object (self)
       (* Looking for management of default assigns clause. *)
       (match Ast_info.merge_assigns_from_complete_bhvs ~warn:false bhvs [] with
 	WritesAny -> 
-	  (* Case 1: it isn't possible to find good assigns from ungarded
+	  (* Case 1: it isn't possible to find good assigns from unguarded
 	     behaviors. S, looks at assigns from complete behaviors clauses. *)
 	  (match Ast_info.merge_assigns_from_complete_bhvs 
-	      ~warn:true ~ungarded:false bhvs spec.spec_complete_behaviors 
+	      ~warn:true ~unguarded:false bhvs spec.spec_complete_behaviors 
 	   with
 	   | WritesAny ->
 	     (* Case 1.1: no better thing to do than nothing *)	     
 	     None
 	   | assigns -> 
 	     (* Case 1.2: that assigns will be used as default assigns later. 
-		note: a message has been emmited. *)
+		note: a message has been emitted. *)
 	     Some assigns)
       | _ -> (* Case 2: no special thing to do *)
 	None)
@@ -505,7 +505,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	let new_bhvs =
 	  List.fold_left
 	    (fun acc bhv -> 
-	      (* step 1: looking for managment of allocation and assigns
+	      (* step 1: looking for management of allocation and assigns
 		 clause. *)
 	      let allocation = 
                 fun_transform_allocations bhv.b_allocation
@@ -574,7 +574,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	      in
               (* Update the dependencies between the original require, and the
                  copy at the syntactic call-site. Done once all the requires
-                 and behaviors have been created by the visitore *)
+                 and behaviors have been created by the visitor *)
               let requires_deps () =
                 let kf_call = Kernel_function.find_englobing_kf call_stmt in
                 let ki_call = Kstmt call_stmt in
@@ -627,18 +627,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
     Cil.ChangeDoChildrenPost (s', fun _ -> s)
   | _ -> Cil.DoChildren
 
-  (* assigned left values are checked for valid access *)
-  method! vinst = function
-  | Set (lval,_,_) ->
-    if self#do_mem_access () then begin
-      Options.debug "lval %a: validity of potential mem access checked\n"
-	Printer.pp_lval lval;
-      self#generate_assertion 
-	(Rte.lval_assertion ~read_only:Alarms.For_writing)
-	lval
-    end;
-    Cil.DoChildren
-  | Call (ret_opt,funcexp,argl,_) ->
+  method private treat_call ret_opt funcexp argl =
     (match ret_opt, self#do_mem_access () with
     | None, _ | Some _, false -> ()
     | Some ret, true -> 
@@ -688,6 +677,19 @@ class annot_visitor kf to_annot on_alarm = object (self)
 	  Cil_printer.pp_stmt (Extlib.the (self#current_stmt));
       | _ -> assert false
     end;
+
+  (* assigned left values are checked for valid access *)
+  method! vinst = function
+  | Set (lval,_,_) ->
+    if self#do_mem_access () then begin
+      Options.debug "lval %a: validity of potential mem access checked\n"
+	Printer.pp_lval lval;
+      self#generate_assertion 
+	(Rte.lval_assertion ~read_only:Alarms.For_writing)
+	lval
+    end;
+    Cil.DoChildren
+  | Call (ret_opt,funcexp,argl,_) -> self#treat_call ret_opt funcexp argl;
     (* Alarm if the call is through a pointer. Done in DoChildrenPost to get a
        more pleasant ordering of annotations. *)
     let do_ptr () =
@@ -697,7 +699,12 @@ class annot_visitor kf to_annot on_alarm = object (self)
         | _ -> ()
     in
     Cil.DoChildrenPost (fun res -> do_ptr (); res)
-  | _ -> Cil.DoChildren
+  | Local_init (v,ConsInit(f,args,kind),loc) ->
+    let do_call lv e args _loc = self#treat_call lv e args in
+    Cil.treat_constructor_as_func do_call v f args kind loc;
+    Cil.DoChildren
+  | Local_init (_,AssignInit _,_)
+  | Asm _ | Skip _ | Code_annot _ -> Cil.DoChildren
 
   method! vexpr exp =
     Options.debug "considering exp %a\n" Printer.pp_exp exp;
@@ -894,7 +901,7 @@ let annotate_kf kf =
 let do_precond kf =
   annotate_kf_aux { annotate_nothing with precond = true } kf
 
-(* annonate for all rte + unsigned overflows (which are not rte), for a given
+(* annotate for all rte + unsigned overflows (which are not rte), for a given
    function *)
 let do_all_rte kf =
   let to_annot =

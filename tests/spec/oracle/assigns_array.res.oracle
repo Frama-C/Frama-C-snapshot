@@ -34,8 +34,7 @@ int Tab[10];
 int h(int reset, int n)
 {
   int i;
-  int r;
-  r = 0;
+  int r = 0;
   i = 0;
   /*@ for foo: loop assigns Tab[0 .. i];
       for bar: loop assigns \nothing; */

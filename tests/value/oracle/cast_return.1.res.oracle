@@ -186,29 +186,23 @@ char h(void)
 void main1(void)
 {
   if (c) {
-    float f_;
     int tmp;
     tmp = f();
-    f_ = (float)tmp;
+    float f_ = (float)tmp;
   }
   if (c) {
-    long long v;
     int tmp_0;
     tmp_0 = g();
     /*@ assert Value: initialisation: \initialized(&tmp_0); */
-    v = (long long)tmp_0;
+    long long v = (long long)tmp_0;
   }
   if (c) {
-    int *x;
-    int **p;
     char tmp_1;
-    x = (int *)0;
-    p = & x;
-    { /* sequence */
-      tmp_1 = h();
-      /*@ assert Value: mem_access: \valid(*p); */
-      *(*p) = (int)tmp_1;
-    }
+    int *x = (int *)0;
+    int **p = & x;
+    tmp_1 = h();
+    /*@ assert Value: mem_access: \valid(*p); */
+    *(*p) = (int)tmp_1;
   }
   return;
 }
@@ -234,33 +228,27 @@ void main2(void)
   float tmp_0;
   if (c) {
     float tmp;
-    { /* sequence */
-      tmp = fl1();
-      /*@ assert Value: initialisation: \initialized(&tmp); */
-      d1 = (double)tmp;
-    }
+    tmp = fl1();
+    /*@ assert Value: initialisation: \initialized(&tmp); */
+    d1 = (double)tmp;
   }
-  { /* sequence */
-    tmp_0 = fl2();
-    /*@ assert Value: initialisation: \initialized(&tmp_0); */
-    d2 = (double)tmp_0;
-  }
+  tmp_0 = fl2();
+  /*@ assert Value: initialisation: \initialized(&tmp_0); */
+  d2 = (double)tmp_0;
   return;
 }
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-extern float ret_float();
+float ret_float();
 
 void main3(void)
 {
-  float f1;
   float tmp;
-  float f2;
   tmp = ret_float();
   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp); */
-  f1 = tmp;
-  f2 = f1 + (float)1;
+  float f1 = tmp;
+  float f2 = f1 + (float)1;
   return;
 }
 

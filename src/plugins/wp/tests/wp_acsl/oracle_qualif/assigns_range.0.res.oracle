@@ -27,8 +27,8 @@
      Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-call_assigns_all    12      2 (8)     14       100%
-call_assigns_t1     -       1 (5)      1       100%
-call_assigns_t2     -       1 (5)      1       100%
-call_assigns_t4     -       1 (7)      1       100%
+call_assigns_all    12      2 (9)     14       100%
+call_assigns_t1     -       1 (6)      1       100%
+call_assigns_t2     -       1 (6)      1       100%
+call_assigns_t4     -       1 (8)      1       100%
 ----------------------------------------------------------

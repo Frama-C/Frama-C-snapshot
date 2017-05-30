@@ -1,0 +1,288 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pragma-pack.c (with preprocessing)
+[kernel:cabs2cil:pragma] Pushing fc_stdlib stdint.h
+[kernel:cabs2cil:pragma] Pushing fc_stdlib __fc_define_intptr_t.h
+[kernel:cabs2cil:pragma] Popping fc_stdlib __fc_define_intptr_t.h
+[kernel:cabs2cil:pragma] Popping fc_stdlib stdint.h
+[kernel:cabs2cil:pragma] Pushing fc_stdlib stddef.h
+[kernel:cabs2cil:pragma] Pushing fc_stdlib __fc_define_size_t.h
+[kernel:cabs2cil:pragma] Popping fc_stdlib __fc_define_size_t.h
+[kernel:cabs2cil:pragma] Popping fc_stdlib stddef.h
+tests/misc/pragma-pack.c:52:[kernel:cabs2cil:pragma] packing pragma: setting alignment to 8
+tests/misc/pragma-pack.c:53:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK8.i' due to packing pragma
+tests/misc/pragma-pack.c:53:[kernel:cabs2cil:pragma] adding aligned(8) attribute to field 'PACK8.j' due to packing pragma
+tests/misc/pragma-pack.c:53:[kernel:cabs2cil:pragma] adding aligned(8) attribute to comp 'PACK8' due to packing pragma
+tests/misc/pragma-pack.c:55:[kernel:cabs2cil:pragma] packing pragma: setting alignment to 1
+tests/misc/pragma-pack.c:56:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK1.i' due to packing pragma
+tests/misc/pragma-pack.c:56:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK1.j' due to packing pragma
+tests/misc/pragma-pack.c:56:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp 'PACK1' due to packing pragma
+tests/misc/pragma-pack.c:58:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 1, setting alignment to 4
+tests/misc/pragma-pack.c:60:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPUSH4.i' due to packing pragma
+tests/misc/pragma-pack.c:60:[kernel:cabs2cil:pragma] adding aligned(4) attribute to field 'PACKPUSH4.j' due to packing pragma
+tests/misc/pragma-pack.c:60:[kernel:cabs2cil:pragma] adding aligned(4) attribute to comp 'PACKPUSH4' due to packing pragma
+tests/misc/pragma-pack.c:62:[kernel:cabs2cil:pragma] packing pragma: setting alignment to 16
+tests/misc/pragma-pack.c:63:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK16.i' due to packing pragma
+tests/misc/pragma-pack.c:63:[kernel:cabs2cil:pragma] adding aligned(16) attribute to field 'PACK16.j' due to packing pragma
+tests/misc/pragma-pack.c:63:[kernel:cabs2cil:pragma] adding aligned(16) attribute to comp 'PACK16' due to packing pragma
+tests/misc/pragma-pack.c:65:[kernel:cabs2cil:pragma] packing pragma: popped alignment 1
+tests/misc/pragma-pack.c:67:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPOP.i' due to packing pragma
+tests/misc/pragma-pack.c:67:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPOP.j' due to packing pragma
+tests/misc/pragma-pack.c:67:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp 'PACKPOP' due to packing pragma
+tests/misc/pragma-pack.c:69:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 1
+tests/misc/pragma-pack.c:71:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPUSH.i' due to packing pragma
+tests/misc/pragma-pack.c:71:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPUSH.j' due to packing pragma
+tests/misc/pragma-pack.c:71:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp 'PACKPUSH' due to packing pragma
+tests/misc/pragma-pack.c:73:[kernel:cabs2cil:pragma] packing pragma: setting alignment to 2
+tests/misc/pragma-pack.c:74:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK2.i' due to packing pragma
+tests/misc/pragma-pack.c:74:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field 'PACK2.j' due to packing pragma
+tests/misc/pragma-pack.c:74:[kernel:cabs2cil:pragma] adding aligned(2) attribute to comp 'PACK2' due to packing pragma
+tests/misc/pragma-pack.c:76:[kernel:cabs2cil:pragma] packing pragma: restoring alignment to default (16)
+tests/misc/pragma-pack.c:82:[kernel:cabs2cil:pragma] packing pragma: popped alignment 1
+tests/misc/pragma-pack.c:84:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPOPAGAIN.i' due to packing pragma
+tests/misc/pragma-pack.c:84:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKPOPAGAIN.j' due to packing pragma
+tests/misc/pragma-pack.c:84:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp 'PACKPOPAGAIN' due to packing pragma
+tests/misc/pragma-pack.c:87:[kernel] warning: ignoring #pragma pack(pop) with empty stack
+tests/misc/pragma-pack.c:88:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKOVERPOP.i' due to packing pragma
+tests/misc/pragma-pack.c:88:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACKOVERPOP.j' due to packing pragma
+tests/misc/pragma-pack.c:88:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp 'PACKOVERPOP' due to packing pragma
+tests/misc/pragma-pack.c:133:[kernel:cabs2cil:pragma] packing pragma: restoring alignment to default (16)
+tests/misc/pragma-pack.c:135:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 4
+tests/misc/pragma-pack.c:136:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test1_1.i' due to packing pragma
+tests/misc/pragma-pack.c:136:[kernel:cabs2cil:pragma] setting aligned(2) attribute to field '__anonstruct_test1_1.j' due to packing pragma
+tests/misc/pragma-pack.c:136:[kernel:cabs2cil:pragma] adding aligned(4) attribute to field '__anonstruct_test1_1.k' due to packing pragma
+tests/misc/pragma-pack.c:136:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test1_1.l' due to packing pragma
+tests/misc/pragma-pack.c:136:[kernel:cabs2cil:pragma] adding aligned(4) attribute to comp '__anonstruct_test1_1' due to packing pragma
+tests/misc/pragma-pack.c:142:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:152:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 1
+tests/misc/pragma-pack.c:153:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test2_3.i' due to packing pragma
+tests/misc/pragma-pack.c:153:[kernel:cabs2cil:pragma] setting aligned(1) attribute to field '__anonstruct_test2_3.j' due to packing pragma
+tests/misc/pragma-pack.c:153:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test2_3.k' due to packing pragma
+tests/misc/pragma-pack.c:153:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test2_3.l' due to packing pragma
+tests/misc/pragma-pack.c:153:[kernel:cabs2cil:pragma] adding aligned(1) attribute to comp '__anonstruct_test2_3' due to packing pragma
+tests/misc/pragma-pack.c:159:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:169:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 4
+tests/misc/pragma-pack.c:176:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:186:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 2
+tests/misc/pragma-pack.c:187:[kernel:cabs2cil:pragma] setting aligned(2) attribute to field '__anonstruct_test4_7.j' due to packing pragma
+tests/misc/pragma-pack.c:193:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:203:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 2
+tests/misc/pragma-pack.c:204:[kernel:cabs2cil:pragma] setting aligned(2) attribute to field '__anonstruct_test5_9.j' due to packing pragma
+tests/misc/pragma-pack.c:210:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:220:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 2
+tests/misc/pragma-pack.c:221:[kernel:cabs2cil:pragma] setting aligned(2) attribute to field '__anonstruct_test6_11.j' due to packing pragma
+tests/misc/pragma-pack.c:227:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+tests/misc/pragma-pack.c:237:[kernel:cabs2cil:pragma] packing pragma: pushing alignment 16, setting alignment to 2
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test7_13.i' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] setting aligned(2) attribute to field '__anonstruct_test7_13.j' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test7_13.q' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field '__anonstruct_test7_13.p' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field '__anonstruct_test7_13.k' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test7_13.l' due to packing pragma
+tests/misc/pragma-pack.c:238:[kernel:cabs2cil:pragma] adding aligned(2) attribute to comp '__anonstruct_test7_13' due to packing pragma
+tests/misc/pragma-pack.c:246:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field '__anonstruct_test7_2_14.i' due to packing pragma
+tests/misc/pragma-pack.c:246:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field '__anonstruct_test7_2_14.j' due to packing pragma
+tests/misc/pragma-pack.c:246:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field '__anonstruct_test7_2_14.k' due to packing pragma
+tests/misc/pragma-pack.c:246:[kernel:cabs2cil:pragma] adding aligned(2) attribute to field '__anonstruct_test7_2_14.l' due to packing pragma
+tests/misc/pragma-pack.c:246:[kernel:cabs2cil:pragma] adding aligned(2) attribute to comp '__anonstruct_test7_2_14' due to packing pragma
+tests/misc/pragma-pack.c:252:[kernel:cabs2cil:pragma] packing pragma: popped alignment 16
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] computing for function tests1 <- main.
+        Called from tests/misc/pragma-pack.c:38.
+[value] Recording results for tests1
+[value] Done for function tests1
+[value] computing for function tests2 <- main.
+        Called from tests/misc/pragma-pack.c:38.
+[value] Recording results for tests2
+[value] Done for function tests2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function tests1:
+  S_i ∈ {0}
+  S_j ∈ {16}
+  S_sizeof ∈ {32}
+  PACK8_i ∈ {0}
+  PACK8_j ∈ {8}
+  PACK8_sizeof ∈ {24}
+  PACK1_i ∈ {0}
+  PACK1_j ∈ {1}
+  PACK1_sizeof ∈ {17}
+  PACKPUSH4_i ∈ {0}
+  PACKPUSH4_j ∈ {4}
+  PACKPUSH4_sizeof ∈ {20}
+  PACK16_i ∈ {0}
+  PACK16_j ∈ {16}
+  PACK16_sizeof ∈ {32}
+  PACKPOP_i ∈ {0}
+  PACKPOP_j ∈ {1}
+  PACKPOP_sizeof ∈ {17}
+  PACKPUSH_i ∈ {0}
+  PACKPUSH_j ∈ {1}
+  PACKPUSH_sizeof ∈ {17}
+  PACK2_i ∈ {0}
+  PACK2_j ∈ {2}
+  PACK2_sizeof ∈ {18}
+  PACKDEF_i ∈ {0}
+  PACKDEF_j ∈ {16}
+  PACKDEF_sizeof ∈ {32}
+  PACKPOPAGAIN_i ∈ {0}
+  PACKPOPAGAIN_j ∈ {1}
+  PACKPOPAGAIN_sizeof ∈ {17}
+  PACKOVERPOP_i ∈ {0}
+  PACKOVERPOP_j ∈ {1}
+  PACKOVERPOP_sizeof ∈ {17}
+  PACK8_ATTR_i ∈ {0}
+  PACK8_ATTR_j ∈ {1}
+  PACK8_ATTR_sizeof ∈ {24}
+  PACK1_ATTR_i ∈ {0}
+  PACK1_ATTR_j ∈ {1}
+  PACK1_ATTR_sizeof ∈ {17}
+  PACKPUSH4_ATTR_i ∈ {0}
+  PACKPUSH4_ATTR_j ∈ {1}
+  PACKPUSH4_ATTR_sizeof ∈ {20}
+  PACK16_ATTR_i ∈ {0}
+  PACK16_ATTR_j ∈ {1}
+  PACK16_ATTR_sizeof ∈ {32}
+  PACK2_ATTR_i ∈ {0}
+  PACK2_ATTR_j ∈ {1}
+  PACK2_ATTR_sizeof ∈ {18}
+[value:final-states] Values at end of function tests2:
+  test1_i ∈ {0}
+  test1_j ∈ {2}
+  test1_k ∈ {4}
+  test1_l ∈ {20}
+  test1_sizeof ∈ {24}
+  emul1_i ∈ {0}
+  emul1_j ∈ {2}
+  emul1_k ∈ {4}
+  emul1_l ∈ {20}
+  emul1_sizeof ∈ {24}
+  test2_i ∈ {0}
+  test2_j ∈ {1}
+  test2_k ∈ {2}
+  test2_l ∈ {18}
+  test2_sizeof ∈ {19}
+  emul2_i ∈ {0}
+  emul2_j ∈ {1}
+  emul2_k ∈ {2}
+  emul2_l ∈ {18}
+  emul2_sizeof ∈ {19}
+  test3_i ∈ {0}
+  test3_j ∈ {1}
+  test3_k ∈ {2}
+  test3_l ∈ {18}
+  test3_sizeof ∈ {19}
+  emul3_i ∈ {0}
+  emul3_j ∈ {1}
+  emul3_k ∈ {2}
+  emul3_l ∈ {18}
+  emul3_sizeof ∈ {19}
+  test4_i ∈ {0}
+  test4_j ∈ {2}
+  test4_k ∈ {3}
+  test4_l ∈ {19}
+  test4_sizeof ∈ {20}
+  emul4_i ∈ {0}
+  emul4_j ∈ {2}
+  emul4_k ∈ {3}
+  emul4_l ∈ {19}
+  emul4_sizeof ∈ {20}
+  test5_i ∈ {0}
+  test5_j ∈ {2}
+  test5_k ∈ {3}
+  test5_l ∈ {19}
+  test5_sizeof ∈ {20}
+  emul5_i ∈ {0}
+  emul5_j ∈ {2}
+  emul5_k ∈ {3}
+  emul5_l ∈ {19}
+  emul5_sizeof ∈ {20}
+  test6_i ∈ {0}
+  test6_j ∈ {2}
+  test6_k ∈ {3}
+  test6_l ∈ {19}
+  test6_sizeof ∈ {20}
+  emul6_i ∈ {0}
+  emul6_j ∈ {2}
+  emul6_k ∈ {3}
+  emul6_l ∈ {19}
+  emul6_sizeof ∈ {20}
+  test7_i ∈ {0}
+  test7_j ∈ {2}
+  test7_k ∈ {14}
+  test7_l ∈ {30}
+  test7_sizeof ∈ {32}
+  emul7_i ∈ {0}
+  emul7_j ∈ {2}
+  emul7_k ∈ {14}
+  emul7_l ∈ {30}
+  emul7_sizeof ∈ {32}
+  test7_2_i ∈ {0}
+  test7_2_j ∈ {32}
+  test7_2_k ∈ {34}
+  test7_2_l ∈ {50}
+  test7_2_sizeof ∈ {82}
+  emul7_2_i ∈ {0}
+  emul7_2_j ∈ {32}
+  emul7_2_k ∈ {34}
+  emul7_2_l ∈ {50}
+  emul7_2_sizeof ∈ {82}
+  test8_i ∈ {0}
+  test8_j ∈ {8}
+  test8_k ∈ {16}
+  test8_l ∈ {18}
+  test8_sizeof ∈ {32}
+[value:final-states] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function tests1
+[from] Done for function tests1
+[from] Computing for function tests2
+[from] Done for function tests2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function tests1:
+  NO EFFECTS
+[from] Function tests2:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function tests1:
+          S_i; S_j; S_sizeof; PACK8_i; PACK8_j; PACK8_sizeof; PACK1_i; PACK1_j;
+          PACK1_sizeof; PACKPUSH4_i; PACKPUSH4_j; PACKPUSH4_sizeof; PACK16_i;
+          PACK16_j; PACK16_sizeof; PACKPOP_i; PACKPOP_j; PACKPOP_sizeof; PACKPUSH_i;
+          PACKPUSH_j; PACKPUSH_sizeof; PACK2_i; PACK2_j; PACK2_sizeof; PACKDEF_i;
+          PACKDEF_j; PACKDEF_sizeof; PACKPOPAGAIN_i; PACKPOPAGAIN_j;
+          PACKPOPAGAIN_sizeof; PACKOVERPOP_i; PACKOVERPOP_j; PACKOVERPOP_sizeof;
+          PACK8_ATTR_i; PACK8_ATTR_j; PACK8_ATTR_sizeof; PACK1_ATTR_i; PACK1_ATTR_j;
+          PACK1_ATTR_sizeof; PACKPUSH4_ATTR_i; PACKPUSH4_ATTR_j;
+          PACKPUSH4_ATTR_sizeof; PACK16_ATTR_i; PACK16_ATTR_j; PACK16_ATTR_sizeof;
+          PACK2_ATTR_i; PACK2_ATTR_j; PACK2_ATTR_sizeof
+[inout] Inputs for function tests1:
+          \nothing
+[inout] Out (internal) for function tests2:
+          test1_i; test1_j; test1_k; test1_l; test1_sizeof; emul1_i; emul1_j;
+          emul1_k; emul1_l; emul1_sizeof; test2_i; test2_j; test2_k; test2_l;
+          test2_sizeof; emul2_i; emul2_j; emul2_k; emul2_l; emul2_sizeof; test3_i;
+          test3_j; test3_k; test3_l; test3_sizeof; emul3_i; emul3_j; emul3_k;
+          emul3_l; emul3_sizeof; test4_i; test4_j; test4_k; test4_l; test4_sizeof;
+          emul4_i; emul4_j; emul4_k; emul4_l; emul4_sizeof; test5_i; test5_j;
+          test5_k; test5_l; test5_sizeof; emul5_i; emul5_j; emul5_k; emul5_l;
+          emul5_sizeof; test6_i; test6_j; test6_k; test6_l; test6_sizeof; emul6_i;
+          emul6_j; emul6_k; emul6_l; emul6_sizeof; test7_i; test7_j; test7_k;
+          test7_l; test7_sizeof; emul7_i; emul7_j; emul7_k; emul7_l; emul7_sizeof;
+          test7_2_i; test7_2_j; test7_2_k; test7_2_l; test7_2_sizeof; emul7_2_i;
+          emul7_2_j; emul7_2_k; emul7_2_l; emul7_2_sizeof; test8_i; test8_j; 
+          test8_k; test8_l; test8_sizeof
+[inout] Inputs for function tests2:
+          \nothing
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          \nothing

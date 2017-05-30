@@ -20,16 +20,12 @@ int g(int a, int b)
 
 int main(void)
 {
-  int a;
-  int b;
   int tmp_0;
   int tmp;
-  a = 2;
-  b = 3;
-  { /* sequence */
-    tmp = g(a,b);
-    ;
-  }
+  int a = 2;
+  int b = 3;
+  tmp = g(a,b);
+  ;
   tmp_0 = f(b - a,tmp,(float)1.0);
   return tmp_0;
 }
@@ -66,16 +62,12 @@ int g(int a, int b)
 
 int main(void)
 {
-  int a;
-  int b;
   int tmp_0;
   int tmp;
-  a = 2;
-  b = 3;
-  { /* sequence */
-    tmp = g(a,b);
-    ;
-  }
+  int a = 2;
+  int b = 3;
+  tmp = g(a,b);
+  ;
   /*@ behavior pre_f:
         requires (int)(b - a) > 0;
         requires (int)((int)(b - a) + tmp) ≢ 0;
@@ -117,16 +109,12 @@ int g(int a, int b)
 
 int main(void)
 {
-  int a;
-  int b;
   int tmp_0;
   int tmp;
-  a = 2;
-  b = 3;
-  { /* sequence */
-    tmp = g(a,b);
-    ;
-  }
+  int a = 2;
+  int b = 3;
+  tmp = g(a,b);
+  ;
   /*@ behavior pre_f:
         requires (int)(b - a) > 0;
         requires (int)((int)(b - a) + tmp) ≢ 0;
@@ -164,16 +152,12 @@ int g(int a, int b)
 
 int main(void)
 {
-  int a;
-  int b;
   int tmp_0;
   int tmp;
-  a = 2;
-  b = 3;
-  { /* sequence */
-    tmp = g(a,b);
-    ;
-  }
+  int a = 2;
+  int b = 3;
+  tmp = g(a,b);
+  ;
   /*@ behavior pre_f:
         requires (int)(b - a) > 0;
         requires (int)((int)(b - a) + tmp) ≢ 0;

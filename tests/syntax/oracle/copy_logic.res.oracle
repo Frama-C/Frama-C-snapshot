@@ -11,7 +11,6 @@ tests/syntax/copy_logic.i:16:[value] warning: assertion got status unknown.
 tests/syntax/copy_logic.i:17:[value] warning: signed overflow. assert y + x ≤ 2147483647;
 tests/syntax/copy_logic.i:18:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 tests/syntax/copy_logic.i:18:[value] warning: assertion got status unknown.
-[value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -27,13 +26,12 @@ tests/syntax/copy_logic.i:18:[value] warning: assertion got status unknown.
 /*@ logic ℤ g(int x) = x + 42;
  */
 /*@ frees x; */
-extern void f(int *x);
+void f(int *x);
 
 int main(int x)
 {
   int __retres;
-  int y;
-  y = 42;
+  int y = 42;
   /*@ assert q(y) ∧ p(x); */ ;
   /*@ assert Value: signed_overflow: y + x ≤ 2147483647; */
   y += x;

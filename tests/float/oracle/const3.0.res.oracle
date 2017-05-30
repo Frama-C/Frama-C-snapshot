@@ -11,7 +11,6 @@ tests/float/const3.i:7:[kernel] warning: Floating-point constant 1e-40 is not re
 [value] DUMPING STATE of file tests/float/const3.i line 11
         f1 ∈ {9.99994610111e-41}
         d0 ∈ {1e-40}
-        d1 ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Recording results for main

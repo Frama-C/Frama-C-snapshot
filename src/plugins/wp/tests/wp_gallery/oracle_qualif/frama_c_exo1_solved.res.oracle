@@ -1,0 +1,39 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo1_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 10 goals scheduled
+[wp] [Alt-Ergo] Goal typed_exo1_post : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_exo1_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_exo1_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_exo1_loop_assign : Valid
+[wp] [Qed] Goal typed_exo1_assign : Valid
+[wp] [Qed] Goal typed_exo1_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_exo1_loop_term_positive : Valid
+[wp] Proved goals:   10 / 10
+     Qed:             6 
+     Alt-Ergo:        4
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+exo1                 6      4 (187)   10       100%
+----------------------------------------------------------
+[wp] Running WP plugin...
+[rte] annotating function exo1
+[wp] 5 goals scheduled
+[wp] [Alt-Ergo] Goal typed_exo1_assert_rte_signed_overflow : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_assert_rte_mem_access : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_assert_rte_signed_overflow_2 : Valid
+[wp] [Alt-Ergo] Goal typed_exo1_assert_rte_signed_overflow_3 : Valid
+[wp] Proved goals:    5 / 5
+     Qed:             0 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+exo1                 6      9 (187)   15       100%
+----------------------------------------------------------

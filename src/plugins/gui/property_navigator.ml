@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -746,7 +746,7 @@ let highlighter (buffer:reactive_buffer) localizable ~start ~stop =
   | Pretty_source.PIP ppt ->
       Design.Feedback.mark
         buffer#buffer ~offset:start (Property_status.Feedback.get ppt)
-  | Pretty_source.PStmt(_,({ skind=Instr(Call _) } as stmt)) ->
+  | Pretty_source.PStmt(_,({ skind=Instr(Call _| Local_init (_, ConsInit _, _)) } as stmt)) ->
       let kfs = Statuses_by_call.all_functions_with_preconditions stmt in
       (* We separate the consolidated statuses of the preconditions inside
          guarded behaviors from those outside. For guarded behaviors, since we

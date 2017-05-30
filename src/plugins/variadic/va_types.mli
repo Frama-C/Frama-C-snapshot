@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,7 +55,7 @@ and aggregator_type = EndedByNull
 and format_fun = {
   f_kind : Format_types.format_kind;
   f_buffer  : buffer;
-  f_additionnal_args : int list;
+  f_additional_args : int list;
   f_format_pos : int;
 } 
 
@@ -71,4 +71,7 @@ type variadic_function = {
   vf_decl: varinfo;
   vf_original_type: typ;
   vf_class: variadic_class;
+  mutable vf_specialization_count: int; (* The number of specializations of
+                                           this function built yet *)
 }
+

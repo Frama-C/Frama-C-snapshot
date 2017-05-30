@@ -20,7 +20,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           
           Global metrics
           ============== 
-          Sloc = 18
+          Sloc = 20
           Decision point = 2
           Global variables = 2
           If = 2
@@ -45,11 +45,6 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
 [value:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
-[value] computing for function baz <- foobar.
-        Called from tests/metrics/func_ptr.c:12.
-[value] Recording results for baz
-[value] Done for function baz
-[value] Recording results for foobar
 [value] done for function foobar
 [metrics] Value coverage statistics
           =========================

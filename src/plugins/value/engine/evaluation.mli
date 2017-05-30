@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -74,7 +74,21 @@ module type S = sig
     ?valuation:Valuation.t -> for_writing:bool ->
     state -> lval -> (Valuation.t * loc * typ) evaluated
 
-  (** [reduce ~valuation state expr positive] evaluates the expresssion [expr]
+  (** [can_copy is_ret state kf lv e] checks whether assigning [e] to [lv]
+      inside function [kf] and in the context of [state]
+      can be a simple copy of an lval or must be an assignment
+      (see {!Eval.assigned} for more information).
+      [is_ret] indicates whether the assigned expr is in fact the value
+      returned by a callee.
+
+      @return [Some rlv] if the assignment can be seen as a copy from rlv to lv,
+      and [None] otherwise
+  *)
+  val can_copy:
+    ?valuation:Valuation.t -> is_ret:bool -> state -> Kernel_function.t ->
+    lval -> exp -> (lval option * Valuation.t) evaluated
+
+  (** [reduce ~valuation state expr positive] evaluates the expression [expr]
       in the state [state], and then reduces the [valuation] such that
       the expression [expr] evaluates to a zero or a non-zero value, according
       to [positive]. By default, the empty valuation is used. *)
@@ -93,11 +107,6 @@ module type S = sig
   val assume:
     ?valuation:Valuation.t ->
     state -> exp -> value -> Valuation.t or_bottom
-
-
-  val loc_size: loc -> Int_Base.t
-  val reinterpret: exp -> typ -> value -> value evaluated
-  val do_promotion: src_typ:typ -> dst_typ: typ -> exp -> value -> value evaluated
 
   (* Sorts a list of states by the evaluation of an expression, according to
      a list of expected integer values.

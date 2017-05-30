@@ -72,7 +72,7 @@ For the Program Dependence Graph tests, see  ppc/tests/pdg.
    the version of the function to call.
 
 ** tests/slicing/libAnim.ml
-   Usefull functions to view graphically the building process of a slicing
+   Useful functions to view graphically the building process of a slicing
    project.
 
 ** tests/slicing/anim.ml

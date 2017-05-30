@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Cil_types
 
 (** An [ordered_stmt] is an int representing a stmt in a particular
-    function.  They are sorted by the topological orderering of
+    function.  They are sorted by the topological ordering of
     stmts (s1 < s2 if s1 precedes s2, or s2 does not precede s1); they
     are contiguous and start from 0.
 

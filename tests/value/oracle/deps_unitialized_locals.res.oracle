@@ -34,10 +34,10 @@ tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialize
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   v1.ts ∈ {1}
-    .[bits 16 to 31] ∈ UNINITIALIZED
+    .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
   ty.ts ∈ {1}
-    .[bits 16 to 31] ∈ UNINITIALIZED
+    .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
 [value:final-states] Values at end of function g:
   v ∈ {1}
@@ -47,10 +47,10 @@ tests/value/deps_unitialized_locals.i:23:[value] warning: accessing uninitialize
   i ∈ {1}
 [value:final-states] Values at end of function main:
   v1.ts ∈ {1}
-    .[bits 16 to 31] ∈ UNINITIALIZED
+    .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
   v2.ts ∈ {1}
-    .[bits 16 to 31] ∈ UNINITIALIZED
+    .[bits 16 to 31] ∈ {0}
     .ti ∈ {2}
   v ∈ {1}
   x ∈ {1}

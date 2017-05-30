@@ -1,5 +1,5 @@
 /* run.config
-  OPT: -pdg -journal-disable -pdg-print -pdg-verbose 2
+  OPT: -val-show-progress -pdg -journal-disable -pdg-print -pdg-verbose 2
 */
 
 

@@ -96,7 +96,7 @@ tests/slicing/sizeof.i:93:[value] assertion got status valid.
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -221,7 +221,6 @@ unsigned int SizeOfE_tab_acces_1_slice_1(void)
 
 int main(void)
 {
-  int r;
   unsigned int tmp;
   unsigned int tmp_0;
   unsigned int tmp_1;
@@ -232,49 +231,29 @@ int main(void)
   unsigned int tmp_6;
   unsigned int tmp_7;
   unsigned int tmp_8;
-  r = 0;
+  int r = 0;
   r = (int)((unsigned int)r + sizeof(struct St));
   /*@ assert r ≢ 0; */ ;
-  { /* sequence */
-    tmp = SizeOf_1_slice_1();
-    r = (int)((unsigned int)r + tmp);
-  }
-  { /* sequence */
-    tmp_0 = SizeOf_2_slice_1();
-    r = (int)((unsigned int)r + tmp_0);
-  }
-  { /* sequence */
-    tmp_1 = SizeOfE_pt1_slice_1();
-    r = (int)((unsigned int)r + tmp_1);
-  }
-  { /* sequence */
-    tmp_2 = SizeOfE_pt2_slice_1();
-    r = (int)((unsigned int)r + tmp_2);
-  }
-  { /* sequence */
-    tmp_3 = SizeOfE_pt3_slice_1();
-    r = (int)((unsigned int)r + tmp_3);
-  }
-  { /* sequence */
-    tmp_4 = SizeOfE_pt_deref_1_slice_1();
-    r = (int)((unsigned int)r + tmp_4);
-  }
-  { /* sequence */
-    tmp_5 = SizeOfE_tab_1_slice_1();
-    r = (int)((unsigned int)r + tmp_5);
-  }
-  { /* sequence */
-    tmp_6 = SizeOfE_pt_tab_1_slice_1();
-    r = (int)((unsigned int)r + tmp_6);
-  }
-  { /* sequence */
-    tmp_7 = SizeOfE_pt_tab_2_slice_1();
-    r = (int)((unsigned int)r + tmp_7);
-  }
-  { /* sequence */
-    tmp_8 = SizeOfE_tab_acces_1_slice_1();
-    r = (int)((unsigned int)r + tmp_8);
-  }
+  tmp = SizeOf_1_slice_1();
+  r = (int)((unsigned int)r + tmp);
+  tmp_0 = SizeOf_2_slice_1();
+  r = (int)((unsigned int)r + tmp_0);
+  tmp_1 = SizeOfE_pt1_slice_1();
+  r = (int)((unsigned int)r + tmp_1);
+  tmp_2 = SizeOfE_pt2_slice_1();
+  r = (int)((unsigned int)r + tmp_2);
+  tmp_3 = SizeOfE_pt3_slice_1();
+  r = (int)((unsigned int)r + tmp_3);
+  tmp_4 = SizeOfE_pt_deref_1_slice_1();
+  r = (int)((unsigned int)r + tmp_4);
+  tmp_5 = SizeOfE_tab_1_slice_1();
+  r = (int)((unsigned int)r + tmp_5);
+  tmp_6 = SizeOfE_pt_tab_1_slice_1();
+  r = (int)((unsigned int)r + tmp_6);
+  tmp_7 = SizeOfE_pt_tab_2_slice_1();
+  r = (int)((unsigned int)r + tmp_7);
+  tmp_8 = SizeOfE_tab_acces_1_slice_1();
+  r = (int)((unsigned int)r + tmp_8);
   /*@ slice pragma expr r; */ ;
   return r;
 }

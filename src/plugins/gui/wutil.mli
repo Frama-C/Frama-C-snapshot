@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,6 +37,8 @@ val warning : ('a,Format.formatter,unit) format -> 'a
 val set_enabled : #GObj.widget -> bool -> unit
 val set_visible : #GObj.widget -> bool -> unit
 val set_tooltip : #GObj.widget -> string option -> unit
+val set_font : #GObj.widget -> string -> unit
+val set_monospace : #GObj.widget -> unit
 val set_small_font : #GObj.widget -> unit
 val set_bold_font : #GObj.widget -> unit
 val to_utf8 : string -> string

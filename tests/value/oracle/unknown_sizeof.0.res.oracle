@@ -8,12 +8,5 @@ tests/value/unknown_sizeof.i:8:[kernel] imprecise size for variable s (abstract 
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   s.[bits 0 to ..] ∈ {0} or UNINITIALIZED
-[value] computing for function g <- main1.
-        Called from tests/value/unknown_sizeof.i:19.
-tests/value/unknown_sizeof.i:15:[value] warning: out of bounds write. assert \valid(&__retres);
-tests/value/unknown_sizeof.i:15:[value] warning: accessing uninitialized left-value.
-                 assert \initialized((struct s *)((char *)(&s) + 1));
-tests/value/unknown_sizeof.i:15:[value] warning: out of bounds read. assert \valid_read((struct s *)((char *)(&s) + 1));
-tests/value/unknown_sizeof.i:15:[value] warning: out of bounds read. assert \valid_read(&__retres);
-tests/value/unknown_sizeof.i:15:[value] user error: Function g returns a value of unknown size. Aborting
+tests/value/unknown_sizeof.i:19:[value] user error: function g returns a value of unknown size. Aborting
 [kernel] Plug-in value aborted: invalid user input.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,18 +34,24 @@ let kernel_parameters_correctness = [
   Kernel.ConstReadonly.parameter;
 ]
 
-let parameters_correctness = ref []
-let parameters_tuning = ref []
+let parameters_correctness = ref Typed_parameter.Set.empty
+let parameters_tuning = ref Typed_parameter.Set.empty
 let add_dep p =
   State_dependency_graph.add_codependencies
     ~onto:Db.Value.self 
     [State.get p.Typed_parameter.name]
 let add_correctness_dep p =
+  if Typed_parameter.Set.mem p !parameters_correctness then
+    Kernel.abort "adding correctness parameter %a twice"
+      Typed_parameter.pretty p;
   add_dep p;
-  parameters_correctness := p :: !parameters_correctness
+  parameters_correctness := Typed_parameter.Set.add p !parameters_correctness
 let add_precision_dep p =
+  if Typed_parameter.Set.mem p !parameters_tuning then
+    Kernel.abort "adding tuning parameter %a twice"
+      Typed_parameter.pretty p;
   add_dep p;
-  parameters_tuning := p :: !parameters_tuning
+  parameters_tuning := Typed_parameter.Set.add p !parameters_tuning
 
 let () = List.iter add_correctness_dep kernel_parameters_correctness
 
@@ -53,6 +59,8 @@ let sdkey_initial_state = "initial-state"
 let sdkey_final_states = "final-states"
 let sdkey_alarm = "alarm"
 let sdkey_garbled_mix = "garbled-mix" (* not activated by default *)
+let sdkey_pointer_comparison = "pointer-comparison"
+
 
 let () =
   Plugin.default_msg_keys [sdkey_initial_state; sdkey_final_states; sdkey_alarm]
@@ -73,14 +81,6 @@ module ForceValues =
        let help = "compute values"
        let output_by_default = true
      end)
-
-module Eva =
-  Bool
-    (struct
-      let option_name = "-eva"
-      let help = "Use the new evolved value analysis."
-      let default = true
-    end)
 
 let domains = add_group "Abstract Domains"
 let precision_tuning = add_group "Precision vs. time"
@@ -121,7 +121,7 @@ module GaugesDomain =
       let option_name = "-eva-gauges-domain"
       let help = "Use the gauges domain of Eva. Experimental."
     end)
-let () = add_precision_dep EqualityDomain.parameter
+let () = add_precision_dep GaugesDomain.parameter
 
 let () = Parameter_customize.set_group domains
 module EqualityStorage =
@@ -441,22 +441,12 @@ module WarnCopyIndeterminate =
        let option_name = "-val-warn-copy-indeterminate"
        let arg_name = "f | @all"
        let help = "warn when a statement of the specified functions copies a \
-value that may be indeterminate (uninitalized or containing escaping address). \
+value that may be indeterminate (uninitialized or containing escaping address). \
 Set by default; can be deactivated for function 'f' by '=-f', or for all \
 functions by '=-@all'."
      end)
 let () = add_correctness_dep WarnCopyIndeterminate.parameter
 let () = WarnCopyIndeterminate.Category.(set_default (all ()))
-
-let () = Parameter_customize.set_group alarms;;
-module ShowTrace =
-  False
-    (struct
-       let option_name = "-val-show-trace"
-       let help =
-         "Compute and display execution traces together with alarms (experimental)"
-     end)
-let () = ShowTrace.add_update_hook (fun _ b -> Trace.set_compute_trace b)
 
 let () = Parameter_customize.set_group alarms
 module ReduceOnLogicAlarms =
@@ -614,7 +604,7 @@ module SlevelMergeAfterLoop =
          "when set, the different execution paths that originate from the body \
           of a loop are merged before entering the next excution. Experimental."
      end)
-let () = add_precision_dep SemanticUnrollingLevel.parameter
+let () = add_precision_dep SlevelMergeAfterLoop.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.argument_may_be_fundecl ()
@@ -655,7 +645,7 @@ module SplitReturn =
 module SplitGlobalStrategy = State_builder.Ref (Split_strategy)
     (struct
        let default () = Split_strategy.NoSplit
-       let name = "Value_parameters.SplitGlobalStategy"
+       let name = "Value_parameters.SplitGlobalStrategy"
        let dependencies = [SplitReturn.self]
      end)
 let () =
@@ -715,7 +705,7 @@ let () = add_precision_dep BuiltinsOverrides.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 module BuiltinsAuto =
-  False
+  True
     (struct
        let option_name = "-val-builtins-auto"
        let help = "When set, builtins will be used automatically to replace \
@@ -723,6 +713,14 @@ module BuiltinsAuto =
      end)
 let () = add_correctness_dep BuiltinsAuto.parameter
 
+let () = Parameter_customize.set_group precision_tuning
+module BuiltinsList =
+  False
+    (struct
+       let option_name = "-val-builtins-list"
+       let help = "Lists the existing builtins, and which functions they \
+                   are automatically associated to (if any)"
+     end)
 
 let () = Parameter_customize.is_invisible ()
 module Subdivide_float_in_expr =
@@ -753,6 +751,7 @@ module LinearLevel =
 let () = add_precision_dep LinearLevel.parameter
 
 let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
 module UsePrototype =
   Kernel_function_set
     (struct
@@ -764,7 +763,7 @@ let () = add_precision_dep UsePrototype.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 module RmAssert =
-  False
+  True
     (struct
       let option_name = "-remove-redundant-alarms"
       let help = "after the analysis, try to remove redundant alarms, so that the user needs inspect fewer of them"
@@ -932,7 +931,7 @@ let () = Ast.apply_after_computed (fun _ ->
 
 let () = Parameter_customize.set_group messages
 module ValShowProgress =
-  True
+  False
     (struct
        let option_name = "-val-show-progress"
        let help = "Show progression messages during analysis"
@@ -947,17 +946,17 @@ module ValShowInitialState =
        (* deprecated in Silicon *)
        let help = "[deprecated] Show initial state before analysis starts. \
                    This option has been replaced by \
-                   -val-msg-key=[-]initial-state and has no effect anymore."
+                   -value-msg-key=[-]initial-state and has no effect anymore."
     end)
 let () =
   ValShowInitialState.add_set_hook
     (fun _ new_ ->
        if new_ then
          Kernel.warning "@[Option -val-show-initial-state has no effect, \
-                         it has been replaced by -val-msg-key=initial-state@]"
+                         it has been replaced by -value-msg-key=initial-state@]"
        else
          Kernel.warning "@[Option -no-val-show-initial-state has no effect, \
-                         it has been replaced by -val-msg-key=-initial-state @]"
+                         it has been replaced by -value-msg-key=-initial-state@]"
     )
 
 let () = Parameter_customize.set_group messages
@@ -1008,6 +1007,13 @@ module AlarmsWarnings =
                    warnings"
      end)
 
+let () = Parameter_customize.set_group alarms
+module WarnBuiltinOverride =
+  True(struct
+    let option_name = "-val-warn-builtin-override"
+    let help = "Warn when EVA built-ins will override function definitions"
+  end)
+let () = add_correctness_dep WarnBuiltinOverride.parameter
 
 (* ------------------------------------------------------------------------- *)
 (* --- Interpreter mode                                                  --- *)
@@ -1160,14 +1166,17 @@ let dkey_initial_state = register_category sdkey_initial_state
 let dkey_final_states = register_category sdkey_final_states
 let dkey_alarm = register_category sdkey_alarm
 let dkey_garbled_mix = register_category sdkey_garbled_mix
+let dkey_pointer_comparison = register_category sdkey_pointer_comparison
 
 
 (* -------------------------------------------------------------------------- *)
 (* --- Freeze parameters. MUST GO LAST                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
-let parameters_correctness = !parameters_correctness
-let parameters_tuning = !parameters_tuning
+let parameters_correctness =
+  Typed_parameter.Set.elements !parameters_correctness
+let parameters_tuning =
+  Typed_parameter.Set.elements !parameters_tuning
 
 
 

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/misc/log_twice
+   OPT: -load-script tests/misc/log_twice -val-show-progress
 */
 
 int* f() {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,6 +45,8 @@ struct
   module L = LogicSemantics.Make(M)
   module A = LogicAssigns.Make(M)(C)(L)
 
+  let state = Mstate.create (module M)
+  
   type target =
     | Gprop of P.t
     | Geffect of P.t * Stmt.t * effect_source
@@ -203,6 +205,13 @@ struct
   let intersect_vc vc p =
     Vars.intersect (F.varsp p) vc.vars || Conditions.intersect p vc.hyps
 
+  let state_vc ?descr ?stmt state vc =
+    let path = match stmt with
+      | None -> vc.path
+      | Some s -> S.add s vc.path in
+    let hyps = Conditions.state ?stmt ?descr state vc.hyps in
+    { vc with path ; hyps }
+  
   let assume_vc ?descr ?hpid ?stmt ?warn ?(filter=false) ?(init=false) hs vc =
     if (hs = [] && warn = None) ||
        (filter && not (List.exists (intersect_vc vc) hs))
@@ -389,10 +398,10 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let rec intros hs p =
-    match F.pred p with
+    match F.p_expr p with
     | Logic.Bind(Logic.Forall,t,p) ->
         let x = Lang.freshvar t in
-        intros hs (F.p_bool (F.lc_open x p))
+        intros hs (F.p_bool (F.QED.lc_open x p))
     | Logic.Imply(hs2,p) -> intros (hs @ hs2) p
     | _ -> hs , p
 
@@ -618,6 +627,24 @@ struct
     | Gposteffect p -> not (Eset.exists (fun e -> P.equal p e.e_pid) es)
     | _ -> true
 
+  let state_vcs label sigma vcs =
+    try
+      let open Clabels in
+      let descr,stmt = 
+        match label with
+        | Here -> raise Not_found
+        | LabelParam _ -> raise Not_found
+        | Init -> Some "Init" , None
+        | Pre -> Some "Pre" , None
+        | Post -> Some "Post" , None
+        | Exit -> Some "Exit" , None
+        | At (lbl::_ , stmt) -> Some lbl , Some stmt
+        | At ([] , stmt) -> None , Some stmt
+      in
+      let state = Mstate.state state sigma in
+      gmap (state_vc ?descr ?stmt state) vcs
+    with Not_found -> vcs
+        
   let label wenv labl wp =
     match labl , wp.sigma with
     | Clabels.Here , _ | _ , None -> wp
@@ -630,6 +657,7 @@ struct
                 let vcs = Gmap.filter (not_posteffect stop) wp.vcs in
                 let vcs = gmap (passify_vc pa) vcs in
                 let vcs = check_nothing stop vcs in
+                let vcs = state_vcs labl s_here vcs in
                 { sigma = Some s_here ; vcs=vcs ; effects=effects })
 
   (* -------------------------------------------------------------------------- *)
@@ -695,7 +723,7 @@ struct
   (* -------------------------------------------------------------------------- *)
   (* --- WP RULE : return statement                                         --- *)
   (* -------------------------------------------------------------------------- *)
-
+  
   let return wenv stmt result wp =
     match result with
     | None -> wp
@@ -724,8 +752,6 @@ struct
   let random () =
     let v = Lang.freshvar ~basename:"cond" Logic.Bool in
     F.p_bool (F.e_var v)
-
-  let pp_opt pp fmt = function None -> Format.fprintf fmt "none" | Some e -> pp fmt e
 
   let test wenv stmt exp wp1 wp2 = L.in_frame wenv.frame
       (fun () ->
@@ -1238,21 +1264,23 @@ struct
   let make_vcqs target tags vc =
     let vcq = {
       VC_Annot.effect = TARGET.source target ;
+      VC_Annot.axioms = None ;
       VC_Annot.goal = GOAL.dummy ;
       VC_Annot.tags = tags ;
       VC_Annot.deps = vc.deps ;
       VC_Annot.path = vc.path ;
       VC_Annot.warn = W.elements vc.warn ;
     } in
-    let hyps = Conditions.sequence vc.hyps in
+    let hyps = Conditions.bundle vc.hyps in
     let goal g = { vcq with VC_Annot.goal = GOAL.make (hyps,g) } in
-    match F.pred vc.goal with
+    match F.p_expr vc.goal with
     | Logic.And gs when Wp_parameters.Split.get () -> Bag.list (List.map goal gs)
     | _ -> Bag.elt (goal vc.goal)
 
   let make_trivial vc =
     {
       VC_Annot.effect = None ;
+      VC_Annot.axioms = None ;
       VC_Annot.goal = GOAL.trivial ;
       VC_Annot.tags = [] ;
       VC_Annot.deps = vc.deps ;
@@ -1260,7 +1288,7 @@ struct
       VC_Annot.warn = W.elements vc.warn ;
     }
 
-  let make_oblig index pid emitter vcq =
+  let make_oblig index pid vcq =
     {
       po_model = Model.get_model () ;
       po_pid = pid ;
@@ -1268,7 +1296,6 @@ struct
       po_gid = "" ;
       po_name = "" ;
       po_idx = index ;
-      po_updater = emitter ;
       po_formula = GoalAnnot vcq ;
     }
 
@@ -1304,15 +1331,14 @@ struct
       (fun target -> Splitter.iter (group_vc groups target))
       wp.vcs ;
     let model = Model.get_model () in
-    let emitter = Model.get_emitter model in
     PMAP.iter
       begin fun pid group ->
         let trivial_wpo =
           let vcq = make_trivial group.trivial in
-          Bag.elt (make_oblig index pid emitter vcq)
+          Bag.elt (make_oblig index pid vcq)
         in
         let provers_wpo =
-          Bag.map (make_oblig index pid emitter) group.verifs
+          Bag.map (make_oblig index pid) group.verifs
         in
         let mid = Model.get_id model in
         let group =
@@ -1327,7 +1353,7 @@ struct
           begin fun po_pid wpo ->
             let po_sid = WpPropId.get_propid po_pid in
             let po_gid = Printf.sprintf "%s_%s" mid po_sid in
-            let po_name = Pretty_utils.to_string WpPropId.pretty pid in
+            let po_name = Pretty_utils.to_string WpPropId.pretty_local pid in
             let wpo =
               { wpo with po_pid ; po_sid ; po_gid ; po_name }
             in
@@ -1353,6 +1379,7 @@ struct
         let vca = {
           Wpo.VC_Lemma.depends = l.lem_depends ;
           Wpo.VC_Lemma.lemma = def ;
+          Wpo.VC_Lemma.sequent = None ;
         } in
         let index = match LogicUsage.section_of_lemma l.lem_name with
           | LogicUsage.Toplevel _ -> Wpo.Axiomatic None
@@ -1366,7 +1393,6 @@ struct
           Wpo.po_name = Printf.sprintf "Lemma '%s'" l.lem_name ;
           Wpo.po_idx = index ;
           Wpo.po_pid = id ;
-          Wpo.po_updater = Model.get_emitter model ;
           Wpo.po_formula = Wpo.GoalLemma vca ;
         } in
         Wpo.add wpo ;
@@ -1381,7 +1407,7 @@ end
 
 let add_qed_check collection model ~qed ~raw ~goal =
   let id = Printf.sprintf "Qed-%d-%d"
-      (Lang.F.id qed) (Lang.F.id raw) in
+      (Lang.F.QED.id qed) (Lang.F.QED.id raw) in
   let pip = Property.ip_other id None Kglobal in
   let pid = WpPropId.mk_check pip in
   let vck = let open VC_Check in { raw ; qed ; goal } in
@@ -1392,7 +1418,6 @@ let add_qed_check collection model ~qed ~raw ~goal =
       po_idx = Axiomatic None ;
       po_model = model ;
       po_pid = pid ;
-      po_updater = Model.get_emitter model ;
       po_formula = GoalCheck vck ;
     } in
   Wpo.add w ; collection := Bag.append !collection w
@@ -1464,7 +1489,7 @@ struct
 
 end
 
-(* Cache because computer functors can not be instanciated twice *)
+(* Cache because computer functors can not be instantiated twice *)
 module COMPUTERS = Model.S.Hashtbl
 let computers = COMPUTERS.create 1
 

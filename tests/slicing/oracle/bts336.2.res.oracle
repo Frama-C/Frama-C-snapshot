@@ -21,7 +21,7 @@
 [value] Done for function f3
 [value] Recording results for main3
 [value] done for function main3
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main3
 [from] Computing for function f3
@@ -48,12 +48,9 @@ void f3_slice_1(int *p)
 
 int main3(void)
 {
-  int a;
-  int b;
-  int c;
-  a = 1;
-  b = 2;
-  c = 3;
+  int a = 1;
+  int b = 2;
+  int c = 3;
   f3_slice_1(& a);
   f3_slice_1(& b);
   f3_slice_1(& c);

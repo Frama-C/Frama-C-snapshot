@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ include Plugin.Register
   (struct
      let name = "obfuscator"
      let shortname = "obfuscator"
-     let help = "objuscator for confidential code"
+     let help = "obfuscator for confidential code"
    end)
 
 module Run =

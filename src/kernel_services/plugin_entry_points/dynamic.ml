@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,30 +40,27 @@ let error ~name ~message ~details =
 exception Unloadable of string
 
 module Tbl = Type.String_tbl(struct type 'a t = 'a end)
-module Dynlib = FCDynlink
 
 let dynlib_init = ref false
 let dynlib_init () =
   if not !dynlib_init then
     begin
       dynlib_init := true ;
-      Dynlib.init () ;
-      Dynlib.allow_unsafe_modules true ;
+      Dynlink.init () ;
+      Dynlink.allow_unsafe_modules true ;
     end
 
 exception Incompatible_type = Tbl.Incompatible_type
 exception Unbound_value = Tbl.Unbound_value
 
 let dynlib_error name = function
-  | Dynlib.Unsupported_Feature s ->
-      error ~name ~message:"dynamic loading not supported" ~details:s ;
-  | Dynlib.Error e ->
-      error ~name ~message:"cannot load module" ~details:(Dynlib.error_message e) ;
+  | Dynlink.Error e ->
+      error ~name ~message:"cannot load module" ~details:(Dynlink.error_message e) ;
   | Sys_error _ as e ->
       error ~name ~message:"system error" ~details:(Printexc.to_string e)
   | Unloadable details ->
       error ~name ~message:"incompatible with current set-up" ~details
-  (* the three next errors may be raised in case of incompatibilites with
+  (* the three next errors may be raised in case of incompatibilities with
      another plug-in *)
   | Incompatible_type s ->
       error ~name ~message:"code incompatibility" ~details:s
@@ -81,7 +78,7 @@ let dynlib_module name file =
   Klog.feedback ~dkey "Loading module '%s' from '%s'." name file ;
   try
     dynlib_init () ;
-    Dynlib.loadfile file ;
+    Dynlink.loadfile file ;
   with error ->
     Cmdline.add_loading_failures name;
     dynlib_error name error
@@ -117,7 +114,7 @@ let is_file base ext =
   if Sys.file_exists file then Some file else None
 
 let is_object base =
-  if Dynlib.is_native then is_file base ".cmxs" else
+  if Dynlink.is_native then is_file base ".cmxs" else
     match is_file base ".cma" with
     | Some _ as file -> file
     | None -> is_file base ".cmo"
@@ -174,7 +171,7 @@ let load_packages pkgs =
           let gui = if !Config.is_gui then ["gui"] else [] in
           let predicates =
             (** The order is important for the archive cases *)
-            if Dynlib.is_native then
+            if Dynlink.is_native then
               [
                 "plugin", ["native"]@gui;
                 "archive", ["plugin"]@gui;
@@ -207,7 +204,7 @@ let load_packages pkgs =
             List.iter (load_archive pkg base) archives
       end
       (Findlib.package_deep_ancestors
-         (if Dynlib.is_native then [ "native" ] else [ "byte" ])
+         (if Dynlink.is_native then [ "native" ] else [ "byte" ])
          pkgs)
   with
   | Findlib.No_such_package(pkg,details) ->
@@ -231,7 +228,7 @@ let load_script base =
   let cmd = Buffer.create 80 in
   let fmt = Format.formatter_of_buffer cmd in
   begin
-    if Dynlib.is_native then
+    if Dynlink.is_native then
       Format.fprintf fmt "%s -shared -o %s.cmxs" Config.ocamlopt base
     else
       Format.fprintf fmt "%s -c" Config.ocamlc ;
@@ -248,7 +245,7 @@ let load_script base =
       then Klog.error "compilation of '%s.ml' failed" base
       else
         let pkg = Filename.basename base in
-        if Dynlib.is_native then
+        if Dynlink.is_native then
           dynlib_module pkg (base ^ ".cmxs")
         else
           dynlib_module pkg (base ^ ".cmo") ;
@@ -264,38 +261,38 @@ let load_script base =
 (* --- Command-Line Entry Points                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let scan_directory pkgs dir =
-  Klog.feedback ~dkey "Loading directory '%s'" dir ;
-  try
-    let content = Sys.readdir dir in
-    Array.sort String.compare content ;
-    Array.iter
-      (fun name ->
-         if is_meta name then
-           (* name starts with "META.frama-c-" *)
-           let pkg = String.sub name 5 (String.length name - 5) in
-           pkgs := pkg :: !pkgs
-      ) content ;
-  with Sys_error error ->
-    Klog.error "impossible to read '%s' (%s)" dir error
+let set_module_load_path path =
+  let add_dir ~user d ps =
+    if is_dir d then d::ps else
+      ( if user then Klog.warning "cannot load '%s' (not a directory)" d
+      ; ps ) in
+  Klog.debug ~dkey "plugin_dir: %s" (String.concat ":" Config.plugin_dir);
+  load_path :=
+    List.fold_right (add_dir ~user:true) path
+      (List.fold_right (add_dir ~user:false) Config.plugin_dir []);
+  let findlib_path = String.concat ":" !load_path in
+  Klog.debug ~dkey "setting findlib path to %s" findlib_path;
+  Findlib.init ~env_ocamlpath:findlib_path ()
 
-let load_plugin_path path =
-  begin
-    let add_dir ~user d ps =
-      if is_dir d then d::ps else
-        ( if user then Klog.warning "cannot load '%s' (not a directory)" d
-        ; ps ) in
-    Klog.debug ~dkey "plugin_dir: %s" (String.concat ":" Config.plugin_dir);
-    load_path :=
-      List.fold_right (add_dir ~user:true) path
-        (List.fold_right (add_dir ~user:false) Config.plugin_dir []) ;
-    let pkgs = ref [] in
-    List.iter (scan_directory pkgs) !load_path ;
-    let findlib_path = String.concat ":" !load_path in
-    Klog.debug ~dkey "setting findlib path to %s" findlib_path;
-    Findlib.init ~env_ocamlpath:findlib_path ();
-    load_packages (List.rev !pkgs) ;
-  end
+let load_plugin_path () =
+  let scan_directory pkgs dir =
+    Klog.feedback ~dkey "Loading directory '%s'" dir ;
+    try
+      let content = Sys.readdir dir in
+      Array.sort String.compare content ;
+      Array.iter
+        (fun name ->
+           if is_meta name then
+             (* name starts with "META.frama-c-" *)
+             let pkg = String.sub name 5 (String.length name - 5) in
+             pkgs := pkg :: !pkgs
+        ) content ;
+    with Sys_error error ->
+      Klog.error "impossible to read '%s' (%s)" dir error
+  in
+  let pkgs = ref [] in
+  List.iter (scan_directory pkgs) !load_path ;
+  load_packages (List.rev !pkgs)
 
 let load_module m =
   let base,ext = split_ext m in

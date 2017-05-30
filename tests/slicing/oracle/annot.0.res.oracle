@@ -15,7 +15,7 @@ tests/slicing/annot.i:11:[value] warning: signed overflow. assert (int)(x + x) -
 tests/slicing/annot.i:15:[value] warning: assertion got status unknown.
 [value] Recording results for f1
 [value] done for function f1
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f1
 [pdg] done for function f1
@@ -34,8 +34,7 @@ extern int x;
 
 void f1(void)
 {
-  int v;
-  v = 3;
+  int v = 3;
   x = 3;
   /*@ assert x ≡ \at(x,Pre); */ ;
   return;

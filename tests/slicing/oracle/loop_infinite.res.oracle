@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
+tests/slicing/loop_infinite.i:5:[value] warning: initialization of volatile variable a ignored
 tests/slicing/loop_infinite.i:9:[value] entering loop for the first time
 tests/slicing/loop_infinite.i:10:[value] warning: signed overflow. assert a + 1 ≤ 2147483647;
 [value] Recording results for main
@@ -17,7 +18,7 @@ tests/slicing/loop_infinite.i:10:[value] warning: signed overflow. assert a + 1 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main

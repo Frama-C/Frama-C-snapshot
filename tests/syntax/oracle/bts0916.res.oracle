@@ -7,8 +7,7 @@
 /*  Use frama-c with option -keep-comments  */
 void main(void)
 {
-  int port;
-  port = 10;
+  int port = 10;
   /*  ( port & 0x80 ) == 0 ) */
   /*  wait for pin1 - Compliant */
   /*  wait for pin2  */
@@ -16,11 +15,9 @@ void main(void)
   /*  wait for pin3 - Not compliant, no white-space char after ;  */
   while (1) {
     int tmp;
-    { /* sequence */
-      tmp = port;
-      port --;
-      ;
-    }
+    tmp = port;
+    port --;
+    ;
     if (! (tmp > 0)) /*  ( port & 0x80 ) == 0 ) */
                      /*  wait for pin1 - Compliant */
                      /*  wait for pin2  */

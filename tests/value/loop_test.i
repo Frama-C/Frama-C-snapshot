@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -main test_onzes -journal-disable
-   OPT: -val @VALUECONFIG@ -main test_cent_onzes -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -main test_onzes -journal-disable
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -main test_cent_onzes -journal-disable
 */
 
 

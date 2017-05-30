@@ -47,9 +47,8 @@ int main1(int y)
 
 int main(void)
 {
-  int b;
   int tmp;
-  b = 1;
+  int b = 1;
   tmp = main1(b);
   return tmp;
 }

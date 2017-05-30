@@ -12,7 +12,7 @@
 [value] Done for function main1
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function main1
@@ -39,9 +39,8 @@ int main1_slice_1(int y)
 
 int main(void)
 {
-  int b;
   int tmp;
-  b = 1;
+  int b = 1;
   tmp = main1_slice_1(b);
   return tmp;
 }

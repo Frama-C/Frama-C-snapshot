@@ -20,3 +20,9 @@ struct vst { int b ; ST v ; } vs ;
 struct vst rs (struct vst * p) ;
 struct vst ws (struct vst * p, struct vst v) ;
 //@volatile vs reads rs writes ws ;
+
+volatile int x ;
+
+volatile int y ;
+
+volatile int z;

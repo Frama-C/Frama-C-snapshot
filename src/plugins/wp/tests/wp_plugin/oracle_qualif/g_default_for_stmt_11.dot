@@ -1,0 +1,5 @@
+digraph g {
+  rankdir = TB ;
+  node [ style = filled, shape = box ] ;
+  N000 [ color = red, shape = circle, label = "*" ] ;
+}

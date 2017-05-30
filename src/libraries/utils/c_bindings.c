@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -53,24 +53,6 @@
 typedef enum {
   FE_ToNearest, FE_Upward, FE_Downward, FE_TowardZero
 } c_rounding_mode_t;
-
-#if defined(__i386__) 
-#define GETCOUNTER(low,high)						\
-  __asm__ volatile ("rdtsc" : "=a" (low), "=d" (high));
-#else
-#if  defined(__x86_64__)
-#define GETCOUNTER(low,high)						\
-{ \
-     unsigned int __a,__d; \
-     asm volatile("rdtsc" : "=a" (__a), "=d" (__d)); \
-     low = ((unsigned long)__a) | (((unsigned long)__d)<<32); \
-     high = 0; \
-}
-#else
-#define GETCOUNTER(low,high)						\
-  { low = 0; high = 0; }
-#endif
-#endif
 
 value c_round(value d)
 {
@@ -127,22 +109,6 @@ value c_sqrtf(value d)
   float f = Double_val(d);
   volatile float res = sqrtf(f); // see remarks above
   return caml_copy_double(res);
-}
-
-value getperfcount1024(value dum)
-{
-  unsigned long l,h,acc;
-  GETCOUNTER(l,h);
-  acc = (l >> 10) | (h << 22);
-  return (acc | 1);
-}
-
-value getperfcount(value dum)
-{
-  unsigned long l, h;
-  GETCOUNTER(l,h);
-  (void) h;
-  return (l | 1);
 }
 
 value compare_strings(value v1, value v2, value vlen) {
@@ -234,7 +200,7 @@ value float_is_negative(value v)
   return (Val_int((int)((uv.i) >> 63)));
 }
 
-/* Some compilers apply the C90 standard stricly and do not
+/* Some compilers apply the C90 standard strictly and do not
    prototype strtof() although it is available in the C library. */
 float strtof(const char *, char **);
 

@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -val-initialization-padding-globals maybe
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -val-initialization-padding-globals maybe
 */
 
 int volatile G = 1;
@@ -62,7 +62,7 @@ int main1 () {
   h = 1;
   E = h;
 
-  /* assignement via pointer */
+  /* assignment via pointer */
   X = -1;
   Y = -1; 
   pv = (int *) &X;

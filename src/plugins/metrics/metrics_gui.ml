@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ type ('a, 'b, 'c) metrics_panel = {
 ;;
 
 (* The option type for top and bottom GTK objects is compulsory in order not to
-   have warnings at runtim.
+   have warnings at runtime.
    Creation of GTK objects cannot be made before the general window is
    initialized.
    The option type with a None value marks the fact that this value is not
@@ -110,7 +110,7 @@ let reset_panel _ =
 let coerce_panel_to_ui panel_box _main_ui = "Metrics", panel_box#coerce, None ;;
 
 (** Add a new metrics to its dedicated panel.
-    The text is added to the combox box while the action is added to the
+    The text is added to the combo box while the action is added to the
     association lists of possible actions.
 *)
 let register_metrics name display_function =

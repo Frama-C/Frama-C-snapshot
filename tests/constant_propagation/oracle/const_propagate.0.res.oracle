@@ -144,9 +144,7 @@ struct st s1;
 struct st s2;
 void test_struct(void)
 {
-  ST s;
-  s.a = 0;
-  s.b = 1;
+  ST s = {.a = 0, .b = 1};
   s1 = s;
   s1.a = 1;
   s2.a = 1;
@@ -158,20 +156,15 @@ void test_struct(void)
 
 void test_tab(int v)
 {
-  int *r;
-  char *q;
-  int decal;
-  { /* sequence */
-    s2.b = 2;
-    TAB[1] = 0;
-  }
-  r = & TAB[4];
+  s2.b = 2;
+  TAB[1] = 0;
+  int *r = & TAB[4];
   TAB[4] = 13;
   TAB[5] = 13;
-  q = (char *)(& TAB[4]);
+  char *q = (char *)(& TAB[4]);
   *q = (char)13;
   *(q + 1) = (char)13;
-  decal = 4;
+  int decal = 4;
   *(q + 4) = (char)13;
   return;
 }
@@ -179,13 +172,10 @@ void test_tab(int v)
 int *test_ptr(int v)
 {
   int *__retres;
-  int *p;
-  char *s;
-  int decal;
-  p = & x;
-  s = (char *)(& x);
+  int *p = & x;
+  char *s = (char *)(& x);
   *s = (char)7;
-  decal = 1;
+  int decal = 1;
   *(s + 1) = (char)7;
   s = (char *)(& x) + 1;
   *s = (char)7;
@@ -197,8 +187,7 @@ int *test_ptr(int v)
 int *test_struct_ptr(void)
 {
   int *__retres;
-  int *q;
-  q = & s1.b;
+  int *q = & s1.b;
   __retres = & s1.a;
   return __retres;
 }
@@ -212,15 +201,12 @@ int add3(int v1, int v2, int v3)
 
 int init(int v)
 {
-  int zero;
-  int sept;
-  int z1;
-  zero = 0;
-  sept = 7;
+  int zero = 0;
+  int sept = 7;
   x = 5;
   y = 7;
   z = add3(5,7,0);
-  z1 = 12;
+  int z1 = 12;
   return zero;
 }
 
@@ -252,23 +238,19 @@ void test_float_double(void)
 
 void main(int a)
 {
-  int b;
-  int *p;
-  int *q;
   int *tmp_1;
-  int yy;
   test_ull();
   test_struct();
   test_struct_ptr();
   test_tab(13);
   test_float_double();
-  b = init(5);
+  int b = init(5);
   z = add3(a,0,0);
-  p = test_ptr(7);
+  int *p = test_ptr(7);
   /*@ assert *p ≡ 7; */ ;
   if (a) tmp_1 = & x; else tmp_1 = & y;
-  q = tmp_1;
-  yy = 7;
+  int *q = tmp_1;
+  int yy = 7;
   /*@ assert a ≡ 0 ⇒ q ≡ &y; */ ;
   /*@ assert *q ≡ 7; */ ;
   return;

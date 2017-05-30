@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@
      bitvector, which has to be provided in some informations (such as
      concat). We rely on the invariant that the extra bits are set to
      0 (this is important e.g. for equality testing). An alternative
-     design could have been not to explicitely ignore these extra bits 
+     design could have been not to explicitly ignore these extra bits 
      in operations that are sensitive to them, but this seems more 
      error-prone. *)
 

@@ -57,7 +57,7 @@ tests/sparecode/intra.i:91:[kernel] warning: Neither code nor specification for 
 tests/sparecode/intra.i:93:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function param
@@ -103,8 +103,7 @@ tests/sparecode/intra.i:93:[value] entering loop for the first time
 int G;
 int tmp_slice_1(int a)
 {
-  int x;
-  x = a;
+  int x = a;
   /*@ assert x ≡ a; */ ;
   return x;
 }
@@ -123,14 +122,10 @@ int two_outputs_slice_1(int a, int b)
 int call_two_outputs_slice_1(void)
 {
   int x;
-  int any_b;
-  int any_a;
-  int a;
-  int b;
-  any_b = 1;
-  any_a = 2;
-  a = 1;
-  b = any_b;
+  int any_b = 1;
+  int any_a = 2;
+  int a = 1;
+  int b = any_b;
   x = two_outputs_slice_1(a,b);
   G = 1;
   b = 2;
@@ -147,8 +142,7 @@ void assign_slice_1(int *p, int *q)
 
 int loop_slice_1(int x)
 {
-  int i;
-  i = 0;
+  int i = 0;
   while (i < x) i ++;
   return i;
 }
@@ -156,33 +150,22 @@ int loop_slice_1(int x)
 int main(void)
 {
   int __retres;
-  int res;
-  int spare_ref;
   int x;
-  int y;
   int tmp_0;
   int tmp_1;
   int tmp_2;
   int tmp_3;
-  res = 0;
-  spare_ref = 3;
-  y = 2;
-  { /* sequence */
-    tmp_0 = param_slice_1(2);
-    res += tmp_0;
-  }
-  { /* sequence */
-    tmp_1 = tmp_slice_1(4);
-    res += tmp_1;
-  }
-  { /* sequence */
-    tmp_2 = call_two_outputs_slice_1();
-    res += tmp_2;
-  }
-  { /* sequence */
-    tmp_3 = loop_slice_1(10);
-    res += tmp_3;
-  }
+  int res = 0;
+  int spare_ref = 3;
+  int y = 2;
+  tmp_0 = param_slice_1(2);
+  res += tmp_0;
+  tmp_1 = tmp_slice_1(4);
+  res += tmp_1;
+  tmp_2 = call_two_outputs_slice_1();
+  res += tmp_2;
+  tmp_3 = loop_slice_1(10);
+  res += tmp_3;
   assign_slice_1(& x,& y);
   __retres = (res + G) + x;
   return __retres;

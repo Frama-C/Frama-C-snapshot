@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,7 +58,7 @@ val mk_labeled_fun: string -> 'a
     @raise Unregistered_function when not properly initialized *)
 
 val mk_fun: string -> ('a -> 'b) ref
-  (** Build a reference to an unitialized function
+  (** Build a reference to an uninitialized function
       @raise Unregistered_function when not properly initialized *)
 
 (* ************************************************************************* *)
@@ -286,13 +286,8 @@ val make_unique_name:
 
 (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
 [@@@ warning "-3"]
-external getperfcount: unit -> int = "getperfcount" "noalloc"
-external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
 external address_of_value: 'a -> int = "address_of_value" "noalloc"
 [@@@ warning "+3"]
-
-val time: ?msg:string -> ('a -> 'b) -> 'a -> 'b
-val time1024: ?msg:string -> ('a -> 'b) -> 'a -> 'b
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)

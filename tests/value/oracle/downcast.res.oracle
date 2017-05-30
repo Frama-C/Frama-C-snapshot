@@ -298,13 +298,13 @@ tests/value/downcast.i:127:[value] assertion 'Value,signed_downcast' got final s
 
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 67)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 67)
+             - Unreachable initialization of 's_0' (file tests/value/downcast.i, line 67)
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 78)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 78)
+             - Unreachable initialization of 'b_0' (file tests/value/downcast.i, line 78)
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 83)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 83)
+             - Unreachable initialization of 'b_1' (file tests/value/downcast.i, line 83)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main8_bitfields'
@@ -336,7 +336,7 @@ tests/value/downcast.i:127:[value] assertion 'Value,signed_downcast' got final s
              - Unreachable program point (file tests/value/downcast.i, line 124)
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 123)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 123)
+             - Unreachable initialization of 'signed_a' (file tests/value/downcast.i, line 123)
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 127)
             By Value, with pending:
              - Unreachable instruction (file tests/value/downcast.i, line 127)
@@ -401,11 +401,9 @@ void main1(void)
 
 void main2_bitfield(void)
 {
-  int i;
-  unsigned int j;
   struct s ss;
-  i = 117;
-  j = (unsigned int)254;
+  int i = 117;
+  unsigned int j = (unsigned int)254;
   if (v) 
     /*@ assert Value: signed_downcast: i ≤ 15; */
     ss.i = (int)i;
@@ -415,29 +413,22 @@ void main2_bitfield(void)
 
 void main3_reduction(void)
 {
-  int x_0;
-  char c;
-  unsigned int y;
-  unsigned char d;
-  x_0 = v;
+  int x_0 = v;
   /*@ assert Value: signed_downcast: -128 ≤ x_0; */
   /*@ assert Value: signed_downcast: x_0 ≤ 127; */
-  c = (char)x_0;
-  y = (unsigned int)v;
-  d = (unsigned char)y;
+  char c = (char)x_0;
+  unsigned int y = (unsigned int)v;
+  unsigned char d = (unsigned char)y;
   return;
 }
 
 void main4_pointer(void)
 {
   int x_0;
-  long long p;
-  unsigned int q;
-  int r;
-  p = (long long)(& x_0);
-  q = (unsigned int)p;
+  long long p = (long long)(& x_0);
+  unsigned int q = (unsigned int)p;
   /*@ assert Value: signed_downcast: p ≤ 2147483647; */
-  r = (int)p;
+  int r = (int)p;
   return;
 }
 
@@ -447,16 +438,13 @@ extern int ( /* missing proto */ Frama_C_show_each)();
 
 void main5_wrap_signed(void)
 {
-  int x_0;
-  unsigned int y;
-  int z;
-  x_0 = v;
+  int x_0 = v;
   /*@ assert ASSUME: x_0 ≥ 100000; */ ;
   /*@ assert x_0 > 0x7FFFFFFF - 145 ∨ x_0 ≤ 0x7FFFFFFF - 145; */ ;
-  y = (unsigned int)x_0;
+  unsigned int y = (unsigned int)x_0;
   y += (unsigned int)145;
   /*@ assert Value: signed_downcast: y ≤ 2147483647; */
-  z = (int)y;
+  int z = (int)y;
   Frama_C_show_each(x_0,y,z);
   /*@ assert z ≥ 100000 + 145 ∨ z ≤ (int)(0x7FFFFFFF + 145); */ ;
   return;
@@ -465,43 +453,33 @@ void main5_wrap_signed(void)
 void main6_val_warn_converted_signed(void)
 {
   if (v) {
-    short s_0;
     /*@ assert Value: signed_downcast: 65300u ≤ 32767; */
-    s_0 = (short)65300u;
+    short s_0 = (short)65300u;
   }
   if (v) {
-    unsigned short u;
-    u = (unsigned short)65300u;
+    unsigned short u = (unsigned short)65300u;
   }
   if (v) {
-    unsigned long e;
-    short b;
-    e = (unsigned long)17;
-    b = (short)e;
+    unsigned long e = (unsigned long)17;
+    short b = (short)e;
   }
   if (v) {
-    unsigned long e_0;
-    short b_0;
-    e_0 = (unsigned long)(-12);
+    unsigned long e_0 = (unsigned long)(-12);
     /*@ assert Value: signed_downcast: e_0 ≤ 32767; */
-    b_0 = (short)e_0;
+    short b_0 = (short)e_0;
   }
   if (v) {
-    unsigned int e_1;
-    short b_1;
-    e_1 = (unsigned int)(-64000);
+    unsigned int e_1 = (unsigned int)(-64000);
     /*@ assert Value: signed_downcast: e_1 ≤ 32767; */
-    b_1 = (short)e_1;
+    short b_1 = (short)e_1;
   }
   return;
 }
 
 void main7_signed_upcast(void)
 {
-  unsigned char c;
-  int i;
-  c = (unsigned char)240;
-  i = (int)c;
+  unsigned char c = (unsigned char)240;
+  int i = (int)c;
   return;
 }
 
@@ -537,9 +515,8 @@ void main9_bitfield(void)
   signed char c;
   bf.a = (unsigned int)1648;
   if (v) {
-    int signed_a;
     /*@ assert Value: signed_downcast: bf.a ≤ 1023; */
-    signed_a = (int)((int)bf.a);
+    int signed_a = (int)((int)bf.a);
     /*@ assert signed_a ≡ -400; */ ;
   }
   if (v) 
@@ -552,8 +529,7 @@ void main10_loop(void)
 {
   signed char c;
   struct __anonstruct_bf_2 bf;
-  int k;
-  k = 0;
+  int k = 0;
   while (k < 10) {
     bf.b = (unsigned int)v;
     if (v) 
@@ -853,10 +829,10 @@ tests/value/downcast.i:82:[value] assertion 'Value,unsigned_downcast' got final 
 
 [  Alarm  ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 77)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 77)
+             - Unreachable initialization of 'e_0' (file tests/value/downcast.i, line 77)
 [  Alarm  ] Assertion 'Value,unsigned_downcast' (file tests/value/downcast.i, line 82)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 82)
+             - Unreachable initialization of 'e_1' (file tests/value/downcast.i, line 82)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main9_bitfield'
@@ -924,11 +900,9 @@ void main1(void)
 
 void main2_bitfield(void)
 {
-  int i;
-  unsigned int j;
   struct s ss;
-  i = 117;
-  j = (unsigned int)254;
+  int i = 117;
+  unsigned int j = (unsigned int)254;
   if (v) 
     ss.i = (int)i;
   if (v) 
@@ -939,28 +913,21 @@ void main2_bitfield(void)
 
 void main3_reduction(void)
 {
-  int x_0;
-  char c;
-  unsigned int y;
-  unsigned char d;
-  x_0 = v;
-  c = (char)x_0;
+  int x_0 = v;
+  char c = (char)x_0;
   /*@ assert Value: unsigned_downcast: 0 ≤ v; */
-  y = (unsigned int)v;
+  unsigned int y = (unsigned int)v;
   /*@ assert Value: unsigned_downcast: y ≤ 255; */
-  d = (unsigned char)y;
+  unsigned char d = (unsigned char)y;
   return;
 }
 
 void main4_pointer(void)
 {
   int x_0;
-  long long p;
-  unsigned int q;
-  int r;
-  p = (long long)(& x_0);
-  q = (unsigned int)p;
-  r = (int)p;
+  long long p = (long long)(& x_0);
+  unsigned int q = (unsigned int)p;
+  int r = (int)p;
   return;
 }
 
@@ -970,15 +937,12 @@ extern int ( /* missing proto */ Frama_C_show_each)();
 
 void main5_wrap_signed(void)
 {
-  int x_0;
-  unsigned int y;
-  int z;
-  x_0 = v;
+  int x_0 = v;
   /*@ assert ASSUME: x_0 ≥ 100000; */ ;
   /*@ assert x_0 > 0x7FFFFFFF - 145 ∨ x_0 ≤ 0x7FFFFFFF - 145; */ ;
-  y = (unsigned int)x_0;
+  unsigned int y = (unsigned int)x_0;
   y += (unsigned int)145;
-  z = (int)y;
+  int z = (int)y;
   Frama_C_show_each(x_0,y,z);
   /*@ assert z ≥ 100000 + 145 ∨ z ≤ (int)(0x7FFFFFFF + 145); */ ;
   return;
@@ -987,42 +951,32 @@ void main5_wrap_signed(void)
 void main6_val_warn_converted_signed(void)
 {
   if (v) {
-    short s_0;
-    s_0 = (short)65300u;
+    short s_0 = (short)65300u;
   }
   if (v) {
-    unsigned short u;
-    u = (unsigned short)65300u;
+    unsigned short u = (unsigned short)65300u;
   }
   if (v) {
-    unsigned long e;
-    short b;
-    e = (unsigned long)17;
-    b = (short)e;
+    unsigned long e = (unsigned long)17;
+    short b = (short)e;
   }
   if (v) {
-    unsigned long e_0;
-    short b_0;
     /*@ assert Value: unsigned_downcast: 0 ≤ -12; */
-    e_0 = (unsigned long)(-12);
-    b_0 = (short)e_0;
+    unsigned long e_0 = (unsigned long)(-12);
+    short b_0 = (short)e_0;
   }
   if (v) {
-    unsigned int e_1;
-    short b_1;
     /*@ assert Value: unsigned_downcast: 0 ≤ -64000; */
-    e_1 = (unsigned int)(-64000);
-    b_1 = (short)e_1;
+    unsigned int e_1 = (unsigned int)(-64000);
+    short b_1 = (short)e_1;
   }
   return;
 }
 
 void main7_signed_upcast(void)
 {
-  unsigned char c;
-  int i;
-  c = (unsigned char)240;
-  i = (int)c;
+  unsigned char c = (unsigned char)240;
+  int i = (int)c;
   return;
 }
 
@@ -1053,8 +1007,7 @@ void main9_bitfield(void)
   signed char c;
   bf.a = (unsigned int)1648;
   if (v) {
-    int signed_a;
-    signed_a = (int)((int)bf.a);
+    int signed_a = (int)((int)bf.a);
     /*@ assert signed_a ≡ -400; */ ;
   }
   if (v) 
@@ -1066,8 +1019,7 @@ void main10_loop(void)
 {
   signed char c;
   struct __anonstruct_bf_2 bf;
-  int k;
-  k = 0;
+  int k = 0;
   while (k < 10) {
     /*@ assert Value: unsigned_downcast: 0 ≤ v; */
     /*@ assert Value: unsigned_downcast: v ≤ 1023; */
@@ -1370,10 +1322,10 @@ tests/value/downcast.i:137:[value] warning: signed downcast. assert (int)bf.b �
 
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 67)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 67)
+             - Unreachable initialization of 's_0' (file tests/value/downcast.i, line 67)
 [  Alarm  ] Assertion 'Value,signed_downcast' (file tests/value/downcast.i, line 83)
             By Value, with pending:
-             - Unreachable instruction (file tests/value/downcast.i, line 83)
+             - Unreachable initialization of 'b_1' (file tests/value/downcast.i, line 83)
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main8_bitfields'
@@ -1456,11 +1408,9 @@ void main1(void)
 
 void main2_bitfield(void)
 {
-  int i;
-  unsigned int j;
   struct s ss;
-  i = 117;
-  j = (unsigned int)254;
+  int i = 117;
+  unsigned int j = (unsigned int)254;
   if (v) 
     /*@ assert Value: signed_downcast: i ≤ 15; */
     ss.i = (int)i;
@@ -1471,29 +1421,22 @@ void main2_bitfield(void)
 
 void main3_reduction(void)
 {
-  int x_0;
-  char c;
-  unsigned int y;
-  unsigned char d;
-  x_0 = v;
+  int x_0 = v;
   /*@ assert Value: signed_downcast: -128 ≤ x_0; */
   /*@ assert Value: signed_downcast: x_0 ≤ 127; */
-  c = (char)x_0;
-  y = (unsigned int)v;
-  d = (unsigned char)y;
+  char c = (char)x_0;
+  unsigned int y = (unsigned int)v;
+  unsigned char d = (unsigned char)y;
   return;
 }
 
 void main4_pointer(void)
 {
   int x_0;
-  long long p;
-  unsigned int q;
-  int r;
-  p = (long long)(& x_0);
-  q = (unsigned int)p;
+  long long p = (long long)(& x_0);
+  unsigned int q = (unsigned int)p;
   /*@ assert Value: signed_downcast: p ≤ 2147483647; */
-  r = (int)p;
+  int r = (int)p;
   return;
 }
 
@@ -1503,15 +1446,12 @@ extern int ( /* missing proto */ Frama_C_show_each)();
 
 void main5_wrap_signed(void)
 {
-  int x_0;
-  unsigned int y;
-  int z;
-  x_0 = v;
+  int x_0 = v;
   /*@ assert ASSUME: x_0 ≥ 100000; */ ;
   /*@ assert x_0 > 0x7FFFFFFF - 145 ∨ x_0 ≤ 0x7FFFFFFF - 145; */ ;
-  y = (unsigned int)x_0;
+  unsigned int y = (unsigned int)x_0;
   y += (unsigned int)145;
-  z = (int)y;
+  int z = (int)y;
   Frama_C_show_each(x_0,y,z);
   /*@ assert z ≥ 100000 + 145 ∨ z ≤ (int)(0x7FFFFFFF + 145); */ ;
   return;
@@ -1520,42 +1460,32 @@ void main5_wrap_signed(void)
 void main6_val_warn_converted_signed(void)
 {
   if (v) {
-    short s_0;
     /*@ assert Value: signed_downcast: (int)65300u ≤ 32767; */
-    s_0 = (short)65300u;
+    short s_0 = (short)65300u;
   }
   if (v) {
-    unsigned short u;
-    u = (unsigned short)65300u;
+    unsigned short u = (unsigned short)65300u;
   }
   if (v) {
-    unsigned long e;
-    short b;
-    e = (unsigned long)17;
-    b = (short)e;
+    unsigned long e = (unsigned long)17;
+    short b = (short)e;
   }
   if (v) {
-    unsigned long e_0;
-    short b_0;
-    e_0 = (unsigned long)(-12);
-    b_0 = (short)e_0;
+    unsigned long e_0 = (unsigned long)(-12);
+    short b_0 = (short)e_0;
   }
   if (v) {
-    unsigned int e_1;
-    short b_1;
-    e_1 = (unsigned int)(-64000);
+    unsigned int e_1 = (unsigned int)(-64000);
     /*@ assert Value: signed_downcast: -32768 ≤ (int)e_1; */
-    b_1 = (short)e_1;
+    short b_1 = (short)e_1;
   }
   return;
 }
 
 void main7_signed_upcast(void)
 {
-  unsigned char c;
-  int i;
-  c = (unsigned char)240;
-  i = (int)c;
+  unsigned char c = (unsigned char)240;
+  int i = (int)c;
   return;
 }
 
@@ -1589,8 +1519,7 @@ void main9_bitfield(void)
   signed char c;
   bf.a = (unsigned int)1648;
   if (v) {
-    int signed_a;
-    signed_a = (int)((int)bf.a);
+    int signed_a = (int)((int)bf.a);
     /*@ assert signed_a ≡ -400; */ ;
   }
   if (v) 
@@ -1603,8 +1532,7 @@ void main10_loop(void)
 {
   signed char c;
   struct __anonstruct_bf_2 bf;
-  int k;
-  k = 0;
+  int k = 0;
   while (k < 10) {
     bf.b = (unsigned int)v;
     if (v) 
@@ -1646,12 +1574,12 @@ void main(void)
   uz ∈ [--..--]
   s ∈ [--..--]
   v ∈ [--..--]
-[value] Called Frama_C_show_each([100000..2147483502],
-                                 [100145..2147483647],
-                                 [100145..2147483647])
 [value] Called Frama_C_show_each([2147483503..2147483647],
                                  [2147483648..2147483792],
                                  [-2147483648..-2147483504])
+[value] Called Frama_C_show_each([100000..2147483502],
+                                 [100145..2147483647],
+                                 [100145..2147483647])
 [value] Recording results for main5_wrap_signed
 [value] done for function main5_wrap_signed
 [value] ====== VALUES COMPUTED ======

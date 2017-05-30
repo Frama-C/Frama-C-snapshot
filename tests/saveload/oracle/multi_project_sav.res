@@ -24,10 +24,8 @@ int f(int x)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 2;
-  y = f(2);
+  int x = 2;
+  int y = f(2);
   /*@ assert y ≡ 4; */ ;
   __retres = 8;
   return __retres;

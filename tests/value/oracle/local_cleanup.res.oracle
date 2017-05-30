@@ -6,17 +6,25 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/value/local_cleanup.c:16.
+        Called from tests/value/local_cleanup.c:20.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/value/local_cleanup.c:17.
+        Called from tests/value/local_cleanup.c:21.
 [value] computing for function f <- g <- main.
-        Called from tests/value/local_cleanup.c:11.
+        Called from tests/value/local_cleanup.c:15.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g
 [value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/value/local_cleanup.c:22.
+[value] Recording results for h
+[value] Done for function h
+[value] DUMPING STATE of file tests/value/local_cleanup.c line 23
+        lmain[0] ∈ UNINITIALIZED
+             [1] ∈ {12}
+        =END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -28,6 +36,8 @@
 [value:final-states] Values at end of function g:
   t[0] ∈ UNINITIALIZED
    [1] ∈ {12}
+[value:final-states] Values at end of function h:
+  x ∈ {1}
 [value:final-states] Values at end of function main:
   lmain[0] ∈ UNINITIALIZED
        [1] ∈ {12}
@@ -35,7 +45,11 @@
 [from] Done for function f
 [from] Computing for function g
 [from] Done for function g
+[from] Computing for function h
+[from] Done for function h
 [from] Computing for function main
+[from] Computing for function Frama_C_dump_each <-main
+[from] Done for function Frama_C_dump_each
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
@@ -44,6 +58,8 @@
   lmain[1] FROM p (and SELF)
 [from] Function g:
   lmain[1] FROM \nothing (and SELF)
+[from] Function h:
+  \result FROM \nothing
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
@@ -54,6 +70,10 @@
 [inout] Out (internal) for function g:
           t[1]
 [inout] Inputs for function g:
+          \nothing
+[inout] Out (internal) for function h:
+          x; y
+[inout] Inputs for function h:
           \nothing
 [inout] Out (internal) for function main:
           lmain[1]

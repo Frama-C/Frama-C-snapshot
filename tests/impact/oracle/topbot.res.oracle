@@ -32,7 +32,7 @@ tests/impact/topbot.c:5:[value] warning: function f: precondition got status inv
  {n5}: VarDecl : x
  {n6}: VarDecl : y
  {n7}: VarDecl : z
- {n8}: x = 1;
+ {n8}: int x = 1;
    -[-c-]-> 2
    -[a--]-> 5
  {n9}: c

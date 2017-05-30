@@ -1,6 +1,6 @@
 /* run.config*
    GCC:
-   STDOPT: +"-float-normal -no-warn-signed-overflow tests/idct/idct.c -remove-redundant-alarms -memexec-all -val-builtin sqrt:Frama_C_sqrt,cos:Frama_C_cos -then -report -report-print-properties"
+   STDOPT: +"-load-module report,scope,variadic -float-normal -no-warn-signed-overflow tests/idct/idct.c -remove-redundant-alarms -memexec-all -val-builtin sqrt:Frama_C_sqrt,cos:Frama_C_cos -then -report -report-print-properties"
 */
 /* IEEE_1180_1990: a testbed for IDCT accuracy
  * Copyright (C) 2001  Renaud Pacalet

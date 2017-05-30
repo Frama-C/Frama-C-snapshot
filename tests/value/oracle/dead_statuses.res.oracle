@@ -36,19 +36,6 @@ tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
---- Properties of Function 'Frama_C_bzero'
---------------------------------------------------------------------------------
-
-[ Extern  ] Post-condition (file share/libc/__fc_builtin_for_normalization.i, line 32)
-            Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/__fc_builtin_for_normalization.i, line 31)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/__fc_builtin_for_normalization.i, line 31)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
@@ -63,28 +50,10 @@ tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
 --- Properties of Function 'main'
 --------------------------------------------------------------------------------
 
-[  Dead   ] Post-condition for 'Frama_C_implicit_init' (file tests/value/dead_statuses.i, line 14) at block
-            Locally valid, but unreachable.
-            By Frama-C kernel because:
-             - Unreachable block (after it)
-            By Value because:
-             - Unreachable block (after it)
-[  Dead   ] Post-condition for 'Frama_C_implicit_init' (file tests/value/dead_statuses.i, line 14) at block
-            Locally valid, but unreachable.
-            By Frama-C kernel because:
-             - Unreachable block (after it)
-            By Value because:
-             - Unreachable block (after it)
 [  Dead   ] Pre-condition (file tests/value/dead_statuses.i, line 18) at instruction (file tests/value/dead_statuses.i, line 19)
             Locally valid, but unreachable.
             By Value because:
              - Unreachable instruction (file tests/value/dead_statuses.i, line 19)
-[  Dead   ] Assigns for 'Frama_C_implicit_init' (file tests/value/dead_statuses.i, line 14) at block
-            Locally valid, but unreachable.
-            By Frama-C kernel because:
-             - Unreachable block (after it)
-            By Value because:
-             - Unreachable block (after it)
 [  Dead   ] Assertion (file tests/value/dead_statuses.i, line 15)
             Locally valid, but unreachable.
             By Value because:
@@ -93,15 +62,9 @@ tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
             Locally valid, but unreachable.
             By Value because:
              - Unreachable loop (file tests/value/dead_statuses.i, line 17)
-[  Dead   ] Behavior 'Frama_C_implicit_init' at block
-            Locally valid, but unreachable.
-            By Frama-C kernel because:
-             - Unreachable block (after it)
 [  Valid  ] Default behavior at instruction (file tests/value/dead_statuses.i, line 19)
             by Frama-C kernel.
 [Unreachable] Unreachable call 'f' (file tests/value/dead_statuses.i, line 13)
-            by Value.
-[Unreachable] Unreachable block (after it)
             by Value.
 [Unreachable] Unreachable program point (file tests/value/dead_statuses.i, line 15)
             by Value.
@@ -124,9 +87,9 @@ tests/value/dead_statuses.i:5:[value] function f: precondition got status valid.
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-     6 Completely validated
-     4 Considered valid
-     8 Dead properties
-     5 Unreachable
-    23 Total
+     5 Completely validated
+     1 Considered valid
+     4 Dead properties
+     4 Unreachable
+    14 Total
 --------------------------------------------------------------------------------

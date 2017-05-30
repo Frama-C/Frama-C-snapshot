@@ -49,10 +49,8 @@ tests/value/undefined_sequence.i:51:[kernel] warning: Unspecified sequence with 
                   G[tmp_7] += G[i];
 tests/value/undefined_sequence.i:53:[kernel] warning: Unspecified sequence with side effect:
                   /*  <- x */
-                  { /* sequence */
-                    tmp_8 = g(3);
-                    
-                  }
+                  tmp_8 = g(3);
+                  
                   tmp_9 = f(tmp_8 + x);
                   /*  <-  */
                   tmp_10 = x;

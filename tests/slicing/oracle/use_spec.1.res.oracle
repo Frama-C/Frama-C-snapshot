@@ -23,7 +23,7 @@ tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert -2147483648
 tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert tmp + G2 ≤ 2147483647;
 [value] Recording results for main2
 [value] done for function main2
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main2
 [from] Computing for function h
@@ -83,9 +83,8 @@ void h_slice_1(int b);
 int main2(int v1, int v4)
 {
   int __retres;
-  int tmp;
   h_slice_2(v1);
-  tmp = G1;
+  int tmp = G1;
   h_slice_1(v4);
   /*@ assert Value: signed_overflow: -2147483648 ≤ tmp + G2; */
   /*@ assert Value: signed_overflow: tmp + G2 ≤ 2147483647; */

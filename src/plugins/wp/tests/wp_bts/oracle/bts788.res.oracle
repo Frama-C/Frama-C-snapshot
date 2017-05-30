@@ -18,11 +18,11 @@ Let x = t20_0[1].
 Assume {
   Type: is_sint32(x) /\ is_sint32(t20_0[2]).
   (* Initializer *)
-  Init: 3 = t20_0[0].
+  Init: t20_0[0] = 3.
   (* Initializer *)
-  Init: forall i : Z. ((0 < i) -> ((i <= 19) -> (0 = t20_0[i]))).
+  Init: forall i : Z. ((0 < i) -> ((i <= 19) -> (t20_0[i] = 0))).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -31,10 +31,10 @@ Let x = t20_0[2].
 Assume {
   Type: is_sint32(t20_0[1]) /\ is_sint32(x).
   (* Initializer *)
-  Init: 3 = t20_0[0].
+  Init: t20_0[0] = 3.
   (* Initializer *)
-  Init: forall i : Z. ((0 < i) -> ((i <= 19) -> (0 = t20_0[i]))).
+  Init: forall i : Z. ((0 < i) -> ((i <= 19) -> (t20_0[i] = 0))).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------

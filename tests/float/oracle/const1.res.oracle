@@ -4,21 +4,12 @@ tests/float/const1.i:1:[kernel] warning: Floating-point constant 1e40f is not re
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 tests/float/const1.i:1:[value] warning: non-finite float value. assert \is_finite(1e40f);
-tests/float/const1.i:1:[value] Evaluation of initializer '(unsigned long long)1e40f' failed
+tests/float/const1.i:1:[value] evaluation of initializer '(unsigned long long)1e40f' failed
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   NOT ACCESSIBLE
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======
-[from] Computing for function main
-[from] Non-terminating function main (no dependencies)
-[from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function main:
-  NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
-          \nothing
-[inout] Inputs for function main:
-          \nothing

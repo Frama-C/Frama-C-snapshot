@@ -44,9 +44,9 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'load_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (reg_load_0[i_1] = a[i_1]))).
+      (a[i_1] = reg_load_0[i_1]))).
 }
-Prove: reg_load_0[i] = a[i].
+Prove: a[i] = reg_load_0[i].
 
 ------------------------------------------------------------
 
@@ -105,9 +105,9 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'reset_1_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = (v[i_1].F1_T_a)))).
+      ((v[i_1].F1_T_a) = 0))).
 }
-Prove: 0 = (v[i].F1_T_a).
+Prove: (v[i].F1_T_a) = 0.
 
 ------------------------------------------------------------
 
@@ -136,12 +136,12 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = (ts_0[i_1].F1_T_a)))).
+      ((ts_0[i_1].F1_T_a) = 0))).
   (* Call Effects *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 9) ->
-      (((i_1 < 0) \/ (5 <= i_1)) -> (ts_0[i_1] = ts_1[i_1])))).
+      (((i_1 < 0) \/ (5 <= i_1)) -> (ts_1[i_1] = ts_0[i_1])))).
 }
-Prove: 0 = (ts_0[i].F1_T_a).
+Prove: (ts_0[i].F1_T_a) = 0.
 
 ------------------------------------------------------------
 
@@ -171,13 +171,13 @@ Assume {
   When: (0 <= i) /\ (i <= 4).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = (m[i_1].F1_T_a)))).
+      ((m[i_1].F1_T_a) = 0))).
   (* Call Effects *)
-  Have: (forall i_1 : Z. ((1 != i_1) -> (smatrix_0[i_1] = smatrix_1[i_1]))) /\
+  Have: (forall i_1 : Z. ((i_1 != 1) -> (smatrix_1[i_1] = smatrix_0[i_1]))) /\
       (forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-       (((i_1 < 0) \/ (5 <= i_1)) -> (m[i_1] = smatrix_1[1][i_1]))))).
+       (((i_1 < 0) \/ (5 <= i_1)) -> (smatrix_1[1][i_1] = m[i_1]))))).
 }
-Prove: 0 = (m[i].F1_T_a).
+Prove: (m[i].F1_T_a) = 0.
 
 ------------------------------------------------------------
 
@@ -212,11 +212,11 @@ Assume {
   Have: valid_rw(Malloc_0, a_1, 10).
   (* Call 'reset_5' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 4) ->
-      (0 = Mint_0[shiftfield_F1_T_a(shift_T(a, i_1))]))).
+      (Mint_0[shiftfield_F1_T_a(shift_T(a, i_1))] = 0))).
   (* Call Effects *)
   Have: havoc(Mint_1, Mint_0, a_1, 10).
 }
-Prove: 0 = Mint_0[shiftfield_F1_T_a(shift_T(a, i))].
+Prove: Mint_0[shiftfield_F1_T_a(shift_T(a, i))] = 0.
 
 ------------------------------------------------------------
 

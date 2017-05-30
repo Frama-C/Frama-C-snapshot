@@ -44,8 +44,7 @@ void i(void)
 
 void j(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   /*@ behavior foo:
         ensures \true; */
   {

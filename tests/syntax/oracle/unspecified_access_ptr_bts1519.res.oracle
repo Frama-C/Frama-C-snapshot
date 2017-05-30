@@ -8,28 +8,22 @@ int i = 4;
 int j = 0;
 void main(void)
 {
-  int *p1;
-  int *p2;
   int tmp;
   int tmp_0;
-  p1 = & v[i];
-  p2 = & v[j];
-  { /* sequence */
-    tmp = *p1;
-    /*effects: (t[i])  <- */
-    (*p1) ++;
-    /*effects: (t[i]) *p1 <- p1*/
-    t[i] += tmp + *p2;
-    /*effects: (t[i]) t[i] <- i, tmp, *p2, p2*/
-  }
-  { /* sequence */
-    tmp_0 = v[i];
-    /*effects: (t[i])  <- */
-    (v[i]) ++;
-    /*effects: (t[i]) v[i] <- i*/
-    t[i] += tmp_0 + v[j];
-    /*effects: (t[i]) t[i] <- i, tmp_0, v[j], j*/
-  }
+  int *p1 = & v[i];
+  int *p2 = & v[j];
+  tmp = *p1;
+  /*effects: (t[i])  <- */
+  (*p1) ++;
+  /*effects: (t[i]) *p1 <- p1*/
+  t[i] += tmp + *p2;
+  /*effects: (t[i]) t[i] <- i, tmp, *p2, p2*/
+  tmp_0 = v[i];
+  /*effects: (t[i])  <- */
+  (v[i]) ++;
+  /*effects: (t[i]) v[i] <- i*/
+  t[i] += tmp_0 + v[j];
+  /*effects: (t[i]) t[i] <- i, tmp_0, v[j], j*/
   return;
 }
 

@@ -135,7 +135,7 @@ tests/slicing/callwise.i:32:[value] warning: accessing uninitialized left-value.
   \result FROM a; b
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -184,8 +184,7 @@ int fs163_main_slice_1(void)
   int __retres;
   int T[5];
   {
-    int i;
-    i = 0;
+    int i = 0;
     while (i < 5) {
       fs163_f_slice_1(& T[i],i);
       i ++;
@@ -197,21 +196,15 @@ int fs163_main_slice_1(void)
 
 int main(void)
 {
-  int n;
-  int m;
   int tmp;
   int tmp_0;
-  n = 2;
-  m = 3;
+  int n = 2;
+  int m = 3;
   f_slice_1(& a,& b);
-  { /* sequence */
-    tmp = choose_slice_1(1,n,m);
-    a += tmp;
-  }
-  { /* sequence */
-    tmp_0 = fs163_main_slice_1();
-    a += tmp_0;
-  }
+  tmp = choose_slice_1(1,n,m);
+  a += tmp;
+  tmp_0 = fs163_main_slice_1();
+  a += tmp_0;
   return a;
 }
 

@@ -56,10 +56,8 @@ int f(int x, int y)
 
 int main(void)
 {
-  int a;
-  int b;
-  a = 1;
-  b = 1;
+  int a = 1;
+  int b = 1;
   f(a,b);
   a = f(G + 1,b);
   G = 0;

@@ -24,13 +24,13 @@ Assume {
   Have: (0 <= n) /\ (n <= 3).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (v[i_2] = Mint_0[shift_sint32(b, i_2)]))).
+      (Mint_0[shift_sint32(b, i_2)] = v[i_2]))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= n).
   (* Else *)
   Have: n <= i_1.
 }
-Prove: v[i] = Mint_0[shift_sint32(b, i)].
+Prove: Mint_0[shift_sint32(b, i)] = v[i].
 
 ------------------------------------------------------------
 
@@ -43,7 +43,7 @@ Assume {
   Have: (0 <= n) /\ (n <= 3).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (v[i_1] = Mint_0[shift_sint32(b, i_1)]))).
+      (Mint_0[shift_sint32(b, i_1)] = v[i_1]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -60,22 +60,22 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_acsl/assigns_path.i, line 17):
 Assume {
-  Type: is_sint32(i_1) /\ is_sint32(n) /\ is_sint32(1 + i_1).
+  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (0 <= i) /\ (i <= i_1).
+  When: (0 <= i_1) /\ (i_1 <= i).
   (* Heap *)
   Have: region(b.base) <= 0.
   (* Pre-condition *)
   Have: (0 <= n) /\ (n <= 3).
   (* Invariant *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (v[i_2] = Mint_0[shift_sint32(b, i_2)]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (Mint_0[shift_sint32(b, i_2)] = v[i_2]))).
   (* Invariant *)
-  Have: (0 <= i_1) /\ (i_1 <= n).
+  Have: (0 <= i) /\ (i <= n).
   (* Then *)
-  Have: i_1 < n.
+  Have: i < n.
 }
-Prove: Mint_0[shift_sint32(b, i)] = v[i_1 <- Mint_0[shift_sint32(b, i_1)]][i].
+Prove: v[i <- Mint_0[shift_sint32(b, i)]][i_1] = Mint_0[shift_sint32(b, i_1)].
 
 ------------------------------------------------------------
 
@@ -89,18 +89,12 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (1/3):
+Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (1/2):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (2/3):
-Effect at line 20
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (3/3):
+Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (2/2):
 Effect at line 20
 Prove: true.
 

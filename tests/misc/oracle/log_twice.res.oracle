@@ -7,9 +7,9 @@
   
 [value] computing for function f <- main.
         Called from tests/misc/log_twice.i:11.
-tests/misc/log_twice.i:7:[value] warning: locals {x} escaping the scope of f through \result
 [value] Recording results for f
 [value] Done for function f
+tests/misc/log_twice.i:11:[value] warning: locals {x} escaping the scope of f through \result<f>
 tests/misc/log_twice.i:12:[value] warning: accessing left-value that contains escaping addresses.
                  assert ¬\dangling(&p);
 tests/misc/log_twice.i:12:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
@@ -23,9 +23,9 @@ tests/misc/log_twice.i:12:[value] assertion 'Value,dangling_pointer' got final s
   
 [value] computing for function f <- main.
         Called from tests/misc/log_twice.i:11.
-tests/misc/log_twice.i:7:[value] warning: locals {x} escaping the scope of f through \result
 [value] Recording results for f
 [value] Done for function f
+tests/misc/log_twice.i:11:[value] warning: locals {x} escaping the scope of f through \result<f>
 tests/misc/log_twice.i:12:[value] warning: accessing left-value that contains escaping addresses.
                  assert ¬\dangling(&p);
 tests/misc/log_twice.i:12:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.

@@ -10,12 +10,12 @@ tests/wp_typed/unit_float.i:21:[kernel] warning: Floating-point constant 0.2 is 
 ------------------------------------------------------------
 
 Goal Post-condition 'CST_F' in 'main':
-Prove: .5e0 = 1.p-1.
+Prove: 1.p-1 = .5e0.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'CST_D' in 'main':
-Prove: .5e0 = 1.p-1.
+Prove: 1.p-1 = .5e0.
 
 ------------------------------------------------------------
 

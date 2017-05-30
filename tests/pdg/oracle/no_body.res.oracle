@@ -54,7 +54,7 @@ tests/pdg/no_body.c:17:[value] warning: signed overflow. assert x + 1 ≤ 214748
 [pdg] PDG for main
  {n1}: InCtrl
  {n2}: VarDecl : x
- {n3}: x = 1;
+ {n3}: int x = 1;
    -[-c-]-> 1
    -[a--]-> 2
  {n4}: Call11-InCtrl : G = f(x);

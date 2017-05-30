@@ -23,7 +23,7 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
   Z FROM Y
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function loop
 [pdg] done for function loop
@@ -44,8 +44,7 @@ int Z;
 void loop(int cond)
 {
   if (cond) {
-    int c;
-    c = 0;
+    int c = 0;
     /*@ loop pragma WIDEN_HINTS X, 10, 100; */
     while (1) {
       /*@ slice pragma ctrl; */ ;

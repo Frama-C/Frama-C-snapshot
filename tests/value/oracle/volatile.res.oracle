@@ -2,9 +2,9 @@
 [kernel] Parsing tests/value/volatile.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/volatile.c:5:[value] warning: global initialization of volatile zone G ignored
+tests/value/volatile.c:5:[value] warning: global initialization of volatile variable G ignored
 tests/value/volatile.c:11:[value] warning: global initialization of volatile zone s2.b ignored
-tests/value/volatile.c:15:[value] warning: global initialization of volatile zone sv2 ignored
+tests/value/volatile.c:15:[value] warning: global initialization of volatile variable sv2 ignored
 tests/value/volatile.c:17:[value] warning: global initialization of volatile zone sv3.b ignored
 tests/value/volatile.c:18:[value] warning: global initialization of volatile zone sv4.b ignored
 tests/value/volatile.c:33:[value] warning: global initialization of volatile zone nested.__anonCompField1.b ignored
@@ -88,6 +88,7 @@ tests/value/volatile.c:59:[value] warning: signed overflow. assert m - l ≤ 214
 [value] Done for function main2
 [value] computing for function main3 <- main.
         Called from tests/value/volatile.c:153.
+tests/value/volatile.c:113:[value] warning: initialization of volatile variable v ignored
 tests/value/volatile.c:114:[value] warning: accessing out of bounds index. assert 0 ≤ v;
 tests/value/volatile.c:114:[value] warning: accessing out of bounds index. assert v < 1;
 [value] Called Frama_C_show_each_v([-2147483648..2147483647])
@@ -213,6 +214,7 @@ tests/value/volatile.c:136:[value] warning: accessing out of bounds index. asser
 tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert sdeepvol.g[0] < 2;
 tests/value/volatile.c:136:[value] warning: accessing out of bounds index. assert a_0[sdeepvol.g[0]] < 1;
 [value] Called Frama_C_show_each_av([-2147483648..2147483647])
+tests/value/volatile.c:139:[value] warning: initialization of volatile variable volt ignored
 tests/value/volatile.c:140:[value] warning: accessing out of bounds index. assert 0 ≤ volt[0].f[0];
 tests/value/volatile.c:140:[value] warning: accessing out of bounds index. assert volt[0].f[0] < 1;
 [value] Called Frama_C_show_each_v([-2147483648..2147483647])

@@ -1,5 +1,5 @@
 /* run.config*
-  OPT: -print -then -val @VALUECONFIG@ -lib-entry -no-print
+  OPT: -no-autoload-plugins -load-module inout,value -print -then -val @VALUECONFIG@ -lib-entry -no-print
 */
 
 typedef int INT[3][3];

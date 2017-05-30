@@ -6,7 +6,6 @@
 [value:initial-state] Values of globals at initialization
   
 tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] warning: accessing uninitialized left-value. assert \initialized(&q);
-[value] Recording results for main
 [value] done for function main
 tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] assertion 'Value,initialisation' got final status invalid.
 [inout] InOut (internal) for function main:

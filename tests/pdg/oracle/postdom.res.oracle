@@ -76,14 +76,14 @@ tests/pdg/postdom.c:20:[pdg] warning: no final state. Probably unreachable...
  {n14}: VarDecl : x
  {n15}: VarDecl : tmp
  {n16}: VarDecl : __retres
- {n17}: sn = 0;
+ {n17}: int sn = 0;
    -[-c-]-> 8
    -[a--]-> 13
  {n18}: return __retres;
    -[-c-]-> 8
    -[--d]-> 16
  {n19}: OutRet
- {n20}: x = (unsigned int)0;
+ {n20}: unsigned int x = (unsigned int)0;
    -[-c-]-> 8
    -[a--]-> 14
  {n21}: while(1)

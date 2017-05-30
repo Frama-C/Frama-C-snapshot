@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -243,7 +243,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
         if (not env.use_align) && Integer.compare req_size size = 0
         then
           update_types typ (* do not print sub-fields if the size is exactly
-                            the right one and the alignement is not important *)
+                            the right one and the alignment is not important *)
         else begin
         try
           let full_fields_to_print = List.fold_left
@@ -461,7 +461,7 @@ type offset_match =
 | MatchSize of Integer.t
 | MatchFirst
 
-(* Comparaison of the shape of two types.  Attributes are completely ignored. *)
+(* Comparison of the shape of two types.  Attributes are completely ignored. *)
 let rec equal_type_no_attribute t1 t2 =
   match Cil.unrollType t1, Cil.unrollType t2 with
   | TVoid _, TVoid _ -> true

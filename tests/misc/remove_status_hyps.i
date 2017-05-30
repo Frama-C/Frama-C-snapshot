@@ -1,7 +1,3 @@
-/* run.config_no_native_dynlink
-   CMD: bin/toplevel.byte
-   OPT: -load-script tests/misc/remove_status_hyps.ml
-*/
 /* run.config
    OPT: -load-script tests/misc/remove_status_hyps.ml
 */

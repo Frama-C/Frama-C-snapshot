@@ -457,31 +457,30 @@ int main(void)
 {
   int aorai_Loop_Init_26;
   int __retres;
-  /*@ ghost int tmp; */
   main_pre_func();
   /*@ ghost aorai_Loop_Init_26 = 1; */
   aorai_loop_26:
-    /*@ loop invariant 0 ≤ rr ≤ 50;
-        loop invariant Aorai: 1 ≡ T0_S2 ∨ 0 ≡ T0_S2;
-        loop invariant Aorai: 0 ≡ T0_init;
-        loop invariant Aorai: 1 ≡ accept_S3 ∨ 0 ≡ accept_S3;
-        loop invariant Aorai: 0 ≡ accept_S4;
-        loop invariant Aorai: 0 ≡ accept_S5;
-        loop invariant Aorai: 0 ≡ accept_all;
-        loop invariant Aorai: 1 ≡ T0_S2 ∨ 1 ≡ accept_S3;
-        loop invariant
-          Aorai:
-            aorai_Loop_Init_26 ≢ 0 ⇒
-            \at(1 ≡ T0_init,Pre) ⇒ 0 ≡ accept_S3;
-    */
-    while (1) {
-      if (! (rr < 50)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_26 = 0; */
-      opa();
-    }
+  /*@ loop invariant 0 ≤ rr ≤ 50;
+      loop invariant Aorai: 1 ≡ T0_S2 ∨ 0 ≡ T0_S2;
+      loop invariant Aorai: 0 ≡ T0_init;
+      loop invariant Aorai: 1 ≡ accept_S3 ∨ 0 ≡ accept_S3;
+      loop invariant Aorai: 0 ≡ accept_S4;
+      loop invariant Aorai: 0 ≡ accept_S5;
+      loop invariant Aorai: 0 ≡ accept_all;
+      loop invariant Aorai: 1 ≡ T0_S2 ∨ 1 ≡ accept_S3;
+      loop invariant
+        Aorai:
+          aorai_Loop_Init_26 ≢ 0 ⇒
+          \at(1 ≡ T0_init,Pre) ⇒ 0 ≡ accept_S3;
+  */
+  while (1) {
+    if (! (rr < 50)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_26 = 0; */
+    opa();
+  }
   while_0_break: ;
   opb();
-  /*@ ghost tmp = 1; */
+  /*@ ghost int tmp = 1; */
   /*@ ghost tmp = 0; */
   __retres = 1;
   main_post_func(__retres);

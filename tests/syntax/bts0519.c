@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-cpp-command='gcc -C -E -I.'" +"-cpp-gnu-like"
-   STDOPT: +"-cpp-command='gcc -C -E -I. -DERR'" +"-cpp-gnu-like"
+   STDOPT: +"-cpp-command='gcc -C -E -I.'" +"-cpp-frama-c-compliant"
+   STDOPT: +"-cpp-command='gcc -C -E -I. -DERR'" +"-cpp-frama-c-compliant"
  */
 
 int t[4];

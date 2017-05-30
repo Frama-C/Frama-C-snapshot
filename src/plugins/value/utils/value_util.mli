@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,12 +48,9 @@ val get_rounding_mode : unit -> Fval.rounding_mode
 val stop_if_stop_at_first_alarm_mode : unit -> unit
 val emitter : Emitter.t
 val warn_all_mode : CilE.warn_mode
-val with_alarm_stop_at_first : CilE.warn_mode
-val with_alarms_raise_exn : exn -> CilE.warn_mode
 val warn_all_quiet_mode : unit -> CilE.warn_mode
 val get_slevel : Kernel_function.t -> Value_parameters.SlevelFunction.value
 val warn_indeterminate: Kernel_function.t -> bool
-val set_loc : kinstr -> unit
 val pretty_actuals :
   Format.formatter -> (Cil_types.exp * Cvalue.V.t * 'b) list -> unit
 val pretty_current_cfunction_name : Format.formatter -> unit
@@ -62,11 +59,6 @@ val warning_once_current : ('a, Format.formatter, unit) format -> 'a
 (** Emit an alarm, either as warning or as a result, according to
     option AlarmsWarnings. *)
 val alarm_report: ?level:int -> 'a Log.pretty_printer
-
-val debug_result :
-  Kernel_function.t ->
-  Cvalue.V_Offsetmap.t option * 'a * Base.SetLattice.t -> unit
-
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in
@@ -92,30 +84,17 @@ val float_kind: Cil_types.fkind -> Fval.float_kind
 val postconditions_mention_result: Cil_types.funspec -> bool
 (** Does the post-conditions of this specification mention [\result]? *)
 
-val bind_block_locals: State_set.t -> Cil_types.block -> State_set.t
-(** Bind all locals of the block to their default value
-    (namely UNINITIALIZED) *)
-
 val conv_comp: binop -> Abstract_interp.Comp.t
 val conv_relation: relation -> Abstract_interp.Comp.t
 
-(* Test that two functions types are compatible; used to verify that a call
-   through a function pointer is ok. In theory, we could only check that
-   both types are compatible as defined by C99, 6.2.7. However, some industrial
-   codes do not strictly follow the norm, and we must be more lenient.
-   Thus, we emit a warning on undefined code, but we also return true
-   if Value can ignore more or less safely the incompatibleness in the types. *)
-val compatible_functions:
-  with_alarms:CilE.warn_mode -> varinfo -> typ -> typ -> bool
-
 val zero: exp -> exp
-(** Retun a zero constant compatible with the type of the argument *)
+(** Return a zero constant compatible with the type of the argument *)
 
 val is_value_zero: exp -> bool
 (** Return [true] iff the argument has been created by {!zero} *)
 
 val dump_garbled_mix: unit -> unit
-(** print information on the garblex mix created during evaluation *)
+(** print information on the garbled mix created during evaluation *)
 
 
 (** Dependences of expressions and lvalues. *)

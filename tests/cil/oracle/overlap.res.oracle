@@ -4,12 +4,10 @@
 int main(void)
 {
   int __retres;
-  int n;
   int z[8];
-  n = 8;
+  int n = 8;
   {
-    int i;
-    i = 0;
+    int i = 0;
     while (i < n) {
       int tmp;
       int tmp_0;
@@ -18,25 +16,21 @@ int main(void)
       int tmp_3;
       int tmp_4;
       first:
-        { /* sequence */
-          tmp = i;
-          i ++;
-          tmp_0 = i;
-          i ++;
-          tmp_1 = i;
-          i --;
-          z[tmp] = z[tmp_0] + tmp_1;
-        }
+      tmp = i;
+      i ++;
+      tmp_0 = i;
+      i ++;
+      tmp_1 = i;
+      i --;
+      z[tmp] = z[tmp_0] + tmp_1;
       last:
-        { /* sequence */
-          tmp_2 = i;
-          i ++;
-          tmp_3 = i;
-          i ++;
-          tmp_4 = i;
-          i --;
-          z[tmp_2] = z[tmp_3] + tmp_4;
-        }
+      tmp_2 = i;
+      i ++;
+      tmp_3 = i;
+      i ++;
+      tmp_4 = i;
+      i --;
+      z[tmp_2] = z[tmp_3] + tmp_4;
       /*@ assert \at(0 ≤ i < n,first); */ ;
       /*@ assert \at(0 ≤ i < n,last); */ ;
     }

@@ -7,20 +7,23 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] Semantic level unrolling superposing up to 100 states
 [value] Semantic level unrolling superposing up to 200 states
 tests/libc/string_c_strchr.c:59:[value] entering loop for the first time
 [value] computing for function strchr <- main.
         Called from tests/libc/string_c_strchr.c:62.
-share/libc/string.h:123:[value] function strchr: precondition 'valid_string_src' got status valid.
+share/libc/string.h:124:[value] function strchr: precondition 'valid_string_src' got status valid.
 tests/libc/string_c_strchr.c:62:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:127:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:129:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:130:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:131:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:134:[value] function strchr, behavior not_found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:136:[value] function strchr, behavior default: postcondition got status valid.
+share/libc/string.h:131:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:132:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:135:[value] function strchr, behavior not_found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:137:[value] function strchr, behavior default: postcondition got status valid.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
@@ -56,23 +59,22 @@ tests/libc/string_c_strchr.c:68:[value] cannot evaluate ACSL term, unsupported A
 [value] computing for function strchr <- main.
         Called from tests/libc/string_c_strchr.c:70.
 tests/libc/string_c_strchr.c:70:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:127:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:128:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
-share/libc/string.c:194:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:129:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:130:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
-share/libc/string.h:134:[value] warning: function strchr, behavior not_found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:129:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:131:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:135:[value] warning: function strchr, behavior not_found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
         Called from tests/libc/string_c_strchr.c:71.
 tests/libc/string_c_strchr.c:71:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:130:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
         Called from tests/libc/string_c_strchr.c:72.
 tests/libc/string_c_strchr.c:72:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:127:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.

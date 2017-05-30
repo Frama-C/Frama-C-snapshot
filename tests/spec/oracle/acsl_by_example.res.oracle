@@ -30,8 +30,7 @@ int equal(int const *a, int n, int const *b)
 {
   int __retres;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≡ *(b + k);
         loop variant n - i;
@@ -68,8 +67,7 @@ int find(int const *a, int n, int val)
 {
   int __retres;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≢ val;
         loop variant n - i;
@@ -111,8 +109,7 @@ int find2(int const *a, int n, int val)
 {
   int __retres;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant ¬found(a, i, val);
         loop variant n - i;
@@ -155,18 +152,15 @@ int find_first_of(int const *a, int m, int const *b, int n)
 {
   int __retres;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ m;
         loop invariant ¬found_first_of(a, i, b, n);
         loop variant m - i;
     */
     while (i < m) {
       int tmp;
-      { /* sequence */
-        tmp = find(b,n,*(a + i));
-        ;
-      }
+      tmp = find(b,n,*(a + i));
+      ;
       if (tmp < n) {
         __retres = i;
         goto return_label;
@@ -201,15 +195,13 @@ int find_first_of(int const *a, int m, int const *b, int n)
 int max_element(int const *a, int n)
 {
   int __retres;
-  int max;
   if (n == 0) {
     __retres = 0;
     goto return_label;
   }
-  max = 0;
+  int max = 0;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant 0 ≤ max < n;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≤ *(a + max);
@@ -237,10 +229,8 @@ int max_seq(int const *p, int n)
 {
   int __retres;
   int tmp;
-  { /* sequence */
-    tmp = max_element(p,n);
-    ;
-  }
+  tmp = max_element(p,n);
+  ;
   __retres = *(p + tmp);
   return __retres;
 }
@@ -272,11 +262,9 @@ axiomatic counting_axioms {
  */
 int count(int const *a, int n, int val)
 {
-  int cnt;
-  cnt = 0;
+  int cnt = 0;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant 0 ≤ cnt ≤ i;
         loop invariant cnt ≡ counting(a, i, val);
@@ -298,8 +286,7 @@ int count(int const *a, int n, int val)
  */
 void swap(int *p, int *q)
 {
-  int save;
-  save = *p;
+  int save = *p;
   *p = *q;
   *q = save;
   return;
@@ -315,8 +302,7 @@ void swap(int *p, int *q)
  */
 void swap_ranges(int *a, int n, int *b)
 {
-  int i;
-  i = 0;
+  int i = 0;
   /*@ loop invariant 0 ≤ i ≤ n;
       loop invariant
         ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≡ \at(*(b + k),Pre);
@@ -338,8 +324,7 @@ void swap_ranges(int *a, int n, int *b)
  */
 void fill(int *a, int n, int val)
 {
-  int i;
-  i = 0;
+  int i = 0;
   /*@ loop invariant 0 ≤ i ≤ n;
       loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≡ val;
       loop variant n - i;
@@ -359,8 +344,7 @@ void fill(int *a, int n, int val)
  */
 void copy(int const *a, int n, int *b)
 {
-  int i;
-  i = 0;
+  int i = 0;
   /*@ loop invariant 0 ≤ i ≤ n;
       loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≡ *(b + k);
       loop assigns *(b + (0 .. i - 1));
@@ -388,8 +372,7 @@ void copy(int const *a, int n, int *b)
 int replace_copy(int const *a, int n, int *b, int old_val, int new_val)
 {
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant
           ∀ int j;
@@ -423,11 +406,9 @@ int replace_copy(int const *a, int n, int *b, int old_val, int new_val)
  */
 int remove_copy(int const *a, int n, int *b, int val)
 {
-  int j;
-  j = 0;
+  int j = 0;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ j ≤ i ≤ n;
         loop invariant
           ∀ int k; j ≤ k < n ⇒ *(b + k) ≡ \at(*(b + k),Pre);
@@ -441,11 +422,9 @@ int remove_copy(int const *a, int n, int *b, int val)
     while (i < n) {
       if (*(a + i) != val) {
         int tmp;
-        { /* sequence */
-          tmp = j;
-          j ++;
-          *(b + tmp) = *(a + i);
-        }
+        tmp = j;
+        j ++;
+        *(b + tmp) = *(a + i);
       }
       i ++;
     }
@@ -461,8 +440,7 @@ int remove_copy(int const *a, int n, int *b, int val)
  */
 void iota(int *a, int n, int val)
 {
-  int i;
-  i = 0;
+  int i = 0;
   /*@ loop invariant 0 ≤ i ≤ n;
       loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + k) ≡ val + k;
       loop assigns *(a + (0 .. i - 1));
@@ -504,8 +482,7 @@ int adjacent_find(int *a, int n)
     goto return_label;
   }
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i < n;
         loop invariant ¬adjacent_found(a, i);
         loop invariant 0 < i ⇒ *(a + (i - 1)) ≢ *(a + i);
@@ -543,15 +520,13 @@ int adjacent_find(int *a, int n)
 int min_element(int *a, int n)
 {
   int __retres;
-  int min;
   if (0 == n) {
     __retres = n;
     goto return_label;
   }
-  min = 0;
+  int min = 0;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ n;
         loop invariant 0 ≤ min < n;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ *(a + min) ≤ *(a + k);

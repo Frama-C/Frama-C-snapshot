@@ -4,7 +4,7 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 13 goals scheduled
+[wp] 12 goals scheduled
 [wp] [Alt-Ergo] Goal typed_caveat_reset_post : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_reset_post_2 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_reset_loop_inv_preserved : Valid
@@ -16,12 +16,11 @@
 [wp] [Qed] Goal typed_caveat_reset_loop_assign_part1 : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_assign_part2 : Valid
 [wp] [Qed] Goal typed_caveat_reset_loop_assign_part3 : Valid
-[wp] [Qed] Goal typed_caveat_reset_assign_part1 : Valid
-[wp] [Qed] Goal typed_caveat_reset_assign_part2 : Valid
-[wp] Proved goals:   13 / 13
-     Qed:             8 
+[wp] [Qed] Goal typed_caveat_reset_assign : Valid
+[wp] Proved goals:   12 / 12
+     Qed:             7 
      Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-reset                8      5 (42)    13       100%
+reset                7      5 (100)   12       100%
 ----------------------------------------------------------

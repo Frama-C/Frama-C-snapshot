@@ -10,7 +10,7 @@
 tests/slicing/slice_pragma_stmt.i:136:[value] warning: signed overflow. assert c1 + 1 ≤ 2147483647;
 [value] Recording results for test6
 [value] done for function test6
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function test6
 [pdg] done for function test6
@@ -32,11 +32,11 @@ void test6(int c1, int c2)
   if (c1 < c2) goto L;
   c1 = c2;
   L: /*@ slice pragma stmt; */
-     { /* sequence */
-       tmp = c1;
-       c1 ++;
-       x = tmp;
-     }
+  { /* sequence */
+    tmp = c1;
+    c1 ++;
+    x = tmp;
+  }
   return;
 }
 

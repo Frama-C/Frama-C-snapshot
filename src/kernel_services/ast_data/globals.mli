@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -252,7 +252,7 @@ val get_comments_stmt: stmt -> string list
 
     A comment is associated to a statement if it occurs after 
     the preceding statement and before the current statement ends (except for
-    the last statement in a block, to which statements occuring before the end
+    the last statement in a block, to which statements occurring before the end
     of the block are associated). Note that this function is experimental and
     may fail to associate comments properly. Use directly 
     {! Cabshelper.Comments.get} to retrieve comments in a given region.

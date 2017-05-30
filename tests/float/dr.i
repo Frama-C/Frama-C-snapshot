@@ -19,11 +19,9 @@ double d2 = 1.01161128282547 ;
 
 int e1, e2;
 
-int printf(const char *format, ...);
-
 main(){
   e1 = f1 == g1;
   e2 = f2 == g2;
-  printf("%d %d\n", e1, e2);
+  Frama_C_show_each(e1, e2);
   return 0;
 }

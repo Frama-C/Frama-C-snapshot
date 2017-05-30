@@ -34,12 +34,17 @@
   t ∈ {0}
   r ∈ {0}
   ff ∈ {0}
+tests/value/cmp_ptr.i:21:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr.i:21:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&T[5]));
 tests/value/cmp_ptr.i:21:[value] warning: out of bounds write. assert \valid(p);
 tests/value/cmp_ptr.i:21:[value] warning: out of bounds write. assert \valid(q);
+tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
+tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr.i:22:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&y + 2));
+tests/value/cmp_ptr.i:24:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
 tests/value/cmp_ptr.i:24:[value] warning: non-finite float value. assert \is_finite(ff);
 tests/value/cmp_ptr.i:24:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)ff);
+tests/value/cmp_ptr.i:28:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr.i:28:[value] warning: signed overflow.
                  assert -2147483648 ≤ 1 + (int)tmp_0;
                  (tmp_0 from u?& f:& g)
@@ -48,8 +53,10 @@ tests/value/cmp_ptr.i:28:[value] warning: signed overflow. assert 1 + (int)tmp_0
 tests/value/cmp_ptr.i:28:[value] warning: pointer comparison.
                  assert \pointer_comparable((void *)((int)(1 + (int)tmp_0)), (void *)0);
                  (tmp_0 from u?& f:& g)
+tests/value/cmp_ptr.i:30:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr.i:30:[value] warning: pointer comparison.
                  assert \pointer_comparable((void *)((int *)T - 1), (void *)0);
+tests/value/cmp_ptr.i:32:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr.i:32:[value] warning: pointer comparison.
                  assert \pointer_comparable((void (*)())0, (void (*)())(&f + 3));
 [value] Recording results for main

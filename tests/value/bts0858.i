@@ -1,9 +1,9 @@
-typedef long int64_t;
-typedef unsigned long uint64_t;
+typedef long int32_t;
+typedef unsigned long uint32_t;
 
 
 int main() {
-  uint64_t tmp = 18446744073709551615UL ; 
+  uint32_t tmp = 18446744073709551615UL ;
   if (0xffffffffUL == tmp)
     return 1;
   return 0;

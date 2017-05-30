@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,6 @@
 (* --- PO List View                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Gtk_helper
 open Wpo
 
 module Windex = Indexer.Make(Wpo.S)
@@ -61,9 +60,17 @@ let render_prover_result p =
     | Timeout | Stepout -> icn_cut
     | Computing _ -> icn_running
   in fun w ->
-    match Wpo.get_result w p with
-    | { verdict=NoResult } when p = Qed -> icn_na
-    | { verdict=r } -> icon_of_verdict r
+    match Wpo.get_result w p , p with
+    | { verdict=NoResult } , Qed -> icn_na
+    | { verdict=NoResult } , Tactical ->
+        begin
+          match ProofEngine.get w with
+          | `None -> icn_na
+          | `Script -> icn_stock "gtk-media-play"
+          | `Proof -> icn_stock "gtk-edit"
+          | `Saved -> icn_stock "gtk-file"
+        end
+    | { verdict=r } , _ -> icon_of_verdict r
 
 class pane (enabled:GuiConfig.provers) =
   let model = new model in
@@ -103,7 +110,7 @@ class pane (enabled:GuiConfig.provers) =
 
     method private create_prover p =
       begin
-        let title = VCS.name_of_prover p in
+        let title = VCS.title_of_prover p in
         let column = list#add_column_pixbuf ~title [] (render_prover_result p) in
         if p <> VCS.Qed then provers <- (p,column) :: provers
       end
@@ -145,7 +152,7 @@ class pane (enabled:GuiConfig.provers) =
         ignore (list#add_column_text ~title:"Model" [] render) ;
         List.iter
           self#create_prover
-          [ VCS.Qed ; VCS.AltErgo ; VCS.Coq ; VCS.Why3ide ] ;
+          [ VCS.Qed ; VCS.Tactical ; VCS.AltErgo ; VCS.Coq ; VCS.Why3ide ] ;
         ignore (list#add_column_empty) ;
         list#set_selection_mode `MULTIPLE ;
         enabled#connect self#configure ;

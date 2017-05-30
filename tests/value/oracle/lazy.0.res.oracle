@@ -11,10 +11,14 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
+tests/value/lazy.i:11:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:11:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
+tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:14:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
+tests/value/lazy.i:19:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/lazy.i:19:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
 [value] Recording results for main
+tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:

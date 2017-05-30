@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,7 +55,7 @@ class type ['a] selector =
 open Wutil
 
 type align = [`Left | `Right | `Center]
-type style = [`Label | `Descr | `Title]
+type style = [`Label | `Descr | `Code | `Title]
 type color = [ GDraw.color | `NORMAL ]
 
 let xalign = function `Left -> 0.0 | `Right -> 1.0 | `Center -> 0.5
@@ -66,7 +66,7 @@ class label ?(style=`Label) ?(align=`Left) ?width ?text () =
     inherit Wutil.gobj_widget w
     val mutable fg = None
     val mutable bg = None
-      
+
     method set_fg (c : color) =
       match fg , c with
       | None , `NORMAL -> ()
@@ -93,14 +93,17 @@ class label ?(style=`Label) ?(align=`Left) ?width ?text () =
       Wutil.on width w#set_width_chars ;
       match style with
       | `Label -> ()
+      | `Code -> set_monospace w
       | `Title -> set_bold_font w
       | `Descr ->
           w#set_single_line_mode false ;
           w#set_line_wrap true ;
           w#set_justify `LEFT ;
           set_small_font w
-            
+
     method set_text = w#set_text
+    method set_tooltip msg =
+      Wutil.set_tooltip w (if msg = "" then None else Some msg)
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -173,7 +176,7 @@ class button_skel ?align ?(icon=`None) ?tooltip (button:GButton.button_skel) =
       end
     inherit gobj_action button
     method set_label = button#set_label
-    method set_relief e = button#set_relief (if e then `NORMAL else `NONE)
+    method set_border e = button#set_relief (if e then `NORMAL else `NONE)
     method set_icon (i:icon) =
       match i with
       | `None -> button#unset_image ()
@@ -186,8 +189,9 @@ class button_skel ?align ?(icon=`None) ?tooltip (button:GButton.button_skel) =
           in button#set_image image#coerce
   end
 
-class button ?align ?icon ?label ?tooltip () =
-  let button = GButton.button ?label ~show:true () in
+class button ?align ?icon ?label ?(border=true) ?tooltip () =
+  let relief = if border then `NORMAL else `NONE in
+  let button = GButton.button ?label ~relief ~show:true () in
   object(self)
     inherit [unit] signal as s
     inherit! button_skel ?align ?icon ?tooltip (button :> GButton.button_skel) as b
@@ -327,6 +331,8 @@ class spinner ?min ?max ?(step=1) ~value ?tooltip () =
     inherit! gobj_action b
     method! set_enabled e = s#set_enabled e ; b#misc#set_sensitive e
     method! set a = s#set a ; b#set_value (float value)
+    method set_min n = b#adjustment#set_bounds ~lower:(float n) ()
+    method set_max n = b#adjustment#set_bounds ~upper:(float n) ()
     initializer
       begin
         set_tooltip b tooltip ;
@@ -361,16 +367,16 @@ class ['a] menu ~default ?(options=[]) ?render ?items () =
         on render self#set_render ;
         on items self#set_items ;
       end
-        
+
     val mutable printer = render_options options
     val mutable values = Array.of_list (List.map fst options)
 
     method set_options opt =
       printer <- render_options opt ;
       self#set_items (List.map fst opt)
-    
+
     method set_render p = printer <- p
-    
+
     method! set_enabled e =
       select#set_enabled e ; widget#set_enabled e
 
@@ -388,7 +394,7 @@ class ['a] menu ~default ?(options=[]) ?render ?items () =
     method private clicked n =
       if 0 <= n && n < Array.length values then
         select#set values.(n)
-          
+
     method! set x =
       begin
         select#set x ;

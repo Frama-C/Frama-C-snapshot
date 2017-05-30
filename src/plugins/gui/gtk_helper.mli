@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ module Icon: sig
             | Feedback of Property_status.Feedback.t
   (** Generic icons available in every proper install of Frama-C.
       To be able to use [Custom s] you must have called
-      [register ~name:s ~file] orelse you will get an generic icon
+      [register ~name:s ~file], otherwise you will get a generic icon
       placeholder. *)
 
   val register: name:string -> file:string -> unit
@@ -144,7 +144,7 @@ module Configuration: sig
   val config_string : key:string -> default:string -> string #selector -> unit
   val config_values : key:string -> default:'a ->
     values:('a * string) list -> 'a #selector -> unit
-  (** The [values] field is used as a dictionnary of available values. 
+  (** The [values] field is used as a dictionary of available values. 
       They are compared with [Pervasives.(=)]. *)
   
 end

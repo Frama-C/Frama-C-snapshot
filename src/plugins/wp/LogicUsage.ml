@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -156,7 +156,7 @@ let compute_logicname l =
     let base = l.l_var_info.lv_name in
     let over =
       try SMap.find base d.clash
-      with Not_found -> LSet.empty (*TODO: Undected usage -> overloading issue *)
+      with Not_found -> LSet.empty (*TODO: Undetected usage -> overloading issue *)
     in
     match LSet.elements over with
     | [] | [_] -> d.names <- LMap.add l base d.names ; base
@@ -196,7 +196,7 @@ let ip_lemma l =
      l.lem_property,(l.lem_position,l.lem_position))
 
 let lemma_of_global proof = function
-  | Dlemma(name,axiom,labels,types,pred,loc) -> {
+  | Dlemma(name,axiom,labels,types,pred,_,loc) -> {
       lem_name = name ;
       lem_position = fst loc ;
       lem_types = types ;
@@ -219,7 +219,7 @@ let ip_of_axiomatic g =
   | Some ip -> ip
 
 let axiomatic_of_global proof = function
-  | Daxiomatic(name,globals,loc) as g ->
+  | Daxiomatic(name,globals,_,loc) as g ->
       let a = {
         ax_name = name ;
         ax_position = fst loc ;

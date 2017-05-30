@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,6 @@ open Cil_types
 open Ctypes
 open Qed
 open Lang
-module W = Wp_parameters
 
 type category = Lang.lfun Qed.Logic.category
 
@@ -114,9 +113,6 @@ let compare d d' = String.compare d.driverid d'.driverid
 let driver = Context.create "driver"
 let cdriver () = Context.get driver
 
-let chop_backslash name =
-  if name.[0] == '\\' then String.sub name 1 (String.length name - 1) else name
-
 let lookup name kinds =
   try
     let sigs = Hashtbl.find (cdriver ()).hlogic name in
@@ -125,14 +121,14 @@ let lookup name kinds =
       Wp_parameters.feedback ~once:true
         "Use -wp-msg-key 'driver' for debugging drivers" ;
       if kinds=[]
-      then W.error ~current:true "Builtin %s undefined as a constant" name
-      else W.error ~current:true "Builtin %s undefined with signature %a" name
-          pp_kinds kinds ;
-      ACSLDEF
+      then Warning.error "Builtin %s undefined as a constant" name
+      else Warning.error "Builtin %s undefined with signature %a" name
+          pp_kinds kinds
   with Not_found ->
     if name.[0] == '\\' then
-      W.error "Builtin %s%a not defined" name pp_kinds kinds ;
-    ACSLDEF
+      Warning.error "Builtin %s%a not defined" name pp_kinds kinds
+    else
+      ACSLDEF
 
 let register name kinds link =
   let sigs = try Hashtbl.find (cdriver ()).hlogic name with Not_found -> [] in

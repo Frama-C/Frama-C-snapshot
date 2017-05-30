@@ -20,8 +20,7 @@ extern int fputs(char const *, FILE *);
 int main(int argc, char **argv)
 {
   int __retres;
-  FILE *f;
-  f = fopen("/tmp/testfile.out","w");
+  FILE *f = fopen("/tmp/testfile.out","w");
   putc('\\',f);
   fputs("\\",f);
   fclose(f);

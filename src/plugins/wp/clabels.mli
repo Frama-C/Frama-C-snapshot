@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,8 +35,7 @@ type c_label =
   | Pre
   | Post
   | Exit
-  | At of string list * int   (** Label name, stmt-id. *)
-  | CallAt of int        (** stmt-id *)
+  | At of string list * Cil_types.stmt (** Label name, stmt-id. *)
   | LabelParam of string (** Logic label name in user-defined
                              function or predicate *)
 

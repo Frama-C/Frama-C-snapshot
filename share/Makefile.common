@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -74,15 +74,46 @@ endif
 # Flags to be used by ocamlc and ocamlopt when compiling Frama-C
 # itself. For development versions, we add -warn-error for most
 # warnings -warn-error has effect only for warnings that are
-# explicitely set using '-w'.
+# explicitly set using '-w'.
 ifeq ($(DEVELOPMENT),yes)
-# Most warnings are activated by default. The few that are deactivated are
-# impossible to silence with the current Frama-C. Those settings are inherited
+# Most warnings are activated by default. Those settings are inherited
 # in the compilation of external plugins.
+# - 4 (fragile pattern-matching) only make sense when adding a node to a type.
+#   OCaml GPR #1071 will make it usable
+# - 6 (omit label in application) would make code clearer, but requires
+#   refactoring before being enabled.
+# - 9 (missing field in record pattern) is much too heavy. Most of the time
+#   not all fields are relevant in patter-matching Frama-C's AST.
+# - 41 (ambiguous constructor or label name) prevents type-based
+#   disambiguation, a feature which is seen as a good thing by many developers
+# - 44 (open shadows an identifier)
+# - 45 (open shadows a label or constructor): While the use of open directives
+#   is supposed to stay small, it should still be possible to open modules
+#   that share common names, barring some mechanism to open only parts of a
+#   module.
+# - 48 (implicit elimination of optional arguments): makes use of functions
+#   with optional arguments heavier in higher-order context
+
 WARNINGS ?= -w +a-4-6-9-41-44-45-48-50
-WARN_ERROR ?= -warn-error +a-3-32-33-34-35-36-37-38-39-58
+
+# - 3 (deprecated feature) cannot always be avoided for OCaml stdlib when
+#   supporting several OCaml versions
+# - 4 (fragile pattern matching) will be activated when adding a node (see
+#   above), in order to let the developer decide whether a case should be
+#   added on relevant fragile pattern or not: a matching might very well stay
+#   fragile without triggering an error.
+# - 3x (various categories of unused identifiers) it is sometimes useful to
+#   let code compile despite such warnings when in the middle of a development.
+#   On the other hand, a completed feature should not trigger such warnings.
+# - 58 (missing cmx) is triggered by some versions of external libraries.
+#   Situation should probably improve as these libraries get updated, leading
+#   to treat this warning as error.
+WARN_ERROR ?= -warn-error +a-3-4-32-33-34-35-36-37-38-39-58
+
 else
+
 WARNINGS ?= -w -a
+
 endif #DEVELOPMENT
 
 FLAGS	= $(WARNINGS) $(WARN_ERROR) $(OCAML_ANNOT_OPTION) -strict-sequence \

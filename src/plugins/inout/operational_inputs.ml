@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,9 +23,9 @@
 open Cil_types
 open Locations
 
-(* Computation of over-approximed operational inputs:
-   An acurate computation of these inputs needs the computation of
-   under-approximed outputs.
+(* Computation of over-approximated operational inputs:
+   An accurate computation of these inputs needs the computation of
+   under-approximated outputs.
 *)
 
 type t = Inout_type.t = {
@@ -126,9 +126,9 @@ let eval_assigns kf state assigns =
 	  (enumerate_valid_bits_under ~for_writing:true loc_out_under,
 	   enumerate_valid_bits ~for_writing:true loc_out_over,
 	   clean_deps deps)
-      with Invalid_argument _ ->
+      with Db.Properties.Interp.No_conversion ->
         Inout_parameters.warning ~current:true ~once:true
-          "Failed to interpret assigns clause '%a'" Printer.pp_term out.it_content;
+          "failed to interpret assigns clause '%a'" Printer.pp_term out.it_content;
         (Zone.bottom, Zone.top, Zone.top)
     in
     (* Compute all inputs as a zone *)
@@ -145,9 +145,9 @@ let eval_assigns kf state assigns =
 		Zone.join z acc
               in
               List.fold_left aux deps l
-      with Invalid_argument _ ->
+      with Db.Properties.Interp.No_conversion ->
         Inout_parameters.warning ~current:true ~once:true
-          "Failed to interpret inputs in assigns clause '%a'"
+          "failed to interpret inputs in assigns clause '%a'"
           Printer.pp_from asgn;
         Zone.top
     in
@@ -186,6 +186,10 @@ let eval_assigns kf state assigns =
 let compute_using_prototype_state state kf =
   let behaviors = !Db.Value.valid_behaviors kf state in
   let assigns = Ast_info.merge_assigns behaviors in
+  eval_assigns kf state assigns
+
+let compute_using_given_spec_state state funspec kf =
+  let assigns = Ast_info.merge_assigns funspec.spec_behavior in
   eval_assigns kf state assigns
 
 let compute_using_prototype ?stmt kf =
@@ -281,85 +285,100 @@ end) = struct
     {data with over_inputs_d = Zone.join data.over_inputs_d new_inputs}
   ;;
 
+  let add_out state lv deps data =
+    let deps, new_outs, exact =
+      !Db.Value.lval_to_zone_with_deps_state state
+        ~deps:(Some deps) ~for_writing:true lv
+    in
+    store_non_terminating_outputs new_outs;
+    let new_inputs = Zone.diff deps data.under_outputs_d in
+    store_non_terminating_inputs new_inputs;
+    let new_sure_outs =
+      if exact then
+        (* There is only one modified zone. So, this is an exact output.
+           Add it into the under-approximated outputs. *)
+        Zone.link data.under_outputs_d new_outs
+      else data.under_outputs_d
+    in {
+      under_outputs_d = new_sure_outs;
+      over_inputs_d = Zone.join data.over_inputs_d new_inputs;
+      over_outputs_d = Zone.join data.over_outputs_d new_outs }
+
+  let transfer_call s dest f args _loc data =
+    let state = X.stmt_state s in
+    let f_inputs, called =
+      !Db.Value.expr_to_kernel_function_state
+        ~deps:(Some Zone.bottom)
+        state
+        f
+    in
+    let acc_f_arg_inputs =
+      (* add the inputs of [argl] to the inputs of the
+         function expression *)
+      List.fold_right
+        (fun arg inputs ->
+           let arg_inputs = !Db.From.find_deps_no_transitivity_state
+               state arg
+           in Zone.join inputs arg_inputs)
+        args
+        f_inputs
+    in
+    let data =
+      catenate
+        data
+        { over_inputs_d = acc_f_arg_inputs ;
+          under_outputs_d = Zone.bottom;
+          over_outputs_d = Zone.bottom; }
+    in
+    let for_functions =
+      Kernel_function.Hptset.fold
+        (fun kf acc  ->
+           let res = X.at_call s kf in
+           store_non_terminating_subcall data.over_outputs_d res;
+           let for_function = {
+             over_inputs_d = res.over_inputs_if_termination;
+             under_outputs_d = res.under_outputs_if_termination;
+             over_outputs_d = res.over_outputs_if_termination;
+           } in
+           join for_function acc)
+        called
+        bottom
+    in
+    let result = catenate data for_functions in
+    let result =
+      (* Treatment for the possible assignment of the call result *)
+      (match dest with
+       | None -> result
+       | Some lv -> add_out state lv Zone.bottom result)
+    in result
+
   (* Transfer function on instructions. *)
   let transfer_instr stmt (i: instr) (data: t) =
-    let state = X.stmt_state stmt in
-    let add_out lv deps data =
-      let deps, new_outs, exact =
-        !Db.Value.lval_to_zone_with_deps_state state
-          ~deps:(Some deps) ~for_writing:true lv
-      in
-      store_non_terminating_outputs new_outs;
-      let new_inputs = Zone.diff deps data.under_outputs_d in
-      store_non_terminating_inputs new_inputs;
-      let new_sure_outs =
-        if exact then
-          (* There is only one modified zone. So, this is an exact output.
-             Add it into the under-approximed outputs. *)
-          Zone.link data.under_outputs_d new_outs
-        else data.under_outputs_d
-      in {
-        under_outputs_d = new_sure_outs;
-        over_inputs_d = Zone.join data.over_inputs_d new_inputs;
-        over_outputs_d = Zone.join data.over_outputs_d new_outs }
-    in
     match i with
     | Set (lv, exp, _) ->
-             let state = X.stmt_state stmt in
-             let e_inputs = 
-	       !Db.From.find_deps_no_transitivity_state state exp 
-	     in
-             add_out lv e_inputs data
-
-    | Call (lvaloption,funcexp,argl,_) ->
-        let state = X.stmt_state stmt in
-             let funcexp_inputs, called =
-               !Db.Value.expr_to_kernel_function_state
-                 ~deps:(Some Zone.bottom)
-                 state
-                 funcexp
-             in
-             let acc_funcexp_arg_inputs =
-               (* add the inputs of [argl] to the inputs of the
-                  function expression *)
-               List.fold_right
-                 (fun arg inputs ->
-                    let arg_inputs = !Db.From.find_deps_no_transitivity_state
-                      state arg
-                    in Zone.join inputs arg_inputs)
-                 argl
-                 funcexp_inputs
-             in
-             let data =
-               catenate
-                 data
-                 { over_inputs_d = acc_funcexp_arg_inputs ;
-                   under_outputs_d = Zone.bottom;
-                   over_outputs_d = Zone.bottom; }
-             in
-             let for_functions =
-               Kernel_function.Hptset.fold
-                 (fun kf acc  ->
-                    let res = X.at_call stmt kf in
-                    store_non_terminating_subcall data.over_outputs_d res;
-                    let for_function = {
-                      over_inputs_d = res.over_inputs_if_termination;
-                      under_outputs_d = res.under_outputs_if_termination;
-                      over_outputs_d = res.over_outputs_if_termination;
-                    } in
-                    join for_function acc)
-                 called
-                 bottom
-             in
-             let result = catenate data for_functions in
-             let result =
-               (* Treatment for the possible assignment of the call result *)
-               (match lvaloption with
-                | None -> result
-                | Some lv -> add_out lv Zone.bottom result)
-             in result
-
-    | _ -> data
+      let state = X.stmt_state stmt in
+      let e_inputs = 
+        !Db.From.find_deps_no_transitivity_state state exp 
+      in
+      add_out state lv e_inputs data
+    | Local_init (v, AssignInit i, _) ->
+      let state = X.stmt_state stmt in
+      let rec aux lv i acc =
+        match i with
+        | SingleInit e ->
+          let e_inputs = !Db.From.find_deps_no_transitivity_state state e in
+          add_out state lv e_inputs acc
+        | CompoundInit(ct, initl) ->
+          let implicit = true in
+          let doinit o i _ data = aux (Cil.addOffsetLval o lv) i data in
+          Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc
+      in
+      aux (Cil.var v) i data
+    | Call (lvaloption,funcexp,argl,loc) ->
+      transfer_call stmt lvaloption funcexp argl loc data
+    | Local_init(v, ConsInit(f, args, kind), loc) ->
+      Cil.treat_constructor_as_func (transfer_call stmt) v f args kind loc data
+    | Asm _ | Code_annot _ | Skip _ -> data
   ;;
 
   (* transfer_guard: gets the state obtained after evaluating the
@@ -551,7 +570,10 @@ module Callwise = struct
         let table_current_function = CallsiteHash.create 7 in
         call_inout_stack :=
           (current_function, table_current_function) :: !call_inout_stack
-      | `Spec | `Builtin { Value_types.c_from = None } ->
+      | `Spec spec ->
+        let inout =compute_using_given_spec_state state spec current_function in
+        merge_inout inout
+      | `Builtin { Value_types.c_from = None } ->
         let inout = compute_using_prototype_state state current_function in
         merge_inout inout
     end;;
@@ -602,13 +624,15 @@ module Callwise = struct
           let _cur_kf, table = List.hd !call_inout_stack in
           try
             let with_internals = CallsiteHash.find table (kf, Kstmt stmt) in
-            match kf.fundec with
+            let filter =
+              match kf.fundec with
               | Definition (fundec, _) ->
-                  let filter = Zone.filter_base
-                    (fun b -> not (Base.is_formal_or_local b fundec))
-                  in
-                  Inout_type.map filter with_internals
-              | _ -> with_internals
+                (fun b -> not (Base.is_formal_or_local b fundec))
+              | _ ->
+                let vi_kf = Kernel_function.get_vi kf in
+                (fun b -> not (Base.is_formal_of_prototype b vi_kf))
+            in
+            Inout_type.map (Zone.filter_base filter) with_internals
           with Not_found -> Inout_type.bottom
       end) in
     let module Compute = Dataflows.Simple_forward(Fenv)(Computer) in
@@ -644,19 +668,9 @@ module Callwise = struct
 
   (* Register our callbacks inside the value analysis *)
 
-  let add_hooks () =
+  let () =
     Db.Value.Record_Value_Callbacks_New.extend_once record_for_callwise_inout;
     Db.Value.Call_Type_Value_Callbacks.extend_once call_for_callwise_inout;;
-
-  let () = Inout_parameters.ForceCallwiseInout.add_update_hook
-    (fun _bold bnew -> if bnew then add_hooks ())
-
-  let () = Inout_parameters.ForceCallwiseInout.add_set_hook
-    (fun bold bnew ->
-      if bold = false && bnew then
-        Project.clear
-          ~selection:(State_selection.with_dependencies Db.Value.self) ();
-    )
 
 end
 

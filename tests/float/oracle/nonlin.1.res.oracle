@@ -40,8 +40,8 @@ tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is
 [value] computing for function Frama_C_float_interval <- nonlin_f <- main.
         Called from tests/float/nonlin.c:16.
 [value] using specification for function Frama_C_float_interval
-share/libc/__fc_builtin.h:141:[value] function Frama_C_float_interval: precondition got status valid.
-share/libc/__fc_builtin.h:142:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:149:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
 [value] computing for function Frama_C_float_interval <- nonlin_f <- main.
         Called from tests/float/nonlin.c:17.
@@ -139,7 +139,7 @@ tests/float/nonlin.c:66:[value:nonlin] non-linear 's * ((double)1 - s)', lv 's'
 [value] computing for function Frama_C_interval <- other <- main.
         Called from tests/float/nonlin.c:69.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/float/nonlin.c:70:[value:nonlin] non-linear '(1 / x) * x', lv 'x'
 tests/float/nonlin.c:70:[value] warning: division by zero. assert x ≢ 0;

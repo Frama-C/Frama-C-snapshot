@@ -47,7 +47,7 @@ tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 
  {n4}: VarDecl : i
  {n5}: VarDecl : a
  {n6}: VarDecl : tmp
- {n7}: a = 0;
+ {n7}: int a = 0;
    -[-c-]-> 1
    -[a--]-> 5
  {n8}: i = 0;
@@ -73,13 +73,13 @@ tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 
    -[-c-]-> 9
    -[-c-]-> 10
    -[-c-]-> 19
- {n12}: Call31-InCtrl : tmp = call(i,c);
+ {n12}: Call30-InCtrl : tmp = call(i,c);
    -[-c-]-> 1
    -[-c-]-> 9
    -[-c-]-> 10
    -[-c-]-> 11
    -[-c-]-> 19
- {n13}: Call31-In1 : tmp = call(i,c);
+ {n13}: Call30-In1 : tmp = call(i,c);
    -[-c-]-> 1
    -[--d]-> 4
    -[--d]-> 8
@@ -89,7 +89,7 @@ tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 
    -[-c-]-> 12
    -[--d]-> 18
    -[-c-]-> 19
- {n14}: Call31-In2 : tmp = call(i,c);
+ {n14}: Call30-In2 : tmp = call(i,c);
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
@@ -98,7 +98,7 @@ tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 
    -[-c-]-> 11
    -[-c-]-> 12
    -[-c-]-> 19
- {n15}: Call31-Out(G) : tmp = call(i,c);
+ {n15}: Call30-Out(G) : tmp = call(i,c);
    -[-c-]-> 1
    -[-c-]-> 9
    -[-c-]-> 10
@@ -108,7 +108,7 @@ tests/pdg/simple_call.c:52:[value] warning: signed overflow. assert a + tmp ≤ 
    -[--d](G)-> 15
    -[-c-]-> 19
    -[--d]-> 22
- {n16}: Call31-OutRet : tmp = call(i,c);
+ {n16}: Call30-OutRet : tmp = call(i,c);
    -[-c-]-> 1
    -[a--]-> 6
    -[-c-]-> 9

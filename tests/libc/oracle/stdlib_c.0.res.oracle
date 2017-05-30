@@ -1,0 +1,59 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/stdlib_c.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_random_counter ∈ {0}
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
+  Frama_C_entropy_source ∈ [--..--]
+tests/libc/stdlib_c.c:14:[value] allocating variable __calloc_main_l14
+tests/libc/stdlib_c.c:16:[value] assertion got status valid.
+[value] computing for function Frama_C_size_t_interval <- main.
+        Called from tests/libc/stdlib_c.c:20.
+[value] using specification for function Frama_C_size_t_interval
+share/libc/__fc_builtin.h:142:[value] function Frama_C_size_t_interval: precondition got status valid.
+[value] Done for function Frama_C_size_t_interval
+[value] computing for function Frama_C_size_t_interval <- main.
+        Called from tests/libc/stdlib_c.c:20.
+[value] Done for function Frama_C_size_t_interval
+tests/libc/stdlib_c.c:21:[value] warning: calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+tests/libc/stdlib_c.c:21:[value] allocating variable __calloc_main_l21
+tests/libc/stdlib_c.c:23:[value] assertion got status valid.
+tests/libc/stdlib_c.c:27:[value] warning: calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+tests/libc/stdlib_c.c:28:[value] assertion got status valid.
+tests/libc/stdlib_c.c:32:[value] allocating variable __calloc_main_l32
+tests/libc/stdlib_c.c:32:[value:malloc] marking variable `__calloc_main_l32' as weak
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31) to fit 0..63
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/63) to fit 0..63
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/63) to fit 0..63
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/63) to fit 0..63
+tests/libc/stdlib_c.c:33:[value] warning: out of bounds write. assert \valid(s + (unsigned int)(i - 1));
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/63) to fit 0..95
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/95) to fit 0..95/127
+tests/libc/stdlib_c.c:31:[value] entering loop for the first time
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/127) to fit 0..95/159
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/159) to fit 0..95/191
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/191) to fit 0..95/223
+tests/libc/stdlib_c.c:32:[value] warning: calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/223) to fit 0..95/34359738367
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32'
+               (0..31/34359738367) to fit 0..95/34359738367
+tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32'
+               (0..31/34359738367) to fit 0..95/34359738367
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  p ∈ {{ NULL ; &__calloc_main_l14 }}
+  nmemb ∈ [1..4294967295]
+  q ∈ {{ NULL ; &__calloc_main_l21[0] }}
+  r ∈ {0}
+  __retres ∈ {0}
+  __calloc_w_main_l32[0..1073741823] ∈ {0; 42}

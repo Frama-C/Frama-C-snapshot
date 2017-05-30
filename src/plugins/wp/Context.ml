@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -74,8 +74,15 @@ let free env f e = bind_with env None f e
 let push env x = let old = env.current in env.current <- Some x ; old
 let pop env old = env.current <- old
 
-let once f =
-  let once = ref (Some f) in
-  (fun () -> match !once with Some f -> once := None ; f () | None -> ())
+let demon = ref []
+
+let register f = demon := !demon @ [f]
+
+let configure =
+  let closure,state =
+    State_builder.apply_once "Wp.Context.configure" [ Ast.self ]
+      (fun () -> List.iter (fun f -> f ()) !demon)
+  in
+  ignore state ; closure
 
 (* -------------------------------------------------------------------------- *)

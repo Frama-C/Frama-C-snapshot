@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,14 +55,14 @@ let reparse (host_window: Design.main_window_extension_points) =
   begin match old_helt, succeeded with
     | None, _ -> (** no history available before reparsing *)
         host_window#reset ()
-    | _, None -> (** the user stopped or an error occured  *)
+    | _, None -> (** the user stopped or an error occurred  *)
         host_window#reset ()
     | Some old_helt, Some () ->
         let new_helt = History.translate_history_elt old_helt in
         Extlib.may History.push new_helt;
         host_window#reset ();
         (** The buffer is not ready yet, modification of its vadjustement
-            is unrealiable *)
+            is unreliable *)
         let set () =
           let adj = host_window#source_viewer_scroll#vadjustment in
           adj#set_value (old_scroll *. (adj#upper-.adj#lower) +. adj#lower)

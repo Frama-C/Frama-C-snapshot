@@ -5,8 +5,10 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
+tests/value/va_list2.c:7:[kernel] warning: Neither code nor specification for function __builtin_va_start, generating default assigns from the prototype
 tests/value/va_list2.c:8:[value] entering loop for the first time
 tests/value/va_list2.c:8:[value] warning: out of bounds read. assert \valid_read(fmt);
+tests/value/va_list2.c:11:[kernel] warning: Neither code nor specification for function __builtin_va_arg, generating default assigns from the prototype
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])
 tests/value/va_list2.c:16:[value] warning: non-finite float value. assert \is_finite(tmp_0);
                                          (tmp_0 from vararg)
@@ -14,12 +16,11 @@ tests/value/va_list2.c:16:[value] warning: non-finite float value. assert \is_fi
 tests/value/va_list2.c:9:[value] warning: out of bounds read. assert \valid_read(fmt);
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])
 [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
+tests/value/va_list2.c:24:[kernel] warning: Neither code nor specification for function __builtin_va_end, generating default assigns from the prototype
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
-tests/value/va_list2.c:7:[kernel] warning: Neither code nor specification for function __builtin_va_start, generating default assigns from the prototype
-tests/value/va_list2.c:11:[kernel] warning: Neither code nor specification for function __builtin_va_arg, generating default assigns from the prototype
-tests/value/va_list2.c:24:[kernel] warning: Neither code nor specification for function __builtin_va_end, generating default assigns from the prototype
 [value:final-states] Values at end of function main:
   fmt ∈ {{ &S_fmt{[0], [1]} }}
 [from] Computing for function main

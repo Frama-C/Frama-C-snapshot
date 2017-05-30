@@ -1,5 +1,5 @@
 /*run.config*
-  OPT: @VALUECONFIG@ -inout -input-with-formals  -inout-with-formals -inout-callwise -main main_main
+  OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -input-with-formals  -inout-with-formals -main main_main
 */
 
 typedef unsigned char   BYTE;

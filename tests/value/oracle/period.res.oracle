@@ -76,8 +76,6 @@
         Ft ∈ {2}
         Gt ∈ {12}
         Ht ∈ {1}
-        p ∈ UNINITIALIZED
-        vg ∈ UNINITIALIZED
         =END OF DUMP==
 tests/value/period.c:51:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic {tests/value/period.c:51}

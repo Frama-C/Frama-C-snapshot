@@ -70,21 +70,20 @@ void main_post_func(void)
 void main(void)
 {
   int aorai_Loop_Init_11;
-  int i;
   main_pre_func();
-  i = 0;
+  int i = 0;
   /*@ ghost aorai_Loop_Init_11 = 1; */
   aorai_loop_11:
-    /*@ loop invariant Aorai: 1 ≡ S;
-        loop assigns i, aorai_Loop_Init_11, aorai_CurOpStatus,
-                     aorai_CurOperation, S;
-        loop assigns aorai_Loop_Init_11 \from \nothing;
-    */
-    while (1) {
-      if (! (i < 10)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_11 = 0; */
-      i ++;
-    }
+  /*@ loop invariant Aorai: 1 ≡ S;
+      loop assigns i, aorai_Loop_Init_11, aorai_CurOpStatus,
+                   aorai_CurOperation, S;
+      loop assigns aorai_Loop_Init_11 \from \nothing;
+  */
+  while (1) {
+    if (! (i < 10)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_11 = 0; */
+    i ++;
+  }
   while_0_break: ;
   main_post_func();
   return;

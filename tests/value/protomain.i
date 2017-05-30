@@ -1,4 +1,4 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -inout-callwise 
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@
 */
 int main(int c, char **);

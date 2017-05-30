@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,7 @@ type prover =
   | AltErgo       (* Alt-Ergo *)
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)
+  | Tactical      (* Interactive Prover *)
 
 type mode =
   | BatchMode (* Only check scripts *)
@@ -46,6 +47,8 @@ let prover_of_name = function
   | "qed" | "Qed" -> Some Qed
   | "alt-ergo" | "altgr-ergo" -> Some AltErgo
   | "coq" | "coqide" -> Some Coq
+  | "script" -> Some Tactical
+  | "tip" -> Some Tactical
   | "why3ide" -> Some Why3ide
   | s ->
       match Extlib.string_del_prefix "why3:" s with
@@ -55,13 +58,22 @@ let prover_of_name = function
       | None -> Some (Why3 s)
 
 let name_of_prover = function
+  | Why3ide -> "why3ide"
+  | Why3 s -> "why3:" ^ s
+  | AltErgo -> "alt-ergo"
+  | Coq -> "coq"
+  | Qed -> "qed"
+  | Tactical -> "script"
+
+let title_of_prover = function
   | Why3ide -> "Why3"
   | Why3 s -> s
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
+  | Tactical -> "Script"
 
-let name_of_mode = function
+let title_of_mode = function
   | FixMode -> "Fix"
   | EditMode -> "Edit"
   | BatchMode -> "Batch"
@@ -86,6 +98,7 @@ let filename_for_prover = function
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
+  | Tactical -> "Tactical"
 
 let language_of_name = function
   | "" | "none" -> None
@@ -99,7 +112,7 @@ let language_of_prover = function
   | Why3ide -> L_why3
   | Coq -> L_coq
   | AltErgo -> L_altergo
-  | Qed -> L_why3
+  | Qed | Tactical -> L_why3
 
 let language_of_prover_name = function
   | "" | "none" -> None
@@ -109,8 +122,12 @@ let language_of_prover_name = function
 
 let mode_of_prover_name = function
   | "coqedit" -> EditMode
-  | "coqide" | "altgr-ergo" -> FixMode
+  | "coqide" | "altgr-ergo" | "tactical" -> FixMode
   | _ -> BatchMode
+
+let is_auto = function
+  | Qed | AltErgo | Why3 _ -> true
+  | Tactical | Why3ide | Coq -> false
 
 let cmp_prover p q =
   match p,q with
@@ -120,6 +137,9 @@ let cmp_prover p q =
   | AltErgo , AltErgo -> 0
   | AltErgo , _ -> (-1)
   | _ , AltErgo -> 1
+  | Tactical , Tactical -> 0
+  | Tactical , _ -> (-1)
+  | _ , Tactical -> 1
   | Coq , Coq -> 0
   | Coq , _ -> (-1)
   | _ , Coq -> 1
@@ -138,19 +158,55 @@ let pp_prover fmt = function
       else
         Format.pp_print_string fmt smt
   | Qed -> Format.fprintf fmt "Qed"
+  | Tactical -> Format.pp_print_string fmt "Tactical"
 
 let pp_language fmt = function
   | L_altergo -> Format.pp_print_string fmt "Alt-Ergo"
   | L_coq -> Format.pp_print_string fmt "Coq"
   | L_why3 -> Format.pp_print_string fmt "Why3"
 
-let pp_mode fmt m = Format.pp_print_string fmt (name_of_mode m)
+let pp_mode fmt m = Format.pp_print_string fmt (title_of_mode m)
 
-module Pmap = Map.Make
-    (struct
-      type t = prover
-      let compare = cmp_prover
-    end)
+module P = struct type t = prover let compare = cmp_prover end
+module Pset = Set.Make(P)
+module Pmap = Map.Make(P)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Config                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+type config = {
+  valid : bool ;
+  timeout : int option ;
+  stepout : int option ;
+  depth : int option ;
+}
+
+let param f = let v = f() in if v>0 then Some v else None
+
+let current () = {
+  valid = false ;
+  timeout = param Wp_parameters.Timeout.get ;
+  stepout = param Wp_parameters.Steps.get ;
+  depth = param Wp_parameters.Depth.get ;
+}
+
+let default = { valid = false ; timeout = None ; stepout = None ; depth = None }
+
+let timer s = 5 + max 0 (int_of_float (s +. 0.5))
+let steper s = max 100 (s + s / 2)
+
+let get_timeout = function
+  | { timeout = None } -> Wp_parameters.Timeout.get ()
+  | { timeout = Some t } -> t
+
+let get_stepout = function
+  | { stepout = None } -> Wp_parameters.Steps.get ()
+  | { stepout = Some t } -> t
+
+let get_depth = function
+  | { depth = None } -> Wp_parameters.Depth.get ()
+  | { depth = Some t } -> t
 
 (* -------------------------------------------------------------------------- *)
 (* --- Results                                                            --- *)
@@ -172,6 +228,7 @@ type result = {
   solver_time : float ;
   prover_time : float ;
   prover_steps : int ;
+  prover_depth : int ;
   prover_errpos : Lexing.position option ;
   prover_errmsg : string ;
 }
@@ -180,14 +237,34 @@ let is_verdict r = match r.verdict with
   | Valid | Checked | Unknown | Invalid | Timeout | Stepout | Failed -> true
   | NoResult | Computing _ -> false
 
-let result ?(solver=0.0) ?(time=0.0) ?(steps=0) verdict = {
-  verdict = verdict ;
-  solver_time = solver ;
-  prover_time = time ;
-  prover_steps = steps ;
-  prover_errpos = None ;
-  prover_errmsg = "" ;
+let is_valid r = r.verdict = Valid
+
+let configure r = {
+  valid = (r.verdict = Valid) ;
+  timeout = if r.prover_time > 0.0 then Some (timer r.prover_time) else None ;
+  stepout = if r.prover_steps > 0 then Some (steper r.prover_steps) else None ;
+  depth = if r.prover_depth > 0 then Some r.prover_depth else None ;
 }
+
+let fit result option =
+  result = 0 ||
+  let vopt = option () in vopt = 0 || result <= vopt
+
+let autofit r =
+  fit (timer r.prover_time) Wp_parameters.Timeout.get &&
+  fit (steper r.prover_steps) Wp_parameters.Steps.get &&
+  fit r.prover_depth Wp_parameters.Depth.get
+
+let result ?(solver=0.0) ?(time=0.0) ?(steps=0) ?(depth=0) verdict =
+  {
+    verdict ;
+    solver_time = solver ;
+    prover_time = time ;
+    prover_steps = steps ;
+    prover_depth = depth ;
+    prover_errpos = None ;
+    prover_errmsg = "" ;
+  }
 
 let no_result = result NoResult
 let valid = result Valid
@@ -202,6 +279,7 @@ let failed ?pos msg = {
   solver_time = 0.0 ;
   prover_time = 0.0 ;
   prover_steps = 0 ;
+  prover_depth = 0 ;
   prover_errpos = pos ;
   prover_errmsg = msg ;
 }

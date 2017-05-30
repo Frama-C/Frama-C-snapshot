@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,7 +45,7 @@ let make_fun_float name f =
 let make_pred_float name f =
   extern_f ~library ~result:Logic.Prop ~params "%s_%a" name Ctypes.pp_float f
 
-let f_of_int =
+let f_int =
   extern_f ~library:"qed" ~result "real_of_int"
 
 let f_sqrt =
@@ -91,7 +91,7 @@ type model = Real | Float
 let model = Context.create ~default:Real "Cfloat.model"
 
 (* -------------------------------------------------------------------------- *)
-(* --- Litterals                                                          --- *)
+(* --- Literals                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
 let code_lit f =
@@ -119,22 +119,27 @@ let acsl_lit =
       | Real ->
           e_mthfloat r_nearest
 
+let round_pos sign flt r =
+  let open Floating_point in
+  let p = match flt with
+    | Float32 -> single_precision_of_string r
+    | Float64 -> double_precision_of_string r
+  in e_hexfloat (if sign then p.f_nearest else -. p.f_nearest)
+
 let round_lit flt = function
-  | "0" | ".0" | "0." | "0.0" -> F.e_zero_real
+  | "" | "0" | ".0" | "0." | "0.0" -> F.e_zero_real
   | r ->
-      let open Floating_point in
-      let p = match flt with
-        | Float32 -> single_precision_of_string r
-        | Float64 -> double_precision_of_string r
-      in e_hexfloat p.f_nearest
+      if r.[0] = '-'
+      then round_pos false flt (String.sub r 1 (String.length r - 1))
+      else round_pos true flt r
 
 (* -------------------------------------------------------------------------- *)
 (* --- Maths                                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
-let is_lt0 z b = eval_lt  b z
-let is_le0 z b = eval_leq b z
-let is_eq0 z b = eval_eq  b z
+let is_lt0 z b = QED.eval_lt  b z
+let is_le0 z b = QED.eval_leq b z
+let is_eq0 z b = QED.eval_eq  b z
 
 let builtin_positive_eq lfun z a b =
   let open Qed.Logic in
@@ -188,18 +193,32 @@ let builtin_sqrt = function
       end
   | _ -> raise Not_found
 
+let builtin_of_int = function
+  | [e] ->
+      begin
+        match F.repr e with
+        | Qed.Logic.Kint k ->
+            let m = Z.to_string k in
+            let r = R.of_string (m ^ ".") in
+            F.e_real r
+        | _ -> raise Not_found
+      end
+  | _ -> raise Not_found
+
+
 (* -------------------------------------------------------------------------- *)
 (* --- Operators                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let flt_rnd  = Ctypes.fmemo (make_fun_float "to")
-let flt_add  = Ctypes.fmemo (make_fun_float "add")
-let flt_mul  = Ctypes.fmemo (make_fun_float "mul")
-let flt_div  = Ctypes.fmemo (make_fun_float "div")
-let flt_sqrt = Ctypes.fmemo (make_fun_float "sqrt")
+let flt_rnd  = Ctypes.f_memo (make_fun_float "to")
+let flt_add  = Ctypes.f_memo (make_fun_float "add")
+let flt_mul  = Ctypes.f_memo (make_fun_float "mul")
+let flt_div  = Ctypes.f_memo (make_fun_float "div")
+let flt_sqrt = Ctypes.f_memo (make_fun_float "sqrt")
 
-let () = let open LogicBuiltins in
+let () =
   begin
+    let open LogicBuiltins in
     add_builtin "\\model" [F Float32] f_model ;
     add_builtin "\\model" [F Float64] f_model ;
     add_builtin "\\delta" [F Float32] f_delta ;
@@ -212,12 +231,20 @@ let () = let open LogicBuiltins in
 (* --- Precision                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-module OP = FCMap.Make(Lang.Fun)
+module OP = Model.Static
+    (struct
+      type key = Lang.lfun
+      type data = (term list -> term)
+      let name = "Wp.Cfloat.OP"
+      let compare = Lang.Fun.compare
+      let pretty = Lang.Fun.pretty
+    end)
 
-let models : (term list -> term) OP.t ref = ref OP.empty
-let add_model f op = models := OP.add f op !models
-let add_fmodel fop op =
-  models := OP.add (fop Float32) op (OP.add (fop Float64) op !models)
+let define_fmodel_of fop op =
+  begin
+    OP.define (fop Float32) op ;
+    OP.define (fop Float64) op ;
+  end
 
 let builtin_model = function
   | [e] ->
@@ -227,7 +254,7 @@ let builtin_model = function
         | Fun(f,_) when f = f_delta -> e_zero_real
         | Fun(f,_) when f = f_epsilon -> e_zero_real
         | Fun(op,xs) ->
-            let phi = OP.find op !models in
+            let phi = OP.find op in
             (* find phi before computing arguments *)
             phi (List.map (fun e -> e_fun f_model [e]) xs)
         | Kreal _ -> e
@@ -261,15 +288,6 @@ let builtin_error = function
       end
   | _ -> raise Not_found
 
-let () =
-  begin
-    add_fmodel flt_rnd (function  [x] -> x | _ -> raise Not_found) ;
-    add_fmodel flt_add e_sum ;  (* only 2 params in flt_add *)
-    add_fmodel flt_mul e_prod ; (* only 2 params in flt_mul *)
-    add_fmodel flt_div (function [x;y] -> e_div x y | _ -> raise Not_found) ;
-    add_fmodel flt_sqrt (e_fun f_sqrt) (* only 1 param *) ;
-  end
-
 (* -------------------------------------------------------------------------- *)
 (* --- Conversion Symbols                                                 --- *)
 (* -------------------------------------------------------------------------- *)
@@ -280,28 +298,16 @@ let convert =
     | Real -> a
     | Float -> e_fun (flt_rnd f) [a]
 
-let real_of_int a = e_fun f_of_int [a]
+let real_of_int a = e_fun f_int [a]
 let float_of_int f a = convert f (real_of_int a)
 
 let range =
-  let is_float = Ctypes.fmemo (make_pred_float "is") in
+  let is_float = Ctypes.f_memo (make_pred_float "is") in
   fun f a -> p_call (is_float f) [a]
 
 (* -------------------------------------------------------------------------- *)
 (* --- Float Arithmetics                                                  --- *)
 (* -------------------------------------------------------------------------- *)
-
-let runop op f x =
-  match Context.get model with
-  | Real -> op x
-  | Float -> e_fun f [x]
-
-let rbinop op f x y =
-  match Context.get model with
-  | Real -> op x y
-  | Float -> e_fun f [x;y]
-
-let funop op f x = convert f (op x)
 
 let fbinop rop fop f x y =
   match Context.get model with
@@ -316,44 +322,35 @@ let fopp _ = e_opp (* sign change is exact in floats *)
 let fsub f x y = fadd f x (e_opp y)
 
 (* -------------------------------------------------------------------------- *)
-(* --- Float Simplifiers                                                  --- *)
+(* --- Registry                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let compute_f_of_int = function
-  | [e] ->
-      begin
-        match F.repr e with
-        | Qed.Logic.Kint k ->
-            let m = Z.to_string k in
-            let r = R.of_string (m ^ ".") in
-            F.e_real r
-        | _ -> raise Not_found
-      end
-  | _ -> raise Not_found
+let () = Context.register
+    begin fun () ->
+      F.set_builtin     f_iabs (builtin_abs f_iabs e_zero) ;
+      F.set_builtin     f_rabs (builtin_abs f_rabs e_zero_real) ;
+      F.set_builtin     f_sqrt  builtin_sqrt ;
+      F.set_builtin     f_int   builtin_of_int ;
+      F.set_builtin_eq  f_iabs (builtin_positive_eq  f_iabs e_zero) ;
+      F.set_builtin_eq  f_rabs (builtin_positive_eq  f_rabs e_zero_real) ;
+      F.set_builtin_eq  f_sqrt (builtin_positive_eq  f_sqrt e_zero_real) ;
+      F.set_builtin_leq f_iabs (builtin_positive_leq f_iabs e_zero) ;
+      F.set_builtin_leq f_rabs (builtin_positive_leq f_rabs e_zero_real) ;
+      F.set_builtin_leq f_sqrt (builtin_positive_leq f_sqrt e_zero_real) ;
 
-  (* -------------------------------------------------------------------------- *)
+      F.set_builtin f_model builtin_model ;
+      F.set_builtin f_delta builtin_error ;
+      F.set_builtin f_epsilon builtin_error ;
+      F.set_builtin (flt_rnd Float32) (builtin_round Float32) ;
+      F.set_builtin (flt_rnd Float64) (builtin_round Float64) ;
 
-let once_for_each_ast = Model.run_once_for_each_ast ~name:"float" (fun () ->
-    F.set_builtin     f_iabs (builtin_abs f_iabs e_zero) ;
-    F.set_builtin     f_rabs (builtin_abs f_rabs e_zero_real) ;
-    F.set_builtin     f_sqrt  builtin_sqrt ;
-    F.set_builtin_eq  f_iabs (builtin_positive_eq  f_iabs e_zero) ;
-    F.set_builtin_eq  f_rabs (builtin_positive_eq  f_rabs e_zero_real) ;
-    F.set_builtin_eq  f_sqrt (builtin_positive_eq  f_sqrt e_zero_real) ;
-    F.set_builtin_leq f_iabs (builtin_positive_leq f_iabs e_zero) ;
-    F.set_builtin_leq f_rabs (builtin_positive_leq f_rabs e_zero_real) ;
-    F.set_builtin_leq f_sqrt (builtin_positive_leq f_sqrt e_zero_real) ;
+      define_fmodel_of flt_rnd (function  [x] -> x | _ -> raise Not_found) ;
+      define_fmodel_of flt_add e_sum ;  (* only 2 params in flt_add *)
+      define_fmodel_of flt_mul e_prod ; (* only 2 params in flt_mul *)
+      define_fmodel_of flt_div (function [x;y] -> e_div x y | _ -> raise Not_found) ;
+      define_fmodel_of flt_sqrt (e_fun f_sqrt) (* only 1 param *) ;
+    end
 
-    F.set_builtin f_model builtin_model ;
-    F.set_builtin f_delta builtin_error ;
-    F.set_builtin f_epsilon builtin_error ;
-    F.set_builtin (flt_rnd Float32) (builtin_round Float32) ;
-    F.set_builtin (flt_rnd Float64) (builtin_round Float64) ;
+let configure m = Context.set model m
 
-    F.set_builtin f_of_int compute_f_of_int ;
-
-  )
-
-let configure m =
-  Context.set model m;
-  once_for_each_ast ()
+(* -------------------------------------------------------------------------- *)

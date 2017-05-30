@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,27 +80,6 @@ module DoPointerCall =
        let help = "when on, annotate functions calls through pointers"
      end)
 
-(* if DoAll is true: all other options become true, except for 
-   UnsignedOverflow, UnsignedDownCast and "PreConds"
-   <=> only "true" runtime error and 
-       some implementation-defined behaviors assertions are generated *)
-module DoAll =
-  True
-    (struct
-       let option_name = "-rte-all"
-       let help = "when on (by default), generate everything (supersedes all -rte-no-*)"
-     end)
-
-let () =
-  DoAll.add_set_hook
-    (fun _ b ->
-      DoMemAccess.set b;
-      DoDivMod.set b;
-      DoFloatToInt.set b;
-      DoPointerCall.set b;
-      Kernel.SignedOverflow.set b;
-      Kernel.SignedDowncast.set b)
-
 (* uses results of basic constant propagation in order to check
    validity / invalidity of generated assertions, emitting a status if possible
  *)  
@@ -116,7 +95,7 @@ they trivially hold"
 
 (* For functions having an ACSL contract,
    generates a corresponding statement contract before each function's call
-   statement (provided the call is not performed thorugh a function pointer).
+   statement (provided the call is not performed through a function pointer).
 *)
 module DoCalledPrecond =
   False

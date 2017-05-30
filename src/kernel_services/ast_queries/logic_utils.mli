@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -222,6 +222,14 @@ val is_trivially_true: predicate -> bool
 (** [true] if the predicate is Pfalse
     @since Nitrogen-20111001 *)
 val is_trivially_false: predicate -> bool
+
+(** {2 Global annotations} *)
+
+(** add an attribute to a global annotation
+    @since Phosphorus-20170501-beta1
+*)
+val add_attribute_glob_annot:
+  attribute -> global_annotation -> global_annotation
 
 (** {2 Structural equality between annotations} *)
 

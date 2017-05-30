@@ -38,11 +38,10 @@ tests/pdg/variadic.c:23:[kernel] warning: Neither code nor specification for fun
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function lib_f
-[pdg] warning: not implemented by pdg yet: variadic function
-[pdg] Top for function lib_f
-[pdg] computing for function f1
 [from] Computing for function lib_f
 [from] Done for function lib_f
+[pdg] done for function lib_f
+[pdg] computing for function f1
 [pdg] done for function f1
 [pdg] computing for function f2
 [pdg] done for function f2
@@ -50,220 +49,296 @@ tests/pdg/variadic.c:23:[kernel] warning: Neither code nor specification for fun
 [pdg] done for function f3
 [pdg] computing for function main
 [from] Computing for function f1
-tests/pdg/variadic.c:23:[from] warning: variadic call detected. Using only 1 argument(s).
 [from] Done for function f1
 [from] Computing for function f2
-tests/pdg/variadic.c:27:[from] warning: variadic call detected. Using only 1 argument(s).
 [from] Done for function f2
 [from] Computing for function f3
-tests/pdg/variadic.c:31:[from] warning: variadic call detected. Using only 1 argument(s).
 [from] Done for function f3
 [pdg] done for function main
 [pdg] ====== PDG GRAPH COMPUTED ======
 [pdg] PDG for lib_f
- Top PDG
-[pdg] PDG for f1
  {n1}: InCtrl
- {n2}: VarDecl : a
+ {n2}: VarDecl : n
    -[a--]-> 3
  {n3}: In1
    -[a--]-> 2
- {n4}: VarDecl : tmp
- {n5}: Call17-InCtrl : tmp = lib_f(1,a);
-   -[-c-]-> 1
- {n6}: Call17-In1 : tmp = lib_f(1,a);
-   -[-c-]-> 1
-   -[-c-]-> 5
- {n7}: Call17-In2 : tmp = lib_f(1,a);
-   -[-c-]-> 1
-   -[--d]-> 2
-   -[--d]-> 3
- {n8}: Call17-OutRet : tmp = lib_f(1,a);
-   -[-c-]-> 1
+ {n4}: VarDecl : __va_params
+   -[a--]-> 5
+ {n5}: In2
    -[a--]-> 4
-   -[-c-]-> 5
-   -[--d]-> 6
- {n9}: return tmp;
-   -[-c-]-> 1
-   -[--d]-> 4
+ {n6}: OutRet
+   -[--d]-> 3
+[pdg] PDG for f1
+ {n7}: InCtrl
+ {n8}: VarDecl : a
+   -[a--]-> 9
+ {n9}: In1
+   -[a--]-> 8
+ {n10}: VarDecl : tmp
+ {n11}: VarDecl : __va_arg0
+ {n12}: VarDecl : __va_args
+ {n13}: block
+   -[-c-]-> 7
+ {n14}: int __va_arg0 = a;
+   -[-c-]-> 7
    -[--d]-> 8
- {n10}: OutRet
    -[--d]-> 9
-[pdg] PDG for f2
- {n11}: InCtrl
- {n12}: VarDecl : a
-   -[a--]-> 13
- {n13}: In1
+   -[a--]-> 11
+   -[-c-]-> 13
+ {n15}: void *__va_args[1] = {& __va_arg0};
+   -[-c-]-> 7
+   -[--d]-> 11
    -[a--]-> 12
- {n14}: VarDecl : b
-   -[a--]-> 15
- {n15}: In2
-   -[a--]-> 14
- {n16}: VarDecl : tmp
- {n17}: Call20-InCtrl : tmp = lib_f(2,a,b);
-   -[-c-]-> 11
- {n18}: Call20-In1 : tmp = lib_f(2,a,b);
-   -[-c-]-> 11
-   -[-c-]-> 17
- {n19}: Call20-In2 : tmp = lib_f(2,a,b);
-   -[-c-]-> 11
+   -[-c-]-> 13
+ {n16}: Call44-InCtrl : tmp = lib_f(1,(void * const *)(__va_args));
+   -[-c-]-> 7
+   -[-c-]-> 13
+ {n17}: Call44-In1 : tmp = lib_f(1,(void * const *)(__va_args));
+   -[-c-]-> 7
+   -[-c-]-> 13
+   -[-c-]-> 16
+ {n18}: Call44-In2 : tmp = lib_f(1,(void * const *)(__va_args));
+   -[-c-]-> 7
    -[--d]-> 12
-   -[--d]-> 13
- {n20}: Call20-In3 : tmp = lib_f(2,a,b);
-   -[-c-]-> 11
-   -[--d]-> 14
-   -[--d]-> 15
- {n21}: Call20-OutRet : tmp = lib_f(2,a,b);
-   -[-c-]-> 11
-   -[a--]-> 16
-   -[-c-]-> 17
-   -[--d]-> 18
- {n22}: return tmp;
-   -[-c-]-> 11
-   -[--d]-> 16
-   -[--d]-> 21
- {n23}: OutRet
-   -[--d]-> 22
-[pdg] PDG for f3
- {n24}: InCtrl
- {n25}: VarDecl : a
+   -[-c-]-> 13
+   -[-c-]-> 16
+ {n19}: Call44-OutRet : tmp = lib_f(1,(void * const *)(__va_args));
+   -[-c-]-> 7
+   -[a--]-> 10
+   -[-c-]-> 13
+   -[-c-]-> 16
+   -[--d]-> 17
+ {n20}: return tmp;
+   -[-c-]-> 7
+   -[--d]-> 10
+   -[--d]-> 19
+ {n21}: OutRet
+   -[--d]-> 20
+[pdg] PDG for f2
+ {n22}: InCtrl
+ {n23}: VarDecl : a
+   -[a--]-> 24
+ {n24}: In1
+   -[a--]-> 23
+ {n25}: VarDecl : b
    -[a--]-> 26
- {n26}: In1
+ {n26}: In2
    -[a--]-> 25
- {n27}: VarDecl : b
+ {n27}: VarDecl : tmp
+ {n28}: VarDecl : __va_arg0
+ {n29}: VarDecl : __va_arg1
+ {n30}: VarDecl : __va_args
+ {n31}: block
+   -[-c-]-> 22
+ {n32}: int __va_arg0 = a;
+   -[-c-]-> 22
+   -[--d]-> 23
+   -[--d]-> 24
    -[a--]-> 28
- {n28}: In2
-   -[a--]-> 27
- {n29}: VarDecl : c
-   -[a--]-> 30
- {n30}: In3
-   -[a--]-> 29
- {n31}: VarDecl : tmp
- {n32}: Call23-InCtrl : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
- {n33}: Call23-In1 : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
-   -[-c-]-> 32
- {n34}: Call23-In2 : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
+   -[-c-]-> 31
+ {n33}: int __va_arg1 = b;
+   -[-c-]-> 22
    -[--d]-> 25
    -[--d]-> 26
- {n35}: Call23-In3 : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
-   -[--d]-> 27
+   -[a--]-> 29
+   -[-c-]-> 31
+ {n34}: void *__va_args[2] = {& __va_arg0, & __va_arg1};
+   -[-c-]-> 22
    -[--d]-> 28
- {n36}: Call23-In4 : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
    -[--d]-> 29
+   -[a--]-> 30
+   -[-c-]-> 31
+ {n35}: Call49-InCtrl : tmp = lib_f(2,(void * const *)(__va_args));
+   -[-c-]-> 22
+   -[-c-]-> 31
+ {n36}: Call49-In1 : tmp = lib_f(2,(void * const *)(__va_args));
+   -[-c-]-> 22
+   -[-c-]-> 31
+   -[-c-]-> 35
+ {n37}: Call49-In2 : tmp = lib_f(2,(void * const *)(__va_args));
+   -[-c-]-> 22
    -[--d]-> 30
- {n37}: Call23-OutRet : tmp = lib_f(3,a,b,c);
-   -[-c-]-> 24
-   -[a--]-> 31
-   -[-c-]-> 32
-   -[--d]-> 33
- {n38}: return tmp;
-   -[-c-]-> 24
-   -[--d]-> 31
-   -[--d]-> 37
- {n39}: OutRet
+   -[-c-]-> 31
+   -[-c-]-> 35
+ {n38}: Call49-OutRet : tmp = lib_f(2,(void * const *)(__va_args));
+   -[-c-]-> 22
+   -[a--]-> 27
+   -[-c-]-> 31
+   -[-c-]-> 35
+   -[--d]-> 36
+ {n39}: return tmp;
+   -[-c-]-> 22
+   -[--d]-> 27
    -[--d]-> 38
-[pdg] PDG for main
- {n40}: InCtrl
- {n41}: VarDecl : a1
- {n42}: VarDecl : a2
- {n43}: VarDecl : a3
- {n44}: VarDecl : a4
- {n45}: VarDecl : a5
- {n46}: VarDecl : a6
- {n47}: VarDecl : s
- {n48}: VarDecl : s1
- {n49}: VarDecl : s2
- {n50}: VarDecl : s3
- {n51}: a1 = 1;
-   -[-c-]-> 40
-   -[a--]-> 41
- {n52}: a2 = 2;
-   -[-c-]-> 40
-   -[a--]-> 42
- {n53}: a3 = 3;
-   -[-c-]-> 40
+ {n40}: OutRet
+   -[--d]-> 39
+[pdg] PDG for f3
+ {n41}: InCtrl
+ {n42}: VarDecl : a
    -[a--]-> 43
- {n54}: a4 = 4;
-   -[-c-]-> 40
-   -[a--]-> 44
- {n55}: a5 = 5;
-   -[-c-]-> 40
+ {n43}: In1
+   -[a--]-> 42
+ {n44}: VarDecl : b
    -[a--]-> 45
- {n56}: a6 = 6;
-   -[-c-]-> 40
-   -[a--]-> 46
- {n57}: Call32-InCtrl : s1 = f1(a1);
-   -[-c-]-> 40
- {n58}: Call32-In1 : s1 = f1(a1);
-   -[-c-]-> 40
-   -[--d]-> 41
-   -[--d]-> 51
-   -[-c-]-> 57
- {n59}: Call32-OutRet : s1 = f1(a1);
-   -[-c-]-> 40
-   -[a--]-> 48
-   -[-c-]-> 57
- {n60}: Call33-InCtrl : s2 = f2(a2,a3);
-   -[-c-]-> 40
- {n61}: Call33-In1 : s2 = f2(a2,a3);
-   -[-c-]-> 40
-   -[--d]-> 42
-   -[--d]-> 52
-   -[-c-]-> 60
- {n62}: Call33-In2 : s2 = f2(a2,a3);
-   -[-c-]-> 40
-   -[--d]-> 43
-   -[--d]-> 53
-   -[-c-]-> 60
- {n63}: Call33-OutRet : s2 = f2(a2,a3);
-   -[-c-]-> 40
-   -[a--]-> 49
-   -[-c-]-> 60
- {n64}: Call34-InCtrl : s3 = f3(a4,a5,a6);
-   -[-c-]-> 40
- {n65}: Call34-In1 : s3 = f3(a4,a5,a6);
-   -[-c-]-> 40
-   -[--d]-> 44
-   -[--d]-> 54
-   -[-c-]-> 64
- {n66}: Call34-In2 : s3 = f3(a4,a5,a6);
-   -[-c-]-> 40
-   -[--d]-> 45
-   -[--d]-> 55
-   -[-c-]-> 64
- {n67}: Call34-In3 : s3 = f3(a4,a5,a6);
-   -[-c-]-> 40
-   -[--d]-> 46
-   -[--d]-> 56
-   -[-c-]-> 64
- {n68}: Call34-OutRet : s3 = f3(a4,a5,a6);
-   -[-c-]-> 40
-   -[a--]-> 50
-   -[-c-]-> 64
- {n69}: Call35-InCtrl : s = f2(s1,s2);
-   -[-c-]-> 40
- {n70}: Call35-In1 : s = f2(s1,s2);
-   -[-c-]-> 40
-   -[--d]-> 48
-   -[--d]-> 59
-   -[-c-]-> 69
- {n71}: Call35-In2 : s = f2(s1,s2);
-   -[-c-]-> 40
-   -[--d]-> 49
-   -[--d]-> 63
-   -[-c-]-> 69
- {n72}: Call35-OutRet : s = f2(s1,s2);
-   -[-c-]-> 40
+ {n45}: In2
+   -[a--]-> 44
+ {n46}: VarDecl : c
    -[a--]-> 47
-   -[-c-]-> 69
- {n73}: return s;
-   -[-c-]-> 40
+ {n47}: In3
+   -[a--]-> 46
+ {n48}: VarDecl : tmp
+ {n49}: VarDecl : __va_arg0
+ {n50}: VarDecl : __va_arg1
+ {n51}: VarDecl : __va_arg2
+ {n52}: VarDecl : __va_args
+ {n53}: block
+   -[-c-]-> 41
+ {n54}: int __va_arg0 = a;
+   -[-c-]-> 41
+   -[--d]-> 42
+   -[--d]-> 43
+   -[a--]-> 49
+   -[-c-]-> 53
+ {n55}: int __va_arg1 = b;
+   -[-c-]-> 41
+   -[--d]-> 44
+   -[--d]-> 45
+   -[a--]-> 50
+   -[-c-]-> 53
+ {n56}: int __va_arg2 = c;
+   -[-c-]-> 41
+   -[--d]-> 46
    -[--d]-> 47
+   -[a--]-> 51
+   -[-c-]-> 53
+ {n57}: void *__va_args[3] = {& __va_arg0, & __va_arg1, & __va_arg2};
+   -[-c-]-> 41
+   -[--d]-> 49
+   -[--d]-> 50
+   -[--d]-> 51
+   -[a--]-> 52
+   -[-c-]-> 53
+ {n58}: Call55-InCtrl : tmp = lib_f(3,(void * const *)(__va_args));
+   -[-c-]-> 41
+   -[-c-]-> 53
+ {n59}: Call55-In1 : tmp = lib_f(3,(void * const *)(__va_args));
+   -[-c-]-> 41
+   -[-c-]-> 53
+   -[-c-]-> 58
+ {n60}: Call55-In2 : tmp = lib_f(3,(void * const *)(__va_args));
+   -[-c-]-> 41
+   -[--d]-> 52
+   -[-c-]-> 53
+   -[-c-]-> 58
+ {n61}: Call55-OutRet : tmp = lib_f(3,(void * const *)(__va_args));
+   -[-c-]-> 41
+   -[a--]-> 48
+   -[-c-]-> 53
+   -[-c-]-> 58
+   -[--d]-> 59
+ {n62}: return tmp;
+   -[-c-]-> 41
+   -[--d]-> 48
+   -[--d]-> 61
+ {n63}: OutRet
+   -[--d]-> 62
+[pdg] PDG for main
+ {n64}: InCtrl
+ {n65}: VarDecl : a1
+ {n66}: VarDecl : a2
+ {n67}: VarDecl : a3
+ {n68}: VarDecl : a4
+ {n69}: VarDecl : a5
+ {n70}: VarDecl : a6
+ {n71}: VarDecl : s
+ {n72}: VarDecl : s1
+ {n73}: VarDecl : s2
+ {n74}: VarDecl : s3
+ {n75}: int a1 = 1;
+   -[-c-]-> 64
+   -[a--]-> 65
+ {n76}: int a2 = 2;
+   -[-c-]-> 64
+   -[a--]-> 66
+ {n77}: int a3 = 3;
+   -[-c-]-> 64
+   -[a--]-> 67
+ {n78}: int a4 = 4;
+   -[-c-]-> 64
+   -[a--]-> 68
+ {n79}: int a5 = 5;
+   -[-c-]-> 64
+   -[a--]-> 69
+ {n80}: int a6 = 6;
+   -[-c-]-> 64
+   -[a--]-> 70
+ {n81}: Call32-InCtrl : s1 = f1(a1);
+   -[-c-]-> 64
+ {n82}: Call32-In1 : s1 = f1(a1);
+   -[-c-]-> 64
+   -[--d]-> 65
+   -[--d]-> 75
+   -[-c-]-> 81
+ {n83}: Call32-OutRet : s1 = f1(a1);
+   -[-c-]-> 64
+   -[a--]-> 72
+   -[-c-]-> 81
+ {n84}: Call33-InCtrl : s2 = f2(a2,a3);
+   -[-c-]-> 64
+ {n85}: Call33-In1 : s2 = f2(a2,a3);
+   -[-c-]-> 64
+   -[--d]-> 66
+   -[--d]-> 76
+   -[-c-]-> 84
+ {n86}: Call33-In2 : s2 = f2(a2,a3);
+   -[-c-]-> 64
+   -[--d]-> 67
+   -[--d]-> 77
+   -[-c-]-> 84
+ {n87}: Call33-OutRet : s2 = f2(a2,a3);
+   -[-c-]-> 64
+   -[a--]-> 73
+   -[-c-]-> 84
+ {n88}: Call34-InCtrl : s3 = f3(a4,a5,a6);
+   -[-c-]-> 64
+ {n89}: Call34-In1 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 64
+   -[--d]-> 68
+   -[--d]-> 78
+   -[-c-]-> 88
+ {n90}: Call34-In2 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 64
+   -[--d]-> 69
+   -[--d]-> 79
+   -[-c-]-> 88
+ {n91}: Call34-In3 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 64
+   -[--d]-> 70
+   -[--d]-> 80
+   -[-c-]-> 88
+ {n92}: Call34-OutRet : s3 = f3(a4,a5,a6);
+   -[-c-]-> 64
+   -[a--]-> 74
+   -[-c-]-> 88
+ {n93}: Call35-InCtrl : s = f2(s1,s2);
+   -[-c-]-> 64
+ {n94}: Call35-In1 : s = f2(s1,s2);
+   -[-c-]-> 64
    -[--d]-> 72
- {n74}: OutRet
+   -[--d]-> 83
+   -[-c-]-> 93
+ {n95}: Call35-In2 : s = f2(s1,s2);
+   -[-c-]-> 64
    -[--d]-> 73
+   -[--d]-> 87
+   -[-c-]-> 93
+ {n96}: Call35-OutRet : s = f2(s1,s2);
+   -[-c-]-> 64
+   -[a--]-> 71
+   -[-c-]-> 93
+ {n97}: return s;
+   -[-c-]-> 64
+   -[--d]-> 71
+   -[--d]-> 96
+ {n98}: OutRet
+   -[--d]-> 97

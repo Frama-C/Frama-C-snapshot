@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -143,7 +143,7 @@ module type S_no_parameter = sig
     (** Set the option. *)
 
   val add_set_hook: (t -> t -> unit) -> unit
-    (** Add a hook to be called whenafter the function {!set} is called.
+    (** Add a hook to be called after the function {!set} is called.
         The first parameter of the hook is the old value of the parameter while
         the second one is the new value. *)
 
@@ -303,7 +303,7 @@ module type Specific_dir = sig
 
   val dir: ?error:bool -> unit -> string
     (** [dir ~error ()] returns the specific directory name, if
-        any. Otherwise, Frama-C halts on an user error if [error] orelse the
+        any. Otherwise, Frama-C halts on an user error if [error] or if the
 	behavior depends on [force_dir]. Default of [error] is [true].
         @raise No_dir if there is no share directory for this plug-in and [not
         error] and [not force_dir]. *)
@@ -311,7 +311,7 @@ module type Specific_dir = sig
   val file: ?error:bool -> string -> string
   (** [file basename] returns the complete filename of a file stored in [dir
       ()]. If there is no such directory, Frama-C halts on an user error if
-      [error] orelse the behavior depends on [force_dir]. Default of [error] is
+      [error] or if the behavior depends on [force_dir]. Default of [error] is
       [true].
       @raise No_dir if there is no share directory for this plug-in and [not
       error] and [not force_dir].  *)

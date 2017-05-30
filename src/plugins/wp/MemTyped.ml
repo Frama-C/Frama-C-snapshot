@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,11 +50,6 @@ let f_offset = Lang.extern_f ~library ~result:L.Int
            why3    = Qed.Engine.F_subst("%1.offset");
            coq     = Qed.Engine.F_subst("(offset %1)");
           } "offset"
-let f_mk_addr = Lang.extern_f ~library ~result:t_addr
-    ~link:{altergo = Qed.Engine.F_subst("{base = %1; offset = %2}");
-           why3    = Qed.Engine.F_subst("(Mk_addr %1 %2)");
-           coq     = Qed.Engine.F_subst("(mk_addr %1 %2)");
-          } "mk_addr"
 let f_shift  = Lang.extern_f ~library ~result:t_addr "shift"
 let f_global = Lang.extern_f ~library ~result:t_addr "global"
 let f_null   = Lang.extern_f ~library ~result:t_addr "null"
@@ -65,7 +60,7 @@ let p_separated = Lang.extern_fp ~library "separated"
 let p_included = Lang.extern_fp ~library "included"
 let p_eqmem = Lang.extern_fp ~library "eqmem"
 let p_havoc = Lang.extern_fp ~library "havoc"
-let f_region = Lang.extern_f ~library ~result:L.Int "region"   (* base -> region *)
+let f_region = Lang.extern_f ~library ~result:L.Int "region" (* base -> region *)
 let p_framed = Lang.extern_fp ~library "framed" (* m-pointer -> prop *)
 let p_linked = Lang.extern_fp ~library "linked" (* allocation-table -> prop *)
 let p_sconst = Lang.extern_fp ~library "sconst" (* int-memory -> prop *)
@@ -124,7 +119,6 @@ let a_hardware = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "har
 let a_null = F.constant (e_fun f_null [])
 let a_base p = e_fun f_base [p]
 let a_offset p = e_fun f_offset [p]
-let a_mk_addr b p = e_fun f_mk_addr [b;p]
 let a_global b = e_fun f_global [b]
 let a_shift l k = e_fun f_shift [l;k]
 let a_addr b k = a_shift (a_global b) k
@@ -156,7 +150,7 @@ let a_addr b k = a_shift (a_global b) k
 *)
 
 type registered_shift =
-  | RS_Field of term (* offset of the field *)
+  | RS_Field of fieldinfo * term (* offset of the field *)
   | RS_Shift of Z.t  (* size of the element *)
 
 module RegisterShift = Model.Static
@@ -167,7 +161,8 @@ module RegisterShift = Model.Static
       include Lang.Fun
     end)
 
-let phi_base l = match F.repr l with
+let phi_base l =
+  match F.repr l with
   | L.Fun(f,p::_) when RegisterShift.mem f -> a_base p
   | L.Fun(f,[p;_]) when f==f_shift -> a_base p
   | L.Fun(f,[b]) when f==f_global -> b
@@ -179,7 +174,7 @@ let phi_offset l = match F.repr l with
   | L.Fun(f,_) when f==f_global || f==f_null -> F.e_zero
   | L.Fun(f,p::args) ->
       begin match RegisterShift.get f, args with
-        | Some (RS_Field offset), [] -> e_add offset (a_offset p)
+        | Some (RS_Field(_,offset)), [] -> e_add offset (a_offset p)
         | Some (RS_Shift size), [k] -> e_add (a_offset p) ((F.e_times size) k)
         | Some _, _ -> assert false (* constructed at one place only *)
         | None, _ -> raise Not_found
@@ -286,7 +281,8 @@ let r_included = function
         end
   | _ -> raise Not_found
 
-let once_for_each_ast = Model.run_once_for_each_ast ~name:"MemTyped" (fun () ->
+let () = Context.register
+  begin fun () ->
     F.set_builtin_1   f_base   phi_base ;
     F.set_builtin_1   f_offset phi_offset ;
     F.set_builtin_2   f_shift  (phi_shift f_shift) ;
@@ -294,7 +290,7 @@ let once_for_each_ast = Model.run_once_for_each_ast ~name:"MemTyped" (fun () ->
     F.set_builtin_eqp f_global eq_shift ;
     F.set_builtin p_separated r_separated ;
     F.set_builtin p_included  r_included ;
-  )
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Model Parameters                                                   --- *)
@@ -304,7 +300,6 @@ let configure () =
   begin
     Context.set Lang.pointer (fun _ -> t_addr) ;
     Context.set Cvalues.null (p_equal a_null) ;
-    once_for_each_ast ();
   end
 
 type pointer = NoCast | Fits | Unsafe
@@ -462,8 +457,8 @@ module ShiftFieldDef = Model.StaticGenerator(Cil_datatype.Fieldinfo)
         let xloc = Lang.freshvar ~basename:"p" t_addr in
         let loc = e_var xloc in
         let def = a_shift loc offset in
-        let dfun = Definitions.Value( result , Def , def) in
-        RegisterShift.define lfun (RS_Field offset) ;
+        let dfun = Definitions.Function( result , Def , def) in
+        RegisterShift.define lfun (RS_Field(f,offset)) ;
         F.set_builtin_eqp lfun eq_shift ;
         {
           d_lfun = lfun ; d_types = 0 ;
@@ -494,7 +489,7 @@ struct
   let compare = compare_ptr_conflated
 end
 
-(* This is a model-indepent generator,
+(* This is a model-independent generator,
    which will be inherited from the model-dependent clusters *)
 module ShiftGen = Model.StaticGenerator(Cobj)
     (struct
@@ -525,7 +520,7 @@ module ShiftGen = Model.StaticGenerator(Cobj)
         let xk = Lang.freshvar ~basename:"k" Qed.Logic.Int in
         let k = e_var xk in
         let def = a_shift loc (F.e_times size k) in
-        let dfun = Definitions.Value( result , Def , def) in
+        let dfun = Definitions.Function( result , Def , def) in
         RegisterShift.define shift (RS_Shift size) ;
         F.set_builtin_eqp shift eq_shift ;
         F.set_builtin_2 shift (phi_shift shift) ;
@@ -535,11 +530,11 @@ module ShiftGen = Model.StaticGenerator(Cobj)
           d_definition = dfun ;
           d_cluster = cluster_dummy () ;
         }
-        
+
       let compile = Lang.local generate
     end)
 
-(* The model-dependent derivation of model-independant ShiftDef *)
+(* The model-dependent derivation of model-independent ShiftDef *)
 module Shift = Model.Generator(Cobj)
     (struct
       let name = "MemTyped.Shift"
@@ -646,6 +641,14 @@ module STRING = Model.Generator(LITERAL)
 
     end)
 
+module RegisterBASE = Model.Static
+    (struct
+      type key = lfun
+      type data = varinfo
+      let name = "MemTyped.RegisterBASE"
+      include Lang.Fun
+    end)
+
 module BASE = Model.Generator(Varinfo)
     (struct
       let name = "MemTyped.BASE"
@@ -701,13 +704,16 @@ module BASE = Model.Generator(Varinfo)
         (* Since its a generated it is the unique name given *)
         let prefix = Lang.Fun.debug lfun in
         let vid = if acs_rd then (-x.vid-1) else succ x.vid in
-        let dfun = Definitions.Value( L.Int , Def , e_int vid ) in
+        let dfun = Definitions.Function( L.Int , Def , e_int vid ) in
         Definitions.define_symbol {
           d_lfun = lfun ; d_types = 0 ; d_params = [] ; d_definition = dfun ;
           d_cluster = cluster_globals () ;
         } ;
         let base = e_fun lfun [] in
-        region prefix x base ; linked prefix x base ; base
+        RegisterBASE.define lfun x ;
+        region prefix x base ;
+        linked prefix x base ;
+        base
 
       let compile = Lang.local generate
     end)
@@ -843,7 +849,7 @@ module COMP = Model.Generator(Compinfo)
             (fun f ->
                Cfield f , !loadrec sigma (object_of f.ftype) (field loc f)
             ) c.cfields in
-        let dfun = Definitions.Value( result , Def , e_record def ) in
+        let dfun = Definitions.Function( result , Def , e_record def ) in
         Definitions.define_symbol {
           d_lfun = lfun ; d_types = 0 ;
           d_params = xloc :: xmem ;
@@ -1010,7 +1016,7 @@ struct
         if c.cstruct
         then List.fold_left flayout w c.cfields
         else
-          (* TODO: can be the longuest common prefix *)
+          (* TODO: can be the longest common prefix *)
           add_block Garbled w
     | C_array { arr_flat = Some a } ->
         let ly = rlayout [] (Ctypes.object_of a.arr_cell) in
@@ -1074,7 +1080,7 @@ struct
         | Str _ , Arr(v,n) ->
             compare l1 (v @ add_array v (n-1) w2)
 
-  let rec fits obj1 obj2 =
+  let fits obj1 obj2 =
     match obj1 , obj2 with
     | C_int i1 , C_int i2 -> i1 = i2
     | C_float f1 , C_float f2 -> f1 = f2
@@ -1245,10 +1251,6 @@ let s_valid sigma acs p n =
   let p_valid = match acs with RW -> p_valid_rw | RD -> p_valid_rd in
   p_call p_valid [Sigma.value sigma T_alloc;p;n]
 
-let access acs l = match acs with
-  | RW -> p_lt e_zero (a_base l)
-  | RD -> p_true
-
 let valid sigma acs = function
   | Rloc(obj,l) -> s_valid sigma acs l (e_int (size_of_object obj))
   | Rrange(l,obj,Some a,Some b) ->
@@ -1344,5 +1346,76 @@ let r_disjoint r1 r2 =
 
 let included s1 s2  = r_included (range s1) (range s2)
 let separated s1 s2 = r_disjoint (range s1) (range s2)
+
+(* -------------------------------------------------------------------------- *)
+(* --- State Model                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+type state = chunk Tmap.t
+
+let rec lookup_a e =
+  match F.repr e with
+  | L.Fun( f , [e] ) when f == f_global -> lookup_a e
+  | L.Fun( f , es ) -> lookup_f f es
+  | _ -> raise Not_found
+
+and lookup_f f es =
+  try match RegisterShift.find f , es with
+    | RS_Field(fd,_) , [e] -> Mstate.field (lookup_lv e) fd
+    | RS_Shift _ , [e;k] -> Mstate.index (lookup_lv e) k
+    | _ -> raise Not_found
+  with Not_found when es = [] -> 
+    Memory.(Mvar (RegisterBASE.find f),[])
+
+and lookup_lv e = try lookup_a e with Not_found -> Memory.(Mmem e,[])
+
+let mchunk c = Memory.Mchunk (Pretty_utils.to_string Chunk.pretty c)
+
+let lookup s e =
+  try mchunk (Tmap.find e s)
+  with Not_found ->
+  try match F.repr e with
+    | L.Fun( f , es ) -> Memory.Maddr (lookup_f f es)
+    | L.Aget( m , k ) when Tmap.find m s <> T_alloc -> Memory.Mlval (lookup_lv k)
+    | _ -> Memory.Mterm
+  with Not_found -> Memory.Mterm
+
+let apply f s =
+  Tmap.fold (fun m c w -> Tmap.add (f m) c w) s Tmap.empty
+
+let iter f s = Tmap.iter (fun m c -> f (mchunk c) m) s
+
+let state (sigma : sigma) =
+  let s = ref Tmap.empty in
+  Sigma.iter (fun c x -> s := Tmap.add (e_var x) c !s) sigma ; !s
+
+let heap domain state =
+  Tmap.fold (fun m c w ->
+      if Vars.intersect (F.vars m) domain
+      then Heap.Map.add c m w else w
+    ) state Heap.Map.empty
+
+let rec diff v1 v2 =
+  if v1 == v2 then Bag.empty else
+    match F.repr v2 with
+    | L.Aset( m , k , v ) ->
+        let lv = lookup_lv k in
+        let upd = Mstore( lv , v ) in
+        Bag.append (diff v1 m) upd
+    | _ ->
+        Bag.empty
+
+let updates seq domain =
+  let pool = ref Bag.empty in
+  let pre = heap domain seq.pre in
+  let post = heap domain seq.post in
+  Heap.Map.iter2
+    (fun chunk v1 v2 ->
+       if chunk <> T_alloc then
+         match v1 , v2 with
+         | Some v1 , Some v2 -> pool := Bag.concat (diff v1 v2) !pool
+         | _ -> ())
+    pre post ;
+  !pool
 
 (* -------------------------------------------------------------------------- *)

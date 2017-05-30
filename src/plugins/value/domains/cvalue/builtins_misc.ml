@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Abstract_interp
-open Locations
 open Value_util
 
 
@@ -36,17 +34,12 @@ let frama_C_assert state actuals =
 	  if Cvalue.V.is_zero arg 
 	  then do_bottom ()
 	  else if Cvalue.V.contains_zero arg 
-	  then begin
-	      try
-		let state =
-		  Eval_exprs.reduce_by_cond state
-		    { Eval_exprs.exp = arg_exp ; positive = true }
-		in
-		warning_once_current "Frama_C_assert: unknown";
-		state
-	      with Eval_exprs.Reduce_to_bottom -> 
-		do_bottom ()
-	    end
+         then begin
+           let state = !Db.Value.reduce_by_cond state arg_exp true in
+           if Cvalue.Model.is_reachable state
+           then (warning_once_current "Frama_C_assert: unknown"; state)
+           else do_bottom ()
+         end
 	  else begin
 	      warning_once_current "Frama_C_assert: true";
 	      state
@@ -61,46 +54,6 @@ let frama_C_assert state actuals =
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
 let () = Builtins.register_builtin "Frama_C_assert" frama_C_assert
-
-
-let frama_c_bzero state actuals =
-  if Value_parameters.ValShowProgress.get () then
-    Value_parameters.feedback "Call to builtin bzero(%a)%t"
-      pretty_actuals actuals Value_util.pp_callstack;
-    match actuals with
-    | [(exp_dst, dst, _); (exp_size, size, _)] ->
-        let with_alarms = warn_all_quiet_mode () in
-        let size =
-          try
-	    let size = Cvalue.V.project_ival size in
-            Int.mul Int.eight (Ival.project_int size)
-          with Cvalue.V.Not_based_on_null | Ival.Not_Singleton_Int ->
-            raise Db.Value.Outside_builtin_possibilities
-        in
-        let term_size = Logic_utils.expr_to_term ~cast:true exp_size in
-        let array_dst = Logic_utils.array_with_range exp_dst term_size in
-        Valarms.set_syntactic_context (Valarms.SyMemLogic array_dst);
-        if not (Cvalue.V.cardinal_zero_or_one dst)
-        then raise Db.Value.Outside_builtin_possibilities;
-        let left = loc_bytes_to_loc_bits dst
-        and offsm_repeat =
-          Cvalue.V_Offsetmap.create_isotropic ~size
-            (Cvalue.V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
-        in
-        let state =
-          if Int.gt size Int.zero then
-            Eval_op.paste_offsetmap ~reducing:false ~with_alarms
-              ~from:offsm_repeat ~dst_loc:left ~size:size ~exact:true state
-          else state
-        in
-        { Value_types.c_values = [ None, state ] ;
-	  c_clobbered = Base.SetLattice.bottom;
-          c_from = None;
-          c_cacheable = Value_types.Cacheable;
-        }
-    | _ -> raise (Builtins.Invalid_nb_of_args 3)
-
-let () = Builtins.register_builtin "Frama_C_bzero" frama_c_bzero
 
 
 (* -------------------------------------------------------------------------- *)

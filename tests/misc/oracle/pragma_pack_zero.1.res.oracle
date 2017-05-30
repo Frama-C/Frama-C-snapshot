@@ -1,0 +1,32 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pragma_pack_zero.c (with preprocessing)
+tests/misc/pragma_pack_zero.c:35:[kernel] warning: ignoring invalid packing alignment (0)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  z1 ∈ {8}
+  o1 ∈ {4}
+  z2 ∈ {5}
+  o2 ∈ {1}
+  z3 ∈ {6}
+  o3 ∈ {2}
+  z4 ∈ {6}
+  o4 ∈ {2}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          z1; o1; z2; o2; z3; o3; z4; o4; __retres
+[inout] Inputs for function main:
+          \nothing

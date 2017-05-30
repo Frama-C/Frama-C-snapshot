@@ -1,0 +1,65 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/repeat.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/repeat.c:47:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 47 goals scheduled
+[wp] [Qed] Goal typed_induction_post : Valid
+[wp] [Alt-Ergo] Goal typed_induction_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_induction_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_induction_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_induction_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_induction_loop_assign : Valid
+[wp] [Qed] Goal typed_induction_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_induction_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_induction_assign_normal : Valid
+[wp] [Qed] Goal typed_master_post : Valid
+[wp] [Qed] Goal typed_master_assign_exit : Valid
+[wp] [Qed] Goal typed_master_assign_normal : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_post : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_shifted_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_shifted_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_shifted_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_shifted_loop_assign : Valid
+[wp] [Qed] Goal typed_shifted_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_shifted_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_shifted_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_shifted_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_unroll_post : Valid
+[wp] [Qed] Goal typed_unroll_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_unroll_loop_inv_established : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part01 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part02 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part03 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part04 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part05 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part06 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part07 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part08 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part09 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part10 : Valid
+[wp] [Qed] Goal typed_unroll_assign_exit_part11 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part01 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part02 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part03 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part04 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part05 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part06 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part07 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part08 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part09 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part10 : Valid
+[wp] [Qed] Goal typed_unroll_assign_normal_part11 : Valid
+[wp] Proved goals:   47 / 47
+     Qed:            42 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+master               3     -           3       100%
+unroll              25     -          25       100%
+induction            7      2 (565)    9       100%
+shifted              7      3 (561)   10       100%
+----------------------------------------------------------

@@ -1,7 +1,7 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -journal-disable -machdep gcc_x86_32
-   OPT: -val @VALUECONFIG@ -lib-entry -journal-disable -machdep gcc_x86_32
-   OPT: -val @VALUECONFIG@ -lib-entry -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -journal-disable -machdep gcc_x86_32
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -lib-entry -journal-disable -machdep gcc_x86_32
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -lib-entry -journal-disable
 */
 
 char T[];

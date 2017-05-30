@@ -755,6 +755,18 @@ struct
           else if tree1' == Empty then tree0'
           else wrap_Branch p m tree0' tree1'
 
+    let rec filter f htr = match htr with
+      | Empty -> Empty
+      | Leaf (key, _data, _) ->
+        if f key then htr else Empty
+      | Branch (p, m, tree0, tree1, _) ->
+          let tree0' = filter f tree0 and tree1' = filter f tree1 in
+          if tree0' == tree0 && tree1' == tree1
+          then htr
+          else if tree0' == Empty then tree1'
+          else if tree1' == Empty then tree0'
+          else wrap_Branch p m tree0' tree1'
+
     (* The comment below is outdated: [map] and [endo_map] do not have the
        same signature for [f] *)
     (** [endo_map] is similar to [map], but attempts to physically share its

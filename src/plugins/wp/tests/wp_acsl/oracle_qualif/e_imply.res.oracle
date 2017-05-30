@@ -5,7 +5,7 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 [wp] Computing [100 goals...]
-[wp] 115 goals scheduled
+[wp] 121 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_p0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_p1 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_p2 : Valid
@@ -48,13 +48,13 @@
 [wp] [Alt-Ergo] Goal typed_f_post_o9 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
-[wp] Proved goals:  115 / 115
+[wp] Proved goals:  121 / 121
      Qed:             8 
-     Alt-Ergo:      107
+     Alt-Ergo:      113
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -      73 (14)    73       100%
+Lemma               -      79 (13)    79       100%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-f                    8     34 (12)    42       100%
+f                    8     34 (8)     42       100%
 ----------------------------------------------------------

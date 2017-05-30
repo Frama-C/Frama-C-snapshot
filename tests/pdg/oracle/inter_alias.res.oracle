@@ -95,10 +95,10 @@
  {n15}: VarDecl : a
  {n16}: VarDecl : b
  {n17}: VarDecl : __retres
- {n18}: a = 0;
+ {n18}: int a = 0;
    -[-c-]-> 14
    -[a--]-> 15
- {n19}: b = 0;
+ {n19}: int b = 0;
    -[-c-]-> 14
    -[a--]-> 16
  {n20}: Call7-InCtrl : f1(& a,3);

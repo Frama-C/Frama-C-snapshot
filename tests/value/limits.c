@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -warn-signed-overflow
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -warn-signed-overflow
 */
 
 #include <limits.h>

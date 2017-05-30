@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,7 +63,8 @@ let add_called_function stmt kf =
 
 let all_functions_with_preconditions stmt =
   match stmt with
-  | { skind=Instr (Call(_,{enode = Lval (Var vkf, NoOffset)},_,_)) } ->
+  | { skind=Instr (Call(_,{enode = Lval (Var vkf, NoOffset)},_,_)
+                  |Local_init(_,ConsInit(vkf,_,_),_)) } ->
     let kf = Globals.Functions.get vkf in
     Kernel_function.Hptset.singleton kf
   |  _ ->
@@ -102,6 +103,9 @@ let rec precondition_at_call kf pid stmt =
         add_called_function stmt kf;
         add_call_precondition pid p
       )
+    | Instr (Local_init(_, ConsInit(vkf,_,_),_)) ->
+      assert
+        (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
     | _ -> assert false (* meaningless on a non-call statement *)
     );
     p

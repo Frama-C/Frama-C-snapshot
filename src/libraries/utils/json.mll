@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ let parse_file input =
   let content = parse_value input in
   if input.token <> EOF then failwith "unexpected end-of-file" ;
   content
-      
+
 exception Error of string * int * string
 
 let error lexbuf msg =
@@ -134,19 +134,19 @@ let error lexbuf msg =
   Error(position.pos_fname,position.pos_lnum,
         Printf.sprintf "%s (at %S)" msg token)
 
-let of_lexbuf lexbuf = 
+let load_lexbuf lexbuf =
   try
     let token = token lexbuf in
     parse_file { lexbuf ; token }
   with Failure msg -> raise (error lexbuf msg)
 
-let of_string text = of_lexbuf (Lexing.from_string text)
-let of_channel inc = of_lexbuf (Lexing.from_channel inc)
+let load_string text = load_lexbuf (Lexing.from_string text)
+let load_channel inc = load_lexbuf (Lexing.from_channel inc)
 
-let of_file file =
+let load_file file =
   let inc = open_in file in
   try
-    let content = of_channel inc in
+    let content = load_channel inc in
     close_in inc ; content
   with e ->
     close_in inc ; raise e
@@ -176,7 +176,7 @@ and pp_entry fmt (a,v) = Format.fprintf fmt "@[<hov 2>%S: %a@]" a pp v
 let dump_string f s =
   let quote = "\"" in
   f quote ; f (String.escaped s) ; f quote
-    
+
 let rec dump f = function
   | Null -> f "null"
   | True -> f "true"
@@ -199,30 +199,30 @@ let rec dump f = function
 
 and dump_entry f (a,v) =
   dump_string f a ; f ":" ; dump f v
-    
-let to_buffer ?(pretty=true) buffer v =
+
+let save_buffer ?(pretty=true) buffer v =
   if pretty then
     let fmt = Format.formatter_of_buffer buffer in
     pp fmt v ; Format.pp_print_flush fmt ()
   else
     dump (Buffer.add_string buffer) v
 
-let to_channel ?(pretty=true) out v =
+let save_channel ?(pretty=true) out v =
   if pretty then
     let fmt = Format.formatter_of_out_channel out in
     pp fmt v ; Format.pp_print_flush fmt ()
   else
     dump (output_string out) v ; flush out
 
-let to_string ?(pretty=true) v =
+let save_string ?(pretty=true) v =
   let buffer = Buffer.create 80 in
-  to_buffer ~pretty buffer v ;
+  save_buffer ~pretty buffer v ;
   Buffer.contents buffer
 
-let to_file ?(pretty=true) file v =
+let save_file ?(pretty=true) file v =
   let out = open_out file in
   try
-    to_channel ~pretty out v ;
+    save_channel ~pretty out v ;
     close_out out
   with e ->
     close_out out ; raise e
@@ -277,6 +277,7 @@ let fold f v w = match v with
 
 let of_bool b = if b then True else False
 let of_int k = Int k
+let of_string s = String s
 let of_float f = Float f
 let of_list xs = Array xs
 let of_array xs = Array (Array.to_list xs)

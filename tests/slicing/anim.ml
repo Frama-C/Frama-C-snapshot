@@ -9,40 +9,39 @@
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
-let add_select_fun_calls project kf =
+let add_select_fun_calls kf =
   let selections = Db.Slicing.Select.empty_selects in
   let selections =
     !Db.Slicing.Select.select_func_calls_into selections ~spare:false kf
   in !Db.Slicing.Select.iter_selects_internal
-       (fun s -> !Db.Slicing.Request.add_selection_internal project s) 
+       (fun s -> !Db.Slicing.Request.add_selection_internal s)
        selections
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 let main _ =
   let proj_name = "slicing_project" in
-  let project = !Db.Slicing.Project.mk_project proj_name in
 
   let n = 0 in
 
   let title = "Before start" in
-  let n = LibAnim.print_proj proj_name title project n in
+  let n = LibAnim.print_proj proj_name title n in
 
   let kf_send = Globals.Functions.find_by_name "send" in
-  add_select_fun_calls project kf_send;
+  add_select_fun_calls kf_send;
 
   let title = "Select 'send' calls" in
-  let n = LibAnim.print_proj proj_name title project n in
+  let n = LibAnim.print_proj proj_name title n in
   let title = "Apply : " ^ title in
-  let n = LibAnim.build_all_graphs proj_name title project n in
+  let n = LibAnim.build_all_graphs proj_name title n in
 
   let kf_send_bis = Globals.Functions.find_by_name  "send_bis" in
-  add_select_fun_calls project kf_send_bis;
+  add_select_fun_calls kf_send_bis;
 
   let title = "Select 'send_bis' calls" in
-  let n = LibAnim.print_proj proj_name title project n in
+  let n = LibAnim.print_proj proj_name title n in
   let title = ("Apply : "^title) in
-  let _n = LibAnim.build_all_graphs proj_name title project n in
+  let _n = LibAnim.build_all_graphs proj_name title n in
 
   LibAnim.print_help proj_name;;
 

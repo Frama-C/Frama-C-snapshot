@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,7 @@ class collect_visitor = object (self)
 
   method! vtype t = match t with
     | TNamed(ti,_) ->
-        (* we use the type name because directe typeinfo comparision
+        (* we use the type name because direct typeinfo comparison
         * doesn't wok. Anyway, CIL renames types if several type have the same
         * name... *)
         if Hashtbl.mem used_typeinfo ti.tname then SkipChildren

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,9 +38,9 @@ val add : t -> t -> t
 val sub : t -> t -> t
 val mul : t -> t -> t
 val native_div : t -> t -> t
-val rem : t -> t -> t (** Remainder of the Euclidian division (always positive) *)
+val rem : t -> t -> t (** Remainder of the Euclidean division (always positive) *)
 val pos_div : t -> t -> t
-(** Euclidian division. Equivalent to C division if both operands are positive.
+(** Euclidean division. Equivalent to C division if both operands are positive.
     Equivalent to a floored division if b > 0 (rounds downwards),
     otherwise rounds upwards.
     Note: it is possible that pos_div (-a) b <> pos_div a (-b). *)
@@ -88,7 +88,7 @@ val succ : t -> t
 val pred : t -> t
 val round_up_to_r : min:t -> r:t -> modu:t -> t
 val round_down_to_r : max:t -> r:t -> modu:t -> t
-val pos_rem : t -> t -> t (** Remainder of the Euclidian division (always positive) *)
+val pos_rem : t -> t -> t (** Remainder of the Euclidean division (always positive) *)
 val shift_left : t -> t -> t
 val shift_right : t -> t -> t
 val logand : t -> t -> t
@@ -105,7 +105,7 @@ val zero : t
 val eight : t
 val sixteen : t
 val thirtytwo : t
-val div : t -> t -> t           (** Euclidian division (that returns a positive rem) *)
+val div : t -> t -> t           (** Euclidean division (that returns a positive rem) *)
 
 val billion_one : t
 val hash : t -> int

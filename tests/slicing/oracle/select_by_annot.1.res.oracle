@@ -139,7 +139,7 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
   \result FROM d
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -157,10 +157,8 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
 int d;
 void main(void)
 {
-  int a;
-  int b;
-  a = 0;
-  b = 0;
+  int a = 0;
+  int b = 0;
   if (d > 0) {
     /*@ assert b ≡ 0; */ ;
     a = 1;

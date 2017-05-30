@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,28 +87,6 @@ let c_int ikind =
   | ILongLong -> make_c_int true mach.sizeof_longlong
   | IULongLong -> make_c_int false mach.sizeof_longlong
 
-(* Bounds of an integer according to c_int ti :
-   An integer i : i \in [c_int_bounds ti] if
-    [c_int_bounds ti] = (min,max) then min <=i<max.*)
-let c_int_bounds =
-  let uint8  = Integer.zero, Integer.of_string "256"
-  and sint8  = Integer.of_string "-128", Integer.of_string "128"
-  and uint16 = Integer.zero, Integer.of_string "65536"
-  and sint16 = Integer.of_string "-32768", Integer.of_string "32768"
-  and uint32 = Integer.zero, Integer.of_string "4294967296"
-  and sint32 = Integer.of_string "-2147483648", Integer.of_string "2147483648"
-  and uint64 = Integer.zero, Integer.of_string "18446744073709551616"
-  and sint64 = Integer.of_string "-9223372036854775808", Integer.of_string "9223372036854775808"
-  in function
-    | UInt8  -> uint8
-    | SInt8  -> sint8
-    | UInt16 -> uint16
-    | SInt16 -> sint16
-    | UInt32 -> uint32
-    | SInt32 -> sint32
-    | UInt64 -> uint64
-    | SInt64 -> sint64
-
 let c_int_all =
   [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
 
@@ -185,7 +163,7 @@ let idx = function
   | UInt64 -> 6
   | SInt64 -> 7
 
-let imemo f =
+let i_memo f =
   let m = Array.make 8 None in
   fun i ->
     let k = idx i in
@@ -197,7 +175,7 @@ let fdx = function
   | Float32 -> 0
   | Float64 -> 1
 
-let fmemo f =
+let f_memo f =
   let m = Array.make 2 None in
   fun z ->
     let k = fdx z in
@@ -205,11 +183,25 @@ let fmemo f =
     | Some r -> r
     | None -> let r = f z in m.(k) <- Some r ; r
 
-let iiter f =
+let i_iter f =
   List.iter f [UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
 
-let fiter f =
+let f_iter f =
   List.iter f [Float32;Float64]
+
+(* -------------------------------------------------------------------------- *)
+(* --- Bounds                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+let i_bounds i =
+  if signed i then
+    let m = Integer.two_power_of_int (i_bits i - 1) in
+    Integer.neg m , Integer.pred m
+  else
+    let m = Integer.two_power_of_int (i_bits i) in
+    Integer.zero , Integer.pred m
+
+let bounds i = i_memo i_bounds i
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
@@ -459,14 +451,11 @@ let get_array = function
 (* --- Sizeof                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let int64_max a b =
-  if Int64.compare a b < 0 then b else a
-
 let sizeof_defined = function
   | C_array { arr_flat = None } -> false
   | _ -> true
 
-let rec sizeof_object = function
+let sizeof_object = function
   | C_int i -> i_bytes i
   | C_float f -> f_bytes f
   | C_pointer _ty -> i_bytes (c_ptr())
@@ -485,8 +474,6 @@ let rec sizeof_object = function
           else
             WpLog.fatal ~current:true "Sizeof unknown-size array"
 
-let sizeof_typ t = Cil.bitsSizeOf t / 8
-
 let field_offset fd =
   let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
   let offset = Field(fd,NoOffset) in
@@ -503,7 +490,7 @@ let field_offset fd =
 (*   domain(signed)                 *)
 (*   then convert to signed         *)
 (* Otherwise:                       *)
-(*   both are converted to unsiged  *)
+(*   both are converted to unsigned *)
 (*                                  *)
 (* Case 2 is actually the negative  *)
 (* of Case 1, and both simplifies   *)

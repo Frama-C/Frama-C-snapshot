@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,7 +93,7 @@ module CurrentHistory =
       let default _ = default_history
     end)
 
-(* This is correct because the implementation makes sur that [.current = None]
+(* This is correct because the implementation makes sure that [.current = None]
    implies [.forward = [] && .back = []] *)
 let is_empty () = (CurrentHistory.get ()).current = None
 let can_go_back () = (CurrentHistory.get ()).back <> []
@@ -212,20 +212,20 @@ let translate_history_elt old_helt =
          GCompTag(                   {corig_name = new_name},          new_loc))
       | (GCompTagDecl(               {corig_name = old_name},          old_loc),
          GCompTagDecl(               {corig_name = new_name},          new_loc))
-      | (GVarDecl(                     {vorig_name = old_name},          old_loc),
-         GVarDecl(                     {vorig_name = new_name},          new_loc))
+      | (GVarDecl(                   {vorig_name = old_name},          old_loc),
+         GVarDecl(                   {vorig_name = new_name},          new_loc))
       | (GFunDecl(_,                 {vorig_name = old_name},          old_loc),
          GFunDecl(_,                 {vorig_name = new_name},          new_loc))
       | (GVar(                       {vorig_name = old_name},_,        old_loc),
          GVar(                       {vorig_name = new_name},_,        new_loc))
       | (GFun({svar=                 {vorig_name = old_name}},         old_loc),
          GFun({svar=                 {vorig_name = new_name}},         new_loc))
-      | (GAnnot(Dtype(                  {lt_name = old_name},_),       old_loc),
-         GAnnot(Dtype(                  {lt_name = new_name},_),       new_loc))
-      | (GAnnot(Daxiomatic(                        old_name,_,_),      old_loc),
-         GAnnot(Daxiomatic(                        new_name,_,_),      new_loc))
-      | (GAnnot(Dlemma(                            old_name,_,_,_,_,_),old_loc),
-         GAnnot(Dlemma(                            new_name,_,_,_,_,_),new_loc))
+      | (GAnnot(Dtype(               {lt_name = old_name},_)  ,        old_loc),
+         GAnnot(Dtype(               {lt_name = new_name},_)  ,        new_loc))
+      | (GAnnot(Daxiomatic(          old_name,_,_,_),                  old_loc),
+         GAnnot(Daxiomatic(          new_name,_,_,_),                  new_loc))
+      | (GAnnot(Dlemma(              old_name,_,_,_,_,_,_),            old_loc),
+         GAnnot(Dlemma(              new_name,_,_,_,_,_,_),            new_loc))
       | (GAnnot(Dfun_or_pred({l_var_info= {lv_name=old_name}},_),      old_loc),
          GAnnot(Dfun_or_pred({l_var_info= {lv_name=new_name}},_),      new_loc))
 
@@ -254,7 +254,7 @@ let translate_history_elt old_helt =
   match old_helt with
   | Global old_g -> global_Global old_g
   | Localizable (PGlobal old_g) -> global_Global old_g
-  | Localizable(PVDecl(Some kf,_)) ->
+  | Localizable(PVDecl(Some kf,_,_)) ->
       global_Global (kf_to_global kf)
   | Localizable ( PStmt(kf,_) | PLval(Some kf,_,_) | PExp(Some kf,_,_)
                 | PTermLval(Some kf,_,_,_) as loc) ->
@@ -292,7 +292,7 @@ let translate_history_elt old_helt =
                 end
       end
   | Localizable (PLval(None,_,_) | PExp(None,_,_) | PTermLval(None,_,_,_)
-                | PVDecl(None,_)) -> (** no names useful? *) None
+                | PVDecl(None,_,_)) -> (** no names useful? *) None
   | Localizable (PIP _ ) -> (** no names available *) None
 
 (*

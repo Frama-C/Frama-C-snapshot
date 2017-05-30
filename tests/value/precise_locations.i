@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +"-then -inout -report -then -plevel 250"
+   STDOPT: +"-then -inout -load-module report -report -then -plevel 250"
 */
 
 struct s {

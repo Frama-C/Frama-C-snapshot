@@ -9,7 +9,7 @@
   y ∈ {0}
 [value] Recording results for double_effect4
 [value] done for function double_effect4
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function double_effect4
 [pdg] done for function double_effect4
@@ -31,11 +31,9 @@ void double_effect4(void)
   /*@ slice pragma stmt; */
   {
     int tmp;
-    { /* sequence */
-      tmp = y;
-      y ++;
-      x += tmp;
-    }
+    tmp = y;
+    y ++;
+    x += tmp;
   }
   return;
 }

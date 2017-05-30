@@ -67,11 +67,60 @@ void main5_scope_lv() {
   Frama_C_dump_each(); // Should be empty, i out-of-scope
 }
 
+
+// This function checks that we remove 'stale' dependencies in some weird cases
+void main6_ghost_dep() {
+  int x = v;
+  {
+    int y = v, z = v, k = v;
+    int *p = v ? &x : (v ? &y : &z);
+
+    // Learn something about *p. Depends on p, x, y, z
+    *p = v;
+
+    /* Drop dependency on x. The domain does not learn this information, and
+     *p still depends on x. */
+    //@ assert p != &x;
+
+    // Restrict k so that we have a precise interval to constrain *p to
+    //@ assert k <= 100;
+
+    if (*p == k) {
+      /* We have learnt something on *p through the valuation. The dependencies
+         are now v, y, z. x must have been dropped, everywhere */
+      goto L;
+    } else {
+      while (1);
+    }
+  }
+ L:
+  // y and z have left scope, so the information on *p should have been removed
+  Frama_C_dump_each();
+  // if *p was erroneously considered as depending on x, we get a crash here
+  x = 1;
+}
+
+void main7_widening() {
+  int b = 0;
+  int c = 0;
+  int *p = v ? &b : &c;
+
+  *p = 0;
+
+  while (*p <= 10000) {
+    *p += 1;
+  }
+  Frama_C_show_each(*p);
+}
+
+
 void main() {
   //  if (v) main1();
   if (v) main2_kill_direct();
   if (v) main3_kill_indirect();
   if (v) main4_scope_right();
   if (v) main5_scope_lv();
+  if (v) main6_ghost_dep();
+  if (v) main7_widening();
   Frama_C_dump_each(); // empty
 }

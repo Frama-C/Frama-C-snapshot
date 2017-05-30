@@ -24,13 +24,13 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (v = Mint_0[shift_sint32(a, i_2)]))).
+      (Mint_0[shift_sint32(a, i_2)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i_1) /\ (i_1 <= n).
   (* Else *)
   Have: n <= i_1.
 }
-Prove: v = Mint_0[shift_sint32(a, i)].
+Prove: Mint_0[shift_sint32(a, i)] = v.
 
 ------------------------------------------------------------
 
@@ -50,13 +50,13 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (v = Mint_0[shift_sint32(a, i_2)]))).
+      (Mint_0[shift_sint32(a, i_2)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
 }
-Prove: v = Mint_0[shift_sint32(a, i) <- v][shift_sint32(a, i_1)].
+Prove: Mint_0[shift_sint32(a, i) <- v][shift_sint32(a, i_1)] = v.
 
 ------------------------------------------------------------
 
@@ -79,7 +79,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (v = Mint_1[shift_sint32(a, i_1)]))).
+      (Mint_1[shift_sint32(a, i_1)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -116,7 +116,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (v = Mint_1[shift_sint32(a, i_1)]))).
+      (Mint_1[shift_sint32(a, i_1)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -144,7 +144,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, n).
   (* Invariant 'Partial' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (v = Mint_1[shift_sint32(a, i_1)]))).
+      (Mint_1[shift_sint32(a, i_1)] = v))).
   (* Invariant 'Range' *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -154,16 +154,11 @@ Prove: included(a_2, 1, a_1, n).
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_typed/user_init.i, line 4) in 'init' (1/2):
-Effect at line 12
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_typed/user_init.i, line 4) in 'init' (2/2):
+Goal Assigns (file tests/wp_typed/user_init.i, line 4) in 'init':
 Effect at line 12
 Let a_1 = shift_sint32(a, 0).
 Assume {
+  Have: valid_rd(Malloc_0, a_1, n).
   Type: is_sint32(n).
   (* Heap *)
   Have: (region(a.base) <= 0) /\ linked(Malloc_0).
@@ -174,6 +169,6 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, n).
 }
-Prove: (valid_rd(Malloc_0, a_1, n) -> included(a_1, n, a_1, n)).
+Prove: included(a_1, n, a_1, n).
 
 ------------------------------------------------------------

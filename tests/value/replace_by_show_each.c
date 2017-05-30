@@ -1,5 +1,5 @@
 /* run.config*
- OPT: -val @VALUECONFIG@ -inout-callwise -inout -calldeps
+ OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -inout -calldeps
 */
 
 #define show_each_1 Frama_C_show_each_1

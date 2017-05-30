@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,7 +84,7 @@ let mk_aggregator env fun_name a_pos pname a_type =
 
 let mk_format_fun ~buffer ?(additional=[]) ~format f_kind =
   FormatFun { f_kind; f_buffer = buffer ; f_format_pos = format ;
-  f_additionnal_args = additional; }
+  f_additional_args = additional; }
 
 
 (* ************************************************************************ *)
@@ -138,7 +138,8 @@ let classify env vi =
     Some {
       vf_decl = vi;
       vf_original_type = vi.vtype;
-      vf_class = if vi.vdefined then Defined else classify_std env vi
+      vf_class = if vi.vdefined then Defined else classify_std env vi;
+      vf_specialization_count = 0
     }
   end else
     None

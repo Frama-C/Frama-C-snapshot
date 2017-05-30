@@ -1,7 +1,7 @@
 /*
   run.config_qualif
-  OPT: -wp -wp-model Typed -wp-proof alt-ergo -wp-par 1 -wp-timeout 2 -wp-prop="-qed_ko"
-  OPT: -wp -wp-model Typed -wp-proof alt-ergo -wp-par 1 -wp-timeout 2 -wp-prop qed_ko -wp-timeout 5
+  OPT: -wp-timeout 2 -wp-prop="-qed_ko"
+  OPT: -wp-timeout 2 -wp-prop qed_ko -wp-timeout 5
 */
 
 /* -------------------------------------------------------------------------- */

@@ -5,10 +5,8 @@ tests/spec/stmt_contract.i:18:[kernel] warning: \result meaningless. Ignoring lo
 int main(int c)
 {
   int __retres;
-  int x;
-  int y;
-  x = 5;
-  y = 2;
+  int x = 5;
+  int y = 2;
   /*@ requires x ≡ 5; */
   /*@ requires y ≡ 2; */
   x += y;
@@ -39,7 +37,10 @@ int main(int c)
   }
   /*@ requires x ≡ 7; */
   /*@ ensures x ≡ 7; */
-  __retres = 0;
+  {
+    __retres = 0;
+    goto return_label;
+  }
   return_label: return __retres;
 }
 

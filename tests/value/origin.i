@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-main -main main -journal-disable -then -out -deps
-   OPT: @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
+   OPT: -no-autoload-plugins -load-module from,inout,value @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-main -main main -journal-disable -then -out -deps
+   OPT: -no-autoload-plugins -load-module from,inout,value @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
 
 */
 char f();
@@ -28,6 +28,8 @@ void origin_arithmetic_3(void) {
 
 
 int g(void);
+
+/*@ allocates \result; ensures \fresh(\result,sizeof(int)); */
 int *gp(void);
 
 int l1, l2, l3, *pl;

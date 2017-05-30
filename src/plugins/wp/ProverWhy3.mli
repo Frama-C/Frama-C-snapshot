@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,10 +34,10 @@ type goal =
     goal : string;
   }
 
-val assemble_wpo: Wpo.t -> (string list (* includes *) * goal) option
+val assemble_goal: Wpo.t -> (string list (* includes *) * goal) option
 (** None if the po is trivial *)
 
-val prove : Wpo.t -> prover:string -> result task
+val prove : ?timeout:int -> prover:string -> Wpo.t -> result task
 (** The string must be a valid why3 prover identifier
     Return NoResult if it is already proved by Qed
 *)
@@ -47,6 +47,8 @@ type dp = {
   dp_version : string ;
   dp_prover : string ;
 }
+
+val prover : dp -> prover
 
 val detect_why3 : (dp list option -> unit) -> unit
 val detect_provers : (dp list -> unit) -> unit

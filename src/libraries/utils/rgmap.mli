@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,14 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Associative maps for _ranges_ to _values_ with overlaping.
+(** Associative maps for _ranges_ to _values_ with overlapping.
 
     The maps register a collection of entries, and looks for all
     entries containing some specified range. For instance, this data
     structure is well suited to attach tags to AST-nodes in GUI, where
     each node is associated to buffer offset ranges.
 
-    When seveal entries cover a range, precedence goes to the tightest ones.
+    When several entries cover a range, precedence goes to the tightest ones.
     When overlapping entries with the same width applies, the result of lookup is
     not specified. Remark that for AST-based ranges, overlapping ranges
     are always included one in the order.
@@ -41,7 +41,7 @@ type 'a t
 (** The type of range maps, containing of collection of ['a entry]. *)
 
 type 'a entry = int * int * 'a
-(** Entry [(a,b,v)] maps range [a..b] (both inclued) to value [v] in the map. *)
+(** Entry [(a,b,v)] maps range [a..b] (both included) to value [v] in the map. *)
 
 val empty : 'a t
 (** The empty map. *)
@@ -53,7 +53,7 @@ val add : ?overlap:bool -> 'a entry -> 'a t -> 'a t
     maps. *)
 
 val find : int -> int -> 'a t -> 'a entry
-(** Find the tighest entry containing the specified range.
+(** Find the tightest entry containing the specified range.
     @raise Not_found if no entry applies *)
 
 val find_all : int -> int -> 'a t -> 'a entry list

@@ -14,12 +14,11 @@ void main(void)
 /*@ predicate P(char *s) ;
 
 */
-extern void g(char *s);
+void g(char *s);
 
 void f(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   g((char *)x);
   return;
 }

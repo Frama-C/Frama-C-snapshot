@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,13 +26,6 @@ open Cil_types
 
 (** Bitfields *)
 val is_bitfield: typ -> bool
-
-val bitfield_size: typ -> Integer.t option
-
-val cast_lval_if_bitfield : typ -> Int_Base.t -> Cvalue.V.t -> Cvalue.V.t
-(** if needed, cast the given abstract value to the given size. Useful
-    to handle bitfield. The type given as argument must be the type of
-    the l-value the abstract value is written into, which is of size [size]. *)
 
 val sizeof_lval_typ: typ -> Int_Base.t
 (** Size of the type of a lval, taking into account that the lval might have

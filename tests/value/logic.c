@@ -111,6 +111,46 @@ void alarms () {
   Frama_C_show_each(x);
 }
 
+struct pair { int i1; int i2; };
+/*@ assigns p == \null ? \empty : *p, q == \null ? \empty : *q, *out
+    \from indirect:p, *p, indirect:q, *q;
+    ensures p == \null ? (q == \null ? *out == 10 : *out == 20)
+                       : (q == \null ? *out == 30 : *out == 40);
+    behavior p_nonnull:
+      assumes p != \null;
+      ensures *p == \at(*p,Pre) + 1;
+    behavior q_nonnull:
+      assumes q != \null;
+      ensures q->i1 == \at(q->i1,Pre) + 2;
+      ensures q->i2 == \at(q->i2,Pre) + 3;
+ */
+void select_like(int *p, struct pair *q, int *out);
+
+void cond_in_lval() {
+  int a = 3, out = 0;
+  struct pair b = {4, 5};
+  select_like(0, 0, &out);
+  //@ assert out == 10;
+  select_like(0, &b, &out);
+  //@ assert b.i1 == 6;
+  //@ assert b.i2 == 8;
+  //@ assert out == 20;
+  select_like(&a, 0, &out);
+  //@ assert a == 4;
+  //@ assert out == 30;
+  a = 3;
+  b.i1 = 4; b.i2 = 5;
+  select_like(&a, &b, &out);
+  //@ assert a == 4 && b.i1 == 6 && b.i2 == 8;
+  //@ assert out == 40;
+  int x = v;
+  /*@ assert x >= 0 ? x >= 0 : x < 0; */
+  x = x;
+  //@ assert x > 2 ? x > 2 : \true;
+  if (x) //@ assert 1 ? x <= 0 : x > 0; // must evaluate to unknown
+    ;
+}
+
 void main () {
   eq_tsets();
   eq_char();
@@ -118,4 +158,5 @@ void main () {
   empty_tset();
   reduce_by_equal();
   alarms ();
+  cond_in_lval();
 }

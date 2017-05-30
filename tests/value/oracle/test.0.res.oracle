@@ -15,6 +15,7 @@ tests/value/test.i:14:[value] warning: out of bounds write. assert \valid(v + (i
 tests/value/test.i:11:[value] warning: signed overflow. assert j + ecart ≤ 2147483647;
 [value] Recording results for inst_F6
 [value] done for function inst_F6
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function inst_F6:
   t[0] ∈ UNINITIALIZED

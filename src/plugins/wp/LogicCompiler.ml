@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -564,7 +564,7 @@ struct
           d_types = List.length l.l_tparams ;
           d_params = xs ;
           d_cluster = cluster ;
-          d_definition = Value(tau,is_recursive l,r) ;
+          d_definition = Function(tau,is_recursive l,r) ;
         } in
         Definitions.define_symbol ldef ;
         type_for_signature l ldef s ; SIG s

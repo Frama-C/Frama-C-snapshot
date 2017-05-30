@@ -13,7 +13,7 @@
   v ∈ [--..--]
   v7 ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/value/split_return.i:175.
+        Called from tests/value/split_return.i:176.
 [value] computing for function init <- main1 <- main.
         Called from tests/value/split_return.i:17.
 [value] using specification for function init
@@ -21,117 +21,117 @@
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/split_return.i:176.
+        Called from tests/value/split_return.i:177.
 [value] computing for function f2 <- main2 <- main.
-        Called from tests/value/split_return.i:47.
+        Called from tests/value/split_return.i:48.
 [value] Recording results for f2
 [value] Done for function f2
-[value] Called Frama_C_show_each_f2({7}, {5})
-[value] Called Frama_C_show_each_f2({0}, {0})
 [value] Called Frama_C_show_each_f2({5}, {5})
-tests/value/split_return.i:50:[value] assertion got status valid.
-[value] Called Frama_C_show_each_f2_2({7}, {5})
+[value] Called Frama_C_show_each_f2({0}, {0})
+[value] Called Frama_C_show_each_f2({7}, {5})
+tests/value/split_return.i:51:[value] assertion got status valid.
 [value] Called Frama_C_show_each_f2_2({5}, {5})
-tests/value/split_return.i:53:[value] assertion got status valid.
+[value] Called Frama_C_show_each_f2_2({7}, {5})
+tests/value/split_return.i:54:[value] assertion got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/split_return.i:177.
+        Called from tests/value/split_return.i:178.
 [value] computing for function f3 <- main3 <- main.
-        Called from tests/value/split_return.i:72.
+        Called from tests/value/split_return.i:73.
 [value] Recording results for f3
 [value] Done for function f3
-[value] Called Frama_C_show_each_f3({7}, {5})
 [value] Called Frama_C_show_each_f3({-2}, {0})
-tests/value/split_return.i:75:[value] assertion got status valid.
-tests/value/split_return.i:77:[value] assertion got status valid.
+[value] Called Frama_C_show_each_f3({7}, {5})
+tests/value/split_return.i:76:[value] assertion got status valid.
+tests/value/split_return.i:78:[value] assertion got status valid.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main3 <- main.
-        Called from tests/value/split_return.i:177.
+        Called from tests/value/split_return.i:178.
 [value] computing for function f3 <- main3 <- main.
-        Called from tests/value/split_return.i:72.
+        Called from tests/value/split_return.i:73.
 [value] Recording results for f3
 [value] Done for function f3
-[value] Called Frama_C_show_each_f3({7}, {5})
 [value] Called Frama_C_show_each_f3({-2}, {0})
+[value] Called Frama_C_show_each_f3({7}, {5})
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/split_return.i:178.
+        Called from tests/value/split_return.i:179.
 [value] computing for function f4 <- main4 <- main.
-        Called from tests/value/split_return.i:93.
+        Called from tests/value/split_return.i:94.
 [value] Recording results for f4
 [value] Done for function f4
-[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Called Frama_C_show_each_f4({4}, {0})
-tests/value/split_return.i:96:[value] assertion got status valid.
-tests/value/split_return.i:98:[value] assertion got status valid.
+[value] Called Frama_C_show_each_f4({7}, {5})
+tests/value/split_return.i:97:[value] assertion got status valid.
+tests/value/split_return.i:99:[value] assertion got status valid.
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main4 <- main.
-        Called from tests/value/split_return.i:178.
+        Called from tests/value/split_return.i:179.
 [value] computing for function f4 <- main4 <- main.
-        Called from tests/value/split_return.i:93.
+        Called from tests/value/split_return.i:94.
 [value] Recording results for f4
 [value] Done for function f4
-[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Called Frama_C_show_each_f4({4}, {0})
+[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main4 <- main.
-        Called from tests/value/split_return.i:178.
+        Called from tests/value/split_return.i:179.
 [value] computing for function f4 <- main4 <- main.
-        Called from tests/value/split_return.i:93.
+        Called from tests/value/split_return.i:94.
 [value] Recording results for f4
 [value] Done for function f4
-[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Called Frama_C_show_each_f4({4}, {0})
+[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main4 <- main.
-        Called from tests/value/split_return.i:178.
+        Called from tests/value/split_return.i:179.
 [value] computing for function f4 <- main4 <- main.
-        Called from tests/value/split_return.i:93.
+        Called from tests/value/split_return.i:94.
 [value] Recording results for f4
 [value] Done for function f4
-[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Called Frama_C_show_each_f4({4}, {0})
+[value] Called Frama_C_show_each_f4({7}, {5})
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/split_return.i:179.
+        Called from tests/value/split_return.i:180.
 [value] computing for function f5 <- main5 <- main.
-        Called from tests/value/split_return.i:116.
+        Called from tests/value/split_return.i:117.
 [value] Recording results for f5
 [value] Done for function f5
-[value] Called Frama_C_show_each_f5({-2}, {0})
 [value] Called Frama_C_show_each_f5({7}, {5})
-tests/value/split_return.i:119:[value] assertion got status valid.
-tests/value/split_return.i:121:[value] assertion got status valid.
+[value] Called Frama_C_show_each_f5({-2}, {0})
+tests/value/split_return.i:120:[value] assertion got status valid.
+tests/value/split_return.i:122:[value] assertion got status valid.
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-        Called from tests/value/split_return.i:180.
+        Called from tests/value/split_return.i:181.
 [value] computing for function f6 <- main6 <- main.
-        Called from tests/value/split_return.i:134.
-tests/value/split_return.i:129:[value] warning: assertion got status unknown.
+        Called from tests/value/split_return.i:135.
+tests/value/split_return.i:130:[value] warning: assertion got status unknown.
 [value] Recording results for f6
 [value] Done for function f6
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main6 <- main.
-        Called from tests/value/split_return.i:180.
+        Called from tests/value/split_return.i:181.
 [value] computing for function f6 <- main6 <- main.
-        Called from tests/value/split_return.i:134.
+        Called from tests/value/split_return.i:135.
 [value] Recording results for f6
 [value] Done for function f6
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-        Called from tests/value/split_return.i:181.
+        Called from tests/value/split_return.i:182.
 [value] computing for function f7 <- main7 <- main.
-        Called from tests/value/split_return.i:147.
+        Called from tests/value/split_return.i:148.
 [value] Recording results for f7
 [value] Done for function f7
 [value] Called Frama_C_show_each_NULL({0}, {0})
@@ -139,9 +139,9 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main7 <- main.
-        Called from tests/value/split_return.i:181.
+        Called from tests/value/split_return.i:182.
 [value] computing for function f7 <- main7 <- main.
-        Called from tests/value/split_return.i:147.
+        Called from tests/value/split_return.i:148.
 [value] Recording results for f7
 [value] Done for function f7
 [value] Called Frama_C_show_each_NULL({0}, {0})
@@ -149,43 +149,43 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main8 <- main.
-        Called from tests/value/split_return.i:182.
+        Called from tests/value/split_return.i:183.
 [value] computing for function f8 <- main8 <- main.
-        Called from tests/value/split_return.i:170.
+        Called from tests/value/split_return.i:171.
 [value] Recording results for f8
 [value] Done for function f8
-[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Called Frama_C_show_each_then8({-1}, {0})
+[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main8 <- main.
-        Called from tests/value/split_return.i:182.
+        Called from tests/value/split_return.i:183.
 [value] computing for function f8 <- main8 <- main.
-        Called from tests/value/split_return.i:170.
+        Called from tests/value/split_return.i:171.
 [value] Recording results for f8
 [value] Done for function f8
-[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Called Frama_C_show_each_then8({-1}, {0})
+[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main8 <- main.
-        Called from tests/value/split_return.i:182.
+        Called from tests/value/split_return.i:183.
 [value] computing for function f8 <- main8 <- main.
-        Called from tests/value/split_return.i:170.
+        Called from tests/value/split_return.i:171.
 [value] Recording results for f8
 [value] Done for function f8
-[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Called Frama_C_show_each_then8({-1}, {0})
+[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main8 <- main.
-        Called from tests/value/split_return.i:182.
+        Called from tests/value/split_return.i:183.
 [value] computing for function f8 <- main8 <- main.
-        Called from tests/value/split_return.i:170.
+        Called from tests/value/split_return.i:171.
 [value] Recording results for f8
 [value] Done for function f8
-[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Called Frama_C_show_each_then8({-1}, {0})
+[value] Called Frama_C_show_each_then8({4}, {{ &x }})
 [value] Recording results for main8
 [value] Done for function main8
 [value] Recording results for main
@@ -381,7 +381,7 @@ tests/value/split_return.i:129:[value] warning: assertion got status unknown.
 [inout] Inputs for function main7:
           v; v7
 [inout] Out (internal) for function main8:
-          x; pf; p
+          x; pf; p; tmp
 [inout] Inputs for function main8:
           v
 [inout] Out (internal) for function main:

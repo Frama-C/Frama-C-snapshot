@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -no-val-builtins-auto -val @VALUECONFIG@ -then -main main_log_exp -then -all-rounding-modes -then -val-builtins-auto
+   OPT: -no-val-builtins-auto -val @VALUECONFIG@ -then -main main_log_exp -then -all-rounding-modes -then -val-builtins-auto -value-msg-key=-builtins
 */
 
 #include <__fc_builtin.h>

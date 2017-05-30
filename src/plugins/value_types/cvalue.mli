@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -225,10 +225,10 @@ module V_Or_Uninitialized : sig
      [!\dangling(r)] otherwise. *)
 
   val remove_indeterminateness: t -> t
-  (** Remove 'unitialized' and 'escaping addresses' flags from the argument *)
+  (** Remove 'uninitialized' and 'escaping addresses' flags from the argument *)
 
   val unspecify_escaping_locals : 
-    exact:bool -> (V.M.key -> bool) -> t -> Base.SetLattice.t * t
+    exact:bool -> (V.M.key -> bool) -> t -> bool * t
 
   val map: (V.t -> V.t) -> t -> t
   val map2: (V.t -> V.t -> V.t) -> t -> t -> t
@@ -244,6 +244,8 @@ module V_Offsetmap: sig
   and type widen_hint = V_Or_Uninitialized.generic_widen_hint
 
   val narrow: t -> t -> t Bottom.Type.or_bottom
+  val narrow_reinterpret: t -> t -> t Bottom.Type.or_bottom
+  (** See the corresponding functions in {!Offsetmap_sig}. *)
 end
 
 
@@ -265,7 +267,7 @@ module Model: sig
 
   (** {2 Finding values *} *)
 
-  (** [find_unspecified ~conflate_bottom state loc] returns the value
+  (** [find_indeterminate ~conflate_bottom state loc] returns the value
       and flags associated to [loc] in [state]. The flags are the union
       of the flags at all the locations and offsets corresponding to [loc].
       The value is the join of all the values pointed by [l..l+loc.size-1]
@@ -287,34 +289,27 @@ module Model: sig
       reading a scalar value. Conversely, if you are reading many bits at
       once (for example, to approximate the entire contents of a struct),
       set [conflate_bottom] to [false] -- to account for the possibility
-      of padding bits. The default value is [true]. The function
-      also returns [true] when the read location may be invalid.
+      of padding bits. The default value is [true].
   *)
-  val find_unspecified :
-    ?conflate_bottom:bool -> t -> location -> bool * V_Or_Uninitialized.t
+  val find_indeterminate :
+    ?conflate_bottom:bool -> t -> location -> V_Or_Uninitialized.t
 
   (** [find ?conflate_bottom state loc] returns the same value as
       [find_indeterminate], but removes the indeterminate flags from the
-      result. The returned boolean indicates only a possibly invalid
-      location, not indeterminateness. *)
-  val find : ?conflate_bottom:bool -> t -> location -> bool * V.t
+      result. *)
+  val find : ?conflate_bottom:bool -> t -> location -> V.t
 
   (** {2 Writing values into the state} *)
 
   (** [add_binding state loc v] simulates the effect of writing [v] at location
       [loc] in [state]. If [loc] is not writable, {!bottom} is returned.
-      The returned boolean indicates that the location may be invalid.
       For this function, [v] is an initialized value; the function
-      {!add_binding_unspecified} allows to write a possibly unspecified
+      {!add_indeterminate_binding} allows to write a possibly indeterminate
       value to [state]. *)
   val add_binding :
-    exact:bool -> t -> location -> V.t -> bool * t
-
-  val add_unsafe_binding :
-    exact:bool -> t -> location -> V_Or_Uninitialized.t -> bool * t
-
-  val add_binding_unspecified :
-    exact:bool -> t -> location -> V_Or_Uninitialized.t -> bool * t
+    exact:bool -> t -> location -> V.t -> t
+  val add_indeterminate_binding :
+    exact:bool -> t -> location -> V_Or_Uninitialized.t -> t
 
 
   (** {2 Reducing the state} *)
@@ -330,25 +325,6 @@ module Model: sig
   (** Same behavior as [reduce_previous_binding], but takes a value
       with 'undefined' and 'escaping addresses' flags. *)
   val reduce_indeterminate_binding: t -> location -> V_Or_Uninitialized.t -> t
-
-  (** [reduce_binding state loc v] refines the value associated to
-      [loc] in [state] according to [v], by keeping the values common
-      to the existing value and [v].
-
-    @deprecated since Magnesium-20151001. Use a combination of {!V.narrow}
-      and {!reduce_previous_binding} to obtain the same result. *)
-  val reduce_binding : t -> location -> V.t -> t
-
-
-  (** {2 Creating an initial state} *)
-
-  (** The functions below can be used to create an initial state to perform
-      an analysis. In particular, they can write to read-only locations. *)
-
-  val add_initial_binding: t -> location -> V_Or_Uninitialized.t -> t
-
-  val add_new_base :
-    Base.t -> size:Int.t -> V.t -> size_v:Int.t -> t -> t
 
 
   (** {2 Misc} *)

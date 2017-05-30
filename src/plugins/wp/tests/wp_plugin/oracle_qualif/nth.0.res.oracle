@@ -6,12 +6,12 @@
 [wp] 4 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_access_16_16_ok : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_access_4_4_ok : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_access_repeat_concat_3_ok : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_eq_repeat_concat_3_ok : Timeout
+[wp] [Alt-Ergo] Goal typed_lemma_access_repeat_concat_3_ok : Timeout
+[wp] [Qed] Goal typed_lemma_eq_repeat_concat_3_ok : Valid
 [wp] Proved goals:    3 / 4
-     Qed:             0 
-     Alt-Ergo:        3  (interrupted: 1)
+     Qed:             1 
+     Alt-Ergo:        2  (interrupted: 1)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic Nth       -       3 (63)     4      75.0%
+Axiomatic Nth        1      2 (81)     4      75.0%
 ----------------------------------------------------------

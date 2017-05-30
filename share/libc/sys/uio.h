@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -24,6 +24,7 @@
 #define FC_UIO
 
 #include "../features.h"
+__PUSH_FC_STDLIB
 #include "../__fc_define_ssize_t.h"
 #include "../__fc_define_size_t.h"
 #include "../__fc_define_iovec.h"
@@ -35,9 +36,9 @@ __BEGIN_DECLS
 //@ assigns { ((char *) iov[i].iov_base)[0..iov[i].iov_len - 1] | integer i; 0 <= i < iovcnt };
   @ assigns   ((char *) iov[0..iovcnt -1].iov_base)[0..];
  */
-ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
-ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+extern ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
+extern ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 __END_DECLS
-
+__POP_FC_STDLIB
 #endif

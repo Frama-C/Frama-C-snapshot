@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -243,7 +243,7 @@ type strategy_info = {
 }
 
 (*----------------------------------------------------------------------------*)
-(* Adding things in the stategy                                               *)
+(* Adding things in the strategy                                               *)
 (*----------------------------------------------------------------------------*)
 
 (* Select annotations to take as Hyp/Goal/... *)
@@ -803,12 +803,7 @@ let add_loop_invariant_annot config vloop s ca b_list inv acc =
   | TBRok
   | TBRpart (* TODO: PKPartial *)
     ->
-      if Wp_parameters.Invariants.get() then begin
-        let loop_core = add_prop_inv_fixpoint config loop_core
-            (WpStrategy.AcutB true) s ca inv
-        in assigns, loop_entry , loop_back , loop_core
-      end
-      else begin
+      begin
         let loop_entry = add_prop_inv_establish config loop_entry
             WpStrategy.Agoal s ca inv in
         let loop_back = add_prop_inv_preserve config loop_back
@@ -817,27 +812,11 @@ let add_loop_invariant_annot config vloop s ca b_list inv acc =
             WpStrategy.Ahyp s ca inv in
         assigns, loop_entry , loop_back , loop_core
       end
-  | TBRhyp -> (* TODO : add more inv hyp ? *)
-      let kind =
-        if Wp_parameters.Invariants.get()
-        then (WpStrategy.AcutB false) else WpStrategy.Ahyp
-      in
-      let loop_core =
-        add_prop_inv_fixpoint config loop_core kind s ca inv
+  | TBRhyp ->
+      let kind = WpStrategy.Ahyp in
+      let loop_core = add_prop_inv_fixpoint config loop_core kind s ca inv
       in assigns, loop_entry , loop_back , loop_core
   | TBRno -> acc
-
-let add_stmt_invariant_annot config v s ca b_list inv ((b_acc, a_acc) as acc) =
-  let add_to_acc k =
-    let b_acc = add_prop_inv_fixpoint config b_acc k s ca inv in
-    (b_acc, a_acc)
-  in
-  let acc =
-    match is_annot_for_config config v s b_list with
-    | TBRok | TBRpart -> add_to_acc (WpStrategy.AcutB true)
-    | TBRhyp -> add_to_acc (WpStrategy.AcutB false)
-    | TBRno -> acc
-  in acc
 
 (** Returns the annotations for the three edges of the loop node:
  * - loop_entry : goals for the edge entering in the loop
@@ -896,16 +875,16 @@ let get_loop_annots config vloop s =
 let get_stmt_annots config v s =
   let do_annot _ a ((b_acc, (a_acc, e_acc)) as acc) =
     match a.annot_content with
-    | AInvariant (b_list, loop_inv, inv) ->
+    | AInvariant (_blist, loop_inv, _inv) ->
         if loop_inv then (* see get_loop_annots *) acc
-        else if Wp_parameters.Invariants.get() then
-          add_stmt_invariant_annot config v s a b_list inv acc
-        else begin
-          Wp_parameters.warning ~once:true
-            "Ignored 'invariant' specification (use -wp-invariants option):@,  %a"
-            Printer.pp_code_annotation a;
-          acc
-        end
+        else
+          begin
+            Wp_parameters.warning ~once:true
+              "Unsupported generalized invariant, use loop invariant instead.\n\
+               Ignored invariant @[<hov 2>%a@]"
+              Printer.pp_code_annotation a;
+            acc
+          end
     | AAssert (b_list,p) ->
         let kf = config.kf in
         let acc = match is_annot_for_config config v s b_list with
@@ -925,10 +904,7 @@ let get_stmt_annots config v s =
     | AAssigns (_b_list, _assigns) ->
         (* loop assigns: see get_loop_annots *) acc
     | AVariant (_v, _rel) -> (* see get_loop_annots *) acc
-    | APragma _ ->
-        Wp_parameters.warning ~once:true "Ignored 'pragma' specification:@, %a"
-          Printer.pp_code_annotation a;
-        acc
+    | APragma _ -> acc
     | AStmtSpec (b_list, spec) ->
         if b_list <> [] then (* TODO ! *)
           Wp_parameters.warning ~once:true
@@ -1057,7 +1033,7 @@ let add_global_annotations annots =
   let rec do_global g =
     let (source,_) = Cil_datatype.Global_annotation.loc g in
     match g with
-    | Daxiomatic (_ax_name, globs,_) -> do_globals globs
+    | Daxiomatic (_ax_name, globs,_,_) -> do_globals globs
     | Dvolatile _ ->
         (* nothing to do *) ()
     | Dfun_or_pred _ ->
@@ -1074,7 +1050,7 @@ let add_global_annotations annots =
           "Model fields not handled yet (model field '%s' ignored)"
           mf.mi_name;
         ()
-    | Dcustom_annot (_c,_n,_) ->
+    | Dcustom_annot (_c,_n,_,_) ->
         Wp_parameters.warning ~source ~once:true
           "Custom annotation not handled (ignored)";
         ()
@@ -1083,7 +1059,7 @@ let add_global_annotations annots =
           "Global invariant not handled yet ('%s' ignored)"
           linfo.l_var_info.lv_name;
         ()
-    | Dlemma (name,_,_,_,_,_) ->
+    | Dlemma (name,_,_,_,_,_,_) ->
         WpStrategy.add_axiom annots (LogicUsage.logic_lemma name)
 
   and do_globals gs = List.iter do_global gs in
@@ -1118,12 +1094,11 @@ let build_bhv_strategy config =
   let annots = get_behavior_annots config in
   let annots = add_global_annotations annots in
   let desc = Format.asprintf "%a" pp_strategy_info config in
-  let new_loops = Wp_parameters.Invariants.get() in
   WpStrategy.mk_strategy desc config.cfg (behavior_name_of_config config)
-    new_loops WpStrategy.SKannots annots
+    WpStrategy.SKannots annots
 
 (* Visit the CFG to find all the internal statement specifications.
- * (see [HdefAnnotBhv] documentation for infomation about this table).
+ * (see [HdefAnnotBhv] documentation for information about this table).
 *)
 let internal_function_behaviors cfg =
   let def_annot_bhv = HdefAnnotBhv.create 42 in
@@ -1248,6 +1223,7 @@ let process_unreached_annots cfg =
         preconditions_at_call s call
     | Cil2cfg.Vstmt s
     | Cil2cfg.VblkIn (Cil2cfg.Bstmt s, _)
+    | Cil2cfg.VblkOut (Cil2cfg.Bstmt s, _)
     | Cil2cfg.Vtest (true, s, _) | Cil2cfg.Vloop (_, s) | Cil2cfg.Vswitch (s,_)
       -> Annotations.fold_code_annot (do_annot s) s acc
     | Cil2cfg.Vtest (false, _, _) | Cil2cfg.Vloop2 _
@@ -1274,7 +1250,7 @@ let build_configs assigns kf model behaviors ki property =
     | None -> ()
     | Some Kglobal ->
         debug
-          "[get_strategies] select in function properies@."
+          "[get_strategies] select in function properties@."
     | Some (Kstmt s) ->
         debug
           "[get_strategies] select stmt %d properties@." s.sid
@@ -1313,7 +1289,7 @@ let get_precond_strategies ~model p =
         else []
       in
       let call_sites = Kernel_function.find_syntactic_callsites kf in
-      let add_call_pre_stategy acc (kf_caller, stmt) =
+      let add_call_pre_strategy acc (kf_caller, stmt) =
         let asked = CallPre (stmt, Some p) in
         get_strategies NoAssigns kf_caller model [] None asked @ acc
       in
@@ -1322,7 +1298,7 @@ let get_precond_strategies ~model p =
            "No direct call sites for function '%a': cannot check pre-conditions"
            Kernel_function.pretty kf;
          strategies)
-      else List.fold_left add_call_pre_stategy strategies call_sites
+      else List.fold_left add_call_pre_strategy strategies call_sites
   | _ ->
       invalid_arg "[get_precond_strategies] not a function precondition"
 
@@ -1343,6 +1319,10 @@ let get_call_pre_strategies ~model stmt =
             let asked = CallPre (stmt, None) in
             get_strategies NoAssigns kf_caller model [] None asked
       in strategies
+  | Instr(Local_init(_, ConsInit _, _)) ->
+      let kf_caller = Kernel_function.find_englobing_kf stmt in
+      let asked = CallPre(stmt, None) in
+      get_strategies NoAssigns kf_caller model [] None asked
   | _ -> Wp_parameters.warning
            "[get_call_pre_strategies] this is not a call statement"; []
 

@@ -16,7 +16,7 @@ tests/pdg/pb_infinite_loop.c:37:[pdg] warning: no final state. Probably unreacha
 [pdg] PDG for test_infinite_loop_2
  {n1}: InCtrl
  {n2}: VarDecl : i
- {n3}: i = 0;
+ {n3}: int i = 0;
    -[-c-]-> 1
    -[a--]-> 2
  {n4}: return G;

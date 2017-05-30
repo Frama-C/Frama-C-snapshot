@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -128,10 +128,10 @@ module Memory : sig
   (** Default value to use for storing the dependencies of [\result] *)
   val default_return: return
 
-  (** Completly imprecise return *)
+  (** Completely imprecise return *)
   val top_return: return
 
-  (** Completly imprecise return of the given size *)
+  (** Completely imprecise return of the given size *)
   val top_return_size: Int_Base.t -> return
 
   (** Add some dependencies to [\result], between bits [start] and

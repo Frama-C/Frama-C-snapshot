@@ -3,15 +3,15 @@
 [kernel] Parsing tests/wp_acsl/classify_float.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acos, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acosf, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acosh, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acoshf, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acoshl, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function acosl, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function asin, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function asinf, generating default assigns from the specification
-FRAMAC_SHARE/libc/math.h:429:[kernel] warning: No code nor implicit assigns clause for function asinl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acos, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acosf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acosh, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acoshf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acoshl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function acosl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function asin, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function asinf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clause for function asinl, generating default assigns from the specification
 ------------------------------------------------------------
   Global
 ------------------------------------------------------------

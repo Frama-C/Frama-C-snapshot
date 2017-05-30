@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,12 +55,14 @@ let input_channel b ic =
     Buffer.add_subbytes b buf 0 !len
   done
 
+(* returns [true] in case of success, [false] otherwise *)
 let with_file name ~f =
   try
     let ic = open_in_gen [Open_rdonly] 0o644 name in
-    try f ic; close_in ic with _exn ->
-      close_in ic (*; !flash_info ("Error: "^Printexc.to_string exn)*)
-  with _exn -> ()
+    try f ic; close_in ic; true with _exn ->
+      close_in ic; (*; !flash_info ("Error: "^Printexc.to_string exn)*)
+      false
+  with _exn -> false
 
 let clear w =
   begin
@@ -111,8 +113,12 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
         let window = (original_source_view :> GText.view) in
         let page_num = w.notebook#page_num sw#coerce in
         let b = Buffer.create 1024 in
-        with_file filename ~f:(input_channel b) ;
-        let s = Wutil.to_utf8 (Buffer.contents b) in
+        let s =
+          if with_file filename ~f:(input_channel b) then
+            Wutil.to_utf8 (Buffer.contents b)
+          else
+            "Error: cannot open file '" ^ (Filepath.pretty filename) ^ "'"
+        in
         Buffer.reset b;
         let (buffer:GText.buffer) = window#buffer in
         buffer#set_text s;

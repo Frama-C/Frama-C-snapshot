@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,12 @@ open Cil_types
 open Metrics_base
 ;;
 
+type cilast_metrics = {
+  fundecl_calls: int Metrics_base.VInfoMap.t;
+  fundef_calls: int Metrics_base.VInfoMap.t;
+  extern_global_vars: Metrics_base.VInfoSet.t;
+  basic_metrics: BasicMetrics.t
+}
 
 (** Syntactic metrics
    =================
@@ -43,7 +49,7 @@ class type sloc_visitor = object
   (* Global variables with 'Extern' storage *)
   method extern_global_vars: Metrics_base.VInfoSet.t
 
-  (* Get the computed metris *)
+  (* Get the computed metrics *)
   method get_metrics: BasicMetrics.t
 
   (* Print the metrics of a file [string] to a formatter
@@ -62,7 +68,7 @@ end
    These metrics are a necessary step to compute cyclomatic complexity.
 *)
 open BasicMetrics ;;
-class slocVisitor : sloc_visitor = object(self)
+class slocVisitor ~libc : sloc_visitor = object(self)
   inherit Visitor.frama_c_inplace
 
 
@@ -72,7 +78,7 @@ class slocVisitor : sloc_visitor = object(self)
   val local_metrics = ref BasicMetrics.empty_metrics
 
   (* Local metrics are kept stored after computation in this map of maps.
-     Its storing hierachy is as follows: filename -> function_name -> metrics
+     Its storing hierarchy is as follows: filename -> function_name -> metrics
   *)
   val mutable metrics_map:
       (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
@@ -187,13 +193,14 @@ class slocVisitor : sloc_visitor = object(self)
   method! vvdec vi =
     if not (Varinfo.Set.mem vi seen_vars) then (
       if Cil.isFunctionType vi.vtype then (
-        if consider_function vi then begin
+        if consider_function ~libc vi then begin
           global_metrics := incr_funcs !global_metrics;
           (* Mark the function as seen, adding 0 to the number of calls *)
           self#update_call_maps vi 0;
         end
       ) else (
-        if vi.vglob && not vi.vtemp && Metrics_base.consider_variable vi
+        if vi.vglob && not vi.vtemp &&
+           Metrics_base.consider_variable ~libc vi
         then (
           global_metrics:= incr_glob_vars !global_metrics;
           if vi.vstorage = Extern then
@@ -205,7 +212,7 @@ class slocVisitor : sloc_visitor = object(self)
     Cil.SkipChildren
       
   method! vfunc fdec =
-    if consider_function fdec.svar then
+    if consider_function ~libc fdec.svar then
       begin
         (* Here, we get to a fundec definition.this function has a body,
            let's put it to the "function with source" table. *)
@@ -300,14 +307,14 @@ class slocVisitor : sloc_visitor = object(self)
         begin
           match an with
             | Dfun_or_pred (li, _) -> li.l_var_info.lv_name
-            | Dvolatile (_, _, _, _) -> " (Volatile) "
-            | Daxiomatic (s, _, _) -> s
+            | Dvolatile (_, _, _, _, _) -> " (Volatile) "
+            | Daxiomatic (s, _, _, _) -> s
             | Dtype (lti, _) ->  lti.lt_name
-            | Dlemma (ln, _, _, _, _, _) ->  ln
+            | Dlemma (ln, _, _, _, _, _, _) ->  ln
             | Dinvariant (toto, _) -> toto.l_var_info.lv_name
             | Dtype_annot (ta, _) -> ta.l_var_info.lv_name
             | Dmodel_annot (mi, _) -> mi.mi_name
-            | Dcustom_annot (_c, _n, _) -> " (Custom) "
+            | Dcustom_annot (_c, _n, _, _) -> " (Custom) "
         end
 
   method private images (globs:global list) =
@@ -316,7 +323,7 @@ class slocVisitor : sloc_visitor = object(self)
     String.concat "," les_images
 
   method private update_call_maps vinfo increment =
-    if consider_function vinfo then
+    if consider_function ~libc vinfo then
       let update_call_map funcmap =
         self#add_map funcmap vinfo
           (increment + try VInfoMap.find vinfo !funcmap with Not_found-> 0)
@@ -328,13 +335,25 @@ class slocVisitor : sloc_visitor = object(self)
 
   method! vinst i =
     begin match i with
-      | Call(_, e, _, _) ->
+      | Call(v, e, _, _) ->
         self#incr_both_metrics incr_calls;
         (match e.enode with
           | Lval(Var vinfo, NoOffset) -> self#update_call_maps vinfo 1
           | _ -> ());
+        (match v with
+         | Some _ -> self#incr_both_metrics incr_assigns
+         | None -> ());
       | Set _ -> self#incr_both_metrics incr_assigns;
-      | _ -> ()
+      | Local_init (_, AssignInit _, _) -> self#incr_both_metrics incr_assigns
+      | Local_init (_, ConsInit(f,_, k),_) ->
+        (* if f takes the address of the initialized variable as first
+           argument, there's no explicit assignment in the current function. *)
+        (match k with
+         | Plain_func -> self#incr_both_metrics incr_assigns
+         | Constructor -> ());
+        self#incr_both_metrics incr_calls;
+        self#update_call_maps f 1
+      | Asm _ | Skip _ | Code_annot _ -> ()
     end;
     Cil.DoChildren
 
@@ -450,19 +469,33 @@ let pp_with_funinfo fmt cil_visitor =
     pp_base_metrics cil_visitor#get_metrics
 ;;
 
-let get_metrics () =
+let get_metrics ~libc =
   let file = Ast.get () in
    (* Do as before *)
-  let cil_visitor = new slocVisitor in
+  let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
   cil_visitor#get_metrics
 ;;
 
-let compute_on_cilast () =
+let get_cilast_metrics ~libc =
   let file = Ast.get () in
   (* Do as before *)
-  let cil_visitor = new slocVisitor in
+  let cil_visitor = new slocVisitor ~libc in
+  Visitor.visitFramacFileSameGlobals
+    (cil_visitor:>Visitor.frama_c_visitor) file;
+  {
+    fundecl_calls = cil_visitor#fundecl_calls;
+    fundef_calls = cil_visitor#fundef_calls;
+    extern_global_vars = cil_visitor#extern_global_vars;
+    basic_metrics = cil_visitor#get_metrics;
+  }
+;;
+
+let compute_on_cilast ~libc =
+  let file = Ast.get () in
+  (* Do as before *)
+  let cil_visitor = new slocVisitor ~libc in
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
   if Metrics_parameters.ByFunction.get () then
@@ -510,47 +543,39 @@ class locals_size_visitor kf callstack = object
   inherit Visitor.frama_c_inplace
 
   method! vinst i = match i with
-    | Call (_, e, _, _) ->
+    | Call (_, { enode = Lval(Var vi, NoOffset) }, _, _)
+    | Local_init(_, ConsInit(vi,_,_),_) ->
       begin
-        match e.enode with
-        | Lval ((Var vi), _) ->
-          begin
-            try
-              let kf' = Globals.Functions.find_by_name vi.vname in
-              Metrics_parameters.debug
-                "@[function %a:@;computing call to function %a@]"
-                Kernel_function.pretty kf Kernel_function.pretty kf';
-              let new_cs = kf' :: callstack in
-              if List.mem kf' callstack then
-                Metrics_parameters.abort
-                  "@[unsupported recursive call detected:@;%a@]"
-                  (Pretty_utils.pp_list ~sep:"@ <-@ " Kernel_function.pretty)
-                  (List.rev new_cs);
-              let new_vis = new locals_size_visitor kf' new_cs in
-              ignore (Visitor.visitFramacKf
-                        (new_vis :> Visitor.frama_c_visitor) kf');
-              let call_size_no_temps =
-                Integer.add new_vis#get_max_size_calls_no_temps
-                  new_vis#get_locals_size_no_temps
-              in
-              let call_size_temps =
-                Integer.add new_vis#get_max_size_calls_temps
-                  new_vis#get_locals_size_temps
-              in
-              max_size_calls_no_temps <-
-                Integer.max max_size_calls_no_temps call_size_no_temps;
-              max_size_calls_temps <-
-                Integer.max max_size_calls_temps call_size_temps
-            with Not_found ->
-              (* should not happen *)
-              Metrics_parameters.fatal ~current:true
-                "@[function not found:@;%s@]" vi.vname;
-          end;
-          ()
-        | _ ->
-          Metrics_parameters.warning ~current:true
-            "@[ignoring unsupported function call in expression:@;%a@]"
-            Printer.pp_exp e
+        try
+          let kf' = Globals.Functions.find_by_name vi.vname in
+          Metrics_parameters.debug
+            "@[function %a:@;computing call to function %a@]"
+            Kernel_function.pretty kf Kernel_function.pretty kf';
+          let new_cs = kf' :: callstack in
+          if List.mem kf' callstack then
+            Metrics_parameters.abort
+              "@[unsupported recursive call detected:@;%a@]"
+              (Pretty_utils.pp_list ~sep:"@ <-@ " Kernel_function.pretty)
+              (List.rev new_cs);
+          let new_vis = new locals_size_visitor kf' new_cs in
+          ignore (Visitor.visitFramacKf
+                    (new_vis :> Visitor.frama_c_visitor) kf');
+          let call_size_no_temps =
+            Integer.add new_vis#get_max_size_calls_no_temps
+              new_vis#get_locals_size_no_temps
+          in
+          let call_size_temps =
+            Integer.add new_vis#get_max_size_calls_temps
+              new_vis#get_locals_size_temps
+          in
+          max_size_calls_no_temps <-
+            Integer.max max_size_calls_no_temps call_size_no_temps;
+          max_size_calls_temps <-
+            Integer.max max_size_calls_temps call_size_temps
+        with Not_found ->
+          (* should not happen *)
+          Metrics_parameters.fatal ~current:true
+            "@[function not found:@;%s@]" vi.vname;
       end;
       Cil.DoChildren
     | _ -> Cil.DoChildren

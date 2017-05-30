@@ -21,10 +21,8 @@ tests/misc/m12_2.i:55:[kernel] warning: Unspecified sequence with side effect:
 tests/misc/m12_2.i:59:[kernel] warning: Unspecified sequence with side effect:
                   /* x <- tmp_1 */
                   x = 3;
-                  { /* sequence */
-                    tmp_1 = x;
-                    x ++;
-                  }
+                  tmp_1 = x;
+                  x ++;
                   
                   /*  <- x */
 tests/misc/m12_2.i:63:[kernel] warning: Unspecified sequence with side effect:
@@ -55,11 +53,9 @@ tests/misc/m12_2.i:81:[kernel] warning: Unspecified sequence with side effect:
                   */
                   if ((3 * 8) * 1) {
                     SI_32 tmp_5;
-                    { /* sequence */
-                      tmp_5 = i;
-                      i ++;
-                      
-                    }
+                    tmp_5 = i;
+                    i ++;
+                    
                     if (tmp_5) tmp_6 = 1; else tmp_6 = 0;
                   }
                   else tmp_6 = 0;
@@ -73,11 +69,9 @@ tests/misc/m12_2.i:85:[kernel] warning: Unspecified sequence with side effect:
                   if ((3 * 8) * 0) tmp_9 = 1;
                   else {
                     SI_32 tmp_8;
-                    { /* sequence */
-                      tmp_8 = i;
-                      i ++;
-                      
-                    }
+                    tmp_8 = i;
+                    i ++;
+                    
                     if (tmp_8) tmp_9 = 1; else tmp_9 = 0;
                   }
                   /* z <-  */

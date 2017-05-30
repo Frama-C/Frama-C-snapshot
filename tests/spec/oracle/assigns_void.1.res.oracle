@@ -20,13 +20,12 @@ tests/spec/assigns_void.c:11:[kernel] warning: Neither code nor specification fo
 /*@ assigns *((char *)x + (0 ..));
     assigns *((char *)x + (0 ..)) \from *((char *)x + (0 ..));
  */
-extern void f(void *x);
+void f(void *x);
 
 void g(void)
 {
   int y;
-  int *x;
-  x = & y;
+  int *x = & y;
   f((void *)x);
   return;
 }

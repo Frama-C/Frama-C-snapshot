@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_FCNTL
 #define __FC_FCNTL
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "__fc_define_off_t.h"
 #include "__fc_define_pid_t.h"
@@ -110,13 +111,13 @@ struct flock
 #define	O_NOCTTY	0x8000		/* don't assign controlling terminal */
 
 /*@ assigns \result \from filename[0..], mode ; */
-int creat(const char *filename, mode_t mode);
+extern int creat(const char *filename, mode_t mode);
 /*@ assigns \result \from fd, cmd ; */
-int fcntl(int fd, int cmd, ...);
+extern int fcntl(int fd, int cmd, ...);
 /*@ assigns \result \from filename[0..], flags ; */
-int open(const char *filename, int flags, ...);
+extern int open(const char *filename, int flags, ...);
 /*@ assigns \result \from dirfd, filename[0..], flags ; */
-int openat(int dirfd, const char *filename, int flags, ...);
+extern int openat(int dirfd, const char *filename, int flags, ...);
 
 
 
@@ -127,28 +128,29 @@ int openat(int dirfd, const char *filename, int flags, ...);
 /*@ requires valid_cmd: cmd == F_GETFD || cmd == F_GETFL ||
                         cmd == F_GETOWN ;
     assigns \result \from fd, cmd ; */
-int __va_fcntl_void(int fd, int cmd);
+extern int __va_fcntl_void(int fd, int cmd);
 /*@ requires valid_cmd: cmd == F_DUPFD || cmd == F_SETFD ||
                         cmd == F_SETFL || cmd == F_SETOWN ;
     assigns \result \from fd, cmd, arg ;*/
-int __va_fcntl_int(int fd, int cmd, int arg);
+extern int __va_fcntl_int(int fd, int cmd, int arg);
 /*@ requires valid_cmd: cmd == F_GETLK || cmd == F_SETLK ||
                         cmd == F_SETLKW ;
     requires valid_arg: \valid(arg) ; 
     assigns \result, *arg \from fd, cmd, *arg ; */
-int __va_fcntl_flock(int fd, int cmd, struct flock *arg);
+extern int __va_fcntl_flock(int fd, int cmd, struct flock *arg);
 /*@ requires valid_flag: !(flags & O_CREAT) ;
     assigns \result \from filename[0..], flags ; */
-int __va_open_void(const char *filename, int flags);
+extern int __va_open_void(const char *filename, int flags);
 /*@ assigns \result \from filename[0..], flags, mode ; */
-int __va_open_mode_t(const char *filename, int flags, mode_t mode);
+extern int __va_open_mode_t(const char *filename, int flags, mode_t mode);
 /*@ requires valid_flag: !(flags & O_CREAT) ;
     assigns \result \from dirfd, filename[0..], flags ; */
-int __va_openat_void(int dirfd, const char *filename, int flags);
+extern int __va_openat_void(int dirfd, const char *filename, int flags);
 /*@ assigns \result \from dirfd, filename[0..], flags, mode ; */
-int __va_openat_mode_t(int dirfd, const char *filename, int flags, mode_t mode);
+extern int __va_openat_mode_t(int dirfd, const char *filename, int flags, mode_t mode);
 
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -pp-annot -val -journal-disable
+   OPT: -pp-annot -val -val-show-progress -journal-disable
 */
 
 // see bts 1357

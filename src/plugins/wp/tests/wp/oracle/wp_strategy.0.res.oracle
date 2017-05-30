@@ -45,7 +45,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function default_behaviors with behavior default_for_stmt_55
+  Function default_behaviors with behavior default_for_stmt_54
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,stmt_p' at block:
@@ -71,7 +71,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function dpd1 with behavior default_for_stmt_11
+  Function dpd1 with behavior default_for_stmt_10
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 37):
@@ -93,7 +93,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function dpd2 with behavior default_for_stmt_16
+  Function dpd2 with behavior default_for_stmt_15
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 45):
@@ -115,7 +115,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function spec_if with behavior default_for_stmt_21
+  Function spec_if with behavior default_for_stmt_20
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' at block:
@@ -128,7 +128,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function spec_if with behavior default_for_stmt_27
+  Function spec_if with behavior default_for_stmt_26
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' at block:
@@ -136,7 +136,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function spec_if with behavior default_for_stmt_33
+  Function spec_if with behavior default_for_stmt_32
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' at block:
@@ -144,7 +144,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function spec_if_cond with behavior default_for_stmt_41
+  Function spec_if_cond with behavior default_for_stmt_40
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' at block:
@@ -152,7 +152,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function spec_if_not_cond with behavior default_for_stmt_49
+  Function spec_if_not_cond with behavior default_for_stmt_48
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' at if-then-else (file tests/wp/wp_strategy.c, line 80):

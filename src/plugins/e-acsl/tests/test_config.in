@@ -1,0 +1,6 @@
+CMD: @frama-c@ -e-acsl-share ./share/e-acsl
+OPT: -e-acsl-check -e-acsl-verbose 0
+FILTER:@SEDCMD@ -e "s|[a-zA-Z/\\]\+frama_c_project_e-acsl_[a-z0-9]*|PROJECT_FILE|" -e "s|$FRAMAC_SHARE|FRAMAC_SHARE|g" -e "s|../../share|FRAMAC_SHARE|g" -e "s|./share/e-acsl|FRAMAC_SHARE/e-acsl|g" -e "s|share/e-acsl|FRAMAC_SHARE/e-acsl|g"
+COMMENT: The last regex works around the tendency of Frama-C to transform
+COMMENT: absolute path into relative ones whenever the file is not too far
+COMMENT: away from cwd.

@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model +ref
+   OPT: -wp-model +ref
 */
 
 /*@ assigns \nothing ; 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -441,7 +441,8 @@ module Value = struct
 
   module Call_Type_Value_Callbacks =
     Hook.Build(struct
-      type t = [`Builtin of Value_types.call_result | `Spec | `Def | `Memexec]
+      type t = [`Builtin of Value_types.call_result | `Spec of funspec
+               | `Def | `Memexec]
         * state * (kernel_function * kinstr) list end)
   ;;
 
@@ -592,7 +593,7 @@ module Value = struct
 
   let access_location = mk_fun "Value.access_location"
 
-  let find state loc = snd (Cvalue.Model.find state loc)
+  let find state loc = Cvalue.Model.find state loc
 
   let access =  mk_fun "Value.access"
   let access_expr =  mk_fun "Value.access_expr"
@@ -620,6 +621,8 @@ module Value = struct
   let eval_expr_with_state =
     ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr_with_state")
 
+  let reduce_by_cond = mk_fun "Value.reduce_by_cond"
+
   let find_lv_plus = mk_fun "Value.find_lv_plus"
 
   let pretty_state = Cvalue.Model.pretty
@@ -642,6 +645,8 @@ module Value = struct
             ~with_alarms:CilE.warn_none_mode ~deps:None
             (Kstmt call_stmt) fexp
         in called_functions
+    | Instr(Local_init(_, ConsInit(f,_,_),_)) ->
+      Kernel_function.Hptset.singleton (Globals.Functions.get f)
     | _ -> raise Not_a_call
 
 
@@ -654,6 +659,8 @@ module Value = struct
   let lval_to_zone = mk_fun "Value.lval_to_zone"
   let lval_to_zone_state = mk_fun "Value.lval_to_zone_state"
   let lval_to_zone_with_deps_state = mk_fun "Value.lval_to_zone_with_deps_state"
+  let lval_to_precise_loc_state =
+    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.lval_to_precise_loc")
   let lval_to_precise_loc_with_deps_state =
     mk_fun "Value.lval_to_precise_loc_with_deps_state"
   let assigns_inputs_to_zone = mk_fun "Value.assigns_inputs_to_zone"
@@ -855,9 +862,6 @@ end
 (** Interface for the slicing tool. *)
 module Slicing = struct
 
-  exception No_Project
-  exception Existing_Project
-
   let self = ref State.dummy
 
   let set_modes =
@@ -866,9 +870,6 @@ module Slicing = struct
 
   (* TODO: merge with frama-c projects (?) *)
   module Project = struct
-    type t = SlicingTypes.sl_project
-    let dyn_t = SlicingTypes.Sl_project.ty
-
     let default_slice_names = mk_fun "Slicing.Project.default_slice_names"
     let extract = mk_fun "Slicing.Project.extract"
     let pretty = mk_fun "Slicing.Project.pretty"
@@ -876,15 +877,10 @@ module Slicing = struct
       ref (fun ?fmt:_ ~extracted_prj:_ ->
              mk_labeled_fun "Slicing.Project.print_extracted_project")
     let print_dot =
-      ref (fun ~filename:_ ~title:_ _ ->
+      ref (fun ~filename:_ ~title:_ ->
              mk_labeled_fun "Slicing.Project.print_dot")
 
-    let get_all = mk_fun "Slicing.Project.get_all"
-    let get_project = mk_fun "Slicing.Project.get_project"
-    let set_project = mk_fun "Slicing.Project.set_project"
-    let mk_project = mk_fun "Slicing.Project.mk_project"
-    let from_unique_name = mk_fun "Slicing.Project.from_unique_name"
-    let get_name = mk_fun "Slicing.Project.get_name"
+    let reset_slice = mk_fun "Slicing.Project.reset_slice"
 
     let is_directly_called_internal =
       mk_fun "Slicing.Project.is_directly_called_internal"
@@ -1012,14 +1008,14 @@ module Slicing = struct
       mk_fun "Slicing.Request.add_slice_selection_internal"
     let add_selection_internal =
       mk_fun "Slicing.Request.add_selection_internal"
-    let add_call_slice = mk_fun "Slicing.Request.add_call_slice"
-    let add_call_fun = mk_fun "Slicing.Request.add_call_fun"
-    let add_call_min_fun = mk_fun "Slicing.Request.add_call_min_fun"
+    let add_call_slice = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_slice")
+    let add_call_fun = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_fun")
+    let add_call_min_fun = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_min_fun")
     let merge_slices = mk_fun "Slicing.Request.merge_slices"
     let copy_slice = mk_fun "Slicing.Request.copy_slice"
     let split_slice = mk_fun "Slicing.Request.split_slice"
     let propagate_user_marks = mk_fun "Slicing.Request.propagate_user_marks"
-    let apply_all = mk_fun "Slicing.Request.apply_all"
+    let apply_all = ref (fun ~propagate_to_callers:_ -> mk_labeled_fun "Slicing.Request.apply_all")
     let apply_all_internal = mk_fun "Slicing.Request.apply_all_internal"
     let apply_next_internal = mk_fun "Slicing.Request.apply_next_internal"
     let is_request_empty_internal = mk_fun "Slicing.Request.is_request_empty_internal"

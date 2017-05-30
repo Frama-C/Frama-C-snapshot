@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,6 +67,22 @@ class virtual do_it_ = object(self)
             Zone.pretty deps; *)
     self#join deps;
 
+  method private do_arg_calls f args =
+    let state = Db.Value.get_state self#current_kinstr in
+    (if Cvalue.Model.is_top state then
+       self#join Zone.top
+     else
+       let deps_callees, callees =
+         !Db.Value.expr_to_kernel_function_state
+           ~deps:(Some Zone.bottom) state f
+       in
+       self#join deps_callees;
+       Kernel_function.Hptset.iter
+         (fun kf -> self#join (self#compute_kf kf)) callees;
+    );
+    List.iter
+      (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp)) args
+
   method! vinst i =
     if Db.Value.is_reachable (Db.Value.get_state self#current_kinstr) then begin
       match i with
@@ -75,27 +91,34 @@ class virtual do_it_ = object(self)
           ignore (visitFramacExpr (self:>frama_c_visitor) exp);
           Cil.SkipChildren
 
+      | Local_init(v, AssignInit i,_) ->
+        let rec aux lv = function
+          | SingleInit e ->
+            self#do_assign lv;
+            ignore (visitFramacExpr (self:>frama_c_visitor) e)
+          | CompoundInit (ct,initl) ->
+            let implicit = true in
+            let doinit o i _ () =
+              ignore (visitFramacOffset (self:>frama_c_visitor) o);
+              aux (Cil.addOffsetLval o lv) i
+            in
+            Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc:()
+        in
+        aux (Cil.var v) i;
+        Cil.SkipChildren
+
       | Call (lv_opt,exp,args,_) ->
-        (match lv_opt with None -> ()
-        | Some lv -> self#do_assign lv);
-          let state = Db.Value.get_state self#current_kinstr in
-          (if Cvalue.Model.is_top state then
-              self#join Zone.top
-           else
-              let deps_callees, callees =
-                !Db.Value.expr_to_kernel_function_state
-                  ~deps:(Some Zone.bottom)
-                  state exp
-              in
-              self#join deps_callees;
-              Kernel_function.Hptset.iter
-                (fun kf -> self#join (self#compute_kf kf)) callees;
-          );
-          List.iter
-            (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp))
-            args;
-          Cil.SkipChildren
-      | _ -> Cil.DoChildren
+        Extlib.may self#do_assign lv_opt;
+        self#do_arg_calls exp args;
+        Cil.SkipChildren
+      | Local_init(v, ConsInit(f, args, Plain_func), _) ->
+        self#do_assign (Cil.var v);
+        self#do_arg_calls (Cil.evar f) args;
+        Cil.SkipChildren
+      | Local_init(v, ConsInit(f, args, Constructor), _) ->
+        self#do_arg_calls (Cil.evar f) (Cil.mkAddrOfVi v :: args);
+        Cil.SkipChildren
+      | Skip _ | Asm _ | Code_annot _ -> Cil.DoChildren
     end
     else Cil.SkipChildren
 
@@ -110,6 +133,9 @@ class virtual do_it_ = object(self)
         in
         self#join deps;
         Cil.SkipChildren
+    | SizeOfE _ | AlignOfE _ | SizeOf _ | AlignOf _ ->
+      (* we're not evaluating an expression here: there's no input. *)
+      Cil.SkipChildren
     | _ -> Cil.DoChildren
 
   method compute_funspec kf =

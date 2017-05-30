@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
    STDOPT: #"-main main"
-   OPT: -val @VALUECONFIG@ -main main6 -journal-disable -then -deps
+   STDOPT: +"-no-input -no-out -main main6"
    */
 int G,H,J;
 int *p, *q;

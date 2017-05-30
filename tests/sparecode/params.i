@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable
-   OPT: -slicing-level 2 -slice-return main -journal-disable -then-on 'Slicing export' -print
+   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -journal-disable
+   OPT: -val-show-progress -slicing-level 2 -slice-return main -journal-disable -then-last -print -val-show-progress
 */
 
 /* This is an example from #529. 'y' in [main1] should be visible to get a

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,12 +25,12 @@ open Cil_datatype
 
 let compare_vi_names v1 v2 = Extlib.compare_ignore_case v1.vname v2.vname
 
-class coverageAuxVisitor = object(self)
+class coverageAuxVisitor ~libc = object(self)
   inherit Visitor.frama_c_inplace
 
   (* Visit the body and the spec of a function *)
   method private visit_function vi =
-    if Metrics_base.consider_function vi then
+    if Metrics_base.consider_function ~libc vi then
       let kf = Globals.Functions.get vi in
       let self = (self :> Visitor.frama_c_visitor) in
       (* Visit the spec. There might be references to function pointers in
@@ -45,7 +45,7 @@ class coverageAuxVisitor = object(self)
 
   (* Visit the initializer of the given var, if it exists, and returns it *)
   method private visit_non_function_var vi =
-    if Metrics_base.consider_variable vi then
+    if Metrics_base.consider_variable ~libc vi then
       try
         (* Visit the initializer if there is one *)
         let init = Globals.Vars.find vi in
@@ -63,8 +63,8 @@ end
 (* Reachability metrics: from a given entry point
    compute a conservative estimation
    of the functions that can be transitively called *)
-class callableFunctionsVisitor = object(self)
-  inherit coverageAuxVisitor as super
+class callableFunctionsVisitor ~libc = object(self)
+  inherit coverageAuxVisitor ~libc as super
 
   (* Functions reachable syntactically *)
   val mutable callable = Varinfo.Set.empty
@@ -86,7 +86,7 @@ class callableFunctionsVisitor = object(self)
   method! vvrbl vi =
     if not (self#already_seen vi) then begin
       if Cil.isFunctionType vi.vtype &&
-           Metrics_base.consider_function vi
+           Metrics_base.consider_function ~libc vi
       then
         callable <- Varinfo.Set.add vi callable;
       Stack.push vi todo;
@@ -114,7 +114,7 @@ class callableFunctionsVisitor = object(self)
         begin
           Metrics_parameters.debug "Coverage: visiting %s" vi.vname;
           Varinfo.Hashtbl.add visited vi ();
-          if Cil.isFunctionType vi.vtype && Metrics_base.consider_function vi
+          if Cil.isFunctionType vi.vtype && Metrics_base.consider_function ~libc vi
           then self#visit_function vi
           else ignore (self#visit_non_function_var vi)
         end;
@@ -123,17 +123,23 @@ class callableFunctionsVisitor = object(self)
 
 end
 
-class deadCallsVisitor fmt ~syntactic ~semantic initializers =
-  let unseen = Varinfo.Set.diff syntactic semantic in
+type coverage_metrics = {
+  syntactic: Cil_datatype.Varinfo.Set.t;
+  semantic: Cil_datatype.Varinfo.Set.t;
+  initializers: (Cil_types.varinfo * Cil_types.init) list;
+}
+
+class deadCallsVisitor fmt ~libc cov_metrics =
+  let unseen = Varinfo.Set.diff cov_metrics.syntactic cov_metrics.semantic in
 object(self)
-  inherit coverageAuxVisitor
+  inherit coverageAuxVisitor ~libc
 
   val mutable current_initializer = None
 
   (* When an unseen function is reachable by the body of a function reached,
      or inside an initializer, display the information *)
   method private reached_fun vi =
-    if Metrics_base.consider_function vi && Varinfo.Set.mem vi unseen then
+    if Metrics_base.consider_function ~libc vi && Varinfo.Set.mem vi unseen then
       match self#current_kf with
       | None ->
           (match current_initializer with
@@ -144,10 +150,14 @@ object(self)
                    vinit.vname vi.vname Cil.pp_thisloc
           )
       | Some f ->
-        if Varinfo.Set.mem (Kernel_function.get_vi f) semantic then
+        if Varinfo.Set.mem (Kernel_function.get_vi f) cov_metrics.semantic then
           let mess =
             match self#current_stmt with
-              | Some {skind = Instr (Call (_, {enode = Lval (Var v, _)}, _, _))}
+              | Some
+                  {skind =
+                     Instr (
+                       Call (_, {enode = Lval (Var v, NoOffset)}, _, _)
+                     | Local_init (_, ConsInit(v, _, _),_))}
                   when Varinfo.equal v vi -> "calls"
               | _ -> "references"
           in
@@ -160,17 +170,17 @@ object(self)
     if Cil.isFunctionType vi.vtype then self#reached_fun vi;
     Cil.SkipChildren (* no children anyway *)
 
-
+  (* uses initializers *)
   method compute_and_print =
-    if not (Varinfo.Set.is_empty unseen) || initializers <> [] then begin
+    if not (Varinfo.Set.is_empty unseen) || cov_metrics.initializers <> [] then begin
       Format.fprintf fmt "@[<v>%a@ "
         (Metrics_base.mk_hdr 2) "References to non-analyzed functions";
       let sorted_semantic =
-        List.sort compare_vi_names (Varinfo.Set.elements semantic)
+        List.sort compare_vi_names (Varinfo.Set.elements cov_metrics.semantic)
       in
       List.iter self#visit_function sorted_semantic;
       let sorted_initializers =
-        List.sort (fun (v1, _) (v2, _) -> compare_vi_names v1 v2) initializers
+        List.sort (fun (v1, _) (v2, _) -> compare_vi_names v1 v2) cov_metrics.initializers
       in
       List.iter (fun (vinit, init) ->
                    current_initializer <- Some vinit;
@@ -218,163 +228,162 @@ let compute_coverage_by_fun semantic =
       if c = 0 then compare kf1 kf2 else c
     ) res
 
-let pp_unreached_calls fmt ~syntactic ~semantic initializers =
-  let v = new deadCallsVisitor fmt ~syntactic ~semantic initializers in
-  v#compute_and_print
-;;
-
-let compute_syntactic kf =
-  let vis = new callableFunctionsVisitor in
+let compute_syntactic ~libc kf =
+  let vis = new callableFunctionsVisitor ~libc in
   let res = vis#compute (Kernel_function.get_vi kf) in
   res, vis#initializers
 ;;
 
-let compute_semantic () =
+let compute_semantic ~libc =
   assert (Db.Value.is_computed ());
   let res = ref Varinfo.Set.empty in
   (* Just iter on all the functions and consult the appropriate table *)
   Globals.Functions.iter
     (fun kf ->
        if !Db.Value.is_called kf &&
-            Metrics_base.consider_function (Kernel_function.get_vi kf)
+          Metrics_base.consider_function ~libc
+            (Kernel_function.get_vi kf)
        then
          res := Varinfo.Set.add (Kernel_function.get_vi kf) !res
     );
   !res
 ;;
 
-let pp_fun_set_by_file fmt set =
-  let add_binding map filename fvinfo =
-    let set =
-      try
-        let x = Datatype.String.Map.find filename map in
-        Varinfo.Set.add fvinfo x
-      with Not_found -> Varinfo.Set.add fvinfo Varinfo.Set.empty
-    in Datatype.String.Map.add filename set map
-  in
-  let map =
-    Varinfo.Set.fold
-      (fun fvinfo acc ->
-         if Metrics_base.consider_function fvinfo then
-           let fname = Metrics_base.file_of_vinfodef fvinfo in
-           add_binding acc fname fvinfo
-         else acc
-      ) set Datatype.String.Map.empty
-  in
-  Format.fprintf fmt "@[<v 0>";
-  Datatype.String.Map.iter
-    (fun fname fvinfoset ->
-       Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
-         (Filepath.pretty fname)
-         (fun fmt vinfoset ->
-            let vars = Varinfo.Set.elements vinfoset in
-            let sorted_vars = List.sort compare_vi_names vars in
-            List.iter
-              (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
-              sorted_vars
-         ) fvinfoset
-    ) map;
+class syntactic_printer ~libc reachable = object(self)
+
+  method private all_funs =
+    Globals.Functions.fold
+      (fun kf acc ->
+         let vi = Kernel_function.get_vi kf in
+         if Metrics_base.consider_function ~libc vi
+         then Varinfo.Set.add vi acc
+         else acc)
+      Varinfo.Set.empty
+
+  method private pp_fun_set_by_file fmt set =
+    let add_binding map filename fvinfo =
+      let set =
+        try
+          let x = Datatype.String.Map.find filename map in
+          Varinfo.Set.add fvinfo x
+        with Not_found -> Varinfo.Set.add fvinfo Varinfo.Set.empty
+      in Datatype.String.Map.add filename set map
+    in
+    let map =
+      Varinfo.Set.fold
+        (fun fvinfo acc ->
+           if Metrics_base.consider_function ~libc fvinfo then
+             let fname = Metrics_base.file_of_vinfodef fvinfo in
+             add_binding acc fname fvinfo
+           else acc
+        ) set Datatype.String.Map.empty
+    in
+    Format.fprintf fmt "@[<v 0>";
+    Datatype.String.Map.iter
+      (fun fname fvinfoset ->
+         Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
+           (Filepath.pretty fname)
+           (fun fmt vinfoset ->
+              let vars = Varinfo.Set.elements vinfoset in
+              let sorted_vars = List.sort compare_vi_names vars in
+              List.iter
+                (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
+                sorted_vars
+           ) fvinfoset
+      ) map;
     Format.fprintf fmt "@]"
-;;
 
-type reachable_functions = {
-  syntactic : Varinfo.Set.t;
-  semantic : Varinfo.Set.t;
-}
-;;
+  method pp_reached_from_function fmt kf =
+    let card_syn = Varinfo.Set.cardinal reachable in
+    let title_reach = Format.asprintf "%a: %d"
+        Kernel_function.pretty kf card_syn
+    in
+    let all = self#all_funs in
+    let card_all = Varinfo.Set.cardinal all in
+    let title_unreach = Format.asprintf "%a: %d"
+        Kernel_function.pretty kf (card_all - card_syn)
+    in
+    Format.fprintf fmt "@[<v 0>%a@ %a@ %a@ %a@]"
+      (Metrics_base.mk_hdr 2)
+      (Format.sprintf "Functions syntactically reachable from %s" title_reach)
+      self#pp_fun_set_by_file reachable
+      (Metrics_base.mk_hdr 2)
+      (Format.sprintf "Functions syntactically unreachable from %s" title_unreach)
+      self#pp_fun_set_by_file (Varinfo.Set.diff all reachable)
 
-let percent_coverage rfun =
-  let nsyn = Varinfo.Set.cardinal rfun.syntactic
-  and nsem = Varinfo.Set.cardinal rfun.semantic in
+end
+
+
+class semantic_printer ~libc (cov_metrics : coverage_metrics) = object(self)
+  inherit syntactic_printer ~libc cov_metrics.syntactic
+
+  (* uses semantic and initializers *)
+  method pp_unreached_calls fmt =
+    let v = new deadCallsVisitor ~libc fmt cov_metrics in
+    v#compute_and_print
+
+  (* uses semantic *)
+  method pp_value_coverage fmt =
+    assert (Db.Value.is_computed ());
+    let all = self#all_funs in
+    let syntactic = cov_metrics.syntactic
+    and semantic = cov_metrics.semantic in
+    let unseen = Varinfo.Set.diff syntactic semantic in
+    let unseen_num = Varinfo.Set.cardinal unseen in
+    let nall = Varinfo.Set.cardinal all in
+    let nsyn = Varinfo.Set.cardinal syntactic
+    and nsem = Varinfo.Set.cardinal semantic in
+    let percent = (float_of_int nsem) *. 100.0 /. (float_of_int nsyn) in
+    Format.fprintf fmt "@[<v 0>\
+                        %a@ \
+                        Syntactically reachable functions = %d (out of %d)@ \
+                        Semantically reached functions = %d@ \
+                        Coverage estimation = %.1f%% @ "
+      (Metrics_base.mk_hdr 1) "Value coverage statistics"
+      nsyn nall nsem percent;
+    if unseen_num > 0 then
+      Format.fprintf fmt "@ @[<v 2>Unreached functions (%d) =@ %a@]"
+        unseen_num self#pp_fun_set_by_file unseen;
+    Format.fprintf fmt "@]"
+
+  (* uses semantic *)
+  method pp_stmts_reached_by_function fmt =
+    let semantic = compute_semantic ~libc in
+    let l = compute_coverage_by_fun semantic in
+    let sum_total, sum_value = List.fold_left
+        (fun (at, av) (_, t, v, _) -> at+t, av+v) (0, 0) l in
+    let percent = 100. *. (float_of_int sum_value) /. (float_of_int sum_total) in
+    Format.fprintf fmt "@[<v 0>%a@ \
+                        %d stmts in analyzed functions, %d stmts analyzed (%.1f%%)@ "
+      (Metrics_base.mk_hdr 2) "Statements analyzed by Value"
+      sum_total sum_value percent;
+    List.iter (fun (kf, total, visited, percent) ->
+        Format.fprintf fmt "%a: %d stmts out of %d (%.1f%%)@ "
+          Kernel_function.pretty kf visited total percent
+      ) l;
+    Format.fprintf fmt "@]"
+
+end
+
+
+let percent_coverage cov_metrics =
+  let nsyn = Varinfo.Set.cardinal cov_metrics.syntactic
+  and nsem = Varinfo.Set.cardinal cov_metrics.semantic in
   let percent = (float_of_int nsem) /. (float_of_int nsyn) *. 100.0 in
   percent
 ;;
 
-let all_funs () =
-  Globals.Functions.fold
-    (fun kf acc ->
-      let vi = Kernel_function.get_vi kf in
-      if Metrics_base.consider_function vi
-      then Varinfo.Set.add vi acc
-      else acc)
-    Varinfo.Set.empty
-
-let compute () =
-  let semantic = compute_semantic () in
-  let main = fst (Globals.entry_point ()) in
-  let syntactic, initializers = compute_syntactic main in
-  { syntactic = syntactic; semantic = semantic; },
-  initializers
-;;
-
-let pp_value_coverage () =
+let compute ~libc =
   assert (Db.Value.is_computed ());
-  let reachable, initializers = compute () in
-  let all = all_funs () in
-  let syntactic = reachable.syntactic
-  and semantic = reachable.semantic in
-  let unseen = Varinfo.Set.diff syntactic semantic in
-  let unseen_num = Varinfo.Set.cardinal unseen in
-  let nall = Varinfo.Set.cardinal all in
-  let nsyn = Varinfo.Set.cardinal syntactic
-  and nsem = Varinfo.Set.cardinal semantic in
-  let percent = (float_of_int nsem) *. 100.0 /. (float_of_int nsyn) in
-  (fun fmt ->
-     Format.fprintf fmt "@[<v 0>\
-       %a@ \
-       Syntactically reachable functions = %d (out of %d)@ \
-       Semantically reached functions = %d@ \
-       Coverage estimation = %.1f%% @ "
-       (Metrics_base.mk_hdr 1) "Value coverage statistics"
-       nsyn nall nsem percent;
-     if unseen_num > 0 then
-       Format.fprintf fmt "@ @[<v 2>Unseen functions (%d) =@ %a@]"
-         unseen_num pp_fun_set_by_file unseen;
-     Format.fprintf fmt "@]"
-  ),
-  (fun fmt ->
-     pp_unreached_calls fmt ~syntactic ~semantic initializers)
+  let semantic = compute_semantic ~libc in
+  let main = fst (Globals.entry_point ()) in
+  let syntactic, initializers = compute_syntactic ~libc main in
+  { syntactic; semantic; initializers }
 ;;
-
-let pp_reached_from_function fmt kf =
-  let syntactic, _ = compute_syntactic kf in
-  let all = all_funs () in
-  let card_syn = Varinfo.Set.cardinal syntactic in
-  let title_reach = Format.asprintf "%a: %d"
-    Kernel_function.pretty kf card_syn
-  in
-  let card_all = Varinfo.Set.cardinal all in
-  let title_unreach = Format.asprintf "%a: %d"
-    Kernel_function.pretty kf (card_all - card_syn)
-  in
-  Format.fprintf fmt "@[<v 0>%a@ %a@ %a@ %a@]"
-    (Metrics_base.mk_hdr 2)
-    (Format.sprintf "Functions syntactically reachable from %s" title_reach)
-    pp_fun_set_by_file syntactic
-    (Metrics_base.mk_hdr 2)
-    (Format.sprintf "Functions syntactically unreachable from %s" title_unreach)
-    pp_fun_set_by_file (Varinfo.Set.diff all syntactic)
-
-
-let pp_stmts_reached_by_function fmt =
-  let semantic = compute_semantic () in
-  let l = compute_coverage_by_fun semantic in
-  let sum_total, sum_value = List.fold_left
-    (fun (at, av) (_, t, v, _) -> at+t, av+v) (0, 0) l in
-  let percent = 100. *. (float_of_int sum_value) /. (float_of_int sum_total) in
-  Format.fprintf fmt "@[<v 0>%a@ \
-    %d stmts in analyzed functions, %d stmts analyzed (%.1f%%)@ "
-    (Metrics_base.mk_hdr 2) "Statements analyzed by Value"
-    sum_total sum_value percent;
-  List.iter (fun (kf, total, visited, percent) ->
-    Format.fprintf fmt "%a: %d stmts out of %d (%.1f%%)@ "
-      Kernel_function.pretty kf visited total percent
-  ) l;
-  Format.fprintf fmt "@]"
-
 
 (* Reexport a simpler function *)
-let compute_syntactic kf = fst (compute_syntactic kf)
+let compute_syntactic ~libc kf =
+  fst (compute_syntactic ~libc kf)
 
 (*
 Local Variables:

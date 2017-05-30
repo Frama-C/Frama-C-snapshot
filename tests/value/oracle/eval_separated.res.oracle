@@ -42,6 +42,7 @@ tests/value/eval_separated.c:43:[value] warning: assertion got status unknown.
 tests/value/eval_separated.c:45:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   p ∈ {{ &t1 + [-8589934592..8589934588],0%4 }}

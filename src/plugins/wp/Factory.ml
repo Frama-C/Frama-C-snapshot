@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,7 +95,7 @@ let descr_setup (s:setup) =
   end
 
 let descriptions = Hashtbl.create 31 (*[LC] Not projectified: simple strings *)
-let descr s =
+let describe s =
   try Hashtbl.find descriptions s
   with Not_found -> let w = descr_setup s in Hashtbl.add descriptions s w ; w
 
@@ -135,7 +135,11 @@ struct
     let kf = Model.get_scope () in
     let init = match kf with
       | None -> false
-      | Some f -> WpStrategy.is_main_init f in
+      | Some f ->
+          WpStrategy.is_main_init f ||
+          Wp_parameters.InitAlias.get () ||
+          ( WpStrategy.isInitConst () &&
+            WpStrategy.isGlobalInitConst x ) in
     let open RefUsage in
     match RefUsage.get ?kf ~init x with
     | NoAccess -> MemVar.NotUsed
@@ -254,7 +258,6 @@ let configure (s:setup) (d:driver) () =
     configure_mheap s.mheap ;
     Cint.configure s.cint ;
     Cfloat.configure s.cfloat ;
-    Vlist.configure () ;
     Context.set LogicBuiltins.driver d ;
   end
 
@@ -275,7 +278,7 @@ let instances = ref (MODEL.empty : Model.t MODEL.t)
 let instance (s:setup) (d:driver) =
   try MODEL.find (s,d) !instances
   with Not_found ->
-    let id,descr = descr s in
+    let id,descr = describe s in
     let module M = (val memory s.mheap s.mvar) in
     let tuning = [configure s d] in
     let separation kf = Model.on_scope (Some kf) M.separation () in
@@ -288,8 +291,8 @@ let instance (s:setup) (d:driver) =
     let model = Model.register ~id ~descr ~tuning ~separation () in
     instances := MODEL.add (s,d) model !instances ; model
 
-let ident s = fst (descr s)
-let descr s = snd (descr s)
+let ident s = fst (describe s)
+let descr s = snd (describe s)
 
 let split ~warning (m:string) : string list =
   let tk = ref [] in
@@ -323,7 +326,7 @@ let update_config ~warning m s = function
   | "REF" -> { s with mvar = Ref }
   | "VAR" -> { s with mvar = Var }
   | "INT" | "CINT" -> { s with cint = Cint.Machine }
-  | "NAT" | "RG" -> { s with cint = Cint.Natural }
+  | "NAT" -> { s with cint = Cint.Natural }
   | "REAL" -> { s with cfloat = Cfloat.Real }
   | "FLOAT" | "CFLOAT" -> { s with cfloat = Cfloat.Float }
   | t -> warning (Printf.sprintf

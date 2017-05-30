@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,21 +48,22 @@ let malloced_bases () = Dynamic_Alloc_Bases.get ()
 
 (** {1 Auxiliary functions} *)
 
-(* Extracts the minimum/maximum sizes (in bytes) for malloc/realloc,
-   respecting the bounds of size_t if the information is imprecise.
+(* Extracts the minimum/maximum sizes (in bytes) for malloc/realloc/calloc,
+   respecting the bounds of size_t.
    Note that the value returned for maximum size corresponds to one past
    the last valid index. *)
 let extract_size sizev_bytes =
+  let max = Bit_utils.max_byte_size () in
   try
     let sizei_bytes = Cvalue.V.project_ival sizev_bytes in
     begin match Ival.min_and_max sizei_bytes with
       | Some smin, Some smax ->
         assert (Integer.(ge smin zero));
-        smin, smax
+        smin, Integer.min smax max
       | _ -> assert false (* Cil invariant: cast to size_t *)
     end
-  with V.Not_based_on_null ->
-    Integer.zero, (Bit_utils.max_byte_size ())
+  with V.Not_based_on_null -> (* size is a garbled mix *)
+    Integer.zero, max
 
 (* Remove some parts of the callstack:
    - Remove the bottom of the call tree until we get to the call site
@@ -171,20 +172,23 @@ let guess_intended_malloc_type stack sizev constant_size =
     then Some (Int.div size_min elem_size)
     else None
   in
+  let mk_typed_size t =
+    match Cil.unrollType t with
+    | TPtr (t, _) when not (Cil.isVoidType t) ->
+      let s = Int.of_int (Cil.bytesSizeOf t) in
+      if Int.equal (Int.rem size_min s) Int.zero &&
+         Int.equal (Int.rem size_max s) Int.zero
+      then
+        { min_bytes = size_min; max_bytes = size_max;
+          elem_typ = t; nb_elems = nb_elems s }
+      else raise Exit
+    | _ -> raise Exit
+  in
   try
     match snd (List.hd stack) with
-    | Kstmt {skind = Instr (Call (Some lv, _, _, _))} -> begin
-        match Cil.unrollType (Cil.typeOfLval lv) with
-        | TPtr (t, _) when not (Cil.isVoidType t) ->
-          let s = Int.of_int (Cil.bytesSizeOf t) in
-          if Int.equal (Int.rem size_min s) Int.zero &&
-             Int.equal (Int.rem size_max s) Int.zero
-          then
-            { min_bytes = size_min; max_bytes = size_max; elem_typ = t;
-              nb_elems = nb_elems s }
-          else raise Exit
-        | _ -> raise Exit
-      end
+    | Kstmt {skind = Instr (Call (Some lv, _, _, _))} ->
+        mk_typed_size (Cil.typeOfLval lv)
+    | Kstmt {skind = Instr(Local_init(vi, _, _))} -> mk_typed_size vi.vtype
     | _ -> raise Exit
   with Exit | Cil.SizeOfError _ -> (* Default, use char *)
     { min_bytes = size_min; max_bytes = size_max; elem_typ = Cil.charType;
@@ -196,7 +200,7 @@ let guess_intended_malloc_type stack sizev constant_size =
    imprecise size. This is not a problem in practice, because in C you
    annot obtain the size of an allocated block, and \block_length
    handles Allocated variables through their validity. *)
-let type_from_nb_elems loc tsize =
+let type_from_nb_elems tsize =
   let typ = tsize.elem_typ in
   match tsize.nb_elems with
   | None -> TArray (typ, None, Cil.empty_size_cache (), [])
@@ -204,6 +208,7 @@ let type_from_nb_elems loc tsize =
     if Int.equal Int.one nb
     then typ
     else
+      let loc = Cil.CurrentLoc.get () in
       let esize_arr = Cil.kinteger64 ~loc nb in (* [nb] fits in size_t *)
       TArray (typ, Some esize_arr, Cil.empty_size_cache (), [])
 
@@ -223,27 +228,30 @@ let size_sure_valid b = match Base.validity b with
 ;;
 
 (* Create a new offsetmap initialized to [bottom] on the entire allocable
-   range, with the first [max_alloc] bits uninitialized. *)
-let offsm_with_uninit validity max_alloc =
+   range, with the first [max_alloc] bits set to [v].
+   [v] must be an isotropic value. *)
+let offsm_with_v v validity max_alloc =
   let size = Bottom.non_bottom (V_Offsetmap.size_from_validity validity) in
   let offsm = V_Offsetmap.create_isotropic ~size V_Or_Uninitialized.bottom in
+  (* max_alloc is -1 when allocating an empty base *)
   if Int.(lt max_alloc zero) then
     (* malloc(0) => nothing to uninitialize *)
     offsm
   else (* malloc(i > 0) => uninitialize i bytes *)
     V_Offsetmap.add ~exact:true (Int.zero, max_alloc)
-      (V_Or_Uninitialized.uninitialized, Int.one, Rel.zero) offsm
+      (v, Int.one, Rel.zero) offsm
 
-(* add UNINITIALIZED as a possible value for the bits [0..max_valid_bits] of
-   [base] in [state] *)
-let add_uninitialized state base max_valid_bits =
+(* add [v] as a possible value for the bits [0..max_valid_bits] of
+   [base] in [state].
+   [v] must be an isotropic value. *)
+let add_v v state base max_valid_bits =
   let validity = Base.validity base in
-  let offsm = offsm_with_uninit validity max_valid_bits in
+  let offsm = offsm_with_v v validity max_valid_bits in
   let new_offsm =
     try
       let cur = match Model.find_base_or_default base state with
-        | `Top -> assert false (* Value nevers passes Top as state *)
-        | `Bottom -> assert false (* implicitely checked by offsm_with_uninit *)
+        | `Top -> assert false (* Value never passes Top as state *)
+        | `Bottom -> assert false (* implicitly checked by offsm_with_uninit *)
         | `Value m -> m
       in
       V_Offsetmap.join offsm cur
@@ -251,10 +259,13 @@ let add_uninitialized state base max_valid_bits =
   in
   Model.add_base base new_offsm state
 
-let wrap_fallible_malloc ret_base orig_state state_after_alloc =
+let add_uninitialized = add_v V_Or_Uninitialized.uninitialized
+let add_zeroes = add_v (V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
+
+let wrap_fallible_malloc ?(returns_null=Value_parameters.MallocReturnsNull.get ()) ret_base orig_state state_after_alloc =
   let ret = V.inject ret_base Ival.zero in
   let success = Eval_op.wrap_ptr ret, state_after_alloc in
-  if Value_parameters.MallocReturnsNull.get ()
+  if returns_null
   then
     let failure = Eval_op.wrap_ptr Cvalue.V.singleton_zero, orig_state in
     [ success ; failure ]
@@ -269,14 +280,19 @@ let pp_validity fmt (v1, v2) =
 (** {1 Malloc} *)
 
 (* Create a new variable of size [sizev], using [stack] to infer a type.
-   Returns the new base, and its maximum validity. *)
-let alloc_abstract stack loc weak prefix sizev =
+   Returns the new base, and its maximum validity.
+   Note that [_state] is not used, but it is present to ensure a compatible
+   signature with [alloc_by_stack]. *)
+let alloc_abstract weak stack prefix sizev _state =
   let tsize = guess_intended_malloc_type stack sizev (weak = Strong) in
-  let type_base = type_from_nb_elems loc tsize in
+  let type_base = type_from_nb_elems tsize in
   let var = create_new_var stack prefix type_base weak in
   Value_parameters.result ~current:true ~once:true
-    "allocating %svariable %a"
-    (if weak = Weak then "weak " else "") Printer.pp_varinfo var;
+    "allocating %svariable %a%s"
+    (if weak = Weak then "weak " else "") Printer.pp_varinfo var
+    (if Value_parameters.PrintCallstacks.get ()
+     then (Format.asprintf "@.stack: %a" Value_types.Callstack.pretty stack)
+     else "");
   let size_char = Bit_utils.sizeofchar () in
   (* Sizes are in bits *)
   let min_alloc = Int.(pred (mul size_char tsize.min_bytes)) in
@@ -292,12 +308,11 @@ let alloc_abstract stack loc weak prefix sizev =
   new_base, max_alloc
 
 (* Simplest allocation function: a new base each time, of the required size. *)
-let alloc_size weak state actuals =
+let alloc_fresh weak state actuals =
   match actuals with
-  | [exp_size, size, _] ->
+  | [_, size, _] ->
     let stack = call_stack_no_wrappers () in
-    let loc = exp_size.eloc in
-    let base, max_valid = alloc_abstract stack loc weak "malloc" size in
+    let base, max_valid = alloc_abstract weak stack "malloc" size state in
     let new_state = add_uninitialized state base max_valid in
     let c_values = wrap_fallible_malloc base state new_state in
     { Value_types.c_values = c_values ;
@@ -307,9 +322,57 @@ let alloc_size weak state actuals =
     }
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
-let () = Builtins.register_builtin "Frama_C_alloc_size" (alloc_size Strong)
-let () = Builtins.register_builtin "Frama_C_alloc_size_weak" (alloc_size Weak)
+let () = Builtins.register_builtin "Frama_C_malloc_fresh" (alloc_fresh Strong)
+let () = Builtins.register_builtin "Frama_C_malloc_fresh_weak" (alloc_fresh Weak)
 
+let alloc_size_ok intended_size =
+  try
+    let size = Cvalue.V.project_ival intended_size in
+    let ok_size =
+      Ival.inject_range (Some Integer.zero) (Some (Bit_utils.max_byte_size ()))
+    in
+    if Ival.is_included size ok_size then Alarmset.True
+    else if Ival.intersects size ok_size then Alarmset.Unknown
+    else Alarmset.False
+  with Cvalue.V.Not_based_on_null -> Alarmset.Unknown (* garbled mix in size *)
+
+(* Generic function used both by [calloc_size] and [calloc_by_stack].
+   [calloc_f] is the actual function used (calloc_size or calloc_by_stack). *)
+let calloc_abstract calloc_f state actuals =
+  let stack = call_stack_no_wrappers () in
+  let nmemb, sizev =
+    match actuals with
+    | [(_exp, nmemb, _); (_, size, _)] -> nmemb, size
+    | _ -> raise (Builtins.Invalid_nb_of_args 2)
+  in
+  let alloc_size = Cvalue.V.mul nmemb sizev in
+  let size_ok = alloc_size_ok alloc_size in
+  if size_ok <> Alarmset.True then
+    Value_util.warning_once_current
+      "calloc out of bounds: assert(nmemb * size <= SIZE_MAX)";
+  if size_ok = Alarmset.False then (* size always overflows *)
+    { Value_types.c_values = [Eval_op.wrap_ptr Cvalue.V.singleton_zero, state];
+      c_clobbered = Base.SetLattice.bottom;
+      c_cacheable = Value_types.NoCacheCallers;
+      c_from = None;
+    }
+  else
+    let base, max_valid = calloc_f stack "calloc" alloc_size state in
+    let new_state = add_zeroes state base max_valid in
+    let returns_null = if size_ok = Alarmset.Unknown then Some true else None in
+    let c_values = wrap_fallible_malloc ?returns_null base state new_state in
+    { Value_types.c_values = c_values ;
+      c_clobbered = Base.SetLattice.bottom;
+      c_cacheable = Value_types.NoCacheCallers;
+      c_from = None;
+    }
+
+(* Equivalent to [malloc_fresh], but for [calloc]. *)
+let calloc_fresh weak state actuals =
+  calloc_abstract (alloc_abstract weak) state actuals
+
+let () = Builtins.register_builtin "Frama_C_calloc_fresh" (calloc_fresh Strong)
+let () = Builtins.register_builtin "Frama_C_calloc_fresh_weak" (calloc_fresh Weak)
 
 (* Variables that have been returned by a call to an allocation function
    at this callstack. The first allocated variable is at the top of the
@@ -353,7 +416,7 @@ let update_variable_validity ?(make_weak=false) base sizev =
     base, max_valid_bits
   | _ -> Value_parameters.fatal "base is not Allocated: %a" Base.pretty base
 
-let alloc_by_stack_aux loc stack sizev prefix state =
+let alloc_by_stack_aux stack prefix sizev state =
   let max_level = Value_parameters.MallocLevel.get () in
   let all_vars =
     try MallocedByStack.find stack
@@ -362,7 +425,7 @@ let alloc_by_stack_aux loc stack sizev prefix state =
   let rec aux nb vars =
     match vars with
     | [] -> (* must allocate a new variable *)
-      let b, _ as r = alloc_abstract stack loc Strong prefix sizev in
+      let b, _ as r = alloc_abstract Strong stack prefix sizev state in
       MallocedByStack.replace stack (all_vars @ [b]);
       r
     | b :: q ->
@@ -380,44 +443,65 @@ let alloc_by_stack_aux loc stack sizev prefix state =
 (* For each callstack, the first MallocPrecision.get() are precise fresh
    distinct locations. The following allocations all return the same
    base, first strong, then weak, and which is extended as needed. *)
-let alloc_by_stack : Db.Value.builtin_sig = fun state actuals->
+let alloc_by_stack ?returns_null : Db.Value.builtin_sig = fun state actuals->
   let stack = call_stack_no_wrappers () in
-  let exp_size, sizev = match actuals with
-    | [exp,size,_] -> exp, size
+  let sizev = match actuals with
+    | [_,size,_] -> size
     | _ -> raise (Builtins.Invalid_nb_of_args 1)
   in
-  let loc = exp_size.eloc in
-  let base, max_valid = alloc_by_stack_aux loc stack sizev "malloc" state in
+  let base, max_valid = alloc_by_stack_aux stack "malloc" sizev state in
   let new_state = add_uninitialized state base max_valid in
-  let c_values = wrap_fallible_malloc base state new_state in
+  let c_values = wrap_fallible_malloc ?returns_null base state new_state in
   { Value_types.c_values = c_values ;
     c_clobbered = Base.SetLattice.bottom;
     c_from = None;
     c_cacheable = Value_types.NoCacheCallers }
 ;;
 let () = Builtins.register_builtin
-    ~replace:"malloc" "Frama_C_alloc_by_stack" alloc_by_stack
+    ~replace:"malloc" "Frama_C_malloc_by_stack" alloc_by_stack
+let () = Builtins.register_builtin
+    ~replace:"__fc_vla_alloc" "Frama_C_vla_alloc_by_stack"
+    (alloc_by_stack ~returns_null:false)
 
+(* Equivalent to [alloc_by_stack], but for [calloc]. *)
+let calloc_by_stack : Db.Value.builtin_sig = fun state actuals ->
+  calloc_abstract alloc_by_stack_aux state actuals
+
+let () = Builtins.register_builtin
+    ~replace:"calloc" "Frama_C_calloc_by_stack" calloc_by_stack
 
 (** {1 Free} *)
 
 (* Change all references to bases into ESCAPINGADDR into the given state,
-   and remove thoses bases from the state entirely when [exact] holds *)
+   and remove those bases from the state entirely when [exact] holds *)
 let free ~exact bases state =
+  let changed = ref Locations.Zone.bottom in
+  (* Uncomment this code to simulate the fact that free "writes" the bases
+     it deallocates
+  Base.Hptset.iter (fun b ->
+      changed := Zone.join !changed (enumerate_bits (loc_of_base b))
+    ) bases; *)
   (* No need to remove the freed bases from the state if [exact] is false,
-     because they must remain for the 'unexact' case *)
+     because they must remain for the 'inexact' case *)
   let state =
     if exact then Base.Hptset.fold Cvalue.Model.remove_base bases state
     else state
   in
-  let is_the_base_to_free x = Base.Hptset.mem x bases in
-  let offsetmap_top_addresses_of_locals =
-    Locals_scoping.offsetmap_top_addresses_of_locals is_the_base_to_free
+  let escaping = bases in
+  let on_escaping ~b ~itv ~v:_ =
+    let z = Locations.Zone.inject b (Int_Intervals.inject_itv itv) in
+    changed := Locations.Zone.join !changed z
   in
-  Locals_scoping.state_top_addresses_of_locals 
-    (fun _ _ -> ()) (* no informative message *)
-    offsetmap_top_addresses_of_locals ~exact (Locals_scoping.top ())
-    state
+  let within = Base.SetLattice.top in
+  let state =
+    Locals_scoping.make_escaping ~exact ~escaping ~on_escaping ~within state
+  in
+  let from_changed =
+    let open Function_Froms in
+    let m = Memory.(add_binding ~exact empty !changed Deps.bottom) in
+    { deps_table = m; deps_return = Deps.bottom }
+  in
+  state, (from_changed, if exact then !changed else Zone.bottom)
 
 let resolve_bases_to_free arg =
   (* Categorizes the bases in arg *)
@@ -472,18 +556,39 @@ let frama_c_free state actuals =
         c_cacheable = Value_types.Cacheable; }
     else
       let strong = card_to_remove <= 1 in
-      let state = free_aux state ~strong bases_to_remove in
+      let state, changed = free_aux state ~strong bases_to_remove in
       { Value_types.c_values = [None, state];
         c_clobbered = Base.SetLattice.bottom;
-        c_from = None;        
+        c_from = Some changed;
         c_cacheable = Value_types.Cacheable;
       }
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
 let () = Builtins.register_builtin ~replace:"free" "Frama_C_free" frama_c_free
 
+(* built-in for [__fc_vla_free] function. By construction, VLA should always
+   be mapped to a single base. *)
+let frama_c_vla_free state actuals =
+  match actuals with
+  | [ _, arg, _] ->
+    let bases_to_remove, _card_to_remove, _null = resolve_bases_to_free arg in
+    let state, changed = free_aux state ~strong:true bases_to_remove in
+    { Value_types.c_values = [None, state];
+      c_clobbered = Base.SetLattice.bottom;
+      c_from = Some changed;
+      c_cacheable = Value_types.Cacheable;
+    }
+  | _ -> raise (Builtins.Invalid_nb_of_args 1)
+
+let () =
+  Builtins.register_builtin
+    ~replace:"__fc_vla_free" "Frama_C_vla_free" frama_c_vla_free
 
 (** {1 Realloc} *)
+
+(* Note: realloc never fails during read/write operations, hence we can
+   always ignore the validity of locations. (We craft them ourselves anyway.)
+   The only possible cause of failure is a pointer that was not malloced. *)
 
 (* Auxiliary function for [realloc], that copies the [size] first bytes of
    [b] (or less if [b] is too small) in [src_state], then pastes them in
@@ -491,7 +596,6 @@ let () = Builtins.register_builtin ~replace:"free" "Frama_C_free" frama_c_free
    This function always perform weak updates, in case multiple bases are
    copied to [new_base]. *)
 let realloc_copy_one size ~src_state ~dst_state new_base b =
-  let with_alarms = CilE.warn_none_mode in
   let size_char = Bit_utils.sizeofchar () in
   let size_bits = Integer.mul size size_char in
   let up = match Base.validity b with
@@ -502,11 +606,11 @@ let realloc_copy_one size ~src_state ~dst_state new_base b =
   in
   let size_to_copy = Int.min (Int.succ up) size_bits in
   let src = Location_Bits.inject b Ival.zero in
-  match Eval_op.copy_offsetmap ~with_alarms src size_to_copy src_state with
+  match Cvalue.Model.copy_offsetmap src size_to_copy src_state with
   | `Bottom -> assert false
   | `Value offsetmap ->
     if Int.gt size_to_copy Int.zero then
-      Eval_op.paste_offsetmap ~reducing:false ~with_alarms
+      Cvalue.Model.paste_offsetmap
         ~from:offsetmap ~dst_loc:new_base ~size:size_to_copy
         ~exact:false dst_state
     else dst_state
@@ -518,7 +622,7 @@ let realloc_copy_one size ~src_state ~dst_state new_base b =
    [null] in its argument. [weak] indicates which type of variable must
    be created: if [Weak], convergence is ensured using a malloc builtin
    that converges.  If [Strong], a new base is created for each call. *)
-let realloc_alloc_copy loc weak bases_to_realloc null_in_arg sizev state =
+let realloc_alloc_copy weak bases_to_realloc null_in_arg sizev state =
   Value_parameters.debug ~dkey "bases_to_realloc: %a"
     Base.Hptset.pretty bases_to_realloc;
   assert (not (Model.(equal state bottom || equal state top)));
@@ -527,8 +631,8 @@ let realloc_alloc_copy loc weak bases_to_realloc null_in_arg sizev state =
   let base, max_valid =
     let prefix = "realloc" in
     match weak with
-    | Strong -> alloc_abstract stack loc Strong prefix sizev
-    | Weak -> alloc_by_stack_aux loc stack sizev prefix state
+    | Strong -> alloc_abstract Strong stack prefix sizev state
+    | Weak -> alloc_by_stack_aux stack prefix sizev state
   in
   (* Make sure that [ret] will be present in the result: we bind it at least
      to bottom everywhere *)
@@ -538,12 +642,12 @@ let realloc_alloc_copy loc weak bases_to_realloc null_in_arg sizev state =
   (* get bases to free and copy *)
   let lbases = Base.Hptset.elements bases_to_realloc in
   let dst_state =
-    (* unitialized on all reallocated valid bits *)
-    let offsm = offsm_with_uninit (Base.validity base) max_valid in
+    (* uninitialized on all reallocated valid bits *)
+    let offsm = offsm_with_v V_Or_Uninitialized.uninitialized (Base.validity base) max_valid in
     let offsm =
       if null_in_arg then offsm (* In this case, realloc may copy nothing *)
       else
-        (* Compute the maximal size that is guaranteed to be copied accross all
+        (* Compute the maximal size that is guaranteed to be copied across all
            bases *)
         let aux_valid size b = Integer.min size (size_sure_valid b) in
         let size_new_loc = Integer.mul size_max (Bit_utils.sizeofchar ()) in
@@ -555,7 +659,7 @@ let realloc_alloc_copy loc weak bases_to_realloc null_in_arg sizev state =
             (V_Or_Uninitialized.bottom, Int.one, Rel.zero) offsm
         else offsm
     in
-    Eval_op.paste_offsetmap ~reducing:false ~with_alarms:CilE.warn_none_mode
+    Cvalue.Model.paste_offsetmap
       ~from:offsm ~dst_loc:loc_bits ~size:(Int.succ max_valid) ~exact:false
      dst_state
   in
@@ -569,44 +673,43 @@ let realloc_alloc_copy loc weak bases_to_realloc null_in_arg sizev state =
 (* Auxiliary function for [realloc]. All the bases in [bases] are realloced
    one by one, plus NULL if [null] holds. This function acts as if we had
    first made a disjunction on the pointer passed to [realloc]. *)
-let realloc_multiple loc state size bases null =
+let realloc_multiple state size bases null =
   (* this function should never be used with weak allocs *)
   let aux_bases b acc = Base.Hptset.singleton b :: acc in
   let lbases = Base.Hptset.fold aux_bases bases [] in
   (* This function reallocates the base [b] alone, but does not free it.
      We cannot free yet, because [b] would leak in the states corresponding
      to the variables different from [b]. *)
-  let realloc_one_base b = realloc_alloc_copy loc Strong b false size state in
+  let realloc_one_base b = realloc_alloc_copy Strong b false size state in
   let join (ret1, st1) (ret2, st2) = V.join ret1 ret2, Model.join st1 st2 in
   let aux_one_base acc b = join (realloc_one_base b) acc in
   let res = List.fold_left aux_one_base (V.bottom, state) lbases in
   (* Add another base for realloc(NULL) if needed. *)
   if null then
-    join res (realloc_alloc_copy loc Strong Base.Hptset.empty true size state)
+    join res (realloc_alloc_copy Strong Base.Hptset.empty true size state)
   else res
 
-(* Multiple indicates that existing bases are reallocateed into as many new
+(* Multiple indicates that existing bases are reallocated into as many new
    bases. *)
 let realloc ~multiple state args = match args with
-  | [ (eptr,ptr,_); (_,size,_) ] ->
+  | [ (_,ptr,_); (_,size,_) ] ->
     let (bases, card_ok, null) = resolve_bases_to_free ptr in
     if card_ok > 0 then
-      let loc = eptr.eloc in
       let ret, state =
         if multiple
-        then realloc_multiple loc state size bases null
-        else realloc_alloc_copy loc Weak bases null size state
+        then realloc_multiple state size bases null
+        else realloc_alloc_copy Weak bases null size state
       in
       (* Maybe the calls above made [ret] weak, and it
          was among the arguments. In this case, do not free it entirely! *)
       let weak = Base.Hptset.exists Base.is_weak bases in
       let strong = card_ok <= 1 && not weak in
       (* free old bases. *)
-      let state = free_aux state ~strong bases in
+      let state, changed = free_aux state ~strong bases in
       { Value_types.c_values = [Eval_op.wrap_ptr ret, state] ;
         c_clobbered = Builtins.clobbered_set_from_ret state ret;
         c_cacheable = Value_types.NoCacheCallers;
-        c_from = None;
+        c_from = Some changed;
       }
     else (* Invalid call. *)
       { Value_types.c_values = [] ;

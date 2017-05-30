@@ -2,10 +2,10 @@
    OPT: -load-script tests/misc/bts0489.ml
 */
 
-typedef unsigned int uint8_t;
-typedef int int8_t;
-typedef unsigned int uint16_t;
-typedef int int16_t;
+typedef unsigned char uint8_t;
+typedef char int8_t;
+typedef unsigned short uint16_t;
+typedef short int16_t;
 typedef int int32_t;
 typedef unsigned int uint32_t;
 

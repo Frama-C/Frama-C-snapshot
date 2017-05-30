@@ -25,13 +25,13 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, i_1 - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i_1) ->
-      (e = Mint_0[shift_sint32(t, i_2)]))).
+      (Mint_0[shift_sint32(t, i_2)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i_1) /\ (i_1 <= (1 + b)).
   (* Else *)
   Have: b < i_1.
 }
-Prove: e = Mint_0[shift_sint32(t, i)].
+Prove: Mint_0[shift_sint32(t, i)] = e.
 
 ------------------------------------------------------------
 
@@ -51,7 +51,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, i - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (e = Mint_1[shift_sint32(t, i_1)]))).
+      (Mint_1[shift_sint32(t, i_1)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -92,13 +92,13 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_1, i - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_2 : Z. ((a <= i_2) -> ((i_2 < i) ->
-      (e = Mint_0[shift_sint32(t, i_2)]))).
+      (Mint_0[shift_sint32(t, i_2)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
   Have: i <= b.
 }
-Prove: e = Mint_0[shift_sint32(t, i) <- e][shift_sint32(t, i_1)].
+Prove: Mint_0[shift_sint32(t, i) <- e][shift_sint32(t, i_1)] = e.
 
 ------------------------------------------------------------
 
@@ -131,7 +131,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, x_1).
   (* Invariant 'qed_ok' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (e = Mint_1[shift_sint32(t, i_1)]))).
+      (Mint_1[shift_sint32(t, i_1)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -160,7 +160,7 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_1, i - a).
   (* Invariant 'qed_ok' *)
   Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (e = Mint_1[shift_sint32(t, i_1)]))).
+      (Mint_1[shift_sint32(t, i_1)] = e))).
   (* Invariant 'qed_ok' *)
   Have: (a <= i) /\ (i <= (1 + b)).
   (* Then *)
@@ -170,19 +170,14 @@ Prove: included(a_2, 1, a_1, 1 + i - a).
 
 ------------------------------------------------------------
 
-Goal Assigns 'qed_ok' in 'init' (1/2):
-Effect at line 15
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns 'qed_ok' in 'init' (2/2):
+Goal Assigns 'qed_ok' in 'init':
 Effect at line 15
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
 Let x_1 = i - a.
 Let x_2 = 1 + b - a.
 Assume {
+  Have: valid_rd(Malloc_0, a_1, x_1).
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
@@ -193,6 +188,6 @@ Assume {
   (* Loop assigns 'qed_ok' *)
   Have: havoc(Mint_0, Mint_1, a_1, x_1).
 }
-Prove: (valid_rd(Malloc_0, a_1, x_1) -> included(a_1, x_1, a_1, x_2)).
+Prove: included(a_1, x_1, a_1, x_2).
 
 ------------------------------------------------------------

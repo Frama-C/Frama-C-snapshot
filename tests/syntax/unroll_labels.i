@@ -1,6 +1,6 @@
 /* run.config
-  STDOPT: +"-val"
-  STDOPT: +"-val" +"-main main2" +"-slevel 3"
+  STDOPT: +"-val -val-show-progress"
+  STDOPT: +"-val -val-show-progress -main main2 -slevel 3"
 */
 enum { SIX = 6 } ;
 volatile foo;

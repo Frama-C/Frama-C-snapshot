@@ -1,1 +1,1 @@
-OPT: -journal-disable -impact-print
+OPT: -journal-disable -impact-print -val-show-progress

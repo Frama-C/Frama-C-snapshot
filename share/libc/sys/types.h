@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -43,7 +43,7 @@ __BEGIN_DECLS
 
 typedef unsigned int u_int;
 typedef unsigned char u_char;
-dev_t makedev(int maj, int min);
+extern dev_t makedev(int maj, int min);
 
 __END_DECLS
 

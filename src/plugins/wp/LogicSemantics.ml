@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -335,12 +335,11 @@ struct
         p_equal (val_of_term env a) (val_of_term env b)
 
     | EQ_incomparable ->
-        (* incomparrable terms *)
-        Wp_parameters.warning ~current:true
-          "@[Incomparable terms (comparison is False):@ type %a with@ type %a@]"
+        (* incomparable terms *)
+        Warning.error
+          "@[Incomparable terms:@ type %a with@ type %a@]"
           Printer.pp_logic_type a.term_type
-          Printer.pp_logic_type b.term_type ;
-        p_false
+          Printer.pp_logic_type b.term_type
 
   let term_diff polarity env a b =
     p_not (term_equal (Cvalues.negate polarity) env a b)
@@ -853,7 +852,8 @@ struct
   let pred_trigger positive env np =
     let p = pred_protected positive env np in
     if List.mem "TRIGGER" np.Cil_types.pred_name then
-      C.trigger (Trigger.of_pred p) ; p
+      C.trigger (Trigger.of_pred p);
+    p
 
   let pred polarity env p =
     Context.with_current_loc p.pred_loc (pred_trigger polarity env) p

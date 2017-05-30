@@ -550,40 +550,39 @@ int main(int c)
   if (c > 0) c = 5;
   /*@ ghost aorai_Loop_Init_37 = 1; */
   aorai_loop_37:
-    /*@ loop invariant Aorai: 0 ≡ S0;
-        loop invariant Aorai: 0 ≡ Sf;
-        loop invariant
-          Aorai:
-            1 ≡ aorai_intermediate_state ∨ 0 ≡ aorai_intermediate_state;
-        loop invariant
-          Aorai:
-            1 ≡ aorai_intermediate_state_0 ∨
-            0 ≡ aorai_intermediate_state_0;
-        loop invariant Aorai: 0 ≡ aorai_intermediate_state_1;
-        loop invariant Aorai: 0 ≡ aorai_intermediate_state_2;
-        loop invariant Aorai: 0 ≡ aorai_intermediate_state_3;
-        loop invariant
-          Aorai:
-            1 ≡ aorai_intermediate_state ∨
-            1 ≡ aorai_intermediate_state_0;
-        loop invariant
-          Aorai:
-            aorai_Loop_Init_37 ≢ 0 ⇒
-            \at(1 ≡ S0,Pre) ⇒ 0 ≡ aorai_intermediate_state_0;
-        loop invariant
-          Aorai: aorai_Loop_Init_37 ≡ 0 ⇒ 0 ≡ aorai_intermediate_state;
-        loop invariant
-          Aorai:
-            \at(1 ≡ aorai_intermediate_state,aorai_loop_37) ∧
-            1 ≡ aorai_intermediate_state_0 ⇒ 1 ≤ aorai_counter ≤ 5;
-    */
-    while (1) {
-      if (! c) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_37 = 0; */
-      f();
-      g();
-      c --;
-    }
+  /*@ loop invariant Aorai: 0 ≡ S0;
+      loop invariant Aorai: 0 ≡ Sf;
+      loop invariant
+        Aorai:
+          1 ≡ aorai_intermediate_state ∨ 0 ≡ aorai_intermediate_state;
+      loop invariant
+        Aorai:
+          1 ≡ aorai_intermediate_state_0 ∨
+          0 ≡ aorai_intermediate_state_0;
+      loop invariant Aorai: 0 ≡ aorai_intermediate_state_1;
+      loop invariant Aorai: 0 ≡ aorai_intermediate_state_2;
+      loop invariant Aorai: 0 ≡ aorai_intermediate_state_3;
+      loop invariant
+        Aorai:
+          1 ≡ aorai_intermediate_state ∨ 1 ≡ aorai_intermediate_state_0;
+      loop invariant
+        Aorai:
+          aorai_Loop_Init_37 ≢ 0 ⇒
+          \at(1 ≡ S0,Pre) ⇒ 0 ≡ aorai_intermediate_state_0;
+      loop invariant
+        Aorai: aorai_Loop_Init_37 ≡ 0 ⇒ 0 ≡ aorai_intermediate_state;
+      loop invariant
+        Aorai:
+          \at(1 ≡ aorai_intermediate_state,aorai_loop_37) ∧
+          1 ≡ aorai_intermediate_state_0 ⇒ 1 ≤ aorai_counter ≤ 5;
+  */
+  while (1) {
+    if (! c) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_37 = 0; */
+    f();
+    g();
+    c --;
+  }
   while_0_break: ;
   __retres = 0;
   main_post_func(__retres);

@@ -16,7 +16,7 @@ tests/slicing/forall_loop_invariant.i:12:[value] warning: loop invariant got sta
 tests/slicing/forall_loop_invariant.i:18:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -36,8 +36,7 @@ int u[10];
 void main(void)
 {
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ 10;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ t[k] ≡ 1;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ u[k] ≡ 2;
@@ -53,7 +52,7 @@ void main(void)
 
 
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] reinitializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [slicing] applying all slicing requests...
 [slicing] applying 0 actions...
@@ -72,8 +71,7 @@ int main(void)
 {
   int __retres;
   {
-    int i;
-    i = 0;
+    int i = 0;
     /*@ loop invariant 0 ≤ i ≤ 10;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ t[k] ≡ 1;
         loop invariant ∀ int k; 0 ≤ k < i ⇒ u[k] ≡ 2;

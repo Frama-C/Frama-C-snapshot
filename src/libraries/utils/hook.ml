@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ let add_once v queue =
   let already = Queue.fold (fun b v' -> b || v' == v) false queue in
   if not already then Queue.add v queue
 
-module Build(P:sig type t end) = struct
+module Build(P:sig type t end): Iter_hook with type param = P.t = struct
   type param = P.t
   type result = unit
   let hooks = Queue.create ()
@@ -74,7 +74,8 @@ module Build(P:sig type t end) = struct
   let length () = Queue.length hooks
 end
 
-module Fold(P:sig type t end) = struct
+module Fold(P:sig type t end): S with type param=P.t and type result = P.t =
+struct
   type param = P.t
   type result = P.t
   let hooks = Queue.create ()

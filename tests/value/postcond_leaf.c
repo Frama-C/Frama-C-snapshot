@@ -1,5 +1,5 @@
 /* run.config* 
-OPT: -no-val-show-progress -val -val-use-spec g1,g2,g3 -then -report
+OPT: -no-autoload-plugins @VALUECONFIG@ -load-module value,inout,report -no-val-show-progress -val -val-use-spec g1,g2,g3 -then -report
 */
 
 /* Test what is printed when Value evaluates a post-condition:

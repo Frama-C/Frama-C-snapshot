@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,10 +30,11 @@ type 'a element =
   | E_false
   | E_int of int
   | E_const of 'a
+  | E_fun of 'a * 'a element list
 
 (** Algebraic properties for user operators. *)
 type 'a operator = {
-  inversible : bool ; (* x+y = x+z <-> y=z (on both side) *)
+  invertible : bool ; (* x+y = x+z <-> y=z (on both side) *)
   associative : bool ; (* x+(y+z)=(x+y)+z *)
   commutative : bool ; (* x+y=y+x *)
   idempotent : bool ; (* x+x = x *)
@@ -125,37 +126,37 @@ type ('f,'a) funtype = {
 }
 
 (** representation of terms. type arguments are the following:
-  - 'z: representation of integral constants
-  - 'f: representation of fields
-  - 'a: representation of abstract data types
-  - 'd: representation of functions
-  - 'x: representation of free variables
-  - 'b: representation of bound term (phantom type equal to 'e)
-  - 'e: sub-expression
+    - 'z: representation of integral constants
+    - 'f: representation of fields
+    - 'a: representation of abstract data types
+    - 'd: representation of functions
+    - 'x: representation of free variables
+    - 'b: representation of bound term (phantom type equal to 'e)
+    - 'e: sub-expression
 *)
 type ('z,'f,'a,'d,'x,'b,'e) term_repr =
   | True
   | False
   | Kint  of 'z
   | Kreal of R.t
-  | Times of 'z * 'e
-  | Add   of 'e list
-  | Mul   of 'e list
+  | Times of 'z * 'e      (** mult: k1 * e2 *)
+  | Add   of 'e list      (** add:  e11 + ... + e1n *)
+  | Mul   of 'e list      (** mult: e11 * ... * e1n *)
   | Div   of 'e * 'e
   | Mod   of 'e * 'e
   | Eq    of 'e * 'e
   | Neq   of 'e * 'e
   | Leq   of 'e * 'e
   | Lt    of 'e * 'e
-  | Aget  of 'e * 'e
-  | Aset  of 'e * 'e * 'e
+  | Aget  of 'e * 'e      (** access: array1[idx2] *)
+  | Aset  of 'e * 'e * 'e (** update: array1[idx2 -> elem3] *)
   | Rget  of 'e * 'f
   | Rdef  of ('f * 'e) list
-  | And   of 'e list
-  | Or    of 'e list
+  | And   of 'e list      (** and: e11 && ... && e1n *)
+  | Or    of 'e list      (** or:  e11 || ... || e1n *)
   | Not   of 'e
-  | Imply of 'e list * 'e
-  | If    of 'e * 'e * 'e
+  | Imply of 'e list * 'e (** imply: (e11 && ... && e1n) ==> e2 *)
+  | If    of 'e * 'e * 'e (** ite: if c1 then e2 else e3 *)
   | Fun   of 'd * 'e list (** Complete call (no partial app.) *)
   | Fvar  of 'x
   | Bvar  of int * ('f,'a) datatype
@@ -181,7 +182,6 @@ sig
 
   type var = Var.t
   type tau = (Field.t,ADT.t) datatype
-  type signature = (Field.t,ADT.t) funtype
 
   module Tau : Data with type t = tau
   module Vars : Idxset.S with type elt = var
@@ -283,16 +283,19 @@ sig
   val e_subst : ?sigma:sigma -> (term -> term) -> term -> term
   val e_subst_var : var -> term -> term -> term
 
-  (** {3 Localy Nameless Representation} *)
+  (** {3 Locally Nameless Representation} *)
 
   val lc_bind : var -> term -> bind (** Close [x] as a new bound variable *)
-  val lc_open : var -> bind -> term (** Instanciate top bound variable *)
+  val lc_open : var -> bind -> term (** Instantiate top bound variable *)
   val lc_open_term : term -> bind -> term
-  (** Instanciate top bound variable with the given term *)
+  (** Instantiate top bound variable with the given term *)
   val lc_closed : term -> bool
   val lc_closed_at : int -> term -> bool
   val lc_vars : term -> Bvars.t
   val lc_repr : bind -> term
+
+  val binders : term -> binder list
+  (** Returns the list of head binders *)
 
   (** {3 Recursion Scheme} *)
 
@@ -304,6 +307,21 @@ sig
 
   val lc_map : (term -> term) -> term -> term
   val lc_iter : (term -> unit) -> term -> unit
+
+  (** {3 Partial Typing} *)
+
+  (** Try to extract a type of term.
+      Parameterized by optional extractors for field and functions.
+      Extractors may raise [Not_found] ; however, they are only used when
+      the provided kinds for fields and functions are not precise enough.
+      @param field type of a field value
+      @param record type of the record containing a field
+      @param call type of the values returned by the function
+      @raise Not_found if no type is found. *)
+  val typeof :
+    ?field:(Field.t -> tau) ->
+    ?record:(Field.t -> tau) ->
+    ?call:(Fun.t -> tau) -> term -> tau
 
   (** {3 Support for Builtins} *)
 
@@ -341,7 +359,7 @@ sig
   (** {3 Specific Patterns} *)
 
   val consequence : term -> term -> term
-  (** Kowning [h], [consequence h a] returns [b] such that [h -> (a<->b)] *)
+  (** Knowing [h], [consequence h a] returns [b] such that [h -> (a<->b)] *)
   val literal : term -> bool * term
   val congruence_eq : term -> term -> (term * term) list option
   (** If [congruence_eq a b] returns [[ai,bi]], [a=b] is equivalent to [And{ai=bi}]. *)
@@ -386,9 +404,15 @@ sig
 
   (** {2 Shared sub-terms} *)
 
+  val is_subterm : term -> term -> bool
+  (** Occurrence check. [is_subterm a b] returns [true] iff [a] is a subterm
+      of [b]. Optimized {i wrt} shared subterms, term size, and term
+      variables. *)
+
   val shared :
     ?shared:(term -> bool) ->
     ?shareable:(term -> bool) ->
+    ?subterms:((term -> unit) -> term -> unit) ->
     term list -> term list
   (** Computes the sub-terms that appear several times.
       	[shared marked linked e] returns the shared subterms of [e].
@@ -396,34 +420,36 @@ sig
       	The list of shared subterms is consistent with
       	order of definition: each trailing terms only depend on heading ones.
 
-      	The traversal is controled by two optional arguments:
-      	- [atomic] those terms are not traversed (considered as atomic)
-      	- [shareable] those terms that can be shared (all by default)
+      	The traversal is controlled by two optional arguments:
+      	- [shared] those terms are not traversed (considered as atomic, default to none)
+      	- [shareable] those terms ([is_simple] excepted) that can be shared (default to all)
+      	- [subterms] those sub-terms a term to be considered during
+          traversal ([lc_iter] by default)
   *)
 
   (** Low-level shared primitives: [shared] is actually a combination of
       building marks, marking terms, and extracting definitions:
 
       {[ let share ?... e =
-           let m = marks ?... () in 
-           List.iter (mark m) es ; 
+           let m = marks ?... () in
+           List.iter (mark m) es ;
            defs m ]} *)
 
   type marks
 
-  (** Create a marking accumulator
-      @param shared terms that are (or will be) already shared
-      (default to none) 
-      @param shareable terms that can be shared (default to all) *)
+  (** Create a marking accumulator.
+      Same defaults than [shared]. *)
+
   val marks :
     ?shared:(term -> bool) ->
     ?shareable:(term -> bool) ->
+    ?subterms:((term -> unit) -> term -> unit) ->
     unit -> marks
 
   (** Mark a term to be printed *)
   val mark : marks -> term -> unit
 
-  (** Mark a term to be explicitely shared *)
+  (** Mark a term to be explicitly shared *)
   val share : marks -> term -> unit
 
   (** Returns a list of terms to be shared among all {i shared} or {i

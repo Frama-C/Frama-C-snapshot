@@ -20,7 +20,7 @@ Assume {
   Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_3) /\ is_sint32(x_4) /\
       is_sint32(x_5).
   (* Goal *)
-  When: p != q.
+  When: q != p.
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -30,7 +30,7 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
 }
-Prove: x_2 = x_5.
+Prove: x_5 = x_2.
 
 ------------------------------------------------------------
 
@@ -44,7 +44,7 @@ Assume {
   Type: is_sint32(x) /\ is_sint32(x_1) /\ is_sint32(x_2) /\ is_sint32(x_3) /\
       is_sint32(m[q <- x_3][p]).
   (* Goal *)
-  When: p != q.
+  When: q != p.
   (* Heap *)
   Have: (region(p.base) <= 0) /\ (region(q.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -54,7 +54,7 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
 }
-Prove: x_1 = x_2.
+Prove: x_2 = x_1.
 
 ------------------------------------------------------------
 
@@ -78,7 +78,7 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
 }
-Prove: x_2 = x_5.
+Prove: x_5 = x_2.
 
 ------------------------------------------------------------
 
@@ -100,6 +100,6 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= x) /\ (0 <= x_1) /\ (x <= 199) /\ (x_1 <= 199).
 }
-Prove: x_1 = x_2.
+Prove: x_2 = x_1.
 
 ------------------------------------------------------------

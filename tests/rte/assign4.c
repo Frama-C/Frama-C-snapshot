@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-no-all -print -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -print -rte-precond -journal-disable
 */
 
 //@ assigns \result \from min, max;

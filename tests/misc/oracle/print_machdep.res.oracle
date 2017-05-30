@@ -1,0 +1,20 @@
+Machine: gcc 4.0.3 - X86-32bits mode
+   sizeof       short =  2 (16 bits, aligned on 16 bits)
+   sizeof         int =  4 (32 bits, aligned on 32 bits)
+   sizeof        long =  4 (32 bits, aligned on 32 bits)
+   sizeof   long long =  8 (64 bits, aligned on 32 bits)
+   sizeof       float =  4 (32 bits, aligned on 32 bits)
+   sizeof      double =  8 (64 bits, aligned on 32 bits)
+   sizeof long double = 12 (96 bits, aligned on 32 bits)
+   sizeof     pointer =  4 (32 bits, aligned on 32 bits)
+   sizeof    function =  1 (8 bits, aligned on 8 bits)
+   sizeof        void =  1 (8 bits, aligned on 8 bits)
+   typeof   sizeof(T) = unsigned int
+   typeof     wchar_t = int
+   typeof   ptrdiff_t = int
+   char is signed
+   machine is little endian
+   strings are writable chars
+   assembly names have no leading '_'
+   compiler has builtin __va_list
+   compiler uses __head as a keyword

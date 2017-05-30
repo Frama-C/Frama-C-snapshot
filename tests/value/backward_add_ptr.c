@@ -1,12 +1,12 @@
+/* run.config*
+   STDOPT: #"-value-msg-key garbled-mix"
+*/
+
 /* Test the soundness and the precision of backward reductions for
    the addition and subtraction of pointers and integers
    (binop PlusPI and MinusPI of Cil). */
 
 #include <stdint.h>
-
-
-
-
 
 
 volatile uintptr_t rand; /* Use as undeterminism. */

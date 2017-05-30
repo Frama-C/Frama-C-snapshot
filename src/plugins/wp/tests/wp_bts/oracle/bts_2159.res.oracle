@@ -10,15 +10,15 @@
 
 Goal Post-condition (file tests/wp_bts/bts_2159.i, line 5) in 'job':
 Assume {
-  Type: is_sint32(s_1) /\ is_sint32(s) /\ is_sint32(s_2) /\ is_sint32(x).
+  Type: is_sint32(s) /\ is_sint32(s_1) /\ is_sint32(x).
   If 0 <= x
   Then {
     If x <= 100
-    Then { Let x_1 = s_1 + x. Have: s = x_1. Have: s = x_1. }
+    Then { Let x_1 = s + x. Have: x_1 = s_1. Have: x_1 = s_1. }
     Else { Have: s_1 = s. }
   }
   Else { Have: s_1 = s. }
 }
-Prove: s = (if ((0 <= x) & (x <= 100)) then L_Id(x_1) else L_Id(s_1)).
+Prove: (if ((0 <= x) & (x <= 100)) then L_Id(x_1) else L_Id(s)) = s_1.
 
 ------------------------------------------------------------

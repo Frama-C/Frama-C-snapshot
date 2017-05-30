@@ -19,7 +19,7 @@
 [value] computing for function wmemcpy <- main.
         Called from tests/libc/wchar_c_h.c:25.
 [value] using specification for function wmemcpy
-share/libc/wchar.h:44:[value] function wmemcpy: precondition got status valid.
+share/libc/wchar.h:45:[value] function wmemcpy: precondition got status valid.
 [value] Done for function wmemcpy
 [value] computing for function wmemcpy <- main.
         Called from tests/libc/wchar_c_h.c:25.
@@ -106,7 +106,7 @@ share/libc/wchar.h:44:[value] function wmemcpy: precondition got status valid.
 [value] computing for function wcslcpy <- main.
         Called from tests/libc/wchar_c_h.c:33.
 [value] using specification for function wcslcpy
-share/libc/wchar.h:100:[value] function wcslcpy: precondition got status valid.
+share/libc/wchar.h:101:[value] function wcslcpy: precondition got status valid.
 [value] Done for function wcslcpy
 [value] computing for function wcslcpy <- main.
         Called from tests/libc/wchar_c_h.c:33.
@@ -164,7 +164,7 @@ share/libc/wchar.h:100:[value] function wcslcpy: precondition got status valid.
 [value] computing for function wcsncpy <- main.
         Called from tests/libc/wchar_c_h.c:36.
 [value] using specification for function wcsncpy
-share/libc/wchar.h:120:[value] function wcsncpy: precondition got status valid.
+share/libc/wchar.h:121:[value] function wcsncpy: precondition got status valid.
 [value] Done for function wcsncpy
 [value] computing for function wcsncpy <- main.
         Called from tests/libc/wchar_c_h.c:36.

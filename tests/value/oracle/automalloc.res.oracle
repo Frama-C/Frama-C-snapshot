@@ -6,16 +6,16 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function malloc <- main.
-        Called from tests/value/automalloc.i:10.
-tests/value/automalloc.i:10:[kernel] warning: Neither code nor specification for function malloc, generating default assigns from the prototype
+        Called from tests/value/automalloc.i:14.
+tests/value/automalloc.i:14:[kernel] warning: No code nor implicit assigns clause for function malloc, generating default assigns from the prototype
 [value] using specification for function malloc
 [value] Done for function malloc
 [value] computing for function realloc <- main.
-        Called from tests/value/automalloc.i:11.
-tests/value/automalloc.i:11:[kernel] warning: Neither code nor specification for function realloc, generating default assigns from the prototype
+        Called from tests/value/automalloc.i:15.
+tests/value/automalloc.i:15:[kernel] warning: Neither code nor specification for function realloc, generating default assigns from the prototype
 [value] using specification for function realloc
 [value] Done for function realloc
-tests/value/automalloc.i:13:[value] warning: out of bounds write. assert \valid(buf + 1);
+tests/value/automalloc.i:17:[value] warning: out of bounds write. assert \valid(buf + 1);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -27,11 +27,11 @@ tests/value/automalloc.i:13:[value] warning: out of bounds write. assert \valid(
   alloced_return_malloc[bits 0 to ..] ∈
                        {{ garbled mix of &{alloced_return_malloc}
                         (origin: Library function
-                        {tests/value/automalloc.i:10}) }}
+                        {tests/value/automalloc.i:14}) }}
   alloced_return_realloc[bits 0 to ..] ∈
                         {{ garbled mix of &{alloced_return_realloc}
                          (origin: Library function
-                         {tests/value/automalloc.i:11}) }}
+                         {tests/value/automalloc.i:15}) }}
 [from] Computing for function main
 [from] Computing for function malloc <-main
 [from] Done for function malloc

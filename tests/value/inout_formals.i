@@ -1,5 +1,5 @@
 /*run.config*
-  OPT: @VALUECONFIG@ -inout -input-with-formals  -inout-with-formals 
+  OPT: -no-autoload-plugins -load-module from,inout @VALUECONFIG@ -inout -input-with-formals  -inout-with-formals
 */
 int x, y;
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -114,6 +114,8 @@ let () =
        let state = Db.Value.get_stmt_state stmt in
        let deps = From_compute.find_deps_no_transitivity state lv in
        Function_Froms.Deps.to_zone deps);
+  (* Once this function has been moved to Eva, remove the dependency of Inout
+     from From. *)
   Db.From.find_deps_no_transitivity_state :=
     (fun s e ->
       let deps = From_compute.find_deps_no_transitivity s e in

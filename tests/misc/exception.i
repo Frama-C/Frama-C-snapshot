@@ -42,6 +42,6 @@ int f4 (int c) {
 int h(int c) {
   if (c-1<=0) return f1(c);
   else if (c-100<=0) /*@ returns \result == c+1; */ return f2(c);
-  else if (c>360) return f3(c);
+  else if (c>360) { int x = f3(c); return x; }
   else return f4(c);
 }

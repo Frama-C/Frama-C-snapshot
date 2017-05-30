@@ -76,13 +76,57 @@ let findCaseLabeledStmts (b : block) : stmt list =
     ignore(visitCilBlock vis b);
     !slr
 
+(* we might need to add a Skip statement at the end of a block in order
+   to avoid that a break close too many blocks, in particular when one
+   of such blocks is the scope of a VLA.
+*)
+type cfg_env =
+  { parent_block: block;
+    (* either the main function block or the innermost block containing a VLA.*)
+    is_last: bool list; (* is the current statement the last of the block?
+                           we actually keep a stack indicating, for each block
+                           containing the VLA, if the statement is the last of
+                           that block. *) }
+
+let init_env parent_block =
+  { parent_block; is_last = [false] }
+
+let is_last env = List.fold_left (&&) true env.is_last
+
+let innermost_last env =
+  match env.is_last with
+  | [] -> assert false (* we always have at least one element. *)
+  | _ :: tl -> { env with is_last = true :: tl }
+
+let innermost_nonlast env =
+  match env.is_last with
+  | [] -> assert false (* we always have at least one element. *)
+  | _ :: tl -> { env with is_last = false :: tl }
+
+let update_env env block =
+  if List.exists
+      (fun v -> Cil.hasAttribute Cabs2cil.frama_c_destructor v.vattr)
+      block.blocals
+  then init_env block
+  else { env with is_last = false :: env.is_last }
+
+let requires_new_stmt env =
+  is_last env &&
+  List.exists
+    (fun v -> Cil.hasAttribute Cabs2cil.frama_c_destructor v.vattr)
+    env.parent_block.blocals
+
+let make_break_stmt loc env next =
+  if requires_new_stmt env then
+    Some (Cil.mkStmtOneInstr ~valid_sid:false (Skip loc))
+  else next
 
 (** Compute a control flow graph for fd.  All the stmts in fd have
     their preds and succs fields filled in. The summary fields of
     fundec are also filled.  *)
 let rec cfgFun (fd : fundec) =
   nodeList := [];
-  cfgBlock fd.sbody None None None;
+  cfgBlock (init_env fd.sbody) fd.sbody None None None;
   fd.smaxstmtid <- Some(Cil.Sid.next ());
   fd.sallstmts <- List.rev !nodeList;
   nodeList := []
@@ -96,13 +140,13 @@ let rec cfgFun (fd : fundec) =
       No predecessors means it is the start of the function
    3) We use the fact that initially all the succs and preds are assigned []
 *)
-and cfgStmts (ss: stmt list) next break cont =
+and cfgStmts env (ss: stmt list) next break cont =
   match ss with
     [] -> ();
-  | [s] -> cfgStmt s next break cont
+  | [s] -> cfgStmt (innermost_last env) s next break cont
   | hd::tl ->
-      cfgStmt hd (Some (List.hd tl))  break cont;
-      cfgStmts tl next break cont
+      cfgStmt env hd (Some (List.hd tl))  break cont;
+      cfgStmts env tl next break cont
 
 (* Fill in the CFG info for the stmts in a block
    next = succ of the last stmt in this block
@@ -111,12 +155,12 @@ and cfgStmts (ss: stmt list) next break cont =
    None means the succ is the function return. It does not mean the break/cont
    is invalid. We assume the validity has already been checked.
 *)
-and cfgBlock (blk: block) next break cont =
-  cfgStmts blk.bstmts next break cont
+and cfgBlock env (blk: block) next break cont =
+  cfgStmts (update_env env blk) blk.bstmts next break cont
 
 (* Fill in the CFG info for a stmt
    Meaning of next, break, cont should be clear from earlier comment *)
-and cfgStmt (s: stmt) next break cont =
+and cfgStmt env (s: stmt) next break cont =
   if s.sid = -1 then s.sid <- Cil.Sid.next ();
   nodeList := s :: !nodeList;
   if s.succs <> [] then
@@ -147,12 +191,27 @@ and cfgStmt (s: stmt) next break cont =
       [] -> addSucc next
     | hd::_ -> addSucc hd
   in
-  let cfgCatch c next break cont =
+  let cfgCatch env c next break cont =
     match c with
       | Catch_all -> ()
       | Catch_exn(_,l) ->
-        let cfg_aux_clause (_,b) = cfgBlock b next break cont in
+        let cfg_aux_clause (_,b) = cfgBlock env b next break cont in
         List.iter cfg_aux_clause l
+  in
+  let add_stmt_if_needed env s =
+    if requires_new_stmt env then begin
+      match s with
+      | None -> assert false
+        (* we have explicitly created a statement as target of break *)
+      | Some stmt ->
+        match stmt.preds with
+        | [] -> ()
+        | _ ->
+          (* we have used this statement as target of a break. Let's add it
+             properly in the block. *)
+          env.parent_block.bstmts <- env.parent_block.bstmts @ [ stmt ];
+          cfgStmt env stmt next break cont
+    end
   in
   let instrFallsThrough (i : instr) : bool = match i with
       Call (_, {enode = Lval (Var vf, NoOffset)}, _, _) ->
@@ -177,18 +236,19 @@ and cfgStmt (s: stmt) next break cont =
          first. *)
       addBlockSucc blk2;
       addBlockSucc blk1;
-      cfgBlock blk1 next break cont;
-      cfgBlock blk2 next break cont
+      cfgBlock env blk1 next break cont;
+      cfgBlock env blk2 next break cont
 
   | UnspecifiedSequence seq ->
       addBlockSucc (block_from_unspecified_sequence seq);
-      cfgBlock (block_from_unspecified_sequence seq) next break cont
+      cfgBlock env (block_from_unspecified_sequence seq) next break cont
   | Block b ->
       addBlockSucc b;
-      cfgBlock b next break cont
+      cfgBlock env b next break cont
 
-  | Switch(_,blk,_l,_) ->
-      let bl = findCaseLabeledStmts blk in
+  | Switch(_,blk,_l,loc) ->
+    let break = make_break_stmt loc env next in
+    let bl = findCaseLabeledStmts blk in
       (* if there's no default, need to connect s->next *)
       if not (List.exists
                 (fun stmt -> List.exists
@@ -199,10 +259,17 @@ and cfgStmt (s: stmt) next break cont =
       (* Then add cases, that will come first in final 'succs' list. bl
          is already reversed, so the order is ok. *)
       List.iter addSucc bl;
-      cfgBlock blk next next cont
-  | Loop(_,blk,_,_,_) ->
-      addBlockSuccFull s blk;
-      cfgBlock blk (Some s) next (Some s)
+      (* we are ready to add a statement when needed. Hence we're not the
+         last statement of a block with VLA scope.
+      *)
+      cfgBlock (innermost_nonlast env) blk next break cont;
+      add_stmt_if_needed env break;
+  | Loop(_,blk,loc,_,_) ->
+    let break = make_break_stmt loc env next in
+    addBlockSuccFull s blk;
+    (* see above. *)
+    cfgBlock (innermost_nonlast env) blk (Some s) break (Some s);
+    add_stmt_if_needed env break
   (* Since all loops have terminating condition true, we don't put
      any direct successor to stmt following the loop *)
 
@@ -213,8 +280,8 @@ and cfgStmt (s: stmt) next break cont =
        if there is a throw directly in the function. See cil_types.mli
        for more information. *)
     addBlockSucc t;
-    cfgBlock t next break cont;
-    (* If there are some auxiliary types catched by the clause, the cfg
+    cfgBlock env t next break cont;
+    (* If there are some auxiliary types caught by the clause, the cfg
        goes from the conversion block to the main block of the catch clause *)
     List.iter
       (fun (c,b) ->
@@ -223,7 +290,7 @@ and cfgStmt (s: stmt) next break cont =
             | [] -> next
             | s::_ -> Some s
         in
-        cfgCatch c n break cont; cfgBlock b next break cont) c;
+        cfgCatch env c n break cont; cfgBlock env b next break cont) c;
   | TryExcept _ | TryFinally _ ->
       Kernel.fatal "try/except/finally"
 
@@ -492,7 +559,7 @@ let xform_switch_block ?(keepSwitch=false) b =
                            (Printf.sprintf
                               "switch_%d_break" label_index), l, false)] ;
                  (* The default case, if present, must be used only if *all*
-                    non-default cases fail [ISO/IEC 9899:1999, §6.8.4.2, ¶5]. As a
+                    non-default cases fail [ISO/IEC 9899:1999, Â§6.8.4.2, Â¶5]. As a
                     result, we sort the order in which we handle the labels (but not the
                     order in which we print out the statements, so fall-through still
                     works as expected). *)

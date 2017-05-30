@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/combine.cmxs
    CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/combine.cmxs
-   OPT: -deps -journal-disable
+   OPT: -val-show-progress -deps -journal-disable
 */
 
 //@ assigns \result \from x;

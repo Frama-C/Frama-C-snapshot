@@ -4,7 +4,7 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 10 goals scheduled
+[wp] 9 goals scheduled
 [wp] [Alt-Ergo] Goal typed_init_post : Valid
 [wp] [Alt-Ergo] Goal typed_init_loop_inv_Partial_preserved : Valid
 [wp] [Qed] Goal typed_init_loop_inv_Partial_established : Valid
@@ -13,12 +13,11 @@
 [wp] [Qed] Goal typed_init_loop_assign_part1 : Valid
 [wp] [Alt-Ergo] Goal typed_init_loop_assign_part2 : Valid
 [wp] [Alt-Ergo] Goal typed_init_loop_assign_part3 : Valid
-[wp] [Qed] Goal typed_init_assign_part1 : Valid
-[wp] [Alt-Ergo] Goal typed_init_assign_part2 : Valid
-[wp] Proved goals:   10 / 10
-     Qed:             4 
+[wp] [Alt-Ergo] Goal typed_init_assign : Valid
+[wp] Proved goals:    9 / 9
+     Qed:             3 
      Alt-Ergo:        6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-init                 4      6 (66)    10       100%
+init                 3      6 (77)     9       100%
 ----------------------------------------------------------

@@ -70,7 +70,7 @@ predicate Prepeat{L1, L2}(ℤ times, \list<ℤ>  seq) =
  */
 /*@ ensures Padd_id{Here, Pre}(\old(id), ghost_seq);
     assigns seq; */
-extern void add_id(int id);
+void add_id(int id);
 
 /*@ lemma length{L}: \length(ghost_seq) ≥ 0;
  */

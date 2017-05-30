@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,6 +102,11 @@ module Callstacks_manager = struct
   type filter_column =
       FilterAlarm of bool | FilterBefore of gui_res | FilterAfter of gui_after
   type filter = gui_selection * bool * filter_column
+
+  let pretty_filter_column fmt = function
+    | FilterAlarm b -> Format.fprintf fmt "%s" (if b then "!" else " ")
+    | FilterBefore r -> Format.fprintf fmt "%a" pretty_gui_res r
+    | FilterAfter r -> Format.fprintf fmt "%a" pretty_gui_after r
 
   let rec remove_filter e : filter list -> _ = function
     | [] -> []
@@ -536,7 +541,7 @@ module Callstacks_manager = struct
         ) model.rows;
       if not !has_visible_row && not (GCallstackMap.is_empty model.rows) then
         (* Add a special row to indicate that some things are hidden by
-           filters. This row is intentionnaly only added to the view, but
+           filters. This row is intentionally only added to the view, but
            not to the model *)
         w#insert_row (gtk_model#add (row_unfocused ()));
       GtkTree.TreeView.columns_autosize w#view#as_tree_view;
@@ -611,16 +616,37 @@ module Callstacks_manager = struct
        on a data column. It can be used to filter lines *)
     let popup_menu_filter expr v icon vars_to_display =
       let menu = GMenu.menu () in
+      let callback_copy () =
+        (* we copy to both PRIMARY and CLIPBOARD clipboards,
+           for easier pasting *)
+        (* for a more readable result, add a separator between
+           the expression and its value when necessary *)
+        let value_str = Format.asprintf "%a" pretty_filter_column v in
+        let text =
+          Format.asprintf "%a%s%a"
+            pretty_gui_selection expr
+            (if String.get value_str 0 = ' ' then "" else " -> ")
+            pretty_filter_column v
+        in
+        let clipboard = GtkBase.Clipboard.get Gdk.Atom.clipboard in
+        GtkBase.Clipboard.set_text clipboard text;
+        let primary = GtkBase.Clipboard.get Gdk.Atom.primary in
+        GtkBase.Clipboard.set_text primary text
+      in
       let callback_only_except oe () =
         let filter = expr, oe, v in
         model.filters <- filter :: model.filters;
         icon ~filtered:true;
         render_session ();
       in
+      let copy = GMenu.menu_item ~label:"Copy to clipboard" () in
       let equal = GMenu.menu_item ~label:"Only equal" () in
       let different = GMenu.menu_item ~label:"Only different" () in
+      menu#add copy;
+      menu#add (GMenu.separator_item ());
       menu#add equal;
       menu#add different;
+      ignore (copy#connect#activate callback_copy);
       ignore (equal#connect#activate (callback_only_except true));
       ignore (different#connect#activate (callback_only_except false));
       (* add menu items for variables present in the selected expression *)
@@ -794,7 +820,7 @@ module Callstacks_manager = struct
                 statement" ()
     in
     let chk_consolidated = new Widget.checkbox ~label:"Consolidated value"
-      ~tooltip:"Show values consolidated accross all callstacks" ()
+      ~tooltip:"Show values consolidated across all callstacks" ()
     in
     let chk_callstacks = new Widget.checkbox ~label:"Per callstack"
       ~tooltip:"Show values per callstack" ()
@@ -909,7 +935,7 @@ module Callstacks_manager = struct
                 Pretty_source.PStmt (kf, stmt)
               | GL_Pre kf | GL_Post kf ->
                 let vi = Kernel_function.get_vi kf in
-                Pretty_source.PVDecl (Some kf, vi)
+                Pretty_source.PVDecl (Some kf, Kglobal, vi)
             in
             main_ui#scroll loc;
             model_default#clone model_tab#model;
@@ -1011,7 +1037,7 @@ let gui_compute_values (main_ui:main_ui) =
   if not (Db.Value.is_computed ())
   then main_ui#launcher ()
 
-let cleant_outputs kf s =
+let cleaned_outputs kf s =
   let outs = Db.Outputs.kinstr (Kstmt s) in
   let accept =
     Callgraph.Uses.accept_base ~with_formals:true ~with_locals:true kf
@@ -1155,16 +1181,17 @@ let pretty_stmt_info (main_ui:main_ui) kf stmt =
   if Db.Value.is_reachable_stmt stmt then begin
     if Value_results.is_non_terminating_instr stmt then
       match stmt.skind with
-      | Instr (Call (_lvopt, _, _, _)) ->
+      | Instr (Call (_, _, _, _)
+              | Local_init (_, ConsInit _, _)) ->
         (* This is not 100% accurate: the instr can also fail
            when storing the result in [lvopt] *)
         main_ui#pretty_information "This call never terminates.@."
       | Instr _ ->
-        main_ui#pretty_information "This instruction always fail.@."
+        main_ui#pretty_information "This instruction always fails.@."
       | _ -> ()
     else
       (* Out for this statement *)
-      let outs = cleant_outputs kf stmt in
+      let outs = cleaned_outputs kf stmt in
       match outs with
       | Some outs ->
         main_ui#pretty_information
@@ -1174,7 +1201,7 @@ let pretty_stmt_info (main_ui:main_ui) kf stmt =
   else main_ui#pretty_information "This code is dead@."
 
 (* Actions to perform when the user has left-clicked, and Value is computed.
-   Maintain sychronized with [can_eval_acsl_expr_selector] later in this file.*)
+   Maintain synchronized with [can_eval_acsl_expr_selector] later in this file.*)
 let left_click_values_computed main_ui cm localizable =
   try
     let open Property in
@@ -1200,9 +1227,12 @@ let left_click_values_computed main_ui cm localizable =
           select_tlv main_ui cm loc term
         | None -> ()
       end
-    | PVDecl (Some kf, vi) when vi.vformal ->
+    | PVDecl (Some kf, _, vi) when vi.vformal ->
       let lv = (Var vi, NoOffset) in
       select_lv main_ui cm (GL_Pre kf) lv
+    | PVDecl (Some kf, Kstmt stmt, vi) ->
+      let lv = (Var vi, NoOffset) in
+      select_lv main_ui cm (GL_Stmt (kf, stmt)) lv
     | PIP (IPCodeAnnot (kf, stmt,
            {annot_content = AAssert (_, p) | AInvariant (_, true, p)} )) ->
       select_predicate main_ui cm (GL_Stmt (kf, stmt)) p
@@ -1215,7 +1245,7 @@ let left_click_values_computed main_ui cm localizable =
     | PLval (None , _, _)
     | PExp ((_,Kglobal,_) | (None, Kstmt _, _))
     | PTermLval (None, _, _, _)-> ()
-    | PVDecl (_kf,_vi) -> ()
+    | PVDecl (_kf,_ki,_vi) -> ()
     | PGlobal _  | PIP _ -> ()
   with
   | Eval_terms.LogicEvalError ee ->
@@ -1225,7 +1255,7 @@ let left_click_values_computed main_ui cm localizable =
 (* Actions to perform when the user has right-clicked, and Value is computed *)
 let right_click_values_computed main_ui menu (cm: Callstacks_manager.t) localizable =
   match localizable with
-  | PVDecl (Some kf, _) ->
+  | PVDecl (Some kf, _, _) ->
     menu_go_to_callers main_ui menu cm#focused_rev_callstacks kf
   | PStmt (kf,stmt) ->
     if Gui_eval.results_kf_computed kf then
@@ -1238,25 +1268,25 @@ let right_click_values_computed main_ui menu (cm: Callstacks_manager.t) localiza
     begin
       (match lv with
        | Var _,NoOffset when isFunctionType ty ->
-         () (* direcl calls are handled by [Design]. *)
+         () (* direct calls are handled by [Design]. *)
        | Mem _, NoOffset when isFunctionType ty -> begin
            (* Function pointers *)
            (* get the list of functions in the values *)
            let e = Cil.dummy_exp (Lval lv) in
-           let funs, _ = Eval_exprs.resolv_func_vinfo
-               ~with_alarms:CilE.warn_none_mode None
-               (Db.Value.get_state ki) e
+           let __, funs =
+             !Db.Value.expr_to_kernel_function_state
+               ~deps:None (Db.Value.get_state ki) e
            in
            menu_go_to_fun_definition main_ui menu funs
          end
        | _ -> ()
       )
     end
-  | PVDecl (None, _) | PExp _ | PTermLval _ | PGlobal _ | PIP _ -> ()
+  | PVDecl (None, _, _) | PExp _ | PTermLval _ | PGlobal _ | PIP _ -> ()
 
 let _right_click_value_not_computed (main_ui:main_ui) (menu:menu) localizable =
   match localizable with
-  | PVDecl (_,_) -> begin
+  | PVDecl (_,_,_) -> begin
       ignore
         (menu#add_item "Compute callers"
            ~callback:(fun () -> (gui_compute_values main_ui)))
@@ -1431,15 +1461,22 @@ let add_keybord_shortcut_evaluate (main_ui:main_ui) cm =
       else select None
     | PTermLval (Some kf, Kglobal, ip, _) ->
       select (Gui_eval.classify_pre_post kf ip)
-    | PVDecl (Some kf, vi) when vi.vformal ->
+    | PVDecl (Some kf, _, vi) when vi.vformal ->
       select (Some (GL_Pre kf))
-    | PVDecl (Some kf, vi) when not (vi.vformal || vi.vglob) (* local *) ->
-      (* Notice that Pretty_source focuses on the statement containing the block
-         itself most of the time. This case only happens when you directly
-         select the declaration of a variable, between the type and the name *)
-      let fdec = Kernel_function.get_definition kf in
-      let bl = Ast_info.block_of_local fdec vi in
-      select (find_loc kf fdec bl)
+    | PVDecl (Some kf, ki, vi) when not (vi.vformal || vi.vglob) (* local *) ->
+      begin
+        match ki with
+        | Kstmt stmt -> (* local with initializers *)
+          select (Some (GL_Stmt (kf, stmt)))
+        | Kglobal -> (* no initializer. Find the declaration block *)
+          (* Notice that Pretty_source focuses on the statement containing the
+             block itself most of the time. The case handled here happens only
+             when you directly select the declaration of a variable, between
+             the type and the name *)
+          let fdec = Kernel_function.get_definition kf in
+          let bl = Ast_info.block_of_local fdec vi in
+          select (find_loc kf fdec bl)
+      end
     | PIP (Property.IPCodeAnnot (kf, stmt,
            {annot_content = AAssert (_, _) | AInvariant (_, true, _)} )) ->
       select (Some (GL_Stmt (kf, stmt)))

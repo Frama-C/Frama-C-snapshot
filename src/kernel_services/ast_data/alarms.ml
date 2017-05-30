@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -623,7 +623,7 @@ let to_annot_aux kinstr ?(loc=Kinstr.loc kinstr) alarm =
     let by_emitter = State.find kinstr in
     match find_alarm_in_emitters by_emitter alarm with
     | None ->
-      (* somes alarms already associated to this [kinstr], 
+      (* some alarms already associated to this [kinstr],
          but not this [alarm] *)
       add alarm, true, by_emitter
     | Some (annot, _kf, _stmt, _) ->

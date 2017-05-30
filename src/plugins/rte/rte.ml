@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -213,7 +213,7 @@ let signed_div_assertion ~remove_trivial ~on_alarm (exp, lexp, rexp) =
   (* Signed division: overflow occurs when dividend is equal to the
      the minimum (negative) value for the signed integer type,
      and divisor is equal to -1. Under the hypothesis (cf Value) that
-     integers are represented in two's completement.
+     integers are represented in two's complement.
      Nothing done for modulo (the result of TYPE_MIN % -1 is 0, which does not
      overflow).
      Still it may be dangerous on a number of compilers / architectures
@@ -255,7 +255,7 @@ let shift_alarm ~remove_trivial ~on_alarm (exp, upper_bound) =
     | None -> alarm ()
     | Some c64 ->
       (* operand is constant:
-         check it is nonnegative and stricly less than the upper bound (if
+         check it is nonnegative and strictly less than the upper bound (if
          any) *)
       let upper_bound_ok = match upper_bound with
         | None -> true

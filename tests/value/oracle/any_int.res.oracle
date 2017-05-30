@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
+tests/value/any_int.c:6:[value] warning: initialization of volatile variable y ignored
 tests/value/any_int.c:9:[value] entering loop for the first time
 tests/value/any_int.c:9:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;
 tests/value/any_int.c:9:[value] warning: signed overflow. assert y + 1 ≤ 2147483647;

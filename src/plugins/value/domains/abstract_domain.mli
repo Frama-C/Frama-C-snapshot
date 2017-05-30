@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,7 +68,7 @@
     {!S_with_Structure} is the interface to implement in order to introduce
     a now domain in EVA.
 
-    The module type {!Internal} contains some other functionnalities needed by
+    The module type {!Internal} contains some other functionalities needed by
     the analyzer, but that can be automatically generated from the previous
     one. The functor {!Domain_builder.Complete} produces an {!Internal} module
     from a {!S_with_Structure} one.
@@ -165,7 +165,6 @@ end
 module type Transfer = sig
 
   type state
-  type return
   type value
   type location
   type valuation
@@ -180,9 +179,9 @@ module type Transfer = sig
       - [kinstr] is the statement of the assignment, or Kglobal for the
         initialization of a global variable.
       - [v] carries the value being assigned to [lv], i.e. the value of the
-        expression [expr]. [v] also denotes the kind of assignement: Assign for
+        expression [expr]. [v] also denotes the kind of assignment: Assign for
         the default assignment of the value, or Copy for the exact copy of a
-        location if the right expresssion [expr] is a lvalue.
+        location if the right expression [expr] is a lvalue.
       - [valuation] is a cache of all sub-expressions and locations computed
         for the evaluation of [lval] and [expr]; it can also be used to reduce
         the state. *)
@@ -210,8 +209,7 @@ module type Transfer = sig
       - [valuation] is a cache for all values and locations computed during
         the evaluation of the function and its arguments. *)
   val start_call:
-    stmt -> value call -> valuation -> state ->
-    (state, return, value) call_action
+    stmt -> value call -> valuation -> state -> state call_action
 
   (** [finalize_call stmt call ~pre ~post] computes the state after a function
       call, given the state [pre] before the call, and the state [post] at the
@@ -224,40 +222,8 @@ module type Transfer = sig
   val finalize_call:
     stmt -> value call -> pre:state -> post:state -> state or_bottom
 
-  (** [make_return kf stmt assigned valuation state] makes an abstraction of the
-      return value of the function [kf].
-      [stmt] is the return statement of [kf] and [state] the state of the
-      domain at this statement. [assigned] represents the value of the lvalue
-      being returned, and [valuation] is the valuation resulting from its
-      evaluation.
-      The return abstraction computed by this function can then be used for
-      the assignment at the call site. *)
-  val make_return:
-    kernel_function -> stmt -> value assigned -> valuation -> state -> return
-
-  (** [assign_return stmt lv kf return value valuation state] models on states
-      the effect of the assignment of the return value of a called function at
-      the call site.
-      - [stmt] is the statement of the call;
-      - [lv] is the lvalue being assigned, with its type and location;
-      - [kf] is the called function, whose return is assigned;
-      - [return] is an abstraction of this return, computed by make_return;
-      - [value] is a value abstraction for this return, computed by a standard
-        evaluation in the called function [kf];
-      - [valuation] results from the evaluation of the location of [lv];
-      - [state] is the state before the assignment, but after the call. *)
-  val assign_return:
-    stmt -> location left_value ->
-    kernel_function -> return -> value assigned ->
-    valuation -> state -> state or_bottom
-
-  val default_call:
-    stmt -> value call -> state ->
-    (state, return, value) call_result
-
-  val enter_loop: stmt -> state -> state
-  val incr_loop_counter: stmt -> state -> state
-  val leave_loop: stmt -> state -> state
+  val approximate_call:
+    stmt -> value call -> state -> state list or_bottom
 
 end
 
@@ -299,14 +265,6 @@ module type S = sig
   (** {3 Queries } *)
   include Queries with type state := t
 
-  (** Abstraction of the return value of a function.
-      Allows information to flow from the return statement of a called function
-      to the assignment of the call site. *)
-  type return
-
-  (** Datatypes *)
-  module Return : Datatype.S with type t = return
-
   (** {3 Transfer Functions } *)
 
   (** Transfer functions from the result of evaluations.
@@ -316,7 +274,6 @@ module type S = sig
                              and type origin = origin
                              and type loc = location)
     : Transfer with type state = t
-                and type return = return
                 and type value = value
                 and type location = location
                 and type valuation = Valuation.t
@@ -326,8 +283,7 @@ module type S = sig
 
   (* TODO: revise this signature. *)
   val compute_using_specification:
-    kinstr -> kernel_function * funspec -> t ->
-    (t, return, value) call_result
+    kinstr -> value call -> funspec -> state -> state list or_bottom
 
   include Logic with type state := t
 
@@ -341,6 +297,10 @@ module type S = sig
       call to {!leave_scope}. *)
   val enter_scope: kernel_function -> varinfo list -> t -> t
   val leave_scope: kernel_function -> varinfo list -> t -> t
+
+  val enter_loop: stmt -> state -> state
+  val incr_loop_counter: stmt -> state -> state
+  val leave_loop: stmt -> state -> state
 
   (** Initialization *)
   val empty: unit -> t

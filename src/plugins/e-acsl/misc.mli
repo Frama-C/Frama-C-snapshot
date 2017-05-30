@@ -1,0 +1,129 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2017                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(** Utilities for E-ACSL. *)
+
+open Cil_types
+open Cil_datatype
+
+(* ************************************************************************** *)
+(** {2 Builders} *)
+(* ************************************************************************** *)
+
+exception Unregistered_library_function of string
+val mk_call: loc:Location.t -> ?result:lval -> string -> exp list -> stmt
+(** Call an E-ACSL library function or an E-ACSL built-in.
+    @raise Unregistered_library_function if the given string does not represent
+    such a function or if these functions were never registered (only possible
+    when using E-ACSL through its API. *)
+
+val mk_deref: loc:Location.t -> exp -> exp
+(** Make a dereference of an expression *)
+
+type annotation_kind =
+  | Assertion
+  | Precondition
+  | Postcondition
+  | Invariant
+  | RTE
+
+val mk_e_acsl_guard:
+  ?reverse:bool -> annotation_kind -> kernel_function -> exp -> predicate
+  -> stmt
+
+val mk_block: Project.t -> stmt -> block -> stmt
+
+(* ************************************************************************** *)
+(** {2 Handling \result} *)
+(* ************************************************************************** *)
+
+val result_lhost: kernel_function -> lhost
+(** @return the lhost corresponding to \result in the given function *)
+
+val result_vi: kernel_function -> varinfo
+(** @return the varinfo corresponding to \result in the given function *)
+
+(* ************************************************************************** *)
+(** {2 Handling the E-ACSL's C-libraries} *)
+(* ************************************************************************** *)
+
+val library_files: unit -> string list
+val is_library_loc: location -> bool
+val register_library_function: varinfo -> unit
+val reset: unit -> unit
+
+val mk_store_stmt: ?str_size:exp -> varinfo -> stmt
+val mk_duplicate_store_stmt: ?str_size:exp -> varinfo -> stmt
+val mk_delete_stmt: varinfo -> stmt
+val mk_full_init_stmt: ?addr:bool -> varinfo -> stmt
+val mk_initialize: loc:location -> lval -> stmt
+val mk_mark_readonly: varinfo -> stmt
+
+(* ************************************************************************** *)
+(** {2 Other stuff} *)
+(* ************************************************************************** *)
+
+val term_addr_of: loc:location -> term_lval -> typ -> term
+
+val reorder_ast: unit -> unit
+(* Reorder current AST by bringing all global declarations belonging to the
+ * E-ACSL runtime library and their dependencies (e.g., typedef size_t) to
+ * the very top of the file. *)
+
+val cty: logic_type -> typ
+(* Assume that the logic type is indeed a C type. Just return it. *)
+
+val ptr_index: ?loc:location -> ?index:exp -> exp
+  -> Cil_types.exp * Cil_types.exp
+(** Split pointer-arithmetic expression of the type `p + i` into its
+pointer and integer parts. *)
+
+(* ************************************************************************** *)
+(** {2 Handling prefixes of generated library functions and variables} *)
+(* ************************************************************************** *)
+
+val mk_api_name: string -> string
+(** @return given some base name append it with a prefix used
+    by functions and variables in the public API of E-ACSL runtime library.
+    ([__e_acsl_]) *)
+
+val mk_gen_name: string -> string
+(** @return given some base name append it with a prefix used
+    by functions and variables generated by E-ACSL ([__gen_e_acsl_]). *)
+
+val is_generated_varinfo: varinfo -> bool
+(** @return true if the name of the given [varinfo] indicates that it has been
+   generated by E-ACSL. This is done by checking whether the name of the
+   varinfo has been generated using [mk_gen_name function]. *)
+
+val is_generated_literal_string_varinfo: varinfo -> bool
+(** Same as [is_generated_varinfo] but indicates that varinfo is a local
+   variable which replaced a literal string. *)
+
+val is_generated_kf: kernel_function -> bool
+(** Same as [is_generated_varinfo] but for kernel functions *)
+
+(*
+Local Variables:
+compile-command: "make"
+End:
+*)

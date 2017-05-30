@@ -13,6 +13,7 @@
   GLOBAL[0..9] ∈ {0}
   G ∈ {0}
   TA ∈ {0}
+tests/value/fptr.i:62:[value] warning: initialization of volatile variable j ignored
 tests/value/fptr.i:66:[value] entering loop for the first time
 [value] Called Frama_C_show_each_F({{ &h }})
 [value] computing for function f <- main_uninit.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -186,8 +186,8 @@ let merge_assigns_internal (get:'b -> 'c assigns) (origin:'b -> string list)
   in List.fold_left (* find the smallest one *)
        cmp_assigns acc bhvs
 
-(** Returns the assigns from complete behaviors and ungarded behaviors. *)
-let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
+(** Returns the assigns from complete behaviors and unguarded behaviors. *)
+let merge_assigns_from_complete_bhvs ?warn ?(unguarded=true) bhvs complete_bhvs =
   let merge_assigns_from_complete_bhvs bhv_names =
     try (* For merging assigns of a "complete" set of behaviors *)
       let behaviors = match bhv_names with
@@ -201,7 +201,7 @@ let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
       in
 	(* Merges the assigns of the complete behaviors.
 	   Once one of them as no assumes, that means the merge 
-	   of the ungarded behavior did already the job *)
+	   of the unguarded behavior did already the job *)
       Writes
 	(List.fold_left
 	   (fun acc b -> match b.b_assigns with
@@ -212,9 +212,9 @@ let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
       WritesAny
   in
   let acc =
-    if ungarded then (* Looks first at unguarded behaviors. *)
+    if unguarded then (* Looks first at unguarded behaviors. *)
     let unguarded_bhvs = List.filter (fun b -> b.b_assumes = []) bhvs 
-    in merge_assigns_internal  (* Chooses the smalest one *)
+    in merge_assigns_internal  (* Chooses the smallest one *)
 	(fun b -> b.b_assigns) (fun b -> [b.b_name])
 	None unguarded_bhvs
     else None
@@ -225,7 +225,7 @@ let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
       acc
     | _ ->
       (* Look at complete behaviors *)
-      merge_assigns_internal (* Chooses the smalest one *)
+      merge_assigns_internal (* Chooses the smallest one *)
 	merge_assigns_from_complete_bhvs
 	(fun bhvnames -> bhvnames)
 	acc
@@ -248,7 +248,7 @@ let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
     end;
     a
        
-(** Returns the assigns from complete behaviors and ungarded behaviors. *)
+(** Returns the assigns from complete behaviors and unguarded behaviors. *)
 let merge_assigns_from_spec ?warn (spec :funspec) =
   merge_assigns_from_complete_bhvs
     ?warn spec.spec_behavior spec.spec_complete_behaviors

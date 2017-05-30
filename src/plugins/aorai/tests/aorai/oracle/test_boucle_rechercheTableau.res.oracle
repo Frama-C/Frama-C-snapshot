@@ -126,30 +126,29 @@ void isPresent_post_func(int res)
  */
 int isPresent(int *t, int max, int val)
 {
-  int aorai_Loop_Init_32;
+  int aorai_Loop_Init_29;
   int __retres;
-  int i;
   isPresent_pre_func(t,max,val);
-  i = 0;
-  /*@ ghost aorai_Loop_Init_32 = 1; */
-  aorai_loop_32:
-    /*@ loop invariant
-          inv:
-            0 ≤ i ≤ max ∧ \valid(t + (0 .. max)) ∧ max ≥ 0 ∧
-            (∀ ℤ j; 0 ≤ j ≤ i - 1 ⇒ *(t + j) ≢ val);
-        loop invariant Aorai: 0 ≡ End;
-        loop invariant Aorai: 1 ≡ Idle;
-        loop invariant Aorai: 0 ≡ WillDoFoo;
-        loop variant (v: max - i);
-    */
-    while (1) {
-      if (i < max) {
-        if (! (*(t + i) != val)) goto while_0_break;
-      }
-      else goto while_0_break;
-      /*@ ghost aorai_Loop_Init_32 = 0; */
-      i ++;
+  int i = 0;
+  /*@ ghost aorai_Loop_Init_29 = 1; */
+  aorai_loop_29:
+  /*@ loop invariant
+        inv:
+          0 ≤ i ≤ max ∧ \valid(t + (0 .. max)) ∧ max ≥ 0 ∧
+          (∀ ℤ j; 0 ≤ j ≤ i - 1 ⇒ *(t + j) ≢ val);
+      loop invariant Aorai: 0 ≡ End;
+      loop invariant Aorai: 1 ≡ Idle;
+      loop invariant Aorai: 0 ≡ WillDoFoo;
+      loop variant (v: max - i);
+  */
+  while (1) {
+    if (i < max) {
+      if (! (*(t + i) != val)) goto while_0_break;
     }
+    else goto while_0_break;
+    /*@ ghost aorai_Loop_Init_29 = 0; */
+    i ++;
+  }
   while_0_break: ;
   if (*(t + i) == val) {
     __retres = i;
@@ -335,14 +334,9 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  int tab[4];
-  int r;
   main_pre_func(argc,argv);
-  tab[0] = 10;
-  tab[1] = 20;
-  tab[2] = 33;
-  tab[3] = 15;
-  r = isPresent(tab,3,33);
+  int tab[4] = {10, 20, 33, 15};
+  int r = isPresent(tab,3,33);
   if (r == -1) foo();
   __retres = 1;
   main_post_func(__retres);

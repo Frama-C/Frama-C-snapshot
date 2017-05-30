@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ struct
   type value = M.loc Memory.value
   type sigma = M.Sigma.t
 
-  let print_value fmt = function
+  let pp_value fmt = function
     | Val e -> Format.fprintf fmt "Val:%a" F.pp_term e
     | Loc l-> Format.fprintf fmt "Loc:%a" M.pretty l
 

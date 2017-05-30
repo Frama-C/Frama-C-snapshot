@@ -21,11 +21,11 @@ struct bli {
 };
 /*@ assigns x->bar[0 .. 3];
     assigns x->bar[0 .. 3] \from x->bar[0 .. 3]; */
-extern int f(struct foo *x);
+int f(struct foo *x);
 
 /*@ assigns *(x + (0 .. 3));
     assigns *(x + (0 .. 3)) \from y->bli[0 .. 3]; */
-extern int g(char * /*[4]*/ x, struct bli *y);
+int g(char * /*[4]*/ x, struct bli *y);
 
 int main(void)
 {
@@ -56,10 +56,8 @@ int h(int x, int c)
   if (c > 0) tmp_0 = x + 1;
   else {
     int tmp;
-    { /* sequence */
-      if (c < 0) tmp = x - 1; else tmp = x;
-      tmp_0 = tmp;
-    }
+    if (c < 0) tmp = x - 1; else tmp = x;
+    tmp_0 = tmp;
   }
   return tmp_0;
 }
@@ -81,11 +79,10 @@ predicate test_singleton_1{L}(int *a, int x) = \at(x ≡ *(a + (0 .. 1)),L);
  */
 /*@
 predicate test_set_of_elem{L}(int *a) = \at(*(a + (0 .. 1)) ≡ {1, 2},L);
-
-*/
+ */
 int A[100];
 /*@ ensures \subset(\result, &A[0 ..]); */
-extern int *AA(void);
+int *AA(void);
 
 /*@ logic set<ℤ>  Sempty_1= \empty;
  */

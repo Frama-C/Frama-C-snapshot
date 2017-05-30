@@ -1,8 +1,8 @@
 diff tests/idct/oracle/ieee_1180_1990.res.oracle tests/idct/oracle_gauges/ieee_1180_1990.res.oracle
-107a108,109
+110a111,112
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 > tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
-481a484,500
+484a487,503
 > tests/idct/ieee_1180_1990.c:236:[value] Reusing old results for call to IEEE_1180_1990_dctf
 > tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
 > tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct

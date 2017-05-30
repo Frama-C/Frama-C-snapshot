@@ -37,6 +37,6 @@ static int i;
 extern int c;
 
 /*@ requires c ≡ 0; */
-extern  __attribute__((__FC_BUILTIN__)) void foo(int *);
+ __attribute__((__FC_BUILTIN__)) void foo(int *);
 
 

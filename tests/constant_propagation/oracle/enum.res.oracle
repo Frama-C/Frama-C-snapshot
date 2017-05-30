@@ -37,17 +37,12 @@ int f(enum E e)
 int main(int c, unsigned int u)
 {
   int __retres;
-  enum E x;
-  int y;
-  int z;
-  int t;
-  int v;
-  x = A;
-  y = f(0U);
-  z = f(D);
+  enum E x = A;
+  int y = f(0U);
+  int z = f(D);
   /*@ assert Value: signed_overflow: B + c ≤ 2147483647; */
-  t = B + c;
-  v = (int)(2U + u);
+  int t = B + c;
+  int v = (int)(2U + u);
   /*@ assert Value: signed_overflow: (int)(y + z) + t ≤ 2147483647; */
   /*@ assert
       Value: signed_overflow: -2147483648 ≤ (int)((int)(y + z) + t) + v;

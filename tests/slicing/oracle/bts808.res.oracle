@@ -16,7 +16,7 @@
 [value] Done for function f1
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function f0
@@ -66,10 +66,8 @@ int main(void)
   int __retres;
   int tmp;
   int tmp_0;
-  { /* sequence */
-    tmp = f0_slice_1();
-    tmp_0 = f1_slice_1();
-  }
+  tmp = f0_slice_1();
+  tmp_0 = f1_slice_1();
   __retres = tmp + tmp_0;
   return __retres;
 }

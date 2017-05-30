@@ -1,5 +1,6 @@
 /* run.config*
    OPT: -print -cpp-extra-args='-nostdinc -Ishare/libc' -metrics -metrics-libc -load-script tests/libc/check_const.ml -val @VALUECONFIG@ -then -lib-entry -no-print -metrics-no-libc
+   OPT: -print -print-libc
    CMD: ./tests/libc/check_full_libc.sh
    OPT:
 **/
@@ -86,6 +87,7 @@
 #include "netinet/in_systm.h"
 #include "netinet/ip.h"
 #include "netinet/ip_icmp.h"
+#include "netinet/tcp.h"
 #include "nl_types.h"
 #include "pwd.h"
 #include "regex.h"
@@ -124,7 +126,7 @@
 void main() {
   /* The variables below must be const; otherwise the preconditions
      and the assigns/from of some functions will not match */
-  //@ assert __p_fc_fopen == (FILE *)&__fc_fopen;
-  //@ assert __p_fc_opendir == (DIR*)&__fc_opendir;
-  //@ assert __p_fc_time_tm == &__fc_time_tm;
+  //@ assert __fc_p_fopen == (FILE *)&__fc_fopen;
+  //@ assert __fc_p_opendir == (DIR*)&__fc_opendir;
+  //@ assert __fc_p_time_tm == &__fc_time_tm;
 }

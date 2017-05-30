@@ -6,17 +6,17 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
-tests/saveload/load_one.i:20:[value] assertion got status valid.
+tests/saveload/load_one.i:16:[value] assertion got status valid.
 [value] computing for function f <- main.
-        Called from tests/saveload/load_one.i:22.
+        Called from tests/saveload/load_one.i:18.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/saveload/load_one.i:23.
+        Called from tests/saveload/load_one.i:19.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/saveload/load_one.i:24.
+        Called from tests/saveload/load_one.i:20.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -45,10 +45,8 @@ int f(int x, int y)
 
 int main(void)
 {
-  int a;
-  int b;
-  a = 1;
-  b = 1;
+  int a = 1;
+  int b = 1;
   /*@ assert a ≡ 1; */ ;
   f(0,0);
   a = f(a,b);
@@ -69,10 +67,8 @@ int f(int x, int y)
 
 int main(void)
 {
-  int a;
-  int b;
-  a = 1;
-  b = 1;
+  int a = 1;
+  int b = 1;
   /*@ assert a ≡ 1; */ ;
   f(0,0);
   a = f(a,b);

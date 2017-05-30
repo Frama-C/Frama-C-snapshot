@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,17 +37,11 @@ type emitter
 (** Register a new emitter for a message. *)
 val register: string -> emitter;;
 
-val emitter_name: emitter -> string
-
 (** Emit a message. *)
 val emit: emitter -> t -> unit
 val emit_imprecision: emitter -> string -> unit
 val emit_approximation: emitter -> ('a, Format.formatter, unit) format -> 'a
 val emit_costly: emitter -> ('a, Format.formatter, unit) format -> 'a
-
-(**/**)
-(* Internal; defines where emitted messages go.  *)
-val message_destination:(emitter -> t -> unit) ref;;
 
 (*
 Local Variables:

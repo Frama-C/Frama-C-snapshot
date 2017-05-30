@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-val" +"-deps" +"-out" +"-input" +"-deps"
+   STDOPT: +"-val -val-show-progress -deps -out -input -deps"
  */
 void main() {
    /*@ loop pragma UNROLL 2; */

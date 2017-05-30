@@ -58,7 +58,7 @@ axiomatic Test {
       assigns *p;
       assigns *p \from G;
  */
-extern void h(int G, int *p);
+void h(int G, int *p);
 
 void f(int G, int *p)
 {

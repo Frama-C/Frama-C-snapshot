@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -then -scf -then-on propagated -scf
+   OPT: -val -val-show-progress -then -scf -val-show-progress -then-on propagated -scf -val-show-progress
 */
 
 void f(int *x, int *y, void (*p)(int *x, int *y)) {

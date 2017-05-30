@@ -49,7 +49,7 @@ tests/slicing/bts709.i:36:[kernel] warning: Neither code nor specification for f
 [value] Done for function inputsOf_testcase_func
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function func
 [from] Computing for function assert
@@ -116,7 +116,7 @@ void main(void)
   return;
 }
 
-extern int nondet_int();
+int nondet_int();
 
 void inputsOf_testcase_func_slice_1(void)
 {

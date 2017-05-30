@@ -26,8 +26,14 @@ tests/pdg/top_pdg_input.c:14:[value] warning: out of bounds read. assert \valid_
 tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:13}
+tests/pdg/top_pdg_input.c:16:[value] Assigning imprecise value to \result<f1>.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
 [value] Recording results for f1
 [value] Done for function f1
+tests/pdg/top_pdg_input.c:38:[value] Assigning imprecise value to i.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
 [value] computing for function f2 <- main.
         Called from tests/pdg/top_pdg_input.c:39.
 [value] computing for function top_input <- f2 <- main.
@@ -46,8 +52,14 @@ tests/pdg/top_pdg_input.c:24:[value] warning: signed overflow. assert s.a + s.t[
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:20}
+tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to \result<f2>.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
 [value] Recording results for f2
 [value] Done for function f2
+tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to tmp_0.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert -2147483648 ≤ i + tmp_0;
                                   (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert i + tmp_0 ≤ 2147483647;
@@ -165,7 +177,7 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
    -[a--]-> 2
  {n4}: VarDecl : q
  {n5}: VarDecl : k
- {n6}: k = 0;
+ {n6}: int k = 0;
    -[-c-]-> 1
    -[a--]-> 5
  {n7}: q = p;
@@ -234,13 +246,13 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
    -[-c-]-> 20
    -[a--]-> 22
    -[-c-]-> 24
- {n26}: i = *(*tmp);
+ {n26}: int i = *(*tmp);
    -[-c-]-> 20
    -[a--]-> 21
    -[--d]-> 22
    -[--d]-> 25
    -[--d]-> 33
- {n27}: v = tab[i];
+ {n27}: int v = tab[i];
    -[-c-]-> 20
    -[--d]-> 21
    -[a--]-> 23
@@ -265,13 +277,13 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
  {n36}: VarDecl : tmp
  {n37}: VarDecl : s
  {n38}: VarDecl : __retres
- {n39}: Call10-InCtrl : tmp = top_input();
+ {n39}: Call8-InCtrl : tmp = top_input();
    -[-c-]-> 34
- {n40}: Call10-OutRet : tmp = top_input();
+ {n40}: Call8-OutRet : tmp = top_input();
    -[-c-]-> 34
    -[a--]-> 36
    -[-c-]-> 39
- {n41}: i = *(*tmp);
+ {n41}: int i = *(*tmp);
    -[-c-]-> 34
    -[a--]-> 35
    -[--d]-> 36
@@ -309,13 +321,13 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
  {n52}: VarDecl : i
  {n53}: VarDecl : tmp_0
  {n54}: VarDecl : tmp_1
- {n55}: Call30-InCtrl : i = f1();
+ {n55}: Call27-InCtrl : int i = f1();
    -[-c-]-> 49
- {n56}: Call30-Out(G) : i = f1();
+ {n56}: Call27-Out(G) : int i = f1();
    -[-c-]-> 49
    -[-c-]-> 55
    -[--d]-> 74
- {n57}: Call30-OutRet : i = f1();
+ {n57}: Call27-OutRet : int i = f1();
    -[-c-]-> 49
    -[a--]-> 52
    -[-c-]-> 55
@@ -323,14 +335,14 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
    -[--d]-> 73
  {n58}: unspecified sequence
    -[-c-]-> 49
- {n59}: Call32-InCtrl : tmp_0 = f2();
+ {n59}: Call29-InCtrl : tmp_0 = f2();
    -[-c-]-> 49
    -[-c-]-> 58
- {n60}: Call32-Out(S.a) : tmp_0 = f2();
+ {n60}: Call29-Out(S.a) : tmp_0 = f2();
    -[-c-]-> 49
    -[-c-]-> 58
    -[-c-]-> 59
- {n61}: Call32-OutRet : tmp_0 = f2();
+ {n61}: Call29-OutRet : tmp_0 = f2();
    -[-c-]-> 49
    -[a--]-> 53
    -[-c-]-> 58
@@ -344,9 +356,9 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
    -[--d]-> 57
    -[-c-]-> 58
    -[--d]-> 61
- {n63}: Call34-InCtrl : tmp_1 = strlen(*(p_str + i));
+ {n63}: Call31-InCtrl : tmp_1 = strlen(*(p_str + i));
    -[-c-]-> 49
- {n64}: Call34-In1 : tmp_1 = strlen(*(p_str + i));
+ {n64}: Call31-In1 : tmp_1 = strlen(*(p_str + i));
    -[-c-]-> 49
    -[--d]-> 50
    -[--d]-> 51
@@ -355,7 +367,7 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
    -[-c-]-> 63
    -[--d]-> 70
    -[--d]-> 71
- {n65}: Call34-OutRet : tmp_1 = strlen(*(p_str + i));
+ {n65}: Call31-OutRet : tmp_1 = strlen(*(p_str + i));
    -[-c-]-> 49
    -[a--]-> 54
    -[-c-]-> 63
@@ -445,17 +457,17 @@ tests/pdg/top_pdg_input.c:45:[pdg] warning: Ignoring inline assembly code
  {n83}: InCtrl
  {n84}: VarDecl : j
  {n85}: VarDecl : tmp
- {n86}: j = 3;
+ {n86}: int j = 3;
    -[-c-]-> 83
    -[a--]-> 84
- {n87}: Call42-InCtrl : tmp = fun_asm(j);
+ {n87}: Call39-InCtrl : tmp = fun_asm(j);
    -[-c-]-> 83
- {n88}: Call42-In1 : tmp = fun_asm(j);
+ {n88}: Call39-In1 : tmp = fun_asm(j);
    -[-c-]-> 83
    -[--d]-> 84
    -[--d]-> 86
    -[-c-]-> 87
- {n89}: Call42-OutRet : tmp = fun_asm(j);
+ {n89}: Call39-OutRet : tmp = fun_asm(j);
    -[-c-]-> 83
    -[a--]-> 85
    -[-c-]-> 87

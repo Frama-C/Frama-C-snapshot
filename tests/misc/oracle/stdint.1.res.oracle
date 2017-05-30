@@ -1,0 +1,12 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/stdint.i (no preprocessing)
+tests/misc/stdint.i:10:[kernel] warning: bad type 'int' (32 bits) for typedef 'int8_t';
+                  check for mismatch between -machdep flag and headers used
+tests/misc/stdint.i:11:[kernel] warning: bad type 'unsigned char' (8 bits) for typedef 'uint_least64_t';
+                  check for mismatch between -machdep flag and headers used
+tests/misc/stdint.i:12:[kernel] warning: bad type 'short' (16 bits) for typedef 'int_fast32_t';
+                  check for mismatch between -machdep flag and headers used
+tests/misc/stdint.i:13:[kernel] warning: bad type 'char' (8 bits) for typedef 'intptr_t';
+                  check for mismatch between -machdep flag and headers used
+tests/misc/stdint.i:14:[kernel] warning: bad type 'unsigned short' (16 bits) for typedef 'uintmax_t';
+                  check for mismatch between -machdep flag and headers used

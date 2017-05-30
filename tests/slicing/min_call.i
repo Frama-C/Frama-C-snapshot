@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/min_call.cmxs
    CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/min_call.cmxs
-   OPT: -deps -lib-entry -main g -journal-disable -slicing-level 3
+   OPT: -val-show-progress -deps -lib-entry -main g -journal-disable -slicing-level 3
 */
 
 /* dummy source file in order to test minimal calls feature

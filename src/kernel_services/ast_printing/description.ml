@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,6 +124,8 @@ let pp_code_annot fmt ca =
 
 let pp_stmt kloc fmt stmt =
   match stmt.skind with
+    | Instr (Local_init (v,_,loc)) ->
+      Format.fprintf fmt "initialization of '%s'%a" v.vname (pp_kloc kloc) loc
     | Instr (Call(_,{enode=Lval(Var v,_)},_,loc)) -> 
 	Format.fprintf fmt "call '%s'%a" v.vname (pp_kloc kloc) loc
     | Instr (Set(_,_,loc)|Call(_,_,_,loc)) -> 

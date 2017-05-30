@@ -5,14 +5,10 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   auto_states[0..3] ∈ {0}
-[value] computing for function copy <- main.
-        Called from tests/spec/default_assigns_bts0966.i:34.
 tests/spec/default_assigns_bts0966.i:34:[kernel] warning: No code nor implicit assigns clause for function copy, generating default assigns from the specification
 [value] using specification for function copy
 tests/spec/default_assigns_bts0966.i:20:[value] warning: no \from part for clause 'assigns auto_states[Init], auto_states[Copy];' of
                  function copy
-[value] Done for function copy
-[value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -40,7 +36,7 @@ int auto_states[4];
       assumes auto_states[Init] ≡ 0;
       assigns \nothing;
  */
-extern void copy(int x);
+void copy(int x);
 
 int main(void)
 {

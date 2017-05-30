@@ -1,0 +1,32 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/libc.c (with preprocessing)
+[metrics] Defined functions (1)
+          =====================
+           main (0 call); 
+          
+          Undefined functions (0)
+          =======================
+           
+          
+          'Extern' global variables (0)
+          =============================
+           
+          
+          Potential entry points (1)
+          ==========================
+           main; 
+          
+          Global metrics
+          ============== 
+          Sloc = 2
+          Decision point = 0
+          Global variables = 0
+          If = 0
+          Loop = 0
+          Goto = 0
+          Assignment = 1
+          Exit point = 1
+          Function = 1
+          Function call = 1
+          Pointer dereferencing = 0
+          Cyclomatic complexity = 1

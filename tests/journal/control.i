@@ -1,6 +1,6 @@
 /* run.config
    COMMENT: do not compare generated journals since they depend on current time
-   EXECNOW: BIN control_journal.ml BIN control_journal_bis.ml (./bin/toplevel.opt -journal-enable -check -val -deps -out -main f -journal-name tests/journal/result/control_journal.ml tests/journal/control.i && cp tests/journal/result/control_journal.ml tests/journal/result/control_journal_bis.ml) > /dev/null 2> /dev/null
+   EXECNOW: BIN control_journal.ml BIN control_journal_bis.ml (./bin/toplevel.opt -journal-enable -check -val -deps -out -val-show-progress -main f -journal-name tests/journal/result/control_journal.ml tests/journal/control.i && cp tests/journal/result/control_journal.ml tests/journal/result/control_journal_bis.ml) > /dev/null 2> /dev/null
   CMD: FRAMAC_LIB=lib/fc ./bin/toplevel.byte
   OPT: -load-script tests/journal/result/control_journal -journal-disable
   CMD: FRAMAC_LIB=lib/fc ./bin/toplevel.byte

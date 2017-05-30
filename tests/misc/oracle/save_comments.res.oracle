@@ -7,8 +7,7 @@ Printing default project first time:
  */
 int f(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   /*  Hello, I'm the f function  */
   return x;
 }
@@ -21,8 +20,7 @@ Printing default project second time:
  */
 int f(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   /*  Hello, I'm the f function  */
   return x;
 }
@@ -41,8 +39,7 @@ Printing saved project:
  */
 int f(void)
 {
-  int x;
-  x = 0;
+  int x = 0;
   /*  Hello, I'm the f function  */
   return x;
 }

@@ -47,6 +47,7 @@ let x86_16 = {
   version          = 
     "x86 16 bits mode (gcc like compiler) with big or huge memory model";
   compiler = "generic";
+  cpp_arch_flags   = ["-m16"];
   sizeof_short     = 2;
   sizeof_int       = 2;
   sizeof_long      = 4;
@@ -86,6 +87,7 @@ let gcc_x86_16 = { x86_16 with compiler = "gcc" }
 let x86_32 = {
   version          = "gcc 4.0.3 - X86-32bits mode";
   compiler         = "generic";
+  cpp_arch_flags   = ["-m32"];
   sizeof_short     = 2;
   sizeof_int       = 4;
   sizeof_long      = 4;
@@ -123,6 +125,7 @@ let gcc_x86_32 = { x86_32 with compiler = "gcc" }
 let x86_64 = {
   version          = "gcc 4.0.3 AMD64";
   compiler         = "generic";
+  cpp_arch_flags   = ["-m64"];
   sizeof_short     = 2;
   sizeof_int       = 4;
   sizeof_long      = 8;
@@ -160,6 +163,7 @@ let gcc_x86_64 = { x86_64 with compiler = "gcc" }
 let ppc_32 = {
   version          = "4.0.1 (Apple Computer, Inc. build 5367)";
   compiler         = "standard";
+  cpp_arch_flags   = ["-m32"];
   sizeof_short     = 2;
   sizeof_int       = 4;
   sizeof_long      = 4;
@@ -195,6 +199,7 @@ let ppc_32 = {
 let msvc_x86_64 = {
   version          = "MSVC - X86-64bits mode";
   compiler         = "msvc";
+  cpp_arch_flags   = ["-m64"];
   sizeof_short     = 2;
   sizeof_int       = 4;
   sizeof_long      = 4;

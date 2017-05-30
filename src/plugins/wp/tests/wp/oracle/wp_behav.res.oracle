@@ -28,7 +28,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Complete behaviors 'pos', 'neg':
-Assume { Type: is_sint32(n). (* Pre-condition *) Have: 0 != n. }
+Assume { Type: is_sint32(n). (* Pre-condition *) Have: n != 0. }
 Prove: (0 < n) \/ (n < 0).
 
 ------------------------------------------------------------
@@ -112,7 +112,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function local_named_behavior with behavior xpos_stmt_54
+  Function local_named_behavior with behavior xpos_stmt_53
 ------------------------------------------------------------
 
 Goal Post-condition for 'xpos' 'qed_ok' at instruction (file tests/wp/wp_behav.c, line 112):
@@ -149,10 +149,10 @@ Prove: true.
 Goal Post-condition for 'bx' 'qed_ko' in 'min':
 Assume {
   Type: is_sint32(min_0) /\ is_sint32(y).
-  (* Residual *)
-  When: min_0 < y.
+  (* Pre-condition for 'bx' *)
+  Have: min_0 <= y.
 }
-Prove: false.
+Prove: y = min_0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -182,10 +182,15 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function more_stmt_assigns with behavior blk_stmt_87
+  Function more_stmt_assigns with behavior blk_stmt_86
 ------------------------------------------------------------
 
-Goal Assigns for 'blk' 'qed_ok,qed_ok' at block:
+Goal Assigns for 'blk' 'qed_ok,qed_ok' at block (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'blk' 'qed_ok,qed_ok' at block (2/2):
 Effect at line 163
 Prove: true.
 
@@ -199,7 +204,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function part_stmt_bhv with behavior bs_stmt_94_b1
+  Function part_stmt_bhv with behavior bs_stmt_93_b1
 ------------------------------------------------------------
 
 Goal Post-condition for 'bs' (file tests/wp/wp_behav.c, line 175) at block:
@@ -219,11 +224,11 @@ Assume {
   (* Pre-condition *)
   Have: n_1 <= 9.
   (* Invariant 'qed_ok' *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) -> (0 = T[i_2]))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) -> (T[i_2] = 0))).
   (* Then *)
   Have: i < n.
 }
-Prove: 0 = T[i <- 0][i_1].
+Prove: T[i <- 0][i_1] = 0.
 
 ------------------------------------------------------------
 
@@ -244,11 +249,11 @@ Assume {
   (* Pre-condition for 'b1' *)
   Have: 0 < n_1.
   (* Invariant 'qed_ok' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) -> (0 = T[i_1]))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) -> (T[i_1] = 0))).
   (* Else *)
   Have: n <= i.
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -260,7 +265,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function stmt_assigns with behavior default_for_stmt_71
+  Function stmt_assigns with behavior default_for_stmt_70
 ------------------------------------------------------------
 
 Goal Assigns (file tests/wp/wp_behav.c, line 139) at call 'unknown' (file tests/wp/wp_behav.c, line 140):
@@ -269,7 +274,7 @@ Prove: false.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function stmt_contract with behavior default_for_stmt_23
+  Function stmt_contract with behavior default_for_stmt_22
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok' at block:
@@ -316,7 +321,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function stmt_contract_assigns with behavior default_for_stmt_44
+  Function stmt_contract_assigns with behavior default_for_stmt_43
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok' at block:
@@ -371,7 +376,7 @@ Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-  Function stmt_contract_label with behavior default_for_stmt_33
+  Function stmt_contract_label with behavior default_for_stmt_32
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' at block:

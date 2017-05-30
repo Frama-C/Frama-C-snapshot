@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/sys_time.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_time ∈ [--..--]
+  __fc_tz ∈ [--..--]
+  __fc_itimer_real ∈ [--..--]
+  __fc_itimer_virtual ∈ [--..--]
+  __fc_itimer_prof ∈ [--..--]
+[value] computing for function setitimer <- main.
+        Called from tests/libc/sys_time.c:6.
+[value] using specification for function setitimer
+share/libc/sys/time.h:140:[value] function setitimer: precondition got status valid.
+share/libc/sys/time.h:141:[value] function setitimer: precondition got status valid.
+[value] Done for function setitimer
+tests/libc/sys_time.c:7:[value] assertion got status valid.
+[value] computing for function setitimer <- main.
+        Called from tests/libc/sys_time.c:9.
+[value] Done for function setitimer
+tests/libc/sys_time.c:10:[value] assertion got status valid.
+tests/libc/sys_time.c:11:[value] assertion got status valid.
+[value] computing for function getitimer <- main.
+        Called from tests/libc/sys_time.c:12.
+[value] using specification for function getitimer
+share/libc/sys/time.h:101:[value] function getitimer: precondition got status valid.
+[value] Done for function getitimer
+tests/libc/sys_time.c:13:[value] assertion got status valid.
+tests/libc/sys_time.c:14:[value] assertion got status valid.
+[value] computing for function getitimer <- main.
+        Called from tests/libc/sys_time.c:16.
+[value] Done for function getitimer
+tests/libc/sys_time.c:17:[value] assertion got status valid.
+[value] computing for function setitimer <- main.
+        Called from tests/libc/sys_time.c:19.
+[value] Done for function setitimer
+tests/libc/sys_time.c:20:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  i1 ∈ [--..--]
+  res ∈ {-1}
+  i2.it_interval.tv_sec ∈ [--..--]
+    .it_interval.tv_usec ∈ {1000000}
+    .it_value ∈ [--..--]
+  INVALID_ITIMER ∈ {-1}
+  __retres ∈ {0}

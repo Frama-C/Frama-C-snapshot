@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ val (>>?) : 'a task -> ('a status -> unit) -> 'a task (** [finally] infix. *)
 val (>>!) : 'a task -> ('a status -> unit) -> unit task (** [callback] infix. *)
 
 (* ************************************************************************* *)
-(** {2 Synchroneous Command} *)
+(** {2 Synchronous Command} *)
 (* ************************************************************************* *)
 
 type mutex
@@ -147,7 +147,7 @@ val shared : descr:string -> retry:bool -> (unit -> 'a task) -> 'a shared
     instance is required but no shared instance task is actually running.
     Interrupted tasks (by Cancel or Timeout) are retried for further
     instances. If the task failed, it can be re-launch if [retry] is [true].
-    Otherwize, further instances will return [Failed] status. *)
+    Otherwise, further instances will return [Failed] status. *)
 
 val share : 'a shared -> 'a task 
 (** New instance of shared task. *)

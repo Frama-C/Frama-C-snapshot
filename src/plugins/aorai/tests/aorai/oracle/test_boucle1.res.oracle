@@ -445,26 +445,26 @@ int main(void)
   status = 0;
   /*@ ghost aorai_Loop_Init_32 = 1; */
   aorai_loop_32:
-    /*@ loop invariant
-          i:
-            0 ≤ status ≤ 1 ∧ 0 ≤ cpt ≤ 3 ∧
-            (cpt ≡ 0 ⇒ status ≡ 0);
-        loop invariant Aorai: 0 ≡ accept_S1;
-        loop invariant Aorai: 1 ≡ accept_S2;
-        loop invariant Aorai: 0 ≡ accept_S3;
-        loop invariant Aorai: 0 ≡ accept_S4;
-        loop invariant Aorai: 0 ≡ accept_init;
-    */
-    while (1) {
-      if (! (cpt > 0)) goto while_0_break;
-      /*@ ghost aorai_Loop_Init_32 = 0; */
-      status = init_trans();
-      if (status) {
-        status = commit_trans();
-        if (status) goto label_ok;
-      }
-      cpt --;
+  /*@ loop invariant
+        i:
+          0 ≤ status ≤ 1 ∧ 0 ≤ cpt ≤ 3 ∧
+          (cpt ≡ 0 ⇒ status ≡ 0);
+      loop invariant Aorai: 0 ≡ accept_S1;
+      loop invariant Aorai: 1 ≡ accept_S2;
+      loop invariant Aorai: 0 ≡ accept_S3;
+      loop invariant Aorai: 0 ≡ accept_S4;
+      loop invariant Aorai: 0 ≡ accept_init;
+  */
+  while (1) {
+    if (! (cpt > 0)) goto while_0_break;
+    /*@ ghost aorai_Loop_Init_32 = 0; */
+    status = init_trans();
+    if (status) {
+      status = commit_trans();
+      if (status) goto label_ok;
     }
+    cpt --;
+  }
   while_0_break: ;
   __retres = 0;
   goto return_label;

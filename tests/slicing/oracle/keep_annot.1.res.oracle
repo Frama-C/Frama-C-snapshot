@@ -17,7 +17,7 @@ tests/slicing/keep_annot.i:27:[value] assertion got status valid.
 tests/slicing/keep_annot.i:28:[value] warning: assertion got status unknown.
 [value] Recording results for f
 [value] done for function f
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f
 [from] Computing for function g
@@ -43,8 +43,7 @@ struct __anonstruct_las_1 {
 typedef struct __anonstruct_las_1 las;
 void g_slice_1(las *p)
 {
-  int i;
-  i = 0;
+  int i = 0;
   while (i < 5) {
     p->b = (double)i / (double)(i + 1);
     i ++;

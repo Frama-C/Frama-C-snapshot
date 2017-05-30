@@ -4,8 +4,7 @@
 /*@ ensures \result ≡ 42; */
 int foo(void)
 {
-  int FOO;
-  FOO = 42;
+  int FOO = 42;
   return FOO;
 }
 

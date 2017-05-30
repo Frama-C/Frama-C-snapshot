@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,7 +50,7 @@ class ['v, 'e, 'c] services_view view = object (self)
     let deployed, nodes = Hashtbl.find services service in
     assert (not !deployed);
     deployed := true;
-    (* itering on nodes of the current service *)
+    (* iterating on nodes of the current service *)
     List.iter
       (fun n ->
          n#compute ();
@@ -71,7 +71,7 @@ class ['v, 'e, 'c] services_view view = object (self)
     let deployed, nodes = Hashtbl.find services service in
     assert !deployed;
     deployed := false;
-    (* itering on nodes of the current service *)
+    (* iterating on nodes of the current service *)
     List.iter
       (fun n ->
          if not (self#is_root n) then n#hide ();

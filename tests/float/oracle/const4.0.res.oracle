@@ -5,21 +5,12 @@ tests/float/const4.i:7:[kernel] warning: Floating-point constant 3.405e38f is no
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 tests/float/const4.i:7:[value] warning: non-finite float value. assert \is_finite(3.405e38f);
-tests/float/const4.i:7:[value] Evaluation of initializer '(double)3.405e38f' failed
+tests/float/const4.i:7:[value] evaluation of initializer '(double)3.405e38f' failed
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   NOT ACCESSIBLE
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======
-[from] Computing for function main
-[from] Non-terminating function main (no dependencies)
-[from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function main:
-  NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
-          \nothing
-[inout] Inputs for function main:
-          \nothing

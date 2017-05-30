@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ let adapt_filename f =
     try Filename.chop_extension f ^ ext
     with Invalid_argument _ -> f ^ ext
   in
-  change_suffix (if FCDynlink.is_native then ".cmxs" else ".cmo")
+  change_suffix (if Dynlink.is_native then ".cmxs" else ".cmo")
 
 (* [max_cpt t1 t2] returns the maximum of [t1] and [t2] wrt the total ordering
    induced by tags creation. This ordering is defined as follows:
@@ -288,45 +288,8 @@ let xor x y = if x then not y else y
 
 (* replace "noalloc" with [@@noalloc] for OCaml version >= 4.03.0 *)
 [@@@ warning "-3"]
-external getperfcount: unit -> int = "getperfcount" "noalloc"
-external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
 external address_of_value: 'a -> int = "address_of_value" "noalloc"
 [@@@ warning "+3"]
-
-let gentime counter ?msg f x =
-  let c1 = counter () in
-  let res = f x in
-  let c2 = counter () in
-  Format.printf "Time%s: %d@."
-    (match msg with None -> "" | Some s -> " of " ^ s)
-    (c2 - c1);
-  res
-
-let time ?msg f x = gentime getperfcount ?msg f x
-let time1024 ?msg f x = gentime getperfcount1024 ?msg f x
-
-(* The two functions below are not exported right now *)
-let _time' name f =
-  let cpt = ref 0 in
-  fun x ->
-    let b = getperfcount () in
-    let res = f x in
-    let e = getperfcount () in
-    let diff = e - b in
-    cpt := !cpt + diff;
-    Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
-    res
-
-let _time2 name f =
-  let cpt = ref 0 in
-  fun x y ->
-    let b = getperfcount () in
-    let res = f x y in
-    let e = getperfcount () in
-    let diff = e - b in
-    cpt := !cpt + diff;
-    Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
-    res
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -343,7 +306,7 @@ let try_finally ~finally f x =
 (*[LC] due to Unix.exec calls, at_exit might be cloned into child process
   and executed when they are canceled early.
 
-  The alternative, such as registering an dameon that raises an exception,
+  The alternative, such as registering an daemon that raises an exception,
   hence interrupting the process, might not work: child processes still need to
   run some daemons, such as [Pervasives.flush_all] which is registered by default. *)
 

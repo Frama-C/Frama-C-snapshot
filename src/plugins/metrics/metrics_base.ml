@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -279,11 +279,10 @@ let pretty_extern_vars fmt s =
   Pretty_utils.pp_iter ~pre:"@[" ~suf:"@]" ~sep:";@ "
     VInfoSet.iter Printer.pp_varinfo fmt s
 
-let is_in_libc (loc:location) =
-  Filepath.is_relative ~base:Config.datadir (fst loc).Lexing.pos_fname
+let is_in_libc attrs = Cil.hasAttribute "fc_stdlib" attrs
 
 let is_entry_point vinfo times_called =
-  times_called = 0 && not vinfo.vaddrof && not (is_in_libc vinfo.vdecl)
+  times_called = 0 && not vinfo.vaddrof && not (is_in_libc vinfo.vattr)
 ;;
 
 let number_entry_points fs =
@@ -330,15 +329,15 @@ let get_filename fdef =
     | _ -> assert false
 ;;
 
-let consider_function vinfo =
+let consider_function ~libc vinfo =
   not (!Db.Value.mem_builtin vinfo.vname
        || Ast_info.is_frama_c_builtin vinfo.vname
        || Cil.is_unused_builtin vinfo
-  ) && (Metrics_parameters.Libc.get () || not (is_in_libc vinfo.vdecl))
+  ) && (libc || not (is_in_libc vinfo.vattr))
 
-let consider_variable vinfo =
+let consider_variable ~libc vinfo =
   not (Cil.hasAttribute "FRAMA_C_MODEL" vinfo.vattr) &&
-    not (is_in_libc vinfo.vdecl)
+    (libc || not (is_in_libc vinfo.vattr))
 
 let float_to_string f =
   let s = Format.sprintf "%F" f in

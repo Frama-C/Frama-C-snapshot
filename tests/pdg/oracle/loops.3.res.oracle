@@ -20,10 +20,10 @@ tests/pdg/loops.c:79:[pdg] warning: no final state. Probably unreachable...
    -[a--]-> 2
  {n4}: VarDecl : s
  {n5}: VarDecl : i
- {n6}: s = 0;
+ {n6}: int s = 0;
    -[-c-]-> 1
    -[a--]-> 4
- {n7}: i = 1;
+ {n7}: int i = 1;
    -[-c-]-> 1
    -[a--]-> 5
  {n8}: while(1)

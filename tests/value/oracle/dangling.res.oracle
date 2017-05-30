@@ -16,6 +16,7 @@ tests/value/dangling.i:24:[value] warning: accessing left-value that contains es
 [value] Recording results for main
 [value] done for function main
 tests/value/dangling.i:24:[value] assertion 'Value,dangling_pointer' got final status invalid.
+[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   x ∈ {{ &y }} or ESCAPINGADDR

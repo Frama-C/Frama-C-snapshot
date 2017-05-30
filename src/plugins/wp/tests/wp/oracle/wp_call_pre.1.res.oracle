@@ -12,12 +12,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,Emain' in 'main':
-Assume { Type: is_sint32(main_0). (* Call 'f' *) Have: 0 < main_0. }
-Prove: 0 < main_0.
+Prove: true.
 
 ------------------------------------------------------------
 
-Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'main' at call 'f' (file tests/wp/wp_call_pre.c, line 33)
+Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'main' at initialization of 'x' (file tests/wp/wp_call_pre.c, line 33)
 :
 Prove: true.
 

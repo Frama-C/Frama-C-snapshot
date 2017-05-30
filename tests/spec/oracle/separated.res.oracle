@@ -9,20 +9,17 @@
  */
 void put(char *p, char *q, int n)
 {
-  int i;
-  i = 0;
+  int i = 0;
   while (i < n) {
     {
       char *tmp;
       char *tmp_0;
       /*@ assert \separated(p, q); */ ;
-      { /* sequence */
-        tmp = p;
-        p ++;
-        tmp_0 = q;
-        q ++;
-        *tmp = *tmp_0;
-      }
+      tmp = p;
+      p ++;
+      tmp_0 = q;
+      q ++;
+      *tmp = *tmp_0;
     }
     i ++;
   }

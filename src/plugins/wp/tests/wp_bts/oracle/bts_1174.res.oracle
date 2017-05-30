@@ -17,7 +17,7 @@ Assume {
   (* Pre-condition *)
   Have: (x <= 10.e0) /\ (-10.e0 <= x).
   (* Then *)
-  Have: 0 != a.
+  Have: a != 0.
 }
 Prove: 0 <= r.
 

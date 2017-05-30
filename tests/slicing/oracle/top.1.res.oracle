@@ -16,7 +16,7 @@ tests/slicing/top.i:21:[value] warning: signed overflow. assert k + 1 ≤ 214748
 [value] Done for function strlen
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function strlen
@@ -38,8 +38,7 @@ tests/slicing/top.i:21:[value] warning: signed overflow. assert k + 1 ≤ 214748
 int strlen_slice_1(char *p)
 {
   char *q;
-  int k;
-  k = 0;
+  int k = 0;
   q = p;
   while (*q) {
     k ++;

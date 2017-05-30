@@ -1,6 +1,6 @@
 /* run.config
    EXECNOW: make -s tests/journal/intra.cmxs
-   EXECNOW: BIN intra_journal.ml @frama-c@ -load-module ./tests/journal/intra -journal-enable -journal-name tests/journal/result/intra_journal.ml tests/journal/intra.i > /dev/null 2> /dev/null
+   EXECNOW: BIN intra_journal.ml @frama-c@ -val-show-progress -load-module ./tests/journal/intra -journal-enable -journal-name tests/journal/result/intra_journal.ml tests/journal/intra.i > /dev/null 2> /dev/null
    CMD: @frama-c@ -load-module ./tests/journal/intra
    OPT: -load-script tests/journal/result/intra_journal -journal-disable
 */

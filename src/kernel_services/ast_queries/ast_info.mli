@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,7 +70,7 @@ val precondition : funspec -> predicate
       @since Carbon-20101201 *)
 
 val behavior_assumes : funbehavior -> predicate
-  (** Builds the conjonction of the [b_assumes].
+  (** Builds the conjunction of the [b_assumes].
       @since Nitrogen-20111001 *)
                                         
 val behavior_precondition : funbehavior -> predicate
@@ -90,28 +90,28 @@ val complete_behaviors : funspec -> string list -> predicate
       @since Nitrogen-20111001 *)
 
 val merge_assigns_from_complete_bhvs: 
-  ?warn:bool -> ?ungarded:bool -> funbehavior list -> string list list -> identified_term assigns
-  (** @return the assigns of an unguarded behavior (when [ungarded]=true) 
+  ?warn:bool -> ?unguarded:bool -> funbehavior list -> string list list -> identified_term assigns
+  (** @return the assigns of an unguarded behavior (when [unguarded]=true) 
       or a set of complete behaviors.
       - the funbehaviors can come from either a statement contract or a function
       contract. 
       - the list of sets of behavior names can come from the contract of the
       related function.
-      Optional [warn] argument can be used to force emmiting or cancelation of 
+      Optional [warn] argument can be used to force emitting or cancelation of 
       warnings.
       @since Oxygen-20120901 *)
 
 val merge_assigns_from_spec: ?warn:bool -> funspec -> identified_term assigns
 (** It is a shortcut for [merge_assigns_from_complete_bhvs
     spec.spec_complete_behaviors spec.spec_behavior].  Optional [warn] argument
-    can be used to force emmiting or cancelation of warnings 
+    can be used to force emitting or cancelation of warnings 
     @return the assigns of an unguarded behavior or a set of complete behaviors.
     @since Oxygen-20120901 *) 
 
 val merge_assigns: ?warn:bool -> funbehavior list -> identified_term assigns
 (** Returns the assigns of an unguarded behavior. 
     @modify Oxygen-20120901 Optional [warn] argument added which can be used to
-    force emmiting or cancelation of warnings. *) 
+    force emitting or cancelation of warnings. *) 
 
 val variable_term: location -> logic_var -> term
 val constant_term: location -> Integer.t -> term

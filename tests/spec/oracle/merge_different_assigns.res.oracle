@@ -22,6 +22,6 @@ int w;
     assigns w \from w;
     assigns \result \from y;
  */
-extern int f(int y);
+int f(int y);
 
 

@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -no-warn-signed-overflow
-   OPT: -val @VALUECONFIG@ -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
+   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -no-warn-signed-overflow
+   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
 */
 
 #ifndef PTEST

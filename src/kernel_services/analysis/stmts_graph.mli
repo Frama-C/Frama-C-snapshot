@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ val stmt_can_reach_filtered : (stmt -> bool) -> stmt -> stmt -> bool
       on its input *)
 
 val stmt_is_in_cycle : stmt -> bool
-  (** [stmt_is_in_cycle s] is [true] iff [s] is reachable through a non trival path
+  (** [stmt_is_in_cycle s] is [true] iff [s] is reachable through a non trivial path
    * starting at [s]. *)
 
 val stmt_is_in_cycle_filtered : (stmt -> bool) -> stmt -> bool
@@ -47,8 +47,6 @@ val stmt_is_in_cycle_filtered : (stmt -> bool) -> stmt -> bool
 
 (** [reachable_stmts kf stmt] returns the transitive closure of the successors
     of [stmt] in [kf]. The result is cached for later calls.
-    Note that this function is not tail-recursive and may not work with
-    very large graphs.
 
     @modify Silicon-20161101 return type changed to hptset *)
 val reachable_stmts: kernel_function -> stmt -> Stmt.Hptset.t

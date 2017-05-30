@@ -21,20 +21,20 @@
 [pdg] PDG for g
  {n1}: InCtrl
  {n2}: VarDecl : x
- {n3}: Call4-InCtrl : x = f(G1,G2,0);
+ {n3}: Call4-InCtrl : int x = f(G1,G2,0);
    -[-c-]-> 1
- {n4}: Call4-In1 : x = f(G1,G2,0);
+ {n4}: Call4-In1 : int x = f(G1,G2,0);
    -[-c-]-> 1
    -[-c-]-> 3
    -[--d]-> 14
- {n5}: Call4-In2 : x = f(G1,G2,0);
+ {n5}: Call4-In2 : int x = f(G1,G2,0);
    -[-c-]-> 1
    -[-c-]-> 3
    -[--d]-> 13
- {n6}: Call4-In3 : x = f(G1,G2,0);
+ {n6}: Call4-In3 : int x = f(G1,G2,0);
    -[-c-]-> 1
    -[-c-]-> 3
- {n7}: Call4-OutRet : x = f(G1,G2,0);
+ {n7}: Call4-OutRet : int x = f(G1,G2,0);
    -[-c-]-> 1
    -[a--]-> 2
    -[-c-]-> 3

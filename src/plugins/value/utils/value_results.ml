@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,24 +103,6 @@ let is_non_terminating_instr stmt =
   | _, _ -> false
 
 
-(* {2 Merging results.} *)
-
-type state_per_stmt = Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t
-
-let merge_states_in_db hash_states callstack =
-  let treat_stmt stmt sum =
-    Db.Value.update_callstack_table ~after:false stmt callstack sum
-  in
-  Stmt.Hashtbl.iter treat_stmt (Lazy.force hash_states)
-
-(* Merging of 'after statement' states in the global table *)
-let merge_after_states_in_db after_full callstack =
-  Cil_datatype.Stmt.Hashtbl.iter
-    (fun stmt st ->
-      Db.Value.update_callstack_table ~after:true stmt callstack st)
-    (Lazy.force after_full)
-
-
 (* {2 Registration.} *)
 
 let () =
@@ -215,6 +197,8 @@ let get_results () =
         | None -> (* real property *) add ()
         | Some _ -> (* alarm; do not save it here *) ()
       end
+    | Property.IPReachable _ ->
+      () (* TODO: save them properly, and restore them *)
     | _ -> add ()
   in
   Property_status.iter aux_ip;

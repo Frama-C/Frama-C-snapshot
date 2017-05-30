@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,26 +23,28 @@
 #ifndef __FC_ICONV
 #define __FC_ICONV
 #include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_define_size_t.h"
 
 __BEGIN_DECLS
 
 typedef void * iconv_t;
 
-extern int __FC_errno;
+extern int __fc_errno;
 /*@ assigns *outbuf[0 .. *outbytesleft-1] \from *inbuf[0 .. *inbytesleft-1]; 
-  assigns __FC_errno ; */
-size_t  iconv(iconv_t cd, char **restrict inbuf, size_t *restrict inbytesleft,
+  assigns __fc_errno ; */
+extern size_t  iconv(iconv_t cd, char **restrict inbuf, size_t *restrict inbytesleft,
             char **restrict outbuf, size_t *restrict outbytesleft);
 
-/*@ assigns __FC_errno;
+/*@ assigns __fc_errno;
   ensures \result == 0 || \result == 1 ; */
-int     iconv_close(iconv_t);
+extern int     iconv_close(iconv_t);
 
 /*@ assigns \result \from tocode[..],fromcode[..];
-  assigns __FC_errno; */
-iconv_t iconv_open(const char *tocode, const char *fromcode);
+  assigns __fc_errno; */
+extern iconv_t iconv_open(const char *tocode, const char *fromcode);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

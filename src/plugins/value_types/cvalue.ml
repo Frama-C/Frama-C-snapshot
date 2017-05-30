@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -301,7 +301,7 @@ module V = struct
             else r
           with Not_found -> l
 
-  (* More agressive reduction by relational pointer operators. This version
+  (* More aggressive reduction by relational pointer operators. This version
      assumes that \pointer_comparable alarms have been emitted, and that
      we want to reduce by them. For example, &a < &b reduces to bottom,
      which might be problematic if &a and &b have been cast to uintptr_t *)
@@ -626,19 +626,30 @@ module V = struct
     try
       let i = project_ival_bottom v in
       false, inject_ival (Ival.extract_bits ~start ~stop ~size i)
-    with
-      | Not_based_on_null ->
-          if is_imprecise v
-          then false, v
-          else true, topify_with_origin_kind topify v
+    with Not_based_on_null ->
+      if is_imprecise v
+      then false, v
+      else
+        (* Keep precision if we are reading all the bits of an address *)
+        let ptr_size =
+          Integer.of_int (Cil.(bitsSizeOfInt theMachine.upointKind))
+        in
+        if Int.equal start Int.zero &&
+           Int.equal (Int.succ stop) ptr_size &&
+           Int.equal size ptr_size
+        then false, v
+        else true, topify_with_origin_kind topify v
 
   (* Computes [e * 2^factor]. Auxiliary function for foo_endian_merge_bits *)
-  let shift_left_by_integer ~topify factor e =
+  let shift_left_by_integer ~topify factor v =
     try
-      let i = project_ival_bottom e in
+      let i = project_ival_bottom v in
       inject_ival (Ival.scale (Int.two_power factor) i)
     with
-    | Not_based_on_null  -> topify_with_origin_kind topify e
+    | Not_based_on_null  ->
+      if Integer.is_zero factor
+      then v
+      else topify_with_origin_kind topify v
     | Integer.Too_big -> top_int
 
   let big_endian_merge_bits ~topify ~conflate_bottom ~total_length ~length ~value ~offset acc =
@@ -931,13 +942,17 @@ module V_Or_Uninitialized = struct
 
   let unspecify_escaping_locals ~exact is_local t =
     let flags = get_flags t in
-    let flags = flags land mask_init
-      (* clear noesc flag *)
-    in
     let v = get_v t in
-    let locals, v' = V.remove_escaping_locals is_local v in
-    let v = if exact then v' else V.join v v' in
-    locals, create flags v
+    let removed, v' = V.remove_escaping_locals is_local v in
+    let t' =
+      if removed then
+        let flags = flags land mask_init (* add escaping flag *) in
+        (* perform a strong escaping if [exact] holds. Otherwise, [v']
+           is included in [v] by definition, so we just add the flag to [v]. *)
+        if exact then create flags v' else create flags v
+      else t (* no update needed *)
+    in
+    removed, t'
 
   let reduce_by_initializedness init v = match init, v with
     | true, C_uninit_esc v -> C_init_esc v
@@ -1029,6 +1044,9 @@ module V_Offsetmap = struct
   let narrow x y =
     try `Value (OffsetmapNarrow.narrow x y)
     with NarrowReturnsBottom -> `Bottom
+  let narrow_reinterpret x y =
+    try `Value (OffsetmapNarrow.narrow_reinterpret x y)
+    with NarrowReturnsBottom -> `Bottom
   
 end
 
@@ -1072,7 +1090,7 @@ module Default_offsetmap = struct
   let default_contents = Lmap.Bottom
   (* this works because, currently:
      - during the analysis, we merge maps with the same variables (all locals
-       are explicitely present)
+       are explicitly present)
      - after the analysis, for synthetic results, we merge maps with different
        sets of locals, but is is ok to have missing ones considered as being
        bound to Bottom.
@@ -1090,53 +1108,29 @@ module Model = struct
 
   include Make_Narrow(V_Or_Uninitialized)
 
-  let find_unspecified ?(conflate_bottom=true) state loc =
+  let find_indeterminate ?(conflate_bottom=true) state loc =
     find ~conflate_bottom state loc
 
   let find ?(conflate_bottom=true) state loc =
-    let alarm, v = find_unspecified ~conflate_bottom state loc in
-    alarm, V_Or_Uninitialized.get_v v
+    let v = find_indeterminate ~conflate_bottom state loc in
+    V_Or_Uninitialized.get_v v
 
-  let add_unsafe_binding ~exact mem loc v =
-    add_binding ~reducing:true ~exact mem loc v
-
-  let add_binding_unspecified ~exact mem loc v =
-    add_binding ~reducing:false ~exact mem loc v
+  let add_indeterminate_binding ~exact mem loc v =
+    add_binding ~exact mem loc v
 
   let reduce_previous_binding state l v =
     assert (Locations.cardinal_zero_or_one l);
     let v = V_Or_Uninitialized.initialized v in
-    snd (add_binding ~reducing:true ~exact:true state l v)
+    add_binding ~exact:true state l v
 
   let reduce_indeterminate_binding state l v =
     assert (Locations.cardinal_zero_or_one l);
-    snd (add_binding ~reducing:true ~exact:true state l v)
-
-  let reduce_binding initial_mem l v =
-    let _, v_old = find initial_mem l in
-    (* This function will discard any indeterminate bit in [v_old]. This is
-       by design, as reduction functions must be called after evaluation
-       was done. *)
-    if V.equal v v_old
-    then initial_mem
-    else
-      let v_new = V.narrow v_old v in
-      if V.equal v_new v_old then initial_mem
-      else if V.is_bottom v_new then bottom
-      else reduce_previous_binding initial_mem l v_new
-    
-  let add_initial_binding mem loc v =
-    snd (add_binding ~reducing:true ~exact:true mem loc v)
+    add_binding ~exact:true state l v
     
   (* Overwrites the definition of add_binding coming from Lmap, with a
      signature change. *)
   let add_binding ~exact acc loc value =
-    add_binding
-      ~reducing:false ~exact acc loc (V_Or_Uninitialized.initialized value)
-
-  let add_new_base base ~size v ~size_v state  =
-    let v = V_Or_Uninitialized.initialized v in
-    add_new_base base ~size v ~size_v state
+    add_binding ~exact acc loc (V_Or_Uninitialized.initialized value)
 
   let uninitialize_blocks_locals blocks state =
     List.fold_left

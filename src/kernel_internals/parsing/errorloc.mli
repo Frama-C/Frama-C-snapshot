@@ -74,11 +74,15 @@ val finishParsing: unit -> unit (** Call this function to finish parsing and
                                     close the input channel *)
 
 
+(** prints the line identified by the position, together with [ctx] lines
+    of context before and after. [ctx] defaults to 2. *)
+val pp_context_from_file:
+  ?ctx:int -> Format.formatter -> Lexing.position -> unit
+
 (** Parse errors are usually fatal, but their reporting is sometimes
     delayed until the end of the current parsing phase. Functions that
     intend to ultimately fail should call {!clear_errors} when they
     start, and check {!had_errors} when they end. *)
-
 val parse_error:
   ?source:Lexing.position -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 

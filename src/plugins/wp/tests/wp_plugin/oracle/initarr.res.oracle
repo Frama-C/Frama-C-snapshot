@@ -1,0 +1,55 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/initarr.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'SEP' in 'job':
+Let a = A[2].
+Let a_1 = A[1].
+Let a_2 = A[0].
+Let a_3 = A[i].
+Assume {
+  Type: is_sint32(i).
+  (* Initializer *)
+  Init: (a_2.F1_f) = global(G_a_67).
+  (* Initializer *)
+  Init: (a_2.F1_g) = global(G_b_68).
+  (* Initializer *)
+  Init: (a_1.F1_f) = global(G_c_69).
+  (* Initializer *)
+  Init: (a_1.F1_g) = global(G_d_70).
+  (* Initializer *)
+  Init: (a.F1_f) = global(G_e_71).
+  (* Initializer *)
+  Init: (a.F1_g) = global(G_f_72).
+  (* Pre-condition *)
+  Have: (0 <= i) /\ (i <= 2).
+}
+Prove: (a_3.F1_g) != (a_3.F1_f).
+
+------------------------------------------------------------
+
+Goal Post-condition 'ALT' in 'job':
+Let a = global(G_e_71).
+Let a_1 = global(G_c_69).
+Let a_2 = global(G_a_67).
+Let a_3 = A[i].F1_f.
+Assume {
+  Type: is_sint32(i).
+  (* Initializer *)
+  Init: (A[0].F1_f) = a_2.
+  (* Initializer *)
+  Init: (A[1].F1_f) = a_1.
+  (* Initializer *)
+  Init: (A[2].F1_f) = a.
+  (* Pre-condition *)
+  Have: (0 <= i) /\ (i <= 2).
+}
+Prove: (a_3 = a_2) \/ (a_3 = a_1) \/ (a_3 = a).
+
+------------------------------------------------------------

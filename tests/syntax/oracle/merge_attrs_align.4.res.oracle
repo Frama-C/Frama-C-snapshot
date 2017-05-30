@@ -1,0 +1,20 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/merge_attrs_align.c (with preprocessing)
+[kernel] Parsing tests/syntax/merge_attrs_align2.c (with preprocessing)
+[kernel] Parsing tests/syntax/merge_attrs_align4.c (with preprocessing)
+[kernel] user error: Incompatible declaration for s1:
+                     Definitions of type s are not isomorphic. Reason follows:
+                     Definitions of struct __anonstruct_s_1 are not isomorphic. Reason follows:
+                     incompatible attributes in composite types and/or field b
+                     struct __anonstruct_s_1 {
+                        char a ;
+                        short b ;
+                     };
+                     struct __anonstruct_s_1 {
+                        char a  __attribute__((__aligned__(1)));
+                        short b  __attribute__((__aligned__(1)));
+                     } __attribute__((__packed__, __aligned__(1)));
+                     
+                     First declaration was at  tests/syntax/merge_attrs_align2.c:10
+                     Current declaration is at tests/syntax/merge_attrs_align4.c:12
+[kernel] Frama-C aborted: invalid user input.

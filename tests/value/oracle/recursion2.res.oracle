@@ -39,9 +39,9 @@
           x; y; i; j
 [inout] InOut (internal) for function h1:
         Operational inputs:
-          x; i
+          x; y; i
         Operational inputs on termination:
-          x; i
+          x; y; i
         Sure outputs:
           r
 [inout] Out (internal) for function h2:
@@ -50,9 +50,9 @@
           x; y; i; j
 [inout] InOut (internal) for function h2:
         Operational inputs:
-          x; y; i; j
+          x; y; j
         Operational inputs on termination:
-          x; y; i; j
+          x; y; j
         Sure outputs:
           q
 [inout] Out (internal) for function main:
@@ -61,8 +61,8 @@
           x; y
 [inout] InOut (internal) for function main:
         Operational inputs:
-          x; y; i; j
+          x; y
         Operational inputs on termination:
-          x; y; i; j
+          x; y
         Sure outputs:
-          r; q
+          \nothing

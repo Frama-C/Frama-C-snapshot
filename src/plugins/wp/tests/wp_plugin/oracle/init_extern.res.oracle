@@ -21,6 +21,6 @@ Prove: false.
 
 Goal Post-condition 'KO' in 'f':
 Assume { Type: is_sint32(b). }
-Prove: 0 = b.
+Prove: b = 0.
 
 ------------------------------------------------------------

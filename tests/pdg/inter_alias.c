@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -out -input -calldeps -pdg -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -val -out -input -calldeps -val-show-progress -pdg -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 int G;

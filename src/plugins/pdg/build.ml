@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,12 +22,12 @@
 
 (** Build graphs (PDG) for the function
     (see module {!module: Build.BuildPdg})
-    to represente the dependencies between instructions
+    to represent the dependencies between instructions
     in order to use it for slicing purposes.
 
     A function is processed using a forward dataflow analysis
     (see module {{: ../html/Dataflow2.html}Dataflow2}
-     which is instanciated with the module
+     which is instantiated with the module
     {!module: Build.Computer} below).
  *)
 
@@ -250,10 +250,8 @@ let is_variadic kf =
       add_decl_dpd pdg new_node Dpd.Addr decl_node ;
       add_decl_dpd pdg decl_node Dpd.Addr new_node ;
       let z = Locations.zone_of_varinfo v in
-      let new_state =
-        Pdg_state.add_loc_node
-          state ~initializing:true ~exact:true z new_node in
-        (n+1, new_state)
+      let new_state = Pdg_state.add_loc_node state ~exact:true z new_node in
+      (n+1, new_state)
     in
     let _next_in_num, new_state =
       List.fold_left do_param (1, Pdg_state.empty) formals in
@@ -283,7 +281,7 @@ let is_variadic kf =
       let new_node = arg in
       add_ctrl_dpd pdg new_node ctrl_node;
       let z = Locations.zone_of_varinfo param in
-      Pdg_state.add_loc_node ~initializing:true state z new_node ~exact:true
+      Pdg_state.add_loc_node state z new_node ~exact:true
     in
     let rec do_param_arg state param_list (arg_nodes: arg_nodes) =
       match param_list, arg_nodes with
@@ -333,7 +331,7 @@ let is_variadic kf =
     let state = Pdg_state.add_loc_node state exact out new_node
     in state
 
-  (** mix between process_call_ouput and process_asgn *)
+  (** mix between process_call_output and process_asgn *)
   let process_call_return pdg state_before_call state_with_inputs stmt
                           ~l_loc ~exact ~l_dpds ~l_decl ~r_dpds fct_dpds =
     let out_key = Key.call_outret_key stmt in
@@ -346,18 +344,17 @@ let is_variadic kf =
       Pdg_state.add_loc_node state_before_call exact l_loc new_node in
     new_state
 
-  (** for skip statement : we want to add a node in the PDG in ordrer to be able
+  (** for skip statement : we want to add a node in the PDG in order to be able
    * to store information (like marks) about this statement later on *)
-  let process_skip pdg _state stmt =
-    ignore (add_elem pdg (Key.stmt_key stmt));
-      None (* keep previous state *)
+  let process_skip pdg state stmt =
+    ignore (add_elem pdg (Key.stmt_key stmt)); state
 
   (** for asm: similar to [process_skip], except that we emit a warning *)
-  let process_asm pdg _state stmt =
+  let process_asm pdg state stmt =
     Pdg_parameters.warning ~once:true ~current:true
       "Ignoring inline assembly code";
     ignore (add_elem pdg (Key.stmt_key stmt));
-    None (* keep previous state *)
+    state
 
 
   let add_label pdg label label_stmt =
@@ -406,7 +403,7 @@ let is_variadic kf =
 
   (** The control dependencies are stored : they will be added at the end
      by [finalize_pdg] *)
-  let store_ctrl_dpds pdg node iterator (real_dpd, controled_stmt) =
+  let store_ctrl_dpds pdg node iterator (real_dpd, controlled_stmt) =
      debug2 "store_ctrl_dpds on %a (real = %b)@."
        (pretty_node ~key:true) node real_dpd ;
     let add_ctrl_dpd stmt =
@@ -417,9 +414,9 @@ let is_variadic kf =
         with Not_found -> BoolNodeSet.singleton (real_dpd, node)
       in
       Stmt.Hashtbl.replace pdg.ctrl_dpds stmt new_dpds
-    in iterator add_ctrl_dpd controled_stmt
+    in iterator add_ctrl_dpd controlled_stmt
 
-  let mk_jump_node pdg stmt controled_stmts =
+  let mk_jump_node pdg stmt controlled_stmts =
     let new_node = add_elem pdg (Key.stmt_key stmt) in
     begin match stmt.skind with
       | If _ | Loop _ | Return _ -> ()
@@ -431,7 +428,7 @@ let is_variadic kf =
       | Switch (_,_,stmts,_) -> add_dpd_switch_cases pdg new_node stmts
       | _ -> assert false
     end;
-    store_ctrl_dpds pdg new_node Stmt.Hptset.iter controled_stmts;
+    store_ctrl_dpds pdg new_node Stmt.Hptset.iter controlled_stmts;
        new_node
 
 
@@ -442,14 +439,14 @@ let is_variadic kf =
       Don't use for jumps with data dependencies : use [process_jump_with_exp]
       instead !
    *)
-  let process_jump pdg stmt controled_stmts =
-    ignore (mk_jump_node pdg stmt controled_stmts)
+  let process_jump pdg stmt controlled_stmts =
+    ignore (mk_jump_node pdg stmt controlled_stmts)
 
-  (** like [process_jump] but also add data dependencies on the datas and their
+  (** like [process_jump] but also add data dependencies on the data and their
       declarations. Use for conditional jumps and returns.
    *)
-  let process_jump_with_exp pdg stmt controled_stmts state loc_cond decls_cond =
-    let jump_node = mk_jump_node pdg stmt controled_stmts in
+  let process_jump_with_exp pdg stmt controlled_stmts state loc_cond decls_cond =
+    let jump_node = mk_jump_node pdg stmt controlled_stmts in
     add_dpds pdg jump_node Dpd.Data state loc_cond;
     add_decl_dpds pdg jump_node Dpd.Data decls_cond
 
@@ -627,7 +624,7 @@ let process_asgn pdg state stmt lval exp =
   in
   add_dpds pdg new_node Dpd.Data state r_dpds;
   add_decl_dpds pdg new_node Dpd.Data r_decl;
-  Some new_state
+  new_state
 
 
 (** Add a PDG node and its dependencies for each explicit call argument. *)
@@ -644,7 +641,7 @@ let process_args pdg st stmt argl =
    To avoid mixing inputs and outputs, [in_state] is the input state
    and [new_state] the state to modify.
 * Process call outputs (including returned value) *)
-let call_ouputs  pdg state_before_call state_with_inputs stmt
+let call_outputs  pdg state_before_call state_with_inputs stmt
     lvaloption froms fct_dpds =
   (* obtain inputs from state_with_inputs
      to avoid mixing in and out *)
@@ -700,7 +697,7 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
     Use the state at ki (before the call)
     and returns the new state (after the call).
   *)
-let process_call pdg state stmt lvaloption funcexp argl =
+let process_call pdg state stmt lvaloption funcexp argl _loc =
   let state_before_call = state in
   (** add a simple node for each call in order to have something in the PDG
       for this statement even if there are no input/output *)
@@ -718,7 +715,7 @@ let process_call pdg state stmt lvaloption funcexp argl =
   in
   let process_simple_call called_kf acc =
     let state_with_inputs =
-      process_call_params pdg state_with_args stmt called_kf arg_nodes
+      process_call_params pdg state_with_args stmt called_kf arg_nodes 
     in
     let r =
       match mixed_froms with
@@ -726,7 +723,7 @@ let process_call pdg state stmt lvaloption funcexp argl =
         | None -> (* don't have callwise analysis (-calldeps option) *)
             let froms = !Db.From.get called_kf in
             let state_for_this_call =
-              call_ouputs pdg state_before_call state_with_inputs
+              call_outputs pdg state_before_call state_with_inputs
                 stmt lvaloption froms funcexp_dpds
             in state_for_this_call
     in r :: acc
@@ -749,10 +746,10 @@ let process_call pdg state stmt lvaloption funcexp argl =
   let new_state = match mixed_froms with
     | None -> new_state
     | Some froms ->
-          call_ouputs pdg state_before_call new_state
+          call_outputs pdg state_before_call new_state
             stmt lvaloption froms funcexp_dpds
   in
-  Some new_state
+  new_state
 
 (** Add a node in the PDG for the conditional statement,
  * and register the statements that are control-dependent on it.
@@ -761,7 +758,7 @@ let process_condition ctrl_dpds_infos pdg state stmt condition =
   let loc_cond = !Db.From.find_deps_no_transitivity stmt condition in
   let decls_cond = Cil.extract_varinfos_from_exp condition in
 
-  let controled_stmts = CtrlDpds.get_if_controled_stmts ctrl_dpds_infos stmt in
+  let controlled_stmts = CtrlDpds.get_if_controlled_stmts ctrl_dpds_infos stmt in
   let go_then, go_else = Db.Value.condition_truth_value stmt in
   let real = go_then && go_else (* real dpd if we can go in both branches *) in
     if not real then
@@ -769,7 +766,7 @@ let process_condition ctrl_dpds_infos pdg state stmt condition =
         "[process_condition] stmt %d is not a real cond (never goes in '%s')@." 
         stmt.sid (if go_then then "else" else "then");
    (* build a node for the condition and store de control dependencies *)
-   process_jump_with_exp pdg stmt (real, controled_stmts)
+   process_jump_with_exp pdg stmt (real, controlled_stmts)
                                   state loc_cond decls_cond
 
 (** let's add a node for e jump statement (goto, break, continue)
@@ -777,13 +774,13 @@ let process_condition ctrl_dpds_infos pdg state stmt condition =
    Returns are not handled here, but in {!Build.process_return}.
 *)
 let process_jump_stmt pdg ctrl_dpds_infos jump =
-  let controled_stmts =
-    CtrlDpds.get_jump_controled_stmts ctrl_dpds_infos jump
+  let controlled_stmts =
+    CtrlDpds.get_jump_controlled_stmts ctrl_dpds_infos jump
   in
   let real = Db.Value.is_reachable_stmt jump in
     if not real then
       debug "[process_jump_stmt] stmt %d is not a real jump@." jump.sid;
-    process_jump pdg jump (real, controled_stmts)
+    process_jump pdg jump (real, controlled_stmts)
 
 (** Loop are processed like gotos because CIL transforms them into
 * {v while(true) body; v} which is equivalent to {v L : body ; goto L; v}
@@ -795,13 +792,13 @@ let process_loop_stmt pdg ctrl_dpds_infos loop =
   let _entry, back_edges = Stmts_graph.loop_preds loop in
     debug2 "[process_loop_stmt] for loop %d : back edges = {%a}@."
       loop.sid (Pretty_utils.pp_list Stmt.pretty_sid) back_edges;
-  let controled_stmts = 
-    CtrlDpds.get_loop_controled_stmts ctrl_dpds_infos loop
+  let controlled_stmts =
+    CtrlDpds.get_loop_controlled_stmts ctrl_dpds_infos loop
   in
   let real_loop = List.exists (Db.Value.is_reachable_stmt) back_edges in
     if not real_loop then
       debug "[process_loop_stmt] stmt %d is not a real loop@." loop.sid;
-    process_jump pdg loop (real_loop, controled_stmts)
+    process_jump pdg loop (real_loop, controlled_stmts)
 
 (** [return ret_exp;] is equivalent to [out0 = ret_exp; goto END;]
   * while a simple [return;] is only a [goto END;].
@@ -818,9 +815,9 @@ let process_return _current_function pdg state stmt ret_exp =
             let decls_exp =  Cil.extract_varinfos_from_exp exp in
             add_retres pdg state stmt loc_exp decls_exp
         | None ->
-            let controled_stmt = Cil_datatype.Stmt.Hptset.empty in
+            let controlled_stmt = Cil_datatype.Stmt.Hptset.empty in
             let real = Db.Value.is_reachable_stmt stmt in
-              process_jump pdg stmt (real, controled_stmt);
+              process_jump pdg stmt (real, controlled_stmt);
             state
   in
     if Db.Value.is_reachable_stmt stmt then
@@ -858,28 +855,37 @@ module Computer
   let join a b = fst (join_and_is_included a b)
   let is_included a b = snd (join_and_is_included a b)
 
+  let rec process_init current_pdg state stmt lv = function
+    | SingleInit e -> process_asgn current_pdg state stmt lv e
+    | CompoundInit (_,l) ->
+      List.fold_left
+        (fun acc (o,i) ->
+           let lv = Cil.addOffsetLval o lv in
+           process_init current_pdg acc stmt lv i)
+        state l
+
   (** Compute the new state after 'instr' starting from state before 'state'.
     *)
   let doInstr stmt instr state =
     !Db.progress ();
     pdg_debug "doInstr sid:%d : %a" stmt.sid Printer.pp_instr instr;
-    let state' = match instr with
+    match instr with
       | _ when not (Db.Value.is_reachable_stmt stmt) ->
-          pdg_debug "stmt sid:%d is unreachable : skip.@." stmt.sid ;
-          Some Pdg_state.bottom 
+        pdg_debug "stmt sid:%d is unreachable : skip.@." stmt.sid ;
+        Pdg_state.bottom
+      | Local_init (v, AssignInit i, _) ->
+        process_init current_pdg state stmt (Cil.var v) i
+      | Local_init (v, ConsInit (f, args, kind), loc) ->
+        !Db.progress ();
+        Cil.treat_constructor_as_func
+          (process_call current_pdg state stmt) v f args kind loc
       | Set (lv, exp, _) -> process_asgn current_pdg state stmt lv exp
-      | Call (lvaloption,funcexp,argl,_) ->
+      | Call (lvaloption,funcexp,argl,loc) ->
           !Db.progress ();
-          process_call current_pdg state stmt lvaloption funcexp argl
+          process_call current_pdg state stmt lvaloption funcexp argl loc
       | Code_annot _
       | Skip _ -> process_skip current_pdg state stmt
       | Asm  _ -> process_asm current_pdg state stmt
-    in 
-    (* BY: simplify this code. No need to return an option in the functions
-       above *)
-    match state' with
-    | None -> state
-    | Some state -> state
 
   (** Called before processing the successors of the statements.
    *)

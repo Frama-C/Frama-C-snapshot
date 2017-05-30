@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -24,6 +24,7 @@
 #ifndef __FC_ERRNO
 #define __FC_ERRNO
 #include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_machdep.h"
 
 /* Mandatory */
@@ -152,9 +153,9 @@
 
 __BEGIN_DECLS
 
-extern int __FC_errno;
+extern int __fc_errno;
 
-#define errno __FC_errno
+#define errno __fc_errno
 
 /* _GNU_SOURCE */
 extern char *program_invocation_name;
@@ -162,4 +163,5 @@ extern char *program_invocation_short_name;
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

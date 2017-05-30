@@ -4,18 +4,17 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 7 goals scheduled
+[wp] 6 goals scheduled
 [wp] [Qed] Goal typed_ref_main_assert : Valid
 [wp] [Qed] Goal typed_ref_main_call_swap_pre : Valid
 [wp] [Qed] Goal typed_ref_main_call_swap_pre_2 : Valid
 [wp] [Qed] Goal typed_ref_swap_post_A : Valid
 [wp] [Qed] Goal typed_ref_swap_post_B : Valid
-[wp] [Qed] Goal typed_ref_swap_assign_part1 : Valid
-[wp] [Qed] Goal typed_ref_swap_assign_part2 : Valid
-[wp] Proved goals:    7 / 7
-     Qed:             7
+[wp] [Qed] Goal typed_ref_swap_assign : Valid
+[wp] Proved goals:    6 / 6
+     Qed:             6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-swap                 4     -           4       100%
+swap                 3     -           3       100%
 main                 3     -           3       100%
 ----------------------------------------------------------

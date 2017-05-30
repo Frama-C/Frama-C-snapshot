@@ -16,7 +16,7 @@ tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns cla
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                 1     -           1       100%
-job                 -       1 (19)     1       100%
+job                 -       1 (20)     1       100%
 foreign              1     -           1       100%
 extra               -      -           1       0.0%
 ----------------------------------------------------------

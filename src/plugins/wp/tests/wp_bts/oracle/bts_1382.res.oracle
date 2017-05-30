@@ -41,7 +41,7 @@ Assume {
   (* Call Effects *)
   Have: havoc(Mchar_0, Mchar_1, shift_sint8(w_1, 0), 4).
 }
-Prove: w = global(G_dest_87).
+Prove: global(G_dest_87) = w.
 
 ------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,16 @@
     @since Fluorine-20130401 *)
 
 open Cil_types
+
+(** context in which a block will be printed. useful to decide whether
+    braces are required or not. *)
+type block_ctxt =
+  | Stmt_block of stmt (** stmt is Block b. *)
+  | Body (** body of a function. *)
+  | Then_with_else (** block is the then branch of a conditional that has
+                       an else branch. *)
+  | Other (** block is any other toplevel block of the cfg
+              (then without else, else branch, switch, while, ... *)
 
 (* ********************************************************************* *)
 (** {2 Class type for extensible printer} *)
@@ -61,6 +71,10 @@ class type extensible_printer_type = object
   method private current_behavior: funbehavior option
   (** @return the [funbehavior] being pretty-printed. *)
 
+  method private stmt_has_annot: stmt -> bool
+  (** [true] if the given statement has some annotations attached to it.
+      @since Phosphorus-20170501-beta1 *)
+
   method private has_annot: bool
   (** [true] if [current_stmt] has some annotations attached to it. *)
 
@@ -73,17 +87,20 @@ class type extensible_printer_type = object
       For example this is called whenever a [while(1)] followed by a
       conditional [if (cond) break;] may be compacted into [while (cond)]. *)
 
-  method private require_braces: ?has_annot:bool -> block -> bool
-  (** @return [true] if the given block must be enclosed in a block.
-      [has_annot] indicates if the stmt corresponding to the block may have
-      annotations (default is [true]). 
-      @modify Fluorine-20130401 optional arguments has been modified. *)
+  method private require_braces: block_ctxt -> block -> bool
+  (** @return [true] if the given block must be enclosed in a pair of braces,
+      given the context in which it appears.
+      @modify Fluorine-20130401 optional arguments has been modified.
+      @modify Phosphorus-20170501-beta1 use proper context to determine result
+  *)
 
-  method private inline_block: ?has_annot:bool -> block -> bool
+  method private inline_block: block_ctxt -> block -> bool
   (** @return [true] if the given block may be inlined in a single line.
       [has_annot] indicates if the stmt corresponding to the block may have
       annotations (default is [true]).
-      @modify Fluorine-20130401 optional arguments has been modified. *)
+      @modify Fluorine-20130401 optional arguments has been modified.
+      @modify Phosphorus-20170501-beta1 use proper context to determine result
+  *)
 
   method private get_instr_terminator: unit -> string
   (** What terminator to print after an instruction. sometimes we want to
@@ -115,12 +132,12 @@ class type extensible_printer_type = object
   (** Invoked on each variable use. *)
 
   method lval: Format.formatter -> lval -> unit
-  (** Invoked on each lvalue occurence *)
+  (** Invoked on each lvalue occurrence *)
 
   method field: Format.formatter -> fieldinfo -> unit
 
   method offset: Format.formatter -> offset -> unit
-  (** Invoked on each offset occurence. The second argument is the base. *)
+  (** Invoked on each offset occurrence. The second argument is the base. *)
 
   method global: Format.formatter -> global -> unit
   (** Global (vars, types, etc.). This can be slow. *)
@@ -142,7 +159,7 @@ class type extensible_printer_type = object
       second argument must also have a value. *)
 
   method attrparam:  Format.formatter -> attrparam -> unit
-  (** Attribute paramter *)
+  (** Attribute parameter *)
 
   method attribute: Format.formatter -> attribute -> bool
   (** Attribute. Also return an indication whether this attribute must be
@@ -187,11 +204,10 @@ class type extensible_printer_type = object
 
   method next_stmt : stmt -> Format.formatter -> stmt -> unit
 
-  method block: ?braces: bool -> Format.formatter -> block -> unit
+  method block: Format.formatter -> block -> unit
   (** Prints a block.
-      Enclose the block braces '\{' and '\}' according to the optional
-      argument. If it is not set, braces are put only when required.
-      @modify Fluorine-20130401 optional arguments has been modified. *)
+      @modify Fluorine-20130401 optional arguments has been modified.
+      @modify Phosphorus-20170501-beta1 no more options for pretty-printing *)
 
   method exp:  Format.formatter -> exp -> unit
   (** Print expressions *)
@@ -324,7 +340,7 @@ type state =
       (** Whether to print the CIL as they are, without trying to be smart and
 	  print nicer code. Normally this is false, in which case the pretty
 	  printer will turn the while(1) loops of CIL into nicer loops, will not
-	  print empty "else" blocks, etc. These is one case howewer in which if
+	  print empty "else" blocks, etc. These is one case however in which if
 	  you turn this on you will get code that does not compile: if you use
 	  varargs the __builtin_va_arg function will be printed in its internal
 	  form. *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,7 +65,10 @@ let basename def name =
    'Null<phi>' Null value for type <phi>
 *)
 let avoid_leading_backlash s =
-  String.mapi (fun i c -> if i = 0 && c = '\\' then '_' else c) s
+  if s.[0]='\\' then
+    let s = Bytes.of_string s in
+    Bytes.set s 0 '_'; Bytes.to_string s
+  else s
 
 let comp_id c =
   let prefix = if c.cstruct then 'S' else 'U' in
@@ -293,10 +296,14 @@ let field t f =
 
 let comp c = Comp c
 
+let fields_of_adt = function
+  | Mrecord(_,r) -> r.fields
+  | Comp c -> List.map (fun f -> Cfield f) c.cfields
+  | _ -> []
+
 let fields_of_tau = function
-  | Record _ -> assert false
-  | Data(Mrecord(_,r),_) -> r.fields
-  | Data(Comp c,_) -> List.map (fun f -> Cfield f) c.cfields
+  | Record fts -> List.map fst fts
+  | Data(adt,_) -> fields_of_adt adt
   | _ -> []
 
 let fields_of_field = function
@@ -347,11 +354,12 @@ end
 (* -------------------------------------------------------------------------- *)
 
 type lfun =
-  | ACSL of Cil_types.logic_info (** Registered in Definition.t,
-                                     only  *)
-  | CTOR of Cil_types.logic_ctor_info (** Not registered in Definition.t
-                                          directly converted/printed *)
-  | Model of model (** *)
+  | ACSL of Cil_types.logic_info
+    (** Registered in Definition.t, only  *)
+  | CTOR of Cil_types.logic_ctor_info
+    (** Not registered in Definition.t, directly converted/printed *)
+  | Model of model
+    (** Generated or External function *)
 
 and model = {
   m_category : lfun category ;
@@ -378,12 +386,6 @@ let tau_of_lfun = function
     | _ -> raise Not_found
 
 type balance = Nary | Left | Right
-
-type 'a linkinfo = {
-  mutable thdep : string list;
-  mutable link : 'a
-}
-
 
 let symbolf
     ?library
@@ -477,9 +479,6 @@ let generated_p name =
     m_source = Generated name
   }
 
-let constructor ct = CTOR ct
-let logic_info lf = ACSL lf
-
 module Fun =
 struct
 
@@ -563,6 +562,16 @@ class virtual idprinting =
       | Model({m_source=Extern e})    -> self#infoprover e.ext_link
   end
 
+let name_of_lfun = function
+  | ACSL f -> logic_id f
+  | CTOR c -> ctor_id c
+  | Model({m_source=Generated f}) -> f
+  | Model({m_source=Extern e}) -> e.ext_debug
+
+let name_of_field = function
+  | Mfield(_,_,f,_) -> f
+  | Cfield f -> field_id f
+
 (* -------------------------------------------------------------------------- *)
 (* --- Terms                                                              --- *)
 (* -------------------------------------------------------------------------- *)
@@ -583,9 +592,7 @@ struct
       (if sa == sb then d else neg d), (if sa then r else neg r)
   end
 
-  module T = Qed.Term.Make(ZInteger)(ADT)(Field)(Fun)
-  module TT = T (* NOTE: this is only to avoid ocamldoc errors in OCaml 4.02 *)
-
+  module QZERO = Qed.Term.Make(ZInteger)(ADT)(Field)(Fun)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Qed Projectified State                                             --- *)
@@ -594,44 +601,49 @@ struct
   module DATA =
     Datatype.Make
       (struct
-        type t = T.state
+        type t = QZERO.state
         let name = "Wp.Qed"
         let rehash = Datatype.identity
         let structural_descr = Structural_descr.t_unknown
-        let reprs = [T.get_state ()]
+        let reprs = [QZERO.get_state ()]
         let equal = Datatype.undefined
         let compare = Datatype.undefined
         let hash = Datatype.undefined
-        let copy _old = T.create ()
+        let copy _old = QZERO.create ()
         let varname = Datatype.undefined
         let pretty = Datatype.undefined
         let internal_pretty_code = Datatype.undefined
         let mem_project _ _ = false
       end)
 
-  include
-    (State_builder.Register(DATA)
-       (struct
-         type t = T.state
-         let create = T.create
-         let clear = T.clr_state
-         let get = T.get_state
-         let set = T.set_state
-         let clear_some_projects _ _ = false
-       end)
-       (struct
-         let name = "Wp.Qed"
-         let dependencies = [Ast.self]
-         let unique_name = name
-       end)
-     : sig end)
+  module STATE = State_builder.Register(DATA)
+      (struct
+        type t = QZERO.state
+        let create = QZERO.create
+        let clear = QZERO.clr_state
+        let get = QZERO.get_state
+        let set = QZERO.set_state
+        let clear_some_projects _ _ = false
+      end)
+      (struct
+        let name = "Wp.Qed"
+        let dependencies = [Ast.self]
+        let unique_name = name
+      end)
+  include (STATE : sig end) (* For OCaml-4.0 *)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term API                                                           --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module Pretty = Qed.Pretty.Make(T)
-  include TT (* NOTE: using TT instead of T to avoid ocamldoc errors in OCaml 4.02 *)
+  module Pretty = Qed.Pretty.Make(QZERO)
+  module QED =
+  struct
+    include QZERO
+    let typeof ?(field=tau_of_field) ?(record=tau_of_record) ?(call=tau_of_lfun) e =
+      QZERO.typeof ~field ~record ~call e
+  end
+  include QED
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Checking                                                      --- *)
@@ -654,8 +666,8 @@ struct
         Wp_parameters.warning "[Lang] unknown check '%s'" c
 
     let iter f =
-      T.iter_checks
-        (fun ~qed ~raw -> f ~qed ~raw ~goal:(T.check_unit ~qed ~raw))
+      QED.iter_checks
+        (fun ~qed ~raw -> f ~qed ~raw ~goal:(QED.check_unit ~qed ~raw))
 
     let is_set () = !empty
   end
@@ -663,8 +675,8 @@ struct
   let e_imply =
     let c = Check.register "e_imply" in
     fun a b ->
-      let r = T.e_imply a b in
-      if !c then T.check (Imply(a,b)) r else r
+      let r = QED.e_imply a b in
+      if !c then QED.check (Imply(a,b)) r else r
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Extensions                                                    --- *)
@@ -673,11 +685,11 @@ struct
   type unop = term -> term
   type binop = term -> term -> term
 
-  let e_zero = T.constant (e_zint Z.zero)
-  let e_one  = T.constant (e_zint Z.one)
-  let e_minus_one = T.constant (e_zint Z.minus_one)
-  let e_one_real  = T.constant (e_real (R.of_string "1.0"))
-  let e_zero_real = T.constant (e_real (R.of_string "0.0"))
+  let e_zero = QED.constant (e_zint Z.zero)
+  let e_one  = QED.constant (e_zint Z.one)
+  let e_minus_one = QED.constant (e_zint Z.minus_one)
+  let e_one_real  = QED.constant (e_real (R.of_string "1.0"))
+  let e_zero_real = QED.constant (e_real (R.of_string "0.0"))
 
   let hex_of_float f =
     Pretty_utils.to_string (Floating_point.pretty_normal ~use_hex:true) f
@@ -686,8 +698,8 @@ struct
   let e_fact k e = e_times (Z.of_int k) e
   let e_bigint z = e_zint (Z.of_string (Integer.to_string z))
   let e_range a b = e_sum [b;e_one;e_opp a]
-  let e_mthfloat f = T.e_real (R.of_string (string_of_float f))
-  let e_hexfloat f = T.e_real (R.of_string (hex_of_float f))
+  let e_mthfloat f = QED.e_real (R.of_string (string_of_float f))
+  let e_hexfloat f = QED.e_real (R.of_string (hex_of_float f))
 
   let e_setfield r f v =
     (*TODO:NUPW: check for UNIONS *)
@@ -702,6 +714,7 @@ struct
 
   type pred = term
   type cmp = term -> term -> pred
+  type operator = pred -> pred -> pred
 
   let p_bool t = t
   let e_prop t = t
@@ -709,7 +722,7 @@ struct
   let e_props xs = xs
   let lift f x = f x
 
-  let is_zero e = match T.repr e with
+  let is_zero e = match QED.repr e with
     | Kint z -> Integer.equal z Integer.zero
     | _ -> false
 
@@ -729,12 +742,13 @@ struct
 
   let p_true = e_true
   let p_false = e_false
-  
+
   let p_not = e_not
   let p_bind = e_bind
   let p_forall = e_forall
   let p_exists = e_exists
   let p_subst = e_subst
+  let p_apply = e_subst_var
 
   let p_and p q = e_and [p;q]
   let p_or p q = e_or [p;q]
@@ -760,26 +774,24 @@ struct
   let occursp = occurs
   let intersectp = intersect
   let varsp = vars
-  let pred = repr
-  let epred = repr
+  let p_expr = repr
+  let e_expr = repr
   let p_iter fp fe p =
-    match T.repr p with
+    match QED.repr p with
     | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
-    | Eq(a,b) | Neq(a,b) when T.is_prop a && T.is_prop b -> fp a ; fp b
+    | Eq(a,b) | Neq(a,b) when is_prop a && is_prop b -> fp a ; fp b
     | Eq _ | Neq _ | Leq _ | Lt _ | Times _ | Add _ | Mul _ | Div _ | Mod _
-    | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> T.lc_iter fe p
-    | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> T.lc_iter fp p
-                                                          
-  let idp = id
-
+    | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> lc_iter fe p
+    | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> lc_iter fp p
+  
   let pp_tau = Pretty.pp_tau
   let pp_term fmt e =
     if Wp_parameters.has_dkey "pretty"
-    then T.debug fmt e
+    then QED.debug fmt e
     else Pretty.pp_term Pretty.empty fmt e
   let pp_pred fmt p =
     if Wp_parameters.has_dkey "pretty"
-    then T.debug fmt p
+    then QED.debug fmt p
     else Pretty.pp_term Pretty.empty fmt p
   let pp_var fmt x = pp_term fmt (e_var x)
   let pp_vars fmt xs =
@@ -789,21 +801,19 @@ struct
       Format.fprintf fmt " }@]" ;
     end
 
-  let debugp = T.debug
-
+  let debugp = QED.debug
 
   type env = Pretty.env
   let env xs = Pretty.known Pretty.empty xs
   let marker = Pretty.marks
-  let mark_vars = Pretty.known
-  let mark_e = T.mark
-  let mark_p = T.mark
+  let mark_e = QED.mark
+  let mark_p = QED.mark
   let define f env m =
     List.fold_left
       (fun env t ->
          let x,env_x = Pretty.fresh env t in
          f env x t ; env_x)
-      env (T.defs m)
+      env (QED.defs m)
 
   let pp_eterm = Pretty.pp_term
   let pp_epred = Pretty.pp_term
@@ -823,6 +833,32 @@ end
 
 open F
 
+module N = struct
+
+  let ( + ) = e_add
+  let ( ~- ) x = e_sub e_zero x
+  let ( - ) = e_sub
+  let ( * ) = e_mul
+  let ( / ) = e_div
+  let ( mod ) = e_mod
+
+  let ( = ) = p_equal
+  let ( < ) = p_lt
+  let ( > ) x y = p_lt y x
+  let ( <= ) = p_leq
+  let ( >= ) x y = p_leq y x
+  let ( <> ) = p_neq
+
+  let ( && ) = p_and
+  let ( || ) = p_or
+  let not = p_not
+
+  let ( $ ) = e_fun
+  let ( $$ ) = p_call
+
+end
+
+
 (* -------------------------------------------------------------------------- *)
 (* --- Fresh Variables & Local Assumptions                                --- *)
 (* -------------------------------------------------------------------------- *)
@@ -836,10 +872,13 @@ type gamma = {
 
 let cpool = Context.create "Lang.pool"
 let cgamma = Context.create "Lang.gamma"
-let apool = function None -> F.pool () | Some p -> p
-let agamma = function None -> { hyps=[] ; vars=[] } | Some g -> g
+let add_vars pool = function
+  | None -> ()
+  | Some xs -> F.add_vars pool xs
 
-let new_pool = F.pool
+let new_pool ?copy ?(vars = Vars.empty) () =
+  let pool = F.pool ?copy () in
+  F.add_vars pool vars ; pool
 let new_gamma ?copy () =
   match copy with
   | None -> { hyps=[] ; vars=[] }
@@ -851,9 +890,11 @@ let get_gamma () = Context.get cgamma
 let freshvar ?basename tau = F.fresh (Context.get cpool) ?basename tau
 let freshen x = F.alpha (Context.get cpool) x
 
-let local ?pool ?gamma f =
-  Context.bind cpool (apool pool)
-    (Context.bind cgamma (agamma gamma) f)
+let local ?pool ?vars ?gamma f =
+  let pool = match pool with None -> F.pool () | Some p -> p in
+  add_vars pool vars ;
+  let gamma = match gamma with None -> { hyps=[] ; vars=[] } | Some g -> g in
+  Context.bind cpool pool (Context.bind cgamma gamma f)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Hypotheses                                                         --- *)
@@ -909,11 +950,39 @@ struct
   let iter f w = Vmap.iter f !w
 
   let convert w = e_subst
-      (fun e -> match T.repr e with
+      (fun e -> match QED.repr e with
          | Logic.Fvar x -> e_var (get w x)
          | _ -> raise Not_found)
 
   let convertp = convert
+
+end
+
+(* -------------------------------------------------------------------------- *)
+(* --- Substitution                                                       --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Subst =
+struct
+  type sigma = {
+    e_apply : F.term -> F.term ;
+    p_apply : F.pred -> F.pred ;
+  }
+
+  let sigma xs vs =
+    let bind w x v = Tmap.add (e_var x) v w in
+    let vmap =
+      try List.fold_left2 bind Tmap.empty xs vs
+      with _ -> raise (Invalid_argument "Wp.Lang.Subst.sigma")
+    in
+    let lookup e = Tmap.find e vmap in
+    let sigma = F.sigma () in
+    let e_apply = F.e_subst ~sigma lookup in
+    let p_apply = F.p_subst ~sigma lookup in
+    { e_apply ; p_apply }
+
+  let e_apply s e = s.e_apply e
+  let p_apply s p = s.p_apply p
 
 end
 

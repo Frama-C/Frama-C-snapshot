@@ -1,8 +1,8 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/widen_hints.c (with preprocessing)
 tests/misc/widen_hints.c:14:[kernel] warning: invalid widen_hints annotation: no hints. Ignoring code annotation
-tests/misc/widen_hints.c:19:[kernel] warning: invalid widen_hints annotation: unknown expression: 1. Ignoring code annotation
+tests/misc/widen_hints.c:19:[kernel] warning: invalid widen_hints annotation: no hints. Ignoring code annotation
 tests/misc/widen_hints.c:24:[kernel] warning: unbound logic variable b. Ignoring code annotation
-tests/misc/widen_hints.c:29:[kernel] user error: could not parse widening hint: not_const
-                     If it contains variables, they must be global const integers.
-[kernel] Frama-C aborted: invalid user input.
+tests/misc/widen_hints.c:29:[value] user error: could not parse widening hint: not_const
+                    If it contains variables, they must be global const integers.
+[kernel] Plug-in value aborted: invalid user input.

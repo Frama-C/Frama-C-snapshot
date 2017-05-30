@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -deps -input -out -inout -pdg -journal-disable -pdg-print -pdg-verbose 2
+   OPT: -deps -input -out -inout -val-show-progress -pdg -journal-disable -pdg-print -pdg-verbose 2
    */
 
 struct Tstr { int a; int b; int c; };

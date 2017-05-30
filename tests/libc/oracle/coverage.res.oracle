@@ -8,12 +8,14 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] computing for function strlen <- main.
         Called from tests/libc/coverage.c:9.
-share/libc/string.h:91:[value] function strlen: precondition 'valid_string_src' got status valid.
-share/libc/string.c:77:[value] entering loop for the first time
-share/libc/string.c:78:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:93:[value] warning: function strlen: postcondition got status unknown.
+share/libc/string.h:92:[value] function strlen: precondition 'valid_string_src' got status valid.
+share/libc/string.c:78:[value] entering loop for the first time
+share/libc/string.h:94:[value] function strlen: postcondition got status valid.
 [value] Recording results for strlen
 [value] Done for function strlen
 [value] Recording results for main

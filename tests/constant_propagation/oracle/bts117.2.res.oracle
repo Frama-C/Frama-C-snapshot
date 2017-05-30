@@ -54,10 +54,8 @@ int main2(void)
 int main(void)
 {
   int __retres;
-  int x1;
-  int x2;
-  x1 = main1();
-  x2 = main2();
+  int x1 = main1();
+  int x2 = main2();
   __retres = x1 + x2;
   return __retres;
 }

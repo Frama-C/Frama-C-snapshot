@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,14 +26,14 @@
 
 open Cil_types
 
-(** Relation operators conversion 
+(** Relation operators conversion
     @since Nitrogen-20111001
 *)
 val type_rel: Logic_ptree.relation -> Cil_types.relation
 
-(** Arithmetic binop conversion. Addition and Substraction are always 
+(** Arithmetic binop conversion. Addition and Subtraction are always
     considered as being used on integers. It is the responsibility of the
-    user to introduce PlusPI/IndexPI, MinusPI and MinusPP where needed. 
+    user to introduce PlusPI/IndexPI, MinusPI and MinusPP where needed.
     @since Nitrogen-20111001
 *)
 val type_binop: Logic_ptree.binop -> Cil_types.binop
@@ -56,7 +56,7 @@ val type_of_list_elem : logic_type -> logic_type
 val type_of_pointed: logic_type -> logic_type
 val type_of_array_elem: logic_type -> logic_type
 val type_of_set_elem: logic_type -> logic_type
-  
+
 val ctype_of_pointed: logic_type -> typ
 val ctype_of_array_elem: logic_type -> typ
 
@@ -103,27 +103,40 @@ type typing_context = {
   pre_state:Lenv.t;
   post_state:termination_kind list -> Lenv.t;
   assigns_env: Lenv.t;
-  type_predicate:Lenv.t -> Logic_ptree.lexpr -> predicate;
-  type_term:Lenv.t -> Logic_ptree.lexpr -> term;
+  (**/**)
+  silent: bool;
+  (**/**)
+  type_predicate:
+    typing_context -> Lenv.t -> Logic_ptree.lexpr -> predicate;
+  (** typechecks a predicate. Note that the first argument is itself a
+      [typing_context], which allows for open recursion. Namely, it is
+      possible for the extension to change the type-checking functions for
+      the sub-nodes of the parsed tree, and not only for the toplevel [lexpr].
+
+      @plugin development guide
+  *)
+  type_term:
+    typing_context -> Lenv.t -> Logic_ptree.lexpr -> term;
   type_assigns:
-    accept_formal:bool -> 
+    typing_context ->
+    accept_formal:bool ->
     Lenv.t -> Logic_ptree.lexpr assigns -> identified_term assigns;
   error: 'a 'b. location -> ('a,Format.formatter,unit,'b) format4 -> 'a;
 }
 
-(** [register_behavior_extension name f] registers a typing function [f] to 
+(** [register_behavior_extension name f] registers a typing function [f] to
     be used to type clause with name [name].
     Here is a basic example:
     let count = ref 0 in
     let foo_typer ~typing_context ~loc ps =
     match ps with p::[] ->
-      ("FOO",
        Ext_preds
-	[
-             (typing_context.type_predicate 
-				 (typing_context.post_state [Normal]) 
-				 p)])
-      | [] -> let id = !count in incr count; ("FOO", Ext_id id)
+       [
+             (typing_context.type_predicate
+                typing_context
+                (typing_context.post_state [Normal])
+                p)])
+      | [] -> let id = !count in incr count; Ext_id id
       | _ -> typing_context.error loc "expecting a predicate after keyword FOO"
     let () = register_behavior_extension "FOO" foo_typer
 
@@ -140,7 +153,7 @@ val register_behavior_extension:
 module Make
   (C :
     sig
-      val is_loop: unit -> bool 
+      val is_loop: unit -> bool
       (** whether the annotation we want to type is contained in a loop.
           Only useful when creating objects of type [code_annotation]. *)
       val anonCompFieldName : string
@@ -165,7 +178,7 @@ module Make
       val find_logic_ctor: string -> logic_ctor_info
 
       (** What to do when we have a term of type Integer in a context
-          expecting a C integral type. 
+          expecting a C integral type.
           @raise Failure to reject such conversion
           @since Nitrogen-20111001
        *)
@@ -173,13 +186,13 @@ module Make
 
       (** raises an error at the given location and with the given message.
           @since Magnesium-20151001 *)
-      val error: location -> ('a,Format.formatter,unit, 'b) format4 -> 'a 
+      val error: location -> ('a,Format.formatter,unit, 'b) format4 -> 'a
 
     end) :
 sig
 
   (** @since Nitrogen-20111001 *)
-  val type_of_field: 
+  val type_of_field:
     location -> string -> logic_type -> (term_offset * logic_type)
 
   (** @since Nitrogen-20111001 *)
@@ -234,8 +247,8 @@ val append_here_label: Lenv.t -> Lenv.t
 (** appends the "Pre" label in the environment *)
 val append_pre_label: Lenv.t -> Lenv.t
 
-(** appends the "Init" label in the environment     
-    @since Sodium-20150201 
+(** appends the "Init" label in the environment
+    @since Sodium-20150201
 *)
 val append_init_label: Lenv.t -> Lenv.t
 

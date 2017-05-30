@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -sparecode-analysis -sparecode-debug 1 -journal-disable
-   OPT: -sparecode-analysis -sparecode-debug 1 -main main_bis -journal-disable
-   OPT: -sparecode-analysis -sparecode-debug 1 -main main_ter -journal-disable
+   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -journal-disable
+   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -main main_bis -journal-disable
+   OPT: -sparecode-analysis -val-show-progress -sparecode-debug 1 -main main_ter -journal-disable
 
 */
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,8 +29,13 @@ let error ?msg loc typing_context =
     "invalid widen_hints annotation%a"
     (Pretty_utils.pp_opt ~pre:": " Format.pp_print_string) msg
 
+type hint_vars =
+  | HintAllVars (* "all" vars: static hint *)
+  | HintVar of varinfo (* static hint *)
+  | HintMem of exp * offset (* dynamic hint *)
+
 type hint_lval = {
-  vars : lval option;
+  vars : hint_vars;
   names : string list;
   loc : Cil_datatype.Location.t;
 }
@@ -40,30 +45,14 @@ type t = hint_lval * term list
 (* Textual representation of the hint corresponding to "widen all variables". *)
 let all_vars_str = "\"all\""
 
-let pp_olval fmt olv =
-  match olv with
-  | None -> Format.fprintf fmt "%s" all_vars_str
-  | Some lv -> Format.fprintf fmt "%a" Printer.pp_lval lv
+let pp_hvars fmt = function
+  | HintAllVars -> Format.fprintf fmt "%s" all_vars_str
+  | HintVar vi -> Format.fprintf fmt "%a" Printer.pp_varinfo vi
+  | HintMem (e, offset) -> Format.fprintf fmt "%a" Printer.pp_lval (Mem e, offset)
 
 exception Parse_error of string option
 
 let parse_error ?msg () = raise (Parse_error msg)
-
-(* Raises [parse_error] if [var] is not in the typing context,
-   or if [var] is a logic variable. *)
-let check_var typing_context var =
-  try
-    let lv = typing_context.Logic_typing.find_var var in
-    match lv.lv_origin with
-    | None ->
-      parse_error ~msg:("cannot add widen hint on logic variable: " ^ var) ()
-    | Some _vi -> ()
-  with Not_found ->
-    parse_error ~msg:("variable '"^ var ^"' not found") ()
-
-let term_of_var typing_context var lexpr =
-  check_var typing_context var;
-  typing_context.Logic_typing.type_term typing_context.Logic_typing.pre_state lexpr
 
 (* Converts a [lexpr] list into a [term] list.
    Requires a non-empty list.
@@ -75,23 +64,27 @@ let terms_of_hints typing_context hints =
   else
     List.map (fun hint ->
         (typing_context.Logic_typing.type_term
-           typing_context.Logic_typing.pre_state hint))
+           typing_context typing_context.Logic_typing.pre_state hint))
       hints
 
+(* Parses [arg] using [typing_context].
+   This function filters special cases ("all" variables, global label)
+   to parse them using specific rules.
+   All other cases are redispatched to the standard logic typer. *)
 let rec parse_lval typing_context loc arg =
   let open Logic_ptree in
   match arg.lexpr_node with
   | PLnamed (name, node) (* global:x *) ->
-    if name <> "global" then parse_error ~msg:("invalid label " ^ name) ()
+    if name <> "global" then
+      parse_error ~msg:("invalid label " ^ name) ()
     else
       let term = parse_lval typing_context loc node in
       { term with term_name = [name] }
   | PLconstant (StringConstant str) when str = "all" (* "all" variables *) ->
     Logic_const.tstring ~loc all_vars_str
-  | PLvar var (* x *)
-  | PLdot ({lexpr_node = PLvar var}, _) (* x.f *) ->
-    term_of_var typing_context var arg
-  | _ -> parse_error ~msg:(Format.asprintf "unknown expression: %a" Logic_print.print_lexpr arg) ()
+  | _ ->
+    let open Logic_typing in
+    typing_context.type_term typing_context typing_context.pre_state arg
 
 (* Converts the parsing tokens to a list of terms. May raise Kernel.error. *)
 let terms_of_parsed_widen_hints typing_context loc args =
@@ -111,36 +104,30 @@ exception Invalid_hint
 let widen_hint_terms_of_terms terms =
   try
     match terms with
-    | var_term :: hint_terms ->
+    | lval_term :: hint_thresholds ->
       begin
-        match var_term with
-        | {term_name; term_node = TConst (LStr var_str)} when var_str = all_vars_str ->
-          let named_lval = {names = term_name; loc = var_term.term_loc; vars = None} in
-          Some (named_lval, hint_terms)
-        | {term_node = TLval (TVar lv, toffs)} ->
-          (* we know that lv_origin <> None because we tested it when
-             constructing the hint term *)
-          let lval =
-            !Db.Properties.Interp.term_lval_to_lval ~result:None (TVar lv, toffs)
+        match lval_term with
+        | {term_name; term_node = TConst (LStr s)} when s = all_vars_str ->
+          let named_lval =
+            {names = term_name; loc = lval_term.term_loc; vars = HintAllVars}
           in
-          let hint_lval =
-            { names = var_term.term_name; loc = var_term.term_loc;
-              vars = Some lval }
-          in
-          Some (hint_lval, hint_terms)
-        | {term_node = TLval ((TMem {term_node = TLval (TVar _lv, _)}, _toffs) as _tlv)} ->
-          failwith "widen_hints with pointers not yet supported"
-        (*let lval =
+          Some (named_lval, hint_thresholds)
+        | {term_node = TLval tlv} ->
+          let (lhost, offset) =
             !Db.Properties.Interp.term_lval_to_lval ~result:None tlv
           in
-          let named_lval =
-            { Cil_types.name = var_term.term_name; loc = var_term.term_loc;
-              content = Some lval }
+          let hint_vars = match lhost with
+            | Mem e -> HintMem (e, offset)
+            | Var vi -> HintVar vi
           in
-          Some (named_lval, hint_terms)*)
+          let hint_lval =
+            { names = lval_term.term_name; loc = lval_term.term_loc;
+              vars = hint_vars }
+          in
+          Some (hint_lval, hint_thresholds)
         | _ ->
-          Kernel.debug ~source:(fst var_term.term_loc) ~dkey
-            "invalid var_term: %a@." Printer.pp_term var_term;
+          Kernel.debug ~source:(fst lval_term.term_loc) ~dkey
+            "invalid var_term: %a@." Printer.pp_term lval_term;
           raise Invalid_hint
       end
     | _ ->
@@ -169,48 +156,46 @@ let () = Cil_printer.register_behavior_extension "widen_hints"
          | Some (hint_lval, hint_terms) ->
            Format.fprintf fmt "%a%a, %a"
              (Pretty_utils.pp_list ~sep:" " ~suf:":" Format.pp_print_string)
-             hint_lval.names pp_olval hint_lval.vars
+             hint_lval.names pp_hvars hint_lval.vars
              (Pretty_utils.pp_list ~sep:", " Printer.pp_term) hint_terms
          | None ->
            Format.fprintf fmt "<invalid widen_hints>"
     )
 
-let get_stmt_widen_hint_terms s =
+let get_widen_hints_annots stmt =
   Annotations.fold_code_annot
     (fun _emitter annot acc ->
-       let wh =
-         match annot with
-         | {annot_content = AStmtSpec (_, { spec_behavior = [{b_extended}]})} ->
-           (* non-loop widen_hints *)
-           let all_widen_hints_terms =
-             Extlib.filter_map
-               (fun (name, _) -> name = "widen_hints")
-               (fun (_, ext) ->
-                  match ext with
-                  | Ext_id _ -> assert false
-                  | Ext_preds _ -> assert false
-                  | Ext_terms terms -> terms)
-               b_extended
-           in
-           let filter_opt l =
-             List.fold_left (fun acc o -> match o with
-                 | None -> acc
-                 | Some e -> e :: acc
-               ) [] l
-           in
-           filter_opt (List.map widen_hint_terms_of_terms all_widen_hints_terms)
-         | {annot_content =
-              AExtended (_, ("widen_hints", Ext_terms terms))} ->
-           (* loop widen_hints *)
-           begin
-             match widen_hint_terms_of_terms terms with
-             | None -> []
-             | Some t -> [t]
-           end
-         | _ -> []
-       in
-       acc @ wh
-    ) s []
+       match annot with
+       | {annot_content = AStmtSpec (_, { spec_behavior = [{b_extended}]})} ->
+         acc @ Extlib.filter_map
+           (fun (name, _) -> name = "widen_hints")
+           (fun (_, ext) ->
+              match ext with
+              | Ext_id _ -> assert false
+              | Ext_preds _ -> assert false
+              | Ext_terms terms -> terms)
+           b_extended
+       | {annot_content =
+            AExtended (_, ("widen_hints", Ext_terms terms))} ->
+         (* loop widen_hints *)
+         acc @ [terms]
+       | _ -> acc
+    ) stmt []
+
+let get_stmt_widen_hint_terms s =
+  let terms = get_widen_hints_annots s in
+  let filter_opt l =
+    List.fold_left (fun acc o -> match o with
+        | None -> acc
+        | Some e -> e :: acc
+      ) [] l
+  in
+  filter_opt (List.map widen_hint_terms_of_terms terms)
 
 let is_global (hlv, _wh) =
   List.mem "global" hlv.names
+
+let is_dynamic (hlv, _wh) =
+  match hlv.vars with
+  | HintMem _ -> true
+  | _ -> false

@@ -21,11 +21,9 @@ int g(int *a)
 {
   int __retres;
   int *tmp;
-  { /* sequence */
-    tmp = a;
-    a ++;
-    ;
-  }
+  tmp = a;
+  a ++;
+  ;
   __sid_13_label: ;
   /*@ behavior neg:
         assumes *a < 0;
@@ -40,11 +38,9 @@ int g(int *a)
   }
   if (*a != 0) {
     int *tmp_0;
-    { /* sequence */
-      tmp_0 = a;
-      a ++;
-      ;
-    }
+    tmp_0 = a;
+    a ++;
+    ;
     __retres = 0;
     goto return_label;
   }

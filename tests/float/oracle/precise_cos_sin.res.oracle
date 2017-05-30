@@ -8,10 +8,12 @@
 [value] computing for function Frama_C_float_interval <- main.
         Called from tests/float/precise_cos_sin.c:12.
 [value] using specification for function Frama_C_float_interval
-share/libc/__fc_builtin.h:141:[value] function Frama_C_float_interval: precondition got status valid.
-share/libc/__fc_builtin.h:142:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:149:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
+tests/float/precise_cos_sin.c:15:[kernel] warning: Neither code nor specification for function Frama_C_sin, generating default assigns from the prototype
 [value] Called Frama_C_show_each_s([-1.6214298009872436*2^-3 .. 1.4685190916061401*2^-5])
+tests/float/precise_cos_sin.c:16:[kernel] warning: Neither code nor specification for function Frama_C_cos, generating default assigns from the prototype
 [value] Called Frama_C_show_each_c([-1.0000000000000000 .. -1.9584906101226807*2^-1])
 [value] Called Frama_C_show_each_s([-1.7545883655548095*2^-2 .. -1.6214298009872436*2^-3])
 [value] Called Frama_C_show_each_c([-1.9584906101226807*2^-1 .. -1.7973188161849975*2^-1])
@@ -66,3 +68,7 @@ share/libc/__fc_builtin.h:142:[value] function Frama_C_float_interval: precondit
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  f ∈ [3.1875002384185791 .. 3.4375000000000000]
+  __retres ∈ {0}

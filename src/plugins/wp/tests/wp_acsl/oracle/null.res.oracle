@@ -9,6 +9,6 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/null.c, line 6) in 'null_is_zero':
-Prove: 0 = cast(null).
+Prove: cast(null) = 0.
 
 ------------------------------------------------------------

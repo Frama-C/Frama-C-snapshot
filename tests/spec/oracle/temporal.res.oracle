@@ -195,28 +195,22 @@ int g(int x)
   aorai_CurTrans[0] = 0;
   aorai_CurTrans[1] = 0;
   aorai_CurTrans[2] = 0;
-  { /* sequence */
-    if (G_i == 0) 
-      if (g_calls < NB) 
-        if (aorai_CurStates_old[3]) tmp_0 = 1; else tmp_0 = 0;
-      else tmp_0 = 0;
+  if (G_i == 0) 
+    if (g_calls < NB) 
+      if (aorai_CurStates_old[3]) tmp_0 = 1; else tmp_0 = 0;
     else tmp_0 = 0;
-    aorai_CurTrans[3] = tmp_0;
-  }
-  { /* sequence */
-    if (G_i == 0) 
-      if (g_calls == NB) 
-        if (aorai_CurStates_old[3]) tmp_1 = 1; else tmp_1 = 0;
-      else tmp_1 = 0;
+  else tmp_0 = 0;
+  aorai_CurTrans[3] = tmp_0;
+  if (G_i == 0) 
+    if (g_calls == NB) 
+      if (aorai_CurStates_old[3]) tmp_1 = 1; else tmp_1 = 0;
     else tmp_1 = 0;
-    aorai_CurTrans[4] = tmp_1;
-  }
-  { /* sequence */
-    if (G_i != 0) 
-      if (aorai_CurStates_old[3]) tmp_2 = 1; else tmp_2 = 0;
-    else tmp_2 = 0;
-    aorai_CurTrans[5] = tmp_2;
-  }
+  else tmp_1 = 0;
+  aorai_CurTrans[4] = tmp_1;
+  if (G_i != 0) 
+    if (aorai_CurStates_old[3]) tmp_2 = 1; else tmp_2 = 0;
+  else tmp_2 = 0;
+  aorai_CurTrans[5] = tmp_2;
   aorai_CurTrans[6] = 0;
   aorai_CurTrans[7] = 0;
   aorai_CurTrans[8] = 0;
@@ -362,16 +356,14 @@ void f(int N)
       aorai_CurStates_old[S0] = 0;
       aorai_CurTrans[0] = 0;
       aorai_CurTrans[1] = 0;
-      { /* sequence */
-        if (NB > 0) 
-          if (g_calls < NB) 
-            if (0 <= g_calls) 
-              if (aorai_CurStates_old[0]) tmp = 1; else tmp = 0;
-            else tmp = 0;
+      if (NB > 0) 
+        if (g_calls < NB) 
+          if (0 <= g_calls) 
+            if (aorai_CurStates_old[0]) tmp = 1; else tmp = 0;
           else tmp = 0;
         else tmp = 0;
-        aorai_CurTrans[2] = tmp;
-      }
+      else tmp = 0;
+      aorai_CurTrans[2] = tmp;
       aorai_CurTrans[3] = 0;
       aorai_CurTrans[4] = 0;
       aorai_CurTrans[5] = 0;
@@ -430,12 +422,10 @@ void f(int N)
   aorai_CurStates_old[OK] = 0;
   aorai_CurStates_old[S0] = 0;
   aorai_CurTrans[0] = 0;
-  { /* sequence */
-    if (NB <= 0) 
-      if (aorai_CurStates_old[0]) tmp_0 = 1; else tmp_0 = 0;
-    else tmp_0 = 0;
-    aorai_CurTrans[1] = tmp_0;
-  }
+  if (NB <= 0) 
+    if (aorai_CurStates_old[0]) tmp_0 = 1; else tmp_0 = 0;
+  else tmp_0 = 0;
+  aorai_CurTrans[1] = tmp_0;
   aorai_CurTrans[2] = 0;
   aorai_CurTrans[3] = 0;
   aorai_CurTrans[4] = 0;
@@ -448,12 +438,10 @@ void f(int N)
   aorai_CurStates[S3] = 0;
   aorai_CurStates[S2] = 0;
   aorai_CurStates[S1] = 0;
-  { /* sequence */
-    if (aorai_CurTrans[8]) tmp_1 = 1;
-    else 
-      if (aorai_CurTrans[1]) tmp_1 = 1; else tmp_1 = 0;
-    aorai_CurStates[OK] = tmp_1;
-  }
+  if (aorai_CurTrans[8]) tmp_1 = 1;
+  else 
+    if (aorai_CurTrans[1]) tmp_1 = 1; else tmp_1 = 0;
+  aorai_CurStates[OK] = tmp_1;
   aorai_CurStates[S0] = 0;
   return;
 }

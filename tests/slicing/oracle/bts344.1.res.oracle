@@ -14,7 +14,7 @@ tests/slicing/bts344.i:9:[value] function k: postcondition got status valid.
 [value] Done for function k
 [value] Recording results for main_bis
 [value] done for function main_bis
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main_bis
 [from] Computing for function k
@@ -46,8 +46,7 @@ void k_slice_1(void)
 
 int main_bis(void)
 {
-  void (*p)(int );
-  p = & k;
+  void (*p)(int ) = & k;
   k_slice_1();
   return Y;
 }

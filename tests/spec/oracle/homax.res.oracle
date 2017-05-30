@@ -8,11 +8,9 @@ int max_seq(int *p, int n);
  */
 int max_seq(int *p, int n)
 {
-  int res;
-  res = *p;
+  int res = *p;
   {
-    int i;
-    i = 0;
+    int i = 0;
     while (i < n) {
       if (res < *p) res = *p;
       p ++;

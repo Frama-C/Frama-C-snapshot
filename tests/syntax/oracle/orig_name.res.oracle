@@ -6,17 +6,13 @@ tests/syntax/orig_name.i:7:[kernel] Variable x has been renamed to x_0
 int x = 1;
 int f(int x_0)
 {
-  int y;
-  y = 0;
+  int y = 0;
   if (x_0 == 0) {
-    int x_1;
     int tmp;
-    x_1 = 3;
-    { /* sequence */
-      tmp = x_1;
-      x_1 ++;
-      y = tmp;
-    }
+    int x_1 = 3;
+    tmp = x_1;
+    x_1 ++;
+    y = tmp;
   }
   y += x_0;
   return y;

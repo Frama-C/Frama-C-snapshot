@@ -10,7 +10,7 @@ tests/rte/reqlabl2.c:16:[kernel] warning: No code nor implicit assigns clause fo
     assigns \result;
     assigns \result \from x;
  */
-extern int f(int x);
+int f(int x);
 
 void g(int a)
 {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ let same lval expr = match expr.enode with
 (* Converts a map from lvalues to expressions and depth into an association
    list from expressions to list of lvalues, sorted by decreasing depth of
    expressions.
-   The lvalues bound to themself are ignored. *)
+   The lvalues bound to themselves are ignored. *)
 let reverse_map map =
   let fill lval (expr, depth) acc =
     if same lval expr then acc else DepthMap.add depth expr lval acc
@@ -265,7 +265,7 @@ module Make
      smallest element of [list] according to [has_better_bound], [split] its
      value in two smaller values, and [compute] the result for each.
      The process is repeated [subdivnb] times, or until we detect no more
-     improvment is possible. *)
+     improvement is possible. *)
   let subdiv subdivnb list has_better_bound split compute =
     Cmp.cmp_subdiv := has_better_bound;
     let working_list = ref (Subdiv.of_list list) in
@@ -309,7 +309,9 @@ module Make
     let compare_min, compare_max =
       if V.is_included result_value V.top_float
       then V.compare_min_float, V.compare_max_float
-      else V.compare_min_int, V.compare_max_int
+      else if V.is_included result_value V.top_int
+      then V.compare_min_int, V.compare_max_int
+      else raise Too_linear
     in
     let better_bound compare_bound e1 e2 =
       match e1, e2 with
@@ -334,7 +336,7 @@ module Make
 
   (* Subdivision of the evaluation of the expression [expr], according to the
      lvalue [lval], in the state [state].
-     [subexpr] is the smallest subexpression of [expr] containing all occurences
+     [subexpr] is the smallest subexpression of [expr] containing all occurrences
      of the lvalue [lval]. It is thus its value that needs to be reduced.
      However, we perform the complete evaluation of [expr] to be able to remove
      the values of [lval] that lead to Bottom.
@@ -450,6 +452,10 @@ module Make
               Eva.evaluate ~valuation state subexpr
             in
             res >>> fun result ->
+            (* Do not try to subdivide if [subexpr] contains some pointers:
+               the {!better_bound} heuristic only works on numerical values. *)
+            if not Cvalue.V.(is_included (get_cval (snd result)) top_int)
+            then raise Too_linear;
             (* If the evaluation of the complete expression [expr] raises some
                alarms, then force the evaluation of [expr] for the subdivision:
                some subvalues of [lval] could lead to bottom and be removed.

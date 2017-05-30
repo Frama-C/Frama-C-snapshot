@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_DEFINE_STAT_H
 #define __FC_DEFINE_STAT_H
 #include "features.h"
+__PUSH_FC_STDLIB
 
 
 #include "__fc_define_ino_t.h"
@@ -72,4 +73,5 @@ struct stat {
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

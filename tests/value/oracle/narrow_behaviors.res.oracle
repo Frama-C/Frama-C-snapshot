@@ -12,7 +12,6 @@
 [value] DUMPING STATE of file tests/value/narrow_behaviors.i line 56
         nondet ∈ [--..--]
         p{.x; .y} ∈ {1; 2}
-        q ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function f2 <- main.
@@ -28,26 +27,29 @@
 tests/value/narrow_behaviors.i:61:[value] warning: assertion got status unknown.
 [value] computing for function f1 <- main.
         Called from tests/value/narrow_behaviors.i:62.
-tests/value/narrow_behaviors.i:62:[value] function f1, behavior a: assumes got status invalid; behavior not evaluated.
-tests/value/narrow_behaviors.i:62:[value] function f1, behavior d: assumes got status invalid; behavior not evaluated.
-[value] Done for function f1
-[value] computing for function f1 <- main.
-        Called from tests/value/narrow_behaviors.i:62.
 tests/value/narrow_behaviors.i:62:[value] function f1, behavior b: assumes got status invalid; behavior not evaluated.
 tests/value/narrow_behaviors.i:62:[value] function f1, behavior c: assumes got status invalid; behavior not evaluated.
 [value] Done for function f1
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 62
-        nondet ∈ {1}
-        r{.x; .y} ∈ {2}
-        s ∈ UNINITIALIZED
-        __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+[value] computing for function f1 <- main.
+        Called from tests/value/narrow_behaviors.i:62.
+tests/value/narrow_behaviors.i:62:[value] function f1, behavior a: assumes got status invalid; behavior not evaluated.
+tests/value/narrow_behaviors.i:62:[value] function f1, behavior d: assumes got status invalid; behavior not evaluated.
+[value] Done for function f1
 [value] DUMPING STATE of file tests/value/narrow_behaviors.i line 62
         nondet ∈ {0}
         r{.x; .y} ∈ {1}
-        s ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
         =END OF DUMP==
+[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 62
+        nondet ∈ {1}
+        r{.x; .y} ∈ {2}
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] computing for function f2 <- main.
+        Called from tests/value/narrow_behaviors.i:63.
+tests/value/narrow_behaviors.i:63:[value] function f2, behavior b: assumes got status invalid; behavior not evaluated.
+tests/value/narrow_behaviors.i:63:[value] function f2, behavior c: assumes got status invalid; behavior not evaluated.
+[value] Done for function f2
 [value] computing for function f2 <- main.
         Called from tests/value/narrow_behaviors.i:63.
 tests/value/narrow_behaviors.i:63:[value] function f2, behavior a: assumes got status invalid; behavior not evaluated.
@@ -56,11 +58,6 @@ tests/value/narrow_behaviors.i:39:[value] warning: function f2, behavior b: this
                  context. If it is valid, either a precondition was not verified for this
                  call, or some assigns/from clauses are incomplete (or incorrect).
 tests/value/narrow_behaviors.i:40:[value] function f2, behavior b: no state left in which to evaluate postcondition, status not computed.
-[value] Done for function f2
-[value] computing for function f2 <- main.
-        Called from tests/value/narrow_behaviors.i:63.
-tests/value/narrow_behaviors.i:63:[value] function f2, behavior b: assumes got status invalid; behavior not evaluated.
-tests/value/narrow_behaviors.i:63:[value] function f2, behavior c: assumes got status invalid; behavior not evaluated.
 [value] Done for function f2
 [value] DUMPING STATE of file tests/value/narrow_behaviors.i line 63
         nondet ∈ {0}

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,7 @@ val default_config : config
     May be the default config as well. *)
 val legacy_config : config
 
-(** Build a configuration according to the analysis paramaters. *)
+(** Build a configuration according to the analysis parameters. *)
 val configure : unit -> config
 
 
@@ -62,12 +62,18 @@ module type S = sig
                                          and type location = Loc.location
 end
 
+(** Type of abstractions that use the builtin types for values and locations *)
+module type Standard_abstraction = Abstract_domain.Internal
+  with type value = Cvalue.V.t
+   and type location = Precise_locs.precise_location
+
+val register_dynamic_abstraction: (module Standard_abstraction) -> unit
 
 (** Builds the abstractions according to a configuration. *)
 val make : config -> (module S)
 
 
-(** Two abstractions are instanciated at compile time: default and legacy
+(** Two abstractions are instantiated at compile time: default and legacy
     (which may be the same). *)
 
 module Legacy : S

@@ -1,5 +1,5 @@
 /* run.config_qualif
-   OPT: -wp -wp-model Typed -wp-proof alt-ergo -wp-par 1
+   COMMENT:
 */
 
 

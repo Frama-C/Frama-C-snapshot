@@ -3,7 +3,7 @@ int l,m;
 int i;
 int X=-992;
 
-void printf(const char* c,...);
+
 
 int main(int i) {
   int G = 258+128;
@@ -15,10 +15,10 @@ int main(int i) {
 
   c = (signed char)G; // -126
   G = c;
-  printf("%d\n",G);
+  Frama_C_show_each(G);
   return G;
 
- for (i=-1000+8; i<2008; i+=100)
+  for (i=-1000+8; i<2008; i+=100)
     X  = i;
 
 }

@@ -11,7 +11,7 @@
 [value] computing for function Frama_C_interval <- f.
         Called from tests/scope/scope.c:26.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- f.
         Called from tests/scope/scope.c:32.

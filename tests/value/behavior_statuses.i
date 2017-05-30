@@ -1,9 +1,4 @@
-/* run.config
-   STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3"
-   STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3 -val-use-spec f"
-*/
-
-/* run.config_legacy
+/* run.config*
    STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3"
    STDOPT: +"-kernel-msg-key property_status -kernel-verbose 3 -val-use-spec f"
 */

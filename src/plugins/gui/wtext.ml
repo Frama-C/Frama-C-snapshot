@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -471,8 +471,8 @@ class text ?(autoscroll=false) ?(width=80) ?(indent=60) () =
     method set_enabled = Wutil.set_enabled scroll
     method set_visible = Wutil.set_visible scroll
 
-    method set_font font = view#misc#modify_font_by_name font
-    method set_monospace = self#set_font "monospace"
+    method set_font = Wutil.set_font view
+    method set_monospace = Wutil.set_monospace view
 
     method marker : 'a. 'a marker =
       let h = new poly_marker buffer self#register self#wrap in

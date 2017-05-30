@@ -25,18 +25,20 @@ int f(int c)
 int g(int c)
 {
   int __retres;
-  try
+  try {
     int tmp;
     tmp = f(c);
     __retres = tmp;
     goto return_label;
+  }
   catch ( int x_0 ) {
     __retres = 3;
     goto return_label;
-  } catch ( ... ) {
+  }
+    catch ( ... ) {
       __retres = 4;
       goto return_label;
-  }
+    }
   return_label: return __retres;
 }
 
@@ -105,7 +107,7 @@ int f4(int c)
 int h(int c)
 {
   int __retres;
-  try
+  try 
     if (c - 1 <= 0) {
       int tmp;
       tmp = f1(c);
@@ -125,9 +127,8 @@ int h(int c)
       }
       else 
         if (c > 360) {
-          int tmp_1;
-          tmp_1 = f3(c);
-          __retres = tmp_1;
+          int x_0 = f3(c);
+          __retres = x_0;
           goto return_label;
         }
         else {
@@ -140,20 +141,19 @@ int h(int c)
             struct my_exn exn_aux
             struct my_exn2 exn2
     ) {
-  __retres = exn.e;
-  goto return_label;
-    }
-    catch ( int y ) {
-      __retres = y;
-      goto return_label;
-    }
-    catch ( double not_thrown ) {
-      __retres = -1;
-      goto return_label;
-    }
-    catch ( ... ) {
-      throw ;
-    }
+    __retres = exn.e;
+    goto return_label;
+  }
+  catch ( int y ) {
+    __retres = y;
+    goto return_label;
+  }
+  catch ( double not_thrown ) {
+    __retres = -1;
+    goto return_label;
+  }
+  catch ( ... ) 
+    throw ;
 return_label: return __retres;
 }
 

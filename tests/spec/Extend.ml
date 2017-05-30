@@ -1,10 +1,14 @@
+open Logic_ptree
 open Cil_types
 open Logic_typing
 
 let type_foo ~typing_context ~loc l =
   let _loc = loc in
   let preds =
-    List.map (typing_context.type_predicate typing_context.pre_state) l
+    List.map
+      (typing_context.type_predicate
+         typing_context typing_context.pre_state)
+      l
   in
   Ext_preds preds
 
@@ -25,7 +29,9 @@ let type_bar ~typing_context ~loc l =
   let i = Count.next() in
   let p =
     List.map
-      (typing_context.type_predicate (typing_context.post_state [Normal])) l
+      (typing_context.type_predicate
+         typing_context
+         (typing_context.post_state [Normal])) l
   in
   Bar_table.add i p;
   Ext_id i
@@ -61,13 +67,52 @@ let type_baz ~typing_context ~loc l =
   else
     let t =
       List.map
-        (typing_context.type_term typing_context.pre_state) l
+        (typing_context.type_term typing_context typing_context.pre_state) l
     in
     Ext_terms t
+
+module Count_bla = State_builder.Counter(struct let name = "Count_bla" end)
+
+module Bla_table =
+  State_builder.Hashtbl(Datatype.Int.Hashtbl)(Cil_datatype.Predicate)
+    (struct
+      let name = "Bla_table"
+      let dependencies = [ Ast.self; Count_bla.self ]
+      let size = 3
+    end)
+
+let add_builtin () =
+  let trace =
+    { bl_name = "\\trace";
+      bl_labels = []; bl_params = []; bl_type = None;
+      bl_profile = [ "x", Linteger ] }
+  in
+  Logic_builtin.add trace
+
+let () = add_builtin ()
+
+let type_bla ~typing_context ~loc:_loc l =
+  let type_predicate ctxt env p =
+    match p.lexpr_node with
+    | PLapp("\\trace", [], [pred]) ->
+      let pred = typing_context.type_predicate typing_context env pred in
+      let li = List.hd (ctxt.find_all_logic_functions "\\trace") in
+      let i = Count.next () in
+      let ti = Logic_const.tinteger ~loc:pred.pred_loc i in
+      Bla_table.add i pred;
+      Logic_const.papp ~loc:p.lexpr_loc (li,[],[ti])
+    | _ -> typing_context.type_predicate ctxt env p
+  in
+  let ctxt = { typing_context with type_predicate } in
+  let l =
+    List.map (type_predicate ctxt ctxt.pre_state) l
+  in
+  Ext_preds l
 
 let () =
   Logic_typing.register_behavior_extension "foo" type_foo;
   Logic_typing.register_behavior_extension "bar" type_bar;
+  Logic_typing.register_behavior_extension "bla" type_bla;
   Cil_printer.register_behavior_extension "bar" print_bar;
   Cil.register_behavior_extension "bar" visit_bar;
   Logic_typing.register_behavior_extension "baz" type_baz
@@ -80,6 +125,7 @@ let run () =
   let fmt = Format.formatter_of_out_channel out in
   File.pretty_ast ~fmt ();
   let prj = Project.create "reparsing" in
+  Project.on prj add_builtin ();
   Project.on prj Kernel.Files.add my_file;
   Kernel.feedback "Reparsing file";
   (* Avoid having a temporary name in the oracle. *)

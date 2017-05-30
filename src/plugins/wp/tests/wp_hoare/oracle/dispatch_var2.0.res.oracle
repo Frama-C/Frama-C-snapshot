@@ -15,13 +15,13 @@ Assume {
   (* Block In *)
   Have: (ta_tmp_0=false).
   (* Call 'reset' *)
-  Have: 0 = x.
+  Have: x = 0.
   (* Call 'load' *)
-  Have: (load_0 = tmp_0) /\ (load_0 = x).
+  Have: (tmp_0 = load_0) /\ (x = load_0).
   (* Return *)
-  Have: call_global_0 = tmp_0.
+  Have: tmp_0 = call_global_0.
 }
-Prove: 0 = call_global_0.
+Prove: call_global_0 = 0.
 
 ------------------------------------------------------------
 
@@ -39,13 +39,13 @@ Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global' (2/
 Call Result at line 42
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(tmp_0) /\ is_sint32(x).
-  Have: (ta_tmp_0=true) <-> (ta_tmp_1=true).
+  Have: (ta_tmp_1=true) <-> (ta_tmp_0=true).
   (* Block In *)
   Have: (ta_tmp_1=false).
   (* Call 'reset' *)
-  Have: 0 = x.
+  Have: x = 0.
   (* Call 'load' *)
-  Have: load_0 = x.
+  Have: x = load_0.
 }
 Prove: (ta_tmp_0=false).
 
@@ -73,13 +73,13 @@ Assume {
   (* Block In *)
   Have: (ta_tmp_0=false) /\ (ta_z_0=false).
   (* Call 'reset' *)
-  Have: 0 = z.
+  Have: z = 0.
   (* Call 'load' *)
-  Have: (load_0 = tmp_0) /\ (load_0 = z).
+  Have: (tmp_0 = load_0) /\ (z = load_0).
   (* Return *)
-  Have: call_local_0 = tmp_0.
+  Have: tmp_0 = call_local_0.
 }
-Prove: 0 = call_local_0.
+Prove: call_local_0 = 0.
 
 ------------------------------------------------------------
 
@@ -92,11 +92,11 @@ Goal Assigns nothing in 'call_local' (2/2):
 Call Effect at line 61
 Assume {
   Type: is_sint32(status_0) /\ is_sint32(status_1) /\ is_sint32(z).
-  Have: (ta_z_0=true) <-> (ta_z_1=true).
+  Have: (ta_z_1=true) <-> (ta_z_0=true).
   (* Block In *)
   Have: (ta_tmp_0=false) /\ (ta_z_1=false).
   (* Merge *)
-  Either { Case: (* Call 'reset' *) Have: 0 = z. Case: }
+  Either { Case: (* Call 'reset' *) Have: z = 0. Case: }
 }
 Prove: (ta_z_0=false).
 
@@ -111,11 +111,11 @@ Goal Assigns nothing in 'call_local' (2/3):
 Call Effect at line 61
 Assume {
   Type: is_sint32(z).
-  Have: (ta_z_0=true) <-> (ta_z_1=true).
+  Have: (ta_z_1=true) <-> (ta_z_0=true).
   (* Block In *)
   Have: (ta_tmp_0=false) /\ (ta_z_1=false).
   (* Call 'reset' *)
-  Have: 0 = z.
+  Have: z = 0.
 }
 Prove: (ta_z_0=false).
 
@@ -125,13 +125,13 @@ Goal Assigns nothing in 'call_local' (3/3):
 Call Result at line 62
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(tmp_0) /\ is_sint32(z).
-  Have: (ta_tmp_0=true) <-> (ta_tmp_1=true).
+  Have: (ta_tmp_1=true) <-> (ta_tmp_0=true).
   (* Block In *)
   Have: (ta_tmp_1=false) /\ (ta_z_0=false).
   (* Call 'reset' *)
-  Have: 0 = z.
+  Have: z = 0.
   (* Call 'load' *)
-  Have: load_0 = z.
+  Have: z = load_0.
 }
 Prove: (ta_tmp_0=false).
 
@@ -154,7 +154,7 @@ Assume {
   (* Block In *)
   Have: (ta_tmp_0=false) /\ (ta_z_0=true) /\ (ta_z_1=false).
   (* Call 'reset' *)
-  Have: (ta_z_0=true) /\ (0 = z).
+  Have: (ta_z_0=true) /\ (z = 0).
 }
 Prove: (ta_z_0=true).
 
@@ -173,18 +173,18 @@ Assume {
   Have: (ta_y_1=true) /\ (ta_y_0=false).
   (* Block In *)
   Have: (ta_tmp_0=false).
-  Have: (ta_y_2=true) <-> (ta_y_1=true).
+  Have: (ta_y_1=true) <-> (ta_y_2=true).
   (* Call 'reset' *)
-  Have: (ta_y_1=true) /\ (0 = y).
-  Have: (ta_y_3=true) <-> (ta_y_2=true).
+  Have: (ta_y_1=true) /\ (y = 0).
+  Have: (ta_y_2=true) <-> (ta_y_3=true).
   (* Call 'load' *)
-  Have: (ta_y_2=true) /\ (load_0 = tmp_0) /\ (load_0 = y).
+  Have: (ta_y_2=true) /\ (tmp_0 = load_0) /\ (y = load_0).
   (* Return *)
-  Have: call_param_0 = tmp_0.
+  Have: tmp_0 = call_param_0.
   (* Function Exit *)
   Have: (ta_y_3=true).
 }
-Prove: 0 = call_param_0.
+Prove: call_param_0 = 0.
 
 ------------------------------------------------------------
 
@@ -197,7 +197,7 @@ Goal Assigns nothing in 'call_param' (2/2):
 Call Effect at line 51
 Assume {
   Type: is_sint32(status_0) /\ is_sint32(status_1) /\ is_sint32(y).
-  Have: (ta_y_0=true) <-> (ta_y_1=true).
+  Have: (ta_y_1=true) <-> (ta_y_0=true).
   (* Pre-condition *)
   Have: (ta_y_1=true).
   (* Function Frame *)
@@ -206,7 +206,7 @@ Assume {
   Have: (ta_tmp_0=false).
   (* Merge *)
   Either {
-    Case: (* Call 'reset' *) Have: (ta_y_2=true) /\ (0 = y).
+    Case: (* Call 'reset' *) Have: (ta_y_2=true) /\ (y = 0).
     Case: (* Exit 'reset' *) Have: (ta_y_2=true).
   }
 }
@@ -223,7 +223,7 @@ Goal Assigns nothing in 'call_param' (2/3):
 Call Effect at line 51
 Assume {
   Type: is_sint32(y).
-  Have: (ta_y_0=true) <-> (ta_y_1=true).
+  Have: (ta_y_1=true) <-> (ta_y_0=true).
   (* Pre-condition *)
   Have: (ta_y_1=true).
   (* Function Frame *)
@@ -231,7 +231,7 @@ Assume {
   (* Block In *)
   Have: (ta_tmp_0=false).
   (* Call 'reset' *)
-  Have: (ta_y_2=true) /\ (0 = y).
+  Have: (ta_y_2=true) /\ (y = 0).
 }
 Prove: (ta_y_0=false).
 
@@ -241,18 +241,18 @@ Goal Assigns nothing in 'call_param' (3/3):
 Call Result at line 52
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(tmp_0) /\ is_sint32(y).
-  Have: (ta_tmp_0=true) <-> (ta_tmp_1=true).
+  Have: (ta_tmp_1=true) <-> (ta_tmp_0=true).
   (* Pre-condition *)
   Have: (ta_y_0=true).
   (* Function Frame *)
   Have: (ta_y_1=true) /\ (ta_y_0=false).
   (* Block In *)
   Have: (ta_tmp_1=false).
-  Have: (ta_y_2=true) <-> (ta_y_1=true).
+  Have: (ta_y_1=true) <-> (ta_y_2=true).
   (* Call 'reset' *)
-  Have: (ta_y_1=true) /\ (0 = y).
+  Have: (ta_y_1=true) /\ (y = 0).
   (* Call 'load' *)
-  Have: (ta_y_2=true) /\ (load_0 = y).
+  Have: (ta_y_2=true) /\ (y = load_0).
 }
 Prove: (ta_tmp_0=false).
 
@@ -282,9 +282,9 @@ Assume {
   Have: (ta_y_2=true) /\ (ta_y_1=false).
   (* Block In *)
   Have: (ta_tmp_0=false).
-  Have: (ta_y_0=true) <-> (ta_y_2=true).
+  Have: (ta_y_2=true) <-> (ta_y_0=true).
   (* Call 'reset' *)
-  Have: (ta_y_2=true) /\ (0 = y).
+  Have: (ta_y_2=true) /\ (y = 0).
 }
 Prove: (ta_y_0=true).
 
@@ -300,13 +300,13 @@ Assume {
   (* Block In *)
   Have: (ta_tmp_0=false).
   (* Call 'reset' *)
-  Have: 0 = q.
+  Have: q = 0.
   (* Call 'load' *)
-  Have: (load_0 = q) /\ (load_0 = tmp_0).
+  Have: (q = load_0) /\ (tmp_0 = load_0).
   (* Return *)
-  Have: call_param_ref_0 = tmp_0.
+  Have: tmp_0 = call_param_ref_0.
 }
-Prove: 0 = call_param_ref_0.
+Prove: call_param_ref_0 = 0.
 
 ------------------------------------------------------------
 
@@ -324,13 +324,13 @@ Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref' 
 Call Result at line 73
 Assume {
   Type: is_sint32(load_0) /\ is_sint32(q) /\ is_sint32(tmp_0).
-  Have: (ta_tmp_0=true) <-> (ta_tmp_1=true).
+  Have: (ta_tmp_1=true) <-> (ta_tmp_0=true).
   (* Block In *)
   Have: (ta_tmp_1=false).
   (* Call 'reset' *)
-  Have: 0 = q.
+  Have: q = 0.
   (* Call 'load' *)
-  Have: load_0 = q.
+  Have: q = load_0.
 }
 Prove: (ta_tmp_0=false).
 
@@ -353,11 +353,11 @@ Prove: true.
 
 Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 21) in 'incr':
 Assume {
-  Type: is_sint32(ip_1) /\ is_sint32(ip_0) /\ is_sint32(ip_2).
-  Have: ip_1 = ip_2.
-  Have: ip_0 = (1 + ip_2).
+  Type: is_sint32(ip_0) /\ is_sint32(ip_1) /\ is_sint32(ip_2).
+  Have: ip_2 = ip_0.
+  Have: (1 + ip_2) = ip_1.
 }
-Prove: ip_0 = (1 + ip_1).
+Prove: (1 + ip_0) = ip_1.
 
 ------------------------------------------------------------
 
@@ -374,18 +374,18 @@ Assume {
   Type: is_sint32(load_0) /\ is_sint32(lp_0) /\ is_sint32(retres_0).
   (* Block In *)
   Have: (ta_retres_0=false).
-  Have: lp_0 = retres_0.
+  Have: retres_0 = lp_0.
   (* Return *)
-  Have: load_0 = retres_0.
+  Have: retres_0 = load_0.
 }
-Prove: load_0 = lp_0.
+Prove: lp_0 = load_0.
 
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'load':
 Effect at line 31
 Assume {
-  Have: (ta_retres_0=true) <-> (ta_retres_1=true).
+  Have: (ta_retres_1=true) <-> (ta_retres_0=true).
   (* Block In *)
   Have: (ta_retres_1=false).
 }
@@ -397,8 +397,8 @@ Prove: (ta_retres_0=false).
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 14) in 'reset':
-Assume { Type: is_sint32(rp_0). Have: 0 = rp_0. }
-Prove: 0 = rp_0.
+Assume { Type: is_sint32(rp_0). Have: rp_0 = 0. }
+Prove: rp_0 = 0.
 
 ------------------------------------------------------------
 

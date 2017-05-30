@@ -55,7 +55,6 @@ tests/value/strings.i:42:[value] warning: out of bounds read. assert \valid_read
         Called from tests/value/strings.i:48.
 [value] Done for function u
 tests/value/strings.i:48:[value] warning: out of bounds read. assert \valid_read(p - 4);
-[value] Call to builtin bzero(({{ (unsigned char *)&a }},{10}))
 [value] computing for function u <- main1.
         Called from tests/value/strings.i:53.
 [value] Done for function u
@@ -109,13 +108,9 @@ tests/value/strings.i:42:[value] assertion 'Value,mem_access' got final status i
 [from] Computing for function main1
 [from] Computing for function u <-main1
 [from] Done for function u
-[from] Computing for function Frama_C_bzero <-main1
-[from] Done for function Frama_C_bzero
 [from] Done for function main1
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function Frama_C_bzero:
-  a[0..9] FROM \nothing
 [from] Function strcpy:
   NON TERMINATING - NO EFFECTS
 [from] Function strlen:

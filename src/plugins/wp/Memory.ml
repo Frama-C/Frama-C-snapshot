@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,7 +60,7 @@ type 'a logic =
 
 (** Memory Variables
 
-    The memory is partitionned into chunk, set of memory location.
+    The memory is partitioned into chunks, sets of memory locations.
 *)
 
 module type Chunk =
@@ -108,10 +108,24 @@ sig
   val domain : t -> domain
   val union : domain -> domain -> domain
   val empty : domain
-  
   val pretty : Format.formatter -> t -> unit
 
 end
+
+(** State Pretty-Printer *)
+
+type lval = host * offset list
+and host = Mvar of varinfo | Mmem of term | Mval of lval
+and offset = Mfield of fieldinfo | Mindex of term
+
+type mval =
+  | Mterm (** Not a state-related value *)
+  | Maddr of lval (** Address of l-value *)
+  | Mlval of lval (** Load of value at l-value in current memory-state *)
+  | Mchunk of string (** Memory-state with the chunk description *)
+
+type update =
+  | Mstore of lval * term (** value *)
 
 (** Memory Model *)
 
@@ -121,7 +135,7 @@ sig
   val configure : Model.tuning
   val datatype : string (** for projectification *)
   val separation : unit -> Separation.clause list
-  
+
   module Chunk : Chunk
 
   module Heap : Qed.Collection.S
@@ -137,6 +151,34 @@ sig
   type chunk = Chunk.t
   type sigma = Sigma.t
   type segment = loc rloc
+
+  type state
+
+  (** returns a memory state description from a memory model vector. *)
+  val state : sigma -> state
+
+  (** Try to interpret a term as an in-memory operation
+      located at this program point. Only best-effort
+      shall be performed, otherwise return [Mvalue].
+
+      Recognized [Cil] patterns:
+       - [Mvar x,[Mindex 0]] is rendered as [*x] when [x] has a pointer type
+       - [Mmem p,[Mfield f;...]] is rendered as [p->f...] like in Cil
+       - [Mmem p,[Mindex k;...]] is rendered as [p[k]...] to catch Cil [Mem(AddPI(p,k)),...] *)
+  val lookup : state -> term -> mval
+
+  (** Try to interpret a sequence of states into updates.
+
+      The result shall be exhaustive with respect to values that are printed as [Memory.mval]
+      values at [post] label {i via} the [lookup] function.
+      Otherwise, those values would not be pretty-printed to the user. *)
+  val updates : state sequence -> Vars.t -> update Bag.t
+
+  (** Propagate a sequent substitution inside the memory state. *)
+  val apply : (term -> term) -> state -> state
+
+  (** Debug *)
+  val iter : (mval -> term -> unit) -> state -> unit
 
   val pretty : Format.formatter -> loc -> unit
   (** pretty printing of memory location *)
@@ -173,7 +215,7 @@ sig
   (** Return the memory location obtained by array access at an index
       represented by the given {!term}. The element of the array are of
       the given {!c_object} type. *)
-  
+
   val base_addr : loc -> loc
   (** Return the memory location of the base address of a given memory
       location *)

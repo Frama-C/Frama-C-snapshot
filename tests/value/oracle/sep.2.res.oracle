@@ -1,7 +1,7 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/sep.i (no preprocessing)
-[value] Analyzing an incomplete application starting at f1
 [value] Part of a case analysis: 2 of 0..3
+[value] Analyzing an incomplete application starting at f1
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization

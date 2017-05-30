@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Cil
 
 let function_declaration ~loc name typ mk_spec =
   (* Build the varinfo *)
-  let vi = makeGlobalVar (Cabs2cil.fresh_global name) typ in
+  let vi = makeGlobalVar name typ in
   vi.vdecl <- loc;
   (* Build the formals *)
   setFormalsDecl vi typ;
@@ -38,23 +38,23 @@ let function_declaration ~loc name typ mk_spec =
   let glob = GFunDecl (spec, vi, vi.vdecl) in
   vi, glob
 
-let vi_assign ~loc vi exp =
-  let instr = Set((Var vi, NoOffset), exp, loc) in
-  Cil.mkStmtOneInstr ~valid_sid:true instr
-
-let array_assign ~loc vi values =
-  let assign_cell i exp =
-    let instr = Set((Var vi, Index (Cil.integer ~loc i, NoOffset)), exp, loc)
-    in Cil.mkStmtOneInstr ~valid_sid:true instr
-  in
-  List.mapi assign_cell values
+let vi_init ~loc vi exp = Local_init(vi, AssignInit (SingleInit exp), loc)
 
 let array_init ~loc fundec scope name elem_typ values =
   let size = max (List.length values) 1 in (* In C, Array size >= 1 *)
   let esize = Cil.integer ~loc size in
   let typ = TArray (elem_typ, Some esize, Cil.empty_size_cache (), []) in
   let vi = Cil.makeLocalVar fundec ~scope name typ in
-  vi, array_assign loc vi values
+  let initl =
+    match values with
+      | [] -> [ Index (Cil.zero ~loc, NoOffset), Cil.makeZeroInit ~loc elem_typ]
+      | _ ->
+        List.mapi
+          (fun i exp -> Index (Cil.integer ~loc i, NoOffset), SingleInit exp)
+          values
+  in
+  vi.vdefined <- true;
+  vi, Local_init(vi, AssignInit(CompoundInit(typ,initl)), loc)
 
 let call ~loc lval callee args =
   let instr = Call (lval, (Cil.evar ~loc callee), args, loc) in

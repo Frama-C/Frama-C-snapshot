@@ -44,10 +44,10 @@
 (** Implementation of data flow analyses over user-supplied domains. *)
 
 (* Instead of defining a single dataflow interface that tries to
-   accomodate with all the options (as was done in {!Dataflow2}),
+   accommodate with all the options (as was done in {!Dataflow2}),
    having a set of dataflows allow to keep things simple in the
    general case; specific demands are handled by using more general
-   dataflows. Simpler-to-instanciate dataflows are instances of the
+   dataflows. Simpler-to-instantiate dataflows are instances of the
    more general dataflows. *)
 
 open Cil_types;;
@@ -125,7 +125,7 @@ module Simple_backward(Fenv:FUNCTION_ENV)(P:BACKWARD_MONOTONE_PARAMETER) : sig
   val post_state: stmt -> P.t
   val pre_state: stmt -> P.t
   (** This function calls [transfer_stmt] on the result of [post_state]. Beware
-      if [transfert_stmt] is impure or costly *)
+      if [transfer_stmt] is impure or costly *)
 
   (** {3 Iterations on the results of the dataflow.}
 
@@ -160,7 +160,7 @@ module type FORWARD_MONOTONE_PARAMETER = sig
       Note that it is allowed that not all succs are present in the
       list returned by [transfer_stmt] (in which case, the successor is
       assumed to be unreachable in the current state), or that succs are
-      present several times (this is useful to handle switchs).
+      present several times (this is useful to handle switches).
 
       Helper functions are provided for [If] and [Switch] statements. See
       {!transfer_if_from_guard} and {!transfer_switch_from_guard} below. *)
@@ -184,7 +184,7 @@ module Simple_forward(Fenv:FUNCTION_ENV)(P:FORWARD_MONOTONE_PARAMETER) : sig
   val pre_state: stmt -> P.t
   val post_state: stmt -> P.t
   (** This function calls [transfer_stmt] on the result of [pre_state]. Beware
-      if [transfert_stmt] is impure or costly *)
+      if [transfer_stmt] is impure or costly *)
 
 
   (** {3 Iterations on the results of the dataflow.}

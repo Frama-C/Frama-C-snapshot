@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,7 +53,7 @@ module Make_LOffset
          in particular when maintaining canonicity w.r.t. default contents.
          It describes the contents [c] of the offsetmap
          resulting from [default_offsetmap b]. The possible values are:
-         - [Bottom] means that [c] is [V.bottom] everywhere, and furthemore
+         - [Bottom] means that [c] is [V.bottom] everywhere, and furthermore
            that [V.bottom] has an empty concretization. We deduce from this
            fact that unmapped keys do not contribute to a join, and that
            [join c v] is never [c] as soon as [v] is not itself [v].

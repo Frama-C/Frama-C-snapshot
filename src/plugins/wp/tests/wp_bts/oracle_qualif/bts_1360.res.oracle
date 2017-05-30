@@ -5,24 +5,22 @@
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function foo_correct
 [rte] annotating function foo_wrong
-[wp] 12 goals scheduled
+[wp] 10 goals scheduled
 [wp] [Qed] Goal typed_foo_correct_post : Valid
 [wp] [Alt-Ergo] Goal typed_foo_correct_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_2 : Valid
 [wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_3 : Valid
-[wp] [Qed] Goal typed_foo_correct_assign_part1 : Valid
-[wp] [Qed] Goal typed_foo_correct_assign_part2 : Valid
+[wp] [Qed] Goal typed_foo_correct_assign : Valid
 [wp] [Qed] Goal typed_foo_wrong_post : Valid
 [wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access : Valid
 [wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access_2 : Valid
 [wp] [Alt-Ergo] Goal typed_foo_wrong_assert_rte_mem_access_3 : Unknown
-[wp] [Qed] Goal typed_foo_wrong_assign_part1 : Valid
-[wp] [Qed] Goal typed_foo_wrong_assign_part2 : Valid
-[wp] Proved goals:   11 / 12
-     Qed:            10 
+[wp] [Qed] Goal typed_foo_wrong_assign : Valid
+[wp] Proved goals:    9 / 10
+     Qed:             8 
      Alt-Ergo:        1  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-foo_wrong            5     -           6      83.3%
-foo_correct          5      1 (17)     6       100%
+foo_wrong            4     -           5      80.0%
+foo_correct          4      1 (13)     5       100%
 ----------------------------------------------------------

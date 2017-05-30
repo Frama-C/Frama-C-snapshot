@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-value-verbose 2 -val-builtin bzero:Frama_C_bzero"
-   STDOPT: +"-value-verbose 2 -val-builtin bzero:Frama_C_bzero -machdep x86_64"
+   STDOPT: +"-value-verbose 2 -no-val-builtins-auto"
+   STDOPT: +"-value-verbose 2 -machdep x86_64 -no-val-builtins-auto"
 */
 #include <sys/types.h>
 #include <sys/socket.h>

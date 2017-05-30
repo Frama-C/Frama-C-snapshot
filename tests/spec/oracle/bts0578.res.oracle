@@ -21,13 +21,13 @@ void main(void)
   }
   L1: /*@ requires \true;
           ensures \true; */
-      t[4] = 42;
+  t[4] = 42;
   L2: /*@ requires \true;
           ensures \true; */
-      t[3] = 36;
+  t[3] = 36;
   L3: /*@ requires \true;
           ensures \true; */
-      t[2] = 12;
+  t[2] = 12;
   return;
 }
 

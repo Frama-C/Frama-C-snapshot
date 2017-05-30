@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,8 +63,9 @@ let ff_svar ff = fi_svar (ff.SlicingInternals.ff_fct)
 (** {4 getting [fct_info]} *)
 
 (** Get the fct_info if it exists or build a new fct_info. *)
-let get_kf_fi proj kf =
+let get_kf_fi kf =
   let fct_var = Kernel_function.get_vi kf in
+  let proj = SlicingState.get () in
   try Cil_datatype.Varinfo.Hashtbl.find proj.SlicingInternals.functions fct_var
   with Not_found ->
     let fi_def, is_def =
@@ -77,7 +78,6 @@ let get_kf_fi proj kf =
     let new_fi = {
       SlicingInternals.fi_kf = kf;
       SlicingInternals.fi_def = fi_def;
-      SlicingInternals.fi_project = proj;
       SlicingInternals.fi_top = None;
       SlicingInternals.fi_level_option = get_default_level_option is_def;
       SlicingInternals.fi_init_marks = None ;
@@ -88,7 +88,8 @@ let get_kf_fi proj kf =
     Cil_datatype.Varinfo.Hashtbl.add proj.SlicingInternals.functions fct_var new_fi;
     new_fi
 
-let fold_fi f acc proj =
+let fold_fi f acc =
+  let proj = SlicingState.get () in
   Cil_datatype.Varinfo.Hashtbl.fold
     (fun _v fi acc -> f acc fi)
     proj.SlicingInternals.functions
@@ -140,9 +141,9 @@ let change_fi_slicing_level fi slicing_level =
 
 (** @raise SlicingTypes.WrongSlicingLevel if [n] is not valid.
 * *)
-let change_slicing_level proj kf n =
+let change_slicing_level kf n =
   let slicing_level = translate_num_to_slicing_level n in
-  let fi = get_kf_fi proj kf in (* build if if it doesn't exist *)
+  let fi = get_kf_fi kf in (* build if if it doesn't exist *)
     change_fi_slicing_level fi slicing_level
 
 (** {2 functions and slices} *)
@@ -168,7 +169,8 @@ let same_ff_call (f1,c1) (f2,c2) =
   equal_ff f1 f2 && same_call c1 c2
 
 let is_call_stmt stmt =
-  match stmt.skind with Instr (Call _) -> true | _ -> false
+  match stmt.skind with
+    | Instr (Call _ | Local_init(_, ConsInit _,_)) -> true | _ -> false
 
 let get_called_kf call_stmt = match call_stmt.skind with
   | Instr (Call (_, funcexp,_,_)) ->
@@ -182,6 +184,7 @@ let get_called_kf call_stmt = match call_stmt.skind with
     (match Kernel_function.Hptset.contains_single_elt called_functions with
      | Some kf -> kf
      | _ -> raise SlicingTypes.PtrCallExpr)
+  | Instr (Local_init(_, ConsInit (f, _, _), _)) -> Globals.Functions.get f
   | _ -> invalid_arg "Not a call statement !"
 
 let is_variadic kf =
@@ -191,28 +194,28 @@ let is_variadic kf =
   | _ -> assert false
 
 (** get the [fct_info] of the called function, if we know it *)
-let get_fi_call proj call =
+let get_fi_call call =
   try
     let kf = get_called_kf call in
       if is_variadic kf then None
       else
-        let fct_info = get_kf_fi proj kf in
+        let fct_info = get_kf_fi kf in
           Some fct_info
   with SlicingTypes.PtrCallExpr -> None
 
-let is_src_fun_called proj kf =
-  let fi = get_kf_fi proj kf in
+let is_src_fun_called kf =
+  let fi = get_kf_fi kf in
   match fi.SlicingInternals.f_called_by with [] -> false | _ -> true
 
-let is_src_fun_visible proj kf =
+let is_src_fun_visible kf =
   let is_fi_top fi = match fi.SlicingInternals.fi_top with None -> false | Some _ -> true
-  in is_src_fun_called proj kf || is_fi_top (get_kf_fi proj kf)
+  in is_src_fun_called kf || is_fi_top (get_kf_fi kf)
 
 let fi_has_persistent_selection fi =
         (match fi.SlicingInternals.fi_init_marks with None -> false | _ -> true)
 
-let has_persistent_selection proj kf =
-  let fi = get_kf_fi proj kf in
+let has_persistent_selection kf =
+  let fi = get_kf_fi kf in
     fi_has_persistent_selection fi
 
 

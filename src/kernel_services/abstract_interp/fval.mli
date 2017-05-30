@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ module F : sig
   type t
   val packed_descr : Structural_descr.pack
 
-  val of_float : float -> t (** fails on NaNs, but allows infinites. *)
+  val of_float : float -> t (** fails on NaNs, but allows infinities. *)
   val to_float : t -> float
 
   val compare : t -> t -> int
@@ -44,11 +44,11 @@ module F : sig
 
   val next_float : float -> float
   (** First double strictly above the argument. Must be called on non-NaN
-      floats. Returns +infty on MAX_FLT. Infinites are left unchanged. *)
+      floats. Returns +infty on MAX_FLT. Infinities are left unchanged. *)
 
   val prev_float : float -> float
   (** First double strictly below the argument. Must be called on non-NaN
-      floats. Returns -infty on -MAX_FLT. Infinites are left unchanged. *)
+      floats. Returns -infty on -MAX_FLT. Infinities are left unchanged. *)
 end
 
 type t
@@ -96,7 +96,7 @@ type float_kind =
 val next_after : float_kind -> F.t -> F.t -> F.t
 
 (** [inject] creates an abstract float interval.
-    Does not handle infinites or NaN.
+    Does not handle infinities or NaN.
     Does not enlarge subnormals to handle flush-to-zero modes *)
 val inject : F.t -> F.t -> t
 
@@ -138,7 +138,7 @@ val compare : t -> t -> int
 val pretty : Format.formatter -> t -> unit
 val pretty_overflow: Format.formatter -> t -> unit
 (** This pretty-printer does not display -FLT_MAX and FLT_MAX as interval
-    bounds. Instead, the specical notation [--.] is used. *)
+    bounds. Instead, the special notation [--.] is used. *)
 
 val hash : t -> int
 
@@ -232,11 +232,11 @@ val diff : t -> t -> t Bottom.or_bottom
 
 val backward_comp_left :
   Comp.t -> bool -> float_kind -> t -> t -> t Bottom.or_bottom
-(** [backward_comp op allroundingmodes fkind f1 f2] attemps to reduce
+(** [backward_comp op allroundingmodes fkind f1 f2] attempts to reduce
     [f1] into [f1'] so that the relation [f1' op f2] holds. [fkind] is
     the type of [f1] and [f1'] (not necessarily of [f2]). If
     [allroundingmodes] is set, all possible rounding modes are taken into
-    acount. [op] must be [Eq], [Ne], [Le], [Ge], [Lt] or [Gt] *)
+    account. [op] must be [Eq], [Ne], [Le], [Ge], [Lt] or [Gt] *)
 
 val cast_float_to_double_inverse: t -> t
 (** [cast_float_to_double_inverse d] return all possible float32 [f] such that
@@ -244,4 +244,6 @@ val cast_float_to_double_inverse: t -> t
     discarded. *)
 
 val enlarge_1ulp: float_kind -> t -> t
-(** enlarge the bounds of the interval by one ulp. *)
+(** enlarge the bounds of the interval by one ulp.
+    @raise Non_finite if the result is not fully finite.
+*)

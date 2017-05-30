@@ -10,8 +10,7 @@ void main(void)
   switch (1) {
     case 2: r = f(1);
     break;
-    default: ;
-    break;
+    default: break;
   }
   return;
 }

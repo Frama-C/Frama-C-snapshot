@@ -21,7 +21,7 @@ tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations p_0 and mem:t
      Alt-Ergo:        2  (unknown: 6)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-array                1      2 (3)      3       100%
+array                1      2 (4)      3       100%
 pointer             -      -           2       0.0%
 mixed_array_pointer  -     -           2       0.0%
 absurd              -      -           2       0.0%

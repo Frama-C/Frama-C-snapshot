@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -1785,7 +1785,7 @@ type end_state = End_state.t
 
 (** The data associated to each statement: We have a mapping from each
     possible state at the entrance to the function (before actual transition)
-    to the current state possibles, associated to any action that has occured
+    to the current state possibles, associated to any action that has occurred
     on that path.
  *)
 module Case_state = Aorai_state.Map.Make(End_state)

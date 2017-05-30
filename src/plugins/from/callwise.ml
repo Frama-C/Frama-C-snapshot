@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ type from_state = {
 
 (** The state of the callwise From analysis. Only the top of this callstack
     is accessed. New calls are pushed on the stack when Value starts the
-    analysis of a function, and popped when the analysis finisheds. This
+    analysis of a function, and popped when the analysis finishes. This
     stack is manually synchronized with Value's callstack. *)
 let call_froms_stack : from_state list ref = ref []
 
@@ -77,6 +77,14 @@ let call_for_individual_froms (call_type, value_initial_state, call_stack) =
           "calldeps internal error 23 empty callfromsstack %a"
           Kernel_function.pretty current_function
     in
+    let compute_from_behaviors bhv =
+      let assigns = Ast_info.merge_assigns bhv in
+      let froms =
+        From_compute.compute_using_prototype_for_state
+          value_initial_state current_function assigns
+      in
+      register_from froms
+    in
     match call_type with
     | `Def | `Memexec -> 
       let table_for_calls = Kinstr.Hashtbl.create 7 in
@@ -85,12 +93,13 @@ let call_for_individual_froms (call_type, value_initial_state, call_stack) =
         !call_froms_stack
     | `Builtin { Value_types.c_from = Some (result,_) } ->
        register_from result
-    | `Spec | `Builtin { Value_types.c_from = None } ->
-        let froms =
-          From_compute.compute_using_prototype_for_state
-            value_initial_state current_function
+    | `Builtin { Value_types.c_from = None } ->
+        let behaviors =
+          !Db.Value.valid_behaviors current_function value_initial_state
         in
-        register_from froms
+        compute_from_behaviors behaviors
+    | `Spec spec ->
+        compute_from_behaviors spec.Cil_types.spec_behavior
   end
 
 let end_record call_stack froms =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,11 +73,32 @@ class virtual do_it_ = object(self)
               (fun kf ->
                 let { Inout_type.over_outputs = z } =
                   Operational_inputs.get_external_aux
-		    ?stmt:self#current_stmt kf 
+		    ?stmt:self#current_stmt kf
 		in
                 self#join z
               ) callees
-      | _ -> ()
+      | Local_init (v, AssignInit i, _) ->
+        let rec aux lv = function
+          | SingleInit _ -> self#do_assign lv
+          | CompoundInit (ct, initl) ->
+            let implicit = true in
+            let doinit o i _ () = aux (Cil.addOffsetLval o lv) i in
+            Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc:()
+        in aux (Cil.var v) i
+      | Local_init (v, ConsInit(f, _, _),_) ->
+        let state = Db.Value.get_state self#current_kinstr in
+        if Cvalue.Model.is_top state then self#join Zone.top
+        else begin
+          let { Inout_type.over_outputs = z }  =
+            Operational_inputs.get_external_aux ?stmt:self#current_stmt
+              (Globals.Functions.get f)
+          in
+          self#do_assign (Cil.var v);
+          (* might be redundant with z in case f takes address of
+             v as first argument, but this shouldn't hurt. *)
+          self#join z
+        end
+      | Asm _ | Skip _ | Code_annot _ -> ()
     end;
     Cil.SkipChildren
 

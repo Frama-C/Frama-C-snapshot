@@ -7,10 +7,12 @@
   a ∈ {0}
   p ∈ {{ (char *)&a }}
   q ∈ {{ &a }}
+tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr_follow_all_branches.i:14:[value] warning: pointer comparison.
                  assert
                  \pointer_comparable((void *)(p + (unsigned int)((int)(-5))), (void *)p);
 [value] Called Frama_C_show_each_2()
+tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr_follow_all_branches.i:15:[value] warning: pointer comparison.
                  assert
                  \pointer_comparable((void *)(q + (unsigned int)((int)(-5))), (void *)q);

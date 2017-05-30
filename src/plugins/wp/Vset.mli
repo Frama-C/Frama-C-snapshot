@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -66,8 +66,8 @@ val pp_bound : Format.formatter -> term option -> unit
 val pp_vset : Format.formatter -> vset -> unit
 val pretty : Format.formatter -> set -> unit
 
-(** {3 Maping}
-    These operations computes different kinds of [{f x y with x in A, y in B}].
+(** {3 Mapping}
+    These operations compute different kinds of [{f x y with x in A, y in B}].
 *)
 
 val map : (term -> term) -> set -> set

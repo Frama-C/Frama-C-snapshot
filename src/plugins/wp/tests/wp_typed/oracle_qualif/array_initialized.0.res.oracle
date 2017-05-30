@@ -16,9 +16,9 @@ tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers fo
      Alt-Ergo:        4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-main1               -       1 (5)      1       100%
-main2               -       1 (107)    1       100%
+main1               -       1 (6)      1       100%
+main2               -       1 (109)    1       100%
 main3                1     -           1       100%
-main_pointer        -       1 (24)     1       100%
-simpl               -       1 (28)     1       100%
+main_pointer        -       1 (36)     1       100%
+simpl               -       1 (16)     1       100%
 ----------------------------------------------------------

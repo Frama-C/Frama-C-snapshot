@@ -9,7 +9,7 @@
   y ∈ {0}
 [value] Recording results for test5
 [value] done for function test5
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function test5
 [pdg] done for function test5
@@ -30,7 +30,7 @@ void test5(int c1, int c2)
   if (c1 < c2) goto L;
   c1 = c2;
   L: /*@ slice pragma stmt; */
-     x = c1;
+  x = c1;
   return;
 }
 

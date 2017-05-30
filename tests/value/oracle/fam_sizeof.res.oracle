@@ -31,4 +31,4 @@ tests/value/fam_sizeof.i:50:[value] assertion got status valid.
 [inout] Out (internal) for function main:
           z1; z2; z3; z4; z5; __retres
 [inout] Inputs for function main:
-          fam; nested; fam2
+          \nothing

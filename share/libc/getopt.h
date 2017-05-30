@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_GETOPT_H
 #define __FC_GETOPT_H
 #include "features.h"
+__PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
@@ -67,4 +68,5 @@ extern int getopt_long_only (int argc, char *const argv[],
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

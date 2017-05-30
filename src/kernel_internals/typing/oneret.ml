@@ -135,7 +135,8 @@ let oneret (f: fundec) : unit =
   in
   let assert_of_returns ca =
     match ca.annot_content with
-      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | AAllocation _ | APragma _ | AExtended _ -> ptrue
+      | AAssert _ | AInvariant _ | AVariant _
+      | AAssigns _ | AAllocation _ | APragma _ | AExtended _ -> ptrue
       | AStmtSpec (_bhvs,s) ->
         let res =
           List.fold_left
@@ -262,26 +263,37 @@ let oneret (f: fundec) : unit =
               stmt_contract_stack;
         | None -> () (* There's no \result: no need to adjust it *)
       );
-      let add_assert res =
-        match !returns_assert with
-          | { pred_content = Ptrue } -> res
-          | p ->
-            let a =
-              Logic_const.new_code_annotation (AAssert ([],p))
-            in
-            mkStmt (Instr(Code_annot (a,loc))) :: res
-      in
-    (* See if this is the last statement in function *)
-      if mainbody && rests == [] then begin
-        popn popstack;
-        scanStmts (add_assert (s::acc)) mainbody 0 rests
+      (* See if this is the last statement in function, and we don't
+         have a statement contract above us. In that last case, it is best
+         to keep a small block with a goto the actual return statement, so
+         as to preserve the fact that we don't fall through the return
+         statement. In particular, the following contract holds, and so should
+         its normalization:
+
+         /*@ returns \true; ensures \false; */
+         returns 0;
+      *)
+      if mainbody && rests == [] && popstack = 0 then begin
+        (* last statement, no contract, we can just fall through. *)
+        scanStmts (s :: acc) mainbody 0 rests
       end else begin
-      (* Add a Goto *)
+      (* Add a Goto and put everything into a block on which
+         the statement contract(s) will apply.
+       *)
         let sgref = ref (getRetStmt ()) in
         let sg = mkStmt (Goto (sgref, loc)) in
         haveGoto := true;
+        let b_stmts =
+          match !returns_assert with
+          | { pred_content = Ptrue } -> [s; sg]
+          | p ->
+            let a = Logic_const.new_code_annotation (AAssert ([],p)) in
+            let sta = mkStmt (Instr (Code_annot (a,loc))) in
+            [ s; sta; sg ]
+        in
+        let s = mkStmt (Block (mkBlock b_stmts)) in
         popn popstack;
-        scanStmts (sg :: (add_assert (s::acc))) mainbody 0 rests
+        scanStmts (s :: acc) mainbody 0 rests
       end
 
     | ({skind=If(eb,t,e,l)} as s) :: rests ->
@@ -299,7 +311,14 @@ let oneret (f: fundec) : unit =
       s.skind <- Switch(e, scanBlock false b, cases, l);
       popn popstack;
       scanStmts (s::acc) mainbody 0 rests
-    | [{skind=Block b} as s] ->
+    | [{skind=Block b} as s] when popstack = 0 ->
+      (* if we have a statement contract just above (i.e popstack<>0),
+         don't consider that we are in the main body.
+         Depending on the semantics we want to give to ACSL contracts
+         wrt control flow that jumps in the middle of a block over which
+         a statement contract applies, this might lead to incorrect contract
+         in the end. For now, it's safer to ensure that the goto
+         is directed outside of such a block. *)
       s.skind <- Block (scanBlock mainbody b);
       popn popstack;
       List.rev (s::acc)
@@ -307,7 +326,8 @@ let oneret (f: fundec) : unit =
       s.skind <- Block (scanBlock false b);
       popn popstack;
       scanStmts (s::acc) mainbody 0 rests
-    | [{skind = UnspecifiedSequence seq} as s] ->
+    | [{skind = UnspecifiedSequence seq} as s] when popstack = 0 ->
+      (* see above. *)
       s.skind <-
         UnspecifiedSequence
         (List.concat
@@ -329,12 +349,15 @@ let oneret (f: fundec) : unit =
               seq));
       popn popstack;
       scanStmts (s::acc) mainbody 0 rests
-    | {skind=Instr(Code_annot (ca,_))} as s :: rests ->
+    | {skind=Instr(Code_annot ({ annot_content = AStmtSpec _ } as ca,_))} as s
+      :: rests ->
       let returns = assert_of_returns ca in
       let returns = Logic_utils.translate_old_label s returns in
       Stack.push returns returns_clause_stack;
       Stack.push ca.annot_content stmt_contract_stack;
       scanStmts (s::acc) mainbody (popstack + 1) rests
+    | { skind = Instr (Code_annot _) } as s :: rests ->
+      scanStmts (s::acc) mainbody popstack rests
     | { skind = TryCatch(t,c,l) } as s :: rests ->
       let scan_one_catch (e,b) = (e,scanBlock false b) in
       let t = scanBlock false t in

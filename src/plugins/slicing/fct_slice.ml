@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@
  * so they can return a list of actions to be applied in order to deal with
  * the propagation in the calls and callers.
  *
- * Moreover, some function (named [get_xxx_mark]) are provided to retreive
+ * Moreover, some function (named [get_xxx_mark]) are provided to retrieve
  * the mark of the slice elements.
  * *)
 
@@ -61,9 +61,9 @@ module CallInfo : sig
 
   val something_visible : t -> bool
 
-  val remove_called_by : SlicingInternals.project -> call_id -> t -> unit
+  val remove_called_by : call_id -> t -> unit
   val is_call_to_change : t -> SlicingInternals.called_fct option -> bool
-  val change_call :  SlicingInternals.project -> SlicingInternals.marks_index -> call_id ->
+  val change_call :  SlicingInternals.marks_index -> call_id ->
                      SlicingInternals.called_fct option -> unit
 
 end = struct
@@ -120,6 +120,7 @@ end = struct
     let _, stmt = call_id in
     let funcexp = match stmt.skind with
       | Instr (Call (_,funcexp,_,_)) -> funcexp
+      | Instr (Local_init (_, ConsInit (f, _, _), _)) -> Cil.evar f
       | _ -> assert false
     in
     let _, called_functions =
@@ -132,7 +133,7 @@ end = struct
   * we don't want [f] to call [g] anymore, so we have to update [g] [called_by]
   * field.
   * *)
-  let remove_called_by proj call_id call_info =
+  let remove_called_by call_id call_info =
     let rec remove called_by = match called_by with
       | [] -> []
       | e :: called_by -> if (SlicingMacros.same_ff_call call_id e) then called_by
@@ -149,7 +150,7 @@ end = struct
         | Some (SlicingInternals.CallSrc (None)) ->
             let called = indirectly_called_src_functions call_id in
             let update kf =
-              let old_fi = SlicingMacros.get_kf_fi proj kf in
+              let old_fi = SlicingMacros.get_kf_fi kf in
                 old_fi.SlicingInternals.f_called_by <- remove old_fi.SlicingInternals.f_called_by
             in List.iter update called
 
@@ -157,23 +158,23 @@ end = struct
   * no checks at all (they must have been done before).
   * [call] in [ff] is changed in order to call [to_call]. If some function was
   * previously called, update its [called_by] information. *)
-  let change_call proj ff_marks call_id to_call =
+  let change_call ff_marks call_id to_call =
     SlicingParameters.debug ~level:2 "[Fct_Slice.CallInfo.change_call]";
     let call_info = get_info_call call_id in
     let something_to_do = is_call_to_change call_info to_call in
     if something_to_do then
       begin
         SlicingParameters.debug ~level:2 "  -> remove old_called";
-        let _ = remove_called_by proj call_id call_info in
+        remove_called_by call_id call_info;
         SlicingParameters.debug ~level:2 "  -> add new_called";
-        let _ = match to_call with
+        begin match to_call with
         | None -> () (* nothing to do *)
         | Some f ->
             begin match f with
             | (SlicingInternals.CallSrc None) ->
                 let called = indirectly_called_src_functions call_id in
                 let update kf =
-                  let fi = SlicingMacros.get_kf_fi proj kf in
+                  let fi = SlicingMacros.get_kf_fi kf in
                     fi.SlicingInternals.f_called_by <- call_id :: fi.SlicingInternals.f_called_by
                 in List.iter update called
             | (SlicingInternals.CallSlice g) ->
@@ -181,7 +182,7 @@ end = struct
             | (SlicingInternals.CallSrc (Some fi)) ->
                 fi.SlicingInternals.f_called_by <- call_id :: fi.SlicingInternals.f_called_by
             end
-        in
+        end;
         let _ff, call = call_id in
         let new_call_info = to_call in
         PdgIndex.FctIndex.add_info_call ff_marks call new_call_info true
@@ -257,7 +258,7 @@ module FctMarks : sig
       ?spare_info:CallInfo.call_id  option ->
       CallInfo.t -> (PdgIndex.Signature.out_key * SlicingTypes.sl_mark) list
 
-  val persistant_in_marks_to_prop : SlicingInternals.fct_info -> to_prop ->
+  val persistent_in_marks_to_prop : SlicingInternals.fct_info -> to_prop ->
     SlicingTypes.sl_mark PdgMarks.pdg_select
 
   (** [f] calls [g] and the call marks have been modified in [f].
@@ -275,7 +276,7 @@ module FctMarks : sig
   val fold_calls : (Cil_types.stmt -> CallInfo.t -> 'a -> 'a) ->
                    SlicingInternals.fct_slice -> 'a -> 'a
 
-  val change_call :  SlicingInternals.project -> SlicingInternals.fct_slice -> Cil_types.stmt ->
+  val change_call :  SlicingInternals.fct_slice -> Cil_types.stmt ->
                      SlicingInternals.called_fct option -> unit
 
   val debug_marked_ff : Format.formatter -> SlicingInternals.fct_slice -> unit
@@ -379,10 +380,10 @@ end = struct
     let fm = ff.SlicingInternals.ff_marks in
     CallInfo.fold_calls process ff (get_marks fm) acc
 
-  let change_call proj ff call newf =
+  let change_call ff call newf =
     let ff_marks = get_ff_marks ff in
     let marks = get_marks ff_marks in
-    CallInfo.change_call proj marks (ff, call) newf
+    CallInfo.change_call marks (ff, call) newf
 
   (** mark the node with the given mark and propagate it to its dependencies *)
   let mark_and_propagate (fct_marks:t)
@@ -422,12 +423,14 @@ end = struct
           SlicingMarks.pretty_mark m
           SlicingMarks.pretty_mark
           (match new_m with None -> SlicingMarks.bottom_mark | Some m -> m);
-        let _ = match new_m with
-          | Some _new_m when SlicingMarks.is_bottom_mark old_m ->
-              let init_m = get_fi_node_mark fi_to_call key in
-              if SlicingMarks.is_bottom_mark init_m then new_input := true
-          | _ -> ()
-        in new_m
+        begin
+          match new_m with
+            | Some _new_m when SlicingMarks.is_bottom_mark old_m ->
+                let init_m = get_fi_node_mark fi_to_call key in
+                if SlicingMarks.is_bottom_mark init_m then new_input := true
+            | _ -> ()
+        end;
+        new_m
       else
         None
     in
@@ -507,9 +510,9 @@ end = struct
       Pdg.Register.call_out_marks_to_called ff_pdg m2m new_call_marks
     in new_called_marks, !new_output
 
-  let persistant_in_marks_to_prop fi to_prop  =
+  let persistent_in_marks_to_prop fi to_prop  =
     let in_info, _ = to_prop in
-    SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.persistant_in_marks_to_prop] from %s" (SlicingMacros.fi_name fi);
+    SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.persistent_in_marks_to_prop] from %s" (SlicingMacros.fi_name fi);
     let m2m _call _pdg_caller _n m =
       (* SlicingParameters.debug ~level:2 "  in_m2m %a in %s ?@."
           PdgIndex.Key.pretty (!Db.Pdg.node_key n) (SlicingMacros.pdg_name pdg_caller); *)
@@ -835,7 +838,7 @@ let after_marks_modifications ff to_prop =
 let apply_examine_calls ff call_outputs = examine_calls ff call_outputs
 
 (** quite internal function that only computes the marks.
-* Dont't use it alone because it doesn't take care of the calls and so on.
+* Don't use it alone because it doesn't take care of the calls and so on.
 * See [apply_add_marks] or [add_marks_to_fi] for higher level functions. *)
 let add_marks fct_marks nodes_marks =
   SlicingParameters.debug ~level:2 "add_marks@.";
@@ -867,11 +870,11 @@ let filter_already_in ff selection =
 * for the same reason (if we mark [x = g ();] in [f], we don't necessarily want
 * all versions of [g] to have a visible [return] for instance).
 **)
-let prop_persistant_marks proj fi to_prop actions =
-  let pdg_node_marks = FctMarks.persistant_in_marks_to_prop fi to_prop in
+let prop_persistent_marks fi to_prop actions =
+  let pdg_node_marks = FctMarks.persistent_in_marks_to_prop fi to_prop in
   let add_act acc (pdg, node_marks) =
     let kf = SlicingMacros.get_pdg_kf pdg in
-    let fi = SlicingMacros.get_kf_fi proj kf in
+    let fi = SlicingMacros.get_kf_fi kf in
     let a =
       match node_marks with
         | PdgMarks.SelList node_marks ->
@@ -889,7 +892,7 @@ let prop_persistant_marks proj fi to_prop actions =
 * If it is the first persistent selection for this function,
 * and [propagate=true], also generates the actions to make every calls to this
 * function visible. *)
-let add_marks_to_fi proj fi nodes_marks propagate actions =
+let add_marks_to_fi fi nodes_marks propagate actions =
   SlicingParameters.debug ~level:2 "[Fct_Slice.add_marks_to_fi] (persistent)";
   let marks, are_new_marks =
     match FctMarks.fi_marks fi with
@@ -900,7 +903,7 @@ let add_marks_to_fi proj fi nodes_marks propagate actions =
   in
   let to_prop = add_marks marks nodes_marks in
   let actions = if propagate
-                then prop_persistant_marks proj fi to_prop actions
+                then prop_persistent_marks fi to_prop actions
                 else actions
   in are_new_marks, actions
 
@@ -1035,7 +1038,7 @@ let choose_precise_slice fi_to_call call_info =
           if more_outputs
           then (* not enough outputs in [ff] *)
             begin
-              SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? not enought outputs"
+              SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? not enough outputs"
                   (SlicingMacros.ff_name ff);
               find slices
             end
@@ -1151,14 +1154,14 @@ let check_called_outputs call_id ff actions =
 * If the chosen function doesn't compute enough output,
 *   build an action to add outputs to it.
 * *)
-let apply_choose_call proj ff call =
+let apply_choose_call ff call =
   SlicingParameters.debug ~level:2 "[Fct_Slice.apply_choose_call] for call-%d" call.sid;
   let call_id = ff, call in
   let call_info = CallInfo.get_info_call (ff, call) in
     if ((CallInfo.get_f_called call_info) = None) then
       begin
         if CallInfo.something_visible call_info then
-          let fbase_to_call = SlicingMacros.get_fi_call proj call in
+          let fbase_to_call = SlicingMacros.get_fi_call call in
           let f_to_call, actions =
             choose_f_to_call fbase_to_call call_info in
           let actions =
@@ -1201,7 +1204,7 @@ let apply_modif_call_inputs ff call missing_inputs =
 (** [ff] calls a slice [g] that needs more inputs than those computed by [ff].
 * The slicing level of [ff] is used in order to know if we have to modify [ff]
 * or to call another function. *)
-let apply_missing_inputs proj ff call missing_inputs =
+let apply_missing_inputs ff call missing_inputs =
   let _input_marks, more_inputs = missing_inputs in
   SlicingParameters.debug ~level:1 "[Fct_Slice.apply_missing_inputs] (%s)"
           (if more_inputs then "more" else "marks");
@@ -1222,8 +1225,8 @@ let apply_missing_inputs proj ff call missing_inputs =
       * let's keep the same called function. If it adds visible inputs,
       * let's choose another one *)
       begin
-        FctMarks.change_call proj ff call None;
-        apply_choose_call proj ff call
+        FctMarks.change_call ff call None;
+        apply_choose_call ff call
       end
     else
         apply_modif_call_inputs ff call missing_inputs
@@ -1233,7 +1236,7 @@ let apply_missing_inputs proj ff call missing_inputs =
 * The slicing level has to be used to choose either to modify the called
 * function [g] or to change it.
 *)
-let apply_missing_outputs proj ff call output_marks more_outputs =
+let apply_missing_outputs ff call output_marks more_outputs =
   SlicingParameters.debug ~level:2 "[Fct_Slice.apply_missing_outputs]";
   let ff_g = match CallInfo.get_call_f_called (ff, call) with
       | Some (SlicingInternals.CallSlice g) -> g
@@ -1244,8 +1247,8 @@ let apply_missing_outputs proj ff call output_marks more_outputs =
       begin
         (* the easiest way is to ignore the called function and to use
         * [choose_call] *)
-        FctMarks.change_call proj ff call None;
-        apply_choose_call proj ff call
+        FctMarks.change_call ff call None;
+        apply_choose_call ff call
       end
     else
         apply_add_marks ff_g output_marks
@@ -1258,9 +1261,9 @@ let apply_missing_outputs proj ff call output_marks more_outputs =
 (** check if [f_to_call] is ok for this call, and if so,
 * change the function call and propagate missing marks in the inputs
 * if needed.
-* @raise ChangeCallErr if [f_to_call] doesn't compute enought outputs.
+* @raise ChangeCallErr if [f_to_call] doesn't compute enough outputs.
 *)
-let apply_change_call proj ff call f_to_call =
+let apply_change_call ff call f_to_call =
   SlicingParameters.debug ~level:1 "[Fct_Slice.apply_change_call]";
   let pdg = SlicingMacros.get_ff_pdg ff in
   let to_call, to_prop =
@@ -1309,7 +1312,7 @@ let apply_change_call proj ff call f_to_call =
           let to_prop = FctMarks.mark_spare_call_nodes ff call in
           f_to_call, to_prop
   in
-    FctMarks.change_call proj ff call (Some to_call);
+    FctMarks.change_call ff call (Some to_call);
     let new_filters = after_marks_modifications ff to_prop in
     new_filters
 
@@ -1317,7 +1320,7 @@ let apply_change_call proj ff call f_to_call =
 (** When the user wants to make a [change_call] to a function that doesn't
  * compute enough outputs, he can call [check_outputs_before_change_call] in
 * order to build the action the add those outputs. *)
-let check_outputs_before_change_call _proj caller call ff_to_call =
+let check_outputs_before_change_call caller call ff_to_call =
   let call_id = caller, call in
   let actions = [] in
   let actions = check_called_outputs call_id ff_to_call actions in
@@ -1349,9 +1352,9 @@ let merge_slices ff1 ff2 =
 * and to remove the called function in [ff].
 * @raise SlicingTypes.CantRemoveCalledFf if the slice is called.
 * *)
-let clear_ff proj ff =
+let clear_ff ff =
   let clear_call call_stmt call_info _ =
-    CallInfo.remove_called_by proj (ff, call_stmt) call_info in
+    CallInfo.remove_called_by (ff, call_stmt) call_info in
   match ff.SlicingInternals.ff_called_by with
     | [] ->
         FctMarks.fold_calls clear_call ff ()
@@ -1420,7 +1423,7 @@ let get_input_loc_under_mark ff loc =
 
 exception StopMerging
 
-let merge_fun_callers get_list get_value merge is_top acc proj kf =
+let merge_fun_callers get_list get_value merge is_top acc kf =
   if is_top acc then acc
   else begin
     let acc = ref acc in
@@ -1436,7 +1439,7 @@ let merge_fun_callers get_list get_value merge is_top acc proj kf =
           let vf = Kernel_function.get_vi kf in
           if not (Cil_datatype.Varinfo.Set.mem vf !table) then begin
             table := Cil_datatype.Varinfo.Set.add vf !table ;
-            List.iter (fun x -> merge (get_value x)) (get_list proj kf) ;
+            List.iter (fun x -> merge (get_value x)) (get_list kf) ;
             List.iter merge_fun_caller (!Db.Value.callers kf)
           end
         (*  else no way to add something, the [kf] contribution is already
@@ -1450,17 +1453,17 @@ let merge_fun_callers get_list get_value merge is_top acc proj kf =
 
 (** The mark [m] related to all statements of a source function [kf].
     Property : [is_bottom (get_from_func proj kf) = not (Project.is_called proj kf) ] *)
-let get_mark_from_src_fun proj kf =
+let get_mark_from_src_fun kf =
   let kf_entry, _library = Globals.entry_point () in
-    if !Db.Slicing.Project.is_called proj kf_entry then
+    if !Db.Slicing.Project.is_called kf_entry then
       SlicingMarks.mk_user_mark ~data:true ~addr:true ~ctrl:true
     else
-      let directly_called proj kf = (SlicingMacros.get_kf_fi proj kf).SlicingInternals.f_called_by in
+      let directly_called kf = (SlicingMacros.get_kf_fi kf).SlicingInternals.f_called_by in
       let get_call_mark (ff,stmt) = get_stmt_mark ff stmt in
       let merge m1 m2 = SlicingMarks.merge_marks [m1 ; m2] in
       let is_top = SlicingMarks.is_top_mark in
       let bottom = SlicingMarks.bottom_mark in
-        merge_fun_callers directly_called get_call_mark merge is_top bottom proj kf
+        merge_fun_callers directly_called get_call_mark merge is_top bottom kf
 
 (*-----------------------------------------------------------------------*)
 (** {2 Printing} (see also {!PrintSlice}) *)

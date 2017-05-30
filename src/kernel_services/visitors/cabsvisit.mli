@@ -85,7 +85,7 @@ val visitCabsTypeSpecifier: cabsVisitor ->
                             Cabs.typeSpecifier -> Cabs.typeSpecifier
 val visitCabsSpecifier: cabsVisitor -> Cabs.specifier -> Cabs.specifier
 
-(** Visits a decl_type. The bool argument is saying whether we are ina
+(** Visits a decl_type. The bool argument is saying whether we are in a
   * function definition and thus the scope in a PROTO should extend until the
   * end of the function *)
 val visitCabsDeclType: cabsVisitor -> bool -> Cabs.decl_type -> Cabs.decl_type

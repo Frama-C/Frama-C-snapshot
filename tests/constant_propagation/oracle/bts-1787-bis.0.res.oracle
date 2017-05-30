@@ -20,46 +20,40 @@ static S2_t const G2 =
   {.p1 = (S1_t const *)(& G1.c12), .p2 = & G1.c12, .p3 = & G1.c3};
 void h1(S2_t const *q)
 {
-  S1_t *s1;
-  s1 = (S1_t *)q->p1;
+  S1_t *s1 = (S1_t *)q->p1;
   return;
 }
 
 void h2(S2_t const *q)
 {
-  S1_t *s2;
-  s2 = (S1_t *)q->p1;
+  S1_t *s2 = (S1_t *)q->p1;
   return;
 }
 
 void h3(S2_t const *q)
 {
-  S1_t *s3;
-  s3 = (S1_t *)G2.p1;
+  S1_t *s3 = (S1_t *)G2.p1;
   return;
 }
 
 void h4(S2_t const *q)
 {
-  S1_t *s5;
-  s5 = & G1.c12;
+  S1_t *s5 = & G1.c12;
   return;
 }
 
 void h5(S2_t const *q)
 {
-  S1_t *s6;
-  s6 = & G1.c12;
+  S1_t *s6 = & G1.c12;
   return;
 }
 
 int main(int c)
 {
   int __retres;
-  int s;
   int tmp;
   if (c) tmp = 1; else tmp = 2;
-  s = tmp;
+  int s = tmp;
   G1.c12.s = s;
   h1(& G2);
   h2(& G2);

@@ -65,7 +65,7 @@ tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x +
         Operational inputs on termination:
           G1; G2; c; d
         Sure outputs:
-          G3; a; b; pf; tmp; x; __retres
+          G3; a; b; pf; tmp; x; tmp_0; __retres
 [pdg] computing for function appel_ptr_fct
 [pdg] done for function appel_ptr_fct
 [pdg] PDG for appel_ptr_fct
@@ -83,90 +83,96 @@ tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x +
  {n8}: VarDecl : pf
  {n9}: VarDecl : tmp
  {n10}: VarDecl : x
- {n11}: VarDecl : __retres
- {n12}: a = 1;
+ {n11}: VarDecl : tmp_0
+ {n12}: VarDecl : __retres
+ {n13}: int a = 1;
    -[-c-]-> 1
    -[a--]-> 6
- {n13}: b = 2;
+ {n14}: int b = 2;
    -[-c-]-> 1
    -[a--]-> 7
- {n14}: c
+ {n15}: c
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
- {n15}: tmp = & fct1;
+ {n16}: tmp = & fct1;
    -[-c-]-> 1
    -[a--]-> 9
-   -[-c-]-> 14
- {n16}: tmp = & fct2;
+   -[-c-]-> 15
+ {n17}: tmp = & fct2;
    -[-c-]-> 1
    -[a--]-> 9
-   -[-c-]-> 14
- {n17}: pf = tmp;
+   -[-c-]-> 15
+ {n18}: int (*pf)(int , int , int ) = tmp;
    -[-c-]-> 1
    -[a--]-> 8
    -[--d]-> 9
-   -[--d]-> 15
    -[--d]-> 16
- {n18}: Call19-InCtrl : x = (*pf)(a,b,d);
+   -[--d]-> 17
+ {n19}: Call19-InCtrl : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
- {n19}: Call19-In1 : x = (*pf)(a,b,d);
+ {n20}: Call19-In1 : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
    -[--d]-> 6
-   -[--d]-> 12
-   -[-c-]-> 18
- {n20}: Call19-In2 : x = (*pf)(a,b,d);
+   -[--d]-> 13
+   -[-c-]-> 19
+ {n21}: Call19-In2 : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
    -[--d]-> 7
-   -[--d]-> 13
-   -[-c-]-> 18
- {n21}: Call19-In3 : x = (*pf)(a,b,d);
+   -[--d]-> 14
+   -[-c-]-> 19
+ {n22}: Call19-In3 : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
    -[--d]-> 4
    -[--d]-> 5
-   -[-c-]-> 18
- {n22}: Call19-Out(G1) : x = (*pf)(a,b,d);
+   -[-c-]-> 19
+ {n23}: Call19-Out(G1) : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
-   -[-c-]-> 17
    -[-c-]-> 18
-   -[--d]-> 21
- {n23}: Call19-Out(G3) : x = (*pf)(a,b,d);
+   -[-c-]-> 19
+   -[--d]-> 22
+ {n24}: Call19-Out(G3) : tmp_0 = (*pf)(a,b,d);
    -[-c-]-> 1
-   -[-c-]-> 17
    -[-c-]-> 18
-   -[--d]-> 19
+   -[-c-]-> 19
    -[--d]-> 20
- {n24}: Call19-Out(G4) : x = (*pf)(a,b,d);
-   -[-c-]-> 1
-   -[-c-]-> 17
-   -[-c-]-> 18
    -[--d]-> 21
- {n25}: Call19-OutRet : x = (*pf)(a,b,d);
+ {n25}: Call19-Out(G4) : tmp_0 = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 18
+   -[-c-]-> 19
+   -[--d]-> 22
+ {n26}: Call19-OutRet : tmp_0 = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[a--]-> 11
+   -[-c-]-> 18
+   -[-c-]-> 19
+   -[--d]-> 20
+   -[--d]-> 21
+ {n27}: Call19-Out(G2) : tmp_0 = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 18
+   -[-c-]-> 19
+   -[--d]-> 22
+ {n28}: int x = tmp_0;
    -[-c-]-> 1
    -[a--]-> 10
-   -[-c-]-> 17
-   -[-c-]-> 18
-   -[--d]-> 19
-   -[--d]-> 20
- {n26}: Call19-Out(G2) : x = (*pf)(a,b,d);
-   -[-c-]-> 1
-   -[-c-]-> 17
-   -[-c-]-> 18
-   -[--d]-> 21
- {n27}: __retres = (x + G1) + G2;
+   -[--d]-> 11
+   -[--d]-> 26
+ {n29}: __retres = (x + G1) + G2;
    -[-c-]-> 1
    -[--d]-> 10
-   -[a--]-> 11
-   -[--d](G1)-> 22
-   -[--d]-> 25
-   -[--d](G2)-> 26
-   -[--d]-> 30
-   -[--d]-> 31
- {n28}: return __retres;
-   -[-c-]-> 1
-   -[--d]-> 11
-   -[--d]-> 27
- {n29}: OutRet
+   -[a--]-> 12
+   -[--d](G1)-> 23
+   -[--d](G2)-> 27
    -[--d]-> 28
- {n30}: In(G1)
- {n31}: In(G2)
+   -[--d]-> 32
+   -[--d]-> 33
+ {n30}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 12
+   -[--d]-> 29
+ {n31}: OutRet
+   -[--d]-> 30
+ {n32}: In(G1)
+ {n33}: In(G2)

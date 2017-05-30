@@ -1,9 +1,9 @@
 /* run.config
  *    GCC:
- *       OPT: -val -journal-disable -pdg-print -pdg-verbose 2
- *       OPT: -calldeps -fct-pdg incr_ptr -journal-disable -pdg-print -pdg-verbose 2
- *       OPT: -calldeps -fct-pdg f1 -journal-disable -pdg-print -pdg-verbose 2
- *       OPT: -calldeps -fct-pdg f2 -journal-disable -pdg-print -pdg-verbose 2
+ *       OPT: -val-show-progress -val -journal-disable -pdg-print -pdg-verbose 2
+ *       OPT: -calldeps -val-show-progress -fct-pdg incr_ptr -journal-disable -pdg-print -pdg-verbose 2
+ *       OPT: -calldeps -val-show-progress -fct-pdg f1 -journal-disable -pdg-print -pdg-verbose 2
+ *       OPT: -calldeps -val-show-progress -fct-pdg f2 -journal-disable -pdg-print -pdg-verbose 2
  */
 void incr_ptr (int *p) {
   *p += 1;

@@ -33,7 +33,7 @@ Goal Assertion 'Ok_E' (file tests/wp_plugin/subset_fopen.c, line 26):
 Assume {
   Type: is_sint32(i).
   (* Goal *)
-  When: p != null.
+  When: null != p.
   (* Heap *)
   Have: linked(Malloc_0).
   (* Assertion 'Ok_A' *)

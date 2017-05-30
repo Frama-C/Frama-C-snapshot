@@ -29,7 +29,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a, 1).
 }
-Prove: shiftfield_F1_a(Mptr_0[L_p_ref]) = a_1.
+Prove: a_1 = shiftfield_F1_a(Mptr_0[L_p_ref]).
 
 ------------------------------------------------------------
 
@@ -45,7 +45,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, a, 1).
 }
-Prove: shiftfield_F1_a(Mptr_0[L_p_ref]) = a_1.
+Prove: a_1 = shiftfield_F1_a(Mptr_0[L_p_ref]).
 
 ------------------------------------------------------------
 

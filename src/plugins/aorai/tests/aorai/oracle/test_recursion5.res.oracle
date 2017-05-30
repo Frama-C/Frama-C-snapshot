@@ -530,14 +530,9 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  int tab[4];
-  int r;
   main_pre_func(argc,argv);
-  tab[0] = 10;
-  tab[1] = 20;
-  tab[2] = 33;
-  tab[3] = 15;
-  r = isPresent(tab,3,33);
+  int tab[4] = {10, 20, 33, 15};
+  int r = isPresent(tab,3,33);
   if (r == -1) foo();
   __retres = 1;
   main_post_func(__retres);

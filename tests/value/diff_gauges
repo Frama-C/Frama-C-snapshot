@@ -1,9 +1,3 @@
-Only in tests/value/oracle: behavior_statuses.0.err.oracle
-Only in tests/value/oracle: behavior_statuses.0.res.oracle
-Only in tests/value/oracle: behavior_statuses.1.err.oracle
-Only in tests/value/oracle: behavior_statuses.1.res.oracle
-Only in tests/value/oracle_gauges: behavior_statuses.err.oracle
-Only in tests/value/oracle_gauges: behavior_statuses.res.oracle
 diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_gauges/bitfield.res.oracle
 122a123,133
 > [value] Called Frama_C_show_each({{ garbled mix of &{b}
@@ -80,109 +74,237 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 216,217d206
 < tests/value/gauges.i:190:[value] warning: out of bounds write. assert \valid(p);
 < tests/value/gauges.i:191:[value] warning: out of bounds write. assert \valid(q);
-227,230d215
+225,228d213
 < tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp);
 <                                      (tmp from A++)
 < tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp_0);
 <                                      (tmp_0 from B++)
-268,269c253
+266,267c251
 < tests/value/gauges.i:238:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 < [value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..2147483647])
 ---
 > [value] Called Frama_C_show_each({47; 48}, {6})
-275,276c259
+273,274c257
 < tests/value/gauges.i:249:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 < [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..2147483647])
 ---
 > [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, {6; 7})
-282,283c265
+280,281c263
 < tests/value/gauges.i:261:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 < [value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..2147483647])
 ---
 > [value] Called Frama_C_show_each({-58; -57}, {9})
-289,290c271
+287,288c269
 < tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 < [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..2147483647])
 ---
 > [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, {9; 10})
-298,300c279
+296,298c277
 < tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 < [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
 <                                  [0..2147483647])
 ---
 > [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588}, [99..119])
-310c289
+346a326,329
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
+>                  V: [{[ p -> {{ &x }}
+>                         i -> {1} ]}]
+>                  s395: λ(0)
+389a373,376
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
+>                  V: [{[ i -> {1} ]}]
+>                  s395: λ([0 .. 1])
+>                        {[ i -> {1} ]}
+432a420,423
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
+>                  V: [{[ i -> {1} ]}]
+>                  s395: λ([0 .. 2])
+>                        {[ i -> {1} ]}
+475a467,470
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
+>                  V: [{[ i -> {1} ]}]
+>                  s395: λ([0 .. 10])
+>                        {[ i -> {1} ]}
+525a521,525
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
+>                  V: [{[ p -> {{ &a }}
+>                         i -> {2} ]}]
+>                  s409: λ(0)
+>                  s408: λ(0)
+570a571,671
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
+>                  V: [{[ i -> {2} ]}]
+>                  s409: λ(0)
+>                  s408: λ([0 .. 1])
+>                        {[ i -> {0} ]}
+> [value] DUMPING STATE of file tests/value/gauges.i line 323
+>         v ∈ [--..--]
+>         t[0..4] ∈ {0}
+>          [5] ∈ [0..48],0%3
+>          [6] ∈ {0}
+>          [7] ∈ [0..48],0%3
+>          [8] ∈ {0}
+>          [9] ∈ [0..48],0%3
+>          [10] ∈ {0}
+>          [11] ∈ [0..48],0%3
+>          [12] ∈ {0}
+>          [13] ∈ [0..48],0%3
+>          [14] ∈ {0}
+>          [15] ∈ [0..48],0%3
+>          [16] ∈ {0}
+>          [17] ∈ [0..48],0%3
+>          [18] ∈ {0}
+>          [19] ∈ [0..48],0%3
+>          [20] ∈ {0}
+>          [21] ∈ [0..48],0%3
+>          [22] ∈ {0}
+>          [23] ∈ [0..48],0%3
+>          [24] ∈ {0}
+>          [25] ∈ [0..48],0%3
+>          [26] ∈ {0}
+>          [27] ∈ [0..48],0%3
+>          [28] ∈ {0}
+>          [29] ∈ [0..48],0%3
+>          [30] ∈ {0}
+>          [31] ∈ [0..48],0%3
+>          [32] ∈ {0}
+>          [33] ∈ [0..48],0%3
+>          [34] ∈ {0}
+>          [35] ∈ [0..48],0%3
+>          [36] ∈ {0}
+>          [37] ∈ [0..48],0%3
+>         u[0..99] ∈ [0..100]
+>         T[0..99] ∈ [--..--]
+>         a ∈ {1}
+>         b ∈ {0}
+>         p ∈ {{ &a ; &b }}
+>         i ∈ {2}
+>         =END OF DUMP==
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
+>                  V: [{[ i -> {2} ]}]
+>                  s409: λ(0)
+>                  s408: λ([0 .. 2])
+>                        {[ i -> {0} ]}
+> [value] DUMPING STATE of file tests/value/gauges.i line 323
+>         v ∈ [--..--]
+>         t[0..4] ∈ {0}
+>          [5] ∈ [0..48],0%3
+>          [6] ∈ {0}
+>          [7] ∈ [0..48],0%3
+>          [8] ∈ {0}
+>          [9] ∈ [0..48],0%3
+>          [10] ∈ {0}
+>          [11] ∈ [0..48],0%3
+>          [12] ∈ {0}
+>          [13] ∈ [0..48],0%3
+>          [14] ∈ {0}
+>          [15] ∈ [0..48],0%3
+>          [16] ∈ {0}
+>          [17] ∈ [0..48],0%3
+>          [18] ∈ {0}
+>          [19] ∈ [0..48],0%3
+>          [20] ∈ {0}
+>          [21] ∈ [0..48],0%3
+>          [22] ∈ {0}
+>          [23] ∈ [0..48],0%3
+>          [24] ∈ {0}
+>          [25] ∈ [0..48],0%3
+>          [26] ∈ {0}
+>          [27] ∈ [0..48],0%3
+>          [28] ∈ {0}
+>          [29] ∈ [0..48],0%3
+>          [30] ∈ {0}
+>          [31] ∈ [0..48],0%3
+>          [32] ∈ {0}
+>          [33] ∈ [0..48],0%3
+>          [34] ∈ {0}
+>          [35] ∈ [0..48],0%3
+>          [36] ∈ {0}
+>          [37] ∈ [0..48],0%3
+>         u[0..99] ∈ [0..100]
+>         T[0..99] ∈ [--..--]
+>         a ∈ {1}
+>         b ∈ {0}
+>         p ∈ {{ &a ; &b }}
+>         i ∈ {2}
+>         =END OF DUMP==
+> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
+>                  V: [{[ i -> {2} ]}]
+>                  s409: λ(0)
+>                  s408: λ([0 .. +oo])
+>                        {[ i -> {0} ]}
+580c681
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..53]
-315c294
+585c686
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..53]
-353,354c332,333
+623,624c724,725
 <   A ∈ {{ &A + [0..--],0%4 }}
 <   B ∈ {{ &B + [0..--],0%4 }}
 ---
 >   A ∈ {{ &A + [0..36],0%4 }}
 >   B ∈ {{ &B + [0..36],0%4 }}
-372,373c351,352
+642,643c743,744
 <   i ∈ {45; 46; 47; 48; 49; 50; 51}
 <   j ∈ [0..2147483647]
 ---
 >   i ∈ {47; 48}
 >   j ∈ {6}
-376c355
+646c747
 <   j ∈ [0..2147483647]
 ---
 >   j ∈ {6; 7}
-378,379c357,358
+648,649c749,750
 <   i ∈ {-59; -58; -57; -56; -55; -54; -53}
 <   j ∈ [0..2147483647]
 ---
 >   i ∈ {-58; -57}
 >   j ∈ {9}
-382c361
+652c753
 <   j ∈ [0..2147483647]
 ---
 >   j ∈ {9; 10}
-388c367
+658c759
 <   j ∈ [0..2147483647]
 ---
 >   j ∈ [99..119]
-391c370
+668c769
 <   p ∈ {{ &u + [0..--],0%4 }}
 ---
 >   p ∈ {{ &u + [0..400],0%4 }}
-393c372
+670c771
 <   k ∈ [0..2147483647]
 ---
 >   k ∈ {390}
-398c377
+675c776
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [0..21]
-409,410c388,390
+686,687c787,789
 <    [1..9] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 <   p ∈ {{ &y + [4..40],0%4 }}
 ---
 >    [1..6] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 >    [7..9] ∈ UNINITIALIZED
 >   p ∈ {{ &y[7] }}
-421c401
+698c800
 <   p ∈ {{ &T + [--..396],0%4 }}
 ---
 >   p ∈ {{ &T + [-4..396],0%4 }}
-548,549c528,529
+826,827c928,929
 <   p FROM p; A; B; n; p; A[0..9]; B[0..9] (and SELF)
 <   \result FROM p; A; B; n; p; A[0..9]; B[0..9]
 ---
 >   p FROM p; A; B; n; p; A[0..8]; B[0..8] (and SELF)
 >   \result FROM p; A; B; n; p; A[0..8]; B[0..8]
-617c597
+899c1001
 <           p; A[0..9]; B[0..9]
 ---
 >           p; A[0..8]; B[0..8]
-675c655
+965c1067
 <           x[0..2]; y[0..9]; p; i
 ---
 >           x[0..2]; y[0..6]; p; i
@@ -225,6 +347,36 @@ diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_gauges/local_
 > [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
 > [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
 141c137
+<   r ∈ [--..--]
+---
+>   r ∈ [0..2147483647]
+382,384c378,380
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1})
+< [value] Called Frama_C_show_each({-1}, {0}, {0; 1})
+< [value] Called Frama_C_show_each({1}, {1}, {0; 1; 2})
+---
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+> [value] Called Frama_C_show_each({-1}, {0}, {0})
+> [value] Called Frama_C_show_each({1}, {1}, {1})
+386c382
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3})
+388c384
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3; 4})
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3; 4})
+390,395c386,387
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483647])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483647])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483648])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483648])
+< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..4294967295])
+< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..4294967295])
+---
+> [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
+> [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
+509c501
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
@@ -407,7 +559,7 @@ diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_gauges/p
 >         Called from tests/value/precise_locations.i:39.
 > [value] Recording results for ct
 > [value] Done for function ct
-542a547,550
+545a550,553
 > [value] computing for function ct <- main.
 >         Called from tests/value/precise_locations.i:39.
 > [value] Recording results for ct
@@ -458,7 +610,7 @@ diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_gauges/unrol
 ---
 >   j ∈ {-250}
 diff tests/value/oracle/va_list2.res.oracle tests/value/oracle_gauges/va_list2.res.oracle
-16a17,20
+18a19,22
 > [value] Called Frama_C_show_each_i([-2147483648..2147483647])
 > [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
 > [value] Called Frama_C_show_each_i([-2147483648..2147483647])

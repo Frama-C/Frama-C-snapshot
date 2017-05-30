@@ -4,20 +4,38 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
   vs ∈ [--..--]
-tests/value/nonlin.c:10:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
-tests/value/nonlin.c:11:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
-tests/value/nonlin.c:11:[value] warning: signed overflow.
+[value] computing for function subdivide_integer <- main.
+        Called from tests/value/nonlin.c:48.
+tests/value/nonlin.c:31:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
+tests/value/nonlin.c:32:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
+tests/value/nonlin.c:32:[value] warning: signed overflow.
                  assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
-tests/value/nonlin.c:18:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
-tests/value/nonlin.c:18:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
-tests/value/nonlin.c:22:[value] warning: assertion got status unknown.
-tests/value/nonlin.c:23:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx'
+tests/value/nonlin.c:39:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
+tests/value/nonlin.c:39:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
+tests/value/nonlin.c:43:[value] warning: assertion got status unknown.
+tests/value/nonlin.c:44:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx'
+[value] Recording results for subdivide_integer
+[value] Done for function subdivide_integer
+[value] computing for function subdivide_pointer <- main.
+        Called from tests/value/nonlin.c:49.
+[value] computing for function Frama_C_interval <- subdivide_pointer <- main.
+        Called from tests/value/nonlin.c:13.
+[value] using specification for function Frama_C_interval
+share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] Done for function Frama_C_interval
+tests/value/nonlin.c:20:[value:nonlin] non-linear '(p + i) - i', lv 'i'
+tests/value/nonlin.c:20:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
+tests/value/nonlin.c:24:[value:nonlin] non-linear '(p + i) - i', lv 'i'
+tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
+[value] Recording results for subdivide_pointer
+[value] Done for function subdivide_pointer
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function main:
+[value:final-states] Values at end of function subdivide_integer:
   z ∈ [-32768..28523]
   k ∈ [-2..1118367364]
   l ∈ [0..2147395600]
@@ -29,14 +47,44 @@ tests/value/nonlin.c:23:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx
   t[0..100] ∈ {1} or UNINITIALIZED
    [101] ∈ UNINITIALIZED
   idx ∈ [0..10]
+[value:final-states] Values at end of function subdivide_pointer:
+  Frama_C_entropy_source ∈ [--..--]
+  y ∈ {17}
+  x ∈ {17}
+  p ∈ {{ &x }}
+  i ∈ {{ NULL + [0..100] ; (int)&x }}
+  q ∈ {{ &x + [-400..400],0%4 }}
+[value:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+[from] Computing for function subdivide_integer
+[from] Done for function subdivide_integer
+[from] Computing for function subdivide_pointer
+[from] Computing for function Frama_C_interval <-subdivide_pointer
+[from] Done for function Frama_C_interval
+[from] Done for function subdivide_pointer
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function main:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function subdivide_integer:
   NO EFFECTS
+[from] Function subdivide_pointer:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
+[inout] Out (internal) for function subdivide_integer:
           z; k; l; x; p; i1; i2; r; t[0..100]; idx
-[inout] Inputs for function main:
+[inout] Inputs for function subdivide_integer:
           v; vs
+[inout] Out (internal) for function subdivide_pointer:
+          Frama_C_entropy_source; y; x; p; i; q
+[inout] Inputs for function subdivide_pointer:
+          Frama_C_entropy_source; v
+[inout] Out (internal) for function main:
+          Frama_C_entropy_source
+[inout] Inputs for function main:
+          Frama_C_entropy_source; v; vs

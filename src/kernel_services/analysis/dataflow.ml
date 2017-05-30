@@ -83,7 +83,7 @@ end
 module StartData(X: sig type t val size: int end) = struct
   type data = X.t
   open Cil_datatype.Stmt.Hashtbl
-  let stmtStartData = create X.size
+  let stmtStartData: data Cil_datatype.Stmt.Hashtbl.t = create X.size
   let clear () = clear stmtStartData
   let mem = mem stmtStartData
   let find = find stmtStartData
@@ -627,7 +627,7 @@ struct
 
 
 (** Helper utility that finds all of the statements of a function.
-  It also lists the return statments (including statements that
+  It also lists the return statements (including statements that
   fall through the end of a void function).  Useful when you need an
   initial set of statements for BackwardsDataFlow.compute. *)
 let sinkFinder sink_stmts all_stmts = object

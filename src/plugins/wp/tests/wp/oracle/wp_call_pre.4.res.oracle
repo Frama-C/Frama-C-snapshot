@@ -6,7 +6,6 @@
 [wp] warning: Missing RTE guards
 
 Goal Pre-condition 'qed_ok,Rstmt' at instruction (file tests/wp/wp_call_pre.c, line 47):
-Assume { Type: is_sint32(G). (* Pre-condition *) Have: 0 < G. }
-Prove: 0 < G.
+Prove: true.
 
 ------------------------------------------------------------

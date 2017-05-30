@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -114,7 +114,7 @@ and merge_fields fxs gys =
         (f,merge x y) :: merge_fields fxstail gystail
 
 (* -------------------------------------------------------------------------- *)
-(* --- Disjonction                                                        --- *)
+(* --- Disjunction                                                        --- *)
 (* -------------------------------------------------------------------------- *)
 
 let rec disjoint a b =

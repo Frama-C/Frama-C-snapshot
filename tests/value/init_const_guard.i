@@ -1,5 +1,5 @@
 /*run.config*
-  STDOPT: +"-main f -report -then -main g -then -lib-entry -main f -then -main g"
+  STDOPT: +"-load-module report -main f -report -then -main g -then -lib-entry -main f -then -main g"
 */
 
 /** Same test exists in WP tests. Please keep synchronized */

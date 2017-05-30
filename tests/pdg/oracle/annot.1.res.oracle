@@ -20,7 +20,7 @@ tests/pdg/annot.c:26:[value] warning: signed overflow. assert s + 2 ≤ 21474836
    -[a--]-> 2
  {n4}: VarDecl : i
  {n5}: VarDecl : s
- {n6}: s = 0;
+ {n6}: int s = 0;
    -[-c-]-> 1
    -[a--]-> 5
  {n7}: i = 0;

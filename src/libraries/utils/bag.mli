@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,4 +48,13 @@ val length : 'a t -> int
 
 val is_empty : 'a t -> bool
 val singleton : 'a t -> 'a option
+
 val elements : 'a t -> 'a list
+(** Might have [n^2] complexity in worst cases.
+    It might be better to use a Vector to reach linear complexity. *)
+
+val sort : ('a -> 'a -> int) -> 'a t -> 'a list
+(** The returned list preserves duplicates and order of equals elements.
+    Uses Merge Sort (from standard List module),
+    but might have [n^2] complexity in worst cases.
+    It might be better to use a Vector to reach linear complexity. *)

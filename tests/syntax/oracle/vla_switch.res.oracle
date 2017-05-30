@@ -1,0 +1,7 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/vla_switch.i (no preprocessing)
+tests/syntax/vla_switch.i:4:[kernel] warning: Variable-sized local variable b
+tests/syntax/vla_switch.i:10:[kernel] warning: Variable-sized local variable a
+tests/syntax/vla_switch.i:11:[kernel] warning: Body of function case3 falls-through. Adding a return statement
+[kernel] user error: tests/syntax/vla_switch.i:2, cannot jump from switch statement bypassing initialization of variable b, declared at tests/syntax/vla_switch.i:4
+[kernel] Frama-C aborted: invalid user input.

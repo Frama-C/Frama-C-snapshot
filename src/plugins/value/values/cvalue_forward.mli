@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,8 +61,6 @@ val do_promotion:
 val make_volatile: ?typ:typ -> V.t -> V.t
 
 val eval_float_constant: exp -> float -> fkind -> string option -> V.t Eval.evaluated
-
-val offsetmap_matches_type: typ -> Cvalue.Model.offsetmap -> bool
 
 
 (*

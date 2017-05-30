@@ -25,6 +25,7 @@
    [2] ∈ {3}
    [3..4] ∈ {0}
   p ∈ {0}
+tests/value/div.i:13:[value] warning: initialization of volatile variable c ignored
 tests/value/div.i:14:[value] entering loop for the first time
 tests/value/div.i:14:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
 tests/value/div.i:17:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;

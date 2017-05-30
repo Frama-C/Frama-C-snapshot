@@ -1,7 +1,14 @@
 int T[30] = {1};
 
 int   f_int_int(int x);
+
+/*@ allocates \result;
+    ensures \fresh(\result,sizeof(int)); */
 int * f_int_star_int(int x);
+
+/*@ allocates \result, *\result;
+    ensures \fresh(*\result,sizeof(int));
+    ensures \fresh(\result,sizeof(int)); */
 int **f_int_star_int_star_int(int x);
 
 int f_star_int_cint(const int *x);

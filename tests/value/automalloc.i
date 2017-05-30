@@ -1,4 +1,8 @@
+/* run.config*
+   STDOPT: #"-no-val-builtins-auto"
+*/
 typedef unsigned int size_t;
+/*@ allocates \result; ensures \fresh(\result, s); */
 void*malloc(size_t s);
 void*realloc(void*ptr,size_t s);
 void*alloca(size_t s);

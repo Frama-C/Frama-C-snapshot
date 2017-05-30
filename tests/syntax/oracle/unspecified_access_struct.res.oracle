@@ -7,18 +7,15 @@ struct S {
 int main(void)
 {
   int __retres;
-  struct S s1;
   struct S s2;
   struct S s3;
   struct S s4;
   struct S s5;
-  s1.f = 0;
-  { /* sequence */
-    s5.f = s1.f;
-    s4.f = s5.f;
-    s3.f = s4.f;
-    s2.f = s3.f;
-  }
+  struct S s1 = {.f = 0};
+  s5.f = s1.f;
+  s4.f = s5.f;
+  s3.f = s4.f;
+  s2.f = s3.f;
   __retres = s2.f;
   return __retres;
 }

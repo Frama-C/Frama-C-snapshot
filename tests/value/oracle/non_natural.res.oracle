@@ -94,6 +94,16 @@ tests/value/non_natural.i:30:[value] warning: out of bounds write. assert \valid
                                       (tmp_13 from to++)
 [value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
 [value] Recording results for duff1
+tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
+tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:27:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
 [value] Done for function duff1
 tests/value/non_natural.i:58:[value] warning: accessing out of bounds index. assert 0 ≤ o;
 tests/value/non_natural.i:58:[value] warning: accessing out of bounds index. assert o < 100002;
@@ -177,14 +187,6 @@ tests/value/non_natural.i:46:[value] warning: out of bounds write. assert \valid
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:27:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
-tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
 [value:final-states] Values at end of function duff1:
   to ∈ {{ &p2 + [32..--],0%32 }}
   from ∈ {{ &p1 + [32..--],0%32 }}
@@ -197,8 +199,6 @@ tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate
   p2[0..99999] ∈ {1; 2} or UNINITIALIZED
 [value:final-states] Values at end of function main1:
   c ∈ {1000000}
-tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
-tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
 [value:final-states] Values at end of function main2:
   p1[0..100001] ∈ {1; 2} or UNINITIALIZED
   p2[0..99999] ∈ {1; 2} or UNINITIALIZED

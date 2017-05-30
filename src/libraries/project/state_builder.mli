@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -284,7 +284,7 @@ module Hashconsing_tbl_weak: Hashconsing_tbl
 
 (** Hash table for hashconsing, but the internal table is _not_ weak
     (it is a regular hash table). This module should be used only in case
-    perfect reproductibility matters, as the table will never be emptied by
+    perfect reproducibility matters, as the table will never be emptied by
     the GC.
     @since Aluminium-20160501  *)
 module Hashconsing_tbl_not_weak: Hashconsing_tbl

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -333,7 +333,7 @@ let impact_selector
         pp_impacted_call_outputs main_ui kf s
       end
 
-    | PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _))
+    | PVDecl (_, _, vi) | PGlobal (GFun ({ svar = vi }, _))
         when Cil.isFunctionType vi.vtype ->
        if button = 1 then begin
          let kf = Globals.Functions.get vi in
@@ -384,7 +384,7 @@ let file_tree_decorate (file_tree:Filetree.t) =
           |  _ -> false
         in
         let id =
-          (* lazyness of && is used for efficiency *)
+          (* laziness of && is used for efficiency *)
           if Enabled.get () && SelectedStmt.get_option () <> None &&
             List.exists is_hilighted globs then "gtk-apply"
           else ""

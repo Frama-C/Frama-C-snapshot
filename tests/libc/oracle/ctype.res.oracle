@@ -4,17 +4,17 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
-  __FC_errno ∈ [--..--]
+  __fc_errno ∈ [--..--]
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   __fc_fopen[0..511] ∈ {0}
-  __p_fc_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function isascii <- main.
         Called from tests/libc/ctype.c:9.
 [value] using specification for function isascii
-share/libc/ctype.h:217:[value] function isascii: precondition got status valid.
+share/libc/ctype.h:218:[value] function isascii: precondition got status valid.
 [value] Done for function isascii
 tests/libc/ctype.c:10:[value] assertion got status valid.
 [value] computing for function isascii <- main.
@@ -59,7 +59,7 @@ tests/libc/ctype.c:22:[value] assertion got status valid.
 [value] computing for function isalnum <- main.
         Called from tests/libc/ctype.c:23.
 [value] using specification for function isalnum
-share/libc/ctype.h:39:[value] function isalnum: precondition got status valid.
+share/libc/ctype.h:40:[value] function isalnum: precondition got status valid.
 [value] Done for function isalnum
 [value] computing for function isalnum <- main.
         Called from tests/libc/ctype.c:23.
@@ -98,7 +98,7 @@ tests/libc/ctype.c:36:[value] assertion got status valid.
 [value] computing for function isalpha <- main.
         Called from tests/libc/ctype.c:37.
 [value] using specification for function isalpha
-share/libc/ctype.h:52:[value] function isalpha: precondition got status valid.
+share/libc/ctype.h:53:[value] function isalpha: precondition got status valid.
 [value] Done for function isalpha
 [value] computing for function isalpha <- main.
         Called from tests/libc/ctype.c:37.
@@ -187,7 +187,7 @@ tests/libc/ctype.c:66:[value] assertion got status valid.
 [value] computing for function isblank <- main.
         Called from tests/libc/ctype.c:67.
 [value] using specification for function isblank
-share/libc/ctype.h:64:[value] function isblank: precondition got status valid.
+share/libc/ctype.h:65:[value] function isblank: precondition got status valid.
 [value] Done for function isblank
 tests/libc/ctype.c:68:[value] assertion got status valid.
 [value] computing for function isblank <- main.
@@ -220,7 +220,7 @@ tests/libc/ctype.c:80:[value] assertion got status valid.
 [value] computing for function iscntrl <- main.
         Called from tests/libc/ctype.c:81.
 [value] using specification for function iscntrl
-share/libc/ctype.h:77:[value] function iscntrl: precondition got status valid.
+share/libc/ctype.h:78:[value] function iscntrl: precondition got status valid.
 [value] Done for function iscntrl
 tests/libc/ctype.c:82:[value] assertion got status valid.
 [value] computing for function iscntrl <- main.
@@ -256,7 +256,7 @@ tests/libc/ctype.c:94:[value] assertion got status valid.
 [value] computing for function isdigit <- main.
         Called from tests/libc/ctype.c:95.
 [value] using specification for function isdigit
-share/libc/ctype.h:89:[value] function isdigit: precondition got status valid.
+share/libc/ctype.h:90:[value] function isdigit: precondition got status valid.
 [value] Done for function isdigit
 tests/libc/ctype.c:96:[value] assertion got status valid.
 [value] computing for function isdigit <- main.
@@ -293,7 +293,7 @@ tests/libc/ctype.c:110:[value] assertion got status valid.
 [value] computing for function isgraph <- main.
         Called from tests/libc/ctype.c:111.
 [value] using specification for function isgraph
-share/libc/ctype.h:102:[value] function isgraph: precondition got status valid.
+share/libc/ctype.h:103:[value] function isgraph: precondition got status valid.
 [value] Done for function isgraph
 tests/libc/ctype.c:112:[value] assertion got status valid.
 [value] computing for function isgraph <- main.
@@ -329,7 +329,7 @@ tests/libc/ctype.c:124:[value] assertion got status valid.
 [value] computing for function islower <- main.
         Called from tests/libc/ctype.c:125.
 [value] using specification for function islower
-share/libc/ctype.h:114:[value] function islower: precondition got status valid.
+share/libc/ctype.h:115:[value] function islower: precondition got status valid.
 [value] Done for function islower
 [value] computing for function islower <- main.
         Called from tests/libc/ctype.c:125.
@@ -362,7 +362,7 @@ tests/libc/ctype.c:138:[value] assertion got status valid.
 [value] computing for function isprint <- main.
         Called from tests/libc/ctype.c:139.
 [value] using specification for function isprint
-share/libc/ctype.h:126:[value] function isprint: precondition got status valid.
+share/libc/ctype.h:127:[value] function isprint: precondition got status valid.
 [value] Done for function isprint
 [value] computing for function isprint <- main.
         Called from tests/libc/ctype.c:139.
@@ -404,7 +404,7 @@ tests/libc/ctype.c:152:[value] assertion got status valid.
 [value] computing for function ispunct <- main.
         Called from tests/libc/ctype.c:153.
 [value] using specification for function ispunct
-share/libc/ctype.h:138:[value] function ispunct: precondition got status valid.
+share/libc/ctype.h:139:[value] function ispunct: precondition got status valid.
 [value] Done for function ispunct
 [value] computing for function ispunct <- main.
         Called from tests/libc/ctype.c:153.
@@ -437,7 +437,7 @@ tests/libc/ctype.c:166:[value] assertion got status valid.
 [value] computing for function isspace <- main.
         Called from tests/libc/ctype.c:167.
 [value] using specification for function isspace
-share/libc/ctype.h:151:[value] function isspace: precondition got status valid.
+share/libc/ctype.h:152:[value] function isspace: precondition got status valid.
 [value] Done for function isspace
 tests/libc/ctype.c:168:[value] assertion got status valid.
 [value] computing for function isspace <- main.
@@ -470,7 +470,7 @@ tests/libc/ctype.c:180:[value] assertion got status valid.
 [value] computing for function isupper <- main.
         Called from tests/libc/ctype.c:181.
 [value] using specification for function isupper
-share/libc/ctype.h:163:[value] function isupper: precondition got status valid.
+share/libc/ctype.h:164:[value] function isupper: precondition got status valid.
 [value] Done for function isupper
 tests/libc/ctype.c:182:[value] assertion got status valid.
 [value] computing for function isupper <- main.
@@ -503,7 +503,7 @@ tests/libc/ctype.c:194:[value] assertion got status valid.
 [value] computing for function isxdigit <- main.
         Called from tests/libc/ctype.c:195.
 [value] using specification for function isxdigit
-share/libc/ctype.h:175:[value] function isxdigit: precondition got status valid.
+share/libc/ctype.h:176:[value] function isxdigit: precondition got status valid.
 [value] Done for function isxdigit
 tests/libc/ctype.c:196:[value] assertion got status valid.
 [value] computing for function isxdigit <- main.
@@ -543,7 +543,7 @@ tests/libc/ctype.c:210:[value] assertion got status valid.
 [value] computing for function tolower <- main.
         Called from tests/libc/ctype.c:211.
 [value] using specification for function tolower
-share/libc/ctype.h:190:[value] function tolower: precondition got status valid.
+share/libc/ctype.h:191:[value] function tolower: precondition got status valid.
 [value] Done for function tolower
 tests/libc/ctype.c:212:[value] assertion got status valid.
 [value] computing for function tolower <- main.
@@ -573,7 +573,7 @@ tests/libc/ctype.c:224:[value] assertion got status valid.
 [value] computing for function toupper <- main.
         Called from tests/libc/ctype.c:225.
 [value] using specification for function toupper
-share/libc/ctype.h:203:[value] function toupper: precondition got status valid.
+share/libc/ctype.h:204:[value] function toupper: precondition got status valid.
 [value] Done for function toupper
 tests/libc/ctype.c:226:[value] assertion got status valid.
 [value] computing for function toupper <- main.

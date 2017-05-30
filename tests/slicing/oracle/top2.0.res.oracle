@@ -12,13 +12,14 @@
   S ∈ {0}
 [value] computing for function f <- main.
         Called from tests/slicing/top2.i:24.
+tests/slicing/top2.i:13:[value] warning: initialization of volatile variable i ignored
 tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert 0 ≤ i;
 tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert i < 2;
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function f

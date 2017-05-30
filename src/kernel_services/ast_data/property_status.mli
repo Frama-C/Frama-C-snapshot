@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@
 (* ************************************************************************ *)
 
 (** Type of status emitted by analyzers. Each Property is attached to a program
-    point [s] and implicitely depends on an execution path from the program
+    point [s] and implicitly depends on an execution path from the program
     entry point to [s]. It also depends on an explicit set of hypotheses [H]
     indicating when emitting the property (see function {!emit}). *)
 type emitted_status = 
@@ -69,8 +69,8 @@ val emit:
     may be required is when emitting a status for a pre-condition of a function
     [f] since the status associated to a pre-condition [p] merges all statuses
     of [p] at each callsite of the function [f].  @return the kept status.
-    @raise Inconsistent_emitted_status when emiting False after emiting True or
-    conversely *)
+    @raise Inconsistent_emitted_status when emitting False after emitting True
+    or conversely *)
 
 val emit_and_get:
   Emitter.t -> hyps:Property.t list -> Property.t -> ?distinct:bool ->
@@ -100,7 +100,7 @@ type emitter_with_properties = private
     { emitter: Emitter.Usable_emitter.t; 
       mutable properties: Property.t list;
       logical_consequence: bool (** Is the emitted status automatically
-				    infered? *) }
+				    inferred? *) }
 
 type inconsistent = private
     { valid: emitter_with_properties list; 
@@ -152,7 +152,7 @@ module Consolidation: sig
 	The argument is for internal use only *)
 
     | Considered_valid 
-    (** Nobody succeeds to verifiy the property, but it is expected to be
+    (** Nobody succeeds to verify the property, but it is expected to be
 	verified by another way (manual review, ...) *)
 
     | Valid of Emitter.Usable_emitter.Set.t
@@ -246,7 +246,7 @@ val register: Property.t -> unit
 (** Register the given property. It must not be already registered. *)
 
 val register_property_add_hook: (Property.t -> unit) -> unit
-(** add an hook that will be called for any newly registred property
+(** add an hook that will be called for any newly registered property
     @since Neon-20140301 *)
 
 val remove: Property.t -> unit

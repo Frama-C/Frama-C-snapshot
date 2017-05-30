@@ -64,7 +64,7 @@ tests/slicing/select_return.i:53:[kernel] warning: Neither code nor specificatio
 [value] Done for function f
 [value] Recording results for g
 [value] done for function g
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f
 [from] Computing for function k
@@ -105,9 +105,8 @@ int f_slice_1(int y);
 
 int f_slice_1(int y)
 {
-  int z;
   k_slice_2(y);
-  z = k_slice_1(G);
+  int z = k_slice_1(G);
   /*@ slice pragma expr z; */ ;
   return z;
 }

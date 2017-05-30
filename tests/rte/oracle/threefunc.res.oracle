@@ -35,16 +35,13 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
-      tmp = x + y;
+      int tmp = x + y;
       y = x - y;
       x = tmp;
     }
@@ -54,10 +51,8 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      { /* sequence */
-        tmp_0 = f(x,y);
-        tmp_1 = g(x,y);
-      }
+      tmp_0 = f(x,y);
+      tmp_1 = g(x,y);
       __retres = tmp_0 + tmp_1;
       goto return_label;
     }
@@ -116,18 +111,15 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
       /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
-      tmp = x + y;
+      int tmp = x + y;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
       /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
@@ -140,10 +132,8 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      { /* sequence */
-        tmp_0 = f(x,y);
-        tmp_1 = g(x,y);
-      }
+      tmp_0 = f(x,y);
+      tmp_1 = g(x,y);
       /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0 + tmp_1; */
       /*@ assert rte: signed_overflow: tmp_0 + tmp_1 ≤ 2147483647; */
       __retres = tmp_0 + tmp_1;
@@ -205,16 +195,13 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
-      tmp = x + y;
+      int tmp = x + y;
       y = x - y;
       x = tmp;
     }
@@ -224,10 +211,8 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      { /* sequence */
-        tmp_0 = f(x,y);
-        tmp_1 = g(x,y);
-      }
+      tmp_0 = f(x,y);
+      tmp_1 = g(x,y);
       __retres = tmp_0 + tmp_1;
       goto return_label;
     }
@@ -290,18 +275,15 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
       /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
-      tmp = x + y;
+      int tmp = x + y;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
       /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
@@ -314,10 +296,8 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      { /* sequence */
-        tmp_0 = f(x,y);
-        tmp_1 = g(x,y);
-      }
+      tmp_0 = f(x,y);
+      tmp_1 = g(x,y);
       /*@ assert rte: signed_overflow: -2147483648 ≤ tmp_0 + tmp_1; */
       /*@ assert rte: signed_overflow: tmp_0 + tmp_1 ≤ 2147483647; */
       __retres = tmp_0 + tmp_1;

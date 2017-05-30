@@ -1,0 +1,384 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/repeat.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/repeat.c:47:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function induction
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/repeat.c, line 55) in 'induction':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 61):
+Let a = L_sequence(calls_2).
+Let a_1 = L_sequence(calls_1).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
+  (* Pre-condition *)
+  Have: 0 <= n.
+  (* Pre-condition *)
+  Have: L_sequence(calls_0) = nil.
+  (* Invariant *)
+  Have: ([ 1, 2 ] *^ i) = a_1.
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Call 'f' *)
+  Have: a = a_1 ^ [ 1 ].
+  (* Call 'g' *)
+  Have: L_sequence(calls_3) = a ^ [ 2 ].
+}
+Prove: (-1) <= i.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/repeat.c, line 61):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 62):
+Let a = L_sequence(calls_0).
+Let a_1 = L_sequence(calls_3).
+Let a_2 = L_sequence(calls_2).
+Let a_3 = [ 1, 2 ].
+Let x = 1 + i.
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
+  (* Pre-condition *)
+  Have: 0 <= n.
+  (* Pre-condition *)
+  Have: L_sequence(calls_1) = nil.
+  (* Invariant *)
+  Have: (a_3 *^ i) = a_2.
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Call 'f' *)
+  Have: a_1 = a_2 ^ [ 1 ].
+  (* Call 'g' *)
+  Have: a = a_1 ^ [ 2 ].
+}
+Prove: (a_3 *^ x) = a.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/repeat.c, line 62):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/repeat.c, line 63):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 56) in 'induction' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 56) in 'induction' (2/2):
+Effect at line 65
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 56) in 'induction':
+Effect at line 65
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function master
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/repeat.c, line 29) in 'master':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 30) in 'master':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 30) in 'master':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function shifted
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/repeat.c, line 73) in 'shifted':
+Let a = L_sequence(calls_0).
+Let a_1 = L_sequence(calls_3).
+Let a_2 = [ 1, 2 ].
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n).
+  (* Pre-condition *)
+  Have: 0 <= n.
+  (* Pre-condition *)
+  Have: L_sequence(calls_1) = nil.
+  (* Call 'f' *)
+  Have: L_sequence(calls_2) = [ 1 ].
+  (* Invariant *)
+  Have: a_1 = (a_2 *^ i) ^ [ 1 ].
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Else *)
+  Have: n <= i.
+  (* Call 'g' *)
+  Have: a = a_1 ^ [ 2 ].
+}
+Prove: (a_2 *^ 1 + i) = a.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 81):
+Let a = L_sequence(calls_3).
+Let a_1 = L_sequence(calls_2).
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
+  (* Pre-condition *)
+  Have: 0 <= n.
+  (* Pre-condition *)
+  Have: L_sequence(calls_0) = nil.
+  (* Call 'f' *)
+  Have: L_sequence(calls_1) = [ 1 ].
+  (* Invariant *)
+  Have: a_1 = ([ 1, 2 ] *^ i) ^ [ 1 ].
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Call 'g' *)
+  Have: a = a_1 ^ [ 2 ].
+  (* Call 'f' *)
+  Have: L_sequence(calls_4) = a ^ [ 1 ].
+}
+Prove: (-1) <= i.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/repeat.c, line 81):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 82):
+Let a = L_sequence(calls_0).
+Let a_1 = L_sequence(calls_4).
+Let a_2 = L_sequence(calls_3).
+Let a_3 = [ 1, 2 ].
+Let x = 1 + i.
+Assume {
+  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
+  (* Pre-condition *)
+  Have: 0 <= n.
+  (* Pre-condition *)
+  Have: L_sequence(calls_1) = nil.
+  (* Call 'f' *)
+  Have: L_sequence(calls_2) = [ 1 ].
+  (* Invariant *)
+  Have: a_2 = (a_3 *^ i) ^ [ 1 ].
+  (* Invariant *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Call 'g' *)
+  Have: a_1 = a_2 ^ [ 2 ].
+  (* Call 'f' *)
+  Have: a = a_1 ^ [ 1 ].
+}
+Prove: a = (a_3 *^ x) ^ [ 1 ].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/repeat.c, line 82):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/repeat.c, line 83):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 74) in 'shifted' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 74) in 'shifted' (2/2):
+Effect at line 85
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 74) in 'shifted' (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 74) in 'shifted' (2/2):
+Effect at line 85
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function unroll
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/repeat.c, line 41) in 'unroll':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (generated):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (generated):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (1/11):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (2/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (3/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (4/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (5/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (6/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (7/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (8/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (9/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (10/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (11/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (1/11):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (2/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (3/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (4/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (5/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (6/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (7/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (8/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (9/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (10/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/repeat.c, line 42) in 'unroll' (11/11):
+Effect at line 47
+Prove: true.
+
+------------------------------------------------------------

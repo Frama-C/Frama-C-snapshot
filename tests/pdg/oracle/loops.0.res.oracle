@@ -19,10 +19,10 @@ tests/pdg/loops.c:42:[value] warning: signed overflow. assert s + 2 ≤ 21474836
    -[a--]-> 2
  {n4}: VarDecl : s
  {n5}: VarDecl : i
- {n6}: s = 0;
+ {n6}: int s = 0;
    -[-c-]-> 1
    -[a--]-> 4
- {n7}: i = 0;
+ {n7}: int i = 0;
    -[-c-]-> 1
    -[a--]-> 5
  {n8}: while(1)

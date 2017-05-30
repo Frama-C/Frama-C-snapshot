@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -97,7 +97,7 @@ class type t =  object
   (** [append_pixbuf_column title f visible] appends a new column with name
       [title] to the file tree and registers [f] as a callback computing the
       list of properties for this column. Do not forget that properties need
-      to be set and unset explictely. The argument [visible] is used by the
+      to be set and unset explicitly. The argument [visible] is used by the
       column to decide whether it should appear. The returned function
       can be used to force an update on the display of the column
       [`Visibility] means that the column must be show or hidden. [`Contents]

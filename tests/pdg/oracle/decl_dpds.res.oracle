@@ -21,6 +21,7 @@ tests/pdg/decl_dpds.c:25:[value] warning: signed overflow.
 tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert (int)((int)(argc0 + argc1) + G) + S.a ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
+[scope:rm_asserts] removing 1 assertion(s)
 [pdg] computing for function main
 [pdg] done for function main
 [pdg] PDG for main
@@ -52,72 +53,69 @@ tests/pdg/decl_dpds.c:25:[value] warning: signed overflow. assert (int)((int)(ar
    -[a-d]-> 2
    -[--d]-> 3
    -[-c-]-> 12
- {n15}: ;
-   -[-c-]-> 1
-   -[-c-]-> 12
- {n16}: argc0 = tmp;
+ {n15}: int argc0 = tmp;
    -[-c-]-> 1
    -[a--]-> 6
    -[--d]-> 7
    -[--d]-> 13
- {n17}: argc1 = argc;
+ {n16}: int argc1 = argc;
    -[-c-]-> 1
    -[--d]-> 2
    -[a--]-> 8
    -[--d]-> 14
- {n18}: c = *(*(argv + (argc - 1)) + 0);
+ {n17}: char c = *(*(argv + (argc - 1)) + 0);
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 4
    -[--d]-> 5
    -[a--]-> 9
    -[--d]-> 14
+   -[--d]-> 28
    -[--d]-> 29
    -[--d]-> 30
-   -[--d]-> 31
- {n19}: *(*(argv + (argc - 1)) + 0) = (char)'a';
+ {n18}: *(*(argv + (argc - 1)) + 0) = (char)'a';
    -[-c-]-> 1
    -[a--]-> 2
    -[a--]-> 4
    -[a--]-> 5
    -[a--]-> 14
-   -[a--]-> 29
- {n20}: argc = 0;
+   -[a--]-> 28
+ {n19}: argc = 0;
    -[-c-]-> 1
    -[a--]-> 2
- {n21}: argc0
+ {n20}: argc0
    -[-c-]-> 1
    -[--d]-> 6
-   -[--d]-> 16
- {n22}: p = & argc0;
+   -[--d]-> 15
+ {n21}: int *p = & argc0;
    -[-c-]-> 1
    -[--d]-> 6
    -[a--]-> 10
-   -[-c-]-> 21
- {n23}: (*p) ++;
+   -[-c-]-> 20
+ {n22}: (*p) ++;
    -[-c-]-> 1
    -[a-d]-> 10
-   -[--d]-> 16
-   -[-c-]-> 21
-   -[a-d]-> 22
- {n24}: __retres = ((argc0 + argc1) + G) + S.a;
+   -[--d]-> 15
+   -[-c-]-> 20
+   -[a-d]-> 21
+ {n23}: __retres = ((argc0 + argc1) + G) + S.a;
    -[-c-]-> 1
    -[--d]-> 6
    -[--d]-> 8
    -[a--]-> 11
+   -[--d]-> 15
    -[--d]-> 16
-   -[--d]-> 17
-   -[--d]-> 23
+   -[--d]-> 22
+   -[--d]-> 26
    -[--d]-> 27
-   -[--d]-> 28
- {n25}: return __retres;
+ {n24}: return __retres;
    -[-c-]-> 1
    -[--d]-> 11
+   -[--d]-> 23
+ {n25}: OutRet
    -[--d]-> 24
- {n26}: OutRet
-   -[--d]-> 25
- {n27}: In(G)
- {n28}: In(S.a)
- {n29}: In(S_argv[0..3])
- {n30}: In(S_0_S_argv[0])
- {n31}: In(S_1_S_argv[0])
+ {n26}: In(G)
+ {n27}: In(S.a)
+ {n28}: In(S_argv[0..3])
+ {n29}: In(S_0_S_argv[0])
+ {n30}: In(S_1_S_argv[0])

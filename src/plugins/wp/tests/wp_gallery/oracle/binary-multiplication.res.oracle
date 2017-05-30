@@ -1,0 +1,25 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/binary-multiplication.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function BinaryMultiplication
+[wp] Goal typed_lemma_ax1_lack : not tried
+[wp] Goal typed_lemma_ax2_ok : not tried
+[wp] Goal typed_lemma_ax3_lack : not tried
+[wp] Goal typed_lemma_ax4_lack : not tried
+[wp] Goal typed_lemma_ax5_ok : not tried
+[wp] Goal typed_lemma_ax6_ok : not tried
+[wp] Goal typed_lemma_sizeof_uint32_t_ok : trivial
+[wp] Goal typed_lemma_sizeof_uint64_t_ok : trivial
+[wp] Goal typed_BinaryMultiplication_post_product : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_preserved : not tried
+[wp] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_established : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a2_ok : not tried
+[wp] Goal typed_BinaryMultiplication_assert_a3_ok : not tried
+[wp] Goal typed_BinaryMultiplication_loop_assign : trivial
+[wp] Goal typed_BinaryMultiplication_loop_term_decrease : not tried
+[wp] Goal typed_BinaryMultiplication_loop_term_positive : not tried

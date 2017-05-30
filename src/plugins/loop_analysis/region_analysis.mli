@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@
 include module type of Region_analysis_sig;;
 
 module Make(N:Node):sig
-  (* Function computing from an entry abstracat value the "after"
+  (* Function computing from an entry abstract value the "after"
      state, which is a map from each outgoing edge to its respective
      value. *)
   val after: N.abstract_value -> N.abstract_value N.Edge_Dict.t

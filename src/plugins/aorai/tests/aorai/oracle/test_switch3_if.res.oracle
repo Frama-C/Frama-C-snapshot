@@ -124,9 +124,8 @@ void countOne_post_func(int res)
  */
 int countOne(char *argv)
 {
-  int r;
   countOne_pre_func(argv);
-  r = 0;
+  int r = 0;
   if ((int)*(argv + 0) != 0) {
     int tmp;
     r ++;

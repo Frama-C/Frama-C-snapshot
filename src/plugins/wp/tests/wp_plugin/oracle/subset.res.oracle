@@ -9,22 +9,22 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/subset.i, line 4) in 'mem':
-Let x = a.base.
-Let x_1 = b.base.
+Let x = b.base.
+Let x_1 = a.base.
 Assume {
   Type: is_sint32(mem_0) /\ is_sint32(n).
   (* Heap *)
-  Have: (region(x) <= 0) /\ (region(x_1) <= 0).
+  Have: (region(x_1) <= 0) /\ (region(x) <= 0).
   (* Pre-condition *)
   Have: x = x_1.
   If addr_le(b, a)
   Then {
     If addr_le(a, shift_sint32(b, n))
-    Then { Have: 1 = mem_0. }
-    Else { Have: 0 = mem_0. }
+    Then { Have: mem_0 = 1. }
+    Else { Have: mem_0 = 0. }
   }
-  Else { Have: 0 = mem_0. }
+  Else { Have: mem_0 = 0. }
 }
-Prove: (0 != mem_0) <-> included(a, 1, shift_sint32(b, 0), 1 + n).
+Prove: included(a, 1, shift_sint32(b, 0), 1 + n) <-> (mem_0 != 0).
 
 ------------------------------------------------------------

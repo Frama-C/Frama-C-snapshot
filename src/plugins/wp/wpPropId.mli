@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,9 @@ module PropId : Datatype.S with type t = prop_id
 
 val compare_prop_id : prop_id -> prop_id -> int
 
+val tactical : gid:string -> prop_id
 val is_check : prop_id -> bool
+val is_tactic : prop_id -> bool
 val is_assigns : prop_id -> bool
 val is_requires : Property.t -> bool
 val is_loop_preservation : prop_id -> stmt option
@@ -69,6 +71,7 @@ val get_propid : prop_id -> string (** Unique identifier of [prop_id] *)
 val pp_propid : Format.formatter -> prop_id -> unit (** Print unique id of [prop_id] *)
 
 type prop_kind =
+  | PKTactic      (** tactical sub-goal *)
   | PKCheck       (** internal check *)
   | PKProp        (** normal property *)
   | PKEstablished (** computation related to a loop property before the loop. *)
@@ -81,7 +84,7 @@ type prop_kind =
   | PKPre of kernel_function * stmt * Property.t (** precondition for function
                                                      at stmt, property of the require. Many information that should come
                                                      from the p_prop part of the prop_id, but in the PKPre case,
-                                                     it seems that it is hiden in a IPBlob property ! *)
+                                                     it seems that it is hidden in a IPBlob property ! *)
 
 val pretty : Format.formatter -> prop_id -> unit
 val pretty_context : Description.kf -> Format.formatter -> prop_id -> unit
@@ -239,7 +242,7 @@ val mk_part : prop_id -> (int * int) -> prop_id
 (** get the 'kind' information. *)
 val kind_of_id : prop_id -> prop_kind
 
-(** get the 'part' infomation. *)
+(** get the 'part' information. *)
 val parts_of_id : prop_id -> (int * int) option
 
 (** How many subproofs *)

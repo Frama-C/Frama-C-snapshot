@@ -9,7 +9,7 @@
  */
 /*@ lemma simplify_dumb_4: ∀ ℤ c; c % 14 ≡ 0 ⇒ c > 0 ⇒ c ≥ 14;
  */
-extern void print4(int);
+void print4(int);
 
 int a = 10000;
 int b;
@@ -40,15 +40,11 @@ void main(void)
       {
         int tmp;
         d += f[b] * a;
-        { /* sequence */
-          g --;
-          f[b] = d % g;
-        }
-        { /* sequence */
-          tmp = g;
-          g --;
-          d /= tmp;
-        }
+        g --;
+        f[b] = d % g;
+        tmp = g;
+        g --;
+        d /= tmp;
         b --;
         if (! b) break;
         d *= b;

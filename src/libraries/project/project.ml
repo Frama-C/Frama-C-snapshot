@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -160,7 +160,7 @@ module States_operations = struct
       if n > 0 then begin
         warning ~once:true
           fmt
-	  n
+          n
           (if n = 1 then "" else "s")
           (if n = 1 then msg_sing else msg_plural)
       end
@@ -171,28 +171,30 @@ module States_operations = struct
     iter_on_selection
       ?selection
       (fun s () ->
-         try
-           let n = get_unique_name s in
-           let d = Hashtbl.find tbl n in
-           (try
-	      (private_ops s).unserialize dst d;
-	      (* do not remove if [State.Incompatible_datatype] occurs *)
-              Hashtbl.remove tbl n
-            with 
-	    | Not_found -> assert false
-	    | State.Incompatible_datatype _ ->
-	      (* datatype of [s] on disk is incompatible with the one in RAM: as
-		 [dst] is a new project, [s] is already equal to its default
-		 value. However must clear the dependencies for consistency, but
-		 it is doable only when all states are loaded. *)
-	      State.Hashtbl.add invalid_on_disk s ())
-         with Not_found ->
-           (* [s] is in RAM but not on disk: silently ignore it!
-	      Furthermore, all the dependencies of [s] are consistent 
-              with this default value. So no need to clear them. Whenever
-              the value of [s] in [dst] changes, the dependencies will be
-              cleared (if required by the user). *)
-           ())
+        try
+          let n = get_unique_name s in
+          let d = Hashtbl.find tbl n in
+          (try
+             (private_ops s).unserialize dst d;
+              (* do not remove if [State.Incompatible_datatype] occurs *)
+             Hashtbl.remove tbl n
+           with
+           | Not_found ->
+             fatal "unexpected 'Not_found' when unserializing; \
+                    possibly an issue with a hook"
+           | State.Incompatible_datatype _ ->
+              (* datatype of [s] on disk is incompatible with the one in RAM: as
+                 [dst] is a new project, [s] is already equal to its default
+                 value. However must clear the dependencies for consistency, but
+                 it is doable only when all states are loaded. *)
+             State.Hashtbl.add invalid_on_disk s ())
+        with Not_found ->
+           (* [s] is in RAM but not on disk: silently ignore it!  Furthermore,
+              all the dependencies of [s] are consistent with this default
+              value. So no need to clear them. Whenever the value of [s] in
+              [dst] changes, the dependencies will be cleared (if required by
+              the user). *)
+          ())
       ();
     (* warns for the saved states that cannot be loaded
        (either they are not in RAM or they are incompatible). *)
@@ -212,19 +214,19 @@ module States_operations = struct
     (* after loading, reset dependencies of incompatible states *)
     let to_be_cleared =
       State.Hashtbl.fold
-	(fun s () -> 
-	  State_selection.union
-	    (State_selection.only_dependencies s))
-	invalid_on_disk
-	State_selection.empty
+        (fun s () ->
+          State_selection.union
+            (State_selection.only_dependencies s))
+        invalid_on_disk
+        State_selection.empty
     in
     let nb_cleared = State_selection.cardinal to_be_cleared in
     if nb_cleared > 0 then begin
       pp_err "%d state%s in memory reset to their default value. \
 %s this Frama_C configuration."
-	nb_cleared
-	"It is inconsistent in"
-	"They are inconsistent in";
+        nb_cleared
+        "It is inconsistent in"
+        "They are inconsistent in";
       clear ~selection:to_be_cleared dst
     end
 
@@ -683,7 +685,11 @@ let load_projects ~project_under_copy selection ?name filename =
   if Cmdline.use_obj then begin
     let cin = open_in_bin filename in
     let gen_read f cin =
-      try f cin with Failure s -> close_in cin; raise (IOError s)
+      try f cin with
+      | End_of_file ->
+        close_in cin;
+        abort "unexpected end of file while loading '%s'" filename
+      | Failure s -> close_in cin; raise (IOError s)
     in
     let read = gen_read input_value in
     let check_magic cin to_string current =

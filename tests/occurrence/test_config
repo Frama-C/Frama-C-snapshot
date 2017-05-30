@@ -1,1 +1,1 @@
-STDOPT: -"-val" -"-out" -"-input" -"-deps" +"-occurrence-verbose 1"
+STDOPT: +"-load-module" +"occurrence" -"-val" -"-out" -"-input" -"-deps" +"-occurrence-verbose 1"

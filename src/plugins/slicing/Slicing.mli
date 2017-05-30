@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@
 module PrintSlice: sig
   val print_fct_stmts:
     Format.formatter ->
-    Db.Slicing.Project.t * Kernel_function.t ->
+    Kernel_function.t ->
     unit
 end
 

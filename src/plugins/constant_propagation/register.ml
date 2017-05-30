@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,7 +81,7 @@ class propagate project fnames ~cast_intro = object(self)
 
   (* introduce a new cast from [oldt] to [newt] or do not expand [e] *)
   method private add_cast ~ignore_const_cast ~oldt ~newt e =
-    (* strip the superfleous 'const' attribute (see bts #1787) on
+    (* strip the superfluous 'const' attribute (see bts #1787) on
        pointed values. *)
     let oldt, newt =
       if ignore_const_cast then

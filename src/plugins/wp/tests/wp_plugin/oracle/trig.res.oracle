@@ -16,11 +16,11 @@ Assume {
       is_uint8((a.F1_MSG_text)[2]) /\ is_uint8((b.F1_MSG_text)[2]) /\
       is_uint8(a_1[2]) /\ is_uint8(a_1[7]).
   (* Pre-condition *)
-  Have: (5 = (a.F1_MSG_size)) /\ (5 = (b.F1_MSG_size)).
+  Have: ((a.F1_MSG_size) = 5) /\ ((b.F1_MSG_size) = 5).
   (* Call 'fconcat' *)
   Have: EqS1_MSG(c, L_concat(a, b)).
 }
-Prove: 10 = x.
+Prove: x = 10.
 
 ------------------------------------------------------------
 
@@ -32,39 +32,39 @@ Assume {
   Type: IsS1_MSG(a) /\ IsS1_MSG(b) /\ IsS1_MSG(c) /\ is_uint8(a_1) /\
       is_uint8((b.F1_MSG_text)[2]) /\ is_uint8(a_3) /\ is_uint8(a_2[7]).
   (* Pre-condition *)
-  Have: (5 = (a.F1_MSG_size)) /\ (5 = (b.F1_MSG_size)).
+  Have: ((a.F1_MSG_size) = 5) /\ ((b.F1_MSG_size) = 5).
   (* Call 'fconcat' *)
   Have: EqS1_MSG(c, L_concat(a, b)).
   (* Assertion 'qed_ok,S' *)
-  Have: 10 = (c.F1_MSG_size).
+  Have: (c.F1_MSG_size) = 10.
 }
-Prove: a_1 = a_3.
+Prove: a_3 = a_1.
 
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok,B' (file tests/wp_plugin/trig.i, line 41):
-Let a_1 = (a.F1_MSG_text)[2].
-Let a_2 = c.F1_MSG_text.
-Let a_3 = a_2[2].
+Let a_1 = c.F1_MSG_text.
+Let a_2 = a_1[2].
+Let a_3 = (a.F1_MSG_text)[2].
 Let a_4 = (b.F1_MSG_text)[2].
-Let a_5 = a_2[7].
+Let a_5 = a_1[7].
 Assume {
-  Type: IsS1_MSG(a) /\ IsS1_MSG(b) /\ IsS1_MSG(c) /\ is_uint8(a_1) /\
-      is_uint8(a_4) /\ is_uint8(a_3) /\ is_uint8(a_5).
+  Type: IsS1_MSG(a) /\ IsS1_MSG(b) /\ IsS1_MSG(c) /\ is_uint8(a_3) /\
+      is_uint8(a_4) /\ is_uint8(a_2) /\ is_uint8(a_5).
   (* Pre-condition *)
-  Have: (5 = (a.F1_MSG_size)) /\ (5 = (b.F1_MSG_size)).
+  Have: ((a.F1_MSG_size) = 5) /\ ((b.F1_MSG_size) = 5).
   (* Call 'fconcat' *)
   Have: EqS1_MSG(c, L_concat(a, b)).
   (* Assertion 'qed_ok,S' *)
-  Have: 10 = (c.F1_MSG_size).
+  Have: (c.F1_MSG_size) = 10.
   (* Assertion 'qed_ok,A' *)
-  Have: a_1 = a_3.
+  Have: a_2 = a_3.
 }
-Prove: a_4 = a_5.
+Prove: a_5 = a_4.
 
 ------------------------------------------------------------
 
-Goal Instance of 'Pre-condition 'qed_ok' in 'fconcat'' in 'foo' at call 'fconcat' (file tests/wp_plugin/trig.i, line 38)
+Goal Instance of 'Pre-condition 'qed_ok' in 'fconcat'' in 'foo' at initialization of 'c' (file tests/wp_plugin/trig.i, line 38)
 :
 Prove: true.
 

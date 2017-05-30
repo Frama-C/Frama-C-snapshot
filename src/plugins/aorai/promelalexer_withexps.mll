@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -92,9 +92,9 @@ rule token = parse
                               PROMELA_CALLORRETURNOF s }
 
 
-  | "callof_"               { raise_located (loc lexbuf) "Illegal fonction name in Promela file." }
-  | "returnof_"             { raise_located (loc lexbuf) "Illegal fonction name in Promela file." }
-  | "callorreturnof_"       { raise_located (loc lexbuf) "Illegal fonction name in Promela file." }
+  | "callof_"               { raise_located (loc lexbuf) "Illegal function name in Promela file." }
+  | "returnof_"             { raise_located (loc lexbuf) "Illegal function name in Promela file." }
+  | "callorreturnof_"       { raise_located (loc lexbuf) "Illegal function name in Promela file." }
 
 
   | rD+ | '-' rD+           { PROMELA_INT (lexeme lexbuf) }

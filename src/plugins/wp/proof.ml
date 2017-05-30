@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -133,7 +133,7 @@ let dump_scripts file =
               Format.fprintf fmt "Hint %s" k ;
               List.iter (fun k -> Format.fprintf fmt ",%s" k) ks ;
               Format.fprintf fmt ".@\n");
-         Format.fprintf fmt "Proof.@\n%s@\n%s@\n@." proof qed
+         Format.fprintf fmt "Proof.@\n%s%s@\n@." proof qed
       ) (List.sort String.compare goals) ;
     Format.pp_print_newline fmt () ;
     close_out out ;

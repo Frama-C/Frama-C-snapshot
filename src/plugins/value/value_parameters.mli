@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,6 @@
 include Plugin.General_services
 
 module ForceValues: Parameter_sig.With_output
-
-module Eva: Parameter_sig.Bool
 
 module EnumerateCond: Parameter_sig.Bool
 module OracleDepth: Parameter_sig.Int
@@ -108,6 +106,7 @@ module BuiltinsOverrides:
   Parameter_sig.Map with type key = Cil_types.kernel_function
                     and type value = string
 module BuiltinsAuto: Parameter_sig.Bool
+module BuiltinsList: Parameter_sig.Bool
 module SplitReturnFunction:
   Parameter_sig.Map with type key = Cil_types.kernel_function
                     and type value = Split_strategy.t
@@ -120,6 +119,7 @@ module ValPerfFlamegraphs: Parameter_sig.String
 module ShowSlevel: Parameter_sig.Int
 module PrintCallstacks: Parameter_sig.Bool
 module AlarmsWarnings: Parameter_sig.Bool
+module WarnBuiltinOverride: Parameter_sig.Bool
 
 module MemExecAll: Parameter_sig.Bool
 
@@ -151,6 +151,10 @@ val dkey_alarm: Log.category
 
 (** Debug category used to print garbled mix *)
 val dkey_garbled_mix: Log.category
+
+(** Debug category used to print information about invalid pointer comparisons*)
+val dkey_pointer_comparison: Log.category
+
 
 (*
 Local Variables:

@@ -32,14 +32,7 @@
 [pdg] done for function main
 [pdg] computing for function apply
 [pdg] done for function apply
-[pdg] computing for function find
-[pdg] done for function find
 [impact] impacted statements of stmt(s) 11 are:
-           tests/impact/depend2.i:5 (sid 2): return x;
-           tests/impact/depend2.i:7 (sid 5): tmp = find(x);
-           tests/impact/depend2.i:7 (sid 7): __retres = tmp + y;
-           tests/impact/depend2.i:13 (sid 12): b = apply(2,200);
-           tests/impact/depend2.i:14 (sid 14): __retres = a + b;
-           tests/impact/depend2.i:7 (sid 17): return __retres;
-           tests/impact/depend2.i:14 (sid 19): return __retres;
+           tests/impact/depend2.i:14 (sid 13): __retres = a + b;
+           tests/impact/depend2.i:14 (sid 18): return __retres;
 [impact] analysis done

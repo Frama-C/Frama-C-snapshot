@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -277,10 +277,10 @@ let check_strongest_emitted x y = match x, y with
   | False_and_reachable, False_if_reachable 
     -> true
 
-(* [strenghten emitter emitted_status status] gets [status] and updates it
+(* [strengthen emitter emitted_status status] gets [status] and updates it
    according to [emitted_status] (which was emitted by [emitter]): that returns
    the strongest status between them, or an inconsistency if any. *)
-let strenghten emitter emitted_status status = 
+let strengthen emitter emitted_status status =
   match status, emitted_status with
   | Never_tried, (True | False_if_reachable | False_and_reachable | Dont_know) 
     -> 
@@ -697,7 +697,7 @@ and get_status ?(must_register=true) ppt =
 	  else
 	    s, true
 	in
-	if tried then strenghten e s acc else acc)
+	if tried then strengthen e s acc else acc)
       by_emitter 
       Never_tried
   with Not_found ->

@@ -20,7 +20,7 @@
 [value] Done for function f
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function f
@@ -48,10 +48,8 @@ int f_slice_1(int x, int y)
 
 int main(void)
 {
-  int a;
-  int b;
-  a = 1;
-  b = 1;
+  int a = 1;
+  int b = 1;
   f_slice_1(a,b);
   a = f_slice_1(G + 1,b);
   return a;

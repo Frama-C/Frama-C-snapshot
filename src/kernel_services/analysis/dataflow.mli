@@ -145,7 +145,7 @@ module type ForwardsTransfer = sig
       would normally be put in the worklist. *)
 
   val stmt_can_reach : Cil_types.stmt -> Cil_types.stmt -> bool
-  (** Must return [true] if ther is a path in the control-flow graph of the
+  (** Must return [true] if there is a path in the control-flow graph of the
       function from the first statement to the second. Used to choose a "good"
       node in the worklist. Suggested use is [let stmt_can_reach =
       Stmts_graph.stmt_can_reach kf], where [kf] is the kernel_function
@@ -225,7 +225,7 @@ module type BackwardsTransfer = sig
       changed) *)
 
   val stmt_can_reach : Cil_types.stmt -> Cil_types.stmt -> bool
-  (** Must return [true] if ther is a path in the control-flow graph of the
+  (** Must return [true] if there is a path in the control-flow graph of the
       function from the first statement to the second. Used to choose a "good"
       node in the worklist.
 
@@ -254,7 +254,7 @@ end
 
 val find_stmts: Cil_types.fundec -> (Cil_types.stmt list * Cil_types.stmt list)
 (** @return (all_stmts, sink_stmts), where all_stmts is a list of the statements
-    in a function, and sink_stmts is a list of the return statments (including
+    in a function, and sink_stmts is a list of the return statements (including
     statements that fall through the end of a void function).  Useful when you
     need an initial set of statements for BackwardsDataFlow.compute. *)
 

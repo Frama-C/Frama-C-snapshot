@@ -1,9 +1,9 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 0 -separate-of 3
-   OPT: -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 1 -separate-of 3 
-   OPT: -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 2 -separate-of 3 
-   OPT: -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 3 -separate-of 3 
-   OPT: -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -val-split-return auto
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 0 -separate-of 3
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 1 -separate-of 3
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 2 -separate-of 3
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -separate-n 3 -separate-of 3
+   OPT: -no-autoload-plugins -load-module from,inout,value -val @VALUECONFIG@ -slevel 10 -lib-entry -main f1 -val-split-return auto
 */
 int index;
 int tab[5];

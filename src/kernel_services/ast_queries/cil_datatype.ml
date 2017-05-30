@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -206,6 +206,7 @@ module Instr = struct
      end)
 
   let loc = function
+    | Local_init (_,_,l) -> l
     | Skip l
     | Set (_,_,l)
     | Call (_,_,_,l)
@@ -543,7 +544,7 @@ end
 let pretty_typ_ref = ref (fun _ _ -> assert false)
 
 module Attributes=
-  Datatype.List_with_collections(Attribute) 
+  Datatype.List_with_collections(Attribute)
     (struct let module_name = "Attributes" end)
 
 module MakeTyp(M:sig val config: type_compare_config val name: string end) =
@@ -564,12 +565,25 @@ struct
      end)
 end
 
-module Typ=
+module Typ= struct
+include
   MakeTyp
     (struct
       let config = { by_name = false; logic_type = false; unroll = true; }
       let name = "Typ"
      end)
+let toplevel_attr = function
+  | TVoid a -> a
+  | TInt (_, a) -> a
+  | TFloat (_, a) -> a
+  | TNamed (_, a) -> a
+  | TPtr (_, a) -> a
+  | TArray (_, _, _,a) -> a
+  | TComp (_, _, a) -> a
+  | TEnum (_, a) -> a
+  | TFun (_, _, _, a) -> a
+  | TBuiltin_va_list a -> a
+end
 
 module TypByName =
   MakeTyp
@@ -997,7 +1011,7 @@ module Block = struct
       type t = block
       let name = "Block"
       let reprs =
-	[ { battrs = []; blocals = Varinfo.reprs; bstmts = Stmt.reprs } ]
+        [{battrs=[]; blocals=Varinfo.reprs; bstmts=Stmt.reprs; bscoping=true}]
       let internal_pretty_code = Datatype.undefined
       let pretty fmt b = !pretty_ref fmt b
       let varname = Datatype.undefined
@@ -1137,7 +1151,9 @@ module Logic_var = struct
             lv_kind = kind;
 	    lv_id = -1;
 	    lv_type = Linteger;
-	    lv_origin = v }
+	    lv_origin = v;
+            lv_attr = [];
+          }
 	in
 	dummy None
 	:: List.map (fun v -> dummy (Some v)) Varinfo.reprs
@@ -1176,7 +1192,8 @@ module Logic_type_info =
     (struct
       type t = logic_type_info
       let name = "Logic_type_info"
-      let reprs = [ { lt_name = ""; lt_params = []; lt_def = None } ]
+      let reprs =
+        [ { lt_name = ""; lt_params = []; lt_def = None; lt_attr=[] } ]
       let compare t1 t2 = String.compare t1.lt_name t2.lt_name
       let equal t1 t2 = t1.lt_name = t2.lt_name
       let hash t = Hashtbl.hash t.lt_name
@@ -1342,6 +1359,7 @@ module Model_info = struct
               mi_base_type = base;
               mi_field_type = field;
               mi_decl = Location.unknown;
+              mi_attr = [];
             })
           Typ.reprs
           Logic_type.reprs
@@ -1358,6 +1376,7 @@ module Model_info = struct
           mi_base_type = Typ.copy mi.mi_base_type;
           mi_field_type = Logic_type.copy mi.mi_field_type;
           mi_decl = Location.copy mi.mi_decl;
+          mi_attr = List.map Attribute.copy mi.mi_attr
         }
       let pretty fmt t = !pretty_ref fmt t
     end)
@@ -1810,14 +1829,14 @@ module Logic_label = struct
 end
 
 module Global_annotation = struct
-
+  let pretty_ref = ref (fun _ -> assert false)
   include Make_with_collections
     (struct
       type t = global_annotation
       let name = "Global_annotation"
-      let reprs = List.map (fun l -> Daxiomatic ("", [], l)) Location.reprs
+      let reprs = List.map (fun l -> Daxiomatic ("", [],[], l)) Location.reprs
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt v = !pretty_ref fmt v
       let varname = Datatype.undefined
 
       let rec compare g1 g2 =
@@ -1825,20 +1844,23 @@ module Global_annotation = struct
           | Dfun_or_pred (l1,_), Dfun_or_pred(l2,_) -> Logic_info.compare l1 l2
           | Dfun_or_pred _,_ -> -1
           | _, Dfun_or_pred _ -> 1
-          | Dvolatile (it1,_,_,_), Dvolatile(it2,_,_,_) ->
-            compare_list Identified_term.compare it1 it2
+          | Dvolatile (it1,_,_,attr1,_), Dvolatile(it2,_,_,attr2,_) ->
+            let res = compare_list Identified_term.compare it1 it2 in
+            if res = 0 then Attributes.compare attr1 attr2 else res
           | Dvolatile _,_ -> -1
           | _,Dvolatile _ -> 1
-          | Daxiomatic (_,g1,_), Daxiomatic (_,g2,_) ->
+          | Daxiomatic (_,g1,attr1,_), Daxiomatic (_,g2,attr2,_) ->
             (* ACSL does not require the name to be unique. *)
-            compare_list compare g1 g2
+            let res = compare_list compare g1 g2 in
+            if res = 0 then Attributes.compare attr1 attr2 else res
           | Daxiomatic _, _ -> -1
           | _, Daxiomatic _ -> 1
           | Dtype(t1,_), Dtype(t2,_) -> Logic_type_info.compare t1 t2
           | Dtype _, _ -> -1
           | _, Dtype _ -> 1
-          | Dlemma (l1,_,_,_,_,_), Dlemma(l2,_,_,_,_,_) ->
-            Datatype.String.compare l1 l2
+          | Dlemma (l1,_,_,_,_,attr1,_), Dlemma(l2,_,_,_,_,attr2,_) ->
+            let res = Datatype.String.compare l1 l2 in
+            if res = 0 then Attributes.compare attr1 attr2 else res
           | Dlemma _, _ -> -1
           | _, Dlemma _ -> 1
           | Dinvariant (l1,_), Dinvariant (l2,_) -> Logic_info.compare l1 l2
@@ -1848,52 +1870,66 @@ module Global_annotation = struct
           | Dtype_annot _, _ -> -1
           | _, Dtype_annot _ -> 1
           | Dmodel_annot(l1,_), Dmodel_annot(l2,_) -> Model_info.compare l1 l2
-	  | Dmodel_annot _, _ -> -1
+          | Dmodel_annot _, _ -> -1
           | _, Dmodel_annot _ -> 1
-	  | Dcustom_annot(_, n1, _), Dcustom_annot(_, n2, _) -> Datatype.String.compare n1 n2
+          | Dcustom_annot(_, n1, attr1, _),
+            Dcustom_annot(_, n2, attr2, _) ->
+            let res = Datatype.String.compare n1 n2 in
+            if res = 0 then Attributes.compare attr1 attr2 else res
 
       let equal = Datatype.from_compare
 
       let rec hash g = match g with
         | Dfun_or_pred (l,_) -> 2 * Logic_info.hash l
-        | Dvolatile ([],_,_,(_source,_)) ->
+        | Dvolatile ([],_,_,_,(_source,_)) ->
           Cmdline.Kernel_log.fatal
             "Empty location list for volatile annotation@."
-        | Dvolatile (t::_,_,_,_) -> 3 * Identified_term.hash t
-        | Daxiomatic (_,[],_) -> 5
+        | Dvolatile (t::_,_,_,_,_) -> 3 * Identified_term.hash t
+        | Daxiomatic (_,[],_,_) -> 5
         (* Empty axiomatic is weird but authorized. *)
-        | Daxiomatic (_,g::_,_) -> 5 * hash g
+        | Daxiomatic (_,g::_,_,_) -> 5 * hash g
         | Dtype (t,_) -> 7 * Logic_type_info.hash t
-        | Dlemma(n,_,_,_,_,_) -> 11 * Datatype.String.hash n
+        | Dlemma(n,_,_,_,_,_,_) -> 11 * Datatype.String.hash n
         | Dinvariant(l,_) -> 13 * Logic_info.hash l
         | Dtype_annot(l,_) -> 17 * Logic_info.hash l
         | Dmodel_annot(l,_) -> 19 * Model_info.hash l
-        | Dcustom_annot(_,n,_) -> 23 * Datatype.String.hash n
+        | Dcustom_annot(_,n,_,_) -> 23 * Datatype.String.hash n
 
       let copy = Datatype.undefined
      end)
 
   let loc = function
     | Dfun_or_pred(_, loc)
-    | Daxiomatic(_, _, loc)
+    | Daxiomatic(_, _, _, loc)
     | Dtype (_, loc)
-    | Dlemma(_, _, _, _, _, loc)
+    | Dlemma(_, _, _, _, _, _, loc)
     | Dinvariant(_, loc)
     | Dtype_annot(_, loc) -> loc
     | Dmodel_annot(_, loc) -> loc
-    | Dvolatile(_, _, _, loc) -> loc
-    | Dcustom_annot(_,_,loc) -> loc
+    | Dvolatile(_, _, _, _,loc) -> loc
+    | Dcustom_annot(_,_,_,loc) -> loc
+
+  let attr = function
+    | Dfun_or_pred({ l_var_info = { lv_attr }}, _) -> lv_attr
+    | Daxiomatic(_, _, attr, _) -> attr
+    | Dtype ({lt_attr}, _) -> lt_attr
+    | Dlemma(_, _, _, _, _, attr, _) -> attr
+    | Dinvariant({ l_var_info = { lv_attr }}, _) -> lv_attr
+    | Dtype_annot({ l_var_info = { lv_attr}}, _) -> lv_attr
+    | Dmodel_annot({ mi_attr }, _) -> mi_attr
+    | Dvolatile(_, _, _, attr, _) -> attr
+    | Dcustom_annot(_,_,attr,_) -> attr
 end
 
 module Global = struct
-
+  let pretty_ref = ref (fun _ -> assert false)
   include Make_with_collections
     (struct
       type t = global
       let name = "Global"
       let reprs = [ GText "" ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt v = !pretty_ref fmt v
       let varname = Datatype.undefined
 
       let compare g1 g2 =
@@ -1970,6 +2006,15 @@ module Global = struct
     | GPragma(_, l)
     | GAnnot (_, l) -> l
     | GText _ -> Location.unknown
+
+  let attr = function
+  | GVar (vi,_,_) | GFun ({svar = vi},_) | GVarDecl (vi,_) | GFunDecl (_,vi,_)->
+    vi.vattr
+  | GType (t,_) -> Typ.toplevel_attr t.ttype
+  | GCompTag(ci,_) | GCompTagDecl(ci,_) -> ci.cattr
+  | GEnumTag(ei,_) | GEnumTagDecl(ei,_) -> ei.eattr
+  | GAnnot (g,_) -> Global_annotation.attr g
+  | _ -> []
 
 end
 
@@ -2080,8 +2125,9 @@ module Code_annotation = struct
 
 end
 
-module Predicate =
-  Make
+module Predicate = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make
     (struct
       type t = predicate
       let name = "Predicate"
@@ -2090,12 +2136,14 @@ module Predicate =
             pred_loc = Location.unknown;
             pred_content = Pfalse } ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt x = !pretty_ref fmt x
       let varname _ = "p"
      end)
+end
 
-module Identified_predicate =
-  Make_with_collections
+module Identified_predicate = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
         type t = identified_predicate
         let name = "Identified_predicate"
@@ -2106,9 +2154,10 @@ module Identified_predicate =
         let copy = Datatype.undefined
         let hash x = x.ip_id
         let internal_pretty_code = Datatype.undefined
-        let pretty = Datatype.undefined
+        let pretty fmt x = !pretty_ref fmt x
         let varname _ = "id_predyes"
      end)
+end
 
 module Funbehavior =
   Datatype.Make
@@ -2128,8 +2177,9 @@ module Funbehavior =
       let mem_project = Datatype.never_any_project
      end)
 
-module Funspec =
-  Datatype.Make
+module Funspec = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Datatype.Make
     (struct
       include Datatype.Serializable_undefined
       type t = funspec
@@ -2140,8 +2190,10 @@ module Funspec =
 	    spec_terminates = None;
 	    spec_complete_behaviors = [];
 	    spec_disjoint_behaviors = [] } ]
+      let pretty fmt x = !pretty_ref fmt x
       let mem_project = Datatype.never_any_project
      end)
+end
 
 module Fundec = struct 
 
@@ -2150,7 +2202,7 @@ module Fundec = struct
     sformals = [];
     slocals = [];
     smaxid = 0;
-    sbody = { battrs = [] ; blocals = []; bstmts = [] };
+    sbody = List.hd (Block.reprs);
     smaxstmtid = None;
     sallstmts = [];
     sspec = fs ;

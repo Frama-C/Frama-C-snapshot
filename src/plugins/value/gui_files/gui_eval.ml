@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,10 +88,10 @@ let reduce_loc_and_eval ~with_alarms state ref_ok loc =
           GO_InvalidLoc, false
         else
           try
+            if not (Locations.is_valid ~for_writing:false loc) then
+              Warn.warn_mem with_alarms;
             let size = Int_Base.project loc'.Locations.size in
-            match Eval_op.copy_offsetmap
-                    ~with_alarms loc'.Locations.loc size state
-            with
+            match Cvalue.Model.copy_offsetmap loc'.Locations.loc size state with
             | `Bottom -> GO_Bottom, false
             | `Value offsm ->
               let ok = !ref_ok && (Locations.loc_equal loc loc') in
@@ -102,7 +102,7 @@ let reduce_loc_and_eval ~with_alarms state ref_ok loc =
 
 let lval_to_offsetmap state lv =
   let with_alarms, ok = log_alarms () in
-  let ploc = Eval_exprs.lval_to_precise_loc ~with_alarms state lv in
+  let _, ploc, _ = !Db.Value.lval_to_precise_loc_state ~with_alarms state lv in
   let aux loc (acc_res, acc_ok) =
     let res, ok =
       match lv with (* catch simplest pattern *)
@@ -142,8 +142,9 @@ let lval_ev =
 
 let lval_zone_ev =
   let lv_to_zone state lv =
-    let with_alarms = CilE.warn_none_mode in
-    let ploc = Eval_exprs.lval_to_precise_loc ~with_alarms state lv in
+    let _, ploc =
+      !Db.Value.lval_to_precise_loc_with_deps_state state lv ~deps:None
+    in
     let z = Precise_locs.enumerate_valid_bits ~for_writing:false ploc in
     z, false
   in
@@ -465,7 +466,7 @@ let gui_loc_logic_env lm =
     let e = Logic_typing.Lenv.empty () in
     Logic_typing.(append_pre_label (append_init_label (append_here_label e)))
   in
-  let stmt () = pre () in (* TODO: add LoopInit and LoopCurrent when supported*)
+  let stmt () = pre () in (*TODO: add LoopEntry and LoopCurrent when supported*)
   let post () = Logic_typing.append_old_and_post_labels (stmt ()) in
   match lm with
   | GL_Stmt _ -> stmt ()

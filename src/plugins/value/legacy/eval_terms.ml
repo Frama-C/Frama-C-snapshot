@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ let join_predicate_status x y = match x, y with
 
 exception Stop
 
-let join_list_predicate_status l =
+let _join_list_predicate_status l =
   try
     let r =
       List.fold_left 
@@ -118,6 +118,24 @@ let warn_reduce_mode () =
   else
     warn_raise_mode
 
+let find_or_alarm ~with_alarms state loc =
+  if not (Locations.is_valid ~for_writing:false loc) then
+    Warn.warn_mem with_alarms;
+  let v = Model.find_indeterminate ~conflate_bottom:true state loc in
+  begin
+    let open Cvalue.V_Or_Uninitialized in
+    match v with
+    | C_uninit_esc _ ->
+      Warn.warn_uninitialized with_alarms;
+      Warn.warn_escapingaddr with_alarms;
+    | C_uninit_noesc _ ->
+      Warn.warn_uninitialized with_alarms;
+    | C_init_esc _ ->
+      Warn.warn_escapingaddr with_alarms;
+    | C_init_noesc _ -> ()
+  end;
+  V_Or_Uninitialized.get_v v
+
 
 (* Evaluation environments. Used to evaluate predicate on \at nodes *)
 
@@ -143,7 +161,7 @@ let warn_reduce_mode () =
    L:
    x = 1;
    \assert \at(x == 1, L);
-   A naïve implementation of assertions involving C labels is likely to miss
+   A naive implementation of assertions involving C labels is likely to miss
    the fact that the assertion is false after the else branch. A good
    solution is to use a dummy edge that flows from L to the assertion,
    to force its re-evaluation.
@@ -253,7 +271,8 @@ let bind_logic_vars env lvs =
     try
       let b, cty = supported_logic_var lv in
       let size = Int.of_int (Cil.bitsSizeOf cty) in
-      Model.add_new_base b ~size V.top_int ~size_v:Int.one state
+      let v = Cvalue.V_Or_Uninitialized.initialized V.top_int in
+      Model.add_base_value b ~size v ~size_v:Int.one state
     with Cil.SizeOfError _ -> unsupported_lvar lv
   in
   let state = env_current_state env in
@@ -305,7 +324,7 @@ let rec infer_type = function
         unsupported (Pretty_utils.to_string Cil_datatype.Logic_type.pretty t)
       else Logic_const.plain_or_set infer_type t
 
-(* Best effort for compring the types currently understood by Value: ignore
+(* Best effort for comparing the types currently understood by Value: ignore
    differences in integer and floating-point sizes, that are meaningless
    in the logic *)
 let same_etype t1 t2 =
@@ -425,16 +444,16 @@ let check_logic_alarms ~with_alarms (_v1: V.t eval_result) op v2 =
   | Div | Mod -> (* This captures floating-point division by 0, which is ok
                     because it is also a logic alarm for Value. *)
     if V.contains_zero v2.eover then
-      Valarms.warn_div with_alarms ~addresses:false
+      Warn.warn_div with_alarms ~addresses:false
   | Shiftlt | Shiftrt -> begin
       (* Check that [e2] is positive. [e1] can be arbitrary, we use
          the arithmetic vision of shifts *)
       try
         let i2 = Cvalue.V.project_ival_bottom v2.eover in
         if not (Ival.is_included i2 Ival.positive_integers) then
-          Valarms.warn_shift with_alarms None;
+          Warn.warn_shift with_alarms;
       with Cvalue.V.Not_based_on_null ->
-        Valarms.warn_shift with_alarms None;
+        Warn.warn_shift with_alarms;
     end
   | _ -> ()
 
@@ -461,6 +480,64 @@ let constraint_trange idx size_arr =
       end
     | _ -> idx
   else idx
+
+(* Evaluates the logical predicate [strlen] using str* builtins.
+   Returns [res, alarms], where [res] is the return value of [strlen]
+   ([None] the evaluation results in [bottom]). *)
+let logic_strlen_builtin state arg v =
+  let args = [ (Builtins_string.Term arg, v) ] in
+  (* the call below could in theory return Builtins.Invalid_nb_of_args,
+     but logic typing constraints prevent that. *)
+  let res, alarms = Builtins_string.frama_c_strlen_wrapper state args in
+  match res.Value_types.c_values with
+  | [(opt_offsm, _state)] -> begin
+      match opt_offsm with
+      | None -> None
+      | Some offsm -> Some (offsm, alarms)
+    end
+  | l -> Kernel.fatal "strlen builtin should always return a singleton \
+                       (got %d states)" (List.length l)
+
+(* Never raises exceptions; instead, returns [-1,+oo] in case of alarms
+   (most imprecise result possible for the logic strlen predicate). *)
+let eval_logic_strlen env arg v ldeps =
+  let eover =
+    match logic_strlen_builtin (env_current_state env) arg v with
+    | None -> Cvalue.V.bottom
+    | Some (offsm, alarms) ->
+      if Builtins_string.String_alarms.Set.is_empty alarms
+      then
+        let v = Extlib.the (Cvalue.V_Offsetmap.single_interval_value offsm) in
+        Cvalue.V_Or_Uninitialized.get_v v
+      else Cvalue.V.inject_ival (Ival.inject_range (Some Int.minus_one) None)
+  in
+  let eunder = under_from_over eover in
+  (* the C strlen function has type size_t, but the logic strlen predicate has
+     type ℤ (signed) *)
+  let etype = Cil.intType in
+  { etype; ldeps; eover; eunder }
+
+(* Evaluates the logical predicate is_allocable, according to the following
+   logic:
+   - if the size to allocate is always too large (> SIZE_MAX), allocation fails;
+   - otherwise, if MallocReturnsNull is true or if the size may exceed SIZE_MAX,
+     returns Unknown (to simulate non-determinism);
+   - otherwise, allocation always succeeds. *)
+let eval_is_allocable size =
+  let size_ok = Builtins_malloc.alloc_size_ok size in
+  match size_ok, Value_parameters.MallocReturnsNull.get () with
+  | Alarmset.False, _ -> False
+  | Alarmset.Unknown, _ | _, true -> Unknown
+  | Alarmset.True, false -> True
+
+(* returns true iff the logic variable is defined by the
+   Frama-C standard library *)
+let comes_from_fc_stdlib lvar =
+  Cil.hasAttribute "fc_stdlib" lvar.lv_attr ||
+  match lvar.lv_origin with
+  | None -> false
+  | Some vi ->
+    Cil.hasAttribute "fc_stdlib" vi.vattr
 
 let rec eval_term ~with_alarms env t =
   match t.term_node with
@@ -505,8 +582,8 @@ let rec eval_term ~with_alarms env t =
         let size = Eval_typ.sizeof_lval_typ typ in
         let state = env_current_state env in
 	let eover_loc = make_loc (lval.eover) size in
-	let eover = Eval_op.find ~with_alarms state eover_loc in
-	let eover = Eval_op.make_volatile ~typ eover in
+	let eover = find_or_alarm ~with_alarms state eover_loc in
+	let eover = Cvalue_forward.make_volatile ~typ eover in
 	let eover = Eval_op.reinterpret ~with_alarms typ eover in
         (* Skip dependencies if state is dead *)
         let deps =
@@ -615,14 +692,11 @@ let rec eval_term ~with_alarms env t =
     | TCastE (typ, t) ->
         let r = eval_term ~with_alarms env t in
         let conv v =
-          let msg fmt =
-            Format.fprintf fmt "%a (%a)" Printer.pp_term t V.pretty v
-          in
           (* This is a bit tricky. do_promotion ignores the *size* of src_typ,
              and is only interested in the distinction between float and
              integer/pointers. Thus, we can use r.etype as its argument. *)
           Eval_op.do_promotion ~with_alarms
-            real_mode ~src_typ:r.etype ~dst_typ:typ v msg
+            real_mode ~src_typ:r.etype ~dst_typ:typ v
         in
         let eover, eunder =
           (* See if the cast does something. If not, we can keep eunder as is.*)
@@ -636,28 +710,8 @@ let rec eval_term ~with_alarms env t =
           ldeps = r.ldeps; eunder; eover }
 
     | Tif (tcond, ttrue, tfalse) ->
-        let r = eval_term ~with_alarms env tcond in
-        let ctrue =  Cvalue.V.contains_non_zero r.eover
-        and cfalse =  Cvalue.V.contains_zero r.eover in
-        (match ctrue, cfalse with
-          | true, true ->
-              let vtrue = eval_term ~with_alarms env ttrue in
-              let vfalse = eval_term ~with_alarms env tfalse in
-              if not (same_etype vtrue.etype vfalse.etype) then
-                Value_parameters.failure ~current:true
-                  "Incoherent types in conditional '%a': %a vs. %a. \
-                  Please report"
-                  Printer.pp_term t Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
-	      let eover = V.join vtrue.eover vfalse.eover in
-	      let eunder = V.meet vtrue.eunder vfalse.eunder in
-              { etype = vtrue.etype;
-                ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
-		eunder; eover }
-          | true, false -> eval_term ~with_alarms env ttrue
-          | false, true -> eval_term ~with_alarms env tfalse
-          | false, false ->
-              assert false (* a logic alarm would have been raised*)
-        )
+      eval_tif eval_term Cvalue.V.join Cvalue.V.meet ~with_alarms env
+        tcond ttrue tfalse
 
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
         let e = Cil.constFoldTerm true t in
@@ -774,6 +828,16 @@ let rec eval_term ~with_alarms env t =
 	  eover;
 	  eunder = under_from_over eover }
 
+    | Tapp (li, labels, args) when
+        li.l_var_info.lv_name = "strlen" && comes_from_fc_stdlib li.l_var_info ->
+      begin
+        match labels, args with
+        | [(_, lbl)], [arg] -> begin
+            let r = eval_term ~with_alarms env arg in
+            eval_logic_strlen { env with e_cur = lbl } arg r.eover r.ldeps
+          end
+        | _ -> assert false (* length previously checked *)
+      end
     | Tapp _ | Tlambda _ -> unsupported "logic functions or predicates"
     | TDataCons _ -> unsupported "logic inductive types"
     | TUpdate _ -> unsupported "functional updates"
@@ -815,7 +879,7 @@ and eval_binop ~with_alarms env op t1 t2 =
     in
     let kop = int_or_float_op
       (Eval_op.eval_binop_int ~with_alarms ~te1)
-      (Eval_op.eval_binop_float ~with_alarms real_mode None)
+      (Eval_op.eval_binop_float ~with_alarms real_mode)
     in
     check_logic_alarms ~with_alarms r1 op r2;
     let kop v1 v2 = kop v1 op v2 in
@@ -968,7 +1032,34 @@ and eval_tlval ~with_alarms env t =
       (* Logic coerce on locations (that are pointers) can only introduce
          sets, that do not change the abstract value. *)
       eval_tlval ~with_alarms env t
+  | Tif (tcond, ttrue, tfalse) ->
+    eval_tif eval_tlval Location_Bits.join Location_Bits.meet ~with_alarms env
+      tcond ttrue tfalse
   | _ -> ast_error (Format.asprintf "non-lval term %a" Printer.pp_term t)
+
+and eval_tif : 'a. (with_alarms:_ -> _ -> _ -> 'a eval_result) -> ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) -> with_alarms:_ -> _ -> _ -> _ -> _ -> 'a eval_result =
+  fun eval join meet ~with_alarms env tcond ttrue tfalse ->
+    let r = eval_term ~with_alarms env tcond in
+    let ctrue =  Cvalue.V.contains_non_zero r.eover
+    and cfalse =  Cvalue.V.contains_zero r.eover in
+    match ctrue, cfalse with
+    | true, true ->
+      let vtrue = eval ~with_alarms env ttrue in
+      let vfalse = eval ~with_alarms env tfalse in
+      if not (same_etype vtrue.etype vfalse.etype) then
+        Value_parameters.failure ~current:true
+          "Incoherent types in conditional: %a vs. %a. \
+           Please report"
+          Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
+      let eover = join vtrue.eover vfalse.eover in
+      let eunder = meet vtrue.eunder vfalse.eunder in
+      { etype = vtrue.etype;
+        ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
+        eunder; eover }
+    | true, false -> eval ~with_alarms env ttrue
+    | false, true -> eval ~with_alarms env tfalse
+    | false, false ->
+      assert false (* a logic alarm would have been raised*)
 
 let eval_tlval_as_location ~with_alarms env t =
   let r = eval_tlval ~with_alarms env t in
@@ -1192,8 +1283,24 @@ and reduce_by_predicate_content ~with_alarms env positive p_content =
 
     | _,Papp (li, labels, args) ->
       reduce_by_papp ~with_alarms env positive li labels args
+    | _,Pif (tcond, ptrue, pfalse) ->
+      begin
+        let reduce = reduce_by_predicate ~with_alarms in
+        let r = eval_term ~with_alarms env tcond in
+        let ctrue = Cvalue.V.contains_non_zero r.eover
+        and cfalse = Cvalue.V.contains_zero r.eover in
+        match ctrue, cfalse with
+        | true, true ->
+          let reduce_by_rel = reduce_by_relation ~with_alarms env positive tcond in
+          let env_true = reduce_by_rel Cil_types.Rneq (Cil.lzero ()) in
+          let env_false = reduce_by_rel Cil_types.Req (Cil.lzero ()) in
+          join_env (reduce env_true positive ptrue) (reduce env_false positive pfalse)
+        | true, false -> reduce env positive ptrue
+        | false, true -> reduce env positive pfalse
+        | false, false -> assert false (* a logic alarm would have been raised*)
+      end
     | true, Pexists (_, _) | false, Pforall (_, _)
-    | _,Plet (_, _) | _,Pif (_, _, _)
+    | _,Plet (_, _)
     | _,Pallocable (_,_) | _,Pfreeable (_,_) | _,Pfresh (_,_,_,_)  
     | _,Psubtype _
     | _, Pseparated _
@@ -1210,7 +1317,7 @@ and reduce_by_papp ~with_alarms env positive li _labels args =
         in
         let aux loc env =
 	  let state = env_current_state env in
-          let v = Eval_op.find ~with_alarms state loc in
+          let v = find_or_alarm ~with_alarms state loc in
           let v =
             Eval_op.reinterpret_float ~with_alarms:CilE.warn_none_mode fkind v
           in
@@ -1229,7 +1336,7 @@ and reduce_by_papp ~with_alarms env positive li _labels args =
         let _typ, locsl = eval_term_as_exact_locs ~with_alarms env argl in
         let aux locl env =
           let state = env_current_state env in
-          let vl = Eval_op.find ~with_alarms state locl in
+          let vl = find_or_alarm ~with_alarms state locl in
           let reduced = V.narrow vl vr in
           if V.equal V.bottom reduced then raise Reduce_to_bottom;
           let state' =
@@ -1260,7 +1367,7 @@ and reduce_by_valid ~with_alarms env positive ~for_writing (tset: term) =
       let state = env_current_state env in
       let lvloc = make_loc lv.eover (Eval_typ.sizeof_lval_typ lv.etype) in
       (* [p] is the range that we attempt to reduce *)
-      let p_orig = Eval_op.find ~with_alarms state lvloc in
+      let p_orig = find_or_alarm ~with_alarms state lvloc in
       let pb = Locations.loc_bytes_to_loc_bits p_orig in
       let shifted_p = Location_Bits.shift offs pb in
       let lshifted_p = make_loc shifted_p (Eval_typ.sizeof_lval_typ offs_typ) in
@@ -1361,13 +1468,41 @@ and reduce_by_valid ~with_alarms env positive ~for_writing (tset: term) =
   in
   do_one env tset
 
+and is_rel_binop = function
+  | Lt
+  | Gt
+  | Le
+  | Ge
+  | Eq
+  | Ne -> true
+  | _ -> false
+
+and rel_of_binop = function
+  | Lt -> Rlt
+  | Gt -> Rgt
+  | Le -> Rle
+  | Ge -> Rge
+  | Eq -> Req
+  | Ne -> Rneq
+  | _ -> assert false
+
 and reduce_by_relation ~with_alarms env positive t1 rel t2 =
-  let env = reduce_by_left_relation ~with_alarms env positive t1 rel t2 in
-  let sym_rel = match rel with
-    | Rgt -> Rlt | Rlt -> Rgt | Rle -> Rge | Rge -> Rle
-    | Req -> Req | Rneq -> Rneq
-  in
-  reduce_by_left_relation ~with_alarms env positive t2 sym_rel t1
+  (* special case: t1 is a term of the form "a rel' b",
+     and is compared to "== 0" or "!= 0" => evaluate t1 directly;
+     note: such terms may be created by other evaluation/reduction functions
+     e.g. eval_predicate, reduce_by_predicate_content *)
+  match t1.term_node, rel with
+  | TBinOp (bop, t1', t2'), Rneq when is_rel_binop bop && Cil.isLogicZero t2 ->
+    reduce_by_relation ~with_alarms env positive t1' (rel_of_binop bop) t2'
+  | TBinOp (bop, t1', t2'), Req when is_rel_binop bop && Cil.isLogicZero t2 ->
+    reduce_by_relation ~with_alarms env (not positive) t1' (rel_of_binop bop) t2'
+  | _ ->
+    let env = reduce_by_left_relation ~with_alarms env positive t1 rel t2 in
+    let sym_rel = match rel with
+      | Rgt -> Rlt | Rlt -> Rgt | Rle -> Rge | Rge -> Rle
+      | Req -> Req | Rneq -> Rneq
+    in
+    reduce_by_left_relation ~with_alarms env positive t2 sym_rel t1
 
 (* reduce [tl] so that [rl rel tr] holds *)
 and reduce_by_left_relation ~with_alarms env positive tl rel tr =
@@ -1383,7 +1518,7 @@ and reduce_by_left_relation ~with_alarms env positive tl rel tr =
       let state = env_current_state env in
       if debug then Format.printf "#Left term as lv loc %a, typ %a@."
           Locations.pretty loc Printer.pp_typ typ_loc;
-      let v = Eval_op.find ~with_alarms state loc in
+      let v = find_or_alarm ~with_alarms state loc in
       if debug then Format.printf "#Val left lval %a@." V.pretty v;
       let v = Eval_op.reinterpret ~with_alarms typ_loc v in
       if debug then Format.printf "#Cast left lval %a@." V.pretty v;
@@ -1410,21 +1545,14 @@ and reduce_by_left_relation ~with_alarms env positive tl rel tr =
 (* Evaluates a [valid_read_string] predicate using str* builtins.
    - if [bottom] is obtained, return False;
    - otherwise, if no alarms are emitted, return True;
-   - otherwise, return [Unknown].
-*)
+   - otherwise, return [Unknown]. *)
 let eval_valid_read_string env arg v =
-  let args = [ (Builtins_string.Term arg, v) ] in
-  let state = env_current_state env in
-  let res, alarms = Builtins_string.frama_c_strlen_wrapper state args in
-  let is_bottom vs =
-    List.for_all (fun (_ret, s) -> Cvalue.Model.(equal s bottom)) vs
-  in
-  match is_bottom res.Value_types.c_values,
-        Builtins_string.String_alarms.Set.is_empty alarms
-  with
-  | true, _ -> (* bottom state => string always invalid *) False
-  | false, false -> (* alarm => string possibly invalid *) Unknown
-  | false, true -> (* no alarm => string always valid for reading *) True
+  match logic_strlen_builtin (env_current_state env) arg v with
+  | None -> (* bottom state => string always invalid *) False
+  | Some (_res, alarms) ->
+    if Builtins_string.String_alarms.Set.is_empty alarms
+    then (* no alarm => string always valid for reading *) True
+    else (* alarm => string possibly invalid *) Unknown
 
 (* Evaluates a [valid_string] predicate. First, we check the constness of
    the arguments. Then, we evaluate [valid_read_string] on non-const ones. *)
@@ -1535,9 +1663,10 @@ let eval_predicate env pred =
              | TLval _ ->
                  (* Evaluate the left-value, and check that it is initialized
                     and not an escaping pointer *)
-  	         let loc = eval_tlval_as_location ~with_alarms env tsets in
-                 let alarm, v = Model.find_unspecified state loc in
-                 if alarm then c_alarm ();
+                 let loc = eval_tlval_as_location ~with_alarms env tsets in
+                 if not (Locations.is_valid ~for_writing:false loc) then
+                   c_alarm ();
+                 let v = Model.find_indeterminate state loc in
                  let v, ok = match v with
                    | Cvalue.V_Or_Uninitialized.C_uninit_esc v
                    | Cvalue.V_Or_Uninitialized.C_uninit_noesc v
@@ -1545,7 +1674,7 @@ let eval_predicate env pred =
                    | Cvalue.V_Or_Uninitialized.C_init_noesc v -> v, true
                  in
                  if Cvalue.V.is_bottom v && not ok then raise Stop;
-                 valid ~over:v ~under:V.bottom (*No precise under-approxition*);
+                 valid ~over:v ~under:V.bottom (*No precise under-approximation*);
                  if not ok then raise DoNotReduce
              | _ ->
                let v = eval_term ~with_alarms env tsets in
@@ -1586,8 +1715,8 @@ let eval_predicate env pred =
               incorrect location";
           let locbi = loc_bytes_to_loc_bits locb.eover in
           let loc = make_loc locbi (sizeof_pointed typ) in
-          let alarm, value = Model.find_unspecified state loc in
-          if alarm then c_alarm ();
+          if not (Locations.is_valid ~for_writing:false loc) then c_alarm ();
+          let value = Model.find_indeterminate state loc in
           match p.pred_content with
           | Pinitialized _ -> begin
             match value with
@@ -1681,10 +1810,24 @@ let eval_predicate env pred =
            | LogicEvalError ee -> display_evaluation_error ee; Unknown)
 
     | Papp (li, labels, args) -> eval_papp env li labels args
-
+    | Pif (tcond, ptrue, pfalse) ->
+      begin
+        let r = eval_term ~with_alarms env tcond in
+        let ctrue =  Cvalue.V.contains_non_zero r.eover
+        and cfalse =  Cvalue.V.contains_zero r.eover in
+        match ctrue, cfalse with
+        | true, true ->
+          let reduce_by_rel = reduce_by_relation ~with_alarms env true tcond in
+          let env_true = reduce_by_rel Cil_types.Rneq (Cil.lzero ()) in
+          let env_false = reduce_by_rel Cil_types.Req (Cil.lzero ()) in
+          join_predicate_status (do_eval env_true ptrue) (do_eval env_false pfalse)
+        | true, false -> do_eval env ptrue
+        | false, true -> do_eval env pfalse
+        | false, false -> assert false (* a logic alarm would have been raised*)
+      end
     | Pfresh (_,_,_,_)
     | Pallocable _ | Pfreeable _
-    | Plet (_,_) | Pif (_, _, _)
+    | Plet (_,_)
     | Psubtype _
         -> Unknown
 
@@ -1737,6 +1880,12 @@ let eval_predicate env pred =
         try
           let r = eval_term ~with_alarms env arg in
           eval_valid_string env arg r.eover
+        with LogicEvalError ee -> display_evaluation_error ee; Unknown
+      end
+    | "is_allocable", [arg] when comes_from_fc_stdlib li.l_var_info -> begin
+        try
+          let r = eval_term ~with_alarms env arg in
+          eval_is_allocable r.eover
         with LogicEvalError ee -> display_evaluation_error ee; Unknown
       end
     | _, _ -> Unknown
@@ -1798,49 +1947,6 @@ let predicate_deps env pred =
         -> assert false
   in
   do_eval env pred
-
-exception Does_not_improve
-
-let rec fold_on_disjunction f p acc =
-  match p.pred_content with
-  | Por (p1,p2 ) -> fold_on_disjunction f p2 (fold_on_disjunction f p1 acc)
-  | _ -> f p acc
-
-let count_disjunction p = fold_on_disjunction (fun _pred -> succ) p 0
-
-let split_disjunction_and_reduce ~reduce ~env state_trace ~slevel p ip =
-  let with_alarms = warn_reduce_mode () in
-  let (state,trace) = state_trace in
-  if not (Model.is_reachable state) then State_set.empty
-  else
-    let nb = count_disjunction p in
-    if nb <= 1 && not reduce then
-      State_set.singleton state_trace (* reduction not required, nothing to split *)
-    else if nb <= slevel
-    then begin (* Can split and maybe reduce *)
-      let treat_subpred pred acc =
-        let r = reduce_by_predicate ~with_alarms env true pred in
-        if Cvalue.Model.equal (env_current_state r) state then
-          (* This part of the disjunction will contain the entire state.
-             Reduction has failed, there is no point in propagating the
-             smaller states in acc, that are contained in this one. *)
-          raise Does_not_improve
-        else
-	  let trace =
-	    if nb <= 1 then trace else Trace.add_disjunction ip pred trace
-	  in
-	  State_set.add (env_current_state r, trace) acc
-      in
-      try fold_on_disjunction treat_subpred p State_set.empty
-      with Does_not_improve -> State_set.singleton state_trace
-    end
-    else if reduce then
-      (* Not enough slevel to split, but we should reduce in a global way *)
-      let reduced = reduce_by_predicate ~with_alarms env true p in
-      State_set.singleton (env_current_state reduced, trace)
-    else (* Not enough slevel to split, and reduction not required *)
-      State_set.singleton state_trace
-;;
 
 (* Position default value for ~with_alarms *)
 let reduce_by_predicate env positive p =

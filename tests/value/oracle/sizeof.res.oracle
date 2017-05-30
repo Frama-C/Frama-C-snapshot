@@ -33,7 +33,6 @@ tests/value/sizeof.i:34:[value] warning: out of bounds write.
 [value] Done for function main2
 [value] Recording results for main
 [value] done for function main
-[scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main1:
   sz_str ∈ {4}
@@ -107,8 +106,7 @@ struct s s1;
 int volatile i;
 void main2(void)
 {
-  struct s *p;
-  p = & s1 + (int)(& s1);
+  struct s *p = & s1 + (int)(& s1);
   /*@ assert
       Value: index_bound: (unsigned int)(sizeof(s1.t) - (unsigned int)i) < 10;
   */

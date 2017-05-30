@@ -120,7 +120,7 @@ tests/sparecode/bts334.i:14:[value] warning: signed overflow. assert so[i] / kf 
   NO EFFECTS
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function loop_body
 [pdg] done for function loop_body
@@ -158,18 +158,14 @@ int f_slice_1(int vi, int i)
 }
 
 int volatile e0;
-int volatile e1;
 int s0;
 void loop_body_slice_1(void)
 {
   int acq0;
-  int acq1;
   int val0;
   /*@ slice pragma expr s0; */ ;
   acq0 = e0;
-  acq1 = e1;
   val0 = f_slice_1(acq0,0);
-  f_slice_1(acq1,1);
   s0 = val0;
   return;
 }
@@ -178,7 +174,6 @@ void process_slice_1(int conf)
 {
   kf = conf;
   k[0] = 3;
-  k[1] = 14;
   while (1) loop_body_slice_1();
   return;
 }

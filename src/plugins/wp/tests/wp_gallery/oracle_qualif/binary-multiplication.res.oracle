@@ -1,0 +1,51 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/binary-multiplication.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 16 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_ax2_ok : Unknown
+[wp] [Alt-Ergo] Goal typed_lemma_ax5_ok : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_ax6_ok : Valid
+[wp] [Qed] Goal typed_lemma_sizeof_uint32_t_ok : Valid
+[wp] [Qed] Goal typed_lemma_sizeof_uint64_t_ok : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_post_product : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_a1_ok_deductible : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : Timeout
+[wp] [Qed] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_preserved : Timeout
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_established : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_a2_ok : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_assert_a3_ok : Valid
+[wp] [Qed] Goal typed_BinaryMultiplication_loop_assign : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_decrease : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_positive : Valid
+[wp] Proved goals:   13 / 16
+     Qed:             4 
+     Alt-Ergo:        9  (interrupted: 2) (unknown: 1)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Axiomatic mult       2      2 (4)      5      80.0%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+BinaryMultiplication   2    7 (197)   11      81.8%
+----------------------------------------------------------
+[wp] Running WP plugin...
+[rte] annotating function BinaryMultiplication
+[wp] 5 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_ax2_ok : Unknown
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_preserved : Timeout
+[wp] [Qed] Goal typed_BinaryMultiplication_loop_inv_inv1_ok_established : Valid
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_preserved : Timeout
+[wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_established : Valid
+[wp] Proved goals:    2 / 5
+     Qed:             1 
+     Alt-Ergo:        1  (interrupted: 2) (unknown: 1)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Axiomatic mult       2      2 (4)      5      80.0%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+BinaryMultiplication   2    7 (197)   11      81.8%
+----------------------------------------------------------

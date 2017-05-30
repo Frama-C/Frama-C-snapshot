@@ -12,15 +12,15 @@
 [wp] [Qed] Goal typed_ref_s_post_2 : Valid
 [wp] [Qed] Goal typed_ref_s_post_3 : Valid
 [wp] [Qed] Goal typed_ref_s_post_4 : Valid
-[wp] [Alt-Ergo] Goal typed_ref_s_post_5 : Unknown
-[wp] [Qed] Goal typed_ref_s_post_6 : Valid
+[wp] [Qed] Goal typed_ref_s_post_5 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_s_post_KO : Unknown
 [wp] Proved goals:    8 / 9
      Qed:             7 
      Alt-Ergo:        1  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    1     -           1       100%
-g                   -       1 (12)     1       100%
+g                   -       1 (14)     1       100%
 h                    1     -           1       100%
 s                    5     -           6      83.3%
 ----------------------------------------------------------

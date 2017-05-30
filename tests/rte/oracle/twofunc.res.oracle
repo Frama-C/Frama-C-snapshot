@@ -28,16 +28,13 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
-      tmp = x + y;
+      int tmp = x + y;
       y = x - y;
       x = tmp;
     }
@@ -95,18 +92,15 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
       /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
-      tmp = x + y;
+      int tmp = x + y;
       /*@ assert rte: signed_overflow: -2147483648 ≤ x - y; */
       /*@ assert rte: signed_overflow: x - y ≤ 2147483647; */
       y = x - y;
@@ -165,7 +159,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -176,7 +170,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -209,16 +203,13 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
   int i;
-  x = 1;
-  y = 2;
+  int x = 1;
+  int y = 2;
   i = 0;
   while (i < 20) {
     {
-      int tmp;
-      tmp = x + y;
+      int tmp = x + y;
       y = x - y;
       x = tmp;
     }
@@ -274,7 +265,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true
@@ -285,7 +276,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - shift_value_out_of_bounds = true
 [kernel] - signed_overflow = true
-[kernel] - downcast = false
+[kernel] - downcast = true
 [kernel] - unsigned_overflow = false
 [kernel] - unsigned_downcast = false
 [kernel] - float_to_int = true

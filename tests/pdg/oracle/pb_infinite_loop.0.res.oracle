@@ -18,7 +18,7 @@ tests/pdg/pb_infinite_loop.c:22:[value] warning: signed overflow. assert G + 1 â
  {n3}: G < 0
    -[-c-]-> 1
    -[--d]-> 12
- {n4}: i = 0;
+ {n4}: int i = 0;
    -[-c-]-> 1
    -[a--]-> 2
    -[-c-]-> 3

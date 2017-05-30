@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,6 @@
 (**************************************************************************)
 
 open Cvalue
-
-let pp_v v fmt = V.pretty fmt v
 
 open Cil_types
 open Abstract_interp
@@ -57,8 +55,7 @@ let reinterpret_float ~with_alarms fkind v =
   let addresses, overflow, r = conv v in
   if overflow || addresses
   then begin
-    Valarms.warn_nan_infinite
-      with_alarms (Some fkind) (fun fmt -> V.pretty fmt v);
+    Warn.warn_nan_infinite with_alarms;
   end;
   r
 
@@ -80,46 +77,33 @@ let reinterpret ~with_alarms t v =
   | TVoid _ -> assert false
 
 
-let v_uninit_of_offsetmap ~with_alarms ~typ offsm =
+let v_uninit_of_offsetmap ~typ offsm =
   let size = Eval_typ.sizeof_lval_typ typ in
   match size with
     | Int_Base.Top -> V_Offsetmap.find_imprecise_everywhere offsm
     | Int_Base.Value size ->
       let validity = Base.validity_from_size size in
       let offsets = Ival.zero in
-      let alarm, r =
+      let _alarm, r =
         V_Offsetmap.find ~validity ~conflate_bottom:false ~offsets ~size offsm
       in
-      if alarm then Valarms.warn_mem_read with_alarms;
       r
 
-let v_of_offsetmap ~with_alarms ~typ offsm =
-  let v_uninit = v_uninit_of_offsetmap ~with_alarms ~typ offsm in
-  let v = V_Or_Uninitialized.get_v v_uninit in
-  reinterpret ~with_alarms typ v
-
-
-let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v msg =
+let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v =
   match Cil.unrollType dst_typ, Cil.unrollType src_typ with
   | TFloat _, TInt _ ->
       (* Cannot overflow with 32 bits float *)
       let v, _ok = Cvalue.V.cast_int_to_float rounding_mode v in
       v
-  | TInt (kind,_), TFloat (fkind, _) ->
+  | TInt (kind,_), TFloat (_fkind, _) ->
       let size = Cil.bitsSizeOfInt kind in
       let signed = Cil.isSigned kind in
       let addr, non_finite, overflows, r =
         Cvalue.V.cast_float_to_int ~signed ~size v
       in
-      Warn.warn_float ~with_alarms ~non_finite ~addr (Some fkind) msg;
+      Warn.warn_float ~with_alarms ~non_finite ~addr ();
       if overflows <> (false, false)
-      then begin
-        let dst_range = Ival.create_all_values ~signed ~size in
-        let mn, mx = Ival.min_and_max dst_range in
-        let mn = if fst overflows then mn else None in
-        let mx = if snd overflows then mx else None in
-        Valarms.warn_float_to_int_overflow with_alarms mn mx msg;
-      end;
+      then Warn.warn_float_to_int_overflow with_alarms;
       r
   | TInt (ikind, attrs), TInt _ ->
       reinterpret_int ~with_alarms ikind attrs v
@@ -172,8 +156,7 @@ let handle_overflow ~with_alarms ~warn_unsigned typ interpreted_e =
 		   Cvalue.V.inject_ival 
 		     (Ival.inject_range (Some mn) (Some mx))
 	         in
-	         Valarms.warn_integer_overflow with_alarms
-                   ~signed ~min:warn_under ~max:warn_over;
+	         Warn.warn_integer_overflow with_alarms;
                  (* Take care of pointers addresses that may have crept in,
                     as they may alias with the NULL base *)
                  try
@@ -188,7 +171,7 @@ let handle_overflow ~with_alarms ~warn_unsigned typ interpreted_e =
                end)
     | _ -> interpreted_e
 
-let eval_binop_float ~with_alarms round flkind ev1 op ev2 = 
+let eval_binop_float ~with_alarms round ev1 op ev2 = 
   let conv v = 
     try Ival.project_float (V.project_ival v)
     with
@@ -201,14 +184,12 @@ let eval_binop_float ~with_alarms round flkind ev1 op ev2 =
   let binary_float_floats (_name: string) f =
     try
       let alarm, f = f round f1 f2 in
-      if alarm then
-        Valarms.warn_nan_infinite with_alarms
-          flkind (fun fmt -> Fval.pretty_overflow fmt f);
+      if alarm then Warn.warn_nan_infinite with_alarms;
       V.inject_ival (Ival.inject_float f)
     with
       | Fval.Non_finite ->
-          Valarms.warn_nan_infinite with_alarms flkind (pp_v V.top_int);
-          V.bottom
+        Warn.warn_nan_infinite with_alarms;
+        V.bottom
   in
   match op with
     | PlusA ->   binary_float_floats "+." Fval.add
@@ -243,7 +224,7 @@ let eval_minus_pp ~with_alarms ~te1 ev1 ev2 =
     (* Pointwise arithmetics.*)
     (* TODO: we may be able to reduce the bases that appear only on one side *)
     let minus_offs, warn = V.sub_untyped_pointwise ev1 ev2 in
-    if warn then Valarms.warn_pointer_subtraction with_alarms;
+    if warn then Warn.warn_pointer_subtraction with_alarms;
     let offs = conv minus_offs in
     V.inject_ival offs
   end
@@ -272,8 +253,8 @@ let eval_binop_int ~with_alarms ~te1 ev1 op ev2 =
         V.bitwise_and ~size ~signed ev1 ev2
     | Eq | Ne | Ge | Le | Gt | Lt as op ->
       let op = Value_util.conv_comp op in
-      let warn = not (Warn.are_comparable op ev1 ev2) in
-      if warn then Valarms.warn_pointer_comparison te1 with_alarms;
+      let warn = not (Cvalue_forward.are_comparable op ev1 ev2) in
+      if warn then Warn.warn_pointer_comparison te1 with_alarms;
       if warn && Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
       then V.zero_or_one
       else
@@ -282,7 +263,7 @@ let eval_binop_int ~with_alarms ~te1 ev1 op ev2 =
     | Shiftrt -> V.shift_right ev1 ev2
     | Shiftlt -> V.shift_left ev1 ev2
     (* Strict evaluation. The caller of this function is supposed to take
-       into account the lazyness of those operators itself *)
+       into account the laziness of those operators itself *)
     | LOr -> V.interp_boolean
         ~contains_zero:(V.contains_zero ev1 && V.contains_zero ev2)
         ~contains_non_zero:(V.contains_non_zero ev1 || V.contains_non_zero ev2)
@@ -294,7 +275,7 @@ let eval_binop_int ~with_alarms ~te1 ev1 op ev2 =
    This is left to the caller *)
 and eval_uneg ~with_alarms v t =
   match Cil.unrollType t with
-  | TFloat (fkind, _) ->
+  | TFloat (_fkind, _) ->
       (try
           let v = V.project_ival_bottom v in
           let f = Ival.project_float v in
@@ -302,12 +283,12 @@ and eval_uneg ~with_alarms v t =
             (Ival.inject_float (Fval.neg f))
         with
         | V.Not_based_on_null ->
-            Warn.warn_float ~with_alarms ~addr:true (Some fkind) (pp_v v);
+            Warn.warn_float ~with_alarms ~addr:true ();
             V.topify_arith_origin v
         | Ival.Nan_or_infinite (* raised by project_float; probably useless*) ->
           if V.is_bottom v then v
           else begin
-            Warn.warn_float ~with_alarms ~non_finite:true (Some fkind) (pp_v v);
+            Warn.warn_float ~with_alarms ~non_finite:true ();
             V.top_float
           end
       )
@@ -328,8 +309,8 @@ let eval_unop ~check_overflow ~with_alarms v t op =
   | BNot -> V.bitwise_not v
 
   | LNot ->
-      let warn = not (Warn.are_comparable Comp.Eq V.singleton_zero v) in
-      if warn then Valarms.warn_pointer_comparison t with_alarms;
+      let warn = not (Cvalue_forward.are_comparable Comp.Eq V.singleton_zero v) in
+      if warn then Warn.warn_pointer_comparison t with_alarms;
       if (warn &&
              Value_parameters.UndefinedPointerComparisonPropagateAll.get ())
       then
@@ -349,7 +330,7 @@ let eval_unop ~check_overflow ~with_alarms v t op =
 
 let backward_comp_int_left positive comp l r =
   if (Value_parameters.UndefinedPointerComparisonPropagateAll.get())
-    && not (Warn.are_comparable comp l r)
+    && not (Cvalue_forward.are_comparable comp l r)
   then l
   else
     let binop = if positive then comp else Comp.inv comp in
@@ -366,94 +347,6 @@ let backward_comp_left_from_type t =
     backward_comp_float_left
       (Value_parameters.AllRoundingModes.get ()) (Value_util.float_kind fk)
   | _ -> (fun _ _ v _ -> v) (* should never occur anyway *)
-
-let eval_float_constant ~with_alarms f fkind fstring =
-  let fl, fu = 
-    match fstring with
-    | Some string when Value_parameters.AllRoundingModesConstants.get ()->
-      let parsed_f = Floating_point.parse_kind fkind string in
-      parsed_f.Floating_point.f_lower, parsed_f.Floating_point.f_upper
-    | None | Some _ -> f, f
-  in
-  let fl = Fval.F.of_float fl in
-  let fu = Fval.F.of_float fu in
-  try
-    let non_finite, af = Fval.inject_r fl fu in
-    let v = V.inject_ival (Ival.inject_float af) in
-    if non_finite then begin
-      Warn.warn_float ~with_alarms ~non_finite (Some fkind) (pp_v v)
-    end;
-    v
-  with Fval.Non_finite ->
-    Warn.warn_float ~with_alarms ~non_finite:true (Some fkind)
-      (fun fmt -> Format.pp_print_string fmt "INFINITY");
-    V.bottom
-
-let make_volatile ?typ v =
-  let is_volatile = match typ with
-    | None -> true
-    | Some typ -> Cil.typeHasQualifier "volatile" typ
-  in
-  if is_volatile && not (Cvalue.V.is_bottom v)
-  then
-    match v with
-    | V.Top _ -> v
-    | V.Map m ->
-      let aux b _ acc = V.join acc (V.inject b Ival.top) in
-      V.M.fold aux m V.bottom
-  else v
-
-let add_binding_unspecified ~with_alarms ?(remove_invalid=false) ~exact state loc value =
-  let loc', reduced_loc =
-    if remove_invalid then
-      let loc' = Locations.valid_part ~for_writing:true loc in
-      loc', not (Locations.Location.equal loc loc')
-    else loc, false
-  in
-  let alarm, state = Model.add_binding_unspecified ~exact state loc' value in
-  if alarm || reduced_loc then Valarms.warn_mem_write with_alarms;
-  state
-
-let add_binding ~with_alarms ?(remove_invalid=false) ~exact state loc value =
-  let value = V_Or_Uninitialized.initialized value in
-  add_binding_unspecified ~with_alarms ~remove_invalid ~exact state loc value
-
-let copy_offsetmap ~with_alarms src_loc size mm =
-  let alarm, r = Model.copy_offsetmap src_loc size mm in
-  if alarm then Valarms.warn_mem_read with_alarms;
-  r
-
-let paste_offsetmap ~with_alarms ?(remove_invalid=false) ~reducing ~from ~dst_loc ~size ~exact m =
-  let dst_loc, reduced_loc =
-    if remove_invalid then
-      let loc = Locations.make_loc dst_loc (Int_Base.inject size) in
-      let for_writing = not reducing in
-      let loc' = Locations.valid_part ~for_writing loc in
-      let dst_loc' = loc'.Locations.loc in
-      dst_loc', not (Locations.Location_Bits.equal dst_loc dst_loc')
-    else dst_loc, false
-  in
-  let alarm, r =
-    Cvalue.Model.paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m
-  in
-  if alarm || reduced_loc then Valarms.warn_mem_write with_alarms;
-  r
-
-let project_with_alarms ~with_alarms ~conflate_bottom _loc v =
-  let v_v = V_Or_Uninitialized.get_v v in
-  (* Warn about indeterminateness only when [conflate_bottom] is true.
-     Otherwise, the alarm [\initialized(loc)] or [\dangling_bits(loc)] may be
-     emitted for padding bits, and will be unprovable. This is a bit of
-     a hack, though. *)
-  if conflate_bottom then ignore (Warn.maybe_warn_indeterminate ~with_alarms v);
-  v_v
-
-
-let find ~with_alarms ?(conflate_bottom=true) state loc =
-  let alarm, v = Model.find_unspecified ~conflate_bottom state loc in
-  if alarm then Valarms.warn_mem_read with_alarms;
-  project_with_alarms ~with_alarms ~conflate_bottom loc v
-
 
 exception Unchanged
 exception Reduce_to_bottom
@@ -509,7 +402,7 @@ let reduce_by_initialized_defined f loc state =
 
 let reduce_by_valid_loc ~positive ~for_writing loc typ state =
   try
-    let _, value = Cvalue.Model.find state loc in
+    let value = Cvalue.Model.find state loc in
     if Cvalue.V.is_imprecise value then
       (* we won't reduce anything anyway, and we may lose information if loc
          contains misaligned data *)
@@ -561,38 +454,13 @@ let apply_on_all_locs f loc state =
         (fun l acc -> f (Locations.make_loc l size) acc) loc state
     with Not_less_than | Locations.Location_Bits.Error_Top -> state
 
-
-let write_abstract_value ~with_alarms state lv typ_lv loc_lv v =
-  let v =
-    if Cil.typeHasQualifier "volatile" typ_lv then
-      make_volatile v (* Do not cast further, the offsetmap layer
-                         prefers this form. *)
-    else
-      Eval_typ.cast_lval_if_bitfield typ_lv loc_lv.Locations.size v
-  in
-  match loc_lv.Locations.loc with
-  | Locations.Location_Bits.Top (Base.SetLattice.Top, orig) ->
-    Value_parameters.result
-      "State before degeneration:@\n======%a@\n======="
-      Cvalue.Model.pretty state;
-    Value_util.warning_once_current
-      "writing at a completely unknown address@[%a@].@\nAborting."
-      Origin.pretty_as_reason orig;
-    raise Db.Value.Aborted
-  | _ ->
-    let exact = Locations.cardinal_zero_or_one loc_lv in
-    Valarms.set_syntactic_context (Valarms.SyMem lv);
-    add_binding ~with_alarms ~exact state loc_lv v
-
 (* Display [o] as a single value, when this is more readable and more precise
    than the standard display. *)
 let pretty_stitched_offsetmap fmt typ o =
   if Cil.isArithmeticOrPointerType typ &&
      not (Cvalue.V_Offsetmap.is_single_interval o)
   then
-    let v =
-      v_uninit_of_offsetmap ~with_alarms:CilE.warn_none_mode ~typ o
-    in
+    let v = v_uninit_of_offsetmap ~typ o in
     if not (Cvalue.V_Or_Uninitialized.is_isotropic v)
     then
       Format.fprintf fmt "@\nThis amounts to: %a"

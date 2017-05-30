@@ -20,7 +20,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           
           Global metrics
           ============== 
-          Sloc = 18
+          Sloc = 20
           Decision point = 2
           Global variables = 2
           If = 2
@@ -45,7 +45,6 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
 [value:initial-state] Values of globals at initialization
   bar ∈ {0}
   bar_extern ∈ {0}
-[value] Recording results for main
 [value] done for function main
 [metrics] Value coverage statistics
           =========================
@@ -53,7 +52,7 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           Semantically reached functions = 1
           Coverage estimation = 33.3% 
           
-          Unseen functions (2) =
+          Unreached functions (2) =
             <tests/metrics/func_ptr.c>: exit; foo;
 [metrics] References to non-analyzed functions
           ------------------------------------
@@ -61,5 +60,5 @@ tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. 
           Function main references foo (at tests/metrics/func_ptr.c:29)
 [metrics] Statements analyzed by Value
           ----------------------------
-          11 stmts in analyzed functions, 5 stmts analyzed (45.5%)
-          main: 5 stmts out of 11 (45.5%)
+          13 stmts in analyzed functions, 6 stmts analyzed (46.2%)
+          main: 6 stmts out of 13 (46.2%)

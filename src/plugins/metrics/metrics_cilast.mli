@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** In the definitions below, setting argument [libc] to [true] will
+    include functions/variables from the C stdlib in the metrics. *)
+
 (** Visitor to compute various syntactic metrics.
     In particular, it fetches all necessary informations to compute
     cyclomatic complexity .
@@ -34,7 +37,7 @@ class type sloc_visitor = object
   method fundef_calls: int Metrics_base.VInfoMap.t
   method extern_global_vars: Metrics_base.VInfoSet.t
 
-  (* Get the computed metris *)
+  (* Get the computed metrics *)
   method get_metrics: Metrics_base.BasicMetrics.t
 
   (* Print the metrics of a file [string] to a formatter
@@ -49,12 +52,21 @@ class type sloc_visitor = object
 (** Print computed metrics to a formatter *)
 end
 
-class slocVisitor: sloc_visitor ;;
+class slocVisitor : libc:bool -> sloc_visitor ;;
 
-val get_metrics : unit -> Metrics_base.BasicMetrics.t ;;
+val get_metrics : libc:bool -> Metrics_base.BasicMetrics.t ;;
+
+type cilast_metrics = {
+  fundecl_calls: int Metrics_base.VInfoMap.t;
+  fundef_calls: int Metrics_base.VInfoMap.t;
+  extern_global_vars: Metrics_base.VInfoSet.t;
+  basic_metrics: Metrics_base.BasicMetrics.t
+} ;;
+
+val get_cilast_metrics : libc:bool -> cilast_metrics ;;
 
 (** Compute metrics on whole CIL AST *)
-val compute_on_cilast: unit -> unit ;;
+val compute_on_cilast: libc:bool -> unit ;;
 
 (** Compute and print the size (in bytes) of local variables on the CIL AST.
     This is a rough approximation, neither guaranteed to be smaller or

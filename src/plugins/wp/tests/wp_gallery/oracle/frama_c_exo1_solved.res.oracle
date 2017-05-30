@@ -1,0 +1,21 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo1_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function exo1
+[wp] Goal typed_exo1_post : not tried
+[wp] Goal typed_exo1_post_2 : not tried
+[wp] Goal typed_exo1_assert_rte_signed_overflow : not tried
+[wp] Goal typed_exo1_loop_inv_preserved : not tried
+[wp] Goal typed_exo1_loop_inv_established : not tried
+[wp] Goal typed_exo1_loop_inv_2_preserved : not tried
+[wp] Goal typed_exo1_loop_inv_2_established : not tried
+[wp] Goal typed_exo1_assert_rte_mem_access : not tried
+[wp] Goal typed_exo1_assert_rte_mem_access_2 : not tried
+[wp] Goal typed_exo1_assert_rte_signed_overflow_2 : not tried
+[wp] Goal typed_exo1_assert_rte_signed_overflow_3 : not tried
+[wp] Goal typed_exo1_loop_assign : trivial
+[wp] Goal typed_exo1_assign : not tried
+[wp] Goal typed_exo1_loop_term_decrease : not tried
+[wp] Goal typed_exo1_loop_term_positive : not tried

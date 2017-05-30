@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -100,7 +100,7 @@ type t =
   | Float of Fval.t
   | Top of Int.t option * Int.t option * Int.t * Int.t
 (* Binary abstract operations do not model precisely float/integer operations.
-   It is the responsability of the callers to have two operands of the same
+   It is the responsibility of the callers to have two operands of the same
    implicit type. The only exception is for [singleton_zero], which is the
    correct representation of [0.] *)
 
@@ -734,7 +734,7 @@ let _modular_inverse a m =
   assert (Int.equal Int.one gcd);
   x
 
-(* This function provides solutions to the chinese remainder theorem,
+(* This function provides solutions to the Chinese remainder theorem,
    i.e. it finds the solutions x such that:
    x == r1 mod m1 && x == r2 mod m2.
 
@@ -1612,7 +1612,7 @@ let largest_below max x = (* TODO: improve for Set *)
       then Extlib.the mx
       else Int.round_down_to_r ~max ~r ~modu
 
-(* Rounds up (x+1) to the next power of two, then substracts one; optimized. *)
+(* Rounds up (x+1) to the next power of two, then subtracts one; optimized. *)
 let next_pred_power_of_two x =
   (* Unroll the first iterations, and skip the tests. *)
   let x = Int.logor x (Int.shift_right x Int.one) in

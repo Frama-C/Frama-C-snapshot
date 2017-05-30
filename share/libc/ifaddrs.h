@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef FC_IFADDRS
 #define FC_IFADDRS
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "__fc_define_sockaddr.h"
 
@@ -46,11 +47,12 @@ struct ifmaddrs {
 	struct sockaddr	*ifma_lladdr;
 };
 
-int getifaddrs(struct ifaddrs **);
-void freeifaddrs(struct ifaddrs *);
-int getifmaddrs(struct ifmaddrs **);
-void freeifmaddrs(struct ifmaddrs *);
+extern int getifaddrs(struct ifaddrs **);
+extern void freeifaddrs(struct ifaddrs *);
+extern int getifmaddrs(struct ifmaddrs **);
+extern void freeifmaddrs(struct ifmaddrs *);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

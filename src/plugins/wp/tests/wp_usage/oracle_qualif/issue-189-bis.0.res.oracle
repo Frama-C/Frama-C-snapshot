@@ -4,7 +4,7 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 34 goals scheduled
+[wp] 32 goals scheduled
 [wp] [Alt-Ergo] Goal typed_memcpy_alias_vars_post_memcpy : Valid
 [wp] [Alt-Ergo] Goal typed_memcpy_alias_vars_post_unmodified : Valid
 [wp] [Alt-Ergo] Goal typed_memcpy_alias_vars_loop_inv_cpy_preserved : Valid
@@ -36,14 +36,12 @@
 [wp] [Qed] Goal typed_memcpy_context_vars_loop_assign_part3 : Valid
 [wp] [Qed] Goal typed_memcpy_context_vars_loop_assign_part4 : Valid
 [wp] [Alt-Ergo] Goal typed_memcpy_context_vars_loop_assign_part5 : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_assign_part1 : Valid
-[wp] [Qed] Goal typed_memcpy_context_vars_assign_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_assign_part3 : Valid
-[wp] Proved goals:   34 / 34
-     Qed:            20 
+[wp] [Alt-Ergo] Goal typed_memcpy_context_vars_assign : Valid
+[wp] Proved goals:   32 / 32
+     Qed:            18 
      Alt-Ergo:       14
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-memcpy_alias_vars    9      7 (1071)  16       100%
-memcpy_context_vars  11     7 (1071)  18       100%
+memcpy_alias_vars    9      7 (1570)  16       100%
+memcpy_context_vars   9     7 (1570)  16       100%
 ----------------------------------------------------------

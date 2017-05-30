@@ -26,20 +26,20 @@ Assume {
   (* Pre-condition 'unaliasing' *)
   Have: separated(a_2, len_0, a_3, len_0).
   (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_0).
+  Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i_1)] = Mint_1[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(v_1, len_1).
   (* Invariant 'len' *)
   Have: len_1 <= len_0.
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)].
+Prove: Mint_0[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)].
 
 ------------------------------------------------------------
 
@@ -62,14 +62,14 @@ Assume {
   (* Pre-condition 'unaliasing' *)
   Have: separated(a_2, len_0, a_3, len_0).
   (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_0).
+  Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i_1)] = Mint_1[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(v_1, len_1).
   (* Invariant 'len' *)
   Have: len_1 <= len_0.
   (* Else *)
@@ -101,17 +101,17 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a_1, i_1)] = Mint_0[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(v_1, len_1).
   (* Invariant 'len' *)
   Have: len_1 <= len_0.
   (* Then *)
   Have: 0 < len_1.
 }
-Prove: m[shift_uint8(a_1, i)] = m[shift_uint8(a, i)].
+Prove: m[shift_uint8(a, i)] = m[shift_uint8(a_1, i)].
 
 ------------------------------------------------------------
 
@@ -149,11 +149,11 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_2, len_1).
   (* Invariant 'cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_0 + i) < len_1) ->
-      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)]))).
+      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_0) = shift_uint8(a_1, len_1).
+  Have: shift_uint8(a_1, len_1) = shift_uint8(v, len_0).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_0) = shift_uint8(a, len_1).
+  Have: shift_uint8(a, len_1) = shift_uint8(v_1, len_0).
   (* Invariant 'len' *)
   Have: len_0 <= len_1.
   (* Then *)
@@ -207,11 +207,11 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_4, len_0).
   (* Invariant 'cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a_3, i)] = Mint_1[shift_uint8(a_1, i)]))).
+      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a_3, i)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_1) = shift_uint8(a_3, len_0).
+  Have: shift_uint8(a_3, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(v_1, len_1).
   (* Invariant 'len' *)
   Have: len_1 <= len_0.
   (* Then *)
@@ -258,17 +258,17 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_4, len_0).
   (* Invariant 'cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a_3, i)] = Mint_1[shift_uint8(a_1, i)]))).
+      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a_3, i)]))).
   (* Invariant 'dst' *)
-  Have: shift_uint8(v, len_1) = shift_uint8(a_3, len_0).
+  Have: shift_uint8(a_3, len_0) = shift_uint8(v, len_1).
   (* Invariant 'src' *)
-  Have: shift_uint8(v_1, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(v_1, len_1).
   (* Invariant 'len' *)
   Have: len_1 <= len_0.
   (* Then *)
   Have: 0 < len_1.
 }
-Prove: (v = a_2) \/ (v = a) \/ included(v, 1, a_4, len_0).
+Prove: (a_2 = v) \/ (a = v) \/ included(v, 1, a_4, len_0).
 
 ------------------------------------------------------------
 
@@ -277,6 +277,7 @@ Effect at line 31
 Let a = shift_uint8(Mptr_0[shift_PTR(global(P_dst_72), 0)], 0).
 Let a_1 = shift_uint8(Mptr_0[shift_PTR(global(P_src_71), 0)], 0).
 Assume {
+  Have: valid_rd(Malloc_0, a, len_0).
   Type: is_sint32(len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
@@ -289,7 +290,7 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a, len_0).
 }
-Prove: (valid_rd(Malloc_0, a, len_0) -> included(a, len_0, a, len_0)).
+Prove: included(a, len_0, a, len_0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -314,20 +315,20 @@ Assume {
   (* Pre-condition 'unaliasing' *)
   Have: separated(a_2, len_0, a_3, len_0).
   (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_0).
+  Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i_1)] = Mint_1[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(dst2_0, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(src2_0, len_1).
   (* Invariant 'ok,len' *)
   Have: len_1 <= len_0.
   (* Else *)
   Have: len_1 <= 0.
 }
-Prove: Mint_0[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)].
+Prove: Mint_0[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)].
 
 ------------------------------------------------------------
 
@@ -350,14 +351,14 @@ Assume {
   (* Pre-condition 'unaliasing' *)
   Have: separated(a_2, len_0, a_3, len_0).
   (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_2, len_0).
+  Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i_1)] = Mint_1[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(dst2_0, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(src2_0, len_1).
   (* Invariant 'ok,len' *)
   Have: len_1 <= len_0.
   (* Else *)
@@ -389,17 +390,17 @@ Assume {
   Have: havoc(Mint_1, Mint_0, a_2, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i_1 : Z. ((0 <= i_1) -> (((len_1 + i_1) < len_0) ->
-      (Mint_0[shift_uint8(a_1, i_1)] = Mint_0[shift_uint8(a, i_1)]))).
+      (Mint_0[shift_uint8(a, i_1)] = Mint_0[shift_uint8(a_1, i_1)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(dst2_0, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(src2_0, len_1).
   (* Invariant 'ok,len' *)
   Have: len_1 <= len_0.
   (* Then *)
   Have: 0 < len_1.
 }
-Prove: m[shift_uint8(a_1, i)] = m[shift_uint8(a, i)].
+Prove: m[shift_uint8(a, i)] = m[shift_uint8(a_1, i)].
 
 ------------------------------------------------------------
 
@@ -437,11 +438,11 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_2, len_1).
   (* Invariant 'ok,cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_0 + i) < len_1) ->
-      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)]))).
+      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(dst2_0, len_0) = shift_uint8(a_1, len_1).
+  Have: shift_uint8(a_1, len_1) = shift_uint8(dst2_0, len_0).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_0) = shift_uint8(a, len_1).
+  Have: shift_uint8(a, len_1) = shift_uint8(src2_0, len_0).
   (* Invariant 'ok,len' *)
   Have: len_0 <= len_1.
   (* Then *)
@@ -493,11 +494,11 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_2, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)]))).
+      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(dst2_0, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(dst2_0, len_1).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(src2_0, len_1).
   (* Invariant 'ok,len' *)
   Have: len_1 <= len_0.
   (* Then *)
@@ -541,11 +542,11 @@ Assume {
   Have: havoc(Mint_0, Mint_1, a_2, len_0).
   (* Invariant 'ok,cpy' *)
   Have: forall i : Z. ((0 <= i) -> (((len_1 + i) < len_0) ->
-      (Mint_1[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)]))).
+      (Mint_1[shift_uint8(a, i)] = Mint_1[shift_uint8(a_1, i)]))).
   (* Invariant 'ok,dst' *)
-  Have: shift_uint8(tmp_0, len_1) = shift_uint8(a_1, len_0).
+  Have: shift_uint8(a_1, len_0) = shift_uint8(tmp_0, len_1).
   (* Invariant 'ok,src' *)
-  Have: shift_uint8(src2_0, len_1) = shift_uint8(a, len_0).
+  Have: shift_uint8(a, len_0) = shift_uint8(src2_0, len_1).
   (* Invariant 'ok,len' *)
   Have: len_1 <= len_0.
   (* Then *)
@@ -555,23 +556,12 @@ Prove: included(tmp_0, 1, a_2, len_0).
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_usage/issue-189-bis.i, line 44) in 'memcpy_context_vars' (1/3):
-Effect at line 49
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_usage/issue-189-bis.i, line 44) in 'memcpy_context_vars' (2/3):
-Effect at line 49
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_usage/issue-189-bis.i, line 44) in 'memcpy_context_vars' (3/3):
+Goal Assigns (file tests/wp_usage/issue-189-bis.i, line 44) in 'memcpy_context_vars':
 Effect at line 59
 Let a = shift_uint8(Mptr_0[shift_PTR(global(P_dst_90), 0)], 0).
 Let a_1 = shift_uint8(Mptr_0[shift_PTR(global(P_src_89), 0)], 0).
 Assume {
+  Have: valid_rd(Malloc_0, a, len_0).
   Type: is_sint32(len_0).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
@@ -584,6 +574,6 @@ Assume {
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a, len_0).
 }
-Prove: (valid_rd(Malloc_0, a, len_0) -> included(a, len_0, a, len_0)).
+Prove: included(a, len_0, a, len_0).
 
 ------------------------------------------------------------

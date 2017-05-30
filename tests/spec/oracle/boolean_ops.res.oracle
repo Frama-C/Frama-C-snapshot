@@ -14,10 +14,8 @@ int f(int x, int y)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = f(42,1);
-  y = f(0,36);
+  int x = f(42,1);
+  int y = f(0,36);
   __retres = 0;
   return __retres;
 }

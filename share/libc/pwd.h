@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_PWD_H__
 #define __FC_PWD_H__
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "__fc_define_uid_and_gid.h"
 
@@ -39,16 +40,17 @@ struct passwd {
   char    *pw_shell;
 };
 
-struct passwd *getpwnam(const char *);
-struct passwd *getpwuid(uid_t);
-int            getpwnam_r(const char *, struct passwd *, char *,
+extern struct passwd *getpwnam(const char *);
+extern struct passwd *getpwuid(uid_t);
+extern int            getpwnam_r(const char *, struct passwd *, char *,
 			  size_t, struct passwd **);
-int            getpwuid_r(uid_t, struct passwd *, char *,
+extern int            getpwuid_r(uid_t, struct passwd *, char *,
 			  size_t, struct passwd **);
-void           endpwent(void);
-struct passwd *getpwent(void);
-void           setpwent(void);
+extern void           endpwent(void);
+extern struct passwd *getpwent(void);
+extern void           setpwent(void);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

@@ -5,8 +5,8 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 [wp] 8 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_post_var_divded : Valid
-[wp] [Alt-Ergo] Goal typed_f_post_var_inline : Valid
+[wp] [Qed] Goal typed_f_post_var_divded : Valid
+[wp] [Qed] Goal typed_f_post_var_inline : Valid
 [wp] [Qed] Goal typed_f_post_var_unit0 : Valid
 [wp] [Qed] Goal typed_f_post_var_unit1 : Valid
 [wp] [Qed] Goal typed_f_post_var_unit2 : Valid
@@ -14,9 +14,8 @@
 [wp] [Qed] Goal typed_f_post_var_unit4 : Valid
 [wp] [Qed] Goal typed_f_assign : Valid
 [wp] Proved goals:    8 / 8
-     Qed:             6 
-     Alt-Ergo:        2
+     Qed:             8
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-f                    6      2 (23)     8       100%
+f                    8     -           8       100%
 ----------------------------------------------------------

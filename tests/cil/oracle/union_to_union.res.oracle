@@ -12,23 +12,14 @@ int main(void)
   union X u;
   union X v;
   union X w;
-  union X __constr_expr_0;
   int a;
-  union X __constr_expr_1;
   short b;
-  union X __constr_expr_2;
-  { /* sequence */
-    __constr_expr_0 = u;
-    v = __constr_expr_0;
-  }
-  { /* sequence */
-    __constr_expr_1.a = a;
-    w = __constr_expr_1;
-  }
-  { /* sequence */
-    __constr_expr_2.b = b;
-    w = __constr_expr_2;
-  }
+  union X __constr_expr_0 = u;
+  v = __constr_expr_0;
+  union X __constr_expr_1 = {.a = a};
+  w = __constr_expr_1;
+  union X __constr_expr_2 = {.b = b};
+  w = __constr_expr_2;
   __retres = 0;
   return __retres;
 }

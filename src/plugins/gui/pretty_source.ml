@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ type localizable =
   | PLval of (kernel_function option * kinstr * lval)
   | PExp of (kernel_function option * kinstr * exp)
   | PTermLval of (kernel_function option * kinstr * Property.t * term_lval)
-  | PVDecl of (kernel_function option * varinfo)
+  | PVDecl of (kernel_function option * kinstr * varinfo)
   | PGlobal of global
   | PIP of Property.t
 module Localizable =
@@ -51,7 +51,7 @@ module Localizable =
             Kinstr.equal ki1 ki2 && Property.equal pi1 pi2 &&
             Logic_utils.is_same_tlval lv1 lv2
         (* [JS 2008/01/21] term_lval are not shared: cannot use == *)
-        | PVDecl (_,v1), PVDecl (_,v2) -> Varinfo.equal v1 v2
+        | PVDecl (_,_,v1), PVDecl (_,_,v2) -> Varinfo.equal v1 v2
         | PExp (_,_,e1), PExp(_,_,e2) -> Cil_datatype.Exp.equal e1 e2
         | PIP ip1, PIP ip2 -> Property.equal ip1 ip2
         | PGlobal g1, PGlobal g2 -> Cil_datatype.Global.equal g1 g2
@@ -59,22 +59,25 @@ module Localizable =
           | PIP _ | PGlobal _), _
           ->  false
       let mem_project = Datatype.never_any_project
+      let pp_ki_loc fmt ki =
+        match ki with
+        | Kglobal -> (* no location, print 'global' *)
+          Format.fprintf fmt "global"
+        | Kstmt st ->
+          Format.fprintf fmt "%a" Cil_datatype.Location.pretty (Stmt.loc st)
       let pretty fmt = function
         | PStmt (_, s) -> Format.fprintf fmt "LocalizableStmt %d (%a)"
                             s.sid Printer.pp_location (Cil_datatype.Stmt.loc s)
         | PLval (_, ki, lv) ->
             Format.fprintf fmt "LocalizableLval %a (%a)"
-              Printer.pp_lval lv
-              Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
+              Printer.pp_lval lv pp_ki_loc ki
         | PExp (_, ki, lv) ->
             Format.fprintf fmt "LocalizableExp %a (%a)"
-              Printer.pp_exp lv
-              Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
+              Printer.pp_exp lv pp_ki_loc ki
         | PTermLval (_, ki, _pi, tlv) ->
             Format.fprintf fmt "LocalizableTermLval %a (%a)"
-              Printer.pp_term_lval tlv
-              Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
-        | PVDecl (_, vi) ->
+              Printer.pp_term_lval tlv pp_ki_loc ki
+        | PVDecl (_, _, vi) ->
             Format.fprintf fmt "LocalizableVDecl %a" Printer.pp_varinfo vi
         | PGlobal g ->
             Format.fprintf fmt "LocalizableGlobal %a" Printer.pp_global g
@@ -86,7 +89,7 @@ let kf_of_localizable loc = match loc with
   | PLval (kf_opt, _, _)
   | PExp (kf_opt,_,_)
   | PTermLval(kf_opt, _,_,_)
-  | PVDecl (kf_opt, _) -> kf_opt
+  | PVDecl (kf_opt, _, _) -> kf_opt
   | PStmt (kf, _) -> Some kf
   | PIP ip -> Property.get_kf ip
   | PGlobal (GFun ({svar = vi}, _)) -> Some (Globals.Functions.get vi)
@@ -95,8 +98,8 @@ let kf_of_localizable loc = match loc with
 let ki_of_localizable loc = match loc with
   | PLval (_, ki, _)
   | PExp (_, ki, _)
-  | PTermLval(_, ki,_,_) -> ki
-  | PVDecl (_, _) -> Kglobal
+  | PTermLval(_, ki,_,_)
+  | PVDecl (_, ki, _) -> ki
   | PStmt (_, st) -> Kstmt st
   | PIP ip -> Property.get_kinstr ip
   | PGlobal _ -> Kglobal
@@ -248,7 +251,7 @@ struct
       | ((pb,pe),Some v) -> ((pb,pe),v)
 
   (* find the next loc in array starting at index i
-     which satifies the predicate;
+     which satisfies the predicate;
      raises Not_found if none exists *)
   let find_next arr i predicate =
     let rec fnext i =
@@ -410,7 +413,7 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
 
     method! vdecl fmt vi =
       Format.fprintf fmt "@{<%s>%a@}"
-        (Tag.create (PVDecl (self#current_kf,vi)))
+        (Tag.create (PVDecl (self#current_kf, self#current_kinstr, vi)))
         super#vdecl vi
 
     method private tag_property p =
@@ -606,11 +609,14 @@ let equal_or_same_loc loc1 loc2 =
   Localizable.equal loc1 loc2 ||
   match loc1, loc2 with
   | PIP (Property.IPReachable (_, Kstmt s, _)), PStmt (_, s')
-  | PStmt (_, s'), PIP (Property.IPReachable (_, Kstmt s, _)) when
+  | PStmt (_, s'), PIP (Property.IPReachable (_, Kstmt s, _))
+  | PIP (Property.IPPropertyInstance (_, Kstmt s, _)), PStmt (_, s')
+  | PStmt (_, s'), PIP (Property.IPPropertyInstance (_, Kstmt s, _))
+    when
       Cil_datatype.Stmt.equal s s' -> true
   | PIP (Property.IPReachable (Some kf, Kglobal, _)),
-    (PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _)))
-  | (PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _))),
+    (PVDecl (_, _, vi) | PGlobal (GFun ({ svar = vi }, _)))
+  | (PVDecl (_, _, vi) | PGlobal (GFun ({ svar = vi }, _))),
     PIP (Property.IPReachable (Some kf, Kglobal, _))
     when Kernel_function.get_vi kf = vi
     -> true
@@ -636,7 +642,7 @@ let localizable_from_locs state ~file ~line =
                 None -> Location.unknown
               | Some kf -> Kernel_function.get_location kf)
          | Kstmt st -> Stmt.loc st)
-    | PVDecl (_,vi) -> vi.vdecl
+    | PVDecl (_,_,vi) -> vi.vdecl
     | PGlobal g -> Global.loc g
     | (PLval _ | PTermLval _ | PExp _) as localize ->
         (match kf_of_localizable localize with
@@ -894,20 +900,22 @@ class pos_to_localizable =
           match self#current_kf with
           | None -> (* should not happen*) ()
           | Some kf ->
-              self#add_range vi.vdecl (PVDecl (Some kf, vi));
+            self#add_range vi.vdecl (PVDecl (Some kf,self#current_kinstr,vi));
         end;
       Cil.DoChildren
 
     method! vglob_aux g =
       (match g with
        | GFun ({ svar = vi }, loc) ->
-           self#add_range loc (PVDecl (Some (Globals.Functions.get vi), vi))
+         self#add_range loc
+           (PVDecl (Some (Globals.Functions.get vi), Kglobal, vi))
        | GVar (vi, _, loc) ->
-           self#add_range loc (PVDecl (None, vi))
+         self#add_range loc (PVDecl (None, Kglobal, vi))
        | GFunDecl (_, vi, loc) ->
-           self#add_range loc (PVDecl (Some (Globals.Functions.get vi), vi))
+         self#add_range loc
+           (PVDecl (Some (Globals.Functions.get vi), Kglobal, vi))
        | GVarDecl (vi, loc) ->
-           self#add_range loc (PVDecl (None, vi))
+         self#add_range loc (PVDecl (None, Kglobal, vi))
        | _ -> self#add_range (Global.loc g) (PGlobal g)
       );
       Cil.DoChildren

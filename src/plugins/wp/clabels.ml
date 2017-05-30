@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,13 +32,31 @@ type c_label =
   | Pre
   | Post
   | Exit
-  | At of string list * int
-  | CallAt of int
+  | At of string list * stmt
   | LabelParam of string
 
-let equal = (=)
+let pretty fmt = function
+  | Init -> Format.pp_print_string fmt "\\init"
+  | Here -> Format.pp_print_string fmt "\\here"
+  | Pre  -> Format.pp_print_string fmt "\\pre"
+  | Post -> Format.pp_print_string fmt "\\post"
+  | Exit -> Format.pp_print_string fmt "\\exit"
+  | LabelParam label -> Format.fprintf fmt "Label '%s'" label
+  | At(label::_,_) -> Format.fprintf fmt "Stmt '%s'" label
+  | At([],s) -> Format.fprintf fmt "Stmt sid:%d" s.sid
 
-module T = struct type t = c_label let compare = Pervasives.compare end
+let compare a b =
+  if a==b then 0 else
+    match a,b with
+    | At(_,s) , At(_,s') -> Pervasives.compare s.sid s'.sid
+    | At _ , _ -> 1
+    | _ , At _ -> (-1)
+    | _ -> Pervasives.compare a b
+
+let equal a b =
+  a == b || compare a b = 0
+
+module T = struct type t = c_label let compare = compare end
 module LabelMap = FCMap.Make(T)
 module LabelSet = FCSet.Make(T)
 
@@ -72,7 +90,7 @@ let c_label = function
   | LogicLabel (None, "Exit") -> Exit
   | LogicLabel (None, l) -> LabelParam l
   | LogicLabel (Some stmt, _)
-  | StmtLabel { contents=stmt } -> At(names_at stmt.labels,stmt.sid)
+  | StmtLabel { contents=stmt } -> At(names_at stmt.labels,stmt)
 
 (*TODO [LC] : Use extension of Clabels instead *)
 let loop_head_label s =
@@ -85,17 +103,6 @@ let mk_logic_label s =
 let mk_stmt_label s = (* TODO: clean that !*) c_label (mk_logic_label s)
 let mk_loop_label s = (* TODO: clean that !*) c_label (loop_head_label s)
 
-let pretty fmt = function
-  | Init -> Format.pp_print_string fmt "\\init"
-  | Here -> Format.pp_print_string fmt "\\here"
-  | Pre  -> Format.pp_print_string fmt "\\pre"
-  | Post -> Format.pp_print_string fmt "\\post"
-  | Exit -> Format.pp_print_string fmt "\\exit"
-  | LabelParam label -> Format.fprintf fmt "Label '%s'" label
-  | CallAt sid -> Format.fprintf fmt "Call sid:%d" sid
-  | At(label::_,_) -> Format.fprintf fmt "Stmt '%s'" label
-  | At([],sid) -> Format.fprintf fmt "Stmt sid:%d" sid
-
 let lookup_name = function
   | Init -> "Init"
   | Pre  -> "Pre"
@@ -103,8 +110,7 @@ let lookup_name = function
   | Post -> "Post"
   | Exit -> "Exit"
   | LabelParam p -> p
-  | CallAt sid -> Printf.sprintf "<call:%d>" sid
-  | At(_,sid) -> Printf.sprintf "<stmt:%d>" sid
+  | At(_,s) -> Printf.sprintf "<stmt:%d>" s.sid
 
 let lookup labels param =
   try

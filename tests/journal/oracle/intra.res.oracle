@@ -96,10 +96,10 @@ tests/journal/intra.i:92:[value] entering loop for the first time
 [from] Done for function Frama_C_copy_block
 [pdg] done for function Frama_C_copy_block
 [pdg] computing for function f10
-[pdg] warning: unreachable entry point (sid:83, function f10)
+[pdg] warning: unreachable entry point (sid:79, function f10)
 [pdg] Bottom for function f10
 [pdg] computing for function main2
-[pdg] warning: unreachable entry point (sid:92, function main2)
+[pdg] warning: unreachable entry point (sid:87, function main2)
 [pdg] Bottom for function main2
 [pdg] computing for function spare_called_fct
 [pdg] done for function spare_called_fct

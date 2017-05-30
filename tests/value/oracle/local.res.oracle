@@ -12,23 +12,25 @@
   V ∈ {0}
 [value] computing for function f <- main.
         Called from tests/value/local.i:33.
-tests/value/local.i:7:[value] warning: locals {b} escaping the scope of f through \result
 [value] Recording results for f
 [value] Done for function f
 tests/value/local.i:33:[value] warning: locals {a} escaping the scope of f through X
+tests/value/local.i:33:[value] warning: locals {b} escaping the scope of f through \result<f>
 [value] computing for function g <- main.
         Called from tests/value/local.i:34.
+tests/value/local.i:12:[value] warning: initialization of volatile variable d ignored
 [value] computing for function f <- g <- main.
         Called from tests/value/local.i:13.
 [value] Recording results for f
 [value] Done for function f
 tests/value/local.i:13:[value] warning: locals {a} escaping the scope of f through X
+tests/value/local.i:13:[value] warning: locals {b} escaping the scope of f through \result<f>
 tests/value/local.i:14:[value] warning: accessing left-value that contains escaping addresses.
                  assert ¬\dangling(&T);
-tests/value/local.i:15:[value] warning: locals {d} escaping the scope of g through \result
 [value] Recording results for g
 [value] Done for function g
 tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through U
+tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through \result<g>
 [value] DUMPING STATE of file tests/value/local.i line 35
         X ∈ ESCAPINGADDR
         Y ∈ ESCAPINGADDR

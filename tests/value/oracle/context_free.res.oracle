@@ -2,6 +2,8 @@
 [kernel] Parsing tests/value/context_free.i (no preprocessing)
 [value] Analyzing an incomplete application starting at f
 [value] Computing initial state
+[value:initial-state] creating variable S_p_svoid with imprecise size (type void)
+[value:initial-state] creating variable S_qvoid with imprecise size (type void)
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   a ∈ [--..--]
@@ -72,6 +74,9 @@
   S_p_svoid[bits 0 to ..] ∈
            {{ garbled mix of &{S_p_svoid} (origin: Well) }}
   S_qvoid[bits 0 to ..] ∈ {{ garbled mix of &{S_qvoid} (origin: Well) }}
+[value:initial-state] creating variable S_0_S_vvv with imprecise size (type void)
+[value:initial-state] creating variable S_1_S_vvv with imprecise size (type void)
+[value:initial-state] creating variable S_vv with imprecise size (type void)
 tests/value/context_free.i:46:[value] warning: out of bounds write. assert \valid(p);
 tests/value/context_free.i:51:[value] Assigning imprecise value to vv.
         The imprecision originates from Well

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -warn-signed-overflow -rte-no-all -print -rte-precond
+   OPT: -rte -warn-signed-overflow -rte-no-mem -print -rte-precond
 */
 
 int i;

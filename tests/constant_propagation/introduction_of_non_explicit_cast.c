@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/constant_propagation/introduction_of_non_explicit_cast.ml -val -deps -journal-disable
+   OPT: -load-script tests/constant_propagation/introduction_of_non_explicit_cast.ml -val -val-show-progress -deps -journal-disable
 */
 
 

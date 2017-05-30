@@ -4,8 +4,7 @@
 int main(void)
 {
   int __retres;
-  /*@ ghost int x; */
-  /*@ ghost x = 0; */
+  /*@ ghost int x = 0; */
   /*@ ghost x ++; */
   __retres = 0;
   return __retres;

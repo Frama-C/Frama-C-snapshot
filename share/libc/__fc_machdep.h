@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -179,6 +179,8 @@
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_INT_MIN
 #define __FC_PTRDIFF_MAX __FC_INT_MAX
+/* time.h */
+#define __FC_TIME_T long
 
 #else
 #ifdef __FC_MACHDEP_MSVC_X86_64
@@ -259,13 +261,26 @@
 /* stdint.h */
 #define __FC_PTRDIFF_MIN __FC_LLONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LLONG_MAX
+/* time.h */
+#define __FC_TIME_T __int64
 
 /* for stdarg.h */
 #define __FC_VA_LIST_T char*
 
+/* The following macros are defined to correspond to the version of MSVC used
+   during the definition of some MSVC-specific features: Visual Studio 2010.
+   They also help detecting, in some tests, whether we are in MSVC mode. */
+#define _MSC_FULL_VER 160040219
+#define _MSC_VER 1600
+// __ptr64 is MSVC-specific and needs to be undefined for us to parse it
+#undef __ptr64
+#define __ptr64
+
 #else
-#error Must define __FC_MACHDEP_X86_32 or __FC_MACHDEP_X86_64 or \
-       __FC_MACHDEP_X86_16 or __FC_MACHDEP_PPC_32 or __FC_MACHDEP_MSVC_X86_64.
+#error Must define __FC_MACHDEP_<M>, where <M> is one of the            \
+  following: X86_32, X86_64, X86_16, PPC_32, MSVC_X86_64.               \
+  If you are using a custom machdep, you must include your machdep      \
+  header file defining __FC_MACHDEP to avoid inclusion of this file.
 #endif
 #endif
 #endif

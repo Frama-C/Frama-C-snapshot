@@ -6,21 +6,17 @@ int f(int a, int b)
   int __retres;
   if (a < b) {
     int tmp;
-    { /* sequence */
-      tmp = a;
-      a ++;
-      ;
-    }
+    tmp = a;
+    a ++;
+    ;
     __retres = tmp;
     goto return_label;
   }
   else {
     int tmp_0;
-    { /* sequence */
-      tmp_0 = b;
-      b --;
-      ;
-    }
+    tmp_0 = b;
+    b --;
+    ;
     __retres = tmp_0;
     goto return_label;
   }

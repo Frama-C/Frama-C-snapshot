@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -151,6 +151,10 @@ let filetree_selector
            ~click_cb:(fun _ ->
                (* original_source callback unnecessary here *) ()) ();
          main_ui#display_globals l
+     | Filetree.Global (GVarDecl (vi, _)) ->
+       (* try to find a definition instead of a declaration, which is more
+          informative. *)
+       main_ui#display_globals [Ast.def_or_last_decl vi]
      | Filetree.Global g -> 
          main_ui#display_globals [g];
     );
@@ -329,6 +333,7 @@ let print_code_annotations (main_ui:main_window_extension_points) kf stmt =
 let print_call_preconditions (main_ui: main_window_extension_points) stmt =
   let by_ptr_call = match stmt.skind with
     | Instr (Call (_, e, _, _)) -> Some (Kernel_function.get_called e = None)
+    | Instr (Local_init (_, ConsInit _, _)) -> Some false
     | _ -> None
   in
   match by_ptr_call with
@@ -358,6 +363,11 @@ let to_do_on_select
     ~button
     selected
   =
+  let view_original ?loc stmt =
+    match loc with
+      | None -> main_ui#view_original_stmt stmt
+      | Some loc -> main_ui#view_original loc; loc
+  in
   let current_statement_msg ?loc kf stmt =
     main_ui#pretty_information
       "Function: %t@."
@@ -367,12 +377,7 @@ let to_do_on_select
     match stmt with
     | Kglobal -> main_ui#pretty_information "@."
     | Kstmt s ->
-        let loc = match loc with
-          | None -> main_ui#view_original_stmt s
-          | Some loc ->
-              main_ui#view_original loc;
-              loc
-        in
+        let loc = view_original ?loc s in
         if main_ui#show_ids then
           main_ui#pretty_information
             "Statement: %d (%a)@.@." s.sid Printer.pp_location loc
@@ -484,9 +489,15 @@ let to_do_on_select
 
     | PLval (kf, ki,lv) ->
         let ty = typeOfLval lv in
-        if isFunctionType ty then
+        if isFunctionType ty then begin
+          begin
+            match ki with
+            | Kstmt s -> ignore (view_original s)
+            | Kglobal -> ();
+          end;
           main_ui#pretty_information "This is a C function of type `%a'@."
             Gui_printers.pp_typ ty
+        end
         else begin
           current_statement_msg kf ki;
           match lv with
@@ -530,7 +541,7 @@ let to_do_on_select
           Printer.pp_logic_type (Cil.typeOfTermLval tlv);
         main_ui#view_original (Property.location ip)
 
-    | PVDecl (kf,vi) ->
+    | PVDecl (kf,_,vi) ->
         main_ui#view_original vi.vdecl;
         if vi.vglob
         then
@@ -598,7 +609,7 @@ class protected_menu_factory (host:Gtk_helper.host) (menu:GMenu.menu) = object
 end
 
 (* This function reacts to the section of a localizable. The [origin]
-   arguments identifies the widget where the selection occured *)
+   arguments identifies the widget where the selection occurred *)
 let selector_localizable (main_ui:main_window_extension_points) origin ~button localizable =
   let popup_factory =
     new protected_menu_factory (main_ui:>Gtk_helper.host) (GMenu.menu())
@@ -1107,42 +1118,41 @@ class main_window () : main_window_extension_points =
               match olocz with
               | None -> ()
               | Some locz ->
-                  let scroll_to_locz locz =
-                    Wutil.later (fun () ->
-                        (* Prevent filetree selector from resetting the
-                           original source viewer. *)
-                        Source_manager.selection_locked := true;
-                        self#scroll locz;
-                        (* The selection lock is asynchronously released by a
-                           callback, and cannot be released here. *)
-                      )
-                  in
-                  match locz with
-                  | PVDecl (_okf, vi) ->
-                      (* if it is a global variable, show it instead of the current function *)
-                      begin
-                        try
-                          ignore (Globals.Vars.find vi);
-                          let glob = GVarDecl (vi, loc) in
-                          Wutil.later (fun () ->
-                              Source_manager.selection_locked := true;
-                              self#select_or_display_global glob;
-                            )
-                        with
-                        | Not_found ->
-                            (* not a global variable, treat as usual *)
-                            scroll_to_locz locz
-                      end
-                  | PGlobal g ->
-                      (* if it is a type declaration/definition, ignore it, since
-                         types are not displayed in the file tree *)
-                      begin
-                        match g with
-                        | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _
-                        | GEnumTagDecl _ -> ()
-                        | _ -> scroll_to_locz locz
-                      end
-                  | _ -> scroll_to_locz locz
+                let scroll_to_locz locz =
+                  Wutil.later (fun () ->
+                      (* Prevent filetree selector from resetting the
+                         original source viewer. *)
+                      Source_manager.selection_locked := true;
+                      self#scroll locz;
+                      (* The selection lock is asynchronously released by a
+                         callback, and cannot be released here. *)
+                    )
+                in
+                match locz with
+                | PVDecl (_okf, _, vi) -> begin
+                    (* if it is a global variable, show it instead of the
+                       current function *)
+                    try
+                      ignore (Globals.Vars.find vi);
+                      let glob = GVarDecl (vi, loc) in
+                      Wutil.later (fun () ->
+                          Source_manager.selection_locked := true;
+                          self#select_or_display_global glob;
+                        )
+                    with
+                    | Not_found ->
+                      (* not a global variable, treat as usual *)
+                      scroll_to_locz locz
+                  end
+                | PGlobal g -> begin
+                    (* if it is a type declaration/definition, ignore it, since
+                       types are not displayed in the file tree *)
+                    match g with
+                    | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _
+                    | GEnumTagDecl _ -> ()
+                    | _ -> scroll_to_locz locz
+                  end
+                | _ -> scroll_to_locz locz
             )
           ()
 
@@ -1455,7 +1465,7 @@ class main_window () : main_window_extension_points =
       in
       display_warnings ();
 
-      (* Gestion of navigation history *)
+      (* Management of navigation history *)
       ignore (History.create_buttons (self#menu_manager ()));
       History.set_display_elt_callback
         (function
@@ -1501,7 +1511,7 @@ class main_window () : main_window_extension_points =
              try
                (* Retrieve a potential varinfo from the selection *)
                let vi = Gui_printers.varinfo_of_link s in
-               (* Now that we have a varinfo, we re-synthetize a kinstr from
+               (* Now that we have a varinfo, we re-synthesize a kinstr from
                   the current localizable, as it must be supplied to the callbacks *)
                match History.selected_localizable () with
                | None -> ()

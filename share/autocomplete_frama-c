@@ -1,0 +1,78 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2017                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# file: autocomplete_frama-c
+# bash completion for Frama-C
+# ==========================
+#
+# Installation
+# ============
+#
+# To enable system-wide completion, put this file in /etc/bash_completion.d
+# If you want to enable Frama-C completion only for your account, append
+# this file to ~/.bash_completion.
+#
+# Assuming frama-c is in your PATH,
+# you can also put the following line into your .bashrc:
+#
+#   source $(frama-c -print-share-path)/autocomplete_frama-c || true
+#
+# -----------------------------------------------------------------------------
+
+_frama-c ()
+{
+  local cur
+
+  local basic_options
+  local sub_options
+
+  COMPREPLY=()   # Array variable storing the possible completions.
+  local sub_comp_line="${COMP_LINE[@]:0:(${COMP_POINT})}"
+  local sub_comp_set=( $sub_comp_line )
+
+  if [[ ${sub_comp_line: -1} == ' ' ]] ; then
+      cur=""
+  else
+      cur="${sub_comp_set[@]: -1}"
+  fi
+
+  # Generate the completion matches and load them into $COMPREPLY array.
+   case "$cur" in
+       -*-*)
+	   sub_option="$(frama-c -autocomplete | grep -E -o " $cur[^*]+" |sort |uniq)";
+	   COMPREPLY=( $( compgen -W "${sub_option}"  -- $cur ) );;
+      
+       -*)
+	   basic_options="$(frama-c -autocomplete | grep -E -o " \-[^-]+-?" |sort |uniq)" 
+  	   COMPREPLY=( $( compgen -W  "${basic_options}" -- $cur ) );;
+   esac
+
+  return 0
+}
+
+complete -o nospace -f -F _frama-c filename frama-c
+complete -o nospace -f -F _frama-c filename frama-c-gui
+
+# Local Variables:
+# mode: sh
+# sh-shell: bash
+# End:

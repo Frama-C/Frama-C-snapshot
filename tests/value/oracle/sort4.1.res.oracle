@@ -37,6 +37,7 @@ tests/value/sort4.i:33:[value] warning: out of bounds write. assert \valid(t + 2
 tests/value/sort4.i:26:[value] warning: function sort4_4: postcondition got status unknown.
 [value] Recording results for sort4_4
 [value] done for function sort4_4
+[scope:rm_asserts] removing 13 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function sort4_4:
   tmp ∈ [-2147483647..2147483647] or UNINITIALIZED

@@ -1,0 +1,74 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo3_solved.old.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 34 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_post : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_post_2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_post_3 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_3_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_3_established : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_4_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_4_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_5_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_5_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_6_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_6_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_7_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_7_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_8_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_8_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_9_preserved : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_inv_9_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_10_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_loop_inv_10_established : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_2 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_assign : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_assign_2 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assign_part1 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assign_part2 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assign_part3 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_term_positive : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_decrease : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_positive : Valid
+[wp] Proved goals:   34 / 34
+     Qed:            18 
+     Alt-Ergo:       16
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+equal_elements      18     16 (406)   34       100%
+----------------------------------------------------------
+[wp] Running WP plugin...
+[rte] annotating function equal_elements
+[wp] 16 goals scheduled
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_2 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_signed_overflow : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_mem_access_3 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_index_bound_3 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_index_bound_4 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_4 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_5 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_6 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_7 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_mem_access_8 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_5 : Valid
+[wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : Valid
+[wp] Proved goals:   16 / 16
+     Qed:            11 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+equal_elements      29     21 (406)   50       100%
+----------------------------------------------------------

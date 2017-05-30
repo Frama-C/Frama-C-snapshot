@@ -124,15 +124,13 @@ void countOne_post_func(int res)
  */
 int countOne(char *argv)
 {
-  int r;
   countOne_pre_func(argv);
-  r = 0;
+  int r = 0;
   switch ((int)*(argv + 0)) {
     int tmp;
     case 0: r = 0;
     goto switch_0_break;
-    case 1: case 2: case 3: default: ;
-    r ++;
+    case 1: case 2: case 3: default: r ++;
     tmp = countOne(argv + 1);
     r += tmp;
   }

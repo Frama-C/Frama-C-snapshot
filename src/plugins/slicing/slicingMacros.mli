@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,8 +30,8 @@ val str_level_option : level_option -> string
 val get_default_level_option : bool -> level_option
 val fi_svar : fct_info -> Cil_types.varinfo
 val ff_svar : fct_slice -> Cil_types.varinfo
-val get_kf_fi : project -> Kernel_function.t -> fct_info
-val fold_fi : ('a -> fct_info -> 'a) -> 'a -> project -> 'a
+val get_kf_fi : Kernel_function.t -> fct_info
+val fold_fi : ('a -> fct_info -> 'a) -> 'a -> 'a
 val get_ff_id : fct_slice -> int
 val fi_name : fct_info -> string
 val ff_name : fct_slice -> string
@@ -44,15 +44,15 @@ val get_fi_pdg : fct_info -> Db.Pdg.t
 val get_ff_pdg : fct_slice -> Db.Pdg.t
 val ff_slicing_level : fct_slice -> level_option
 val change_fi_slicing_level : fct_info -> level_option -> unit
-val change_slicing_level : project -> Kernel_function.t -> int -> unit
+val change_slicing_level : Kernel_function.t -> int -> unit
 val fi_slices : fct_info -> fct_slice list
 val equal_fi : fct_info -> fct_info -> bool
 val equal_ff : fct_slice -> fct_slice -> bool
 val same_ff_call :
   fct_slice * Cil_types.stmt -> fct_slice * Cil_types.stmt -> bool
 val is_call_stmt : Cil_types.stmt -> bool
-val get_fi_call : project -> Cil_types.stmt -> fct_info option
-val is_src_fun_called : project -> Kernel_function.t -> bool
-val is_src_fun_visible : project -> Kernel_function.t -> bool
+val get_fi_call : Cil_types.stmt -> fct_info option
+val is_src_fun_called : Kernel_function.t -> bool
+val is_src_fun_visible : Kernel_function.t -> bool
 val fi_has_persistent_selection : fct_info -> bool
-val has_persistent_selection : project -> Kernel_function.t -> bool
+val has_persistent_selection : Kernel_function.t -> bool

@@ -1,0 +1,29 @@
+# frama-c -wp -wp-rte -no-warn-signed-overflow [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_gallery/frama_c_exo2_solved.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[rte] annotating function max_subarray
+[wp] Goal typed_max_subarray_post : not tried
+[wp] Goal typed_max_subarray_post_2 : not tried
+[wp] Goal typed_max_subarray_loop_inv_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_2_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_2_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_3_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_3_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_4_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_4_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_5_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_5_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_6_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_6_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_7_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_7_established : not tried
+[wp] Goal typed_max_subarray_loop_inv_8_preserved : not tried
+[wp] Goal typed_max_subarray_loop_inv_8_established : not tried
+[wp] Goal typed_max_subarray_assert_rte_mem_access : not tried
+[wp] Goal typed_max_subarray_loop_assign : trivial
+[wp] Goal typed_max_subarray_assign : not tried
+[wp] Goal typed_max_subarray_loop_term_decrease : not tried
+[wp] Goal typed_max_subarray_loop_term_positive : not tried

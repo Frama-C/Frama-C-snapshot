@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ type depend =
 (* -------------------------------------------------------------------------- *)
 
 let engine =
-  let module E = Qed.Export_coq.Make(Lang.F) in
+  let module E = Qed.Export_coq.Make(Lang.F.QED) in
   object(self)
     inherit E.engine as super
     inherit Lang.idprinting
@@ -132,7 +132,7 @@ let engine =
                             
     method! pp_fun cmode fct ts =
       if fct == Vlist.f_concat
-      then Vlist.pp_concat self ts
+      then Vlist.export self ts
       else super#pp_fun cmode fct ts
     
   end
@@ -200,7 +200,7 @@ class visitor fmt c =
         | Logic t ->
             engine#declare_signature fmt
               d.d_lfun (List.map F.tau_of_var d.d_params) t ;
-        | Value(t,mu,v) ->
+        | Function(t,mu,v) ->
             let pp = match mu with
               | Rec -> engine#declare_fixpoint ~prefix:"Fix"
               | Def -> engine#declare_definition
@@ -657,7 +657,9 @@ let prove_prop wpo ~mode ~axioms ~prop =
 let prove_annot wpo vcq ~mode =
   Task.todo
     begin fun () ->
-      let prop = GOAL.compute_proof vcq.VC_Annot.goal in
+      let prop =
+        Model.with_model wpo.po_model
+          GOAL.compute_proof vcq.VC_Annot.goal in
       prove_prop wpo ~mode ~axioms:None ~prop
     end
 

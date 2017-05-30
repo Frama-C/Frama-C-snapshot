@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,71 +53,39 @@ let offsetmap_contains_local offm =
     false
   with Exit -> true
 
-let remember_if_locals_in_offsetmap clob left_loc offsm =
-  if offsetmap_contains_local offsm then
-    let s = Location_Bits.get_bases left_loc.loc in
-    remember_bases_with_locals clob s
 
-type topify_offsetmap =
-  Cvalue.V_Offsetmap.t ->
-  Base.SetLattice.t * Cvalue.V_Offsetmap.t
-
-type topify_offsetmap_approx =
-  exact:bool ->
-  topify_offsetmap
-
-type topify_state = Cvalue.Model.t -> Cvalue.Model.t
-
-
-(* For all bindings [v] of [offsm] that verify [test], replace them by
-   [snd (topify v)], and gather [fst (topify v)] within [acc_locals] *)
-let top_gather_locals test topify join acc_locals : topify_offsetmap =
-  fun offsm ->
+(* Rebuild [offsm] by applying [f] to the bindings that verify [test].
+   Also call [warn] in this case. *)
+let rebuild_offsetmap f warn offsm =
   Cvalue.V_Offsetmap.fold
-    (fun (_,_ as i) (v, m, r) (acc_locals, acc_o as acc) ->
-       if test v
-       then
-         let locals, topified_v = topify v in
-         (join acc_locals locals),
-       Cvalue.V_Offsetmap.add i (topified_v, m, r) acc_o
-       else acc)
+    (fun (_,_ as itv) (v, m, r) acc ->
+       let changed, v' = f v in
+       if changed then begin
+         warn ~itv ~v:(Cvalue.V_Or_Uninitialized.get_v v);
+         Cvalue.V_Offsetmap.add itv (v', m, r) acc
+       end else
+         acc)
     offsm
-    (acc_locals, offsm)
+    offsm
 
-
-(* Return a function that topifies all parts of an offsetmap that contains a
-   pointer that verifying [is_local]. *)
-let offsetmap_top_addresses_of_locals is_local : topify_offsetmap_approx =
-  (* Partial application is important, this function has a cache *)
-  let is_local_bytes = Location_Bytes.contains_addresses_of_locals is_local in
-  fun ~exact offsetmap ->
-      let loc_contains_addresses_of_locals t =
-	let v = Cvalue.V_Or_Uninitialized.get_v t in
-	is_local_bytes v
-      in
-      let locals, result =
-        top_gather_locals
-	  loc_contains_addresses_of_locals
-	  (Cvalue.V_Or_Uninitialized.unspecify_escaping_locals ~exact is_local)
-	  Base.SetLattice.join
-	  Base.SetLattice.bottom
-	  offsetmap
-      in
-      locals, result
-
-(* Topify the locals in the offsetmaps bound to [bases] in [state]. *)
-let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_offsetmap_approx) bases state =
-  (* Assumes [offsm] is bound to [base] in [state]. Remove locals from [offsm],
-     and bind it again to [base] in the result. *)
-  let aux base offsm state =
-    let locals, offsm' = topify_offsetmap ~exact offsm in
-    let found_locals = not (Cvalue.V_Offsetmap.equal offsm' offsm) in
-    if found_locals then
-      ((fwarn_escape base locals : unit);
-       Cvalue.Model.add_base base offsm' state)
-    else state
+(* make escaping the ranges of [offsetmap] that verify [test]. Honor [exact],
+   and warn using [warn] on those ranges. *)
+let make_escaping_offsetmap test warn ~exact offsetmap =
+  let make_escaping v =
+    Cvalue.V_Or_Uninitialized.unspecify_escaping_locals ~exact test v
   in
-  (* Clean the locals in the offsetmap bound to [base] in [state] *)
+  rebuild_offsetmap make_escaping warn offsetmap
+
+let make_escaping ~exact ~escaping ~on_escaping ~within state =
+  (* Clean [offsm], and bind it to [base] if it is modified. *)
+  let aux base offsm state =
+    let test b = Base.Hptset.mem b escaping in
+    let on_escaping = on_escaping ~b:base in
+    let offsm' = make_escaping_offsetmap test on_escaping ~exact offsm in
+    if Cvalue.V_Offsetmap.equal offsm' offsm then state
+    else Cvalue.Model.add_base base offsm' state
+  in
+  (* Clean the offsetmap bound to [base] in [state] *)
   let aux' base state =
     try
       match Cvalue.Model.find_base base state with
@@ -125,8 +93,8 @@ let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_o
       | `Value offsm -> aux base offsm state
     with Not_found -> state
   in
-  try (* Iterate on all the bases that might contain a local, and clean them*)
-    Base.SetLattice.fold aux' bases.clob (aux' Base.null state)
+  try (* Iterate on all the bases that might contain a variable to clean *)
+    Base.SetLattice.fold aux' within (aux' Base.null state)
   with Base.SetLattice.Error_Top ->
     (* [bases] is too imprecise. Iterate on the entire memory state instead,
        which is much slower *)
@@ -134,48 +102,7 @@ let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_o
     | Cvalue.Model.Top | Cvalue.Model.Bottom -> state
     | Cvalue.Model.Map m -> Cvalue.Model.fold aux m state
 
-(* Topifies all references to the locals and formals of [fdec]*)
-let top_addresses_of_locals fdec clob =
-  let entry_point, lib = Kernel.MainFunction.get (), Kernel.LibEntry.get () in
-  (* Do nothing for main, except in lib-entry mode (no sense to warn for
-     a variable escaping the main function) *)
-  if lib || not (fdec.svar.vname = entry_point)
-  then
-    let offsetmap_top_addresses_of_locals =
-      offsetmap_top_addresses_of_locals
-        (Extlib.swap Base.is_formal_or_local fdec)
-    in
-    let state_top_addresses_of_locals =
-      state_top_addresses_of_locals 
-        (Warn.warn_locals_escape false fdec)
-        offsetmap_top_addresses_of_locals clob
-    in
-    (offsetmap_top_addresses_of_locals ~exact:true,
-     state_top_addresses_of_locals ~exact:true)
-  else (fun x -> Base.SetLattice.bottom, x),(fun x -> x)
-
-(* Topifies all the references to the variables local to [blocks] *)
-let block_top_addresses_of_locals fdec clob blocks =
-  (* no need to topify references to [v] if it is not referenced, or if it
-     a Cil temporary *)
-  let safe_var v = v.vtemp || not v.vreferenced in
-  if List.for_all (fun b -> List.for_all safe_var b.blocals) blocks then
-    fun x -> x
-  else
-    let offsetmap_top_addresses_of_locals =
-      offsetmap_top_addresses_of_locals
-	(fun v -> List.exists (Base.is_block_local v) blocks)
-    in
-    let state_top_addresses_of_locals =
-      state_top_addresses_of_locals
-        (Warn.warn_locals_escape true fdec)
-	offsetmap_top_addresses_of_locals
-	clob
-    in
-    state_top_addresses_of_locals ~exact:true
-
-(* Topifies all the references to the variables [vars] in [state]. *)
-let state_top_addresses fundec clob vars state =
+let make_escaping_fundec fundec clob vars state =
   let filter acc v =
     if v.vtemp || not v.vreferenced
     then acc else Base.Hptset.add (Base.of_varinfo v) acc
@@ -184,22 +111,20 @@ let state_top_addresses fundec clob vars state =
   if Base.Hptset.is_empty vars
   then state
   else
-    let offsetmap_top_addresses_of_locals =
-      offsetmap_top_addresses_of_locals (fun b -> Base.Hptset.mem b vars)
-    in
     (* Detect whether we are deallocating an inner block of the function,
        or a formal/a toplevel local. This is used for the warning message. *)
     let is_inner_block =
       let b = Base.Hptset.choose vars in
       not (Base.is_formal b fundec || Base.is_block_local b fundec.sbody)
     in
-    let state_top_addresses_of_locals =
-      state_top_addresses_of_locals
-        (Warn.warn_locals_escape is_inner_block fundec)
-        offsetmap_top_addresses_of_locals
-        clob
+    let escaping = vars in
+    let on_escaping ~b ~itv:_ ~v =
+      let bases_v = Cvalue.(V.get_bases v) in
+      let escaping = Base.SetLattice.inject escaping in
+      let bases = Base.SetLattice.meet escaping bases_v in
+      Warn.warn_locals_escape is_inner_block fundec b bases
     in
-    state_top_addresses_of_locals ~exact:true state
+    make_escaping ~exact:true ~escaping ~on_escaping ~within:clob.clob state
 
 
 (*

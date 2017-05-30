@@ -18,7 +18,7 @@ tests/pdg/annot.c:13:[value] assertion got status valid.
  {n3}: In1
    -[a--]-> 2
  {n4}: VarDecl : a
- {n5}: a = 10;
+ {n5}: int a = 10;
    -[-c-]-> 1
    -[a--]-> 4
  {n6}: x < 10

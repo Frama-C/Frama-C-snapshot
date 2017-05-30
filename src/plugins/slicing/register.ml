@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@ open Cil_datatype
 
 let check_call stmt is_call =
   let err = match stmt.skind with
-    | Instr (Call _) -> not is_call
+    | Instr (Call _ | Local_init(_, ConsInit _,_)) -> not is_call
     | _ -> is_call
   in
     if err then
@@ -341,40 +341,40 @@ module Selections = struct
 
 end
 
-let add_crit_ff_change_call proj ff_caller call f_to_call =
+let add_crit_ff_change_call ff_caller call f_to_call =
   let crit = SlicingActions.mk_crit_change_call ff_caller call f_to_call in
-    SlicingProject.add_filter proj crit
+    SlicingProject.add_filter crit
 
 (** change the call to call the given slice.
  * This is a user request, so it might be the case that
  * the new function doesn't compute enough outputs :
  * in that case, add outputs first.
  *)
-let call_ff_in_caller proj ~caller ~to_call =
+let call_ff_in_caller ~caller ~to_call =
   let kf_caller = SlicingMacros.get_ff_kf caller in
   let kf_to_call = SlicingMacros.get_ff_kf to_call in
   let call_stmts = !Db.Pdg.find_call_stmts ~caller:kf_caller  kf_to_call in
   let ff_to_call = SlicingInternals.CallSlice to_call in
   let add_change_call stmt =
-    add_crit_ff_change_call proj caller stmt ff_to_call ;
-    match Fct_slice.check_outputs_before_change_call proj caller
+    add_crit_ff_change_call caller stmt ff_to_call ;
+    match Fct_slice.check_outputs_before_change_call caller
                              stmt to_call with
       | [] -> ()
-      | [c] -> SlicingProject.add_filter proj c
+      | [c] -> SlicingProject.add_filter c
       | _ -> assert false
 
   in List.iter add_change_call call_stmts
 
-let call_fsrc_in_caller proj ~caller ~to_call =
+let call_fsrc_in_caller ~caller ~to_call =
   let kf_caller = SlicingMacros.get_ff_kf caller in
-  let fi_to_call = SlicingMacros.get_kf_fi proj to_call in
+  let fi_to_call = SlicingMacros.get_kf_fi to_call in
   let kf_to_call = SlicingMacros.get_fi_kf fi_to_call in
   let call_stmts = !Db.Pdg.find_call_stmts ~caller:kf_caller kf_to_call in
   let add_change_call stmt =
-    add_crit_ff_change_call proj caller stmt (SlicingInternals.CallSrc (Some fi_to_call))
+    add_crit_ff_change_call caller stmt (SlicingInternals.CallSrc (Some fi_to_call))
   in List.iter add_change_call call_stmts
 
-let call_min_f_in_caller proj ~caller ~to_call =
+let call_min_f_in_caller ~caller ~to_call =
   let kf_caller = SlicingMacros.get_ff_kf caller in
   let pdg = SlicingMacros.get_ff_pdg caller in
   let call_stmts = !Db.Pdg.find_call_stmts ~caller:kf_caller to_call in
@@ -384,7 +384,7 @@ let call_min_f_in_caller proj ~caller ~to_call =
   let m = SlicingMarks.mk_user_spare in
   let nd_marks = SlicingActions.build_simple_node_selection m in
   let select = SlicingActions.translate_crit_to_select pdg [(call_nodes, nd_marks)] in
-    SlicingProject.add_fct_ff_filter proj caller (SlicingInternals.CuSelect select)
+    SlicingProject.add_fct_ff_filter caller (SlicingInternals.CuSelect select)
 
 let is_already_selected ff db_select =
   let _, select = check_ff_db_select ff db_select in
@@ -404,21 +404,21 @@ let is_already_selected ff db_select =
               SlicingActions.print_sel_marks_list new_marks;
             ok
 
-let add_ff_selection proj ff db_select =
+let add_ff_selection ff db_select =
   SlicingParameters.debug ~level:1 "[Register.add_ff_selection] %a to %s"
       !Db.Slicing.Select.pretty db_select (SlicingMacros.ff_name ff);
   let _, select = check_ff_db_select ff db_select in
-      SlicingProject.add_fct_ff_filter proj ff select
+      SlicingProject.add_fct_ff_filter ff select
 
 (** add a persistent selection to the function.
 * This might change its slicing level in order to call slices later on. *)
-let add_fi_selection proj db_select =
+let add_fi_selection db_select =
   SlicingParameters.debug ~level:1 "[Register.add_fi_selection] %a"
                       !Db.Slicing.Select.pretty db_select;
   let kf = get_select_kf db_select in
-  let fi = SlicingMacros.get_kf_fi proj kf in
+  let fi = SlicingMacros.get_kf_fi kf in
   let _, select = db_select in
-    SlicingProject.add_fct_src_filter proj fi select;
+    SlicingProject.add_fct_src_filter fi select;
     match fi.SlicingInternals.fi_level_option with
       |  SlicingInternals.DontSlice |  SlicingInternals.DontSliceButComputeMarks ->
           SlicingMacros.change_fi_slicing_level fi  SlicingInternals.MinNbSlice;
@@ -440,7 +440,8 @@ let get_mark_from_param ff var =
 
 let get_called_slice ff stmt =
   match stmt.skind with
-  | Instr (Call _) -> fst (Fct_slice.get_called_slice ff stmt)
+  | Instr (Call _ | Local_init (_, ConsInit _, _)) ->
+    fst (Fct_slice.get_called_slice ff stmt)
   | _ -> None
 
 let get_called_funcs ff stmt = match stmt.skind with
@@ -454,6 +455,7 @@ let get_called_funcs ff stmt = match stmt.skind with
                  expr_f))
     else
       []
+  | Instr (Local_init (_, ConsInit (f, _, _), _)) -> [ Globals.Functions.get f ]
   | _ -> []
 
 
@@ -465,7 +467,7 @@ let create_slice s =
   SlicingParameters.debug ~level:1 "[Register.create_slice]";
   SlicingProject.create_slice s
 
-let copy_slice _proj ff =
+let copy_slice ff =
   SlicingParameters.debug ~level:1 "[Register.copy_slice]";
   Fct_slice.copy_slice ff
 
@@ -473,9 +475,9 @@ let split_slice s =
   SlicingParameters.debug ~level:1 "[Register.split_slice]";
   SlicingProject.split_slice s
 
-let merge_slices proj ff_1 ff_2 ~replace =
+let merge_slices ff_1 ff_2 ~replace =
   SlicingParameters.debug ~level:1 "[Register.merge_slices]";
-  SlicingProject.merge_slices proj ff_1 ff_2 replace
+  SlicingProject.merge_slices ff_1 ff_2 replace
 
 let remove_slice s =
   SlicingParameters.debug ~level:1 "[Register.remove_slice]";
@@ -489,12 +491,12 @@ let apply_next_action s =
   SlicingParameters.debug ~level:1 "[Register.apply_next_action]";
   SlicingProject.apply_next_action s
 
-let apply_all_actions p =
+let apply_all_actions () =
   SlicingParameters.debug ~level:1 "[Register.apply_all_actions]";
   SlicingParameters.feedback ~level:1 "applying all slicing requests...";
-  SlicingParameters.debug ~level:2 "pending requests:@\n %a@\n"
-    !Db.Slicing.Request.pretty p ;
-  let r = SlicingProject.apply_all_actions p in
+  SlicingParameters.debug ~level:2 "pending requests:@\n %t@\n"
+    !Db.Slicing.Request.pretty;
+  let r = SlicingProject.apply_all_actions () in
     SlicingParameters.feedback ~level:2 "done (applying all slicing requests).";
     r
 
@@ -502,43 +504,12 @@ let print_extracted_project ?fmt ~extracted_prj =
   if SlicingParameters.Print.get () then
     FC_file.pretty_ast ?fmt ~prj:extracted_prj ()
 
-(** Global data managment *)
+(** Global data management *)
 
-module P =
-  State_builder.Ref
-    (Datatype.Pair
-       (Datatype.List(SlicingTypes.Sl_project))
-       (Datatype.Option(SlicingTypes.Sl_project)))
-    (struct
-       let name = "Slicing.Project"
-       let dependencies = [] (* others delayed below *)
-       let default () = [], None
-     end)
-
-let get_all () = fst (P.get ())
-let get_project () = snd (P.get ())
-let set_project proj_opt = P.set (get_all (),  proj_opt)
-
-let from_unique_name name =
-  let all = get_all () in
-  try List.find (fun p -> name = SlicingProject.get_name p) all
-  with Not_found -> raise Db.Slicing.No_Project
-
-let mk_project name =
-(*  try
-    let _ = from_unique_name name in
-    raise Db.Slicing.Existing_Project
-  with Db.Slicing.No_Project -> *)
-    !Db.Value.compute () ;
-    let project = (SlicingProject.mk_project name) in
-    let all,current = P.get () in
-    P.set ((project :: all), current);
-    project
-
-let from_num_id proj kf num =
+let from_num_id kf num =
   List.find
     (fun f -> num = !Db.Slicing.Slice.get_num_id f)
-    (!Db.Slicing.Slice.get_all proj kf)
+    (!Db.Slicing.Slice.get_all kf)
 
 (** {2 For the journalization of the slicing plug-in } *)
 
@@ -547,30 +518,28 @@ let dot_project = PrintSlice.build_dot_project
 let dot_project =
   Journal.register
     "Slicing.Project.print_dot"
-    (Datatype.func3
+    (Datatype.func2
        ~label1:("filename", None) Datatype.string
        ~label2:("title", None) Datatype.string
-       Db.Slicing.Project.dyn_t
        Datatype.unit)
    dot_project
-let dot_project ~filename ~title project =
-  dot_project filename title project
+let dot_project ~filename ~title =
+  dot_project filename title
 
 let extract f_slice_names = SlicingTransform.extract ~f_slice_names
 let extract =
   Journal.register
     "!Db.Slicing.Project.extract"
-    (Datatype.func3
+    (Datatype.func2
        ~label1:("f_slice_names",
                Some (fun () -> !Db.Slicing.Project.default_slice_names))
        (Datatype.func3
           Kernel_function.ty Datatype.bool Datatype.int Datatype.string)
        Datatype.string
-       Db.Slicing.Project.dyn_t
        Project.ty)
     extract
 let extract new_proj_name
-    ?(f_slice_names=(!Db.Slicing.Project.default_slice_names)) =
+    ?(f_slice_names=(!Db.Slicing.Project.default_slice_names)) () =
   extract f_slice_names new_proj_name
 
 let default_slice_names = SlicingTransform.default_slice_names
@@ -752,75 +721,70 @@ let higher_select_func_annots set mark ~spare ~threat ~user_assert ~slicing_prag
   higher_select_func_annots set mark spare threat user_assert slicing_pragma loop_inv loop_var
 
 (** {3 For the journalization of the Db.Slicing.Request.functions} *)
-let apply_all project propagate_to_callers =
-  SlicingCmds.apply_all project ~propagate_to_callers
+let apply_all propagate_to_callers =
+  SlicingCmds.apply_all ~propagate_to_callers
 let apply_all =
   Journal.register
     "!Db.Slicing.Request.apply_all"
-    (Datatype.func2
-       Db.Slicing.Project.dyn_t
-       ~label2:("propagate_to_callers", None) Datatype.bool
+    (Datatype.func
+       ~label:("propagate_to_callers", None) Datatype.bool
        Datatype.unit)
     apply_all
-let apply_all project ~propagate_to_callers =
-  apply_all project propagate_to_callers
+let apply_all ~propagate_to_callers =
+  apply_all propagate_to_callers
 
-let merge_slices proj ff_1 ff_2 replace =
-  merge_slices proj ff_1 ff_2 ~replace
+let merge_slices ff_1 ff_2 replace =
+  merge_slices ff_1 ff_2 ~replace
 let merge_slices =
   Journal.register
     "!Db.Slicing.Request.merge_slices"
-    (Datatype.func4
-       Db.Slicing.Project.dyn_t
+    (Datatype.func3
        Db.Slicing.Slice.dyn_t
        Db.Slicing.Slice.dyn_t
-       ~label4:("replace", None) Datatype.bool
+       ~label3:("replace", None) Datatype.bool
        Db.Slicing.Slice.dyn_t)
     merge_slices
-let merge_slices proj ff_1 ff_2 ~replace =
-  merge_slices proj ff_1 ff_2 replace
+let merge_slices ff_1 ff_2 ~replace =
+  merge_slices ff_1 ff_2 replace
 
-let call_ff_in_caller proj caller to_call =
-  call_ff_in_caller proj ~caller ~to_call
+let call_ff_in_caller caller to_call =
+  call_ff_in_caller ~caller ~to_call
 let call_ff_in_caller =
   Journal.register
     "!Db.Slicing.Request.add_call_slice"
-    (Datatype.func3
-       Db.Slicing.Project.dyn_t
-       ~label2:("caller", None) Db.Slicing.Slice.dyn_t
-       ~label3:("to_call", None) Db.Slicing.Slice.dyn_t
+    (Datatype.func2
+       ~label1:("caller", None) Db.Slicing.Slice.dyn_t
+       ~label2:("to_call", None) Db.Slicing.Slice.dyn_t
        Datatype.unit)
     call_ff_in_caller
-let call_ff_in_caller proj ~caller ~to_call =
-  call_ff_in_caller proj caller to_call
+let call_ff_in_caller ~caller ~to_call =
+  call_ff_in_caller caller to_call
 
-let call_fsrc_in_caller proj caller to_call =
-  call_fsrc_in_caller proj ~caller ~to_call
+let call_fsrc_in_caller caller to_call =
+  call_fsrc_in_caller ~caller ~to_call
 let call_fsrc_in_caller =
   Journal.register
     "!Db.Slicing.Request.add_call_fun"
-    (Datatype.func3
-       Db.Slicing.Project.dyn_t
-       ~label2:("caller", None) Db.Slicing.Slice.dyn_t
-       ~label3:("to_call", None) Kernel_function.ty
+    (Datatype.func2
+       ~label1:("caller", None) Db.Slicing.Slice.dyn_t
+       ~label2:("to_call", None) Kernel_function.ty
        Datatype.unit)
     call_fsrc_in_caller
-let call_fsrc_in_caller proj ~caller ~to_call =
-  call_fsrc_in_caller proj caller to_call
+let call_fsrc_in_caller ~caller ~to_call =
+  call_fsrc_in_caller caller to_call
 
-let call_min_f_in_caller proj caller to_call =
-  call_min_f_in_caller proj ~caller ~to_call
+let call_min_f_in_caller caller to_call =
+  call_min_f_in_caller ~caller ~to_call
 let call_min_f_in_caller =
   Journal.register
     "!Db.Slicing.Request.add_call_min_fun"
-    (Datatype.func3
-       Db.Slicing.Project.dyn_t
-       ~label2:("caller", None) Db.Slicing.Slice.dyn_t
-       ~label3:("to_call", None) Kernel_function.ty
+    (Datatype.func2
+       ~label1:("caller", None) Db.Slicing.Slice.dyn_t
+       ~label2:("to_call", None) Kernel_function.ty
        Datatype.unit)
     call_min_f_in_caller
-let call_min_f_in_caller proj ~caller ~to_call =
-  call_min_f_in_caller proj caller to_call
+let call_min_f_in_caller ~caller ~to_call =
+  call_min_f_in_caller caller to_call
 
 
 (** {3 For the journalization of the Db.Slicingfunctions} *)
@@ -855,17 +819,8 @@ let set_modes ?(calls=SlicingParameters.Mode.Calls.get ())
 
 (** {2 Initialisation of the slicing plug-in} *)
 
-let () =
-  Cmdline.run_after_extended_stage
-    (fun () ->
-       State_dependency_graph.add_codependencies
-         ~onto:P.self
-         [ !Db.Pdg.self; !Db.Inputs.self_external; !Db.Outputs.self_external ])
-
 (** {3 Register external functions into Db.Slicing}  *)
-let () =
-  Db.Slicing.self := P.self;
-  Db.Slicing.set_modes := set_modes  (* Journalized *)
+let () = Db.Slicing.set_modes := set_modes  (* Journalized *)
 
 (** {3 Register external functions into Db.Slicing.Project}  *)
 let () =
@@ -874,21 +829,8 @@ let () =
   Db.Slicing.Project.default_slice_names := default_slice_names ; (* Journalized *)
   Db.register
     (Db.Journalize
-       ("Slicing.Project.mk_project",
-        Datatype.func Datatype.string Db.Slicing.Project.dyn_t))
-    Db.Slicing.Project.mk_project
-    mk_project;
-  Db.register
-    (Db.Journalize
-       ("Slicing.Project.set_project",
-        Datatype.func (Datatype.option Db.Slicing.Project.dyn_t) Datatype.unit))
-    Db.Slicing.Project.set_project
-    set_project;
-  Db.register
-    (Db.Journalize
        ("Slicing.Project.change_slicing_level",
-        Datatype.func3
-          Db.Slicing.Project.dyn_t
+        Datatype.func2
           Kernel_function.ty
           Datatype.int
           Datatype.unit))
@@ -899,17 +841,9 @@ let () =
   Db.register Db.Journalization_not_required
     Db.Slicing.Project.print_extracted_project print_extracted_project;
   Db.register Db.Journalization_not_required
-    Db.Slicing.Project.from_unique_name from_unique_name;
-  Db.register Db.Journalization_not_required
-    Db.Slicing.Project.get_all get_all;
-  Db.register Db.Journalization_not_required
-    Db.Slicing.Project.get_project get_project;
-  Db.register Db.Journalization_not_required
-    Db.Slicing.Project.get_name SlicingProject.get_name;
-  Db.register Db.Journalization_not_required
     Db.Slicing.Project.pretty SlicingProject.print_project_and_worklist ;
   Db.register Db.Journalization_not_required
-    Db.Slicing.Project.is_directly_called_internal  SlicingMacros.is_src_fun_called ;
+    Db.Slicing.Project.is_directly_called_internal SlicingMacros.is_src_fun_called ;
   Db.register Db.Journalization_not_required
     Db.Slicing.Project.is_called SlicingTransform.is_src_fun_called ;
   Db.register Db.Journalization_not_required
@@ -1021,8 +955,7 @@ let () =
 let () =
   Db.register (Db.Journalize
        ("Slicing.Slice.create",
-        Datatype.func2
-          Db.Slicing.Project.dyn_t
+        Datatype.func
           Kernel_function.ty
           Db.Slicing.Slice.dyn_t))
     Db.Slicing.Slice.create
@@ -1030,7 +963,7 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Slice.remove",
-        Datatype.func2 Db.Slicing.Project.dyn_t Db.Slicing.Slice.dyn_t Datatype.unit))
+        Datatype.func Db.Slicing.Slice.dyn_t Datatype.unit))
     Db.Slicing.Slice.remove
     remove_slice ;
 
@@ -1038,7 +971,7 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Slice.remove_uncalled",
-        Datatype.func Db.Slicing.Project.dyn_t Datatype.unit))
+        Datatype.func Datatype.unit Datatype.unit))
     Db.Slicing.Slice.remove_uncalled
     SlicingProject.remove_uncalled_slices ;
 
@@ -1085,27 +1018,27 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Request.propagate_user_marks",
-        Datatype.func Db.Slicing.Project.dyn_t Datatype.unit))
+        Datatype.func Datatype.unit Datatype.unit))
     Db.Slicing.Request.propagate_user_marks
     SlicingCmds.topologic_propagation ;
   Db.register
     (Db.Journalize
        ("Slicing.Request.add_selection",
-        Datatype.func2
-          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_set Datatype.unit))
+        Datatype.func
+          Db.Slicing.Select.dyn_set Datatype.unit))
     Db.Slicing.Request.add_selection
     SlicingCmds.add_selection ;
   Db.register
     (Db.Journalize
        ("Slicing.Request.add_persistent_selection",
-        Datatype.func2
-          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_set Datatype.unit))
+        Datatype.func
+          Db.Slicing.Select.dyn_set Datatype.unit))
     Db.Slicing.Request.add_persistent_selection
     SlicingCmds.add_persistent_selection ;
   Db.register
     (Db.Journalize
        ("Slicing.Request.add_persistent_cmdline",
-        Datatype.func Db.Slicing.Project.dyn_t Datatype.unit))
+        Datatype.func Datatype.unit Datatype.unit))
     Db.Slicing.Request.add_persistent_cmdline
     SlicingCmds.add_persistent_cmdline ;
   Db.Slicing.Request.add_call_slice := call_ff_in_caller ; (* Journalized *)
@@ -1115,8 +1048,7 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Request.copy_slice",
-        Datatype.func2
-          Db.Slicing.Project.dyn_t
+        Datatype.func
           Db.Slicing.Slice.dyn_t
           Db.Slicing.Slice.dyn_t))
     Db.Slicing.Request.copy_slice
@@ -1124,8 +1056,7 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Request.split_slice",
-        Datatype.func2
-          Db.Slicing.Project.dyn_t
+        Datatype.func
           Db.Slicing.Slice.dyn_t
           (Datatype.list Db.Slicing.Slice.dyn_t)))
     Db.Slicing.Request.split_slice
@@ -1134,13 +1065,13 @@ let () =
   Db.register
     (Db.Journalize
        ("Slicing.Request.apply_next_internal",
-        Datatype.func Db.Slicing.Project.dyn_t Datatype.unit))
+        Datatype.func Datatype.unit Datatype.unit))
   Db.Slicing.Request.apply_next_internal
     apply_next_action ;
   Db.register
     (Db.Journalize
        ("Slicing.Request.apply_all_internal",
-        Datatype.func Db.Slicing.Project.dyn_t Datatype.unit))
+        Datatype.func Datatype.unit Datatype.unit))
     Db.Slicing.Request.apply_all_internal
     apply_all_actions;
 
@@ -1186,11 +1117,10 @@ let main () =
     !Db.Value.compute ();
 
     let project_name = SlicingParameters.ProjectName.get () in
-    let project = !Db.Slicing.Project.mk_project project_name  in
-    !Db.Slicing.Project.set_project (Some project);
-    !Db.Slicing.Request.add_persistent_cmdline project;
+    !Db.Slicing.Project.reset_slice ();
+    !Db.Slicing.Request.add_persistent_cmdline ();
       (* Apply all pending requests. *)
-    if !Db.Slicing.Request.is_request_empty_internal project then
+    if !Db.Slicing.Request.is_request_empty_internal () then
       begin
  	SlicingParameters.warning "No internal slicing request from the command line." ;
 	if SlicingParameters.Mode.Callers.get () then
@@ -1198,25 +1128,25 @@ let main () =
 	  SlicingParameters.warning "Adding an extra request on the entry point of function: %a." Kernel_function.pretty kf_entry;
 	  let set = Db.Slicing.Select.empty_selects in
 	  let set = !Db.Slicing.Select.select_func_calls_into set true kf_entry in
-	  !Db.Slicing.Request.add_persistent_selection project set
+	  !Db.Slicing.Request.add_persistent_selection set
       end;
 
-    !Db.Slicing.Request.apply_all_internal project;
+    !Db.Slicing.Request.apply_all_internal ();
 
     if SlicingParameters.Mode.Callers.get () then
-      !Db.Slicing.Slice.remove_uncalled project;
+      !Db.Slicing.Slice.remove_uncalled ();
     let sliced_project_name =
       project_name ^ (SlicingParameters.ExportedProjectPostfix.get ())
     in
     SlicingParameters.set_off ();
     let sliced_project =
-      !Db.Slicing.Project.extract sliced_project_name project
+      !Db.Slicing.Project.extract sliced_project_name ()
     in
       Project.on sliced_project SlicingParameters.clear ();
     if SlicingParameters.Print.get () then begin
       FC_file.pretty_ast ~prj:sliced_project ();
-      SlicingParameters.result ~level:2 "Results :@ %a@."
-        !Db.Slicing.Project.pretty project
+      SlicingParameters.result ~level:2 "Results :@ %t@."
+        !Db.Slicing.Project.pretty
     end;
     SlicingParameters.feedback ~level:2 "done (slicing requests in progress).";
   end

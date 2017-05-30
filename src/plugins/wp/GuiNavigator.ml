@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,8 @@ open GuiSource
 (* --- Build the Reactive Behavior of GUI                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-type filter = [ `All | `Module | `Select ]
+type scope = [ `All | `Module | `Select ]
+type filter = [ `ToComplete | `ToProve | `Scripts | `All ]
 type card = [ `List | `Goal ]
 type focus =
   [ `All
@@ -46,8 +47,8 @@ let index_of_lemma (l,_,_,_,_) =
   | LogicUsage.Toplevel _ -> Wpo.Axiomatic None
   | LogicUsage.Axiomatic a -> Wpo.Axiomatic (Some a.LogicUsage.ax_name)
 
-let focus_of_selection selection filter =
-  match selection , filter with
+let focus_of_selection selection scope =
+  match selection , scope with
   | S_none , _  | _ , `All -> `All
   | S_call c , `Select -> `Call c
   | S_call c , `Module -> `Index (Wpo.Function(c.s_caller,None))
@@ -82,6 +83,7 @@ let goal_of_selection = function
 
 class behavior
     ~(main : Design.main_window_extension_points)
+    ~(scope : scope Widget.selector)
     ~(filter : filter Widget.selector)
     ~(next : Widget.button)
     ~(prev : Widget.button)
@@ -94,6 +96,19 @@ class behavior
     ~(popup : GuiSource.popup)
   =
   object(self)
+
+    initializer
+      let module Cfg = Gtk_helper.Configuration in
+      begin
+        Cfg.config_values ~key:"wp.navigator.scope"
+          ~values:[`All,"all" ; `Module,"module" ; `Select,"select"]
+          ~default:`Module scope ;
+        Cfg.config_values ~key:"wp.navigator.filter"
+          ~values:[`All,"all" ; `Scripts,"scripts" ;
+                   `ToComplete,"tocomplete" ; `ToProve,"toprove"]
+          ~default:`ToComplete filter ;
+        filter#on_event self#reload ;
+      end
 
     val mutable focus : focus = `All
     val mutable currentgoal : Wpo.t option = None
@@ -108,7 +123,20 @@ class behavior
     method reload () =
       begin
         list#reload ;
-        let on_goal = list#add in
+        let to_prove g = not (Wpo.is_trivial g || Wpo.is_proved g) in
+        let has_proof g =
+          match ProofEngine.get g with
+          | `None -> false
+          | `Proof | `Script | `Saved -> true in
+        let on_goal g =
+          let ok =
+            match filter#get with
+            | `All -> true
+            | `Scripts -> has_proof g
+            | `ToProve -> to_prove g
+            | `ToComplete -> to_prove g && has_proof g
+          in if ok then list#add g
+        in
         begin
           match focus with
           | `All -> Wpo.iter ~on_goal ()
@@ -125,7 +153,9 @@ class behavior
         in
         index#set_enabled (n>0) ;
         if n=0 then card#set `List ;
-        let src = if n=1 && k=0 then (card#set `Goal ; true) else false in
+        let src = if n=1 && k=0
+          then (card#set `Goal ; clear#set_enabled false ; true)
+          else false in
         if k<0 then self#navigator false None
         else self#navigator src (Some (list#get k)) ;
       end
@@ -133,14 +163,14 @@ class behavior
     method private set_focus f =
       focus <- f ; self#reload ()
 
-    method private set_filter f =
+    method private set_scope f =
       match f , currentgoal with
       | `Module , Some w -> self#set_focus (`Index (Wpo.get_index w))
       | `Select , Some w -> self#set_focus (`Property (Wpo.get_property w))
       | _ , _ -> self#set_focus `All
 
     method private set_selection s =
-      let f = filter#get in
+      let f = scope#get in
       currentgoal <- goal_of_selection s ;
       self#set_focus (focus_of_selection s f)
 
@@ -193,16 +223,16 @@ class behavior
 
     method private prove ?mode w prover =
       begin
-        let callback w _prover _result =
-          begin match card#get with
-            | `List -> list#update w
-            | `Goal -> goal#update
-          end
-        in
-        if prover = VCS.Why3ide
-        then
-          let iter f = Wpo.iter ~on_goal:f () in
-          let task = ProverWhy3ide.prove ~callback ~iter in
+        let refresh w =
+          match card#get with
+          | `List -> list#update w
+          | `Goal -> goal#update in
+        let callback w prover result =
+          Wpo.set_result w prover result ; refresh w in
+        let success w = function
+          | None -> callback w prover VCS.no_result
+          | Some _ -> refresh w in
+        let schedule task =
           let thread = Task.thread task in
           let kill () =
             Wpo.set_result w prover VCS.no_result ;
@@ -211,23 +241,29 @@ class behavior
           Wpo.set_result w prover (VCS.computing kill) ;
           let server = ProverTask.server () in
           Task.spawn server thread ;
-          Task.launch server ;
-        else
-          let open VCS in
-          let mode = match mode , prover with
-            | Some m , _ -> m
-            | None , Coq -> EditMode
-            | None , AltErgo -> FixMode
-            | _ -> BatchMode in
-          let task = Prover.prove w ~mode ~callback prover in
-          let thread = Task.thread task in
-          let kill () =
-            Wpo.set_result w prover VCS.no_result ;
-            Task.cancel thread in
-          Wpo.set_result w prover (VCS.computing kill) ;
-          let server = ProverTask.server () in
-          Task.spawn server thread ;
-          Task.launch server ;
+          Task.launch server in
+        match prover with
+        | VCS.Why3ide ->
+            let iter f = Wpo.iter ~on_goal:f () in
+            schedule (ProverWhy3ide.prove ~callback ~iter)
+        | VCS.Tactical ->
+            begin
+              match mode , ProofEngine.get w with
+              | (None | Some VCS.BatchMode) , `Script ->
+                  schedule (ProverScript.prove ~callback ~success w)
+              | _ ->
+                  card#set `Goal ;
+                  clear#set_enabled false ;
+                  self#navigator true (Some w) ;
+            end
+        | _ ->
+            let open VCS in
+            let mode = match mode , prover with
+              | Some m , _ -> m
+              | None , Coq -> EditMode
+              | None , AltErgo -> FixMode
+              | _ -> BatchMode in
+            schedule (Prover.prove w ~mode ~callback prover)
       end
 
     method private clear () =
@@ -250,6 +286,7 @@ class behavior
     (* -------------------------------------------------------------------------- *)
 
     val popup_qed  = new Widget.popup ()
+    val popup_tip  = new Widget.popup ()
     val popup_ergo = new Widget.popup ()
     val popup_coq  = new Widget.popup ()
     val popup_why3 = new Widget.popup ()
@@ -258,6 +295,11 @@ class behavior
     method private popup_delete () =
       match popup_target with
       | Some(w,_) -> (popup_target <- None ; Wpo.remove w ; self#reload ())
+      | None -> ()
+
+    method private popup_delete_script () =
+      match popup_target with
+      | Some(w,_) -> ProofEngine.remove w ; ProofSession.remove w
       | None -> ()
 
     method private popup_run mode () =
@@ -270,7 +312,13 @@ class behavior
       | Some(w,_) -> (popup_target <- None ; self#prove w VCS.Why3ide)
       | _ -> popup_target <- None
 
-    method private popup_proofmodes popup modes =
+    method private add_popup_delete popup =
+      begin
+        popup#add_separator ;
+        popup#add_item ~label:"Delete Goal" ~callback:self#popup_delete ;
+      end
+
+    method private add_popup_proofmodes popup modes =
       List.iter
         (fun (label,mode) ->
            popup#add_item ~label ~callback:(self#popup_run mode))
@@ -279,17 +327,19 @@ class behavior
     initializer
       let open VCS in
       begin
-        self#popup_proofmodes popup_why3
+        popup_tip#add_item ~label:"Run Script" ~callback:(self#popup_run BatchMode) ;
+        popup_tip#add_item ~label:"Edit Proof" ~callback:(self#popup_run EditMode) ;
+        popup_tip#add_item ~label:"Delete Script" ~callback:(self#popup_delete_script) ;
+        self#add_popup_proofmodes popup_why3
           [ "Run",BatchMode ] ;
-        self#popup_proofmodes popup_ergo
+        self#add_popup_proofmodes popup_ergo
           [ "Run",BatchMode ; "Open Altgr-Ergo on Fail",EditMode ; "Open Altgr-Ergo",EditMode ] ;
-        self#popup_proofmodes popup_coq
+        self#add_popup_proofmodes popup_coq
           [ "Check Proof",BatchMode ; "Edit on Fail",EditMode ; "Edit Proof",EditMode ] ;
         List.iter
           (fun menu ->
              menu#add_item ~label:"Open Why3ide" ~callback:self#popup_why3ide ;
-             menu#add_separator ;
-             menu#add_item ~label:"Delete Goal" ~callback:self#popup_delete ;
+             self#add_popup_delete menu ;
           ) [ popup_qed ; popup_why3 ; popup_ergo ; popup_coq ] ;
       end
 
@@ -298,12 +348,27 @@ class behavior
       begin
         popup_target <- Some (w,p) ;
         match p with
-        | None
+        | None | Some Tactical -> popup_tip#run ()
         | Some (Qed|Why3ide) -> popup_qed#run ()
         | Some Coq -> popup_coq#run ()
         | Some AltErgo -> popup_ergo#run ()
         | Some (Why3 _) -> popup_why3#run ()
       end
+
+    method private action w p =
+      match p with
+      | None ->
+          begin
+            card#set `Goal ;
+            clear#set_enabled false ;
+            self#navigator true (Some w) ;
+          end
+      | Some p ->
+          begin
+            self#navigator true (Some w) ;
+            self#prove w p ;
+            list#update w ;
+          end
 
     (* -------------------------------------------------------------------------- *)
     (* --- Popup on Goals                                                     --- *)
@@ -324,26 +389,10 @@ class behavior
                list#update w ;
              end
           ) ;
-        list#on_double_click
-          (fun w p ->
-             match p with
-             | None ->
-                 begin
-                   card#set `Goal ;
-                   self#navigator true (Some w) ;
-                 end
-             | Some p ->
-                 begin
-                   self#navigator true (Some w) ;
-                   self#prove w p ;
-                   list#update w ;
-                 end
-          ) ;
+        list#on_double_click self#action ;
         list#on_selection (fun n -> clear#set_enabled (n>0)) ;
-        goal#on_run self#prove ;
-        goal#on_src source#set ;
         card#connect (fun _ -> self#details) ;
-        filter#connect self#set_filter ;
+        scope#connect self#set_scope ;
         popup#on_click self#set_selection ;
         popup#on_prove (GuiPanel.run_and_prove main) ;
         clear#connect self#clear ;
@@ -372,31 +421,48 @@ let make (main : main_window_extension_points) =
     (* --- Focus Bar                                                          --- *)
     (* -------------------------------------------------------------------------- *)
 
-    let filter = new Widget.group (`All :> filter) in
-    let switch = Wbox.hgroup [
-      filter#add_toggle ~label:"All" ~tooltip:"All goals" ~value:`All () ;
-      filter#add_toggle ~label:"Module"
-        ~tooltip:"Goals of current function or axiomatics" ~value:`Module () ;
-      filter#add_toggle ~label:"Property"
-        ~tooltip:"Goals of current property" ~value:`Select () ;
-    ] in
+    let scope = new Widget.menu ~default:`Module ~options:[
+      `All, "Global" ;
+      `Module, "Module" ;
+      `Select , "Property" ;
+    ] () in
+    let filter = new Widget.menu ~default:`ToProve ~options:[
+      `ToProve , "Not Proved (yet)" ;
+      `ToComplete , "Pending Proofs" ;
+      `Scripts , "All Scripts" ;
+      `All , "All Goals" ;
+    ] () in 
     let prev = new Widget.button ~icon:`GO_BACK ~tooltip:"Previous goal" () in
     let next = new Widget.button ~icon:`GO_FORWARD ~tooltip:"Next goal" () in
     let index = new Widget.button ~icon:`INDEX ~tooltip:"List of goals" () in
     let navigation = Wbox.hgroup [
-      (prev :> widget) ;
-      (index :> widget) ;
-      (next :> widget) ;
-    ] in
+        (prev :> widget) ;
+        (index :> widget) ;
+        (next :> widget) ;
+      ] in
     let provers = new Widget.button ~label:"Provers..." () in
     let clear = new Widget.button ~label:"Clear" ~icon:`DELETE () in
     let focusbar = GPack.hbox ~spacing:0 () in
     begin
       focusbar#pack ~padding:0 ~expand:false navigation#coerce ;
-      focusbar#pack ~padding:20 ~expand:false switch#coerce ;
+      focusbar#pack ~padding:20 ~expand:false scope#coerce ;
+      focusbar#pack ~padding:20 ~expand:false filter#coerce ;
       focusbar#pack ~from:`END ~expand:false clear#coerce ;
       focusbar#pack ~from:`END ~expand:false provers#coerce ;
       provers#connect dp_chooser#run ;
+    end ;
+
+    (* -------------------------------------------------------------------------- *)
+    (* --- Filter Popup                                                       --- *)
+    (* -------------------------------------------------------------------------- *)
+
+    begin
+      filter#set_render (function
+          | `All -> "All Results"
+          | `Scripts -> "All Scripts"
+          | `ToProve -> "Not Proved"
+          | `ToComplete -> "Pending Proofs") ;
+      filter#set_items [ `ToProve ; `ToComplete ; `Scripts ; `All ] ;
     end ;
 
     (* -------------------------------------------------------------------------- *)
@@ -405,7 +471,7 @@ let make (main : main_window_extension_points) =
 
     let book = new Wpane.notebook ~default:`List () in
     let list = new GuiList.pane enabled in
-    let goal = new GuiGoal.pane () in
+    let goal = new GuiGoal.pane enabled in
     begin
       book#add `List list#coerce ;
       book#add `Goal goal#coerce ;
@@ -423,9 +489,10 @@ let make (main : main_window_extension_points) =
     (* -------------------------------------------------------------------------- *)
 
     let card = (book :> _ Widget.selector) in
+    let scope = (scope :> _ Widget.selector) in
     let filter = (filter :> _ Widget.selector) in
     let behavior = new behavior ~main
-      ~next ~prev ~index ~filter ~clear
+      ~next ~prev ~index ~scope ~filter ~clear
       ~list ~card ~goal ~source ~popup in
     GuiPanel.on_reload behavior#reload ;
     GuiPanel.on_update behavior#update ;

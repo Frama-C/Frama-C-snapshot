@@ -17,26 +17,16 @@ tests/rte/shift.c:46:[rte] warning: guaranteed RTE: assert shift: 0 ≤ (int)(-2
 int main(void)
 {
   int __retres;
-  int i;
-  int x;
-  int y;
-  int z;
-  unsigned int ux;
-  unsigned int uy;
-  unsigned int uz;
-  long lx;
-  long ly;
-  long lz;
-  i = 0;
-  x = 0;
-  y = 0;
-  z = 0;
-  ux = (unsigned int)0;
-  uy = (unsigned int)0;
-  uz = (unsigned int)0;
-  lx = (long)0;
-  ly = (long)0;
-  lz = (long)0;
+  int i = 0;
+  int x = 0;
+  int y = 0;
+  int z = 0;
+  unsigned int ux = (unsigned int)0;
+  unsigned int uy = (unsigned int)0;
+  unsigned int uz = (unsigned int)0;
+  long lx = (long)0;
+  long ly = (long)0;
+  long lz = (long)0;
   z = (int)(5u << 30);
   /*@ assert rte: signed_overflow: 5 << 30 ≤ 2147483647; */
   uz = (unsigned int)(5 << 30);

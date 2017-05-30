@@ -2,29 +2,48 @@
 [from] Computing for function f
 [from] Done for function f
 [from] Computing for function main
-[from] Computing for function printf <-main
-[from] Done for function printf
-tests/saveload/bool.c:27:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/saveload/bool.c:29:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/saveload/bool.c:31:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/saveload/bool.c:33:[from] warning: variadic call detected. Using only 1 argument(s).
-tests/saveload/bool.c:35:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Computing for function printf_va_1 <-main
+[from] Done for function printf_va_1
+[from] Computing for function printf_va_2 <-main
+[from] Done for function printf_va_2
+[from] Computing for function printf_va_3 <-main
+[from] Done for function printf_va_3
+[from] Computing for function printf_va_4 <-main
+[from] Done for function printf_va_4
+[from] Computing for function printf_va_5 <-main
+[from] Done for function printf_va_5
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
-[from] Function printf:
-  S___fc_stdout[0]
-               FROM "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
-                    "%d\n" (and SELF)
-  \result FROM ANYTHING(origin:Unknown)
+[from] Function printf_va_1:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0]; "%d\n" (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "%d\n"
+[from] Function printf_va_2:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0]; "%d\n" (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "%d\n"
+[from] Function printf_va_3:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; param1; S___fc_stdout[0];
+                    "%d,%d\n"[bits 0 to 55] (and SELF)
+  \result FROM param0; param1; S___fc_stdout[0]; "%d,%d\n"[bits 0 to 55]
+[from] Function printf_va_4:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0]; "%d\n" (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "%d\n"
+[from] Function printf_va_5:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM param0; S___fc_stdout[0]; "%d\n" (and SELF)
+  \result FROM param0; S___fc_stdout[0]; "%d\n"
 [from] Function main:
   x FROM \nothing
   y FROM \nothing
-  S___fc_stdout[0]
-               FROM "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
-                    "%d\n" (and SELF)
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0]; "%d\n"; "%d\n";
+                    "%d,%d\n"[bits 0 to 55]; "%d\n"; "%d\n" (and SELF)
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
@@ -32,6 +51,7 @@ tests/saveload/bool.c:35:[from] warning: variadic call detected. Using only 1 ar
 [inout] Inputs for function f:
           \nothing
 [inout] Out (internal) for function main:
-          x; y; S___fc_stdout[0]
+          x; y; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-          x; y; "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n"; "%d\n"
+          x; y; S___fc_stdout[0]; "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
+          "%d\n"

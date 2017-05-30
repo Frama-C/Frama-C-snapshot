@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,6 +154,10 @@ struct
   let inject s = Set s
   let inject_singleton e = inject (O.singleton e)
   let empty = inject O.empty
+
+  let filter f = function
+    | Top -> Top
+    | Set s -> Set (O.filter f s)
 
   let transform f = fun t1 t2 ->
     match t1,t2 with
@@ -354,6 +358,12 @@ struct
     match t1,t2 with
       | Top, _ | _, Top -> Top
       | Set v1, Set v2 -> Set (f v1 v2)
+
+  let filter f = function
+    | Top -> Top
+    | Set o as s ->
+      let o' = O.filter f o in
+      if o == o' then s else Set o'
 
   let map_set f s =
     O.fold
@@ -613,7 +623,7 @@ module Int = struct
 end
 
 
-(* Typing constraints are enfored directly in the .mli *)
+(* Typing constraints are enforced directly in the .mli *)
 module Rel = struct
   include Int
 

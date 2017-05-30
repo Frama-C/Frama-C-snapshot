@@ -18,7 +18,7 @@ tests/slicing/csmith.i:190:[value] entering loop for the first time
  {n2}: VarDecl : x
  {n3}: VarDecl : i
  {n4}: VarDecl : __retres
- {n5}: x = 0;
+ {n5}: int x = 0;
    -[-c-]-> 1
    -[a--]-> 2
  {n6}: W:
@@ -28,7 +28,8 @@ tests/slicing/csmith.i:190:[value] entering loop for the first time
    -[-c-]-> 13
    -[-c-]-> 14
    -[-c-]-> 15
-   -[-c-]-> 21
+   -[-c-]-> 20
+   -[-c-]-> 22
  {n7}: goto W;
    -[-c-]-> 1
    -[-c-]-> 6
@@ -37,8 +38,9 @@ tests/slicing/csmith.i:190:[value] entering loop for the first time
    -[-c-]-> 13
    -[-c-]-> 14
    -[-c-]-> 15
-   -[-c-]-> 21
- {n8}: i = 2;
+   -[-c-]-> 20
+   -[-c-]-> 22
+ {n8}: int i = 2;
    -[-c-]-> 1
    -[a--]-> 3
  {n9}: while(1)
@@ -130,7 +132,14 @@ tests/slicing/csmith.i:190:[value] entering loop for the first time
    -[-c-]-> 13
    -[-c-]-> 14
    -[-c-]-> 15
- {n20}: __retres = x;
+ {n20}: block
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n21}: __retres = x;
    -[-c-]-> 1
    -[--d]-> 2
    -[a--]-> 4
@@ -140,19 +149,21 @@ tests/slicing/csmith.i:190:[value] entering loop for the first time
    -[-c-]-> 14
    -[-c-]-> 15
    -[--d]-> 18
- {n21}: goto return_label;
+   -[-c-]-> 20
+ {n22}: goto return_label;
    -[-c-]-> 1
    -[-c-]-> 9
    -[-c-]-> 11
    -[-c-]-> 13
    -[-c-]-> 14
    -[-c-]-> 15
-   -[-c-]-> 22
- {n22}: return_label:
+   -[-c-]-> 20
+   -[-c-]-> 23
+ {n23}: return_label:
    -[-c-]-> 1
- {n23}: return_label: return __retres;
+ {n24}: return_label: return __retres;
    -[-c-]-> 1
    -[--d]-> 4
-   -[--d]-> 20
- {n24}: OutRet
-   -[--d]-> 23
+   -[--d]-> 21
+ {n25}: OutRet
+   -[--d]-> 24

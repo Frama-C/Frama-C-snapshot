@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,18 +81,16 @@ val widen : widen_hint-> t -> t -> t
 
 (** {2 Finding values} *)
 
-val find:
-  ?conflate_bottom:bool -> t -> location -> bool * v
+val find: ?conflate_bottom:bool -> t -> location -> v
 (** @raise Error_Top when the location or the state are Top, and there
     is no Top value in the type {!v}. *)
 
 val copy_offsetmap :
-  Location_Bits.t -> Integer.t -> t ->
-  bool * offsetmap Bottom.or_bottom
+  Location_Bits.t -> Integer.t -> t -> offsetmap Bottom.or_bottom
 (** [copy_offsetmap alarms loc size m] returns the superposition of the
-    ranges of [size] bits starting at [loc] within [m]. [size] must be strictly
-    greater than zero. Return [None] if all pointed adresses are invalid in [m].
-    The boolean returned indicates that the location may be invalid.
+    ranges of [size] bits starting at [loc] within [m]. [size] must be
+    strictly greater than zero. Return [None] if all pointed addresses are
+    invalid in [m].
 
     @raise Error_Top when the location or the state are Top, and there
     is no Top value in the type {!v}. *)
@@ -103,46 +101,38 @@ val find_base : Base.t -> t -> offsetmap Bottom.Top.or_top_bottom
 val find_base_or_default : Base.t -> t -> offsetmap Bottom.Top.or_top_bottom
 (** Same as [find_base], but return the default values for bases
     that are not currently present in the map. Prefer the use of this function
-    to [find_base], unless you explicitely want to see if the base is bound. *)
+    to [find_base], unless you explicitly want to see if the base is bound. *)
 
 
 (** {2 Binding variables} *)
 
-(** [add_binding ~reducing ~exact initial_mem loc v] simulates the effect of
+(** [add_binding ~exact initial_mem loc v] simulates the effect of
     writing [v] at location [loc], in the initial memory state given by
     [initial_mem].
     If [loc] is not writable, {!bottom} is returned.
     If [exact] is true, and [loc] is a precise location, a strong update
     is performed.
-    If [reducing] is true, read-only locations are also updated;
-    this should only be used to build an initial state,
-    or to refine an existing state by a condition.
-    Returns [(alarm, offsm)], where [alarm] indicates that it may be invalid
-    to write at the location [loc]. [offsm] is the resulting memory after
-    the write. *)
-val add_binding:
-  reducing:bool -> exact:bool -> t -> location -> v -> bool * t
+    Only locations that may be valid are written.
+    Returns the resulting memory after the write. *)
+val add_binding: exact:bool -> t -> location -> v -> t
 
-(** [paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m]
+(** [paste_offsetmap ~from ~dst_loc ~size ~exact m]
     copies [from], which is supposed to be exactly [size] bits, and pastes
     them at [dst_loc] in [m]. The copy is exact if and only if
-    [dst_loc] is exact, and [exact] is true. The returned boolean indicates
-    that the destination location may be invalid. Passing [~reducing:true]
-    allows writing to location that are read-only. It should only be used
-    when creating an initial state, or when reducing an existing value. *)
+    [dst_loc] is exact, and [exact] is true. Only the locations that
+    may be valid are written. *)
 val paste_offsetmap :
-  reducing:bool ->
   from:offsetmap ->
   dst_loc:Location_Bits.t ->
   size:Integer.t ->
   exact:bool ->
-  t -> bool * t
+  t -> t
 
 val add_base :  Base.t -> offsetmap -> t -> t
 (** [add_base b o m] adds base [b] bound to [o], replacing any
     previous bindings of [b]. No effect on [Top] or [Bottom]. *)
 
-val add_new_base:
+val add_base_value:
   Base.t -> size:Integer.t -> v -> size_v:Integer.t -> t -> t
 (** Creates the offsetmap described by [size], [v] and [size_v],
     and binds it to the base. No effect on [Top] or [Bottom]. *)
@@ -165,7 +155,7 @@ val remove_base : Base.t -> t -> t
 
 (** Notice that some iterators require an argument of type {!map}: the
     cases {!Top} and {!Bottom} must be handled separately. All the iterators
-    belowonly present bases that are bound to non-default values, according
+    below only present bases that are bound to non-default values, according
     to the function [is_default_offsetmap] of the function {!Lmap.Make_Loffset}.
 *)
 

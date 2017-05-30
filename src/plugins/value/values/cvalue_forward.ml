@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,13 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Eval
 open Cvalue
 open Cil_types
 
 let return v = v, Alarmset.none
 
 (* --------------------------------------------------------------------------
-                               Comparision
+                               Comparison
    -------------------------------------------------------------------------- *)
 
 (* Literal strings can only be compared if their contents are recognizably
@@ -82,44 +83,48 @@ let possible_pointer ~one_past location =
 
 (* Are [ev1] and [ev2] safely comparable, or does their comparison involves
    invalid pointers, or is undefined (typically pointers in different bases). *)
-let are_comparable op ev1 ev2 =
+let are_comparable_reason op ev1 ev2 =
   let open Locations in
   (* If both of the operands have arithmetic type, the comparison is valid. *)
   if Location_Bytes.is_included ev1 Location_Bytes.top_int
   && Location_Bytes.is_included ev2 Location_Bytes.top_int
-  then true
+  then true, `Ok
   else
     let null_1, rest_1 = Location_Bytes.split Base.null ev1
     and null_2, rest_2 = Location_Bytes.split Base.null ev2 in
     (* Note that here, rest_1 and rest_2 cannot be both bottom. *)
     let is_bottom1 = Location_Bytes.is_bottom rest_1
     and is_bottom2 = Location_Bytes.is_bottom rest_2 in
-    let arith_compare_ok =
+    let arith_compare_ok, reason =
       if op = Abstract_interp.Comp.Eq || op = Abstract_interp.Comp.Ne
       then
         (* A pointer can be compared to a null pointer constant
            by equality operators. *)
-        (Ival.is_included null_1 Ival.zero || is_bottom2)
+        if (Ival.is_included null_1 Ival.zero || is_bottom2)
         && (Ival.is_included null_2 Ival.zero || is_bottom1)
+        then true, `Ok
+        else false, `Eq_Different_bases_including_null
       else
         (* Pointers cannot be compared to arithmetic values by
            relational operators. *)
-        Ival.is_bottom null_1 && Ival.is_bottom null_2
+      if Ival.is_bottom null_1 && Ival.is_bottom null_2
+      then true, `Ok
+      else false, `Rel_Different_bases_including_null
     in
     if not arith_compare_ok
-    then false
+    then false, reason
     else
       (* Both pointers have to be almost valid (they can be pointers to one past
          an array object. *)
     if (not (possible_pointer ~one_past:true rest_1)) ||
        (not (possible_pointer ~one_past:true rest_2))
-    then false
+    then false, `Invalid_pointer
     else
       (* Equality operators allow the comparison between an almost valid pointer
          and the null pointer (other cases where is_bottom1 or is_bottom2 have
          been managed by arith_compare_ok). *)
     if is_bottom1 || is_bottom2
-    then true
+    then true, `Ok
     else
       (* If both pointers point to the same base, the comparison is valid. *)
       let single_base_ok =
@@ -130,19 +135,41 @@ let are_comparable op ev1 ev2 =
         with Not_found -> false
       in
       if single_base_ok
-      then true
+      then true, `Ok
       else if not (op = Abstract_interp.Comp.Eq || op = Abstract_interp.Comp.Ne)
       (* For relational operators, the comparison of pointers on different
          bases is undefined. *)
-      then false
+      then false, `Rel_different_bases
       else
         (* If both addresses are valid, they can be compared for equality. *)
       if (possible_pointer ~one_past:false rest_1) &&
          (possible_pointer ~one_past:false rest_2)
       then
         (* But beware of the comparisons of literal strings. *)
-        are_comparable_string rest_1 rest_2
-      else false
+        if are_comparable_string rest_1 rest_2
+        then true, `Ok
+        else false, `Shareable_strings
+      else false, `Invalid_pointer
+
+let are_comparable op ev1 ev2 =
+  fst (are_comparable_reason op ev1 ev2)
+
+let pp_incomparable_reason fmt = function
+  | `Ok -> ()
+  | `Shareable_strings ->
+    Format.pp_print_string fmt
+      "equality between pointers to strings that may overlap"
+  | `Invalid_pointer ->
+    Format.pp_print_string fmt "invalid pointer(s)"
+  | `Rel_different_bases ->
+    Format.pp_print_string fmt
+      "relational comparison to pointers in different bases"
+  | `Eq_Different_bases_including_null ->
+    Format.pp_print_string fmt
+      "equality between a pointer and a constant"
+  | `Rel_Different_bases_including_null ->
+    Format.pp_print_string fmt
+      "relational comparison between a pointer and a constant"
 
 
 (* --------------------------------------------------------------------------
@@ -262,7 +289,7 @@ let division_alarms expr value =
     else Alarmset.add (Alarms.Pointer_comparison (None, expr)) alarms
   else Alarmset.none
 
-let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
+let forward_minus_pp ~context ~typ ev1 ev2 =
   let conv minus_offs =
     try
       let size = Int_Base.project (Bit_utils.osizeof_pointed typ) in
@@ -283,7 +310,9 @@ let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
     (* TODO: we may be able to reduce the bases that appear only on one side *)
     let minus_offs, warn = V.sub_untyped_pointwise ev1 ev2 in
     let alarms = if warn
-      then Alarmset.singleton (Alarms.Differing_blocks (e1, e2))
+      then
+        let e1 = context.left_operand and e2 = context.right_operand in
+        Alarmset.singleton (Alarms.Differing_blocks (e1, e2))
       else Alarmset.none
     in
     let offs = conv minus_offs in
@@ -292,7 +321,7 @@ let forward_minus_pp ~context:(e1, e2, _res, _) ~typ ev1 ev2 =
 (* Evaluation of some operations on Cvalue.V. [typ] is the type of [ev1].
    The function must behave as if it was acting on unbounded integers *)
 let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
-  let e1, e2, _res, _typ = context in
+  let e1 = context.left_operand and e2 = context.right_operand in
   match op with
   | PlusPI
   | IndexPI -> return (V.add_untyped (Bit_utils.osizeof_pointed typ) ev1 ev2)
@@ -318,7 +347,7 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
     let signed = Bit_utils.is_signed_int_enum_pointer typ in
     return (V.bitwise_and ~size ~signed ev1 ev2)
   (* Strict evaluation. The caller of this function is supposed to take
-     into account the lazyness of those operators itself *)
+     into account the laziness of those operators itself *)
   | LOr  -> return (
       V.interp_boolean
         ~contains_zero:(V.contains_zero ev1 && V.contains_zero ev2)
@@ -329,8 +358,14 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
         ~contains_non_zero:(V.contains_non_zero ev1 && V.contains_non_zero ev2))
   | Eq | Ne | Ge | Le | Gt | Lt ->
     let op = Value_util.conv_comp op in
-    let warn = not (are_comparable op ev1 ev2) in
-    let alarms = if warn
+    let ok, reason = are_comparable_reason op ev1 ev2 in
+    if reason <> `Ok then
+      Value_parameters.result
+        ~current:true ~once:true
+        ~dkey:Value_parameters.dkey_pointer_comparison
+        "invalid pointer comparison: %a" pp_incomparable_reason reason;
+    let alarms =
+      if not ok
       then (* Detect zero expressions created by the evaluator *)
         if Value_util.is_value_zero e1 then
           Alarmset.singleton (Alarms.Pointer_comparison (None, e2))
@@ -338,11 +373,18 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
           Alarmset.singleton (Alarms.Pointer_comparison (Some e1, e2))
       else Alarmset.none
     in
-    if warn && Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
-    then V.zero_or_one, alarms
-    else
-      let signed = Bit_utils.is_signed_int_enum_pointer (Cil.unrollType typ) in
-      V.inject_comp_result (V.forward_comp_int ~signed op ev1 ev2), alarms
+    let signed = Bit_utils.is_signed_int_enum_pointer (Cil.unrollType typ) in
+    let r = V.inject_comp_result (V.forward_comp_int ~signed op ev1 ev2) in
+    if not ok && Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
+    then begin
+      Value_parameters.result
+        ~current:true ~once:true
+        ~dkey:Value_parameters.dkey_pointer_comparison
+        "evaluating condition to %a instead of %a because of UPCPA"
+        V.pretty V.zero_or_one V.pretty r;
+      V.zero_or_one, alarms
+    end
+    else r, alarms
 
 let forward_binop_int ~context ~typ ev1 op ev2 =
   let res, alarms = forward_binop_unbounded_integer ~context ~typ ev1 op ev2 in
@@ -350,8 +392,9 @@ let forward_binop_int ~context ~typ ev1 op ev2 =
   | Shiftlt | Mult | MinusPP | MinusPI | IndexPI | PlusPI
   | PlusA | Div | Mod | MinusA ->
     let warn_unsigned = op <> Shiftlt in
-    let _, _, exp_res, typ_res = context in
-    let res, alarms' = handle_overflow ~warn_unsigned exp_res typ_res res in
+    let res, alarms' =
+      handle_overflow ~warn_unsigned context.binary_result context.result_typ res
+    in
     res, Alarmset.union alarms alarms'
   | _ -> res, alarms
 
@@ -383,10 +426,11 @@ let forward_binop_float round ev1 op ev2 =
   | _ -> assert false
 
 let forward_binop_float_alarm ~context round flkind ev1 op ev2 =
-  let _, _, exp_res, _typ_res = context in
   let res, alarm = forward_binop_float round ev1 op ev2 in
   let alarm = if alarm
-    then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp_res, flkind))
+    then
+      let expr = context.binary_result in
+      Alarmset.singleton (Alarms.Is_nan_or_infinite (expr, flkind))
     else Alarmset.none
   in
   res, alarm
@@ -398,8 +442,7 @@ let forward_binop_float_alarm ~context round flkind ev1 op ev2 =
 
 (* This function evaluates a unary minus, but does _not_ check for overflows.
    This is left to the caller *)
-let forward_uneg ~context v t =
-  let exp, _res = context in
+let forward_uneg ~context:{operand} v t =
   match Cil.unrollType t with
   | TFloat (fkind, _) ->
     begin try
@@ -409,13 +452,13 @@ let forward_uneg ~context v t =
       with
       | V.Not_based_on_null ->
         V.topify_arith_origin v,
-        Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+        Alarmset.singleton (Alarms.Is_nan_or_infinite (operand, fkind))
       | Ival.Nan_or_infinite ->
         (* raised by project_float; probably useless *)
         if V.is_bottom v then v, Alarmset.none
         else
           V.top_float,
-          Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+          Alarmset.singleton (Alarms.Is_nan_or_infinite (operand, fkind))
     end
   | _ ->
     try
@@ -424,13 +467,13 @@ let forward_uneg ~context v t =
     with V.Not_based_on_null -> return (V.topify_arith_origin v)
 
 let forward_unop ~check_overflow ~context typ op value =
-  let exp, res = context in
   match op with
   | Neg ->
     let r, alarms = forward_uneg ~context value typ in
     if check_overflow
     then
-      let r, alarms' = handle_overflow ~warn_unsigned:true res typ r in
+      let warn_unsigned = true in
+      let r, alarms' = handle_overflow ~warn_unsigned context.result typ r in
       r, Alarmset.union alarms alarms'
     else r, alarms
   | BNot -> begin
@@ -442,18 +485,21 @@ let forward_unop ~check_overflow ~context typ op value =
       | _ -> assert false
     end
   | LNot ->
-    let warn =
-      not (are_comparable Abstract_interp.Comp.Eq V.singleton_zero value)
+    let ok, reason =
+      are_comparable_reason Abstract_interp.Comp.Eq V.singleton_zero value
     in
-    let alarms = if warn
-      then Alarmset.singleton (Alarms.Pointer_comparison (None, exp))
+    if reason <> `Ok then
+      Value_parameters.result
+        ~current:true ~once:true
+        ~dkey:Value_parameters.dkey_pointer_comparison
+        "invalid pointer negation: %a" pp_incomparable_reason reason;
+    let alarms =
+      if not ok
+      then Alarmset.singleton (Alarms.Pointer_comparison (None, context.operand))
       else Alarmset.none
     in
     let value =
-      if (warn &&
-          Value_parameters.UndefinedPointerComparisonPropagateAll.get ())
-      then V.zero_or_one
-      else
+      let r =
         let eq = Abstract_interp.Comp.Eq in
         (* [!c] holds iff [c] is equal to [O] *)
         if Cil.isFloatingType typ then
@@ -466,6 +512,17 @@ let forward_unop ~check_overflow ~context typ op value =
           let signed = Bit_utils.is_signed_int_enum_pointer typ in
           V.inject_comp_result
             (V.forward_comp_int ~signed eq value V.singleton_zero)
+      in
+      if (not ok &&
+          Value_parameters.UndefinedPointerComparisonPropagateAll.get ())
+      then (
+        Value_parameters.result
+          ~current:true ~once:true
+          ~dkey:Value_parameters.dkey_pointer_comparison
+          "evaluating operator ! to %a instead of %a because of UPCPA"
+          V.pretty V.zero_or_one V.pretty r;
+        V.zero_or_one)
+      else r
     in
     value, alarms
 
@@ -768,29 +825,6 @@ let eval_float_constant exp f fkind fstring =
   with Fval.Non_finite ->
     let alarms = Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind)) in
     `Bottom, alarms
-
-
-let offsetmap_matches_type typ_lv o =
-  let aux typ_matches = match V_Offsetmap.single_interval_value o with
-    | None -> true (* multiple bindings. Assume that type matches *)
-    | Some v ->
-      let v = V_Or_Uninitialized.get_v v in
-      try typ_matches (V.project_ival_bottom v)
-      with V.Not_based_on_null -> true (* Do not mess with pointers *)
-  in
-  let is_float = function
-    | Ival.Float _ -> true
-    | Ival.Top _ -> false
-    | Ival.Set _ as i -> Ival.(equal zero i || equal bottom i)
-  in
-  let is_int = function
-    | Ival.Top _ | Ival.Set _ -> true
-    | Ival.Float _ -> false
-  in
-  match Cil.unrollType typ_lv with
-  | TFloat _ -> aux is_float
-  | TInt _ | TEnum _ | TPtr _ -> aux is_int
-  | _ -> true
 
 
 (*

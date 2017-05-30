@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ val register:
         Set [is_dyn] to [true] to journalize a dynamic function. *)
 
 val never_write: string -> 'a -> 'a
-  (** [never_write name f] returns a closure [g] observationaly equal to [f]
+  (** [never_write name f] returns a closure [g] observationally equal to [f]
       except that trying to write a call to [g] in the journal is an error. If
       [f] is not a closure, then [never_write name f] raises
       [Invalid_argument]. *)
@@ -95,7 +95,7 @@ val write: unit -> unit
       without clearing the journal. *)
 
 val save: unit -> unit
-  (** Save the current state of the journal for future restauration.
+  (** Save the current state of the journal for future restoration.
       @since Beryllium-20090901 *)
 
 val restore: unit -> unit
@@ -107,7 +107,7 @@ val restore: unit -> unit
 (* ****************************************************************************)
 
 val keep_file: string -> unit
-  (** This function has not to be used explictely. Only offers functions
+  (** This function has not to be used explicitly. Only offers functions
       retrieving when running a journal file. *)
 
 val get_session_file: (string -> string) ref

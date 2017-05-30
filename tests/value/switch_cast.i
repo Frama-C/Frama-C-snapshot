@@ -61,6 +61,7 @@ void g() {
     y = x * 18;
     break;
   default:
+    break;
   }
   y += 1;
   Frama_C_show_each(y);

@@ -26,6 +26,8 @@ tests/value/deps_mixed.i:22:[value] warning: accessing out of bounds index. asse
 [value] Done for function f
 tests/value/deps_mixed.i:24:[value] Assigning imprecise value to __retres.
         The imprecision originates from Arithmetic {tests/value/deps_mixed.i:24}
+tests/value/deps_mixed.i:24:[value] Assigning imprecise value to \result<main>.
+        The imprecision originates from Arithmetic {tests/value/deps_mixed.i:24}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

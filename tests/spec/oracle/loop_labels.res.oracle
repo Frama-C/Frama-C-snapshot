@@ -5,8 +5,7 @@ tests/spec/loop_labels.i:14:[kernel] warning: logic label `LoopEntry' not found.
 int main(void)
 {
   int __retres;
-  int x;
-  x = 0;
+  int x = 0;
   /*@ loop invariant \at(x,LoopEntry) ≡ 0;
       loop invariant \at(x,LoopCurrent) ≤ 15;
   */

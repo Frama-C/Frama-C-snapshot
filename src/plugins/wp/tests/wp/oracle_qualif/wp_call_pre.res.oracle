@@ -22,7 +22,7 @@ tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause 
      Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-double_call          1      1 (6)      2       100%
+double_call          1      1 (7)      2       100%
 main                 3     -           3       100%
 call_main            2     -           2       100%
 stmt_pre             1     -           1       100%

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ module type Local = sig
 
   val clear: t -> unit
     (** How to clear a state. After clearing, the state should be
-        observationaly the same that after its creation (see invariant 2
+        observationally the same that after its creation (see invariant 2
         below). *)
 
   val get: unit -> t

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@
    would mean creation of closures or a costly substitution; this
    algorithm avoids function composition.
 
-   The algorithm could be extended to handle non-natural loops. Intead
+   The algorithm could be extended to handle non-natural loops. Instead
    of using the notion of back edges, we could use that of retreating
    edge, starting from a spanning tree of the graph. It should be
    possible to compile strongly connected components with multiple
@@ -51,7 +51,7 @@
 include Region_analysis_sig;;
 
 module Make(N:Node):sig
-  (* Function computing from an entry abstracat value the "after"
+  (* Function computing from an entry abstract value the "after"
      state, which is a map from each outgoing edge to its respective
      value. *)
   val after: N.abstract_value -> N.abstract_value N.Edge_Dict.t

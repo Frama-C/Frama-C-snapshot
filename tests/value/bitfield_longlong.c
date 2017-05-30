@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -cpp-extra-args="-Dprintf=Frama_C_show_each" -journal-disable
+   OPT: -no-autoload-plugins -load-module inout,value -val @VALUECONFIG@ -cpp-extra-args="-Dprintf=Frama_C_show_each" -journal-disable
 */
 struct X50 {
  long long int z:50;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -239,6 +239,11 @@ val list_plugins: unit -> exit
   (** Display the list of installed plug-ins 
       @since Magnesium-20151001 *)
 
+(** Display the list of all installed plug-ins and their options, in
+    a condensed format. Used for zsh autocompletion.
+    @since Phosphorus-20170501-beta1 *)
+val list_all_plugin_options : print_invisible:bool -> exit
+
 val plugin_help: string -> exit
   (** Display the help of the given plug-in (given by its shortname).
       @since Beryllium-20090601-beta1 *)
@@ -377,7 +382,7 @@ val quiet: bool
 val deterministic: bool
   (** Indicates that the plugins should strive to be as deterministic as
       possible in their outputs. Higher memory consumption or analysis time
-      are acceptable, as reproductibility is more important.
+      are acceptable, as reproducibility is more important.
       @since Aluminium-20160501 *)
 
 val last_project_created_by_copy: (unit -> string option) ref

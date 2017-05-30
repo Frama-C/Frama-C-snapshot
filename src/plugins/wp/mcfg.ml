@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,7 +51,7 @@ end
  * Usually, the propagated thing should be a predicate,
  * but it can be more sophisticated like lists of predicates,
  * or maybe a structure to keep hypotheses and goals separated.
- * Moreover, proof obligations may also need to be handeled.
+ * Moreover, proof obligations may also need to be handled.
  **)
 module type S = sig
 

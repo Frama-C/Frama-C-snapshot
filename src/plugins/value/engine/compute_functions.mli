@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,24 +25,19 @@
 open Cil_types
 open Eval
 
-
 module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.External with type value = Value.t)
-    (Domain : Abstract_domain.External with type location = Loc.location
-                                        and type value = Value.t)
-    (Eva: Evaluation.S with type value = Domain.value
-                        and type origin = Domain.origin
-                        and type loc = Domain.location
-                        and type state = Domain.t)
-    (Init: Initialization.S with type state := Domain.t)
+    (Abstract: Abstractions.S)
+    (Eva: Evaluation.S with type value = Abstract.Val.t
+                        and type origin = Abstract.Dom.origin
+                        and type loc = Abstract.Loc.location
+                        and type state = Abstract.Dom.t)
   : sig
 
-    val compute_from_entry_point: kernel_function -> unit or_bottom
+    (** Compute a call to the main function. *)
+    val compute_from_entry_point: kernel_function -> lib_entry:bool -> unit
 
+    (** Compute a call to the main function from the given initial state. *)
+    val compute_from_init_state: kernel_function -> Abstract.Dom.t -> unit
+
+    val initial_state: lib_entry:bool -> Abstract.Dom.t or_bottom
   end
-
-
-val run:
-  (kernel_function -> unit or_bottom) ->
-  ?library:bool -> kernel_function -> unit

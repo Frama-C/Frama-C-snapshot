@@ -57,17 +57,16 @@ char str1[5] = {(char)'a', (char)'b', (char)'s', (char)'d', (char)'\000'};
 char str2[5] = {(char)'a', (char)'b', (char)'d', (char)'d', (char)'\000'};
 struct s s1;
 struct s s2[8];
-extern void f(void);
+void f(void);
 
-extern void g(void);
+void g(void);
 
 void main(void)
 {
   int i;
-  void (*p)(void);
   void (*tmp)(void);
   if (v) tmp = & f; else tmp = & g;
-  p = tmp;
+  void (*p)(void) = tmp;
   i = & str1 == & str2;
   i = & s1 == (struct s *)0;
   i = & s1 + 1 == (struct s *)0;

@@ -18,16 +18,16 @@ Assume {
   Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 10).
   (* Else *)
   Have: 10 <= i_1.
 }
-Prove: 1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i))].
+Prove: Mint_0[shiftfield_F1_S_f(shift_S(a, i))] = 1.
 
 ------------------------------------------------------------
 
@@ -41,16 +41,16 @@ Assume {
   Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
-      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= 10).
   (* Else *)
   Have: 10 <= i_1.
 }
-Prove: 2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i))].
+Prove: Mint_0[shiftfield_F1_S_g(shift_S(a, i))] = 2.
 
 ------------------------------------------------------------
 
@@ -62,10 +62,10 @@ Assume {
   Have: havoc(Mint_0, Mint_1, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (2 = Mint_1[shiftfield_F1_S_g(shift_S(a, i_1))]))).
+      (Mint_1[shiftfield_F1_S_g(shift_S(a, i_1))] = 2))).
   (* Invariant *)
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
-      (1 = Mint_1[shiftfield_F1_S_f(shift_S(a, i_1))]))).
+      (Mint_1[shiftfield_F1_S_f(shift_S(a, i_1))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
@@ -91,18 +91,17 @@ Assume {
   Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
   Have: i <= 9.
 }
-Prove: 1
-         = Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
-             [shiftfield_F1_S_f(shift_S(a, i_1))].
+Prove: Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+         [shiftfield_F1_S_f(shift_S(a, i_1))] = 1.
 
 ------------------------------------------------------------
 
@@ -122,18 +121,17 @@ Assume {
   Have: havoc(Mint_1, Mint_0, shift_S(a, 0), 20).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (2 = Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_g(shift_S(a, i_2))] = 2))).
   (* Invariant *)
   Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
-      (1 = Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))]))).
+      (Mint_0[shiftfield_F1_S_f(shift_S(a, i_2))] = 1))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= 10).
   (* Then *)
   Have: i <= 9.
 }
-Prove: 2
-         = Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
-             [shiftfield_F1_S_g(shift_S(a, i_1))].
+Prove: Mint_0[shiftfield_F1_S_f(a_1) <- 1][shiftfield_F1_S_g(a_1) <- 2]
+         [shiftfield_F1_S_g(shift_S(a, i_1))] = 2.
 
 ------------------------------------------------------------
 
@@ -159,13 +157,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_usage/caveat_range.i, line 14) in 'reset' (1/2):
-Effect at line 24
-Prove: true.
-
-------------------------------------------------------------
-
-Goal Assigns (file tests/wp_usage/caveat_range.i, line 14) in 'reset' (2/2):
+Goal Assigns (file tests/wp_usage/caveat_range.i, line 14) in 'reset':
 Effect at line 24
 Prove: true.
 

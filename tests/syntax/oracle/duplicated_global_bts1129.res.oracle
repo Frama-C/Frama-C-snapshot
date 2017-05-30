@@ -8,11 +8,9 @@ int X;
 void f(int *x)
 {
   int *tmp;
-  { /* sequence */
-    tmp = x;
-    x ++;
-    ;
-  }
+  tmp = x;
+  x ++;
+  ;
   return;
 }
 

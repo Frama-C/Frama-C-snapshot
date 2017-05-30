@@ -20,18 +20,12 @@ tests/rte/divmod.c:36:[rte] warning: guaranteed RTE:
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  int z;
-  unsigned int ux;
-  unsigned int uy;
-  unsigned int uz;
-  x = 0;
-  y = 0;
-  z = 0;
-  ux = (unsigned int)0;
-  uy = (unsigned int)0;
-  uz = (unsigned int)0;
+  int x = 0;
+  int y = 0;
+  int z = 0;
+  unsigned int ux = (unsigned int)0;
+  unsigned int uy = (unsigned int)0;
+  unsigned int uz = (unsigned int)0;
   /*@ assert
       rte: signed_overflow:
         (int)((int)(-2147483647) - 1) / (int)(-1) ≤ 2147483647;

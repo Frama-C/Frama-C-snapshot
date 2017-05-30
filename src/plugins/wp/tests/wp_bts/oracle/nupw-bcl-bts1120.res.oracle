@@ -34,14 +34,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Exit-condition 'ok' in 'g':
-Assume {
-  Type: is_sint32(max_0).
-  (* Pre-condition *)
-  Have: (P_ExitF(max_0) -> P_ExitP(max_0)).
-  (* Exit 'f' *)
-  Have: P_ExitF(max_0).
-}
-Prove: P_ExitP(max_0).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -80,7 +73,7 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Instance of 'Pre-condition 'ok' in 'f_with_precond'' in 'unreachable_smt_with_contract' at call 'f_with_precond' (file tests/wp_bts/nupw-bcl-bts1120.i, line 40)
+Goal Instance of 'Pre-condition 'ok' in 'f_with_precond'' in 'unreachable_smt_with_contract' at initialization of 'tmp' (file tests/wp_bts/nupw-bcl-bts1120.i, line 40)
 :
 Prove: true.
 

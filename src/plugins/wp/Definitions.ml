@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,7 +70,7 @@ and dfun = {
 
 and definition =
   | Logic of tau (* return type of an abstract function *)
-  | Value of tau * recursion * term
+  | Function of tau * recursion * term
   | Predicate of recursion * pred
   | Inductive of dlemma list
 
@@ -141,8 +141,6 @@ module Lemma = Model.Index
     end)
 
 let touch c = c.c_age <- succ c.c_age
-let compare_symbol f g = Fun.compare f.d_lfun g.d_lfun
-let compare_lemma a b = String.compare a.l_name b.l_name
 
 let () =
   begin
@@ -156,9 +154,11 @@ let () =
          a.l_cluster.c_lemmas <- a :: a.l_cluster.c_lemmas) ;
   end
 
+let find_symbol = Symbol.find
 let define_symbol f = Symbol.define f.d_lfun f
 let update_symbol f = Symbol.update f.d_lfun f
 
+let find_name = Lemma.find
 let find_lemma l = Lemma.find l.lem_name
 let compile_lemma cc l = Lemma.compile (fun _name -> cc l) l.lem_name
 let define_lemma l = Lemma.define l.l_name l
@@ -171,7 +171,7 @@ let define_type c t =
 
 let parameters f =
   if Model.is_model_defined () then
-    try List.map Lang.F.sort_of_var (Symbol.find f).d_params
+    try List.map Lang.F.QED.sort_of_var (Symbol.find f).d_params
     with Not_found -> []
   else []
 
@@ -346,7 +346,7 @@ class virtual visitor main =
       | Data(a,ts) -> self#vadt a ; List.iter self#vtau ts
 
     method vparam x = self#vtau (tau_of_var x)
-        
+
     method private repr ~bool = function
       | Fun(f,_) -> self#vsymbol f
       | Rget(_,f) -> self#vfield f
@@ -359,7 +359,7 @@ class virtual visitor main =
       | Eq _ | Neq _ | Leq _ | Lt _
       | And _ | Or _ | Not _ | Imply _ | If _ ->
           if bool then self#on_library "bool"
-    
+
     method vterm t =
       if not (Tset.mem t terms) then
         begin
@@ -378,12 +378,12 @@ class virtual visitor main =
 
     method private vdefinition = function
       | Logic t -> self#vtau t
-      | Value(t,_,e) -> self#vtau t ; self#vterm e
+      | Function(t,_,e) -> self#vtau t ; self#vterm e
       | Predicate(_,p) -> self#vpred p
       | Inductive _ -> ()
 
     method private vproperties = function
-      | Logic _ | Value _ | Predicate _ -> ()
+      | Logic _ | Function _ | Predicate _ -> ()
       | Inductive cases -> List.iter self#vdlemma cases
 
     method private vdfun d =
@@ -490,12 +490,21 @@ class virtual visitor main =
             self#vpred prop ;
           end
 
+    method vtypes = (* Visit the types *)
+      rev_iter self#vcomp main.c_records ;
+      rev_iter self#vtype main.c_types
+
+    method vsymbols = (* Visit the definitions *)
+      rev_iter (fun d -> self#vsymbol d.d_lfun) main.c_symbols ;
+
+    method vlemmas = (* Visit the lemmas *)
+      rev_iter (fun l -> self#vdlemma l) main.c_lemmas ;
+
     method vself = (* Visit a cluster *)
       begin
-        rev_iter self#vcomp main.c_records ;
-        rev_iter self#vtype main.c_types ;
-        rev_iter (fun d -> self#vsymbol d.d_lfun) main.c_symbols ;
-        rev_iter (fun l -> self#vdlemma l) main.c_lemmas ;
+        self#vtypes ;
+        self#vsymbols ;
+        self#vlemmas ;
       end
 
     method virtual section : string -> unit

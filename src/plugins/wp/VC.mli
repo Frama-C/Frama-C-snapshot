@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,12 +38,14 @@ val get_result : t -> prover -> result
 val get_results : t -> (prover * result) list
 val get_logout : t -> prover -> string (** only file name, might not exists *)
 val get_logerr : t -> prover -> string (** only file name, might not exists *)
-val is_trivial : t -> bool
+val get_sequent : t -> Conditions.sequent
 val get_formula: t -> Lang.F.pred
+val is_trivial : t -> bool
+val is_proved : t -> bool
 
 (** {2 Database} 
     Notice that a property or a function have no proof obligation until you 
-    explicitely generate them {i via} the [generate_xxx] functions below.
+    explicitly generate them {i via} the [generate_xxx] functions below.
 *)
 
 val clear : unit -> unit
@@ -68,6 +70,7 @@ val generate_call : ?model:string -> Cil_types.stmt -> t Bag.t
 (** {2 Prover Interface} *)
     
 val prove : t ->
+  ?config:config ->
   ?mode:mode ->
   ?start:(t -> unit) ->
   ?callin:(t -> prover -> unit) ->
@@ -76,10 +79,12 @@ val prove : t ->
 (** Returns a ready-to-schedule task. *)
 
 val spawn : t ->
+  ?config:config ->
   ?start:(t -> unit) ->
   ?callin:(t -> prover -> unit) ->
   ?callback:(t -> prover -> result -> unit) ->
   ?success:(t -> prover option -> unit) ->
+  ?pool:Task.pool ->
   (mode * prover) list -> unit
 (** Same as [prove] but schedule the tasks into the global server returned 
     by [server] function below. 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -152,7 +152,7 @@ end = struct
 end
 
 (*============================================================================*)
-(** Postdominators (with infine path extension) *)
+(** Postdominators (with infinite path extension) *)
 (*============================================================================*)
 (** This backward dataflow implements a variant of postdominators that verify
     the property P enunciated in bts 963: a statement postdominates itself
@@ -367,22 +367,22 @@ let pd_b_but_not_a infos stmt_a stmt_b =
  * {v = U (PDB (if, succs(if)) v}
  * (see the document to know more about the applied algorithm).
  *)
-let get_if_controled_stmts ctrl_dpds_infos stmt =
+let get_if_controlled_stmts ctrl_dpds_infos stmt =
   let _, infos = ctrl_dpds_infos in
   let add_pdb_s set succ =
       Stmt.Hptset.union set (pd_b_but_not_a infos stmt succ)
   in
-  let controled_stmts = List.fold_left add_pdb_s Stmt.Hptset.empty stmt.succs in
-  Pdg_parameters.debug ~dkey "controled_stmt for cond sid:%d = %a"
-    stmt.sid Stmt.Hptset.pretty controled_stmts;
-  controled_stmts
+  let controlled_stmts = List.fold_left add_pdb_s Stmt.Hptset.empty stmt.succs in
+  Pdg_parameters.debug ~dkey "controlled_stmt for cond sid:%d = %a"
+    stmt.sid Stmt.Hptset.pretty controlled_stmts;
+  controlled_stmts
 
-let jump_controled_stmts infos jump label lex_suc =
+let jump_controlled_stmts infos jump label lex_suc =
   Pdg_parameters.debug ~dkey ~level:2 
     "lex_succ sid:%d = sid:%d" jump.sid lex_suc.sid;
   Pdg_parameters.debug ~dkey ~level:2 
     "jump succ sid:%d = sid:%d" jump.sid label.sid;
-  let controled_stmts =
+  let controlled_stmts =
     if lex_suc.sid = label.sid then begin
       (* the label is the jump lexical successor: no dpds *)
       Pdg_parameters.debug ~dkey "useless jump sid:%d (label = lex_succ = %d)" 
@@ -395,27 +395,27 @@ let jump_controled_stmts infos jump label lex_suc =
         Stmt.Hptset.remove lex_suc pdb_lex_suc_label
       in Stmt.Hptset.union pdb_jump_lex_suc pdb_lex_suc_label
   in
-    controled_stmts
+    controlled_stmts
 
 (** let's find the statements which are depending on
 * the jump statement (goto, break, continue) =
   {v PDB(jump,lex_suc) U (PDB(lex_suc,label) - lex_suc) v}
   (see the document to know more about the applied algorithm).
   *)
-let get_jump_controled_stmts ctrl_dpds_infos jump =
+let get_jump_controlled_stmts ctrl_dpds_infos jump =
   let lex_succ_graph, infos = ctrl_dpds_infos in
   let lex_suc = 
     try Lexical_successors.find lex_succ_graph jump
     with Not_found -> assert false
   in
   let label = match jump.succs with | [label] -> label | _ -> assert false in
-  let controled_stmts =  jump_controled_stmts infos jump label lex_suc in
-  Pdg_parameters.debug ~dkey "controled_stmt for jump sid:%d = %a"
-    jump.sid Stmt.Hptset.pretty controled_stmts;
-  controled_stmts
+  let controlled_stmts =  jump_controlled_stmts infos jump label lex_suc in
+  Pdg_parameters.debug ~dkey "controlled_stmt for jump sid:%d = %a"
+    jump.sid Stmt.Hptset.pretty controlled_stmts;
+  controlled_stmts
 
 (** Try to process [while(1) S; LS: ] as [L: S; goto L; LS: ] *)
-let get_loop_controled_stmts ctrl_dpds_infos loop =
+let get_loop_controlled_stmts ctrl_dpds_infos loop =
   let lex_succ_graph, infos = ctrl_dpds_infos in
   let lex_suc = 
     try Lexical_successors.find lex_succ_graph loop 
@@ -423,10 +423,10 @@ let get_loop_controled_stmts ctrl_dpds_infos loop =
   in
   let jump = loop in
   let label = match loop.succs with [head] -> head | _ -> assert false in
-  let controled_stmts = jump_controled_stmts infos jump label lex_suc in
-    Pdg_parameters.debug ~dkey "controled_stmt for loop sid:%d = %a"
-      loop.sid Stmt.Hptset.pretty controled_stmts;
-    controled_stmts
+  let controlled_stmts = jump_controlled_stmts infos jump label lex_suc in
+    Pdg_parameters.debug ~dkey "controlled_stmt for loop sid:%d = %a"
+      loop.sid Stmt.Hptset.pretty controlled_stmts;
+    controlled_stmts
 
 (*============================================================================*)
 (*

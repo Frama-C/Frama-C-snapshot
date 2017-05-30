@@ -71,10 +71,10 @@ tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i
 int i0;
 int o0;
 /*@ assigns i0, o0; */
-extern void loop_body();
+void loop_body();
 
 /*@ assigns *p_res; */
-extern void init(int *p_res);
+void init(int *p_res);
 
 int is_ko = -1;
 void main_ter(void)

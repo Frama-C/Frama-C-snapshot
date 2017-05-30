@@ -56,8 +56,7 @@ static unsigned char STR[7] =
    (unsigned char)'\000'};
 void main(void)
 {
-  int i;
-  i = (int)STR[2];
+  int i = (int)STR[2];
   return;
 }
 

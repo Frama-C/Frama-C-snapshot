@@ -135,9 +135,8 @@ int if2(int c, int *p)
 void loop1(int *p)
 {
   int i;
-  int n;
   /*@ assert Value: mem_access: \valid_read(p); */
-  n = *p;
+  int n = *p;
   i = 0;
   while (i < n) {
     /*@ assert Value: mem_access: \valid_read(p); */
@@ -163,7 +162,7 @@ int loop2(int n, int *p)
 }
 
 /*@ assigns \nothing; */
-extern void out_char(char c);
+void out_char(char c);
 
 void out_string(char const *value)
 {
@@ -223,11 +222,9 @@ int main(int *p, Tstruct *ps)
   loop1(p + 1);
   loop2(x,p + 1);
   out_string((char const *)(p + 1));
-  { /* sequence */
-    tmp = fstruct(ps + 1);
-    /*@ assert Value: signed_overflow: x + tmp ≤ 2147483647; */
-    x += tmp;
-  }
+  tmp = fstruct(ps + 1);
+  /*@ assert Value: signed_overflow: x + tmp ≤ 2147483647; */
+  x += tmp;
   return x;
 }
 

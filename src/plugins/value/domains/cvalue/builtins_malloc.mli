@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,12 @@
 val malloced_bases: unit -> Base.Hptset.t
 (** All bases that have been dynamically created in the current execution. *)
 
-val register_malloced_base: Base.t -> unit
-(** Should not be used by casual users. *)
+val alloc_size_ok: Cvalue.V.t -> Alarmset.status
+(* [alloc_size_ok size] checks that [size] represents a valid allocation
+   size w.r.t. the total address space. [True] means that the requested size is
+   small enough, [False] that the allocation is guaranteed to fail (because
+   the size is always greater than SIZE_MAX). *)
 
+(**/**)
+val register_malloced_base: Base.t -> unit
+(* Should not be used by casual users. *)

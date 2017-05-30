@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -52,16 +52,22 @@ let init =
           let tvar v = new_identified_term (tvar v) in
          *)
         let boolean =
-          { lt_name = Utf8_logic.boolean; lt_params = []; lt_def = None; }
+          { lt_name=Utf8_logic.boolean; lt_params=[]; lt_def=None; lt_attr=[] }
         in
-        let set = { lt_name = "set"; lt_params = ["elem"]; lt_def = None; } in
-        let typetag = {lt_name = "typetag"; lt_params = []; lt_def = None; } in
-        let sign = {lt_name = "sign"; lt_params = []; lt_def = None; } in
+        let set =
+          { lt_name = "set"; lt_params=["elem"]; lt_def=None; lt_attr=[] }
+        in
+        let typetag =
+          { lt_name = "typetag"; lt_params = []; lt_def = None; lt_attr = [] }
+        in
+        let sign =
+          {lt_name = "sign"; lt_params = []; lt_def = None; lt_attr = [] }
+        in
         let float_format =
-          {lt_name = "float_format"; lt_params = []; lt_def = None; }
+          {lt_name = "float_format"; lt_params = []; lt_def = None; lt_attr=[]}
         in
         let rounding_mode =
-          {lt_name = "rounding_mode"; lt_params = []; lt_def = None; }
+          {lt_name = "rounding_mode"; lt_params = []; lt_def = None; lt_attr=[]}
         in
         List.iter (fun x -> Logic_env.add_builtin_logic_type x.lt_name x)
           [ boolean; set; typetag; sign; float_format; rounding_mode ];
@@ -95,68 +101,70 @@ let init =
         let set_of_integer = Ltype (set, [Linteger]) in
         let set_of_a_type = Ltype (set, [a_type]) in
 	(* "\list" logic type with its constructors *)
-        let list, list_of_a_type = 
-	  let list = { lt_name = "\\list"; lt_params = [a_name]; 
-                       lt_def = None; }  in
-	  Logic_env.add_builtin_logic_type list.lt_name list ;
-          let list_of_a_type = Ltype (list, [a_type]) in
-	  let nil = { ctor_name = "\\Nil"; ctor_type = list; 
-                      ctor_params = [] } in
-	  let cons = { ctor_name = "\\Cons"; ctor_type = list; 
-                       ctor_params = [a_type; list_of_a_type] } in
-          let ctors = [nil ; cons] in
-	  List.iter (fun c -> Logic_env.add_builtin_logic_ctor c.ctor_name c) 
-            ctors ;
-	  list.lt_def <- Some (LTsum ctors);
-	  list, list_of_a_type
+        let list =
+          { lt_name="\\list"; lt_params=[a_name]; lt_def=None; lt_attr=[]}
         in
-	let _list_of_integer = Ltype (list, [Linteger]) in
+        Logic_env.add_builtin_logic_type list.lt_name list ;
+        let list_of_a_type = Ltype (list, [a_type]) in
+        let nil =
+          { ctor_name = "\\Nil"; ctor_type = list; ctor_params = [] }
+        in
+        let cons = {
+          ctor_name = "\\Cons";
+          ctor_type = list;
+          ctor_params = [a_type; list_of_a_type] }
+        in
+        let ctors = [nil ; cons] in
+        List.iter
+          (fun c -> Logic_env.add_builtin_logic_ctor c.ctor_name c) ctors ;
+        list.lt_def <- Some (LTsum ctors);
+        let _list_of_integer = Ltype (list, [Linteger]) in
         (* predicates *)
         List.iter
-          (fun (f,tparams,params)  ->
+          (fun (f,tparams,labels,params)  ->
              add { bl_name = f; bl_params = tparams; bl_profile = params;
-                   bl_type = None; bl_labels = []})
-          [ "\\is_finite", [], ["x", float_type] ;
-            "\\is_finite", [], ["x", double_type] ;
-            "\\is_finite", [], ["x", long_double_type] ;
-            "\\is_infinite", [], ["x", float_type] ;
-            "\\is_infinite", [], ["x", double_type] ;
-            "\\is_infinite", [], ["x", long_double_type] ;
-            "\\is_NaN", [], ["x", float_type] ;
-            "\\is_NaN", [], ["x", double_type] ;
-            "\\is_NaN", [], ["x", long_double_type] ;
-            "\\is_minus_infinity", [], ["x", float_type] ;
-            "\\is_minus_infinity", [], ["x", double_type] ;
-            "\\is_minus_infinity", [], ["x", long_double_type] ;
-            "\\is_plus_infinity", [], ["x", float_type] ;
-            "\\is_plus_infinity", [], ["x", double_type] ;
-            "\\is_plus_infinity", [], ["x", long_double_type] ;
-            "\\le_float", [], ["x", float_type; "y", float_type];
-            "\\lt_float", [], ["x", float_type; "y", float_type];
-            "\\ge_float", [], ["x", float_type; "y", float_type];
-            "\\gt_float", [], ["x", float_type; "y", float_type];
-            "\\eq_float", [], ["x", float_type; "y", float_type];
-            "\\ne_float", [], ["x", float_type; "y", float_type];
-            "\\le_float", [], ["x", double_type; "y", double_type];
-            "\\lt_float", [], ["x", double_type; "y", double_type];
-            "\\ge_float", [], ["x", double_type; "y", double_type];
-            "\\gt_float", [], ["x", double_type; "y", double_type];
-            "\\eq_float", [], ["x", double_type; "y", double_type];
-            "\\ne_float", [], ["x", double_type; "y", double_type];
-            "\\no_overflow_single", [], ["m", rounding_mode; "x", Lreal] ;
-            "\\no_overflow_double", [], ["m", rounding_mode; "x", Lreal] ;
-            "\\subset", [a_name], ["s1", set_of_a_type;
+                   bl_type = None; bl_labels = labels})
+          [ "\\is_finite", [], [], ["x", float_type] ;
+            "\\is_finite", [], [], ["x", double_type] ;
+            "\\is_finite", [], [], ["x", long_double_type] ;
+            "\\is_infinite", [], [], ["x", float_type] ;
+            "\\is_infinite", [], [], ["x", double_type] ;
+            "\\is_infinite", [], [], ["x", long_double_type] ;
+            "\\is_NaN", [], [], ["x", float_type] ;
+            "\\is_NaN", [], [], ["x", double_type] ;
+            "\\is_NaN", [], [], ["x", long_double_type] ;
+            "\\is_minus_infinity", [], [], ["x", float_type] ;
+            "\\is_minus_infinity", [], [], ["x", double_type] ;
+            "\\is_minus_infinity", [], [], ["x", long_double_type] ;
+            "\\is_plus_infinity", [], [], ["x", float_type] ;
+            "\\is_plus_infinity", [], [], ["x", double_type] ;
+            "\\is_plus_infinity", [], [], ["x", long_double_type] ;
+            "\\le_float", [], [], ["x", float_type; "y", float_type];
+            "\\lt_float", [], [], ["x", float_type; "y", float_type];
+            "\\ge_float", [], [], ["x", float_type; "y", float_type];
+            "\\gt_float", [], [], ["x", float_type; "y", float_type];
+            "\\eq_float", [], [], ["x", float_type; "y", float_type];
+            "\\ne_float", [], [], ["x", float_type; "y", float_type];
+            "\\le_float", [], [], ["x", double_type; "y", double_type];
+            "\\lt_float", [], [], ["x", double_type; "y", double_type];
+            "\\ge_float", [], [], ["x", double_type; "y", double_type];
+            "\\gt_float", [], [], ["x", double_type; "y", double_type];
+            "\\eq_float", [], [], ["x", double_type; "y", double_type];
+            "\\ne_float", [], [], ["x", double_type; "y", double_type];
+            "\\no_overflow_single", [], [], ["m", rounding_mode; "x", Lreal] ;
+            "\\no_overflow_double", [], [], ["m", rounding_mode; "x", Lreal] ;
+            "\\subset", [a_name], [], ["s1", set_of_a_type;
                                    "s2", set_of_a_type];
-            "\\pointer_comparable", [], [("p1", object_ptr);
+            "\\pointer_comparable", [], [], [("p1", object_ptr);
                                          ("p2", object_ptr)];
-            "\\pointer_comparable", [], [("p1", fun_ptr);
+            "\\pointer_comparable", [], [], [("p1", fun_ptr);
                                          ("p2", fun_ptr)];
-            "\\pointer_comparable", [], [("p1", fun_ptr);
+            "\\pointer_comparable", [], [], [("p1", fun_ptr);
                                          ("p2", object_ptr)];
-            "\\pointer_comparable", [], [("p1", object_ptr);
+            "\\pointer_comparable", [], [], [("p1", object_ptr);
                                          ("p2", fun_ptr)];
-            "\\points_to_valid_string", [], ["p", object_ptr];
-	    "\\warning", [], [("str", string_type)];
+            "\\points_to_valid_string", [], [], ["p", object_ptr];
+            "\\warning", [], [LogicLabel (None, "L")], [("str", string_type)];
           ];
         (* functions *)
         List.iter
@@ -180,7 +188,7 @@ let init =
             "\\ceil", [], ["x",Lreal], Linteger ;
             "\\floor", [], ["x",Lreal], Linteger ;
 
-            (* transcendantal functions *)
+            (* transcendental functions *)
             "\\exp", [], ["x",Lreal], Lreal ;
             "\\log", [], ["x",Lreal], Lreal ;
             "\\log10", [], ["x",Lreal], Lreal ;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,7 +70,7 @@ class text : ?autoscroll:bool -> ?width:int -> ?indent:int -> unit ->
         - ["it"] italic style
         - ["ul"] underlined
         - ["st"] striked through
-        - ["blue"], ["red"], ["orange"], ["green"] predifined foreground color
+        - ["blue"], ["red"], ["orange"], ["green"] predefined foreground color
         - ["hover"] background green (default for highlighter)
         - ["link"] underlined blue
         - ["fg:<color name>"] foreground color
@@ -123,7 +123,7 @@ class text : ?autoscroll:bool -> ?width:int -> ?indent:int -> unit ->
 
     method select : ?scroll:bool -> int -> int -> unit
     (** When [scroll:false] (default), only minimal scrolling is performed to make
-        the selection visible. Otherwize, the window is scrolled to center the selection
+        the selection visible. Otherwise, the window is scrolled to center the selection
         at screen. *)
 
     method get_view: GText.view

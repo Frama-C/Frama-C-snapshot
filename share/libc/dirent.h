@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_DIRENT_H
 #define __FC_DIRENT_H
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "errno.h"
 
@@ -48,51 +49,51 @@ typedef struct DIR {
 } DIR;
 
 DIR __fc_opendir[__FC_FOPEN_MAX];
-DIR* const __p_fc_opendir = __fc_opendir;
+DIR* const __fc_p_opendir = __fc_opendir;
 
-int            alphasort(const struct dirent **, const struct dirent **);
+extern int            alphasort(const struct dirent **, const struct dirent **);
 
 /*@
   requires \subset(dirp,&__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
-  assigns \result \from dirp, *dirp, __p_fc_opendir;
-  assigns __FC_errno \from dirp, *dirp, __p_fc_opendir;
-  assigns *dirp \from dirp, *dirp, __p_fc_opendir;
+  assigns \result \from dirp, *dirp, __fc_p_opendir;
+  assigns __fc_errno \from dirp, *dirp, __fc_p_opendir;
+  assigns *dirp \from dirp, *dirp, __fc_p_opendir;
   ensures (\result == 0 && dirp->__fc_dir_inode == \null)
            || \result == -1;
 */
-int            closedir(DIR *dirp);
-int            dirfd(DIR *);
-DIR           *fdopendir(int);
+extern int            closedir(DIR *dirp);
+extern int            dirfd(DIR *);
+extern DIR           *fdopendir(int);
 
 /*@
-  assigns \result \from path[0..], __p_fc_opendir;
-  assigns __FC_errno \from path[0..], __p_fc_opendir;
+  assigns \result \from path[0..], __fc_p_opendir;
+  assigns __fc_errno \from path[0..], __fc_p_opendir;
   ensures \result == \null || \valid(\result);
   ensures \result != \null ==>
              \result == &__fc_opendir[\result->__fc_dir_id];
   ensures \result != \null ==> \result->__fc_dir_inode != \null;
 */
-DIR           *opendir(const char *path);
+extern DIR           *opendir(const char *path);
 
 /*@
   requires \subset(dirp, &__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
-  assigns \result \from *dirp, __p_fc_opendir;
+  assigns \result \from *dirp, __fc_p_opendir;
   assigns dirp->__fc_dir_position \from dirp->__fc_dir_position;
-  assigns __FC_errno \from dirp, *dirp, __p_fc_opendir;
+  assigns __fc_errno \from dirp, *dirp, __fc_p_opendir;
   ensures \result == \null || \valid(\result);
 */
-struct dirent *readdir(DIR *dirp);
+extern struct dirent *readdir(DIR *dirp);
 
-int            readdir_r(DIR * dirp, struct dirent * entry,
+extern int            readdir_r(DIR * dirp, struct dirent * entry,
 			 struct dirent ** result);
-void           rewinddir(DIR *);
-int            scandir(const char *, struct dirent ***,
+extern void           rewinddir(DIR *);
+extern int            scandir(const char *, struct dirent ***,
                    int (*)(const struct dirent *),
                    int (*)(const struct dirent **,
                    const struct dirent **));
 
-void           seekdir(DIR *, long);
-long           telldir(DIR *);
+extern void           seekdir(DIR *, long);
+extern long           telldir(DIR *);
 
 
 
@@ -125,5 +126,6 @@ enum
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif
 

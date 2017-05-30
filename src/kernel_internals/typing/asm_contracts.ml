@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,7 +91,7 @@ object(self)
           (* the only interesting information for clobbers is the
              presence of the "memory" keyword, which indicates that
              memory may have been accessed (read or write) outside of
-             the locations explicitely referred to as output or
+             the locations explicitly referred to as output or
              input. We can't do much more than emitting a warning and
              considering that nothing is touched beyond normally
              specified outputs and inputs. *)

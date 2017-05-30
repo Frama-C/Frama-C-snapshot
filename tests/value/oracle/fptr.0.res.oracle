@@ -64,7 +64,7 @@ tests/value/fptr.i:9:[value] warning: pointer to function with incompatible type
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-[value] Called Frama_C_show_each({0; 1; 2})
+[value] Called Frama_C_show_each({0; 1})
 [value] Called Frama_C_show_each_F({{ NULL ; &h ; &hh }})
 [value] computing for function f <- main.
         Called from tests/value/fptr.i:52.

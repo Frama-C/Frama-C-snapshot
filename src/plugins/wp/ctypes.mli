@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,12 +72,14 @@ val object_of_logic_pointed : logic_type -> c_object
 
 (** {2 Utilities} *)
 
-val imemo : (c_int -> 'a) -> c_int -> 'a
-val fmemo : (c_float -> 'a) -> c_float -> 'a
-(** memoization function, projectified *)
+val i_iter: (c_int -> unit) -> unit
+val f_iter: (c_float -> unit) -> unit
 
-val iiter: (c_int -> unit) -> unit
-val fiter: (c_float -> unit) -> unit
+val i_memo : (c_int -> 'a) -> c_int -> 'a
+(** memoized, not-projectified *)
+
+val f_memo : (c_float -> 'a) -> c_float -> 'a
+(** memoized, not-projectified *)
 
 val is_char : c_int -> bool
 val c_char : unit -> c_int     (** Returns the type of [char] *)
@@ -98,7 +100,7 @@ val get_int : exp -> int64 option
 val i_bits : c_int -> int (** size in bits *)
 val i_bytes : c_int -> int (** size in bytes *)
 val signed : c_int -> bool  (** [true] if signed *)
-val c_int_bounds: c_int -> Integer.t * Integer.t
+val bounds: c_int -> Integer.t * Integer.t (** domain, bounds included *)
 
 (** All sizes are in bits *)
 

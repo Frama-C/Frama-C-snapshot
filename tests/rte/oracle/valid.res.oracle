@@ -32,20 +32,12 @@ int main(void)
   struct Q q;
   int *i;
   int j;
-  int i0;
-  int i1;
-  int i2;
-  int i3;
-  int i4;
   struct P *tmp;
-  struct P np;
-  struct P *npp;
-  struct P *z;
-  i0 = 0;
-  i1 = 1;
-  i2 = 2;
-  i3 = 3;
-  i4 = 4;
+  int i0 = 0;
+  int i1 = 1;
+  int i2 = 2;
+  int i3 = 3;
+  int i4 = 4;
   j = 0;
   i = & j;
   pp = & p;
@@ -53,19 +45,17 @@ int main(void)
   pppp = & ppp;
   p.next = pp;
   p.znexts = pppp;
-  { /* sequence */
-    tmp = pp;
-    /*@ assert rte: index_bound: 0 ≤ i2; */
-    /*@ assert rte: index_bound: i2 < 8; */
-    /*@ assert rte: index_bound: 0 ≤ i3; */
-    /*@ assert rte: index_bound: i3 < 9; */
-    p.nexts[i2][i3] = tmp;
-    /*@ assert rte: index_bound: 0 ≤ i0; */
-    /*@ assert rte: index_bound: i0 < 8; */
-    /*@ assert rte: index_bound: 0 ≤ i1; */
-    /*@ assert rte: index_bound: i1 < 9; */
-    p.nexts[i0][i1] = tmp;
-  }
+  tmp = pp;
+  /*@ assert rte: index_bound: 0 ≤ i2; */
+  /*@ assert rte: index_bound: i2 < 8; */
+  /*@ assert rte: index_bound: 0 ≤ i3; */
+  /*@ assert rte: index_bound: i3 < 9; */
+  p.nexts[i2][i3] = tmp;
+  /*@ assert rte: index_bound: 0 ≤ i0; */
+  /*@ assert rte: index_bound: i0 < 8; */
+  /*@ assert rte: index_bound: 0 ≤ i1; */
+  /*@ assert rte: index_bound: i1 < 9; */
+  p.nexts[i0][i1] = tmp;
   q.next = pp;
   /*@ assert rte: index_bound: 0 ≤ i0; */
   /*@ assert rte: index_bound: i0 < 12; */
@@ -87,8 +77,8 @@ int main(void)
   /*@ assert rte: index_bound: i3 < 5; */
   p.id[i1] = p.id[i3];
   /*@ assert rte: mem_access: \valid_read(p.next); */
-  np = *(p.next);
-  npp = p.next;
+  struct P np = *(p.next);
+  struct P *npp = p.next;
   v = p.id[3];
   /*@ assert rte: mem_access: \valid_read(&pp->id[3]); */
   v = pp->id[3];
@@ -103,7 +93,7 @@ int main(void)
   /*@ assert rte: index_bound: 0 ≤ i1; */
   /*@ assert rte: index_bound: i1 < 9; */
   /*@ assert rte: mem_access: \valid_read(&pp->nexts[i0][i1]); */
-  z = pp->nexts[i0][i1];
+  struct P *z = pp->nexts[i0][i1];
   /*@ assert rte: index_bound: 0 ≤ i0; */
   /*@ assert rte: index_bound: i0 < 8; */
   /*@ assert rte: index_bound: 0 ≤ i1; */
@@ -241,20 +231,12 @@ int main(void)
   struct Q q;
   int *i;
   int j;
-  int i0;
-  int i1;
-  int i2;
-  int i3;
-  int i4;
   struct P *tmp;
-  struct P np;
-  struct P *npp;
-  struct P *z;
-  i0 = 0;
-  i1 = 1;
-  i2 = 2;
-  i3 = 3;
-  i4 = 4;
+  int i0 = 0;
+  int i1 = 1;
+  int i2 = 2;
+  int i3 = 3;
+  int i4 = 4;
   j = 0;
   i = & j;
   pp = & p;
@@ -262,13 +244,11 @@ int main(void)
   pppp = & ppp;
   p.next = pp;
   p.znexts = pppp;
-  { /* sequence */
-    tmp = pp;
-    /*@ assert rte: mem_access: \valid(&p.nexts[i2][i3]); */
-    p.nexts[i2][i3] = tmp;
-    /*@ assert rte: mem_access: \valid(&p.nexts[i0][i1]); */
-    p.nexts[i0][i1] = tmp;
-  }
+  tmp = pp;
+  /*@ assert rte: mem_access: \valid(&p.nexts[i2][i3]); */
+  p.nexts[i2][i3] = tmp;
+  /*@ assert rte: mem_access: \valid(&p.nexts[i0][i1]); */
+  p.nexts[i0][i1] = tmp;
   q.next = pp;
   /*@ assert rte: mem_access: \valid(&q.id[i0]); */
   q.id[i0] = 0;
@@ -282,8 +262,8 @@ int main(void)
   /*@ assert rte: mem_access: \valid_read(&p.id[i3]); */
   p.id[i1] = p.id[i3];
   /*@ assert rte: mem_access: \valid_read(p.next); */
-  np = *(p.next);
-  npp = p.next;
+  struct P np = *(p.next);
+  struct P *npp = p.next;
   /*@ assert rte: mem_access: \valid_read(&p.id[3]); */
   v = p.id[3];
   /*@ assert rte: mem_access: \valid_read(&pp->id[3]); */
@@ -295,7 +275,7 @@ int main(void)
   /*@ assert rte: mem_access: \valid_read(&pp->id[3]); */
   v = pp->id[3];
   /*@ assert rte: mem_access: \valid_read(&pp->nexts[i0][i1]); */
-  z = pp->nexts[i0][i1];
+  struct P *z = pp->nexts[i0][i1];
   /*@ assert rte: mem_access: \valid_read(&pp->nexts[i0][i1]); */
   /*@ assert rte: mem_access: \valid_read(&(pp->nexts[i0][i1])->val); */
   v = (pp->nexts[i0][i1])->val;

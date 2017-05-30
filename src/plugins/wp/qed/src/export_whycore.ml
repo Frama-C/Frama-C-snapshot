@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ struct
   module T = T
   module E = Export.Make(T)
   module Env = E.Env
-  
+
   type trigger = (T.var,Fun.t) ftrigger
   type typedef = (tau,Field.t,Fun.t) ftypedef
 
@@ -182,7 +182,7 @@ struct
         | Cterm -> fprintf fmt "function %s" name
 
       method virtual pp_trigger : trigger printer
-      method virtual pp_intros : tau -> string list printer (* forall with no separatyor *)
+      method virtual pp_intros : tau -> string list printer (* forall with no separator *)
 
       method declare_prop ~kind fmt lemma xs tgs (p : term) =
         self#global

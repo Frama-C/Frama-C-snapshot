@@ -50,4 +50,4 @@
 [inout] Out (internal) for function main:
           __retres
 [inout] Inputs for function main:
-          U[0..1]
+          \nothing

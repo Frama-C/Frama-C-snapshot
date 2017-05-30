@@ -22,7 +22,7 @@ tests/slicing/ptr_fct.i:17:[kernel] warning: Neither code nor specification for 
 [value] Done for function g
 [value] Recording results for h
 [value] done for function h
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function h
 [from] Computing for function g
@@ -54,7 +54,7 @@ void f1(int x)
 }
 
 /*@ assigns \nothing; */
-extern void f2(int y);
+void f2(int y);
 
 void (*ptf)(int ) = (void (*)(int ))0;
 void g(int arg);

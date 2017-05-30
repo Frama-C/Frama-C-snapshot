@@ -1,8 +1,11 @@
+/*run.config*
+  STDOPT: +"-no-val-builtins-auto"
+*/
+
 #define NULL ((void*)0)
 
 char * strchr(const char * s, int c)
-{
-  for(; *s != (char) c; ++s)
+{  for(; *s != (char) c; ++s)
     if (*s == '\0')
       return NULL;
   return (char *) s;

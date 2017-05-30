@@ -195,7 +195,7 @@ tests/slicing/bts1768.i:35:[value] warning: signed overflow. assert cumul + 1 �
 [value] Done for function fsm_transition
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function lecture
@@ -234,7 +234,7 @@ int choix;
 int state = 1;
 int step = 0;
 /*@ ensures \result ≡ 0 ∨ \result ≡ 1 ∨ \result ≡ 2; */
-extern int choisir();
+int choisir();
 
 void lecture_slice_1(void)
 {

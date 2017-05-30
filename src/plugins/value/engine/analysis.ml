@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,13 +33,15 @@ end
 
 module type S = sig
   include Abstractions.S
-  include Results with type state = Dom.state
-                   and type value = Val.t
+  include Results with type state := Dom.state
+                   and type value := Val.t
 end
 
 module type Analyzer = sig
   include S
-  val compute : ?library:bool -> kernel_function -> unit
+  val compute_from_entry_point : kernel_function -> lib_entry:bool -> unit
+  val compute_from_init_state: kernel_function -> Dom.t -> unit
+  val initial_state: lib_entry:bool -> Dom.t or_bottom
 end
 
 
@@ -47,42 +49,23 @@ module Make (Abstract: Abstractions.S) = struct
 
   include Abstract
 
-  type state = Abstract.Dom.state
-  type value = Abstract.Val.t
-
-  let computed = ref false
-
   module Eva = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
   module Eval = Non_linear_evaluation.Make (Abstract.Val) (Eva)
 
-  module Init =
-    Initialization.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom) (Eval)
-
-  module Computer =
-    Compute_functions.Make
-      (Abstract.Val) (Abstract.Loc) (Abstract.Dom) (Eval) (Init)
-
-
-  let compute ?(library=false) kf =
-    Compute_functions.run Computer.compute_from_entry_point ~library kf;
-    computed := true
-
+  include Compute_functions.Make (Abstract) (Eval)
 
   let get_stmt_state stmt =
     let fundec = Kernel_function.(get_definition (find_englobing_kf stmt)) in
-    if Mark_noresults.should_memorize_function fundec && !computed
+    if Mark_noresults.should_memorize_function fundec && Db.Value.is_computed ()
     then Abstract.Dom.Store.get_stmt_state stmt
     else `Value Abstract.Dom.top
 
-  let eval_expr state expr = Eva.evaluate state expr >>=: snd
+  let eval_expr state expr = Eval.evaluate state expr >>=: snd
 
 end
 
 
 module Legacy = Make (Abstractions.Legacy)
-
-let cvalue_initial_state () =
-  Cvalue_domain.extract Abstractions.Legacy.Dom.get (Legacy.Init.initial_state ())
 
 module Default =
   (val
@@ -99,11 +82,15 @@ let abstracts config =
 let ref_analyzer =
   ref (Abstractions.default_config, (module Default : Analyzer))
 
-
 let current = ref (module Default : S)
+let current_analyzer = ref (module Default : Analyzer)
 
+let cvalue_initial_state () =
+  let module A = (val !current_analyzer) in
+  let _, lib_entry = Globals.entry_point () in
+  Cvalue_domain.extract A.Dom.get (A.initial_state ~lib_entry)
 
-let compute config ?(library=false) kf =
+let compute config ~lib_entry kf =
   let analyzer =
     if config = Abstractions.legacy_config then (module Legacy: Analyzer)
     else if config = Abstractions.default_config then (module Default)
@@ -116,10 +103,11 @@ let compute config ?(library=false) kf =
   in
   let module Analyzer = (val analyzer) in
   current := (module Analyzer: S);
-  Analyzer.compute ~library kf
+  current_analyzer := (module Analyzer: Analyzer);
+  Analyzer.compute_from_entry_point ~lib_entry kf
 
 let force_compute () =
   Ast.compute ();
-  let kf, library = Globals.entry_point () in
+  let kf, lib_entry = Globals.entry_point () in
   let config = Abstractions.configure () in
-  compute config ~library kf
+  compute config ~lib_entry kf

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -847,7 +847,7 @@ let add_behaviors ?(register_children=true) e kf ?stmt ?active bhvs =
             Thus, if register_children is true, we need to update
             the property status table.
              For the other clauses (requires, assumes, ensures) we just need to
-             add the additional ip, nothing whill be removed.
+             add the additional ip, nothing will be removed.
          *)
          if register_children then begin
            let ip = Property.ip_from_of_behavior kf ki active bhv in
@@ -1299,7 +1299,7 @@ let rec remove_declared_global_annot logic_vars = function
     Cil_datatype.Logic_info.Set.remove li logic_vars
   | Dvolatile _ | Dtype _ | Dlemma _ | Dmodel_annot _ | Dcustom_annot _ ->
     logic_vars
-  | Daxiomatic (_,l,_) ->
+  | Daxiomatic (_,l,_, _) ->
     List.fold_left remove_declared_global_annot logic_vars l
 
 let remove_declared_global c_vars logic_vars = function
@@ -1619,7 +1619,7 @@ let logic_info_of_global s =
   let rec check_one acc = function
     | Dfun_or_pred(li,_) | Dinvariant(li,_) | Dtype_annot(li,_) ->
       check_logic_info li acc
-    | Daxiomatic (_,l,_) -> List.fold_left check_one acc l
+    | Daxiomatic (_,l, _, _) -> List.fold_left check_one acc l
     | Dtype _ | Dvolatile _ | Dlemma _ | Dmodel_annot _ | Dcustom_annot _
       -> acc
   in

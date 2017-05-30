@@ -4,13 +4,10 @@
 float g(void)
 {
   float __retres_5;
-  double __retres;
-  int first;
-  __retres = (double)2;
-  first = 6;
+  double __retres = (double)2;
+  int first = 6;
   {
-    int first_0;
-    first_0 = 5;
+    int first_0 = 5;
     __retres_5 = (float)__retres;
     return __retres_5;
   }

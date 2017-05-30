@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Cil_types
 
 (* -------------------------------------------------------------------------- *)
-(** This file provide all the functions to build a stategy that can then
+(** This file provide all the functions to build a strategy that can then
  * be used by the main generic calculus.  *)
 (* -------------------------------------------------------------------------- *)
 
@@ -45,7 +45,7 @@ type annot_kind =
   | Agoal (** annotation is a goal,
               but not an hypothesis (see Aboth): A /\ ...*)
   | Aboth of bool (** annotation can be used as both hypothesis and goal :
-                      - with true : considerer as both : A /\ A=>..
+                      - with true : considered as both : A /\ A=>..
                       - with false : we just want to use it as hyp right now. *)
   | AcutB of bool (** annotation is use as a cut :
                       - with true (A is also a goal) -> A (+ proof obligation A => ...)
@@ -165,7 +165,7 @@ val get_both_hyp_goals : t_annots ->
  * considered as a both goal and hyp ([goal=true], or hyp only ([goal=false]) *)
 val get_cut : t_annots -> (bool * WpPropId.pred_info) list
 
-(** To be used as hypotheses arround a call, (the pre are in
+(** To be used as hypotheses around a call, (the pre are in
  * [get_call_pre_goal]) *)
 val get_call_hyp : t_annots -> kernel_function -> WpPropId.pred_info list
 
@@ -224,11 +224,10 @@ type strategy_kind =
   | SKannots (** normal mode for annotations *)
   | SKfroms of strategy_for_froms
 
-val mk_strategy : string -> Cil2cfg.t -> string option -> bool ->
+val mk_strategy : string -> Cil2cfg.t -> string option -> 
   strategy_kind -> annots_tbl -> strategy
 
 val get_annots : strategy -> Cil2cfg.edge -> t_annots
-val new_loop_computation : strategy -> bool
 val strategy_has_asgn_goal : strategy -> bool
 val strategy_has_prop_goal : strategy -> bool
 val strategy_kind : strategy -> strategy_kind
@@ -251,7 +250,7 @@ val pp_info_of_strategy : Format.formatter -> strategy -> unit
 val is_main_init : Cil_types.kernel_function -> bool
 
 
-(** True if both options [-const-readonly] and [-wp-init] are positionned,
+(** True if both options [-const-readonly] and [-wp-init] are positioned,
     and the variable is global, not extern, with a ["const"] type
     (see [hasConstAttribute]).
     @since Sodium-20150201

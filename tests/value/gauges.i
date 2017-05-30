@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: +" -slevel-function main8_aux:2,main5_bis:4"
+   STDOPT: +" -slevel-function main8_aux:2,main5_bis:4 -value-msg-key d-gauges"
 */
 
 volatile v;
@@ -295,6 +295,43 @@ void main14() {
   Frama_C_show_each(i, j);
 }
 
+void main15 () {
+  int x, y;
+  int *p = &x;
+  int i = 0;
+  while(i <= 10) {
+    i++;
+    Frama_C_dump_each(); // After the first iteration, nothing should be known on p
+    p = &y;
+  }
+}
+
+void main16() {
+  /* Bug found by Csmith. Widening was incorrectly implemented, and returned
+     false results when a pointer points to multiple bases in multiple
+     iterations. Nested loops were probably needed for the bug to manifest
+     itself. */
+  int a = 1;
+  int b = 1;
+  int *p = &a;
+ L1: // This is a loop head
+  b = 0;
+  while (b < 1) {
+    int i;
+    for (i = 0; i < 3; i++);
+    for (i = 0; i < 2; i++);
+    Frama_C_dump_each();
+    for (i = 0; i < 1; i++);
+    while (i < 3) {
+      if (*p) {
+        p = &b;
+        goto L1;
+      } else
+        return;
+    }
+  }
+}
+
 void main() {
   main0();
   main0_bis();
@@ -313,4 +350,6 @@ void main() {
   main12();
   main13();
   main14();
+  main15();
+  main16();
 }

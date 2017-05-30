@@ -18,17 +18,17 @@ goal myMain_stmt_assign:
   forall t_2,t_1 : (addr,int) farray.
   forall a_1,a : addr.
   let a_2 = shiftfield_F1_FD_pos(a) : addr in
-  let x = t_1[a_2] : int in
-  let x_1 = t_2[a_2] : int in
+  let x = t_2[a_2] : int in
+  let x_1 = t_1[a_2] : int in
   (x <> x_1) ->
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
   linked(t) ->
-  is_sint32(x) ->
   is_sint32(x_1) ->
+  is_sint32(x) ->
   valid_rd(t, a_2, 1) ->
   havoc(t_2[a_2 <- i], t_1, a_1, 1) ->
-  (a_1 = a_2)
+  (a_2 = a_1)
 
 ---------------------------------------------
 --- File 'typed/Compound.ergo' 
@@ -52,7 +52,7 @@ axiom Q_Load_S2_A_update_Mint:
   forall Mint_0 : (addr,int) farray.
   forall v : int
   [Load_S2_A(p, Mint_0[q <- v])].
-  (p <> q) -> (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_0[q <- v]))
+  (q <> p) -> (Load_S2_A(p, Mint_0[q <- v]) = Load_S2_A(p, Mint_0))
 
 axiom Q_Load_S2_A_eqmem_Mint:
   forall p,q : addr.
@@ -61,7 +61,7 @@ axiom Q_Load_S2_A_eqmem_Mint:
   [eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
     eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
   included(p, 1, q, k) -> eqmem(Mint_0, Mint_1, q, k) ->
-    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
+    (Load_S2_A(p, Mint_1) = Load_S2_A(p, Mint_0))
 
 axiom Q_Load_S2_A_havoc_Mint:
   forall p,q : addr.
@@ -70,7 +70,7 @@ axiom Q_Load_S2_A_havoc_Mint:
   [havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
     havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
   separated(p, 1, q, k) -> havoc(Mint_0, Mint_1, q, k) ->
-    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
+    (Load_S2_A(p, Mint_1) = Load_S2_A(p, Mint_0))
 
 ---------------------------------------------
 --- File 'typed/S2_A.ergo' 
@@ -83,7 +83,7 @@ type S2_A = { F2_A_dummy : int }
 
 predicate IsS2_A(S:S2_A) = is_sint32(S.F2_A_dummy)
 
-predicate EqS2_A(S:S2_A, S_1:S2_A) = (S.F2_A_dummy) = (S_1.F2_A_dummy)
+predicate EqS2_A(S:S2_A, S_1:S2_A) = (S_1.F2_A_dummy) = (S.F2_A_dummy)
 
 ---------------------------------------------
 --- File 'typed/myMain_post_KO.ergo' 

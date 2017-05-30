@@ -405,21 +405,48 @@ module PlainMerging =
       let output = Format.pp_print_string
      end)
 
+type volatile_kind = R | W
+
+let equal_volatile_kind v1 v2 =
+  match v1, v2 with
+  | R, R | W, W -> true
+  | (R | W), _ -> false
+
+let compare_volatile_kind v1 v2 =
+  match v1, v2 with
+  | R, W -> 1
+  | R, R -> 0
+  | W, W -> 0
+  | W, R -> -1
+
+let pretty_volatile_kind fmt v =
+  let s = match v with
+    | R -> "reads"
+    | W -> "writes"
+  in
+  Format.pp_print_string fmt s
+
 module VolatileMerging =
   Merging
     (struct
-        type t = identified_term list
+        type t = identified_term * volatile_kind
+        let hash_term it = Logic_utils.hash_term it.it_content
         let hash = function
-	  | [] -> 0
-          | h::_ -> Logic_utils.hash_term h.it_content
-        let equal = Logic_utils.is_same_list Logic_utils.is_same_identified_term
-        let compare =
-          Extlib.list_compare 
-            (fun t1 t2 -> Logic_utils.compare_term t1.it_content t2.it_content)
+          | ts,R -> 1 + 5 * hash_term ts
+          | ts,W -> 2 + 5 * hash_term ts
+        let equal (t1,v1) (t2,v2) =
+          equal_volatile_kind v1 v2 &&
+          Logic_utils.is_same_identified_term t1 t2
+        let compare (t1,v1) (t2,v2) =
+          let cmp = compare_volatile_kind v1 v2 in
+          if cmp <> 0 then cmp else
+            Logic_utils.compare_term t1.it_content t2.it_content
 
         let merge_synonym _ = true
-        let output fmt x = 
-	  Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term fmt x
+        let output fmt (hs,kind) =
+          Format.fprintf fmt "%a function for %a volatile location"
+            pretty_volatile_kind kind
+            Cil_printer.pp_identified_term hs
      end)
 
 let hash_type t =
@@ -543,7 +570,7 @@ let lvEq = VolatileMerging.create_eq_table 111
 let mfEq = ModelMerging.create_eq_table 111
 
 (* Sometimes we want to merge synonyms. We keep some tables indexed by names.
- * Each name is mapped to multiple exntries *)
+ * Each name is mapped to multiple entries *)
 let vSyn = PlainMerging.create_syn_table 111
 let iSyn = PlainMerging.create_syn_table 111
 let sSyn = PlainMerging.create_syn_table 111
@@ -725,13 +752,59 @@ let init ?(all=true) () =
   H.clear originalVarNames;
   if all then Logic_env.prepare_tables ()
 
+(* Ignores some attributes that are irrelevant for mergecil, e.g. fc_stdlib *)
+let drop_attributes_for_merge attrs = Cil.dropAttributes ["fc_stdlib"] attrs
+
+let equal_attributes_for_merge attrs1 attrs2 =
+  Cil_datatype.Attributes.equal (drop_attributes_for_merge attrs1)
+    (drop_attributes_for_merge attrs2)
+
+let logic_type_info_without_irrelevant_attributes lti =
+  { lt_name = lti.lt_name;
+    lt_params = lti.lt_params;
+    lt_attr = drop_attributes_for_merge lti.lt_attr;
+    lt_def = lti.lt_def }
+
+let rec global_annot_without_irrelevant_attributes ga =
+  match ga with
+  | Dvolatile(vi,rd,wr,attr,loc) ->
+    Dvolatile(vi,rd,wr,drop_attributes_for_merge attr,loc)
+  | Dcustom_annot (c,n,attr,loc) ->
+    Dcustom_annot (c,n,drop_attributes_for_merge attr,loc)
+  | Daxiomatic(n,l,attr,loc) ->
+    Daxiomatic(n,List.map global_annot_without_irrelevant_attributes l,
+               drop_attributes_for_merge attr,loc)
+  | Dlemma (id,ax,labs,typs,st,attr,loc) ->
+    Dlemma (id,ax,labs,typs,st,drop_attributes_for_merge attr,loc)
+  | Dtype (lti,loc) ->
+    Dtype (logic_type_info_without_irrelevant_attributes lti, loc)
+  | Dfun_or_pred _ | Dtype_annot _ | Dmodel_annot _ | Dinvariant _ -> ga
+
 let rec global_annot_pass1 g = match g with
-  | Dvolatile(id,rvi,wvi,loc) ->
+  | Dvolatile(hs,rvi,wvi,_,loc) ->
     CurrentLoc.set loc;
-    ignore (VolatileMerging.getNode 
-              lvEq lvSyn !currentFidx id (id,(rvi,wvi,loc))
-              (Some (loc,!currentDeclIdx)))
-  | Daxiomatic(id,decls,l) ->
+    let process_term_kind (t,k as id) =
+      let node =
+        VolatileMerging.getNode
+          lvEq lvSyn !currentFidx id (id, g) (Some (loc, !currentFidx))
+      in
+      let g = global_annot_without_irrelevant_attributes g in
+      let g' = global_annot_without_irrelevant_attributes (snd node.ndata) in
+      if not (Logic_utils.is_same_global_annotation g g') then
+        Kernel.warning ~source:(fst loc)
+          "Overlapping volatile specification: \
+           volatile location %a already associated to a %a function in \
+           annotation at loc %a. Ignoring new binding."
+          Cil_printer.pp_identified_term t
+          pretty_volatile_kind k
+          Cil_printer.pp_location (fst (Extlib.the node.nloc))
+    in
+    List.iter
+      (fun x ->
+         if Extlib.has_some rvi then process_term_kind (x,R);
+         if Extlib.has_some wvi then process_term_kind (x,W))
+      hs
+  | Daxiomatic(id,decls,_,l) ->
     CurrentLoc.set l;
     ignore (PlainMerging.getNode laEq laSyn !currentFidx id (id,decls)
               (Some (l,!currentDeclIdx)));
@@ -757,7 +830,7 @@ let rec global_annot_pass1 g = match g with
     ignore (ModelMerging.getNode 
               mfEq mfSyn !currentFidx (mfi.mi_name,mfi.mi_base_type) mfi
               (Some (l, !currentDeclIdx)))
-  | Dcustom_annot (c, n, l) -> 
+  | Dcustom_annot (c, n, _, l) -> 
     Format.eprintf "Mergecil : custom@.";
     CurrentLoc.set l;
     ignore (PlainMerging.getNode
@@ -773,10 +846,10 @@ let rec global_annot_pass1 g = match g with
     ignore (PlainMerging.getNode ltEq ltSyn !currentFidx info.lt_name info
               (Some (l, !currentDeclIdx)))
 
-  | Dlemma (n,is_ax,labs,typs,st,l) ->
+  | Dlemma (n,is_ax,labs,typs,st,attr,l) ->
     CurrentLoc.set l;
     ignore (PlainMerging.getNode
-              llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st,l))
+              llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st,attr,l))
               (Some (l, !currentDeclIdx)))
 
 (* Some enumerations have to be turned into an integer. We implement this by
@@ -822,7 +895,7 @@ let rec combineTypes (what: combineWhat)
         if bytesSizeOfInt oldk=bytesSizeOfInt k && isSigned oldk=isSigned k
         then
             (* the types contain the same sort of values but are not equal.
-               For example on x86_16 machep unsigned short and unsigned int. *)
+               For example on x86_16 machdep unsigned short and unsigned int. *)
           if rank oldk<rank k then k else oldk
         else
             (* GCC allows a function definition to have a more precise integer
@@ -964,6 +1037,50 @@ let rec combineTypes (what: combineWhat)
     in
     raise (Failure msg))
 
+(* When comparing composite types for equality, we tolerate
+   some differences related to packed/aligned attributes:
+   if the offsets of each field are the same regardless of these
+   attributes, we allow them to merge (arbitrarily choosing whether
+   to keep or to drop such attributes). *)
+and equalModuloPackedAlign attrs1 attrs2 =
+  let drop = Cil.dropAttributes ["packed"; "aligned"] in
+  equal_attributes_for_merge (drop attrs1) (drop attrs2)
+
+(* Checks if fields [f1] and [f2] (contained in the composite types
+   [typ_ci1] and [typ_ci2] respectively) are equal except for
+   alignment-related attributes.
+   Raises [Failure] if the fields are not equivalent.
+   If [mustCheckOffsets] is true, then there is already a difference in the
+   composite type, so each field must be checked. *)
+and checkFieldsEqualModuloPackedAlign ~mustCheckOffsets typ_ci1 typ_ci2 f1 f2 =
+  if f1.fbitfield <> f2.fbitfield then
+    raise (Failure "different bitfield info");
+  if mustCheckOffsets || not (equal_attributes_for_merge f1.fattr f2.fattr) then
+    (* different attributes: check if the difference is only due
+       to aligned/packed attributes, and if the offsets are the same,
+       in which case the difference may be safely ignored *)
+    begin
+      try
+        let offs1, width1 =
+          Cil.bitsOffset typ_ci1 (Field (f1, NoOffset))
+        in
+        let offs2, width2 =
+          Cil.bitsOffset typ_ci2 (Field (f2, NoOffset))
+        in
+        if not (equalModuloPackedAlign f1.fattr f2.fattr)
+        || offs1 <> offs2 || width1 <> width2 then
+          if mustCheckOffsets then
+            let err = "incompatible attributes in composite types "
+                      ^ "and/or field " ^ f1.fname in
+            raise (Failure err)
+          else
+            let err = "incompatible attributes for field " ^ f1.fname in
+            raise (Failure err)
+      with Not_found ->
+        Kernel.fatal
+          "field offset not found in table: %a or %a"
+          Printer.pp_field f1 Printer.pp_field f2
+    end
 
 (* Match two compinfos and throw a Failure if they do not match *)
 and matchCompInfo (oldfidx: int) (oldci: compinfo)
@@ -1017,13 +1134,34 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
     (* But what if the old one is the empty one ? *)
     if old_len = len then begin
       try
+        (* must_check_offsets indicates that composite type attributes are
+           different, which may impact field offsets *)
+        let mustCheckOffsets =
+          if equal_attributes_for_merge ci.cattr oldci.cattr then false
+          else if equalModuloPackedAlign ci.cattr oldci.cattr then true
+          else raise
+              (Failure
+                 (let attrs = drop_attributes_for_merge ci.cattr in
+                  let oldattrs = drop_attributes_for_merge oldci.cattr in
+                  (* we do not use Cil_datatype.Attributes.pretty because it
+                     may not print some relevant attributes *)
+                  let pp_attrs =
+                    Pretty_utils.pp_list ~sep:", " Printer.pp_attribute
+                  in
+                  Format.asprintf
+                    "different/incompatible composite type attributes: \
+                     [%a] vs [%a]"
+                    pp_attrs attrs pp_attrs oldattrs))
+        in
+        let typ_ci = TComp(ci, {scache = Not_Computed}, []) in
+        let typ_oldci = TComp(oldci, {scache = Not_Computed}, []) in
         List.iter2
           (fun oldf f ->
-            if oldf.fbitfield <> f.fbitfield then
-	      raise (Failure "different bitfield info");
-            if not (Cil_datatype.Attributes.equal oldf.fattr f.fattr) then
-	      raise (Failure "different field attributes");
+             checkFieldsEqualModuloPackedAlign ~mustCheckOffsets
+               typ_ci typ_oldci f oldf;
              (* Make sure the types are compatible *)
+             (* Note: 6.2.7 §1 states that the names of the fields should be the
+                same. We do not force this for now, but could do it. *)
             let newtype =
 	      combineTypes CombineOther oldfidx oldf.ftype fidx f.ftype
             in
@@ -1222,6 +1360,8 @@ let matchLogicType oldfidx oldnode fidx node =
     let oldfidx = oldtnode.nfidx in
     let info = tnode.ndata in
     let fidx = tnode.nfidx in
+    let oldinfo = logic_type_info_without_irrelevant_attributes oldinfo in
+    let info = logic_type_info_without_irrelevant_attributes info in
     if Logic_utils.is_same_logic_type_info oldinfo info then begin
       if oldfidx < fidx then
         tnode.nrep <- oldtnode.nrep
@@ -1241,6 +1381,7 @@ let matchLogicCtor oldfidx oldpi fidx pi =
     Kernel.error ~current:true
       "invalid multiple logic constructors declarations %s" pi.ctor_name
 
+(* ignores irrelevant attributes such as __fc_stdlib *)
 let matchLogicAxiomatic oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
   let oldanode = PlainMerging.getNode laEq laSyn oldfidx oldid oldnode None in
   let anode = PlainMerging.getNode laEq laSyn fidx id node None in
@@ -1249,6 +1390,8 @@ let matchLogicAxiomatic oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
     let oldaidx = oldanode.nfidx in
     let _, ax = anode.ndata in
     let aidx = anode.nfidx in
+    let ax = List.map global_annot_without_irrelevant_attributes ax in
+    let oldax = List.map global_annot_without_irrelevant_attributes oldax in
     if Logic_utils.is_same_axiomatic oldax ax then begin
       if oldaidx < aidx then
         anode.nrep <- oldanode.nrep
@@ -1263,13 +1406,15 @@ let matchLogicLemma oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
   let oldlnode = PlainMerging.getNode llEq llSyn oldfidx oldid oldnode None in
   let lnode = PlainMerging.getNode llEq llSyn fidx id node None in
   if oldlnode != lnode then begin
-    let (oldid,(oldax,oldlabs,oldtyps,oldst,oldloc)) = oldlnode.ndata in
+    let (oldid,(oldax,oldlabs,oldtyps,oldst,oldattr,oldloc)) = oldlnode.ndata in
     let oldfidx = oldlnode.nfidx in
-    let (id,(ax,labs,typs,st,loc)) = lnode.ndata in
+    let (id,(ax,labs,typs,st,attr,loc)) = lnode.ndata in
     let fidx = lnode.nfidx in
+    let oldattr = drop_attributes_for_merge oldattr in
+    let attr = drop_attributes_for_merge attr in
     if Logic_utils.is_same_global_annotation
-      (Dlemma (oldid,oldax,oldlabs,oldtyps,oldst,oldloc))
-      (Dlemma (id,ax,labs,typs,st,loc))
+      (Dlemma (oldid,oldax,oldlabs,oldtyps,oldst,oldattr,oldloc))
+      (Dlemma (id,ax,labs,typs,st,attr,loc))
     then begin
       if oldfidx < fidx then
         lnode.nrep <- oldlnode.nrep
@@ -1280,27 +1425,29 @@ let matchLogicLemma oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
 	"invalid multiple lemmas or axioms  declarations for %s" id
   end
 
-let matchVolatileClause oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
-  let oldlnode = 
-    VolatileMerging.getNode lvEq lvSyn oldfidx oldid oldnode None 
+let matchVolatileClause
+    oldfidx (oldid, oldannot as oldnode) fidx (id, annot as node) =
+  let oldlnode =
+    VolatileMerging.getNode lvEq lvSyn oldfidx oldid oldnode None
   in
-  let lnode = VolatileMerging.getNode lvEq lvSyn fidx id node None in
+  let lnode =
+    VolatileMerging.getNode lvEq lvSyn fidx id node None
+  in
   if oldlnode != lnode then begin
-    let (oldid,(oldr,oldw,oldloc)) = oldlnode.ndata in
-    let oldfidx = oldlnode.nfidx in
-    let (id,(r,w,loc)) = lnode.ndata in
-    let fidx = lnode.nfidx in
-    if Logic_utils.is_same_global_annotation
-      (Dvolatile (oldid,oldr,oldw,oldloc)) (Dvolatile (id,r,w,loc))
+    let oldannot = global_annot_without_irrelevant_attributes oldannot in
+    let annot = global_annot_without_irrelevant_attributes annot in
+    if Logic_utils.is_same_global_annotation oldannot annot
     then begin
       if oldfidx < fidx then
         lnode.nrep <- oldlnode.nrep
       else
         oldlnode.nrep <- lnode.nrep
     end else
+      let (loc, kind) = oldid in
       Kernel.error ~current:true
-        "invalid multiple volatile clauses for locations %a"
-        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term) id
+        "invalid multiple volatile %a function for locations %a"
+        pretty_volatile_kind kind
+        Cil_printer.pp_identified_term loc
   end
 
 let matchModelField 
@@ -1366,6 +1513,8 @@ let oneFilePass1 (f:file) : unit =
         | Some l -> l
       in
       let oldvi = oldvinode.ndata in
+      Kernel.debug ~dkey "Merging %s(%d) to %s(%d)"
+        vi.vname vi.vid oldvi.vname oldvi.vid;
       (* There is an old definition. We must combine the types. Do this first
        * because it might fail *)
       let newtype =
@@ -1374,7 +1523,7 @@ let oneFilePass1 (f:file) : unit =
             oldvinode.nfidx oldvi.vtype
             !currentFidx vi.vtype;
         with (Failure reason) -> begin
-          Kernel.abort 
+          Kernel.abort
             "@[<hov>Incompatible declaration for %s:@ %s@\n\
              First declaration was at  %a@\n\
              Current declaration is at %a"
@@ -1384,6 +1533,7 @@ let oneFilePass1 (f:file) : unit =
         end
       in
       let newrep, _ = union oldvinode vinode in
+      newrep.ndata.vdefined <- vi.vdefined || oldvi.vdefined;
       (* We do not want to turn non-"const" globals into "const" one. That
        * can happen if one file declares the variable a non-const while
        * others declare it as "const". *)
@@ -1394,23 +1544,20 @@ let oneFilePass1 (f:file) : unit =
         end else Cil.update_var_type newrep.ndata newtype;
       (* clean up the storage.  *)
       let newstorage =
-        if vi.vstorage = oldvi.vstorage || vi.vstorage = Extern then
-          oldvi.vstorage
-        else if oldvi.vstorage = Extern then vi.vstorage
-          (* Sometimes we turn the NoStorage specifier into Static for inline
-           * functions *)
-        else if oldvi.vstorage = Static &&
-          vi.vstorage = NoStorage then Static
-        else begin
-          Kernel.warning ~current:true
-	    "Inconsistent storage specification for %s. \
-Now is %a and previous was %a at %a"
+        match oldvi.vstorage, vi.vstorage with
+        | Static, (Static | Extern) -> Static
+        | NoStorage, NoStorage -> NoStorage
+        | NoStorage, Extern -> if oldvi.vdefined then NoStorage else Extern
+        | Extern, NoStorage when vi.vdefined -> NoStorage
+        | Extern, (Extern | NoStorage) -> Extern
+        | _ ->
+          Kernel.abort ~current:true
+            "Inconsistent storage specification for %s. \
+             Now is %a and previous was %a at %a"
             vi.vname
-            Cil_printer.pp_storage vi.vstorage 
-	    Cil_printer.pp_storage oldvi.vstorage
-            Cil_printer.pp_location oldloc ;
-	  vi.vstorage
-        end
+            Cil_printer.pp_storage vi.vstorage
+            Cil_printer.pp_storage oldvi.vstorage
+            Cil_printer.pp_location oldloc
       in
       newrep.ndata.vstorage <- newstorage;
       newrep.ndata.vattr <- addAttributes oldvi.vattr vi.vattr
@@ -1930,7 +2077,8 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
         CurrentLoc.set l;
         match PlainMerging.findReplacement true lfEq !currentFidx n with
           | None ->
-	    assert (not in_axiomatic);
+            if in_axiomatic then Kernel.abort ~current:true
+                "nested axiomatics are not allowed in ACSL";
             mergePushGlobals (visitCilGlobal renameVisitor g);
             Logic_utils.add_logic_function 
               (PlainMerging.find_eq_table lfEq (!currentFidx,n)).ndata
@@ -1979,14 +2127,15 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
                   (!currentFidx,(mf'.mi_name,mf'.mi_base_type))
                   my_node';
               end;
-	      if not in_axiomatic then
+              if not in_axiomatic then begin
                 mergePushGlobals [GAnnot (Dmodel_annot(mf',l),l)];
+              end;
               Logic_env.add_model_field
                 (ModelMerging.find_eq_table
                    mfEq (!currentFidx,(mf'.mi_name,mf'.mi_base_type))).ndata;
           | Some _ -> ()
       end
-    | Dcustom_annot (_c, n, l) -> 
+    | Dcustom_annot (_c, n, _, l) ->
       begin
         CurrentLoc.set l;
         match 
@@ -1999,7 +2148,7 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
               mergePushGlobals g
           | Some _ -> ()
       end
-    | Dlemma (n,_,_,_,_,l) ->
+    | Dlemma (n,_,_,_,_,_,l) ->
       begin
         CurrentLoc.set l;
         match PlainMerging.findReplacement true llEq !currentFidx n with
@@ -2008,17 +2157,65 @@ let rec logic_annot_pass2 ~in_axiomatic g a =
                 mergePushGlobals (visitCilGlobal renameVisitor g)
           | Some _ -> ()
       end
-    | Dvolatile(vi,_,_,loc) ->
-      (CurrentLoc.set loc;
-       match VolatileMerging.findReplacement true lvEq !currentFidx vi with
-           None -> mergePushGlobals (visitCilGlobal renameVisitor g)
-         | Some _ -> ())
-    | Daxiomatic(n,l,loc) ->
+    | Dvolatile(vi,rd,wr,attr,loc) ->
+      let is_representative id =
+        not
+          (Extlib.has_some
+             (VolatileMerging.findReplacement true lvEq !currentFidx id))
+      in
+      let push_volatile l rd wr =
+        match l with
+        | [] -> ()
+        | _ ->
+          let annot = Dvolatile(l,rd,wr,attr,loc) in
+          mergePushGlobals
+            (visitCilGlobal renameVisitor (GAnnot (annot,loc)))
+      in
+      CurrentLoc.set loc;
+      (* check whether some volatile location clashes with a previous
+         annotation. Warnings about that have been generated during pass 1
+      *)
+      let check_one_location
+          (no_drop, full_representative, only_reads, only_writes) v =
+        (* if there's only one function, only full_representative list will
+           be filled. If both are provided, we maintain three lists of volatile
+           locations:
+           - the ones which take both their reads and writes function from
+             current annotation
+           - the ones which only use rd
+           - the ones which only use wr
+           Additionally, we maintain a boolean flag indicating whether the
+           annotation can be used as is (i.e. does not overlap with a
+           preceding annotation.
+        *)
+        let reads = not (Extlib.has_some rd) || is_representative (v,R) in
+        let writes = not (Extlib.has_some wr) || is_representative (v,W) in
+        if reads then
+          if writes then
+            no_drop, v::full_representative, only_reads, only_writes
+          else
+            false, full_representative, v::only_reads, only_writes
+        else if writes then
+          false, full_representative, only_reads, v::only_writes
+        else
+          false, full_representative, only_reads, only_writes
+      in
+      let no_drop, full_representative, only_reads, only_writes =
+        List.fold_left check_one_location (true,[],[],[]) vi
+      in
+      if no_drop then mergePushGlobals (visitCilGlobal renameVisitor g)
+      else begin
+        push_volatile full_representative rd wr;
+        if Extlib.has_some rd then push_volatile only_reads rd None;
+        if Extlib.has_some wr then push_volatile only_writes None wr
+      end
+    | Daxiomatic(n,l,_,loc) ->
       begin
         CurrentLoc.set loc;
         match PlainMerging.findReplacement true laEq !currentFidx n with
             None ->
-              assert (not in_axiomatic);
+              if in_axiomatic then Kernel.abort ~current:true
+                "nested axiomatics are not allowed in ACSL";
               mergePushGlobals (visitCilGlobal renameVisitor g);
               List.iter (logic_annot_pass2 ~in_axiomatic:true g) l
           | Some _ -> ()
@@ -2316,7 +2513,7 @@ let oneFilePass2 (f: file) =
                   false  (* do not emit *)
 		)
               else if prevInitOpt = None then (
-                (* The previous occurence was only a tentative defn. Now,
+                (* The previous occurrence was only a tentative defn. Now,
                    we have a real one. Set the correct value in the table,
                    and tell that we need to change the previous into a GVarDecl
                  *)

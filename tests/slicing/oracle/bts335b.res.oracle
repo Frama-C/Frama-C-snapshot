@@ -53,8 +53,8 @@ tests/slicing/bts335b.i:22:[value] warning: signed overflow. assert r + tmp_0 â‰
   \result FROM v; b
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
-[slicing] done (making slicing project 'Slicing').
+[slicing] initializing slicing ...
+[slicing] done (initializing slicing).
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -114,14 +114,11 @@ int f_slice_1(int c, int x, int y, int z)
 
 int main(int v, int w, int a, int b, int i, int j)
 {
-  int r;
   int tmp_0;
-  r = f_slice_1(1,v,a,i);
+  int r = f_slice_1(1,v,a,i);
   j ++;
-  { /* sequence */
-    tmp_0 = g_slice_1(2,w,b,j);
-    r += tmp_0;
-  }
+  tmp_0 = g_slice_1(2,w,b,j);
+  r += tmp_0;
   return r;
 }
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -701,7 +701,7 @@ module Names = struct
     | IPOther(s,Some kf,ki) -> (kf_prefix kf) ^ (ki_prefix ki) ^ s
     | IPOther(s,None,ki) -> (ki_prefix ki) ^ s
 
-  (** function used to normanize basename *)
+  (** function used to normalize basename *)
   let normalize_basename s = 
     let is_valid_char_id = function
       | 'a'..'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> true
@@ -948,11 +948,11 @@ let ip_of_code_annot_single kf ki ca = match ip_of_code_annot kf ki ca with
 let ip_of_global_annotation a =
   let once = true in
   let rec aux acc = function
-    | Daxiomatic(name, l, _) -> 
+    | Daxiomatic(name, l, _, _) -> 
       let ppts = List.fold_left aux [] l in
       IPAxiomatic(name, ppts) :: (ppts @ acc)
-    | Dlemma(name, true, a, b, c, d) -> ip_axiom (name,a,b,c,d) :: acc
-    | Dlemma(name, false, a, b, c, d) -> ip_lemma (name,a,b,c,d) :: acc
+    | Dlemma(name, true, a, b, c, _, d) -> ip_axiom (name,a,b,c,d) :: acc
+    | Dlemma(name, false, a, b, c, _, d) -> ip_lemma (name,a,b,c,d) :: acc
     | Dinvariant(l, loc) -> 
       let pred = match l.l_body with
 	| LBpred p -> p
@@ -973,7 +973,7 @@ let ip_of_global_annotation a =
 	| _ -> assert false
       in
       IPTypeInvariant(l.l_var_info.lv_name,ty,pred,loc) :: acc
-    | Dcustom_annot(_c, _n, _) ->
+    | Dcustom_annot(_c, _n, _, _) ->
       (* TODO *)
       Kernel.warning ~once "ignoring status of custom annotation";
       acc

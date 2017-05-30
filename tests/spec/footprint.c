@@ -21,6 +21,10 @@ struct V {
   char t[10];
 };
 
+/* This version should NOT be accepted in an assigns clause:
+   footprint2 returns a set of char with no link to the original
+   locations. */
+
 /*@ logic set<char> footprint2{L}(struct V *s) =
   \union(s->x, s->t[0..5]) ;
 */

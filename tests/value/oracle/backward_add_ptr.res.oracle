@@ -38,8 +38,14 @@ tests/value/backward_add_ptr.c:60:[value] warning: out of bounds read. assert \v
 tests/value/backward_add_ptr.c:68:[value] Assigning imprecise value to __retres.
         The imprecision originates from Arithmetic
         {tests/value/backward_add_ptr.c:68}
+tests/value/backward_add_ptr.c:68:[value] Assigning imprecise value to \result<gm>.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:75:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:81:[value] warning: out of bounds read. assert \valid_read(p + (unsigned int)q);
 [value] Called Frama_C_show_each_GM_only_a({{ &a + [-17179869180..0],0%4 }},
                                            [0..4294967295])
@@ -51,11 +57,17 @@ tests/value/backward_add_ptr.c:87:[value] warning: out of bounds read. assert \v
         Called from tests/value/backward_add_ptr.c:91.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:91:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:96:[value] warning: out of bounds read. assert \valid_read(p + (unsigned int)q);
 [value] computing for function gm <- main3 <- main.
         Called from tests/value/backward_add_ptr.c:100.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:100:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:106:[value] warning: out of bounds read. assert \valid_read(p + (unsigned int)q);
 tests/value/backward_add_ptr.c:107:[value] Reading left-value p.
         It contains a garbled mix of {a; b} because of Arithmetic
@@ -68,6 +80,9 @@ tests/value/backward_add_ptr.c:107:[value] Reading left-value p.
         Called from tests/value/backward_add_ptr.c:110.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:110:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:115:[value] warning: out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
 [value] Called Frama_C_show_each_GM_only_c({0}, {{ &c }})
 tests/value/backward_add_ptr.c:121:[value] warning: out of bounds read. assert \valid_read(p + (unsigned int)q);
@@ -77,6 +92,9 @@ tests/value/backward_add_ptr.c:121:[value] warning: out of bounds read. assert \
         Called from tests/value/backward_add_ptr.c:125.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:125:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:130:[value] warning: out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
 tests/value/backward_add_ptr.c:136:[value] warning: out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
 tests/value/backward_add_ptr.c:137:[value] Reading left-value p.
@@ -94,6 +112,9 @@ tests/value/backward_add_ptr.c:137:[value] Reading left-value p.
         Called from tests/value/backward_add_ptr.c:145.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:145:[value] Assigning imprecise value to tmp_0.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:145:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic
         {tests/value/backward_add_ptr.c:68}
@@ -101,6 +122,9 @@ tests/value/backward_add_ptr.c:145:[value] Assigning imprecise value to p.
         Called from tests/value/backward_add_ptr.c:146.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:146:[value] Assigning imprecise value to q.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:150:[value] warning: out of bounds read. assert \valid_read(p + (unsigned int)q);
 tests/value/backward_add_ptr.c:151:[value] Reading left-value q.
         It contains a garbled mix of {c} because of Arithmetic
@@ -126,10 +150,16 @@ tests/value/backward_add_ptr.c:157:[value] Reading left-value p.
         Called from tests/value/backward_add_ptr.c:160.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:160:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 [value] computing for function gm <- main4 <- main.
         Called from tests/value/backward_add_ptr.c:161.
 [value] Recording results for gm
 [value] Done for function gm
+tests/value/backward_add_ptr.c:161:[value] Assigning imprecise value to q.
+        The imprecision originates from Arithmetic
+        {tests/value/backward_add_ptr.c:68}
 tests/value/backward_add_ptr.c:165:[value] warning: out of bounds read. assert \valid_read((char *)p + (unsigned int)q);
 tests/value/backward_add_ptr.c:166:[value] Reading left-value q.
         It contains a garbled mix of {b} because of Arithmetic
@@ -173,6 +203,55 @@ tests/value/backward_add_ptr.c:178:[value] Reading left-value p.
 [value] Done for function main4
 [value] Recording results for main
 [value] done for function main
+[value] warning: Garbled mix generated during analysis:
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:25}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:25}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:32}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:32}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:38}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:38}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:54}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:54}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:60}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:60}) }}
+                 {{ garbled mix of &{a}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:81}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:87}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:96}) }}
+                 {{ garbled mix of &{a; b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:106}) }}
+                 {{ garbled mix of &{c}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:115}) }}
+                 {{ garbled mix of &{a; b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:115}) }}
+                 {{ garbled mix of &{c}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:121}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:130}) }}
+                 {{ garbled mix of &{b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:136}) }}
+                 {{ garbled mix of &{a; b}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
+                 {{ garbled mix of &{c}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
+                 {{ garbled mix of &{b; c}
+                   (origin: Arithmetic {tests/value/backward_add_ptr.c:68}) }}
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function gm:
   __retres ∈

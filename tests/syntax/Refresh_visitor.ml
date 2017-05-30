@@ -70,7 +70,10 @@ let main () =
         shared_id;
     end
   );
-  Project.on p !Db.Value.compute ();
+  Project.on p (fun () ->
+      Dynamic.Parameter.Bool.set "-val-show-progress" true;
+      !Db.Value.compute ()
+    ) ();
   File.pretty_ast ~prj:p ()
 
 let () = Db.Main.extend main

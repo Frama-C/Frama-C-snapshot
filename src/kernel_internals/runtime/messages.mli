@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Stored messages. Storing of messages can be changed using
-    {Kernel.Collect_messages.set} (at initialization time only);
-    currently, only warning and error messages are stored if thus
-    requested. *)
+(** Stored messages for persistence between sessions.
+    Currently, only warning and error messages are stored. *)
 
 val iter: (Log.event -> unit) -> unit
   (** Iter over all stored messages. The messages are passed in emission order.

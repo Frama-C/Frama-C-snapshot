@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,7 +60,7 @@ end
 module StartData(X: sig type t val size: int end) = struct
   type data = X.t
   open Cil_datatype.Stmt.Hashtbl
-  let stmtStartData = create X.size
+  let stmtStartData: data Cil_datatype.Stmt.Hashtbl.t = create X.size
   let clear () = clear stmtStartData
   let mem = mem stmtStartData
   let find = find stmtStartData
@@ -70,7 +70,7 @@ module StartData(X: sig type t val size: int end) = struct
   let length () = length stmtStartData
 end
 
-(** Find which function we are analysing from the set of inital statements *)
+(** Find which function we are analysing from the set of initial statements *)
 let current_kf = function
   | [] -> assert false
   | s :: q ->
@@ -95,7 +95,7 @@ module type WORKLIST = sig
 (** Remove a statement from the worklist. *)
   val clear: t -> stmt -> unit
 
-(** Tells wheter a statement is in the worklist or not. *)
+(** Tells whether a statement is in the worklist or not. *)
   val mem : t -> stmt -> bool
 
 
@@ -233,7 +233,7 @@ module Worklist(MaybeReverse:MAYBE_REVERSE):WORKLIST = struct
           (* We reached the end of the current connex component. The
              trick is that OCamlgraph's topological ordering guarantee
              that elements of the same connex component have
-             congiguous indexes, so we know that we have reached the
+             contiguous indexes, so we know that we have reached the
              end of the current connex component. Check if we should
              start over in the same connex component, or continue to
              the next cc. *)
@@ -243,7 +243,7 @@ module Worklist(MaybeReverse:MAYBE_REVERSE):WORKLIST = struct
            | Some(i) -> restart_from i)
       with Not_found -> 
         (* We found no further work, but it could be because the graph
-           ends with a non-trival connex component (e.g. the function
+           ends with a non-trivial connex component (e.g. the function
            ends with a loop). *)
         (match t.must_restart_cc with
         | None -> raise Empty
@@ -391,7 +391,7 @@ module Forwards(T : ForwardsTransfer) = struct
 
             | Switch (exp_sw, _, _, _) ->
                 let cases, default = Cil.separate_switch_succs s in
-                (* Auxiliary function that iters on all the labels of
+                (* Auxiliary function that iterates on all the labels of
                    the switch. The accumulator is the state after the
                    evaluation of the label, and the default case *)
                 let iter_all_labels f =
@@ -504,7 +504,7 @@ module Forwards(T : ForwardsTransfer) = struct
     let compute_strategy (sources: stmt list) (strategy : Wto_statement.wto) =
       check_initial_stmts sources;
       let worklist = init_worklist sources in
-      (* the reference "change" tracks wether something has been computed *)
+      (* the reference "change" tracks whether something has been computed *)
       let rec process_wto change wto =
         List.iter (process_element change) wto
       and process_element change = function
@@ -667,7 +667,7 @@ struct
 
 
 (** Helper utility that finds all of the statements of a function.
-  It also lists the return statments (including statements that
+  It also lists the return statements (including statements that
   fall through the end of a void function).  Useful when you need an
   initial set of statements for BackwardsDataFlow.compute. *)
 let sinkFinder sink_stmts all_stmts = object

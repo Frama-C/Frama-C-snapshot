@@ -4,15 +4,13 @@
 int main(void)
 {
   int __retres;
-  int x;
-  x = 0;
+  int x = 0;
   unrolling_7_loop: ;
   if (! (x < 15)) goto unrolling_2_loop;
   {
-    int i_unroll_32;
     x ++;
     /*@ assert x ≡ \at(x,unrolling_7_loop) + 1; */ ;
-    i_unroll_32 = 0;
+    int i_unroll_32 = 0;
     /*@ loop invariant \at(i_unroll_32,LoopEntry) ≡ 0; */
     while (i_unroll_32 < 4) {
       i_unroll_32 ++;
@@ -23,10 +21,9 @@ int main(void)
   unrolling_6_loop: ;
   if (! (x < 15)) goto unrolling_2_loop;
   {
-    int i_unroll_24;
     x ++;
     /*@ assert x ≡ \at(x,unrolling_6_loop) + 1; */ ;
-    i_unroll_24 = 0;
+    int i_unroll_24 = 0;
     /*@ loop invariant \at(i_unroll_24,LoopEntry) ≡ 0; */
     while (i_unroll_24 < 4) {
       i_unroll_24 ++;
@@ -37,10 +34,9 @@ int main(void)
   unrolling_5_loop: ;
   if (! (x < 15)) goto unrolling_2_loop;
   {
-    int i_unroll_16;
     x ++;
     /*@ assert x ≡ \at(x,unrolling_5_loop) + 1; */ ;
-    i_unroll_16 = 0;
+    int i_unroll_16 = 0;
     /*@ loop invariant \at(i_unroll_16,LoopEntry) ≡ 0; */
     while (i_unroll_16 < 4) {
       i_unroll_16 ++;
@@ -51,10 +47,9 @@ int main(void)
   unrolling_4_loop: ;
   if (! (x < 15)) goto unrolling_2_loop;
   {
-    int i_unroll_8;
     x ++;
     /*@ assert x ≡ \at(x,unrolling_4_loop) + 1; */ ;
-    i_unroll_8 = 0;
+    int i_unroll_8 = 0;
     /*@ loop invariant \at(i_unroll_8,LoopEntry) ≡ 0; */
     while (i_unroll_8 < 4) {
       i_unroll_8 ++;
@@ -69,10 +64,9 @@ int main(void)
       loop pragma UNROLL "done", 4;
   */
   while (x < 15) {
-    int i;
     x ++;
     /*@ assert x ≡ \at(x,LoopCurrent) + 1; */ ;
-    i = 0;
+    int i = 0;
     /*@ loop invariant \at(i,LoopEntry) ≡ 0; */
     while (i < 4) {
       i ++;

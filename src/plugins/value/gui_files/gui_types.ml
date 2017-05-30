@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -137,6 +137,11 @@ let equal_gui_res r1 r2 = match r1, r2 with
   | (GR_Empty | GR_Offsm _ | GR_Value _  | GR_Status _ | GR_Zone _), _ -> false
 
 type gui_after = GA_After of gui_res | GA_NA | GA_Unchanged
+
+let pretty_gui_after fmt = function
+  | GA_After r -> Format.fprintf fmt "%a" pretty_gui_res r
+  | GA_NA -> Format.fprintf fmt "n/a"
+  | GA_Unchanged -> Format.fprintf fmt "unchanged"
 
 let equal_gui_after a1 a2 = match a1, a2 with
   | GA_NA, GA_NA | GA_Unchanged, GA_Unchanged -> true

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Cvalue
 
 module Retres =
   Kernel_function.Make_Table
-    (Cil_datatype.Varinfo)
+    (Datatype.Option(Cil_datatype.Varinfo))
     (struct
       let name = "retres_variable"
       let size = 9
@@ -44,7 +44,18 @@ let get_retres_vi = Retres.memo
   (fun kf ->
     let vi = Kernel_function.get_vi kf in
     let typ = Cil.getReturnType vi.vtype in
-    makeVarinfo false false "__retres" typ)
+    if Cil.isVoidType typ then
+      None
+    else
+      try
+        ignore (Cil.bitsSizeOf typ);
+        let name = Format.asprintf "\\result<%a>" Kernel_function.pretty kf in
+        Some (makeVarinfo false false name typ)
+      with Cil.SizeOfError _ ->
+        Value_parameters.abort ~current:true
+          "function %a returns a value of unknown size. Aborting"
+          Kernel_function.pretty kf
+  )
 
 (*  Associates [kernel_function] to a fresh base for the address returned by
     the [kernel_function]. *)

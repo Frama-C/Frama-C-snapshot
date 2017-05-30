@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,7 +68,7 @@ let clash_with_compilation_unit =
 module Module_deps = Graph.Imperative.Digraph.Concrete(Datatype.String)
 let module_deps = Module_deps.create ()
 
-(** Comments are registered appart in the module Dynamic *)
+(** Comments are registered apart in the module Dynamic *)
 module Comment: sig 
   val add: string -> string -> unit
   val find: string -> string
@@ -233,7 +233,7 @@ let fill_tbl key typ _ =
       
 (** It replaces the sub-strings "Plugin.type" of all the string [type_string]
     used in the module named "Plugin" by "type".
-    It also removes the option stucture (e.g. "~gid:string" is replaced by
+    It also removes the option structure (e.g. "~gid:string" is replaced by
     "string"). *) 
 let repair_type module_name type_string =
   let rec remove_param_name s =

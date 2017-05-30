@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
+tests/slicing/loop_simple.i:5:[value] warning: initialization of volatile variable b ignored
 tests/slicing/loop_simple.i:8:[value] entering loop for the first time
 tests/slicing/loop_simple.i:10:[value] entering loop for the first time
 tests/slicing/loop_simple.i:12:[value] entering loop for the first time
@@ -19,7 +20,7 @@ tests/slicing/loop_simple.i:16:[value] entering loop for the first time
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -38,8 +39,7 @@ int main(void)
 {
   int a;
   int c;
-  int volatile b;
-  b = 0;
+  int volatile b = 0;
   a = 1;
   c = 0;
   /*@ loop assigns c, a; */

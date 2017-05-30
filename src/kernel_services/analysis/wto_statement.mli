@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Cil_types
 (** A weak topological ordering where nodes are Cil statements *)
 type wto = stmt Wto.partition
 
-(** The datatype for statment WTOs *)
+(** The datatype for statement WTOs *)
 module WTO : Datatype.S with type t = wto
 
 (** @return the computed wto for the given function *)

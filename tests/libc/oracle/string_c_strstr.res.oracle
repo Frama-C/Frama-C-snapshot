@@ -7,11 +7,14 @@
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
+  __fc_mblen_state ∈ {0}
+  __fc_mbtowc_state ∈ {0}
+  __fc_wctomb_state ∈ {0}
 [value] computing for function strstr <- main.
         Called from tests/libc/string_c_strstr.c:52.
-share/libc/string.h:176:[value] function strstr: precondition 'valid_string_haystack' got status valid.
-share/libc/string.h:177:[value] function strstr: precondition 'valid_string_needle' got status valid.
-share/libc/string.h:179:[value] function strstr: postcondition got status valid.
+share/libc/string.h:177:[value] function strstr: precondition 'valid_string_haystack' got status valid.
+share/libc/string.h:178:[value] function strstr: precondition 'valid_string_needle' got status valid.
+share/libc/string.h:181:[value] function strstr: postcondition got status valid.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
@@ -40,7 +43,7 @@ share/libc/string.h:179:[value] function strstr: postcondition got status valid.
 [value] Done for function strstr
 [value] computing for function strstr <- main.
         Called from tests/libc/string_c_strstr.c:59.
-share/libc/string.c:229:[value] entering loop for the first time
+share/libc/string.c:230:[value] entering loop for the first time
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
@@ -57,8 +60,8 @@ share/libc/string.c:229:[value] entering loop for the first time
 [value] Done for function strstr
 [value] computing for function strstr <- main.
         Called from tests/libc/string_c_strstr.c:64.
-share/libc/string.c:234:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-share/libc/string.h:179:[value] warning: function strstr: postcondition got status unknown.
+share/libc/string.c:235:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:181:[value] warning: function strstr: postcondition got status unknown.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.

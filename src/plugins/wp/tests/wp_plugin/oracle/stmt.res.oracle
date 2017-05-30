@@ -1,0 +1,54 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/stmt.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] [CFG] Goal g_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_post : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_return : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 6) in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 7) in 'f':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_plugin/stmt.c, line 12):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f with behavior default_for_stmt_2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 13) at block:
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/stmt.c, line 17) at block:
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 23) in 'g':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_plugin/stmt.c, line 28):
+Prove: true.
+
+------------------------------------------------------------

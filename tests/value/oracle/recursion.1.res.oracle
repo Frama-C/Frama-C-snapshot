@@ -12,8 +12,89 @@
   S_pg[0..1] ∈ [--..--]
 [value] computing for function ff <- main.
         Called from tests/value/recursion.i:67.
-tests/value/recursion.i:8:[value] warning: recursive call during value analysis
-                 of ff (ff <- ff :: tests/value/recursion.i:67 <- main).
-                 Using specification of ff.
-tests/value/recursion.i:8:[value] user error: Recursive call to a function.
-[kernel] Plug-in value aborted: invalid user input.
+tests/value/recursion.i:8:[value] user error: recursive call during value analysis
+                    of ff (ff <- ff :: tests/value/recursion.i:67 <- main). Assuming the call has
+                    no effect. The analysis will be unsound.]
+[value] computing for function ff <- ff <- main.
+        Called from tests/value/recursion.i:8.
+[value] using specification for function ff
+[value] Done for function ff
+[value] Recording results for ff
+[value] Done for function ff
+[value] computing for function g <- main.
+        Called from tests/value/recursion.i:68.
+tests/value/recursion.i:39:[value] user error: recursive call during value analysis
+                    of g (g <- g :: tests/value/recursion.i:68 <- main). Assuming the call has
+                    no effect. The analysis will be unsound.]
+[value] computing for function g <- g <- main.
+        Called from tests/value/recursion.i:39.
+[value] using specification for function g
+[value] Done for function g
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/value/recursion.i:70.
+tests/value/recursion.i:44:[value] user error: recursive call during value analysis
+                    of h (h <- h :: tests/value/recursion.i:70 <- main). Assuming the call has
+                    no effect. The analysis will be unsound.]
+[value] computing for function h <- h <- main.
+        Called from tests/value/recursion.i:44.
+[value] using specification for function h
+[value] Done for function h
+[value] Recording results for h
+[value] Done for function h
+[value] Called Frama_C_show_each({{  }}, {{  }})
+[value] computing for function escaping_formal <- main.
+        Called from tests/value/recursion.i:72.
+tests/value/recursion.i:52:[value] function escaping_formal: precondition got status valid.
+[value] Called Frama_C_show_each({{ &i }}, {10}, {0}, {10})
+tests/value/recursion.i:59:[value] user error: recursive call during value analysis
+                    of escaping_formal (escaping_formal <- escaping_formal :: tests/value/recursion.i:72 <-
+                                                           main).
+                    Assuming the call has no effect. The analysis will be unsound.]
+tests/value/recursion.i:59:[value] user error: function 'escaping_formal' (involved in a recursive call) has a formal parameter whose address is taken. Analysis may be unsound.
+[value] computing for function escaping_formal <- escaping_formal <- main.
+        Called from tests/value/recursion.i:59.
+[value] using specification for function escaping_formal
+[value] Done for function escaping_formal
+[value] Called Frama_C_show_each({{ &i }}, {10}, {0}, {10})
+tests/value/recursion.i:54:[value] function escaping_formal: postcondition got status valid.
+[value] Recording results for escaping_formal
+[value] Done for function escaping_formal
+[value] computing for function f <- main.
+        Called from tests/value/recursion.i:73.
+[value] Called Frama_C_show_each({2}, {0})
+tests/value/recursion.i:30:[value] user error: recursive call during value analysis
+                    of f (f <- f :: tests/value/recursion.i:73 <- main). Assuming the call has
+                    no effect. The analysis will be unsound.]
+[value] computing for function f <- f <- main.
+        Called from tests/value/recursion.i:30.
+[value] using specification for function f
+[value] Done for function f
+[value] Called Frama_C_show_each({2}, {0})
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each({2})
+tests/value/recursion.i:75:[value] warning: signed overflow. assert r.f1 + 1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function escaping_formal:
+  pg ∈ {0}
+[value:final-states] Values at end of function f:
+  x ∈ {2}
+  s ∈ [--..--]
+[value:final-states] Values at end of function ff:
+  __retres ∈ {5}
+[value:final-states] Values at end of function g:
+  
+[value:final-states] Values at end of function h:
+  
+[value:final-states] Values at end of function main:
+  G ∈ {5}
+  x ∈ {2}
+  s ∈ [--..--]
+  pg ∈ {0}
+  r.f1 ∈ [-2147483648..2147483646]
+   .f2 ∈ [--..--]
+  __retres ∈ [-2147483647..2147483647]

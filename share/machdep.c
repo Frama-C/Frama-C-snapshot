@@ -281,7 +281,7 @@ int main() {
     //           (int)(&((struct s1*)0)->ca));
   }
 
-  /* The alignement of an __aligned__ type */
+  /* The alignment of an __aligned__ type */
   {
 #ifdef __TURBOC__
     printf("\t alignof_aligned = 8;\n");

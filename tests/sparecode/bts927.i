@@ -1,6 +1,6 @@
 /*  run.config
- OPT: -no-warn-signed-overflow -sparecode
- OPT: -warn-signed-overflow -sparecode
+ OPT: -no-warn-signed-overflow -sparecode -val-show-progress
+ OPT: -warn-signed-overflow -sparecode -val-show-progress
 */
 
 /* The purpose of these tests is to check if the conditions are removed

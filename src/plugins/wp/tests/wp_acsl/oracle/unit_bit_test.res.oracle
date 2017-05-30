@@ -20,8 +20,8 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0 != land(x, lsl(1, i))) <->
-    (0 != land(lsl(1, 1 + i), lor(x_1, to_uint32(lsl(x, 1))))).
+Prove: (land(lor(x_1, to_uint32(lsl(x, 1))), lsl(1, 1 + i)) != 0) <->
+    (land(x, lsl(1, i)) != 0).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -35,7 +35,7 @@ Prove: true.
 
 Goal Post-condition 'ko' in 'sum':
 Assume { Type: is_sint8(a) /\ is_sint8(b). }
-Prove: (bit_test(a, 1) /\ bit_test(b, 1)) <->
-    (bit_test(a, 1) \/ bit_test(b, 1)).
+Prove: (bit_test(a, 1) \/ bit_test(b, 1)) <->
+    (bit_test(a, 1) /\ bit_test(b, 1)).
 
 ------------------------------------------------------------

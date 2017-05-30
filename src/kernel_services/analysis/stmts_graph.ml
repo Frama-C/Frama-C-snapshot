@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -126,6 +126,7 @@ let stmt_is_in_cycle_filtered filterfunc stmt =
 let stmt_is_in_cycle = stmt_is_in_cycle_filtered (fun _ -> true)
 
 module SG = Graph.Imperative.Digraph.Concrete(Stmt)
+module SG_Dfs = Graph.Traverse.Dfs(SG)
 
 module TP = struct
   include SG
@@ -238,30 +239,15 @@ module Reachable_Stmts =
     end)
 
 let reachable_stmts kf s =
-  let g = get_graph kf in
-  let add e v =
-    let new_v =
-      try
-        Stmt.Hptset.add v (Reachable_Stmts.find e)
-      with Not_found -> Stmt.Hptset.singleton v
-    in
-    Reachable_Stmts.replace e new_v
-  in
-  let rec apply s =
-    try
-      Reachable_Stmts.find s
-    with Not_found ->
-      SG.iter_succ
-        (fun s' ->
-           add s s';
-           Stmt.Hptset.iter (add s) (apply s'))
-        g
-        s;
-      try
-        Reachable_Stmts.find s
-      with Not_found -> (* stmt has no successors *) Stmt.Hptset.empty
-  in
-  apply s
+  try
+    Reachable_Stmts.find s
+  with Not_found ->
+    (* compute successors *)
+    let g = get_graph kf in
+    let visited = ref Stmt.Hptset.empty in
+    SG_Dfs.prefix_component (fun s' -> visited := Stmt.Hptset.add s' !visited) g s;
+    Reachable_Stmts.replace s !visited;
+    !visited
 
 (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
 (** Store for each statement, the set of the statements it is composed of.

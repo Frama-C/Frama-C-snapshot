@@ -3,9 +3,9 @@
  */
 
 /* run.config_qualif
-   OPT: -wp -wp-model Caveat -wp-proof alt-ergo -wp-depth 16 -wp-prop="-ko"
-   OPT: -wp -wp-model Caveat -wp-proof why3:alt-ergo -wp-depth 16 -wp-prop="-ko,-bug_why3"
-   OPT: -wp -wp-model Caveat -wp-proof alt-ergo -wp-depth 16 -wp-prop="ko" -wp-timeout 2
+   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-depth 16 -wp-prop="-ko"
+   OPT: -wp -wp-model Caveat -wp-prover why3:alt-ergo -wp-depth 16 -wp-prop="-ko,-bug_why3"
+   OPT: -wp -wp-model Caveat -wp-prover alt-ergo -wp-depth 16 -wp-prop="ko" -wp-timeout 2
 */
 
 //@ ghost int call_seq;
@@ -41,8 +41,8 @@ void g(int b);
   //ensures ok: n4: call_obs == (\Nil ^ \old(call_obs) ^ call_nil);
   ensures ok: bug_why3: n5: 0<=a ==> call_obs == (call_nil *^ a);
   ensures ok: bug_why3: n6: 0<=a ==> call_obs == (\old(call_obs) *^ a);
-  ensures ko: bug_why3: n5_ko: call_obs == (call_nil *^ a);
-  ensures ko: bug_why3: n6_ko: call_obs == (\old(call_obs) *^ a);
+  ensures ok: bug_why3: n5_ok: call_obs == (call_nil *^ a);
+  ensures ok: bug_why3: n6_ok: call_obs == (\old(call_obs) *^ a);
  */
 void no_calls(int a)
 { ;

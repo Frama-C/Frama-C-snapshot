@@ -23,6 +23,7 @@ let e = Emitter.create "test" [Emitter.Global_annot] ~correctness:[] ~tuning:[]
 let add_model ty =
   let m = 
     { mi_name = "test_field";
+      mi_attr = [];
       mi_field_type = Linteger;
       mi_base_type = ty;
       mi_decl = Cil_datatype.Location.unknown }

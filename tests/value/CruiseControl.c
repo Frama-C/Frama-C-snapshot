@@ -1,7 +1,7 @@
 /* run.config*
    GCC:
-   OPT: -float-normal -val @VALUECONFIG@ tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers -journal-disable -then -deps -out -input
-   OPT: -float-hex -all-rounding-modes -val @VALUECONFIG@ tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers -journal-disable -then -deps -out -input
+   STDOPT: #"-float-normal tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers"
+   STDOPT: #"-float-hex -all-rounding-modes tests/value/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers"
 */
 /*$************* SCADE_KCG KCG Version 5.1.1 (build i10) **************
 ** Command :

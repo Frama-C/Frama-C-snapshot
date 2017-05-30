@@ -5,56 +5,44 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
-tests/value/empty_struct2.c:40:[value] assertion got status valid.
+tests/value/empty_struct2.c:41:[value] assertion got status valid.
 [value] Called Frama_C_show_each_global_empty(∅)
 [value] Called Frama_C_show_each_e1(∅)
-[value] computing for function memcpy <- main.
-        Called from tests/value/empty_struct2.c:44.
-[value] using specification for function memcpy
-share/libc/string.h:59:[value] function memcpy: precondition 'valid_dst' got status valid.
-share/libc/string.h:60:[value] function memcpy: precondition 'valid_src' got status valid.
-share/libc/string.h:61:[value] function memcpy: precondition got status valid.
-tests/value/empty_struct2.c:44:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-[value] Done for function memcpy
-[value] computing for function memcpy <- main.
-        Called from tests/value/empty_struct2.c:49.
-tests/value/empty_struct2.c:49:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-[value] Done for function memcpy
-[value] Called Frama_C_show_each_c2([--..--])
+tests/value/empty_struct2.c:45:[value] Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
+tests/value/empty_struct2.c:50:[value] Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{8}))
+[value] Called Frama_C_show_each_c2(.a ∈ {42}
+                                    .b ∈ {77})
 [value] Called Frama_C_show_each_c2_e(∅)
 [value] computing for function f <- main.
-        Called from tests/value/empty_struct2.c:52.
-tests/value/empty_struct2.c:27:[value] warning: accessing uninitialized left-value. assert \initialized(&s.b);
-tests/value/empty_struct2.c:27:[value] warning: signed overflow. assert s.b + 10 ≤ 2147483647;
-tests/value/empty_struct2.c:28:[value] warning: accessing uninitialized left-value. assert \initialized(&s.a);
-tests/value/empty_struct2.c:28:[value] warning: signed overflow. assert -2147483648 ≤ s.a - 3;
+        Called from tests/value/empty_struct2.c:53.
 [value] Recording results for f
 [value] Done for function f
-[value] Called Frama_C_show_each_res(.a ∈ [-2147483638..2147483647]
-                                     .b ∈ [-2147483648..2147483644])
-tests/value/empty_struct2.c:58:[value] assertion got status valid.
+[value] Called Frama_C_show_each_res(.a ∈ {87}
+                                     .b ∈ {39})
+tests/value/empty_struct2.c:59:[value] assertion got status valid.
 [value] computing for function ret_empty <- main.
-        Called from tests/value/empty_struct2.c:60.
+        Called from tests/value/empty_struct2.c:61.
 [value] using specification for function ret_empty
 [value] Done for function ret_empty
 [value] computing for function ret_ptr_empty <- main.
-        Called from tests/value/empty_struct2.c:61.
-tests/value/empty_struct2.c:61:[kernel] warning: Neither code nor specification for function ret_ptr_empty, generating default assigns from the prototype
+        Called from tests/value/empty_struct2.c:62.
+tests/value/empty_struct2.c:62:[kernel] warning: No code nor implicit assigns clause for function ret_ptr_empty, generating default assigns from the prototype
 [value] using specification for function ret_ptr_empty
 [value] Done for function ret_ptr_empty
-tests/value/empty_struct2.c:62:[value] warning: out of bounds read. assert \valid_read(ptr_ret);
+tests/value/empty_struct2.c:63:[value] warning: out of bounds read. assert \valid_read(ptr_ret);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
-  res.a ∈ [-2147483638..2147483647]
-     .b ∈ [-2147483648..2147483644]
+  res.a ∈ {87}
+     .b ∈ {39}
 [value:final-states] Values at end of function main:
   c1.a ∈ {42}
     .b ∈ {77}
-  c2 ∈ [--..--] or UNINITIALIZED
-  res.a ∈ [-2147483638..2147483647]
-     .b ∈ [-2147483648..2147483644]
+  c2.a ∈ {42}
+    .b ∈ {77}
+  res.a ∈ {87}
+     .b ∈ {39}
   cb.i ∈ {91}
   ce.ch ∈ {90}
   p ∈ {{ (struct empty *)&cb }}

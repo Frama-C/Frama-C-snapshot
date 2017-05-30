@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,5 +33,5 @@ val get : ?bhv:string -> stmt -> kernel_function list
 
 val compute : unit -> unit
 (** Forces computation of dynamic calls.
-    Otherwize, they are computed lazily on [get].
+    Otherwise, they are computed lazily on [get].
     Requires [-wp-dynamic]. *)

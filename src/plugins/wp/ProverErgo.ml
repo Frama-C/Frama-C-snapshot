@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,10 +81,12 @@ type depend =
   | D_file of string
   | D_cluster of cluster
 
+[@@@warning "-32"]
 let pp_depend fmt = function
   | D_file file -> Format.fprintf fmt "File %s" file
   | D_cluster cluster -> Format.fprintf fmt "Cluster %a"
                            Definitions.pp_cluster cluster
+[@@@warning "+32"]
 
 module TYPES = Model.Index
     (struct
@@ -96,7 +98,7 @@ module TYPES = Model.Index
     end)
 
 let engine =
-  let module E = Qed.Export_altergo.Make(Lang.F) in
+  let module E = Qed.Export_altergo.Make(Lang.F.QED) in
   object(self)
     inherit E.engine as super
     inherit Lang.idprinting
@@ -104,12 +106,9 @@ let engine =
     method infoprover p = p.altergo
     method set_typedef = TYPES.define
     method get_typedef = TYPES.get
-    method! typeof_call = Lang.tau_of_lfun
-    method! typeof_getfield = Lang.tau_of_field
-    method! typeof_setfield = Lang.tau_of_record
 
     val mutable share = true
-    method! is_shareable e = share && super#is_shareable e
+    method! shareable e = share && super#shareable e
     method! declare_axiom fmt a xs tgs phi =
       try share <- false ; super#declare_axiom fmt a xs tgs phi ; share <- true
       with err -> share <- true ; raise err
@@ -138,9 +137,9 @@ let engine =
 
     method! pp_fun cmode fct ts =
       if fct == Vlist.f_concat
-      then Vlist.pp_concat self ts
+      then Vlist.export self ts
       else super#pp_fun cmode fct ts
-    
+
   end
 
 class visitor fmt c =
@@ -203,7 +202,7 @@ class visitor fmt c =
         | Logic t ->
             engine#declare_signature fmt
               d.d_lfun (List.map F.tau_of_var d.d_params) t ;
-        | Value(t,_,v) ->
+        | Function(t,_,v) ->
             engine#declare_definition fmt
               d.d_lfun d.d_params t v
         | Predicate(_,p) ->
@@ -337,7 +336,7 @@ let re_valid = Str.regexp p_valid
 let re_limit = Str.regexp p_limit
 let re_unsat = Str.regexp p_unsat
 
-class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
+class altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr =
   object(ergo)
 
     initializer ignore pid
@@ -349,10 +348,11 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
     val mutable valid = false
     val mutable limit = false
     val mutable unsat = false
-    val mutable time = 0.0
+    val mutable timer = 0.0
     val mutable steps = 0
+    val mutable depth = 0
 
-    method private time t = time <- t
+    method private time t = timer <- t
 
     method private error (a : pattern) =
       let lpos = locate_error files (a#get_string 1) (a#get_int 2) in
@@ -362,7 +362,7 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
     method private valid (a : pattern) =
       begin
         valid <- true ;
-        time <- a#get_float 3 ;
+        timer <- a#get_float 3 ;
         steps <- a#get_int 4 ;
       end
 
@@ -393,7 +393,9 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
                 if valid then VCS.Valid else
                 if limit then VCS.Stepout else
                   raise Not_found in
-              VCS.result ~time:(if gui then 0.0 else time) ~steps verdict
+              VCS.result
+                ~time:(if gui then 0.0 else timer)
+                ~steps ~depth verdict
             with
             | Not_found when Wp_parameters.Check.get () ->
                 if r = 0 then VCS.checked
@@ -416,10 +418,8 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
                 end
 
     method prove =
-      let depth = Wp_parameters.Depth.get () in
-      let steps = Wp_parameters.Steps.get () in
-      let time = Wp_parameters.Timeout.get () in
       files <- lines ;
+      depth <- VCS.get_depth config ;
       if gui then ergo#set_command (Wp_parameters.AltGrErgo.get ()) ;
       if Wp_parameters.Check.get () then
         ergo#add ["-type-only"]
@@ -435,15 +435,16 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
       ergo#add flags ;
       ergo#add [ file ] ;
       if not gui then begin
-        ergo#add_positive ~name:"-steps-bound" ~value:steps ;
-        ergo#timeout time ;
+        ergo#add_positive
+          ~name:"-steps-bound" ~value:(VCS.get_stepout config) ;
+        ergo#timeout (VCS.get_timeout config) ;
       end ;
       ergo#validate_time ergo#time ;
       ergo#validate_pattern ~logs:`ERR re_error ergo#error ;
       ergo#validate_pattern ~logs:`OUT re_valid ergo#valid ;
       ergo#validate_pattern ~logs:`OUT re_limit ergo#limit ;
       ergo#validate_pattern ~logs:`OUT re_unsat ergo#unsat ;
-      ergo#run ~logout ~logerr
+      ergo#run ~logout ~logerr ()
 
   end
 
@@ -451,24 +452,24 @@ open VCS
 open Wpo
 open Task
 
-let try_prove ~pid ~gui ~file ~lines ~logout ~logerr =
-  let ergo = new altergo ~pid ~gui ~file ~lines ~logout ~logerr in
-  ergo#prove () >>> function
-  | Task.Timeout n -> Task.return (VCS.timeout n)
+let try_prove ~config ~pid ~gui ~file ~lines ~logout ~logerr =
+  let ergo = new altergo ~config ~pid ~gui ~file ~lines ~logout ~logerr in
+  ergo#prove >>> function
+  | Task.Timeout t -> Task.return (VCS.timeout t)
   | Task.Result r -> Task.call ergo#result r
   | st -> Task.status (Task.map (fun _ -> assert false) st)
 
-let prove_file ~pid ~mode ~file ~lines ~logout ~logerr =
+let prove_file ~config ~pid ~mode ~file ~lines ~logout ~logerr =
   let gui = match mode with
     | EditMode -> Lazy.force altergo_gui
     | BatchMode | FixMode -> false in
-  try_prove ~pid ~gui ~file ~lines ~logout ~logerr >>= function
+  try_prove ~config ~pid ~gui ~file ~lines ~logout ~logerr >>= function
   | { verdict=(VCS.Unknown|VCS.Timeout|VCS.Stepout) }
     when mode = FixMode && Lazy.force altergo_gui ->
-      try_prove ~pid ~gui:true ~file ~lines ~logout ~logerr
+      try_prove ~config ~pid ~gui:true ~file ~lines ~logout ~logerr
   | r -> Task.return r
 
-let prove_prop ~pid ~mode ~model ~axioms ~prop =
+let prove_prop ~config ~pid ~mode ~model ~axioms ~prop =
   let prover = AltErgo in
   let file = DISK.file_goal ~pid ~model ~prover in
   let logout = DISK.file_logout ~pid ~model ~prover in
@@ -484,38 +485,38 @@ let prove_prop ~pid ~mode ~model ~axioms ~prop =
       ) () ;
   if Wp_parameters.Generate.get ()
   then Task.return VCS.no_result
-  else prove_file ~pid ~mode ~file ~lines ~logout ~logerr
+  else prove_file ~config ~pid ~mode ~file ~lines ~logout ~logerr
 
-let prove_annot model pid vcq ~mode =
+let prove_annot model pid vcq ~config ~mode =
   Task.todo
     begin fun () ->
-      let axioms = None in
+      let axioms = vcq.VC_Annot.axioms in
       let prop = GOAL.compute_proof vcq.VC_Annot.goal in
-      prove_prop ~pid ~mode ~model ~axioms ~prop
+      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
     end
 
-let prove_lemma model pid vca ~mode =
+let prove_lemma model pid vca ~config ~mode =
   Task.todo
     begin fun () ->
       let lemma = vca.Wpo.VC_Lemma.lemma in
       let depends = vca.Wpo.VC_Lemma.depends in
       let prop = F.p_forall lemma.l_forall lemma.l_lemma in
       let axioms = Some(lemma.l_cluster,depends) in
-      prove_prop ~pid ~mode ~model ~axioms ~prop
+      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
     end
 
-let prove_check model pid vck ~mode =
+let prove_check model pid vck ~config ~mode =
   Task.todo
     begin fun () ->
-      let axioms = None in
       let prop = vck.VC_Check.goal in
-      prove_prop ~pid ~mode ~model ~axioms ~prop
+      let axioms = None in
+      prove_prop ~pid ~config ~mode ~model ~axioms ~prop
     end
 
-let prove mode wpo =
+let prove ~config ~mode wpo =
   let pid = wpo.Wpo.po_pid in
   let model = wpo.Wpo.po_model in
   match wpo.Wpo.po_formula with
-  | Wpo.GoalAnnot vcq -> prove_annot model pid vcq ~mode
-  | Wpo.GoalLemma vca -> prove_lemma model pid vca ~mode
-  | Wpo.GoalCheck vck -> prove_check model pid vck ~mode
+  | Wpo.GoalAnnot vcq -> prove_annot model pid vcq ~config ~mode
+  | Wpo.GoalLemma vca -> prove_lemma model pid vca ~config ~mode
+  | Wpo.GoalCheck vck -> prove_check model pid vck ~config ~mode

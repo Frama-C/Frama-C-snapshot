@@ -38,7 +38,7 @@ Assume {
   (* Pre-condition *)
   Have: P_simple(Mint_0, c).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -59,7 +59,7 @@ Assume {
   (* Pre-condition *)
   Have: P_simple_array(Mint_0, a).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -81,7 +81,7 @@ Assume {
   (* Pre-condition *)
   Have: P_two_star(Mptr_0, Mint_0, d).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -101,11 +101,10 @@ Prove: true.
 
 Goal Assertion 'OK' (file tests/wp_hoare/logicref_simple.i, line 30):
 Assume {
-  Type: is_sint32(Mint_0[b]).
   (* Heap *)
   Have: (region(b.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: P_vpositive(Malloc_0, Mint_1, b).
+  Have: P_vpositive(Malloc_0, Mint_0, b).
 }
 Prove: valid_rw(Malloc_0, b, 1).
 

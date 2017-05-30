@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -135,20 +135,11 @@ let translate_va_builtin caller inst =
 
 (* Translation of calls to variadic functions *)
 
-let translate_call ~fundec stmt =
-  (* Extract call informations *)
-  let lval, callee, pars, loc = match stmt.skind with
-  | Instr(Call(lval, callee, pars, loc)) -> lval, callee, pars, loc
-  | _ -> assert false
-  in
+let translate_call ~fundec block loc mk_call callee pars =
 
   (* Log translation *)
   Self.result ~current:true ~level:2
     "Generic translation of call to variadic function.";
-
-  (* Create a block to wrap the call  *)
-  let block = Cil.mkBlock [] in
-  let block_stmt = {stmt with skind = Block block} in
 
   (* Split params into static and variadic part *)
   let static_size = List.length (Typ.params (Cil.typeOf callee)) - 1 in
@@ -158,26 +149,25 @@ let translate_call ~fundec stmt =
   let add_var i exp =
     let typ = Cil.typeOf exp
     and name = "__va_arg" ^ string_of_int i in
-    Cil.makeLocalVar fundec ~scope:block name typ
+    let res = Cil.makeLocalVar fundec ~scope:block name typ in
+    res.vdefined <- true;
+    res
   in
   let vis = List.mapi add_var v_exps in
 
   (* Assign parameters to these *)
-  block.bstmts <- List.map2 (Build.vi_assign ~loc) vis v_exps;
+  let instrs = List.map2 (Build.vi_init ~loc) vis v_exps in
 
-  (* Build an array with to store adresses *)
+  (* Build an array to store addresses *)
   let addrs = List.map Cil.mkAddrOfVi vis in
   let vargs, assigns = Build.array_init ~loc fundec block
     "__va_args" Cil.voidPtrType addrs
   in
-  block.bstmts <- List.append block.bstmts assigns;
+  let instrs = instrs @ [assigns] in
 
   (* Translate the call *)
   let exp_vargs = Cil.mkAddrOrStartOf ~loc (Cil.var vargs) in
   let new_arg = Cil.mkCast ~force:false ~e:exp_vargs ~newt:(vpar_typ []) in
   let new_args = s_exps @ [new_arg] in
-  let call = Cil.mkStmtOneInstr (Call(lval, callee, new_args, loc)) in
-  block.bstmts <- block.bstmts @ [call];
-
-  (* Return the created block *)
-  block_stmt
+  let call = mk_call callee new_args in
+  instrs @ [call]

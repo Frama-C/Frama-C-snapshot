@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,23 +25,27 @@ open Wpo
 (* -------------------------------------------------------------------------- *)
 (* --- Verification Conditions Interface                                  --- *)
 (* -------------------------------------------------------------------------- *)
+
 type t = Wpo.t
 
 let get_id = Wpo.get_gid
 let get_model = Wpo.get_model
 let get_description = Wpo.get_label
 let get_property = Wpo.get_property
+let get_sequent w = snd (Wpo.compute w)
 let get_result = Wpo.get_result
 let get_results = Wpo.get_results
 let get_logout = Wpo.get_file_logout
 let get_logerr = Wpo.get_file_logerr
 let is_trivial = Wpo.is_trivial
+let is_proved = Wpo.is_proved
 
 let get_formula po =
   match po.po_formula with
-  | GoalLemma l -> l.VC_Lemma.lemma.Definitions.l_lemma
-  | GoalAnnot a -> Wpo.GOAL.compute_proof a.VC_Annot.goal
   | GoalCheck c -> c.VC_Check.goal
+  | GoalLemma l -> l.VC_Lemma.lemma.Definitions.l_lemma
+  | GoalAnnot { VC_Annot.goal = g } ->
+      Model.with_model po.po_model Wpo.GOAL.compute_proof g
 
 let clear = Wpo.clear
 let proof = Wpo.goals_of_property

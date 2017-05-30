@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,11 +23,11 @@
 (** This module provides elements to mapped information (here called 'marks')
 * to PDG elements and propagate it along the dependencies.
 *
-* Some more functions are defined in the PDG pluggin itself
+* Some more functions are defined in the PDG plugin itself
 * (in [pdg/marks]):
 * the signatures of these public functions can be found in file [Pdg.mli] *)
 
-(** Signature of the module to use in order to instanciate the computation *)
+(** Signature of the module to use in order to instantiate the computation *)
 module type Mark = sig
 
   (** type of the information mapped to the nodes *)
@@ -129,7 +129,7 @@ type 't_mark call_m2m =
     Cil_types.stmt option -> PdgTypes.Pdg.t -> 't_mark m2m
 
 (** this is the type of the functor dedicated to interprocedural propagation.
-    It is defined in PDG pluggin *)
+    It is defined in PDG plugin *)
 module type Proj = sig
   type t
 

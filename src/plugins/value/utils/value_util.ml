@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,17 +92,7 @@ let with_alarm_stop_at_first =
     defined_logic = stop;
     unspecified =   stop;
     others =        stop;
-  }
-
-let with_alarms_raise_exn exn =
-  let raise_exn () = raise exn in
-  let stop = { CilE.a_log = false; CilE.a_call = raise_exn } in
-  { CilE.imprecision_tracing = CilE.a_ignore;
-    defined_logic = stop;
-    unspecified =   stop;
-    others =        stop;
-  }
-  
+  }  
 
 let warn_all_quiet_mode () =
   if Value_parameters.StopAtNthAlarm.get () <> max_int 
@@ -116,11 +106,6 @@ let warn_all_quiet_mode () =
 let get_slevel kf =
   try Value_parameters.SlevelFunction.find kf
   with Not_found -> Value_parameters.SemanticUnrollingLevel.get ()
-
-let set_loc kinstr =
-  match kinstr with
-  | Kglobal -> Cil.CurrentLoc.clear ()
-  | Kstmt s -> Cil.CurrentLoc.set (Cil_datatype.Stmt.loc s)
 
 let pretty_actuals fmt actuals =
   let pp fmt (e,x,_) = Cvalue.V.pretty_typ (Some (Cil.typeOf e)) fmt x in
@@ -139,19 +124,6 @@ let alarm_report ?(level=1) ?current ?source ?emitwith ?echo ?once ?append =
   else
     Value_parameters.result ~dkey:Value_parameters.dkey_alarm
       ?current ?source ?emitwith ?echo ?once ?append ~level
-
-let debug_result kf (last_ret,_,last_clob) =
-  Value_parameters.debug
-    "@[RESULT FOR %a <-%a:@\n\\result -> %t@\nClobered set:%a@]"
-    Kernel_function.pretty kf
-    Value_types.Callstack.pretty (call_stack ())
-    (fun fmt ->
-      match last_ret with
-        | None -> ()
-        | Some v -> Cvalue.V_Offsetmap.pretty fmt v)
-    Base.SetLattice.pretty last_clob
-
-
 
 
 module DegenerationPoints =
@@ -215,21 +187,6 @@ let postconditions_mention_result spec =
   Cil.CurrentLoc.set loc;
   res
 
-let bind_block_locals states b =
-  (* Bind [vi] in [states] *)
-  let bind_local_stateset states vi =
-    let b = Base.of_varinfo vi in
-    match Cvalue.Default_offsetmap.default_offsetmap b with
-    | `Bottom -> states
-    | `Value offsm ->
-       (* Bind [vi] in [state], and does not modify the trace *)
-       let bind_local_state (state, trace) =
-         (Cvalue.Model.add_base b offsm state, trace)
-       in
-       State_set.map bind_local_state states
-  in
-  List.fold_left bind_local_stateset states b.blocals
-
 let conv_comp op =
   let module C = Abstract_interp.Comp in
   match op with
@@ -250,59 +207,6 @@ let conv_relation rel =
   | Rlt -> C.Lt
   | Rge -> C.Ge
   | Rgt -> C.Gt
-
-(* Test that two functions types are compatible; used to verify that a call
-   through a function pointer is ok. In theory, we could only check that
-   both types are compatible as defined by C99, 6.2.7. However, some industrial
-   codes do not strictly follow the norm, and we must be more lenient.
-   Thus, we emit a warning on undefined code, but we also return true
-   if Value can ignore more or less safely the incompatibleness in the types. *)
-let compatible_functions ~with_alarms vi typ_pointer typ_fun =
-  try
-    ignore (Cabs2cil.compatibleTypes typ_pointer typ_fun); true
-  with Failure _ ->
-    let compatible_sizes t1 t2 =
-      try Cil.bitsSizeOf t1 = Cil.bitsSizeOf t2
-      with Cil.SizeOfError _ -> false
-    in
-    let continue = match Cil.unrollType typ_pointer, Cil.unrollType typ_fun with
-      | TFun (ret1, args1, var1, _), TFun (ret2, args2, var2, _) ->
-          (* Either both functions are variadic, or none. Otherwise, it
-             will be too complicated to make the argument match *)
-          var1 = var2 &&
-          (* Both functions return something of the same size, or nothing*)
-          (match Cil.unrollType ret1, Cil.unrollType ret2 with
-            | TVoid _, TVoid _ -> true (* let's avoid relying on the size
-                                          of void *)
-            | TVoid _, _ | _, TVoid _ -> false
-            | t1, t2 -> compatible_sizes t1 t2
-          ) &&
-          (* Argument lists of the same length, with compatible sizes between
-             the arguments, or unspecified argument lists *)
-          (match args1, args2 with
-            | None, None | None, Some _ | Some _, None -> true
-            | Some lp, Some lf ->
-                (* See corresponding function fold_left2_best_effort in
-                   Function_args *)
-                let rec comp lp lf = match lp, lf with
-                  | _, [] -> true (* accept too many arguments passed *)
-                  | [], _ :: _ -> false (* fail on too few arguments *)
-                  | (_, tp, _) :: qp, (_, tf, _) :: qf ->
-                      compatible_sizes tp tf && comp qp qf
-                in
-                comp lp lf
-          )
-      | _ -> false
-    in
-    if with_alarms.CilE.others.CilE.a_log then
-      warning_once_current
-        "@[Function@ pointer@ and@ pointed@ function@ '%a'@ have@ %s\
-         incompatible@ types:@ %a@ vs.@ %a.@ assert(function type matches)@]%t"
-        Printer.pp_varinfo vi
-        (if continue then "" else "completely ")
-        Printer.pp_typ typ_pointer Printer.pp_typ typ_fun
-        pp_callstack;
-    continue
 
 let loc_dummy_value =
   let l = { Lexing.dummy_pos with Lexing.pos_fname = "_value_" } in

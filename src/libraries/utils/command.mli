@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,7 @@ val bincopy : bytes -> in_channel -> out_channel -> unit
   (** [copy buffer cin cout] reads [cin] until end-of-file
       and copy it in [cout].
       [buffer] is a temporary string used during the copy.
-      Recommanded size is [2048].
+      Recommended size is [2048].
       @modify Silicon-20161101 [buffer] has now type [bytes] instead of [string]
  *)
 
@@ -66,7 +66,7 @@ type 'a result = Result of 'a | Error of exn
 val catch : ('a -> 'b) -> 'a -> 'b result
 val return : 'a result -> 'a
 val time : ?rmax:timer -> ?radd:timer -> ('a -> 'b) -> 'a -> 'b
-  (** Compute the ellapsed time with [Sys.time].
+  (** Compute the elapsed time with [Sys.time].
       The [rmax] timer is maximized and the [radd] timer is cumulated.
       Computed result is returned, or exception is re-raised. *)
 

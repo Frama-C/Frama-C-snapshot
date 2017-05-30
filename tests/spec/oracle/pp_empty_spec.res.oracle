@@ -4,10 +4,8 @@
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;
@@ -23,10 +21,8 @@ int main(void)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;
@@ -41,10 +37,8 @@ int main(void)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;
@@ -59,10 +53,8 @@ int main(void)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;
@@ -81,10 +73,8 @@ int main(void)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;
@@ -104,10 +94,8 @@ int main(void)
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  x = 0;
-  y = 0;
+  int x = 0;
+  int y = 0;
   /*@ loop invariant invmerger: chekofv_invariant_1_1: x ≡ y; */
   while (y < 10) {
     x ++;

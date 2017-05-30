@@ -40,9 +40,31 @@ void main_bug2() {
   if ((t & 7) == 1) { Frama_C_show_each_then(); } else { Frama_C_show_each_else(); }
 }
 
+/* See issue Value/Value#82 on the bitwise domain. */
+void main_bug3 () {
+  unsigned long l_1180 = 10022045811482781039u;
+  unsigned long foo = ~ (l_1180 ^ (unsigned long)(l_1180 != 0UL));
+  Frama_C_dump_each();
+  foo ^= 0;
+}
+
+/* Due to signedness mismatches, the bitwise domain incorrectly returned
+   Bottom on one of the branches. */
+void main_bug4() {
+  int g_2 = v ? -1 : 0;
+  short tmp = -0x1578;
+  if ((g_2 | (int)tmp) & 1) {
+    Frama_C_show_each_then();
+  } else {
+    Frama_C_show_each_else();
+  }
+}
+
 void main() {
   main_and_or_rel();
   main_bitwise();
   main_bug1();
   main_bug2();
+  main_bug3();
+  main_bug4();
 }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,9 +26,9 @@ open Cil_types
 open Eval
 
 
-(* The forward evaluation of an expression [e] gives a value to each subterms
+(* The forward evaluation of an expression [e] gives a value to each subterm
    of [e], from its variables to the root expression [e]. It also computes the
-   set of alarms which may occur in the evaluaton of each subterm.
+   set of alarms which may occur in the evaluation of each subterm.
    All these intermediate results of an evaluation are stored in a cache, whose
    type is described in eval.mli. The cache is the complete result of the
    evaluation. *)
@@ -62,7 +62,7 @@ open Eval
    statement, where the condition may be reduced to zero or non-zero. *)
 
 (* An expression is deemed volatile if it contains an access to a volatile
-   location. The forward evaluation computes this synctatically, by checking
+   location. The forward evaluation computes this syntactically, by checking
    for volatile qualifiers on sub-lvalues and intermediate types. A 'volatile'
    flag is propagated through the expression. This flag prevents the update of
    the value computed by the initial forward evaluation. *)
@@ -155,14 +155,13 @@ module type S = sig
   val lvaluate :
     ?valuation:Valuation.t -> for_writing:bool ->
     state -> lval -> (Valuation.t * loc * typ) evaluated
+  val can_copy:
+    ?valuation:Valuation.t -> is_ret:bool -> state -> Kernel_function.t ->
+    lval -> exp -> (lval option * Valuation.t) evaluated
   val reduce:
     ?valuation:Valuation.t -> state -> exp -> bool -> Valuation.t evaluated
   val assume:
     ?valuation:Valuation.t -> state -> exp -> value -> Valuation.t or_bottom
-
-  val loc_size: loc -> Int_Base.t
-  val reinterpret: exp -> typ -> value -> value evaluated
-  val do_promotion: src_typ:typ -> dst_typ: typ -> exp -> value -> value evaluated
   val split_by_evaluation:
     exp -> Integer.t list -> state list ->
     (Integer.t * state list * bool) list * state list
@@ -177,7 +176,7 @@ let return t = `Value t, Alarmset.none
 
 (* Intersects [alarms] with the only possible alarms from the dereference of
    the left-value [lval] of type [typ].
-   Usefull if the abstract domain returns a non-closed AllBut alarmset for
+   Useful if the abstract domain returns a non-closed AllBut alarmset for
    some lvalues. *)
 let close_dereference_alarms lval typ alarms =
   let init_alarm = Alarms.Uninitialized lval
@@ -185,14 +184,14 @@ let close_dereference_alarms lval typ alarms =
   let init_status = Alarmset.find init_alarm alarms
   and escap_status = Alarmset.find escap_alarm alarms in
   let reduced = init_status <> Alarmset.True || escap_status <> Alarmset.True in
-  let closed_alarms = Alarmset.add' init_alarm init_status Alarmset.none in
-  let closed_alarms = Alarmset.add' escap_alarm escap_status closed_alarms in
+  let closed_alarms = Alarmset.set init_alarm init_status Alarmset.none in
+  let closed_alarms = Alarmset.set escap_alarm escap_status closed_alarms in
   match typ with
   | TFloat (fkind, _) ->
     let expr = Cil.dummy_exp (Cil_types.Lval lval) in
     let nan_inf_alarm = Alarms.Is_nan_or_infinite (expr, fkind) in
     let nan_inf_status = Alarmset.find nan_inf_alarm alarms in
-    Alarmset.add' nan_inf_alarm nan_inf_status closed_alarms, reduced
+    Alarmset.set nan_inf_alarm nan_inf_status closed_alarms, reduced
   | _ -> closed_alarms, reduced
 
 let define_value value =
@@ -210,12 +209,12 @@ let indeterminate_copy lval result alarms =
   and escaping = not (Alarmset.find escap_alarm alarms = Alarmset.True) in
   let alarms =
     if not (initialized)
-    then Alarmset.add' init_alarm Alarmset.True alarms
+    then Alarmset.set init_alarm Alarmset.True alarms
     else alarms
   in
   let alarms =
     if escaping
-    then Alarmset.add' escap_alarm Alarmset.True alarms
+    then Alarmset.set escap_alarm Alarmset.True alarms
     else alarms
   in
   let reductness = Unreduced in
@@ -470,13 +469,16 @@ module Make
 
     | UnOp (op, e, _typ) ->
       root_forward_eval fuel state e >>= fun (v, volatile) ->
-      let context = (e, expr)
+      let context = {operand = e; result = expr}
       and typ = Cil.unrollType (Cil.typeOf e) in
       let v = Value.forward_unop ~context typ op v in
       compute_reduction v volatile
 
     | BinOp (op, e1, e2, typ) ->
-      let context = (e1, e2, expr, typ) in
+      let context =
+        {left_operand = e1; right_operand = e2;
+         binary_result = expr; result_typ = typ}
+      in
       root_forward_eval fuel state e1 >>= fun (v1, volatile1) ->
       root_forward_eval fuel state e2 >>= fun (v2, volatile2) ->
       let typ_e1 = Cil.unrollType (Cil.typeOf e1) in
@@ -653,6 +655,14 @@ module Make
       {value; origin; reductness; val_alarms = Alarmset.all},
       reduction, volatile
 
+  (* Find a lvalue hidden under identity casts. This function correctly detects
+     bitfields (thanks to [need_cast]) and will never expose the underlying
+     field. *)
+  let rec find_lv expr = match expr.enode with
+    | Lval lv -> Some lv
+    | CastE (typ, e) ->
+      if Eval_typ.need_cast typ (Cil.typeOf e) then None else find_lv e
+    | _ -> None
 
   (* ------------------------------------------------------------------------
                            Backward Evaluation
@@ -696,7 +706,7 @@ module Make
      - the new value (if any) is more precise than the old one.
        Then the latter is reduced by the former, and the reduction kind is set
        to [Backward].
-     - or the old value has been reduced during the forward évaluation.
+     - or the old value has been reduced during the forward evaluation.
        Then, [report.reduced] is [Forward], and must be set to [Neither] as
        the reduction is propagated but the value of the current expression is
        unchanged. *)
@@ -1236,11 +1246,6 @@ module Make
                                       Misc
      ------------------------------------------------------------------------ *)
 
-  let loc_size = Loc.size
-
-  let reinterpret = Value.reinterpret
-  let do_promotion = Value.do_promotion
-
   let eval_function_exp funcexp state =
     match funcexp.enode with
     | Lval (Var vinfo, NoOffset) ->
@@ -1255,7 +1260,7 @@ module Make
       in
       (* For pointer calls, we retro-propagate which function is being called
          in the abstract state. This may be useful:
-         - inside the call for langages with OO (think 'self')
+         - inside the call for languages with OO (think 'self')
          - everywhere, because we may remove invalid values for the pointer
          - after if enough slevel is available, as states obtained in
            different functions are not merged by default. *)
@@ -1353,6 +1358,27 @@ module Make
     in
     `Value compatible_locations, alarms
 
+  let can_copy ?(valuation=Cache.empty) ~is_ret state kf lv e =
+    if not is_ret && Value_util.warn_indeterminate kf &&
+       Cil.isArithmeticOrPointerType (Cil.typeOfLval lv)
+    then `Value (None, valuation), Alarmset.none
+    else begin
+      match find_lv e with
+      | Some right_lv ->
+        lvaluate ~for_writing:true ~valuation state lv
+        >>= fun (valuation, lloc, _) ->
+        lvaluate ~for_writing:false ~valuation state right_lv
+        >>= fun (valuation, right_loc, _right_typ) ->
+        check_copy_lval (lv, lloc) (right_lv, right_loc)
+        >>=: fun compatible_locations ->
+        (* TODO: safety check. should always be true if the AST is explicit
+           enough. *)
+        if compatible_locations then
+          Some right_lv, valuation
+        else
+          None, valuation
+      | None -> `Value (None, valuation), Alarmset.none
+    end
 end
 
 

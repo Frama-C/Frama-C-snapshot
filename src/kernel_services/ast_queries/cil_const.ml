@@ -81,7 +81,7 @@ let new_raw_id = Vid.next
 
 let make_logic_var_kind x kind typ =
   {lv_name = x; lv_id = new_raw_id(); lv_type = typ; lv_kind = kind; 
-   lv_origin = None }
+   lv_origin = None; lv_attr = [] }
 
 let make_logic_var_global x t = make_logic_var_kind x LVGlobal t
 let make_logic_var_formal x t = make_logic_var_kind x LVFormal t

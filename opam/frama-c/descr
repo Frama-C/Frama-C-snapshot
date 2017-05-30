@@ -1,4 +1,4 @@
-Platform dedicated to the analysis of source code written in C. Silicon version.
+Platform dedicated to the analysis of source code written in C.
 
 Frama-C gathers several analysis techniques in a single collaborative
 framework, based on analyzers (called "plug-ins") that can build upon the

@@ -6,10 +6,10 @@
 [value:initial-state] Values of globals at initialization
   t[0..9] ∈ {0}
 tests/value/assert_builtin.i:6:[value] warning: Frama_C_assert: unknown
+tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification for function Frama_C_assert, generating default assigns from the prototype
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-tests/value/assert_builtin.i:6:[kernel] warning: Neither code nor specification for function Frama_C_assert, generating default assigns from the prototype
 [value:final-states] Values at end of function main:
   __retres ∈ {0}
 [from] Computing for function main

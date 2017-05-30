@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -297,6 +297,9 @@ module Value : sig
   val eval_expr_with_state :
     (with_alarms:CilE.warn_mode -> state -> exp -> state * t) ref
 
+  val reduce_by_cond:
+    (state -> exp -> bool -> state) ref
+
   val find_lv_plus :
     (Cvalue.Model.t -> Cil_types.exp ->
       (Cil_types.lval * Ival.t) list) ref
@@ -403,7 +406,11 @@ module Value : sig
       valid memory zones that correspond to the location that [lv] evaluates
       to in [state]. If [for_writing] is true, [zone_lv] is restricted to
       memory zones that are writable. [exact] indicates that [lv] evaluates
-      to a valid locatio of cardinal at most one. *)
+      to a valid location of cardinal at most one. *)
+
+  val lval_to_precise_loc_state:
+    (with_alarms:CilE.warn_mode -> state -> lval ->
+     state * Precise_locs.precise_location * typ) ref
 
   val lval_to_precise_loc_with_deps_state:
     (state -> deps:Locations.Zone.t option -> lval ->
@@ -487,7 +494,7 @@ module Value : sig
       @since Aluminium-20160501  *)
   module Call_Type_Value_Callbacks:
     Hook.Iter_hook with type param =
-    [`Builtin of Value_types.call_result | `Spec | `Def | `Memexec]
+    [`Builtin of Value_types.call_result | `Spec of funspec | `Def | `Memexec]
     * state * callstack
 
 
@@ -796,7 +803,7 @@ module Properties : sig
 
     end
 
-    (** Does the interpretation of the predicate rely on the intepretation
+    (** Does the interpretation of the predicate rely on the interpretation
         of the term result?
         @since Carbon-20110201 *)
     val to_result_from_pred:
@@ -847,7 +854,7 @@ module PostdominatorsTypes: sig
   end
 end
 
-(** Syntaxic postdominators plugin.
+(** Syntactic postdominators plugin.
     @see <../postdominators/index.html> internal documentation. *)
 module Postdominators: PostdominatorsTypes.Sig
 
@@ -897,7 +904,7 @@ module Constant_Propagation: sig
         empty; and casts can be introduced when [cast_intro] is true. *)
 
   val compute: (unit -> unit) ref
-    (** Propage constant into the functions given by the parameters (in the
+    (** Propagate constant into the functions given by the parameters (in the
         same way that {!get}. Then pretty print the resulting program.
         @since Beryllium-20090901 *)
 
@@ -986,14 +993,14 @@ module Pdg : sig
 
   val find_ret_output_node : (t -> PdgTypes.Node.t) ref
     (** Get the node corresponding return stmt.
-        @raise Not_found if the ouptut state in unreachable
+        @raise Not_found if the output state in unreachable
         @raise Bottom if given PDG is bottom.
         @raise Top if the given pdg is top. *)
 
   val find_output_nodes :
     (t -> PdgIndex.Signature.out_key -> t_nodes_and_undef) ref
     (** Get the nodes corresponding to a call output key in the called pdg.
-        @raise Not_found if the ouptut state in unreachable
+        @raise Not_found if the output state in unreachable
         @raise Bottom if given PDG is bottom.
         @raise Top if the given pdg is top. *)
 
@@ -1022,9 +1029,9 @@ module Pdg : sig
 
   val find_simple_stmt_nodes : (t -> Cil_types.stmt -> PdgTypes.Node.t list) ref
     (** Get the nodes corresponding to the statement.
-        It is usualy composed of only one node (see {!find_stmt_node}),
+        It is usually composed of only one node (see {!find_stmt_node}),
         except for call statement.
-        Be careful that for block statements, it only retuns a node
+        Be careful that for block statements, it only returns a node
         corresponding to the elementary stmt
                            (see {!find_stmt_and_blocks_nodes} for more)
         @raise Not_found if the given statement is unreachable.
@@ -1357,9 +1364,6 @@ end
     @see <../slicing/index.html> internal documentation. *)
 module Slicing : sig
 
-  exception No_Project
-  exception Existing_Project
-
   val self: State.t ref
     (** Internal state of the slicing tool from project viewpoints. *)
 
@@ -1370,42 +1374,18 @@ module Slicing : sig
   (** Slicing project management. *)
   module Project : sig
 
-    type t = SlicingTypes.sl_project
-        (** Abstract data type for slicing project. *)
-    val dyn_t : t Type.t
-        (** For dynamic type checking and journalization. *)
-
-    val mk_project : (string -> t) ref
-      (** To use to start a new slicing project.
-          Several projects from a same current project can be managed.
-          @raise Existing_Project if an axisting project has the same name.*)
-
-    val from_unique_name : (string -> t) ref
-      (** Find a slicing project from its name.
-          @raise No_Project when no project is found. *)
-
-    val get_all : (unit -> t list) ref
-      (** Get all slicing projects. *)
-
-    val set_project : (t option -> unit) ref
-      (** Get the current project. *)
-
-    val get_project : (unit -> t option) ref
-      (** Get the current project. *)
-
-    val get_name : (t -> string) ref
-      (** Get the slicing project name. *)
+    val reset_slice : (unit -> unit) ref
 
     (** {3 Kernel function} *)
 
-    val is_called : (t -> kernel_function -> bool) ref
+    val is_called : (kernel_function -> bool) ref
       (** Return [true] iff the source function is called (even indirectly via
           transitivity) from a [Slice.t]. *)
 
-    val has_persistent_selection : (t -> kernel_function -> bool) ref
+    val has_persistent_selection : (kernel_function -> bool) ref
       (** return [true] iff the source function has persistent selection *)
 
-    val change_slicing_level : (t -> kernel_function -> int -> unit) ref
+    val change_slicing_level : (kernel_function -> int -> unit) ref
       (** change the slicing level of this function
           (see the [-slicing-level] option documentation to know the meaning of the
           number)
@@ -1417,9 +1397,11 @@ module Slicing : sig
 
     val default_slice_names : (kernel_function -> bool  -> int -> string) ref
 
+    (* t was turned into unit,
+       but not erased because of the optional parameter *)
     val extract : (string ->
                    ?f_slice_names:(kernel_function -> bool  -> int -> string) ->
-                   t -> Project.t) ref
+                   unit -> Project.t) ref
       (** Build a new [Db.Project.t] from all [Slice.t] of a project.
       * Can optionally specify how to name the sliced functions
       * by defining [f_slice_names].
@@ -1429,7 +1411,7 @@ module Slicing : sig
       *              (if not, it can be used for a slice)
       * - [num_slice] gives the number of the slice to name.
       * The entry point function is only exported once :
-      * it is VERY recommanded to give to it its original name,
+      * it is VERY recommended to give to it its original name,
       * even if it is sliced.
       * *)
 
@@ -1437,26 +1419,26 @@ module Slicing : sig
                                     extracted_prj:Project.t -> unit) ref
       (** Print the extracted project when "-slice-print" is set. *)
 
-    val print_dot : (filename:string -> title:string -> t -> unit) ref
+    val print_dot : (filename:string -> title:string -> unit) ref
       (** Print a representation of the slicing project (call graph)
           in a dot file which name is the given string. *)
 
     (** {3 Internal use only} *)
 
-    val pretty : (Format.formatter -> t -> unit) ref
+    val pretty : (Format.formatter -> unit) ref
       (** For debugging... Pretty print project information. *)
 
-    val is_directly_called_internal : (t -> kernel_function -> bool) ref
+    val is_directly_called_internal : (kernel_function -> bool) ref
       (** Return [true] if the source function is directly (even via pointer
           function) called from a [Slice.t]. *)
 
   end
 
-  (** Acces to slicing results. *)
+  (** Access to slicing results. *)
   module Mark : sig
 
     type t = SlicingTypes.sl_mark
-        (** Abtract data type for mark value. *)
+        (** Abstract data type for mark value. *)
     val dyn_t : t Type.t
         (** For dynamic type checking and journalization. *)
 
@@ -1470,7 +1452,7 @@ module Slicing : sig
     val compare : (t -> t -> int) ref
       (** A total ordering function similar to the generic structural
           comparison function [compare].
-          Can be used to build a map from [t] marks to, for exemple, colors for
+          Can be used to build a map from [t] marks to, for example, colors for
           the GUI. *)
 
     val is_bottom : (t -> bool) ref
@@ -1494,7 +1476,7 @@ module Slicing : sig
     val is_addr : (t -> bool) ref
       (** The element is used to compute the address of a selected data. *)
 
-    val get_from_src_func : (Project.t -> kernel_function -> t) ref
+    val get_from_src_func : (kernel_function -> t) ref
       (** The mark [m] related to all statements of a source function [kf].
           Property : [is_bottom (get_from_func proj kf) = not (Project.is_called proj kf) ] *)
 
@@ -1660,7 +1642,7 @@ module Slicing : sig
           propagate data_mark on data dependencies of the statement
          - mark the node with a spare_mark and propagate so that
            the dependencies that were not selected yet will be marked spare.
-          When the statement is a call, its functionnal inputs/outputs are
+          When the statement is a call, its functional inputs/outputs are
           also selected (The call is still selected even it has no output).
           When the statement is a composed one (block, if, etc...),
             all the sub-statements are selected.
@@ -1710,7 +1692,7 @@ module Slicing : sig
       (kernel_function -> ?select:t -> Locations.Zone.t -> Mark.t -> t) ref
       (** Internally used to select the statements that modify the
       * given zone considered as in output.
-      * Be careful that it is NOT the same than selectiong the zone at end !
+      * Be careful that it is NOT the same as selecting the zone at the end!
       * ( the 'undef' zone is not propagated...)
       * *)
 
@@ -1748,23 +1730,23 @@ module Slicing : sig
   module Slice : sig
 
     type t = SlicingTypes.sl_fct_slice
-        (** Abtract data type for function slice. *)
+        (** Abstract data type for function slice. *)
     val dyn_t : t Type.t
         (** For dynamic type checking and journalization. *)
 
-    val create : (Project.t -> kernel_function -> t) ref
+    val create : (kernel_function -> t) ref
       (** Used to get an empty slice (nothing selected) related to a
           function. *)
 
-    val remove : (Project.t -> t -> unit) ref
+    val remove : (t -> unit) ref
       (** Remove the slice from the project. The slice shouldn't be called. *)
 
-    val remove_uncalled : (Project.t -> unit) ref
+    val remove_uncalled : (unit -> unit) ref
       (** Remove the uncalled slice from the project. *)
 
     (** {3 Getters} *)
 
-    val get_all: (Project.t -> kernel_function -> t list) ref
+    val get_all: (kernel_function -> t list) ref
       (** Get all slices related to a function. *)
 
     val get_function : (t -> kernel_function) ref
@@ -1805,7 +1787,7 @@ module Slicing : sig
 
     val get_num_id : (t -> int) ref
 
-    val from_num_id : (Project.t -> kernel_function -> int -> t) ref
+    val from_num_id : (kernel_function -> int -> t) ref
 
     val pretty : (Format.formatter -> t -> unit) ref
       (** For debugging... Pretty print slice information. *)
@@ -1813,24 +1795,24 @@ module Slicing : sig
   end
 
   (** Requests for slicing jobs.
-      Slicing resquests are part of a slicing project.
+      Slicing requests are part of a slicing project.
       So, user requests affect slicing project. *)
   module Request : sig
 
-    val apply_all: (Project.t -> propagate_to_callers:bool -> unit) ref
+    val apply_all: (propagate_to_callers:bool -> unit) ref
       (** Apply all slicing requests. *)
 
     (** {3 Adding a request} *)
 
-    val add_selection: (Project.t -> Select.set -> unit) ref
+    val add_selection: (Select.set -> unit) ref
       (** Add a selection request to all slices (existing)
           of a function to the project requests. *)
 
-    val add_persistent_selection: (Project.t -> Select.set -> unit) ref
+    val add_persistent_selection: (Select.set -> unit) ref
       (** Add a persistent selection request to all slices (already existing or
           created later) of a function to the project requests. *)
 
-    val add_persistent_cmdline : (Project.t -> unit) ref
+    val add_persistent_cmdline : (unit -> unit) ref
       (** Add persistent selection from the command line. *)
 
     val is_already_selected_internal: (Slice.t -> Select.t -> bool) ref
@@ -1838,48 +1820,50 @@ module Slicing : sig
       * slice. *)
 
     val add_slice_selection_internal:
-      (Project.t -> Slice.t -> Select.t -> unit) ref
-      (** Internaly used to add a selection request for a function slice
+      (Slice.t -> Select.t -> unit) ref
+      (** Internally used to add a selection request for a function slice
           to the project requests. *)
 
     val add_selection_internal:
-      (Project.t -> Select.t -> unit) ref
-      (** Internaly used to add a selection request to the project requests.
+      (Select.t -> unit) ref
+      (** Internally used to add a selection request to the project requests.
           This selection will be applied to every slicies of the function
           (already existing or created later). *)
 
+    (* This first unit argument is to comply with the signature.
+       I assume there is a nicer solution. *)
     val add_call_slice:
-      (Project.t -> caller:Slice.t -> to_call:Slice.t -> unit) ref
+      (caller:Slice.t -> to_call:Slice.t -> unit) ref
       (** change every call to any [to_call] source or specialisation in order
           to call [to_call] in [caller]. *)
 
     val add_call_fun:
-      (Project.t -> caller:Slice.t -> to_call:kernel_function -> unit) ref
+      (caller:Slice.t -> to_call:kernel_function -> unit) ref
       (** change every call to any [to_call] source or specialisation
       * in order to call the source function [to_call] in [caller] *)
 
     val add_call_min_fun:
-      (Project.t -> caller:Slice.t -> to_call:kernel_function -> unit) ref
+      (caller:Slice.t -> to_call:kernel_function -> unit) ref
       (** For each call to [to_call] in [caller] such so that, at least, it
           will be visible at the end, ie. call either the source function or
           one of [to_call] slice (depending on the [slicing_level]). *)
 
     (** {3 Internal use only} *)
 
-    val apply_all_internal: (Project.t -> unit) ref
-      (** Internaly used to apply all slicing requests. *)
+    val apply_all_internal: (unit -> unit) ref
+      (** Internally used to apply all slicing requests. *)
 
-    val apply_next_internal: (Project.t -> unit) ref
-      (** Internaly used to apply the first slicing request of the project list
+    val apply_next_internal: (unit -> unit) ref
+      (** Internally used to apply the first slicing request of the project list
           and remove it from the list.
-          That may modify the contents of the remaing list.
-          For exemple, new requests may be added to the list. *)
+          That may modify the contents of the remaining list.
+          For example, new requests may be added to the list. *)
 
-    val is_request_empty_internal: (Project.t -> bool) ref
-      (** Internaly used to know if internal requests are pending. *)
+    val is_request_empty_internal: (unit -> bool) ref
+      (** Internally used to know if internal requests are pending. *)
 
     val merge_slices:
-      (Project.t -> Slice.t  -> Slice.t -> replace:bool -> Slice.t) ref
+      (Slice.t  -> Slice.t -> replace:bool -> Slice.t) ref
         (** Build a new slice which marks is a merge of the two given slices.
             [choose_call] requests are added to the project in order to choose
             the called functions for this new slice.
@@ -1889,23 +1873,23 @@ module Slicing : sig
             [Db.Slicing.Slice.remove]. *)
 
     val copy_slice:
-      (Project.t -> Slice.t  -> Slice.t) ref
+      (Slice.t -> Slice.t) ref
       (** Copy the input slice. The new slice is not called,
-      * so it is the user responsability to change the calls if he wants to. *)
+      * so it is the user responsibility to change the calls if he wants to. *)
 
     val split_slice:
-      (Project.t -> Slice.t  -> Slice.t list) ref
+      (Slice.t  -> Slice.t list) ref
       (** Copy the input slice to have one slice for each call of the original
       * slice and generate requests in order to call them.
       * @return the newly created slices.
       *)
 
-    val propagate_user_marks : (Project.t -> unit) ref
+    val propagate_user_marks : (unit -> unit) ref
       (** Apply pending request then propagate user marks to callers
           recursively then apply pending requests *)
 
-    val pretty : (Format.formatter -> Project.t -> unit) ref
-      (** For debugging... Pretty print the resquest list. *)
+    val pretty : (Format.formatter -> unit) ref
+      (** For debugging... Pretty print the request list. *)
 
   end
 

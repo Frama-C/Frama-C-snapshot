@@ -26,8 +26,7 @@ void f(int *x)
 
 int main(void)
 {
-  int Y;
-  Y = 42;
+  int Y = 42;
   f(& Y);
   return Y;
 }

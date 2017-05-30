@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -27,7 +27,7 @@ QED_LIB_ML = r bvars numbers hcons cache intmap intset idxset idxmap \
 	 listset listmap mergeset mergemap collection \
 	 partition relation plib topology
 
-QED_SRC_ML = kind pool term pretty \
+QED_SRC_ML = kind pool term pretty subst \
 	 export export_coq export_whycore export_why3 export_altergo \
 	 pattern
 

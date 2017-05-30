@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,20 +122,19 @@ class printer_with_annot () = object (self)
     let spec = Annotations.funspec ~populate:false kf in
     self#opt_funspec fmt spec
 
-  method! private has_annot =
-    super#has_annot
-  || match self#current_stmt with 
-    | None -> false
-    | Some s -> Annotations.has_code_annot s
+  method! private stmt_has_annot s = Annotations.has_code_annot s
 
-  method! private inline_block ?has_annot blk =
-    super#inline_block ?has_annot blk
+  method! private has_annot =
+    Extlib.may_map self#stmt_has_annot ~dft:false self#current_stmt
+
+  method! private inline_block ctxt blk =
+    super#inline_block ctxt blk
   && (match blk.bstmts with
   | [] -> true
   | [ s ] -> 
     not (Annotations.has_code_annot s && logic_printer_enabled)
     && (match s.skind with 
-    | Block blk -> self#inline_block blk 
+    | Block blk -> self#inline_block ctxt blk 
     | _ -> true)
   | _ :: _ -> false)
 
@@ -221,10 +220,9 @@ class printer_with_annot () = object (self)
        (let loc = fst (Cil_datatype.Stmt.loc s.skind) in
        Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname
     loc.Lexing.pos_lnum); *)
-    Format.pp_open_hvbox fmt 2;
+    Format.pp_open_hvbox fmt 0;
     (* print the labels *)
     self#stmt_labels fmt s;
-    Format.pp_open_hvbox fmt 0;
     if Kernel.PrintComments.get () then begin
       let comments = Globals.get_comments_stmt s in
       if comments <> [] then
@@ -272,7 +270,6 @@ class printer_with_annot () = object (self)
 	pGhost fmt s)
     end else
       self#stmtkind next fmt s.skind;
-    Format.pp_close_box fmt ();
     Format.pp_close_box fmt ()
 
 end (* class printer_with_annot *)
@@ -298,7 +295,12 @@ let () = Cil_datatype.Logic_type.pretty_ref := pp_logic_type
 let () = Cil_datatype.Term.pretty_ref := pp_term
 let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
 let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset
+let () = Cil_datatype.Global_annotation.pretty_ref := pp_global_annotation
+let () = Cil_datatype.Global.pretty_ref := pp_global
 let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
+let () = Cil_datatype.Predicate.pretty_ref := pp_predicate
+let () = Cil_datatype.Identified_predicate.pretty_ref := pp_identified_predicate
+let () = Cil_datatype.Funspec.pretty_ref := pp_funspec
 let () =
   Cil_datatype.Fieldinfo.pretty_ref := (fun fmt f -> pp_varname fmt f.fname)
 

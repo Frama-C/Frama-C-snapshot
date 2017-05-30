@@ -1,5 +1,5 @@
 /* run.config
-  OPT: -pdg -pdg-print -journal-disable -pdg-verbose 2
+  OPT: -val-show-progress -pdg -pdg-print -journal-disable -pdg-verbose 2
 */
 
 typedef struct {

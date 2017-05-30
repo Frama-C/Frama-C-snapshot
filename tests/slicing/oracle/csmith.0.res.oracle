@@ -88,7 +88,7 @@ tests/slicing/csmith.i:248:[value] warning: signed overflow. assert x + tmp_9 â‰
                                   (tmp_9 from bts963b())
 [value] Recording results for main
 [value] done for function main
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [from] Computing for function f1
@@ -188,16 +188,14 @@ void f2_slice_1(void)
 
 int bts181_slice_1(int c)
 {
-  int y;
-  y = 0;
+  int y = 0;
   if (c) y = 3;
   return y;
 }
 
 int bts181b_slice_1(int c)
 {
-  int y;
-  y = 0;
+  int y = 0;
   if (c) y = 3;
   return y;
 }
@@ -231,10 +229,9 @@ int bts809_slice_1(void)
 int bts879_slice_1(int c)
 {
   int __retres;
-  int p;
   int tmp;
   if (c) tmp = 0; else tmp = 10;
-  p = tmp;
+  int p = tmp;
   if (p) goto _LOR;
   else 
     if (0) {
@@ -248,10 +245,9 @@ int bts879_slice_1(int c)
 int bts879b_slice_1(int c)
 {
   int __retres;
-  int p;
   int tmp;
   if (c) tmp = 0; else tmp = 10;
-  p = tmp;
+  int p = tmp;
   if (p) {
     __retres = 1;
     goto return_label;
@@ -262,11 +258,9 @@ int bts879b_slice_1(int c)
 
 int bts899_slice_1(void)
 {
-  int x;
-  x = 254;
+  int x = 254;
   {
-    int i;
-    i = 17;
+    int i = 17;
     while (i != -9) {
       if (! i) goto __Cont;
       x ++;
@@ -279,10 +273,8 @@ int bts899_slice_1(void)
 int bts906_slice_1(void)
 {
   int __retres;
-  int x;
-  int i;
-  x = 0;
-  i = 2;
+  int x = 0;
+  int i = 2;
   while (1) {
     if (! i) {
       x ++;
@@ -297,10 +289,8 @@ int bts906_slice_1(void)
 int bts906b_slice_1(void)
 {
   int __retres;
-  int x;
-  int i;
-  x = 0;
-  i = 2;
+  int x = 0;
+  int i = 2;
   while (1) {
     if (! i) {
       x ++;
@@ -315,8 +305,7 @@ int bts906b_slice_1(void)
 int bts963_slice_1(void)
 {
   int __retres;
-  int x;
-  x = 0;
+  int x = 0;
   L: ;
   x ++;
   if (x < 3) goto L;
@@ -330,8 +319,7 @@ int bts963_slice_1(void)
 int bts963b_slice_1(void)
 {
   int __retres;
-  int x;
-  x = 0;
+  int x = 0;
   L: ;
   x ++;
   if (x < 3) goto L;
@@ -344,7 +332,6 @@ int bts963b_slice_1(void)
 
 int main(int n)
 {
-  int x;
   int tmp;
   int tmp_0;
   int tmp_1;
@@ -356,57 +343,35 @@ int main(int n)
   int tmp_7;
   int tmp_8;
   int tmp_9;
-  x = 0;
+  int x = 0;
   f1_slice_1();
   x += G1;
   f1b_slice_1();
   x += G1b;
   f2_slice_1();
   x += G2;
-  { /* sequence */
-    tmp = bts181_slice_1(n);
-    x += tmp;
-  }
-  { /* sequence */
-    tmp_0 = bts181b_slice_1(n);
-    x += tmp_0;
-  }
-  { /* sequence */
-    tmp_1 = bts807_slice_1();
-    x += tmp_1;
-  }
-  { /* sequence */
-    tmp_2 = bts809_slice_1();
-    x += tmp_2;
-  }
-  { /* sequence */
-    tmp_3 = bts879_slice_1(n);
-    x += tmp_3;
-  }
-  { /* sequence */
-    tmp_4 = bts879b_slice_1(n);
-    x += tmp_4;
-  }
-  { /* sequence */
-    tmp_5 = bts899_slice_1();
-    x += tmp_5;
-  }
-  { /* sequence */
-    tmp_6 = bts906_slice_1();
-    x += tmp_6;
-  }
-  { /* sequence */
-    tmp_7 = bts906b_slice_1();
-    x += tmp_7;
-  }
-  { /* sequence */
-    tmp_8 = bts963_slice_1();
-    x += tmp_8;
-  }
-  { /* sequence */
-    tmp_9 = bts963b_slice_1();
-    x += tmp_9;
-  }
+  tmp = bts181_slice_1(n);
+  x += tmp;
+  tmp_0 = bts181b_slice_1(n);
+  x += tmp_0;
+  tmp_1 = bts807_slice_1();
+  x += tmp_1;
+  tmp_2 = bts809_slice_1();
+  x += tmp_2;
+  tmp_3 = bts879_slice_1(n);
+  x += tmp_3;
+  tmp_4 = bts879b_slice_1(n);
+  x += tmp_4;
+  tmp_5 = bts899_slice_1();
+  x += tmp_5;
+  tmp_6 = bts906_slice_1();
+  x += tmp_6;
+  tmp_7 = bts906b_slice_1();
+  x += tmp_7;
+  tmp_8 = bts963_slice_1();
+  x += tmp_8;
+  tmp_9 = bts963b_slice_1();
+  x += tmp_9;
   return x;
 }
 

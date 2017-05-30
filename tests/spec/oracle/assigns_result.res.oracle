@@ -12,6 +12,7 @@
 [value] Done for function f
 [value] computing for function g <- main.
         Called from tests/spec/assigns_result.i:16.
+tests/spec/assigns_result.i:16:[inout] warning: failed to interpret assigns clause '\exit_status'
 [value] using specification for function g
 tests/spec/assigns_result.i:16:[value] warning: cannot interpret assigns \exit_status in function g
                  (unsupported logic var \exit_status); effects will be ignored
@@ -38,12 +39,12 @@ tests/spec/assigns_result.i:16:[from] Unable to extract assigns in g
 int X;
 int Y;
 /*@ assigns \nothing; */
-extern int f(void);
+int f(void);
 
 /*@ assigns \result;
     assigns \result \from X;
     assigns \exit_status \from Y; */
-extern int g(void);
+int g(void);
 
 void main(void)
 {

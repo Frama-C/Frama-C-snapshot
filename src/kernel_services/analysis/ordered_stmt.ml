@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -115,7 +115,7 @@ let to_ordered = Order.get
    is global, there is no guarantee on the orders between statements
    inside of a cycle.
 
-   Furthermore, to make the dataflow propogation strategy more
+   Furthermore, to make the dataflow propagation strategy more
    understandable, the topological sort should be stable with regards
    to program order (i.e. the order between a and b may change only
    when there is a path from a to b, and no path from b to a). For

@@ -6,7 +6,7 @@ int z;
 /*@ assigns z, \result;
     assigns z \from y;
     assigns \result \from x, y; */
-extern int f(int x, int y);
+int f(int x, int y);
 
 int main(void)
 {

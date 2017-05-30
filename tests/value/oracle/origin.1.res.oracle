@@ -52,18 +52,20 @@
    .t[0] ∈ {{ &y }}
    .t[1] ∈ {0}
 [value] computing for function f <- origin.
-        Called from tests/value/origin.i:122.
-tests/value/origin.i:122:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+        Called from tests/value/origin.i:124.
+tests/value/origin.i:124:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
-tests/value/origin.i:124:[value] Assigning imprecise value to r.p.
-        The imprecision originates from Misaligned {tests/value/origin.i:124}
-tests/value/origin.i:127:[value] Assigning imprecise value to r.t[0].
-        The imprecision originates from Merge {tests/value/origin.i:127}
-tests/value/origin.i:128:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
-tests/value/origin.i:128:[value] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
-tests/value/origin.i:128:[value] Assigning imprecise value to r.t[1].
-        The imprecision originates from Arithmetic {tests/value/origin.i:128}
+tests/value/origin.i:126:[value] Assigning imprecise value to r.p.
+        The imprecision originates from Misaligned {tests/value/origin.i:126}
+tests/value/origin.i:129:[value] Assigning imprecise value to r.t[0].
+        The imprecision originates from Merge {tests/value/origin.i:129}
+tests/value/origin.i:130:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
+tests/value/origin.i:130:[value] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
+tests/value/origin.i:130:[value] Assigning imprecise value to r.t[1].
+        The imprecision originates from Arithmetic {tests/value/origin.i:130}
+tests/value/origin.i:131:[value] Assigning imprecise value to \result<origin>.
+        The imprecision originates from Misaligned {tests/value/origin.i:126}
 [value] Recording results for origin
 [value] done for function origin
 [value] ====== VALUES COMPUTED ======
@@ -72,17 +74,17 @@ tests/value/origin.i:128:[value] Assigning imprecise value to r.t[1].
    .[bits 8 to 15] ∈ UNINITIALIZED
    .i ∈ [--..--]
    .p ∈
-   {{ garbled mix of &{x} (origin: Misaligned {tests/value/origin.i:124}) }}
+   {{ garbled mix of &{x} (origin: Misaligned {tests/value/origin.i:126}) }}
    .t[0][bits 0 to 7] ∈
-   {{ garbled mix of &{y} (origin: Merge {tests/value/origin.i:127}) }}
+   {{ garbled mix of &{y} (origin: Merge {tests/value/origin.i:129}) }}
    .t[0][bits 8 to 15]# ∈ {{ NULL ; (? *)&y }}%32, bits 24 to 31 
    .t[0][bits 16 to 31] ∈ {0}
    .t[1] ∈
-   {{ garbled mix of &{x} (origin: Arithmetic {tests/value/origin.i:128}) }}
+   {{ garbled mix of &{x} (origin: Arithmetic {tests/value/origin.i:130}) }}
   q1[bits 0 to 15]# ∈ {{ (? *)&y }}%32, bits 16 to 31 
     [bits 16 to 31] ∈ {0}
   q2[bits 0 to 7] ∈
-    {{ garbled mix of &{y} (origin: Merge {tests/value/origin.i:127}) }}
+    {{ garbled mix of &{y} (origin: Merge {tests/value/origin.i:129}) }}
     [bits 8 to 15]# ∈ {{ NULL ; (? *)&y }}%32, bits 24 to 31 
     [bits 16 to 31] ∈ {0}
 [from] Computing for function origin

@@ -81,30 +81,18 @@ typedef unsigned int bla;
 int main(void)
 {
   int __retres;
-  foo x;
-  bar y;
-  bu1 u1;
-  bu2 u2;
-  bu3 u3;
-  bs1 s1;
-  bs2 s2;
-  bs3 s3;
-  bc1 c1;
-  bc2 c2;
-  bd1 d1;
-  bd2 d2;
-  x = A;
-  y = B;
-  u1 = Bu1;
-  u2 = Bu2;
-  u3 = (enum __anonenum_bu3_5)Bu3;
-  s1 = Bs1;
-  s2 = Bs2;
-  s3 = (enum __anonenum_bs3_8)Bs3;
-  c1 = (enum __anonenum_bc1_9)Bc1;
-  c2 = (enum __anonenum_bc2_10)Bc2;
-  d1 = (enum __anonenum_bd1_11)Bd1;
-  d2 = (enum __anonenum_bd2_12)Bd2;
+  foo x = A;
+  bar y = B;
+  bu1 u1 = Bu1;
+  bu2 u2 = Bu2;
+  bu3 u3 = (enum __anonenum_bu3_5)Bu3;
+  bs1 s1 = Bs1;
+  bs2 s2 = Bs2;
+  bs3 s3 = (enum __anonenum_bs3_8)Bs3;
+  bc1 c1 = (enum __anonenum_bc1_9)Bc1;
+  bc2 c2 = (enum __anonenum_bc2_10)Bc2;
+  bd1 d1 = (enum __anonenum_bd1_11)Bd1;
+  bd2 d2 = (enum __anonenum_bd2_12)Bd2;
   if (x == A) 
     if (y == B) {
       __retres = 0;
@@ -114,49 +102,37 @@ int main(void)
   return_label: return __retres;
 }
 
-extern int f1(bla x);
+int f1(bla x);
 
-extern int f2(bla x);
+int f2(bla x);
 
-extern int f3(bla x);
+int f3(bla x);
 
-extern int h1(foo x);
+int h1(foo x);
 
-extern int h2(foo x);
+int h2(foo x);
 
-extern int h3(foo x);
+int h3(foo x);
 
 int g(void)
 {
-  foo x;
-  int res;
   int tmp_0;
   int tmp_1;
   int tmp_2;
   int tmp_3;
   int tmp_4;
-  x = A;
-  res = f1((unsigned int)x);
-  { /* sequence */
-    tmp_0 = f2((unsigned int)x);
-    res += tmp_0;
-  }
-  { /* sequence */
-    tmp_1 = f3((unsigned int)x);
-    res += tmp_1;
-  }
-  { /* sequence */
-    tmp_2 = h1((enum __anonenum_foo_1)((unsigned int)x));
-    res += tmp_2;
-  }
-  { /* sequence */
-    tmp_3 = h2((enum __anonenum_foo_1)((unsigned int)x));
-    res += tmp_3;
-  }
-  { /* sequence */
-    tmp_4 = h3(x);
-    res += tmp_4;
-  }
+  foo x = A;
+  int res = f1((unsigned int)x);
+  tmp_0 = f2((unsigned int)x);
+  res += tmp_0;
+  tmp_1 = f3((unsigned int)x);
+  res += tmp_1;
+  tmp_2 = h1((enum __anonenum_foo_1)((unsigned int)x));
+  res += tmp_2;
+  tmp_3 = h2((enum __anonenum_foo_1)((unsigned int)x));
+  res += tmp_3;
+  tmp_4 = h3(x);
+  res += tmp_4;
   return res;
 }
 

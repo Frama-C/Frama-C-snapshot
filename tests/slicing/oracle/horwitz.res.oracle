@@ -125,7 +125,7 @@ tests/slicing/horwitz.i:12:[value] warning: signed overflow. assert a + b ≤ 21
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
-[slicing] making slicing project 'slicing_1'...
+[slicing] initializing slicing ...
 [pdg] computing for function incr
 [pdg] done for function incr
 [slicing] applying all slicing requests...
@@ -135,7 +135,7 @@ tests/slicing/horwitz.i:12:[value] warning: signed overflow. assert a + b ≤ 21
 [pdg] done for function A
 [pdg] computing for function main
 [pdg] done for function main
-Slicing project worklist [default/slicing_1] =
+Slicing project worklist [default] =
 [main_slice_1 = change_call for call 23 -> A_slice_1][A_slice_1 = change_call for call 10 -> incr_slice_1]
 
 [slicing] exporting project to 'Sliced code'...
@@ -156,10 +156,8 @@ int add(int a, int b)
 void incr_slice_1(char *pi)
 {
   int tmp;
-  { /* sequence */
-    tmp = add((int)*pi,1);
-    *pi = (char)tmp;
-  }
+  tmp = add((int)*pi,1);
+  *pi = (char)tmp;
   return;
 }
 
@@ -171,8 +169,7 @@ void A_slice_1(char *py)
 
 void main(void)
 {
-  char i;
-  i = (char)1;
+  char i = (char)1;
   while ((int)i < 11) A_slice_1(& i);
   return;
 }

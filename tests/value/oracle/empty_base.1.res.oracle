@@ -1,6 +1,12 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/empty_base.c (with preprocessing)
 tests/value/empty_base.c:49:[kernel] user error: empty initializers only allowed for GCC/MSVC
+                     47    struct empty empty_array_of_empty[0];
+                     48    struct empty array_of_empty[1];
+                     49    struct empty many_empty[3] = {{}};
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     50    
+                     51    comp array_of_comp[1] = {{.a = 17, .b = 45, .e = {}}};
 [kernel] user error: stopping on file "tests/value/empty_base.c" that has errors. Add
                      '-kernel-msg-key pp' for preprocessing command.
 [kernel] Frama-C aborted: invalid user input.

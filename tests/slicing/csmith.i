@@ -1,8 +1,8 @@
 /* run.config
-   OPT:  -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
+   OPT: -val-show-progress  -slice-return main -journal-disable -then-on 'Slicing export' -set-project-as-default -print  -then -print -ocode @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i -then @PTEST_DIR@/result/ocode_@PTEST_NUMBER@_@PTEST_NAME@.i  
 COMMENT:
-   OPT: -main bts906b -fct-pdg bts906b -pdg-print -pdg-verbose 2
-   OPT: -main bts906c -fct-pdg bts906c -pdg-print -pdg-verbose 2
+   OPT: -val-show-progress -main bts906b -fct-pdg bts906b -pdg-print -pdg-verbose 2
+   OPT: -val-show-progress -main bts906c -fct-pdg bts906c -pdg-print -pdg-verbose 2
 COMMENT: The two PDG tests above test interesting case where the slicing may
 COMMENT: slice away a goto because of an incorrect analyze of some dead code,
 COMMENT: which make the slicer think that the destination of the goto is the

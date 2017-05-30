@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open Cil_types
    are slightly modified in Register, then registered in Db. This module and
    Register should be fused. *)
 
-val topologic_propagation : Db.Slicing.Project.t -> unit
+val topologic_propagation : unit -> unit
 
 val select_pdg_nodes :
   Db.Slicing.Select.set ->
@@ -170,9 +170,9 @@ val select_func_lval_rw :
   wr:Datatype.String.Set.t ->
   eval:stmt -> Kernel_function.t -> Db.Slicing.Select.set
 
-val add_selection : Db.Slicing.Project.t -> Db.Slicing.Select.set -> unit
+val add_selection : Db.Slicing.Select.set -> unit
 val add_persistent_selection :
-  Db.Slicing.Project.t -> Db.Slicing.Select.set -> unit
-val add_persistent_cmdline : Db.Slicing.Project.t -> unit
+  Db.Slicing.Select.set -> unit
+val add_persistent_cmdline : unit -> unit
 
-val apply_all : Db.Slicing.Project.t -> propagate_to_callers:bool -> unit
+val apply_all : propagate_to_callers:bool -> unit

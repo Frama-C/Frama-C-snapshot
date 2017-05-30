@@ -94,17 +94,21 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_equalities/additi
 86,87d85
 < tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
 < tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-307,308d304
+111d108
+< [scope:rm_asserts] removing 2 assertion(s)
+308,309d304
 < tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
 < tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+330d324
+< [scope:rm_asserts] removing 2 assertion(s)
 diff tests/value/oracle/alias.0.res.oracle tests/value/oracle_equalities/alias.0.res.oracle
-108,109c108,109
+109,110c109,110
 <   t ∈ {1; 2; 4}
 <   u ∈ {2; 3; 4; 5}
 ---
 >   t ∈ {4}
 >   u ∈ {5}
-115c115
+116c116
 <   t2 ∈ {0; 3; 6}
 ---
 >   t2 ∈ {6}
@@ -157,12 +161,6 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_equalitie
 < [value] Called Frama_C_show_each_only_a({0; 1}, {{ &a }}, {0})
 ---
 > [value] Called Frama_C_show_each_only_a({0}, {{ &a }}, {0})
-Only in tests/value/oracle: behavior_statuses.0.err.oracle
-Only in tests/value/oracle: behavior_statuses.0.res.oracle
-Only in tests/value/oracle: behavior_statuses.1.err.oracle
-Only in tests/value/oracle: behavior_statuses.1.res.oracle
-Only in tests/value/oracle_equalities: behavior_statuses.err.oracle
-Only in tests/value/oracle_equalities: behavior_statuses.res.oracle
 diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_equalities/bitfield.res.oracle
 68a69,70
 > [value] DUMPING EQ STATE of file tests/value/bitfield.i line 21
@@ -195,11 +193,11 @@ diff tests/value/oracle/case_analysis.1.res.oracle tests/value/oracle_equalities
 ---
 >   rq ∈ [0.0000000000000000 .. 100.0000000000000000]
 diff tests/value/oracle/downcast.res.oracle tests/value/oracle_equalities/downcast.res.oracle
-663c663
+639c639
 <   ux ∈ [--..--]
 ---
 >   ux ∈ [0..65535]
-706c706
+682c682
 <   ux ∈ [--..--]
 ---
 >   ux ∈ [0..65535]
@@ -209,8 +207,8 @@ diff tests/value/oracle/leaf.res.oracle tests/value/oracle_equalities/leaf.res.o
 ---
 > [value] Called Frama_C_show_each_F({5})
 diff tests/value/oracle/library.res.oracle tests/value/oracle_equalities/library.res.oracle
-95d94
-< tests/value/library.i:31:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
+101d100
+< tests/value/library.i:44:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
 diff tests/value/oracle/modulo.res.oracle tests/value/oracle_equalities/modulo.res.oracle
 39a40,61
 > [value] Called Frama_C_show_each_1([-10..-1], [-9..-1], [-8..0])
@@ -280,10 +278,10 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_equalities/non
 > tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
 73a83
 > tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
-131a142
-> tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
-180,187d190
+97,106d106
+< tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
 < tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
 < tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
@@ -291,9 +289,13 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_equalities/non
 < tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
-200,201d202
-< tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
-< tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+141a142
+> tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
+diff tests/value/oracle/nonlin.res.oracle tests/value/oracle_equalities/nonlin.res.oracle
+56c56
+<   q ∈ {{ &x + [-400..400],0%4 }}
+---
+>   q ∈ {{ &x }}
 diff tests/value/oracle/origin.0.res.oracle tests/value/oracle_equalities/origin.0.res.oracle
 190,191c190
 <   pm2[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
@@ -306,39 +308,46 @@ diff tests/value/oracle/origin.0.res.oracle tests/value/oracle_equalities/origin
 ---
 >   pm2 ∈ {{ &a + {-4} ; &b + {-4} }}
 diff tests/value/oracle/plevel.res.oracle tests/value/oracle_equalities/plevel.res.oracle
-11a12
-> tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
-15d15
-< tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+12d11
+< [value] Recording results for main
+13a13
+> [value] Recording results for main
 diff tests/value/oracle/pointer_comparison.1.res.oracle tests/value/oracle_equalities/pointer_comparison.1.res.oracle
-18d17
+30d29
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-73d71
+88d86
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
-157d154
+172d169
 < [value] Called Frama_C_show_each_5e({{ &x + {16} }})
 diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_equalities/precise_locations.res.oracle
 221d220
 < tests/value/precise_locations.i:49:[value] warning: signed overflow. assert t[j].f1[i] + 1 ≤ 2147483647;
-405,406d403
-< [    -    ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
-<             tried with Value.
-423,424c420,421
-<      8 To be validated
+230d228
+< [scope:rm_asserts] removing 1 assertion(s)
+406,408d403
+< [ Partial ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+<             By RedundantAlarms, with pending:
+<              - Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 46)
+424d418
+<      1 Locally validated
+427c421
 <     12 Total
 ---
->      7 To be validated
 >     11 Total
-832d828
+835d828
 < tests/value/precise_locations.i:49:[value] assertion 'Value,signed_overflow' got final status valid.
-1225,1226d1220
+837d829
+< [scope:rm_asserts] removing 1 assertion(s)
+1229,1232d1220
 < [  Valid  ] Assertion 'Value,signed_overflow' (file tests/value/precise_locations.i, line 49)
+<             by RedundantAlarms (v1).
+<             by RedundantAlarms (v2).
 <             by Value (v2).
-1241c1235
+1247c1235
 <     10 Completely validated
 ---
 >      9 Completely validated
-1243c1237
+1249c1237
 <     12 Total
 ---
 >     11 Total
@@ -353,23 +362,23 @@ diff tests/value/oracle/redundant_alarms.res.oracle tests/value/oracle_equalitie
 < tests/value/redundant_alarms.c:12:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 20d17
 < tests/value/redundant_alarms.c:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-42,43c39
+49,50c46
 < [scope:rm_asserts] removing 3 assertion(s)
 < tests/value/redundant_alarms.c:12:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(p);
 ---
 > [scope:rm_asserts] removing 2 assertion(s)
-85d80
+91d86
 <   /*@ assert Value: initialisation: \initialized(p); */
-87d81
+93d87
 <   /*@ assert Value: initialisation: \initialized(p); */
-104d97
+110d103
 <   /*@ assert Value: initialisation: \initialized(&t[i]); */
-167d159
-<   int w;
-170,172d161
+179a173
+>   int z;
+182,184d175
 <   *p = 1;
-<   z = *p + 1;
-<   w = *p + 2;
+<   int z = *p + 1;
+<   int w = *p + 2;
 diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_equalities/relation_reduction.res.oracle
 24,25d23
 < tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;
@@ -426,7 +435,7 @@ diff tests/value/oracle/relations2.res.oracle tests/value/oracle_equalities/rela
 <         n ∈ [0..512]
 ---
 >         n ∈ [1..512]
-123d122
+119d118
 < [value] Called Frama_C_show_each_NO2()
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2.res.oracle
 50a51
@@ -435,7 +444,7 @@ diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2
 < tests/value/struct2.i:82:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
 76a77
 > tests/value/struct2.i:185:[value] assertion 'Value,index_bound' got final status valid.
-113,115c114,116
+114,116c115,117
 <   tab3[0..1] ∈ [--..--]
 <   tab4[0] ∈ {0; 2}
 <       [1] ∈ {0}
@@ -443,12 +452,12 @@ diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2
 >   tab3[0] ∈ {0; 1}
 >       [1] ∈ [--..--]
 >   tab4[0..1] ∈ {0}
-118c119,120
+119c120,121
 <   tab6[0..1] ∈ {0; 2}
 ---
 >   tab6[0] ∈ {0}
 >       [1] ∈ {2}
-189c191
+190c192
 <                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
 ---
 >                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];

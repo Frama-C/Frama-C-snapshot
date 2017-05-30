@@ -10,8 +10,7 @@ int main1(void)
 
 int main2(void)
 {
-  int r;
-  r = 1;
+  int r = 1;
   if (r) r = 0; else r = 2;
   return r;
 }
@@ -19,10 +18,8 @@ int main2(void)
 int main(void)
 {
   int __retres;
-  int x1;
-  int x2;
-  x1 = main1();
-  x2 = main2();
+  int x1 = main1();
+  int x2 = main2();
   __retres = x1 + x2;
   return __retres;
 }

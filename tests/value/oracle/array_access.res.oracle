@@ -128,7 +128,6 @@
     [105] ∈ {3}
     [106] ∈ {4}
   R ∈ {0}
-[value] Call to builtin bzero(({{ (unsigned char *)&LT }},{40}))
 [value] computing for function any_int <- main.
         Called from tests/value/array_access.c:16.
 [value] using specification for function any_int
@@ -160,15 +159,11 @@ tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final st
   LT[0] ∈ {1}
     [1..9] ∈ {0}
 [from] Computing for function main
-[from] Computing for function Frama_C_bzero <-main
-[from] Done for function Frama_C_bzero
 [from] Computing for function any_int <-main
 [from] Done for function any_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function Frama_C_bzero:
-  LT[0..9] FROM \nothing
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:

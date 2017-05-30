@@ -10,23 +10,17 @@ int main(void)
   int foo;
   int x;
   int y;
-  int tmp_7;
   if (foo) {
-    int tmp;
-    tmp = x;
+    int tmp = x;
   }
   else {
-    int tmp_3;
-    tmp_3 = y;
+    int tmp_3 = y;
   }
   if (! foo) {
-    int tmp_5;
-    tmp_5 = y;
+    int tmp_5 = y;
   }
-  { /* sequence */
-    tmp_7 = foo;
-    ;
-  }
+  int tmp_7 = foo;
+  ;
   __retres = 0;
   return __retres;
 }

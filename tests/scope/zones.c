@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/scope/zones.ml -val -journal-disable
+   OPT: -load-script tests/scope/zones.ml -val -val-show-progress -journal-disable
 */
 
 

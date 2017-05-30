@@ -69,7 +69,7 @@ tests/pdg/dpds_intra.c:134:[value] warning: signed overflow. assert *p + res ≤
  {n1}: InCtrl
  {n2}: VarDecl : x
  {n3}: VarDecl : tmp
- {n4}: x = 1;
+ {n4}: int x = 1;
    -[-c-]-> 1
    -[a--]-> 2
  {n5}: L:

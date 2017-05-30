@@ -1,2 +1,2 @@
-CMD: @frama-c@ -wp -wp-no-filter -wp-par 1 -wp-share ./share -wp-msg-key shell,no-time-info,no-step-info -wp-report tests/qualif.report
+CMD: @frama-c@ -no-autoload-plugins -load-module wp -wp -wp-par 1 -wp-share ./share -wp-msg-key shell,no-time-info,no-step-info -wp-report tests/qualif.report -wp-out @PTEST_FILE@.@PTEST_NUMBER@.out @PTEST_FILE@
 OPT:

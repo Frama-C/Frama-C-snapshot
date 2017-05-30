@@ -658,8 +658,7 @@ int main(void)
     case 1: opa();
     goto switch_0_break;
     case 3: opa();
-    default: ;
-    opc();
+    default: opc();
   }
   switch_0_break: ;
   opb();

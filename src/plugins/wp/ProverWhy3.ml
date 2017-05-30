@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,8 +54,7 @@ let theory_name_of_cluster c =
   let base = cluster_id c in
   Transitioning.String.capitalize_ascii base
 
-let theory_name_of_pid fmt pid =
-  Format.fprintf fmt "VC%s" (WpPropId.get_propid pid)
+let theory_name_of_pid pid = "VC" ^ WpPropId.get_propid pid
 
 (* -------------------------------------------------------------------------- *)
 (* --- Exporting Formulae to Why3                                         --- *)
@@ -65,27 +64,12 @@ type depend =
   | D_file of string
   | D_cluster of cluster
 
-module TYPES = Model.Index
-    (struct
-      type key = adt
-      type data = tau
-      let name = "ProverWhy3.TYPES"
-      let compare = ADT.compare
-      let pretty = ADT.pretty
-    end)
-
 let engine =
-  let module E = Qed.Export_why3.Make(Lang.F) in
+  let module E = Qed.Export_why3.Make(Lang.F.QED) in
   object(self)
     inherit E.engine as super
     inherit Lang.idprinting
     method infoprover p = p.why3
-
-    method set_typedef = TYPES.define
-    method get_typedef = TYPES.get
-    method typeof_call = Lang.tau_of_lfun
-    method typeof_getfield = Lang.tau_of_field
-    method typeof_setfield = Lang.tau_of_record
 
     val mutable goal = false
     method set_goal g = goal <- g
@@ -111,7 +95,7 @@ let engine =
 
     method! pp_fun cmode fct ts =
       if fct == Vlist.f_concat
-      then Vlist.pp_concat self ts
+      then Vlist.export self ts
       else super#pp_fun cmode fct ts
 
   end
@@ -238,7 +222,7 @@ class visitor fmt c =
         | Logic t ->
             engine#declare_signature fmt
               d.d_lfun (List.map F.tau_of_var d.d_params) t ;
-        | Value(t,mu,v) ->
+        | Function(t,mu,v) ->
             let pp = match mu with
               | Rec -> engine#declare_fixpoint ~prefix:"fix_"
               | Def -> engine#declare_definition
@@ -338,15 +322,13 @@ end
 (* --- Assembling Goal                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Cil_datatype
-
-let assemble_goal ~title ~id ~pid ~axioms prop fmt =
+let assemble_goal ~id ~title ~theory ?axioms prop fmt =
   (** Also create the directory *)
   let goal = cluster ~id ~title () in
   let deps =
     let v = new visitor fmt goal in
     engine#set_goal false ;
-    v#printf "@[<hv 2>theory %a@\n" theory_name_of_pid pid;
+    v#printf "@[<hv 2>theory %s@\n" theory ;
     v#add_import "bool.Bool" ;
     v#add_import "int.Int" ;
     v#add_import "int.ComputerDivision" ;
@@ -388,7 +370,7 @@ module FunFile = Model.Index
 let assemble_wpo wpo =
   let dir = Model.directory () in
   let index = Wpo.get_index wpo in
-  let file = match index with
+  let goal = match index with
     | Wpo.Axiomatic _ ->
         begin match wpo.Wpo.po_formula with
           | Wpo.GoalAnnot _ | Wpo.GoalCheck _ -> assert false
@@ -419,8 +401,8 @@ let assemble_wpo wpo =
                     if Lang.F.p_true != prop then
                       let id = WpPropId.get_propid pid in
                       let title = Pretty_utils.to_string WpPropId.pretty pid in
-                      let axioms = None in
-                      assemble_goal ~pid ~id ~title ~axioms prop fmt
+                      let theory = theory_name_of_pid pid in
+                      assemble_goal ~theory ~id ~title prop fmt
                 | Wpo.GoalLemma _ | Wpo.GoalCheck _ -> assert false
               end in
             Command.print_file file
@@ -433,34 +415,51 @@ let assemble_wpo wpo =
         let pid = wpo.Wpo.po_pid in
         {
           file ; 
-          theory = Pretty_utils.to_string theory_name_of_pid pid ;
+          theory = theory_name_of_pid pid ;
           goal = why3_goal_name ;
         }
   in
-  [dir], file
+  [dir], goal
 
-let assemble_check wpo vck =
-  let module Check = Wpo.VC_Check in
+let assemble_tactic wpo vcq =
   let pid = wpo.Wpo.po_pid in
+  let axioms = vcq.Wpo.VC_Annot.axioms in
+  let goal = vcq.Wpo.VC_Annot.goal in
+  let dir = Model.directory () in
+  let id = WpPropId.get_propid pid in
+  let cluster = cluster ~id () in
+  let file = cluster_file cluster in
+  let prop = Wpo.GOAL.compute_proof goal in
+  let title = Pretty_utils.to_string WpPropId.pretty pid in
+  Command.print_file file (assemble_goal ~theory:"VC" ~id ?axioms ~title prop) ;
+  [dir] , { file ; theory = "VC" ; goal = why3_goal_name }
+
+let assemble_check vck =
+  let module Check = Wpo.VC_Check in
   let id = Printf.sprintf "Qed-%d-%d"
-      (Lang.F.id vck.Check.qed) (Lang.F.id vck.Check.raw) in
+      (Lang.F.QED.id vck.Check.qed) (Lang.F.QED.id vck.Check.raw) in
   let goal = cluster ~id () in
   let file = cluster_file goal in
   Command.print_file file
-    (assemble_goal ~title:"Qed Check" ~id ~pid ~axioms:None vck.Check.goal) ;
+    (assemble_goal ~title:"Qed Check" ~id ~theory:"Check" vck.Check.goal) ;
   let dir = Model.directory () in
-  let theory = Pretty_utils.to_string theory_name_of_pid pid in
-  [dir], { file ; theory ; goal = why3_goal_name }
+  [dir], { file ; theory = "Check" ; goal = why3_goal_name }
 
-let assemble_wpo wpo =
+let assemble_goal wpo =
   match wpo.Wpo.po_formula with
   | Wpo.GoalCheck vck ->
-      Some (Model.with_model wpo.Wpo.po_model (assemble_check wpo) vck)
-  | Wpo.GoalAnnot vcq
-    when Lang.F.p_true == Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal ->
-      (** The wpo is trivial *)
-      None
-  | _ ->
+      Some (Model.with_model wpo.Wpo.po_model assemble_check vck)
+  | Wpo.GoalAnnot vcq ->
+      let goal =
+        Model.with_model wpo.Wpo.po_model
+          Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
+      if goal == Lang.F.p_true then (** The wpo is trivial *) None
+      else
+        if WpPropId.is_tactic wpo.Wpo.po_pid then
+          Some (Model.with_model wpo.Wpo.po_model (assemble_tactic wpo) vcq)
+        else
+          Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
+  | Wpo.GoalLemma _ ->
       Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
 
 (* -------------------------------------------------------------------------- *)
@@ -471,19 +470,16 @@ open ProverTask
 
 let p_goal = p_until_space ^ " " ^ p_until_space ^ " " ^ p_until_space ^ " : "
 let p_valid = p_goal ^ "Valid (" ^ p_float ^ "s\\(,[^)]*\\)?)"
-let p_unknown = p_goal ^ "Unknown (" ^ p_float ^ "s)"
 let p_limit = p_goal ^ "Timeout"
 let p_error = "File " ^ p_string ^ ", line " ^ p_int ^ ", characters "
               ^ p_int ^ "-" ^ p_int ^ ":\n\\(warning:\\)?"
 
 let re_valid = Str.regexp p_valid
-let re_unknown = Str.regexp p_unknown
 let re_limit = Str.regexp p_limit
 let re_error = Str.regexp p_error
 
 type error =
   | Error_No
-  | Error_Prover of string
   | Error_Generated of Lexing.position * string
 
 let rec split spec i =
@@ -502,7 +498,7 @@ let chop_version spec = match split spec 0 with
   | [a;b] -> Printf.sprintf "%s,%s," a b
   | a::b::c::_ -> Printf.sprintf "%s,%s,%s" a b c
 
-class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
+class why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
   object(why)
 
     initializer ignore pid
@@ -525,9 +521,6 @@ class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
         let lpos = ProverTask.location (a#get_string 1) (a#get_int 2) in
         error <- Error_Generated ( lpos , a#get_after ~offset:1 4 )
 
-    method private unknown_prover (a : pattern) =
-      error <- Error_Prover (a#get_string 0)
-
     method private valid (a : pattern) =
       begin
         valid <- true ;
@@ -545,9 +538,6 @@ class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
       then VCS.kfailed "Command '%s' not found" why3_cmd
       else
         match error with
-        | Error_Prover message ->
-            Wp_parameters.error "Why3:@\n%s" message;
-            VCS.failed message
         | Error_Generated(pos,message) ->
             Wp_parameters.error ~source:pos "Why3 error:@\n%s" message ;
             VCS.failed ~pos message
@@ -570,8 +560,8 @@ class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
               
     method prove =
       why#add [ "prove" ] ;
-      let time = Wp_parameters.Timeout.get () in
       if Wp_parameters.Check.get () then why#add ["--type-only"] ;
+      let time = ProverTask.timeout timeout in
       why#add ["--extra-config"; Wp_parameters.Share.file "why3/why3.conf"];
       why#add (Wp_parameters.WhyFlags.get ()) ;
       why#add [ file.file ] ;
@@ -600,15 +590,15 @@ open VCS
 open Wpo
 open Task
 
-let prove_file ~prover ~pid ~file ~includes ~logout ~logerr =
-  let why = new why3 ~prover ~pid ~file ~includes ~logout ~logerr in
+let prove_file ~timeout ~prover ~pid ~file ~includes ~logout ~logerr =
+  let why = new why3 ~timeout ~prover ~pid ~file ~includes ~logout ~logerr in
   why#prove () >>> function
   | Task.Timeout t -> Task.return (VCS.timeout t)
   | Task.Result r -> Task.call why#result r
   | st -> Task.status (Task.map (fun _ -> assert false) st)
 
-let prove_prop ~prover ~wpo =
-  match assemble_wpo wpo with
+let prove_prop ~timeout ~prover ~wpo =
+  match assemble_goal wpo with
   | None -> Task.return VCS.no_result
   | Some (includes,file) ->
       Wp_parameters.print_generated file.file;
@@ -619,10 +609,10 @@ let prove_prop ~prover ~wpo =
         let pid = wpo.Wpo.po_pid in
         let logout = DISK.file_logout ~pid ~model ~prover:(Why3 prover) in
         let logerr = DISK.file_logerr ~pid ~model ~prover:(Why3 prover) in
-        prove_file ~prover ~pid ~file ~includes ~logout ~logerr
+        prove_file ~timeout ~prover ~pid ~file ~includes ~logout ~logerr
 
-let prove wpo ~prover =
-  Task.todo (fun () -> prove_prop ~wpo ~prover)
+let prove ?timeout ~prover wpo =
+  Task.todo (fun () -> prove_prop ~timeout ~wpo ~prover)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Why3-Config                                                        --- *)
@@ -633,6 +623,8 @@ type dp = {
   dp_version : string ;
   dp_prover : string ;
 }
+
+let prover dp = Why3 dp.dp_prover
 
 let find name dps =
   try List.find (fun d -> d.dp_prover = name) dps

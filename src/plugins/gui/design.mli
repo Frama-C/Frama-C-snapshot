@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -188,7 +188,7 @@ class type main_window_extension_points = object
   (** Reset the GUI and its extensions to its initial state *)
 
   method rehighlight : unit -> unit
-  (** Force to rehilight the current displayed buffer.
+  (** Force to rehighlight the current displayed buffer.
       Plugins should call this method whenever they have changed the states
       on which the function given to [register_source_highlighter] have been
       updated. *)
@@ -202,7 +202,7 @@ class type main_window_extension_points = object
 
   method protect :
     cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> unit) -> unit
-  (** Lock the GUI ; run the funtion ; catch all exceptions ; Unlock GUI
+  (** Lock the GUI ; run the function ; catch all exceptions ; Unlock GUI
       The parent window must be set if this method is not called directly
       by the main window: it will ensure that error dialogs are transient
       for the right window.
@@ -213,7 +213,7 @@ class type main_window_extension_points = object
   method full_protect :
     'a . cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> 'a) ->
     'a option
-  (** Lock the GUI ; run the funtion ; catch all exceptions ; Unlock GUI ;
+  (** Lock the GUI ; run the function ; catch all exceptions ; Unlock GUI ;
       returns [f ()].
       The parent window must be set if this method is not called directly
       by the main window: it will ensure that error dialogs are transient

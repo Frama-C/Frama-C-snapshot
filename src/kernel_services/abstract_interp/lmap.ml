@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,15 +24,6 @@ open Abstract_interp
 open Locations
 
 let msg_emitter = Lattice_messages.register "Lmap";;
-
-(* Reduce validity for read-only bases on which we want to write *)
-let for_writing_validity ~reducing b =
-  (* If we are reducing, we do not need
-     to exclude readonly base. *)
-  if not reducing && Base.is_read_only b then
-    Base.Invalid
-  else
-    Base.validity b
 
 type 'a default_contents =
   | Bottom
@@ -174,32 +165,29 @@ struct
         Zone.fold_topset_ok filter zfilter ();
         Format.fprintf fmt "@]"
 
-    let add_new_base base ~size v ~size_v m =
+    let add_base_value base ~size v ~size_v m =
       add base (Offsetmap.create ~size v ~size_v) m
 
     exception Result_is_top
 
-    let add_binding ~reducing ~exact mem {loc; size} v =
-      let alarm = ref false in
+    let add_binding ~exact mem {loc; size} v =
       let had_non_bottom = ref false in
       let result = ref mem in
       let aux origin b offsets =
-        let validity = for_writing_validity ~reducing b in
+        let validity = Base.validity b in
         match find_or_default b mem with
-        | `Bottom -> alarm := true
+        | `Bottom -> ()
         | `Value offm ->
           let offm' =
             match size with
             | Int_Base.Top ->
               let orig = Origin.current Origin.K_Arith in
-              alarm := true;
               Offsetmap.update_imprecise_everywhere ~validity orig v offm
             | Int_Base.Value size ->
               assert (Int.ge size Int.zero);
-              let this_alarm, r =
+              let _, r =
                 Offsetmap.update ?origin ~validity ~exact ~offsets ~size v offm
               in
-              if this_alarm then alarm := true;
               r
           in
           match offm' with
@@ -216,52 +204,42 @@ struct
         raise Result_is_top
       | Location_Bits.Top (Base.SetLattice.Set set, origin) ->
         Base.Hptset.iter (fun b -> aux (Some origin) b Ival.top) set;
-        true, !had_non_bottom, !result
+        !had_non_bottom, !result
       | Location_Bits.Map loc_map ->
         Location_Bits.M.iter (fun b off -> aux None b off) loc_map;
-        !alarm, !had_non_bottom, !result
+        !had_non_bottom, !result
 
     (* may raise Error_Top in the case Top Top. Make sure to annotate callers *)
     let find ?(conflate_bottom=true) mem {loc ; size} =
-      let alarm = ref false in
       let handle_imprecise_base base acc =
         match find_or_default base mem with
         | `Bottom -> acc
         | `Value offsetmap ->
           V.join (Offsetmap.find_imprecise_everywhere offsetmap) acc
       in
-      let v = match loc with
-        | Location_Bits.Top (Base.SetLattice.Top, _) ->
-          alarm := true;
-          vtop ()
-        | Location_Bits.Top (Base.SetLattice.Set s, _) ->
-          alarm := true;
-          Base.SetLattice.O.fold handle_imprecise_base s V.bottom
-        | Location_Bits.Map loc_map -> begin
-            match size with
-            | Int_Base.Top ->
-              alarm := true;
-              let aux base _ acc = handle_imprecise_base base acc in
-              Location_Bits.M.fold aux loc_map V.bottom
-            | Int_Base.Value size ->
-              let aux_base base offsets acc_v =
-                let validity = Base.validity base in
-                match find_or_default base mem with
-                | `Bottom ->
-                  alarm := true;
-                  acc_v
-                | `Value offsetmap ->
-                  let alarm_o, new_v =
-                    Offsetmap.find
-                      ~conflate_bottom ~validity ~offsets ~size offsetmap
-                  in
-                  if alarm_o then alarm := true;
-                  V.join new_v acc_v
-              in
-              Location_Bits.M.fold aux_base loc_map V.bottom
-          end
-      in
-      !alarm, v
+      match loc with
+      | Location_Bits.Top (Base.SetLattice.Top, _) -> vtop ()
+      | Location_Bits.Top (Base.SetLattice.Set s, _) ->
+        Base.SetLattice.O.fold handle_imprecise_base s V.bottom
+      | Location_Bits.Map loc_map -> begin
+          match size with
+          | Int_Base.Top ->
+            let aux base _ acc = handle_imprecise_base base acc in
+            Location_Bits.M.fold aux loc_map V.bottom
+          | Int_Base.Value size ->
+            let aux_base base offsets acc_v =
+              let validity = Base.validity base in
+              match find_or_default base mem with
+              | `Bottom -> acc_v
+              | `Value offsetmap ->
+                let _alarm_o, new_v =
+                  Offsetmap.find
+                    ~conflate_bottom ~validity ~offsets ~size offsetmap
+                in
+                V.join new_v acc_v
+            in
+            Location_Bits.M.fold aux_base loc_map V.bottom
+        end
 
     (* Internal function for join and widen, that handles efficiently the
        values bound by default in maps. *)
@@ -482,26 +460,22 @@ struct
       else
         join_widen (`Widen wh_hints) m1 m2
 
-    let paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m =
+    let paste_offsetmap ~from ~dst_loc ~size ~exact m =
       let loc_dst = make_loc dst_loc (Int_Base.inject size) in
       assert (Int.le Int.zero size);
       let exact = exact && cardinal_zero_or_one loc_dst in
       (* TODO: do we want to alter exact here? *)
       let had_non_bottom = ref false in
-      let alarm = ref false in
       let treat_dst base_dst i_dst acc =
-        let validity = for_writing_validity ~reducing base_dst in
+        let validity = Base.validity base_dst in
         let offsetmap_dst = find_or_default base_dst m in
         match offsetmap_dst with
-        | `Bottom ->
-          alarm := true;
-          acc
+        | `Bottom -> acc
         | `Value offsetmap_dst ->
-          let this_alarm, new_offsetmap =
+          let _this_alarm, new_offsetmap =
             Offsetmap.paste_slice ~validity ~exact
               ~from ~size ~offsets:i_dst offsetmap_dst
           in
-          alarm := !alarm || this_alarm;
           had_non_bottom := true;
           match new_offsetmap with
           | `Bottom -> acc
@@ -513,7 +487,7 @@ struct
       match dst_loc with
       | Location_Bits.Map _ ->
         let result = Location_Bits.fold_i treat_dst dst_loc m in
-        !alarm, !had_non_bottom, result
+        !had_non_bottom, result
       | Location_Bits.Top (top, orig) ->
         if not (Base.SetLattice.equal top Base.SetLattice.top) then
           Lattice_messages.emit_approximation msg_emitter
@@ -522,7 +496,7 @@ struct
             Origin.pretty_as_reason orig;
         let validity = Base.validity_from_size size in
         let v = Offsetmap.find_imprecise ~validity from in
-        add_binding ~reducing:false ~exact:false m loc_dst v
+        add_binding ~exact:false m loc_dst v
 
     let top_offsetmap size =
       let top = vtop () in
@@ -530,24 +504,20 @@ struct
 
     (* may raise Error_Top in the case Top Top *)  
     let copy_offsetmap src_loc size m =
-      let alarm = ref false in
       let treat_src k_src i_src acc =
         let validity = Base.validity k_src in
         match find_or_default k_src m with
-        | `Bottom ->
-          alarm := true;
-          acc
+        | `Bottom -> acc
         | `Value offsetmap_src ->
-          let alarm_copy, copy = Offsetmap.copy_slice ~validity
+          let _alarm_copy, copy =
+            Offsetmap.copy_slice ~validity
               ~offsets:i_src ~size offsetmap_src
           in
-          if alarm_copy then alarm := true;
           Bottom.join Offsetmap.join acc copy
       in
       try
-        let r = Location_Bits.fold_topset_ok treat_src src_loc `Bottom in
-        !alarm, r
-      with Location_Bits.Error_Top -> true, top_offsetmap size
+        Location_Bits.fold_topset_ok treat_src src_loc `Bottom
+      with Location_Bits.Error_Top -> top_offsetmap size
 
   end
 
@@ -679,28 +649,28 @@ struct
     | Top -> Format.fprintf fmt "@[NO INFORMATION@]"
     | Map m -> M.pretty_filter fmt m zfilter
 
-  let add_new_base base ~size v ~size_v = function
+  let add_base_value base ~size v ~size_v = function
     | Bottom -> Bottom
     | Top -> Top
-    | Map m -> Map (M.add_new_base base ~size v ~size_v m)
+    | Map m -> Map (M.add_base_value base ~size v ~size_v m)
 
-  let add_binding ~reducing ~exact m loc v =
+  let add_binding ~exact m loc v =
     (* TODO: this should depend on bottom being strict. *)
-    if V.equal v V.bottom then false, Bottom
+    if V.equal v V.bottom then Bottom
     else
       match m with
-      | Top -> (Locations.is_valid ~for_writing:true loc), Top
-      | Bottom -> false, Bottom
+      | Top -> Top
+      | Bottom -> Bottom
       | Map m ->
         try
-          let alarm, non_bottom, r = M.add_binding ~reducing ~exact m loc v in
-          alarm, (if non_bottom then Map r else Bottom)
-        with M.Result_is_top -> true, Top
+          let non_bottom, r = M.add_binding ~exact m loc v in
+          if non_bottom then Map r else Bottom
+        with M.Result_is_top -> Top
 
   let find ?(conflate_bottom=true) m loc =
     match m with
-    | Bottom -> false, V.bottom
-    | Top -> (Locations.is_valid ~for_writing:true loc), vtop ()
+    | Bottom -> V.bottom
+    | Top -> vtop ()
     | Map m -> M.find ~conflate_bottom m loc
 
   let join mm1 mm2 = match mm1, mm2 with
@@ -753,26 +723,20 @@ struct
     | Bottom, m -> m
     | Map m1,Map m2 -> Map (M.widen wh m1 m2)
 
-  let paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m =
+  let paste_offsetmap ~from ~dst_loc ~size ~exact m =
     match m with
-    | Bottom -> false, m
-    | Top ->
-      let loc = make_loc dst_loc (Int_Base.inject size) in
-      (Locations.is_valid ~for_writing:true loc), m
+    | Bottom -> m
+    | Top -> m
     | Map m ->
       try
-        let alarm, non_bottom, r =
-          M.paste_offsetmap ~reducing ~from ~dst_loc ~size ~exact m
-        in
-        alarm, (if non_bottom then Map r else Bottom)
-      with M.Result_is_top -> true, Top
+        let non_bottom, r = M.paste_offsetmap ~from ~dst_loc ~size ~exact m in
+        if non_bottom then Map r else Bottom
+      with M.Result_is_top -> Top
 
   let copy_offsetmap src_loc size m =
     match m with
-    | Bottom -> false, `Bottom
-    | Top ->
-      let loc = make_loc src_loc (Int_Base.inject size) in
-      (Locations.is_valid ~for_writing:false loc), (M.top_offsetmap size)
+    | Bottom -> `Bottom
+    | Top -> M.top_offsetmap size
     | Map m -> M.copy_offsetmap src_loc size m
 
   let fold = M.fold

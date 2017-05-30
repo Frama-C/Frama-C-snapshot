@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -456,7 +456,9 @@ end = struct
   (* all the registered plug-ins indexed by their shortnames *)
   let plugins : (string, t) Hashtbl.t = Hashtbl.create 17
 
-  let all_plugins () = Hashtbl.fold (fun _ p acc -> p :: acc) plugins []
+  let all_plugins () =
+    let cmp p1 p2 = Extlib.compare_ignore_case p1.name p2.name in
+    List.sort cmp (Hashtbl.fold (fun _ p acc -> p :: acc) plugins [])
 
   let add ?short name ~help =
     let short = match short with None -> name | Some s -> s in
@@ -855,27 +857,14 @@ let print_helpline fmt head help ext_help =
     (* let enough spaces *)
     (String.make n ' ')
     (* the description *)
-    (fun fmt ->
-       (* add a cutting point at each space *)
-       let cut_space fmt s =
-         let rec cut_list fmt = function
-           | [] -> ()
-           | [ s ] -> Format.fprintf fmt "%s" s
-           | s :: tl -> Format.fprintf fmt "%s@ %a" s cut_list tl
-         in
-         cut_list fmt (Str.split (Str.regexp_string " ") s)
-       in
-       (* replace each '\n' by '@\n' (except for the last one) *)
-       let rec cut_newline fmt = function
-         | [] -> ()
-         | [ s ] -> Format.fprintf fmt "%a" cut_space s
-         | s :: tl ->
-             Format.fprintf fmt "%a@\n%a" cut_space s cut_newline tl
-       in
-       cut_newline fmt (Str.split (Str.regexp_string "\n") help))
+    (fun fmt -> Format.pp_print_text fmt help)
     (* the extended description *)
     (fun fmt -> Format.fprintf fmt ext_help)
 
+(* Prints option [o], its arguments, and its aliases.
+   If [o] is an alias itself, print nothing.
+   [print_invisible = true] forces printing invisible options.
+   Returns [true] iff something was printed. *)
 let low_print_option_help fmt print_invisible o =
   if Plugin.is_option_alias o then begin
     false
@@ -896,7 +885,7 @@ let low_print_option_help fmt print_invisible o =
       print_helpline fmt (name ^ ty) o.ohelp o.ext_help;
       List.iter
         (fun o ->
-           print_helpline fmt (o.oname ^ ty) (" alias for option " ^ name) "")
+           print_helpline fmt (o.oname ^ ty) ("alias for option " ^ name) "")
         (Plugin.find_option_aliases o)
     end;
     true
@@ -935,6 +924,18 @@ let option_intro short =
      -option-name=\"argument\"."
     first
 
+(* Sorts command-line options inside a group *)
+let sort_cmdline_options =
+  List.sort (fun o1 o2 -> String.compare o1.oname o2.oname)
+
+(* Sorts command-line groups inside a plugin *)
+let sort_groups groups =
+  List.sort
+    (fun (s1, _) (s2, _) -> String.compare s1 s2)
+    (Hashtbl.fold
+       (fun s l acc -> (s, l) :: acc)
+       groups [])
+
 let plugin_help shortname =
   let p = Plugin.find shortname in
   if p.Plugin.name <> "" then begin
@@ -959,25 +960,16 @@ let plugin_help shortname =
                    let b' = low_print_option_help fmt false o in
                    b || b')
                 false
-                (List.sort (fun o1 o2 -> String.compare o1.oname o2.oname) l)
+                (sort_cmdline_options l)
             in
-            let printed = print_options !(Hashtbl.find p.Plugin.groups "") in
-            if printed then Format.pp_print_newline fmt ();
-            let sorted_groups =
-              List.sort
-                (fun (s1, _) (s2, _) -> String.compare s1 s2)
-                (Hashtbl.fold
-                   (fun s l acc -> if s = "" then acc else (s, l) :: acc)
-                   p.Plugin.groups
-                   [])
-            in
-            match sorted_groups with
+            match sort_groups p.Plugin.groups with
             | [] -> ()
             | g :: l ->
                 let print_group newline (s, o) =
                   if newline then Format.pp_print_newline fmt ();
-                  Format.fprintf fmt "@[*** %s@]@\n@\n"
-                    (Transitioning.String.uppercase_ascii s);
+                  if s <> "" then
+                    Format.fprintf fmt "@[*** %s@]@\n@\n"
+                      (Transitioning.String.uppercase_ascii s);
                   ignore (print_options !o)
                 in
                 print_group false g;
@@ -1013,10 +1005,6 @@ let add_loading_failures s = Queue.add s loading_failures
 let list_plugins () =
   Log.print_on_output
     begin fun fmt ->
-      let order p1 p2 =
-        Extlib.compare_ignore_case p1.Plugin.name p2.Plugin.name
-      in
-      let plugins = List.sort order (Plugin.all_plugins ()) in
       List.iter
         (fun p ->
            if p.Plugin.name <> "" then
@@ -1024,7 +1012,7 @@ let list_plugins () =
                (Transitioning.String.capitalize_ascii p.Plugin.name)
                (Printf.sprintf "%s (-%s-h)" p.Plugin.help p.Plugin.short)
                "")
-        plugins ;
+        (Plugin.all_plugins ()) ;
       if not (Queue.is_empty loading_failures) then begin
         Kernel_log.abort
           "@[The following packages failed to load:@ %a@]"
@@ -1032,6 +1020,42 @@ let list_plugins () =
           loading_failures;
       end;
     end ;
+  raise Exit
+
+let list_all_plugin_options ~print_invisible =
+  Log.print_on_output
+    begin fun fmt ->
+      let of_name s =
+        if s = "" then (if Unix.isatty Unix.stdout then
+                          "\x1b[31mNO NAME\x1b[0m" else "NO NAME")
+        else s
+      in
+      let print_cmdline_option fmt (c:cmdline_option) =
+        if print_invisible || c.ovisible then
+          Format.fprintf fmt "@[<v>Name: %s@]" c.oname
+        else
+          Format.ifprintf fmt "@[<v>Name: %s@]" c.oname
+      in
+      let print_cmdline_option_list fmt cs =
+        (Pretty_utils.pp_list ~pre:"@[<v>" ~suf:"@]" ~sep:"@;"
+           print_cmdline_option) fmt (sort_cmdline_options cs)
+      in
+      let print_groups fmt gs =
+        let sorted_gs = sort_groups gs in
+        (Pretty_utils.pp_list
+           ~pre:"@[<v>" ~sep:"@;" ~suf:"@]"
+           (Pretty_utils.pp_pair ~pre:"@[<v 2>" ~suf:"@]" ~sep:"@;"
+              (fun fmt name -> Format.pp_print_string fmt (of_name name))
+              (fun fmt p -> print_cmdline_option_list fmt !p))) fmt sorted_gs
+      in
+      let print_plugin fmt p =
+        Format.fprintf fmt "@[<v 2>Name: %s@;%a@]"
+          p.Plugin.name print_groups p.Plugin.groups
+      in
+      Format.fprintf fmt "%a@."
+        (Pretty_utils.pp_list ~pre:"@[<v>" ~suf:"@]" ~sep:"@;" print_plugin)
+        (Plugin.all_plugins ())
+    end;
   raise Exit
 
 (*

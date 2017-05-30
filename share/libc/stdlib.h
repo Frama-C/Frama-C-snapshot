@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,9 +23,10 @@
 /* ISO C: 7.20 */
 #ifndef __FC_STDLIB
 #define __FC_STDLIB
+#include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_define_size_t.h"
 #include "__fc_define_wchar_t.h"
-#include "features.h"
 
 __BEGIN_DECLS
 
@@ -54,38 +55,102 @@ typedef struct __fc_lldiv_t {
 #define RAND_MAX __FC_RAND_MAX
 #define MB_CUR_MAX __FC_MB_CUR_MAX
 
-/*@ assigns \result \from nptr[..] ; */
-double atof(const char *nptr);
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+ */
+extern double atof(const char *nptr);
 
-/*@ assigns \result \from nptr[..] ; */
-int atoi(const char *nptr);
-/*@ assigns \result \from nptr[..] ; */
-long int atol(const char *nptr);
-/*@ assigns \result \from nptr[..] ; */
-long long int atoll(const char *nptr);
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+ */
+extern int atoi(const char *nptr);
+
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+ */
+extern long int atol(const char *nptr);
+
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+ */
+extern long long int atoll(const char *nptr);
 
 /* See ISO C: 7.20.1.3 to complete these specifications */
 
-/*@ assigns \result \from nptr[0..]; 
-    assigns *endptr \from nptr, nptr[0..]; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+    ensures \initialized(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-double strtod(const char * restrict nptr,
+extern double strtod(const char * restrict nptr,
      char ** restrict endptr);
 
-/*@ assigns \result \from nptr[0..]; 
-    assigns *endptr \from nptr, nptr[0..]; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+    ensures \initialized(endptr);
+    ensures \valid_read(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-float strtof(const char * restrict nptr,
+extern float strtof(const char * restrict nptr,
      char ** restrict endptr);
 
-/*@ assigns \result \from nptr[0..]; 
-    assigns *endptr \from nptr, nptr[0..]; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..];
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr;
+    ensures \initialized(endptr);
+    ensures \valid_read(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-long double strtold(const char * restrict nptr,
+extern long double strtold(const char * restrict nptr,
      char ** restrict endptr);
 
 /* TODO: See ISO C 7.20.1.4 to complete these specifications */
 /*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  requires base == 0 || 2 <= base <= 36;
   assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
   behavior null_endptr:
@@ -97,35 +162,87 @@ long double strtold(const char * restrict nptr,
     assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
     assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
     ensures \initialized(endptr);
+    ensures \valid_read(endptr);
     ensures \subset(*endptr, nptr + (0 ..));
   complete behaviors;
   disjoint behaviors;
 */
-long int strtol(
+extern long int strtol(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
 
-/*@ assigns \result \from nptr[0..], base; 
-    assigns *endptr \from nptr, nptr[0..], base; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  requires base == 0 || 2 <= base <= 36;
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+    ensures \initialized(endptr);
+    ensures \valid_read(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-long long int strtoll(
+extern long long int strtoll(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
 
-/*@ assigns \result \from nptr[0..], base; 
-    assigns *endptr \from nptr, nptr[0..], base; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  requires base == 0 || 2 <= base <= 36;
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+    ensures \initialized(endptr);
+    ensures \valid_read(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-unsigned long int strtoul(
+extern unsigned long int strtoul(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
 
-/*@ assigns \result \from nptr[0..], base; 
-    assigns *endptr \from nptr, nptr[0..], base; 
+/*@
+  requires \valid_read(nptr); // cannot be precise, valid_read_string too strong
+  requires \separated(nptr, endptr);
+  requires base == 0 || 2 <= base <= 36;
+  assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+  behavior null_endptr:
+    assumes endptr == \null;
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+  behavior nonnull_endptr:
+    assumes endptr != \null;
+    requires \valid(endptr);
+    assigns \result \from indirect:nptr, indirect:nptr[0 ..], indirect:base;
+    assigns *endptr \from nptr, indirect:nptr[0 ..], indirect:endptr, indirect:base;
+    ensures \initialized(endptr);
+    ensures \valid_read(endptr);
+    ensures \subset(*endptr, nptr + (0 ..));
+  complete behaviors;
+  disjoint behaviors;
 */
-unsigned long long int strtoull(
+extern unsigned long long int strtoull(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
@@ -137,7 +254,7 @@ const unsigned long __fc_rand_max = __FC_RAND_MAX;
   @ assigns __fc_random_counter \from __fc_random_counter ;
   @ ensures 0 <= \result <= __fc_rand_max ;
 */
-int rand(void);
+extern int rand(void);
 
 #ifdef _POSIX_C_SOURCE
 # if _POSIX_C_SOURCE >= 200112L
@@ -145,27 +262,52 @@ int rand(void);
   @ assigns __fc_random_counter \from __fc_random_counter ;
   @ ensures 0 <= \result < 2147483648 ;
 */
-long int lrand48 (void);
+extern long int lrand48 (void);
 
 /*@ assigns __fc_random_counter \from seed ; */
-void srand48 (long int seed);
+extern void srand48 (long int seed);
 # endif
 #endif
 
 /*@ assigns __fc_random_counter \from seed ; */
-void srand(unsigned int seed);
+extern void srand(unsigned int seed);
 
-/* ISO C: 7.20.3.1 */
-//@ requires nmemb * size <= __FC_SIZE_MAX;
-void *calloc(size_t nmemb, size_t size);
 
 /*@ ghost extern int __fc_heap_status __attribute__((FRAMA_C_MODEL)); */
 
 /*@ axiomatic dynamic_allocation {
-  @ predicate is_allocable(size_t n) // Can a block of n bytes be allocated?
-  @ reads __fc_heap_status; 
+  @   predicate is_allocable{L}(integer n) // Can a block of n bytes be allocated?
+  @     reads __fc_heap_status;
+  @   // The logic label L is not used, but it must be present because the
+  @   // predicate depends on the memory state
+  @   axiom never_allocable{L}:
+  @     \forall integer i;
+  @        i < 0 || i > __FC_SIZE_MAX ==> !is_allocable(i);
   @ }
 */
+
+/* ISO C: 7.20.3.1 */
+/*@
+  allocates \result;
+  assigns __fc_heap_status \from indirect:nmemb, indirect:size, __fc_heap_status;
+  assigns \result \from indirect:nmemb, indirect:size,
+                        indirect:__fc_heap_status;
+
+  behavior allocation:
+    assumes is_allocable(nmemb * size);
+    ensures \fresh(\result, nmemb * size);
+    ensures \initialized(((char *)\result)+(0..nmemb*size-1));
+    ensures \subset(((char *)\result)[0..nmemb*size-1], {0});
+
+  behavior no_allocation:
+    assumes !is_allocable(nmemb * size);
+    assigns \result \from \nothing;
+    allocates \nothing;
+    ensures \result == \null;
+
+  complete behaviors;
+  disjoint behaviors; */
+extern void *calloc(size_t nmemb, size_t size);
  
 /*@ allocates \result;
   @ assigns __fc_heap_status \from size, __fc_heap_status;
@@ -183,7 +325,7 @@ void *calloc(size_t nmemb, size_t size);
   @ complete behaviors;
   @ disjoint behaviors;
   @*/
-void *malloc(size_t size);
+extern void *malloc(size_t size);
 
 /*@ frees p;
   @ assigns  __fc_heap_status \from __fc_heap_status;
@@ -199,7 +341,7 @@ void *malloc(size_t size);
   @ complete behaviors;
   @ disjoint behaviors;
   @*/
-void free(void *p);
+extern void free(void *p);
 
 /*@
    requires ptr == \null || \freeable(ptr);
@@ -233,65 +375,82 @@ void free(void *p);
    disjoint behaviors alloc, fail;
    disjoint behaviors dealloc, fail;
   */
-void *realloc(void *ptr, size_t size);
+extern void *realloc(void *ptr, size_t size);
 
 
 /* ISO C: 7.20.4 */
 
 /*@ assigns \nothing;
   @ ensures \false; */
-void abort(void);
+extern void abort(void);
 
 /*@ assigns \result \from \nothing ;*/
-int atexit(void (*func)(void));
+extern int atexit(void (*func)(void));
 
 /*@ assigns \result \from \nothing ;*/
-int at_quick_exit(void (*func)(void));
+extern int at_quick_exit(void (*func)(void));
 
 /*@
   assigns \nothing;
   ensures \false;
 */
-void exit(int status) __attribute__ ((noreturn));
+extern void exit(int status) __attribute__ ((noreturn));
 
 /*@
   assigns \nothing;
   ensures \false;
 */
-void _Exit(int status) __attribute__ ((__noreturn__));
+extern void _Exit(int status) __attribute__ ((__noreturn__));
 
 /*@
-  assigns \result \from name;
-  ensures \result == \null || \valid(\result) ;
+  requires \valid_read(name);
+  assigns \result \from indirect:name, name[0 ..];
+  ensures \result == \null || \valid(\result);
  */
-char *getenv(const char *name);
+extern char *getenv(const char *name);
 
-int putenv(char *string);
+extern int putenv(char *string);
 
-int setenv(const char *name, const char *value, int overwrite);
+extern int setenv(const char *name, const char *value, int overwrite);
 
-int unsetenv(const char *name);
+extern int unsetenv(const char *name);
 
 /*@
   assigns \nothing;
   ensures \false; */
-void quick_exit(int status) __attribute__ ((__noreturn__));
+extern void quick_exit(int status) __attribute__ ((__noreturn__));
 
-/*@ assigns \result \from string[..]; */
-int system(const char *string);
+/*@
+  requires \valid_read(command);
+  assigns \result \from indirect:command, indirect:command[0 ..];
+*/
+extern int system(const char *command);
 
 /* ISO C: 7.20.5 */
 
 /* TODO: use one of the well known specification with high order compare :-) */
-/*@  assigns ((char*)\result)[..] \from ((char*)key)[..], ((char*)base)[..],
-                                        nmemb, size, *compar;  */
-void *bsearch(const void *key, const void *base,
+// NOTE: the assigns of function [compar] are not currently taken into account
+// by ACSL. If [compar] is not purely functional, the result may be unsound.
+/*@
+  requires \valid_function(compar);
+  assigns ((char*)\result)[0 ..] \from indirect:key, ((char*)key)[0 ..],
+                                       indirect:base, ((char*)base)[0 ..],
+                                       indirect:nmemb, indirect:size,
+                                       indirect:compar, indirect:*compar;
+*/
+extern void *bsearch(const void *key, const void *base,
      size_t nmemb, size_t size,
      int (*compar)(const void *, const void *));
 
-/*@ assigns ((char*)base)[..] \from ((char*)base)[..], nmemb, size, *compar ;
+// NOTE: the assigns of function [compar] are not currently taken into account
+// by ACSL. If [compar] is not purely functional, the result may be unsound.
+/*@
+  requires \valid_function(compar);
+  assigns ((char*)base)[0 ..] \from indirect:base, ((char*)base)[0 ..],
+                                    indirect:nmemb, indirect:size,
+                                    indirect:compar, indirect:*compar;
  */
-  void qsort(void *base, size_t nmemb, size_t size,
+extern void qsort(void *base, size_t nmemb, size_t size,
              int (*compar)(const void *, const void *));
 
 /* ISO C: 7.20.6 */
@@ -300,51 +459,77 @@ void *bsearch(const void *key, const void *base,
   requires abs_representable:(int)(-j) == -j ;
   assigns \result \from j ;
 */
-int abs(int j);
+extern int abs(int j);
 
 /*@ 
   requires abs_representable:(long)(-j) == -j ;
   assigns \result \from j ; */
-long int labs(long int j);
+extern long int labs(long int j);
 
 /*@
   requires abs_representable:(long long)(-j) == -j ;
   assigns \result \from j ; */
-long long int llabs(long long int j);
+extern long long int llabs(long long int j);
 
 /*@ assigns \result \from numer,denom ; */
-div_t div(int numer, int denom);
+extern div_t div(int numer, int denom);
 /*@ assigns \result \from numer,denom ; */
-ldiv_t ldiv(long int numer, long int denom);
+extern ldiv_t ldiv(long int numer, long int denom);
 /*@ assigns \result \from numer,denom ; */
-lldiv_t lldiv(long long int numer, long long int denom);
+extern lldiv_t lldiv(long long int numer, long long int denom);
 
 /* ISO C: 7.20.7 */
-/*@ assigns \result \from s[0..], n ;*/
-int mblen(const char *s, size_t n);
 
-/*@ assigns \result, pwc[0..n-1] \from s[0..n-1], n ;
+//@ ghost int __fc_mblen_state;
+
+/*@ assigns \result, __fc_mblen_state \from
+    indirect:s, indirect:s[0 ..], indirect:n, __fc_mblen_state; */
+extern int mblen(const char *s, size_t n);
+
+//@ ghost int __fc_mbtowc_state;
+
+/*@
+  requires \separated(pwc, s);
+  assigns \result \from indirect:s, indirect:s[0 .. n-1], indirect:n,
+                        __fc_mbtowc_state;
+  assigns pwc[0 .. \result-1], __fc_mbtowc_state
+    \from indirect:s, s[0 .. n-1], indirect:n, __fc_mbtowc_state;
+  ensures \result <= n;
 */
-int mbtowc(wchar_t * restrict pwc,
+extern int mbtowc(wchar_t * restrict pwc,
      const char * restrict s,
      size_t n);
 
-/*@ assigns \result, s[0..] \from wc ; */
-int wctomb(char *s, wchar_t wc);
+//@ ghost int __fc_wctomb_state;
+
+/*@
+  assigns \result \from indirect:wc, __fc_wctomb_state;
+  assigns s[0 ..], __fc_wctomb_state \from wc, __fc_wctomb_state;
+*/
+extern int wctomb(char *s, wchar_t wc);
 
 /* ISO C: 7.20.8 */
 
-/*@ assigns \result, pwcs[0..n-1] \from s[0..n-1], n ; */
-size_t mbstowcs(wchar_t * restrict pwcs,
+/*@
+  requires \separated(pwcs, s);
+  assigns \result \from indirect:s, indirect:s[0 .. n-1], indirect:n;
+  assigns pwcs[0 .. n-1] \from indirect:s, s[0 .. n-1], indirect:n;
+*/
+extern size_t mbstowcs(wchar_t * restrict pwcs,
      const char * restrict s,
      size_t n);
 
-/*@ assigns \result, s[0..n-1] \from pwcs[0..n-1] , n ; */
-size_t wcstombs(char * restrict s,
+/*@
+  requires \separated(s, pwcs);
+  assigns \result \from indirect:pwcs, indirect:pwcs[0 .. n-1], indirect:n;
+  assigns s[0 .. n-1] \from indirect:pwcs, pwcs[0 .. n-1], indirect:n;
+*/
+extern size_t wcstombs(char * restrict s,
      const wchar_t * restrict pwcs,
      size_t n);
 
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

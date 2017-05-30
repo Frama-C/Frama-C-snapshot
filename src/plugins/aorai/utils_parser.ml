@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -66,7 +66,7 @@ let get_new_offset my_host my_offset name=
            let get_field_from_offset my_offset = begin
              match my_offset with
                | Cil_types.Field(fieldinfo,_)  -> fieldinfo
-               | _ ->  Aorai_option.fatal "support only struct no array wtih struct"
+               | _ ->  Aorai_option.fatal "support only struct no array with struct"
              end in
              let field_info = get_field_from_offset my_offset in
              let last_field_offset = get_last_field field_info my_offset in

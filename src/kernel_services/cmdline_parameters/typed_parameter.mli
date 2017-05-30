@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** Parameter settable through a command line option.
-    This is a low level API, internaly used by the kernel. As a plug-in
+    This is a low level API, internally used by the kernel. As a plug-in
     developer, you certainly prefer to use the API of {!Plugin} instead.
     @since Nitrogen-20111001 *)
 

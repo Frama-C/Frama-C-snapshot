@@ -28,11 +28,11 @@ Let x = t[1].
 Assume {
   Type: is_sint32(x).
   (* Initializer *)
-  Init: 1 = t[0].
+  Init: t[0] = 1.
   (* Initializer *)
-  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (0 = t[i]))).
+  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
 }
-Prove: 0 = x.
+Prove: x = 0.
 
 ------------------------------------------------------------
 
@@ -52,25 +52,25 @@ Let a_1 = sc1_0.F3_Sc_b.
 Assume {
   Type: IsS3_Sc(sc0_0) /\ IsS3_Sc(sc1_0).
   (* Initializer *)
-  Init: 1 = (sc1_0.F3_Sc_a).
+  Init: (sc1_0.F3_Sc_a) = 1.
   (* Initializer *)
-  Init: 2 = a_1[0].
+  Init: a_1[0] = 2.
   (* Initializer *)
-  Init: 3 = a_1[1].
+  Init: a_1[1] = 3.
   (* Initializer *)
-  Init: 4 = a_1[2].
+  Init: a_1[2] = 4.
   (* Initializer *)
-  Init: 5 = (sc1_0.F3_Sc_c).
+  Init: (sc1_0.F3_Sc_c) = 5.
   (* Initializer *)
-  Init: 1 = (sc0_0.F3_Sc_a).
+  Init: (sc0_0.F3_Sc_a) = 1.
   (* Initializer *)
-  Init: 2 = a[0].
+  Init: a[0] = 2.
   (* Initializer *)
-  Init: 3 = a[1].
+  Init: a[1] = 3.
   (* Initializer *)
-  Init: 4 = a[2].
+  Init: a[2] = 4.
   (* Initializer *)
-  Init: 5 = (sc0_0.F3_Sc_c).
+  Init: (sc0_0.F3_Sc_c) = 5.
 }
 Prove: EqS3_Sc(sc1_0, sc0_0).
 
@@ -107,7 +107,7 @@ Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 31) /\ is_sint32(i).
   (* Initializer *)
-  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 31) -> (0 = tab_0[i_1]))).
+  Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 31) -> (tab_0[i_1] = 0))).
 }
 Prove: tab_0[i] <= 255.
 
@@ -119,93 +119,46 @@ Let a_1 = sc3_0.F3_Sc_b.
 Assume {
   Type: IsS3_Sc(sc2_0) /\ IsS3_Sc(sc3_0) /\ is_sint32(a[2]).
   (* Initializer *)
-  Init: 1 = (sc3_0.F3_Sc_a).
+  Init: (sc3_0.F3_Sc_a) = 1.
   (* Initializer *)
-  Init: 2 = a_1[0].
+  Init: a_1[0] = 2.
   (* Initializer *)
-  Init: 3 = a_1[1].
+  Init: a_1[1] = 3.
   (* Initializer *)
-  Init: 4 = a_1[2].
+  Init: a_1[2] = 4.
   (* Initializer *)
-  Init: 0 = (sc3_0.F3_Sc_c).
+  Init: (sc3_0.F3_Sc_c) = 0.
   (* Initializer *)
-  Init: 1 = (sc2_0.F3_Sc_a).
+  Init: (sc2_0.F3_Sc_a) = 1.
   (* Initializer *)
-  Init: 2 = a[0].
+  Init: a[0] = 2.
   (* Initializer *)
-  Init: 3 = a[1].
+  Init: a[1] = 3.
   (* Initializer *)
-  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (0 = a[i]))).
+  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (a[i] = 0))).
   (* Initializer *)
-  Init: 4 = (sc2_0.F3_Sc_c).
+  Init: (sc2_0.F3_Sc_c) = 4.
 }
 Prove: EqS3_Sc(sc2_0, sc3_0).
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Sc_t' in 'main':
-Let a = sc3_0.F3_Sc_b.
-Assume {
-  Type: IsS3_Sc(sc3_0).
-  (* Initializer *)
-  Init: 1 = (sc3_0.F3_Sc_a).
-  (* Initializer *)
-  Init: 2 = a[0].
-  (* Initializer *)
-  Init: 3 = a[1].
-  (* Initializer *)
-  Init: 4 = a[2].
-  (* Initializer *)
-  Init: 0 = (sc3_0.F3_Sc_c).
-}
 Prove: false.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Sc_c_2' in 'main':
-Let a = sc2_0.F3_Sc_b.
-Assume {
-  Type: IsS3_Sc(sc2_0) /\ is_sint32(a[2]).
-  (* Initializer *)
-  Init: 1 = (sc2_0.F3_Sc_a).
-  (* Initializer *)
-  Init: 2 = a[0].
-  (* Initializer *)
-  Init: 3 = a[1].
-  (* Initializer *)
-  Init: forall i : Z. ((2 <= i) -> ((i <= 2) -> (0 = a[i]))).
-  (* Initializer *)
-  Init: 4 = (sc2_0.F3_Sc_c).
-}
 Prove: false.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,Tab_no_init' in 'main':
-Assume {
-  Type: is_uint8(tab_0[5]).
-  (* Initializer *)
-  Init: forall i : Z. ((0 <= i) -> ((i <= 31) -> (0 = tab_0[i]))).
-}
 Prove: false.
 
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ko,With_Array_Struct_3' in 'main':
-Let a = st_0.F2_St_tab.
-Assume {
-  Type: is_sint32(a[5]).
-  (* Initializer *)
-  Init: 1 = a[0].
-  (* Initializer *)
-  Init: 2 = a[1].
-  (* Initializer *)
-  Init: 3 = a[2].
-  (* Initializer *)
-  Init: 4 = a[3].
-  (* Initializer *)
-  Init: forall i : Z. ((4 <= i) -> ((i <= 9) -> (0 = a[i]))).
-}
 Prove: false.
 
 ------------------------------------------------------------
@@ -215,10 +168,10 @@ Let x = t[1].
 Assume {
   Type: is_sint32(x).
   (* Initializer *)
-  Init: 1 = t[0].
+  Init: t[0] = 1.
   (* Initializer *)
-  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (0 = t[i]))).
+  Init: forall i : Z. ((0 < i) -> ((i <= 1) -> (t[i] = 0))).
 }
-Prove: 1 = x.
+Prove: x = 1.
 
 ------------------------------------------------------------

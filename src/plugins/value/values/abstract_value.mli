@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ module type S = sig
 
   (** {3 Forward Operations } *)
 
-  (** Returns the abstract value of a litteral constants, and potentially some
+  (** Returns the abstract value of a literal constant, and potentially some
       alarms in case of floating point constants overflow. *)
   val constant : exp -> constant -> t evaluated
 
@@ -66,7 +66,7 @@ module type S = sig
 
   (** {3 Backward Operations } *)
 
-  (** For an unary forward operation F, the inverse backward opereror B tries to
+  (** For an unary forward operation F, the inverse backward operator B tries to
       reduce the argument values of the operation, given its result.
 
       It must satisfy:

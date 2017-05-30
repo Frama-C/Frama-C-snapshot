@@ -17,8 +17,8 @@
 [value] computing for function Frama_C_float_interval <- main.
         Called from tests/float/cond.c:12.
 [value] using specification for function Frama_C_float_interval
-share/libc/__fc_builtin.h:141:[value] function Frama_C_float_interval: precondition got status valid.
-share/libc/__fc_builtin.h:142:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:149:[value] function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
 [value] computing for function Frama_C_float_interval <- main.
         Called from tests/float/cond.c:15.

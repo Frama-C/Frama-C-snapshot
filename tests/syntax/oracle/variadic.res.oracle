@@ -6,9 +6,9 @@ typedef char tt;
 struct T {
    int a ;
 };
-extern int normal(int n);
+int normal(int n);
 
-extern int vf(int x , ...);
+int vf(int x, void * const *__va_params);
 
 struct T st;
 tt abstract;
@@ -18,13 +18,34 @@ unsigned short ushort;
 unsigned long long ll;
 long double ld;
 double d;
-extern void h(int x_0, int x_1);
+void h(int x_0, int x_1);
 
 extern int ( /* missing proto */ f)(int x_0, int x_1);
 
 void g(void)
 {
-  vf(1,1u,(int)uchar,(double)3.0f,(int)ushort,ll,(int)abstract,st,ld,d);
+  {
+    unsigned int __va_arg0 = 1u;
+    int __va_arg1 = (int)uchar;
+    double __va_arg2 = (double)3.0f;
+    int __va_arg3 = (int)ushort;
+    unsigned long long __va_arg4 = ll;
+    int __va_arg5 = (int)abstract;
+    struct T __va_arg6 = st;
+    long double __va_arg7 = ld;
+    double __va_arg8 = d;
+    void *__va_args[9] =
+      {& __va_arg0,
+       & __va_arg1,
+       & __va_arg2,
+       & __va_arg3,
+       & __va_arg4,
+       & __va_arg5,
+       & __va_arg6,
+       & __va_arg7,
+       & __va_arg8};
+    vf(1,(void * const *)(__va_args));
+  }
   f(1,(int)uchar);
   h(1,(int)uchar);
   normal((int)uchar);

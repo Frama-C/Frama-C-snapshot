@@ -1,6 +1,6 @@
 /* run.config*
-   OPT: -val @VALUECONFIG@ -journal-disable -machdep x86_64
-   OPT: -val @VALUECONFIG@ -journal-disable
+   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -journal-disable -machdep x86_64
+   OPT: -no-autoload-plugins -load-module value,inout -val @VALUECONFIG@ -journal-disable
 */
 
 int x;

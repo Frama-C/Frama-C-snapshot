@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_CTYPE
 #define __FC_CTYPE
 #include "features.h"
+__PUSH_FC_STDLIB
 #include "__fc_define_eof.h"
 
 /* ISO C : 7.4.1 */
@@ -47,7 +48,7 @@ __BEGIN_DECLS
     ensures \result < 0 || \result > 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isalnum(int c);
+extern int isalnum(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -59,7 +60,7 @@ int isalnum(int c);
     ensures \result < 0 || \result > 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isalpha(int c);
+extern int isalpha(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -72,7 +73,7 @@ int isalpha(int c);
   disjoint behaviors match, no_match;
   complete behaviors match, no_match;
 */
-int isblank(int c);
+extern int isblank(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -84,7 +85,7 @@ int isblank(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int iscntrl(int c);
+extern int iscntrl(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -97,7 +98,7 @@ int iscntrl(int c);
   disjoint behaviors match, no_match;
   complete behaviors match, no_match;
 */
-int isdigit(int c);
+extern int isdigit(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -109,7 +110,7 @@ int isdigit(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isgraph(int c);
+extern int isgraph(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -121,7 +122,7 @@ int isgraph(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int islower(int c);
+extern int islower(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -133,7 +134,7 @@ int islower(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isprint(int c);
+extern int isprint(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -146,7 +147,7 @@ int isprint(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int ispunct(int c);
+extern int ispunct(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -158,7 +159,7 @@ int ispunct(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isspace(int c);
+extern int isspace(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -170,7 +171,7 @@ int isspace(int c);
     ensures \result == 0;
   disjoint behaviors definitely_match, definitely_not_match;
 */
-int isupper(int c);
+extern int isupper(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -183,7 +184,7 @@ int isupper(int c);
   disjoint behaviors match, no_match;
   complete behaviors match, no_match;
 */
-int isxdigit(int c);
+extern int isxdigit(int c);
 
 /* ISO C : 7.4.2 */
 
@@ -198,7 +199,7 @@ int isxdigit(int c);
     ensures \result == c;
   disjoint behaviors definitely_changed, definitely_not_changed;
 */
-int tolower(int c);
+extern int tolower(int c);
 
 /*@ requires 0 <= c <= 255 || c == EOF;
   assigns \result \from c;
@@ -211,7 +212,7 @@ int tolower(int c);
     ensures \result == c;
   disjoint behaviors definitely_changed, definitely_not_changed;
 */
-int toupper(int c);
+extern int toupper(int c);
 
 /* POSIX */
 /*@ requires 0 <= c <= 255 || c == EOF;
@@ -225,8 +226,9 @@ int toupper(int c);
   disjoint behaviors match, no_match;
   complete behaviors match, no_match;
 */
-int isascii(int c);
+extern int isascii(int c);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

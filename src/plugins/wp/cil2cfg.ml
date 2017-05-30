@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -486,16 +486,14 @@ let get_edge_labels e =
     | Vstart -> assert false
     | VfctIn -> []
     | Vexit | VfctOut -> [Clabels.Post]
-    | VblkIn (Bstmt s, _) -> [Clabels.mk_stmt_label s]
-    | Vtest (false, _, _) | VblkIn _ | VblkOut _ | Vend -> []
-    | Vcall (s,_,_,_) ->
-        [Clabels.CallAt s.sid; Clabels.mk_stmt_label s]
-    | Vstmt s | Vtest (true, s, _) | Vswitch (s,_) ->
+    | VblkIn (Bstmt s, _)
+    | Vcall (s,_,_,_) | Vstmt s | Vtest (true, s, _) | Vswitch (s,_) ->
         [Clabels.mk_stmt_label s]
-    | Vloop2 _ -> []
     | Vloop (_,s) ->
         if is_back_edge e then []
         else [Clabels.mk_stmt_label s]
+    | Vtest (false, _, _) | VblkIn _ | VblkOut _ | Vend -> []
+    | Vloop2 _ -> []
   in
   let v_before =  edge_src e in
   match node_type v_before with
@@ -571,11 +569,11 @@ let get_exit_edges cfg src =
   let edges =
     try
       let edge = next_edge cfg src in
-      if false || is_next_edge edge then
+      if is_next_edge edge then
         (* needs to look at all node between the next node and the source *)
         snd (do_preds (edge_dst edge) (Nset.empty, []))
       else do_node src []
-    with Exit -> []
+    with Exit | Not_found -> []
   in
   if edges = [] then
     debug "[get_exit_edges] -> empty";
@@ -774,10 +772,15 @@ let get_call_type fct =
 (** In some cases (goto for instance) we have to create a node before having
  * processed if through [cfg_stmt]. It is important that the created node
  * is the same than while the 'normal' processing ! That is why
- * this pattern matching might seem redondant with the other one. *)
-let get_stmt_node env s = match s.skind with
-  | Instr (Call (res, fct, args, _)) ->
-      get_node env (Vcall (s, res, get_call_type fct, args))
+ * this pattern matching might seem redundant with the other one. *)
+let get_stmt_node env s =
+  let do_call res fct args _loc =
+    get_node env (Vcall (s, res, get_call_type fct, args))
+  in
+  match s.skind with
+  | Instr (Call (res, fct, args, loc)) -> do_call res fct args loc
+  | Instr (Local_init (v, ConsInit(f, args, kind), loc)) ->
+      Cil.treat_constructor_as_func do_call v f args kind loc
   | Block b -> get_node env (VblkIn (Bstmt s,b))
   | UnspecifiedSequence seq ->
       let b = Cil.block_from_unspecified_sequence seq in
@@ -802,14 +805,9 @@ let rec cfg_stmts env stmts next = match stmts with
       ns
 
 and cfg_block env bkind b next =
-  (*
-  match b.bstmts with
-    | [] -> next
-    | _ ->
-        *)
   let in_blk = get_node env (VblkIn (bkind, b)) in
-  let _ = add_edge env in_blk Enext next in
   let out_blk = get_node env (VblkOut (bkind, b)) in
+  let _ = add_edge env in_blk Enext out_blk in
   let _ = add_edge env out_blk Enone next in
   let first_in_blk = cfg_stmts env b.bstmts out_blk in
   let _ = add_edge env in_blk Enone first_in_blk in
@@ -853,6 +851,14 @@ and cfg_stmt env s next =
       let in_call = get_stmt_node env s in
       add_edge env in_call Enone next;
       let exit_node = get_node env (Vexit) in
+      add_edge env in_call Enone exit_node;
+      in_call
+  | Instr (Local_init(_,ConsInit (f, _, _), _)) ->
+      let kf = Globals.Functions.get f in
+      Statuses_by_call.setup_all_preconditions_proxies kf;
+      let in_call = get_stmt_node env s in
+      add_edge env in_call Enone next;
+      let exit_node = get_node env Vexit in
       add_edge env in_call Enone exit_node;
       in_call
   | Instr _  | Return _ ->
@@ -935,7 +941,7 @@ let clean_graph cfg =
  * Below, we use an algorithm from the paper :
  * "A New Algorithm for Identifying Loops in Decompilation"
  * of Tao Wei, Jian Mao, Wei Zou, and Yu Chen,
- * to gather information about the loops in the builted CFG.
+ * to gather information about the loops in the built CFG.
 *)
 
 module type WeiMaoZouChenInput = sig
@@ -1220,135 +1226,6 @@ let cfg_from_proto kf =
   let _ = add_edge cfg fct_in Enone fct_out in
   let cfg = { cfg with loop_nodes = Some [] } in
   cfg
-
-(* ------------------------------------------------------------------------ *)
-(** {2 Export dot graph} *)
-
-(** {3 Printer for ocamlgraph} *)
-
-module Printer (PE : sig val edge_txt : edge -> string end) = struct
-  type t = CFG.t * (edge -> string)
-  module V = CFG.V
-  module E = CFG.E
-  let iter_edges_e f (g, _f) = CFG.iter_edges_e f g
-  let iter_vertex f (g, _) = CFG.iter_vertex f g
-
-  let graph_attributes _t = []
-
-  let pretty_raw_stmt s =
-    let s = Format.asprintf "%a" Printer.pp_stmt s in
-    let s' = if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s in
-    String.escaped s'
-
-  let vertex_name v =
-    let a,b = node_id v in
-    Printf.sprintf "%d.%d" a b
-
-  let vertex_attributes v =
-    let n = V.label v in
-    let label = match node_type n with
-      | Vstart -> "Start" | Vend -> "End" | Vexit -> "Exit"
-      | VfctIn -> "FctIn" | VfctOut -> "FctOut"
-      | VblkIn (bk,_) -> Format.asprintf "BLOCKin <%a>" pp_bkind bk
-      | VblkOut (bk,_) -> Format.asprintf "BLOCKout <%a>" pp_bkind bk
-      | Vcall _ -> Format.sprintf "CALL"
-      | Vtest (true, s, e) ->
-          Format.asprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
-      | Vtest (false, s, _e) -> Format.asprintf "IFout <%d>" s.sid
-      | Vstmt s | Vloop (_, s) | Vswitch (s, _) ->
-          begin match s.skind with
-            | Instr _ -> Format.sprintf "INSTR <%d>\n%s" s.sid (pretty_raw_stmt s)
-            | If _ -> "invalid IF ?"
-            | Return _ -> Format.sprintf "RETURN <%d>" s.sid
-            | Goto _ -> Format.sprintf "%s <%d>" (pretty_raw_stmt s) s.sid
-            | Break _ -> Format.sprintf "BREAK <%d>" s.sid
-            | Continue _ -> Format.sprintf "CONTINUE <%d>" s.sid
-            | Switch _ ->  Format.sprintf "SWITCH <%d>" s.sid
-            | Loop _ ->  Format.sprintf "WHILE(1) <%d>" s.sid
-            | Block _ ->  Format.sprintf "BLOCK??? <%d>" s.sid
-            | TryExcept _ ->  Format.sprintf "TRY EXCEPT <%d>" s.sid
-            | TryFinally _ ->  Format.sprintf "TRY FINALLY <%d>" s.sid
-            | Throw _ -> Format.sprintf "THROW <%d>" s.sid
-            | TryCatch _ -> Format.sprintf "TRY CATCH <%d>" s.sid
-            | UnspecifiedSequence _ ->  Format.sprintf "UnspecifiedSeq <%d>" s.sid
-          end
-      | Vloop2 (_, n) -> Format.sprintf "Loop-%d" n
-    in
-    let attr = match node_type n with
-      | Vstart | Vend | Vexit -> [`Color 0x0000FF; `Shape `Doublecircle]
-      | VfctIn | VfctOut -> [`Color 0x0000FF; `Shape `Box]
-      | VblkIn _ | VblkOut _ -> [`Shape `Box]
-      | Vloop _ | Vloop2 _ -> [`Color 0xFF0000; `Style `Filled]
-      | Vtest _ | Vswitch _ ->
-          [`Color 0x00FF00; `Style `Filled; `Shape `Diamond]
-      | Vcall _ | Vstmt _ -> []
-    in (`Label (String.escaped label))::attr
-
-  let default_vertex_attributes _v = []
-
-  let edge_attributes e =
-    let attr = [] in
-    let attr = (`Label (String.escaped (PE.edge_txt e)))::attr in
-    let attr =
-      if is_back_edge e then (`Constraint false)::(`Style `Bold)::attr
-      else attr
-    in
-    let attr = match (edge_type e) with
-      | Ethen | EbackThen -> (`Color 0x00FF00)::attr
-      | Eelse | EbackElse -> (`Color 0xFF0000)::attr
-      | Ecase [] -> (`Color 0x0000FF)::(`Style `Dashed)::attr
-      | Ecase _ -> (`Color 0x0000FF)::attr
-      | Enext -> (`Style `Dotted)::attr
-      | Eback -> attr (* see is_back_edge above *)
-      | Enone -> attr
-    in
-    attr
-
-  let default_edge_attributes _ = []
-
-  let get_subgraph v =
-    let mk_subgraph name attrib =
-      let attrib = (`Style `Filled) :: attrib in
-      Some { Graph.Graphviz.DotAttributes.sg_name= name;
-             sg_parent = None;
-             sg_attributes = attrib }
-    in
-    match node_type (V.label v) with
-    | Vcall (s,_,_,_) ->
-        let name = Format.sprintf "Call_%d" s.sid in
-        let call_txt = pretty_raw_stmt s in
-        let label = Format.sprintf "Call <%d> : %s" s.sid call_txt in
-        let attrib = [(`Label label)] in
-        let attrib = (`Fillcolor 0xB38B4D) :: attrib in
-        mk_subgraph name attrib
-    | _ -> None
-
-end
-
-(* ---------------------------------- *)
-(** {3 Export to dot file} *)
-
-type pp_edge_fun = Format.formatter -> edge -> unit
-
-let export ~file ?pp_edge_fun cfg =
-  Kernel.Unicode.without_unicode
-    (fun () ->
-       let edge_txt = match pp_edge_fun with
-         | None ->
-             (fun e -> match  (edge_type e) with
-                | Ecase (_::_) -> Format.asprintf "%a" EL.pretty (edge_type e)
-                | _ -> ""
-             )
-         | Some pp -> (fun e -> Format.asprintf "%a" pp e)
-       in
-       let module P = Printer (struct let edge_txt = edge_txt end) in
-       let module GPrint = Graph.Graphviz.Dot(P) in
-       (* [JS 2011/03/11] open_out and output_graph (and close_out?) may raise
-          exception. Should be caught. *)
-       let oc = open_out file in
-       GPrint.output_graph oc (cfg_graph cfg, edge_txt);
-       close_out oc
-    ) ()
 
 (* ------------------------------------------------------------------------ *)
 (** {2 CFG management} *)

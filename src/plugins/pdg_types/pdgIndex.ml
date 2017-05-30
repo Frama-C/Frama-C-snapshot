@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,9 @@ exception CallStatement
 exception Not_equal
 
 let is_call_stmt stmt =
-  match stmt.skind with Instr (Call _) -> true | _ -> false
+  match stmt.skind with
+    | Instr (Call _|Local_init(_,ConsInit _,_)) -> true
+    | _ -> false
 
 module Signature = struct
   type in_key = InCtrl | InNum of int | InImpl of Locations.Zone.t
@@ -419,7 +421,7 @@ module RKey = struct
     | Key.VarDecl v -> 17 * Cil_datatype.Varinfo.hash v
     | Key.Stmt s -> 29 * Cil_datatype.Stmt.hash s
     | Key.Label (s, _l) ->
-      (* Intentionnaly buggy: ignore the label and consider only the statement.
+      (* Intentionally buggy: ignore the label and consider only the statement.
          There seems to be bug in the pdg, only one 'case :' per statement is
          present. This avoids removing the other 'case' clauses
          (see tests/slicing/switch.c *)
@@ -444,7 +446,7 @@ end
 module FctIndex = struct
  
   type ('node_info, 'call_info) t = {
-    (** inputs and ouputs of the function *)
+    (** inputs and outputs of the function *)
     mutable sgn : 'node_info Signature.t ;
     (** calls signatures *)
     mutable calls : 

@@ -13,19 +13,21 @@ Let a = shift_A4_sint32(global(G_G_67), 0).
 Assume {
   Type: is_sint32(v) /\ is_sint32(Mint_0[shift_sint32(a, 1)]).
   (* Goal *)
-  When: 0 = Mint_0[shift_sint32(a, 0)].
+  When: Mint_0[shift_sint32(a, 0)] = 0.
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_72)] = 0.
   If v <= 3
   Then {
     Let a_1 = shift_sint32(a, v).
     (* Else *)
-    Have: 0 = Mint_0[a_1].
-    Have: f = a_1.
+    Have: Mint_0[a_1] = 0.
+    Have: a_1 = f.
   }
-  Else { Have: f = global(L_i_72). }
+  Else { Have: global(L_i_72) = f. }
 }
-Prove: f = a.
+Prove: a = f.
 
 ------------------------------------------------------------
 
@@ -36,19 +38,21 @@ Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = Mint_0[a_1]).
+  When: (x != 0) /\ (Mint_0[a_1] = 0).
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_72)] = 0.
   If v <= 3
   Then {
     Let a_2 = shift_sint32(a, v).
     (* Else *)
-    Have: 0 = Mint_0[a_2].
-    Have: f = a_2.
+    Have: Mint_0[a_2] = 0.
+    Have: a_2 = f.
   }
-  Else { Have: f = global(L_i_72). }
+  Else { Have: global(L_i_72) = f. }
 }
-Prove: f = a_1.
+Prove: a_1 = f.
 
 ------------------------------------------------------------
 
@@ -65,24 +69,26 @@ Let a = shift_A4_sint32(global(G_G_67), 0).
 Assume {
   Type: is_sint32(v) /\ is_sint32(Mint_0[shift_sint32(a, 1)]).
   (* Goal *)
-  When: 0 = Mint_0[shift_sint32(a, 0)].
+  When: Mint_0[shift_sint32(a, 0)] = 0.
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_77)] = 0.
   If (4 * v) <= 15
   Then {
     (* Else *)
-    Have: 0 = Mint_0[shift_sint32(a, v)].
+    Have: Mint_0[shift_sint32(a, v)] = 0.
     If 4 <= v
-    Then { Have: f2_0 = global(L_i_77). }
-    Else { Have: f2_0 = shift_sint32(a, v). }
+    Then { Have: global(L_i_77) = f2_0. }
+    Else { Have: shift_sint32(a, v) = f2_0. }
   }
   Else {
     If 4 <= v
-    Then { Have: f2_0 = global(L_i_77). }
-    Else { Have: f2_0 = shift_sint32(a, v). }
+    Then { Have: global(L_i_77) = f2_0. }
+    Else { Have: shift_sint32(a, v) = f2_0. }
   }
 }
-Prove: f2_0 = a.
+Prove: a = f2_0.
 
 ------------------------------------------------------------
 
@@ -93,24 +99,26 @@ Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = Mint_0[a_1]).
+  When: (x != 0) /\ (Mint_0[a_1] = 0).
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_77)] = 0.
   If (4 * v) <= 15
   Then {
     (* Else *)
-    Have: 0 = Mint_0[shift_sint32(a, v)].
+    Have: Mint_0[shift_sint32(a, v)] = 0.
     If 4 <= v
-    Then { Have: f2_0 = global(L_i_77). }
-    Else { Have: f2_0 = shift_sint32(a, v). }
+    Then { Have: global(L_i_77) = f2_0. }
+    Else { Have: shift_sint32(a, v) = f2_0. }
   }
   Else {
     If 4 <= v
-    Then { Have: f2_0 = global(L_i_77). }
-    Else { Have: f2_0 = shift_sint32(a, v). }
+    Then { Have: global(L_i_77) = f2_0. }
+    Else { Have: shift_sint32(a, v) = f2_0. }
   }
 }
-Prove: f2_0 = a_1.
+Prove: a_1 = f2_0.
 
 ------------------------------------------------------------
 
@@ -127,24 +135,26 @@ Let a = shift_A4_sint32(global(G_G_67), 0).
 Assume {
   Type: is_sint32(v) /\ is_sint32(Mint_0[shift_sint32(a, 1)]).
   (* Goal *)
-  When: 0 = Mint_0[shift_sint32(a, 0)].
+  When: Mint_0[shift_sint32(a, 0)] = 0.
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_82)] = 0.
   If (16 * v) <= 63
   Then {
     (* Else *)
-    Have: 0 = Mint_0[shift_sint32(a, v)].
+    Have: Mint_0[shift_sint32(a, v)] = 0.
     If 4 <= v
-    Then { Have: g = global(L_i_82). }
-    Else { Have: g = shift_sint32(a, v). }
+    Then { Have: global(L_i_82) = g. }
+    Else { Have: shift_sint32(a, v) = g. }
   }
   Else {
     If 4 <= v
-    Then { Have: g = global(L_i_82). }
-    Else { Have: g = shift_sint32(a, v). }
+    Then { Have: global(L_i_82) = g. }
+    Else { Have: shift_sint32(a, v) = g. }
   }
 }
-Prove: g = a.
+Prove: a = g.
 
 ------------------------------------------------------------
 
@@ -155,24 +165,26 @@ Let a_1 = shift_sint32(a, 1).
 Assume {
   Type: is_sint32(v) /\ is_sint32(x).
   (* Goal *)
-  When: (0 != x) /\ (0 = Mint_0[a_1]).
+  When: (x != 0) /\ (Mint_0[a_1] = 0).
   (* Heap *)
   Have: linked(Malloc_0).
+  (* Initializer *)
+  Init: Mint_0[global(L_i_82)] = 0.
   If (16 * v) <= 63
   Then {
     (* Else *)
-    Have: 0 = Mint_0[shift_sint32(a, v)].
+    Have: Mint_0[shift_sint32(a, v)] = 0.
     If 4 <= v
-    Then { Have: g = global(L_i_82). }
-    Else { Have: g = shift_sint32(a, v). }
+    Then { Have: global(L_i_82) = g. }
+    Else { Have: shift_sint32(a, v) = g. }
   }
   Else {
     If 4 <= v
-    Then { Have: g = global(L_i_82). }
-    Else { Have: g = shift_sint32(a, v). }
+    Then { Have: global(L_i_82) = g. }
+    Else { Have: shift_sint32(a, v) = g. }
   }
 }
-Prove: g = a_1.
+Prove: a_1 = g.
 
 ------------------------------------------------------------
 

@@ -25,13 +25,13 @@ tests/pdg/simple_call.c:31:[value] warning: signed overflow. assert x1 + x2 ≤ 
  {n2}: VarDecl : x1
  {n3}: VarDecl : x2
  {n4}: VarDecl : __retres
- {n5}: Call7-InCtrl : mix_G1_G2();
+ {n5}: Call6-InCtrl : mix_G1_G2();
    -[-c-]-> 1
- {n6}: Call7-Out(G1) : mix_G1_G2();
+ {n6}: Call6-Out(G1) : mix_G1_G2();
    -[-c-]-> 1
    -[-c-]-> 5
    -[--d]-> 14
- {n7}: Call7-Out(G2) : mix_G1_G2();
+ {n7}: Call6-Out(G2) : mix_G1_G2();
    -[-c-]-> 1
    -[-c-]-> 5
    -[--d]-> 13

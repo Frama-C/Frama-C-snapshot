@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,35 +22,38 @@
 
 #ifndef FC_ARPA_INET
 #define FC_ARPA_INET
+#include "../features.h"
+__PUSH_FC_STDLIB
 #include "../inttypes.h"
 #include "../netinet/in.h"
-#include "../features.h"
+#include "__fc_string_axiomatic.h"
 
 __BEGIN_DECLS
 
 /*@ assigns \result \from arg ; */
-uint32_t htonl(uint32_t arg);
+extern uint32_t htonl(uint32_t arg);
 /*@ assigns \result \from arg ; */
-uint16_t htons(uint16_t arg);
+extern uint16_t htons(uint16_t arg);
 /*@ assigns \result \from arg ; */
-uint32_t ntohl(uint32_t arg);
+extern uint32_t ntohl(uint32_t arg);
 /*@ assigns \result \from arg ; */
-uint16_t ntohs(uint16_t arg);
+extern uint16_t ntohs(uint16_t arg);
 
+/*@ requires valid_read_string(arg);
+    assigns \result \from indirect:arg[0..]; */
+extern in_addr_t    inet_addr(const char * arg);
 /*@ assigns \result \from arg ; */
-in_addr_t    inet_addr(const char * arg);
-/*@ assigns \result \from arg ; */
-char        *inet_ntoa(struct in_addr arg);
+extern char        *inet_ntoa(struct in_addr arg);
 
 /*@ assigns \result \from dst,af,((char*)src)[0..];
   assigns dst[0..size-1] \from af,((char*)src)[0..] ; */
-const char  *inet_ntop(int af, const void *src, char *dst,
+extern const char  *inet_ntop(int af, const void *src, char *dst,
                  socklen_t size);
 
 /*@ assigns \result \from af,src[..];
   assigns ((char*)dst)[0..] \from af,src[0..] ; */
-int          inet_pton(int af, const char *src, void *dst);
+extern int          inet_pton(int af, const char *src, void *dst);
 
 __END_DECLS
-
+__POP_FC_STDLIB
 #endif

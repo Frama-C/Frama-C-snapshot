@@ -6,8 +6,7 @@
 int main(void)
 {
   int __retres;
-  int x;
-  x = 42;
+  int x = 42;
   /*@ assert foo(x) ≥ x; */ ;
   __retres = 0;
   return __retres;

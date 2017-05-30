@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,9 +54,9 @@ let update_max_slevel_encountered x = match x, !max_slevel_encountered with
   | Some a, b -> max_slevel_encountered := Integer.max a b
 ;;
 
+type path_bound = Integer.t option  (* None = infinite *)
+
 module Specific(KF:sig val kf: Kernel_function.t end) = struct
-
-
 
   let join2_stmts stmt1 stmt2 =
     (* Cil.dummyStmt is bottom for statements. *)
@@ -69,12 +69,9 @@ module Specific(KF:sig val kf: Kernel_function.t end) = struct
     else assert false
   ;;
 
-  type path_bound = Integer.t option  (* None = infinite *)
   let add_path_bounds a b = match (a,b) with
     | None, _ | _, None -> None
-    | Some a, Some b ->
-      if Options.NoBranches.get () then Some Integer.one
-      else Some (Integer.add a b)
+    | Some a, Some b -> Some (Integer.add a b)
 
   type abstract_value = path_bound * Cil_types.stmt
 
@@ -104,19 +101,8 @@ module Specific(KF:sig val kf: Kernel_function.t end) = struct
         try
           let in_loop_i = Integer.to_int in_loop in
           match in_loop_i with
-          | 1 ->
-            if Options.NoBranches.get () then begin
-              Needs_Merge_After_Loop.replace KF.kf true;
-              Some(Integer.max entry (Integer.of_int max_iteration))
-            end
-            else
-              Some(Integer.mul entry (Integer.of_int max_iteration))
+          | 1 -> Some(Integer.mul entry (Integer.of_int max_iteration))
           | _ ->
-            if Options.NoBranches.get() then
-              (* We only want the loop iteration count, so just multiply bounds *)
-              Some (Integer.mul (Integer.of_int in_loop_i)
-                      (Integer.of_int max_iteration))
-            else
             (* Ignoring entry, we have 1 state at the loop entry, then q,
                then q^2, etc.
                Sum i=0 to n q^n = (q^{n+1} - 1)/(q - 1)). *)
@@ -162,11 +148,94 @@ module Specific(KF:sig val kf: Kernel_function.t end) = struct
 
 end
 
-let analyze kf =
+(* does not compute branches, and sets -merge-after-loop for all functions *)
+module SpecificNoBranches(KF:sig val kf: Kernel_function.t end) = struct
+
+  type abstract_value = path_bound * Cil_types.stmt
+
+  let join2_stmts stmt1 stmt2 =
+    (* Cil.dummyStmt is bottom for statements. *)
+    if Cil_datatype.Stmt.equal stmt1 stmt2 then stmt1
+    else if Cil_datatype.Stmt.equal stmt1 Cil.dummyStmt then stmt2
+    else if Cil_datatype.Stmt.equal stmt2 Cil.dummyStmt then stmt1
+    else assert false
+
+  let join2 (a1,s1) (a2,s2) =
+    let path_bounds =
+      match a1, a2 with
+      | None, None -> None
+      | Some a, None | None, Some a -> Some a
+      | Some a1, Some a2 -> Some (Integer.max a1 a2)
+    in
+    path_bounds, join2_stmts s1 s2;;
+
+  let join = function
+    | [] -> (Some Integer.zero, Cil.dummyStmt)
+    | [x] -> x
+    | a::b -> List.fold_left join2 a b
+  ;;
+
+  let mu f (entry,loop) =
+    let max_iteration =
+      try Some (Loop_analysis.Loop_Max_Iteration.find loop)
+      with Not_found -> Functions_With_Unknown_Loop.replace KF.kf true; None
+    in
+    let (in_loop,_) = f (Some Integer.one, loop) in
+    let result =
+      match (max_iteration, in_loop, entry) with
+      (* If merge_after_loop, set to 1 after the loop. *)
+      | None, _, _ | _, None, _ | _, _, None -> Some Integer.one
+      | Some max_iteration, Some in_loop, Some entry ->
+        try
+          let in_loop_i = Integer.to_int in_loop in
+          match in_loop_i with
+          | 1 -> Some Integer.(max entry (of_int max_iteration))
+          | _ ->
+            (* We only want the loop iteration count, so just multiply bounds;
+               add 1 to avoid issues with slevel counting of first/last
+               iterations in nested loops *)
+            Some Integer.(pred (mul (succ (of_int in_loop_i))
+                                  (of_int max_iteration)))
+        with
+        | Invalid_argument _ (* Possible exponent too big *)
+        | Failure _          (* Integer too big *)
+          -> update_max_slevel_encountered
+               (Some (Integer.mul entry (Integer.mul in_loop
+                                           (Integer.of_int max_iteration))));
+          Some Integer.one
+    in
+    Needs_Merge_After_Loop.replace KF.kf true;
+    (result, loop)
+
+  let kf = KF.kf
+
+  let compile_node stmt (num,stmt2) =
+    let stmt = join2_stmts stmt stmt2 in
+    let map_on_all_succs (value) =
+      List.map (fun x -> Region_analysis.Edge(stmt, x), (value, x))
+        stmt.Cil_types.succs
+    in
+    map_on_all_succs num
+
+end
+
+module type M' = Region_analysis_stmt.M with
+  type abstract_value = path_bound * Cil_types.stmt
+
+(* [nobranches] defines whether this function will compute a full slevel
+   analysis (by default), or estimate loop bounds without branching
+   analysis (if [nobranches = true]). *)
+let analyze ?(nobranches=false) kf =
   max_slevel_encountered := Integer.zero;
   Options.debug "slevel analysis of function %a" Kernel_function.pretty kf;
-  let module Specific = Specific(struct let kf = kf end) in
-  let module Node = Region_analysis_stmt.MakeNode(Specific) in
+  let m =
+    if nobranches then
+      (module SpecificNoBranches(struct let kf = kf end) : M')
+    else
+      (module Specific(struct let kf = kf end) : M')
+  in
+  let module M = (val m : M') in
+  let module Node = Region_analysis_stmt.MakeNode(M) in
   let module Result = Region_analysis.Make(Node) in
   let after = Result.after in
   let dict = after (Some Integer.one, (Kernel_function.find_first_stmt kf)) in

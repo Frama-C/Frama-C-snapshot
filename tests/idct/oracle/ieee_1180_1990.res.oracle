@@ -6,11 +6,11 @@ tests/idct/ieee_1180_1990.c:101:[kernel] warning: Floating-point constant 3.1415
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
-  __FC_errno ∈ [--..--]
+  __fc_errno ∈ [--..--]
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   __fc_fopen[0..511] ∈ {0}
-  __p_fc_fopen ∈ {{ &__fc_fopen[0] }}
+  __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
   M1[0..7][0..7] ∈ {0}
   randx ∈ {1}
   z ∈ {1.9999999990686774*2^30}
@@ -60,13 +60,16 @@ tests/idct/idct.c:185:[value] warning: accessing uninitialized left-value. asser
 tests/idct/ieee_1180_1990.c:189:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:190:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:191:[value] warning: accessing uninitialized left-value. assert \initialized(&m2[i][j]);
-[value] computing for function printf <- main.
+[value] computing for function printf_va_1 <- main.
         Called from tests/idct/ieee_1180_1990.c:195.
-[value] using specification for function printf
-[value] Done for function printf
-[value] computing for function printf <- main.
+[value] using specification for function printf_va_1
+tests/idct/ieee_1180_1990.c:195:[value] function printf_va_1: precondition got status valid.
+[value] Done for function printf_va_1
+[value] computing for function printf_va_2 <- main.
         Called from tests/idct/ieee_1180_1990.c:196.
-[value] Done for function printf
+[value] using specification for function printf_va_2
+tests/idct/ieee_1180_1990.c:196:[value] function printf_va_2: precondition got status valid.
+[value] Done for function printf_va_2
 tests/idct/ieee_1180_1990.c:202:[value] entering loop for the first time
 [value] computing for function IEEE_1180_1990_mkbk <- main.
         Called from tests/idct/ieee_1180_1990.c:211.
@@ -584,8 +587,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [from] Computing for function idct
 [from] Done for function idct
 [from] Computing for function main
-[from] Computing for function printf <-main
-[from] Done for function printf
+[from] Computing for function printf_va_1 <-main
+[from] Done for function printf_va_1
+[from] Computing for function printf_va_2 <-main
+[from] Done for function printf_va_2
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
@@ -597,11 +602,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   randx FROM randx (and SELF)
 [from] Function cos:
   \result FROM x
-[from] Function printf:
-  S___fc_stdout[0]
-               FROM "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503];
-                     "output.\n"[bits 0 to 71] (and SELF)
-  \result FROM ANYTHING(origin:Unknown)
+[from] Function printf_va_1:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0];
+                    "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503] (and SELF)
+  \result FROM S___fc_stdout[0];
+               "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503]
+[from] Function printf_va_2:
+  S___fc_stdout[0].__fc_FILE_data
+               FROM S___fc_stdout[0]; "output.\n"[bits 0 to 71] (and SELF)
+  \result FROM S___fc_stdout[0]; "output.\n"[bits 0 to 71]
 [from] Function sqrt:
   \result FROM x
 [from] Function IEEE_1180_1990_dctf:
@@ -632,8 +642,9 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
   init_1 FROM init_1 (and SELF)
   mc1[0..7][0..7] FROM init_1 (and SELF)
   mc2[0..7][0..7] FROM init_1 (and SELF)
-  S___fc_stdout[0]
+  S___fc_stdout[0].__fc_FILE_data
                FROM M1[0..7][0..7]; init_1; mc1[0..7][0..7]; mc2[0..7][0..7];
+                    S___fc_stdout[0];
                     "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503];
                      "output.\n"[bits 0 to 71] (and SELF)
   \result FROM M1[0..7][0..7]; randx; z; mcos[0..7][0..7]; init;
@@ -669,10 +680,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
           succ; omse; ome; err; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; 
           tmp_6; M1[0..7][0..7]; randx; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
           init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; __retres;
-          S___fc_stdout[0]
+          S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
           M1[0..7][0..7]; randx; z; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
-          init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7];
+          init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; S___fc_stdout[0];
           "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503];
            "output.\n"[bits 0 to 71]
 [report] Computing properties status...
@@ -833,7 +844,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'tmpfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 75)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 76)
             ensures
             \result ≡ \null ∨
             (\valid(\result) ∧ \fresh{Old, Here}(\result,sizeof(FILE)))
@@ -849,13 +860,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'tmpnam'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 79)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 80)
             assigns \result, *(s + (..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 79)
+[ Extern  ] Froms (file share/libc/stdio.h, line 80)
             assigns \result \from *(s + (..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 80)
+[ Extern  ] Froms (file share/libc/stdio.h, line 81)
             assigns *(s + (..)) \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -866,13 +877,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fclose'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 88)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 89)
             ensures \result ≡ 0 ∨ \result ≡ -1
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 87)
+[ Extern  ] Froms (file share/libc/stdio.h, line 88)
             assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -883,13 +894,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fflush'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 96)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 97)
             ensures \result ≡ 0 ∨ \result ≡ -1
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 95)
+[ Extern  ] Froms (file share/libc/stdio.h, line 96)
             assigns \result \from stream, stream->__fc_FILE_id;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -900,16 +911,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 107)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 108)
             ensures
             \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512 - 1])
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 105)
+[ Extern  ] Froms (file share/libc/stdio.h, line 106)
             assigns \result
-              \from *(filename + (..)), *(mode + (..)), __p_fc_fopen;
+              \from *(filename + (..)), *(mode + (..)), __fc_p_fopen;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -919,7 +930,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fdopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 114)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 115)
             ensures
             \result ≡ \null ∨
             (\valid(\result) ∧ \fresh{Old, Here}(\result,sizeof(FILE)))
@@ -927,7 +938,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 113)
+[ Extern  ] Froms (file share/libc/stdio.h, line 114)
             assigns \result \from fildes, *(mode + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -938,10 +949,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'freopen'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 120)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 121)
             ensures \result ≡ \null ∨ \result ≡ \old(stream)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 119)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 120)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -952,10 +963,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'setbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 125)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 126)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 125)
+[ Extern  ] Froms (file share/libc/stdio.h, line 126)
             assigns *stream \from buf;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -966,86 +977,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'setvbuf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 129)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 130)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 129)
+[ Extern  ] Froms (file share/libc/stdio.h, line 130)
             assigns *stream \from buf, mode, size;
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'fprintf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 134)
-            assigns *stream;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 134)
-            assigns *stream \from stream->__fc_FILE_id;
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'fscanf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 139)
-            assigns *stream;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 139)
-            assigns *stream \from stream->__fc_FILE_id;
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'printf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 145)
-            assigns *__fc_stdout;
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 145)
-            assigns *__fc_stdout \from *(format + (..));
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'scanf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 150)
-            assigns *__fc_stdin;
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'snprintf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 155)
-            assigns *(s + (0 .. n - 1));
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'sprintf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 161)
-            assigns *(s + (0 ..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1055,10 +991,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vfprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 171)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 150)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 171)
+[ Extern  ] Froms (file share/libc/stdio.h, line 150)
             assigns *stream \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1069,10 +1005,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vfscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 176)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 155)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 176)
+[ Extern  ] Froms (file share/libc/stdio.h, line 155)
             assigns *stream \from *(format + (..)), *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1083,10 +1019,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 182)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 161)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 182)
+[ Extern  ] Froms (file share/libc/stdio.h, line 161)
             assigns *__fc_stdout \from arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1097,10 +1033,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 186)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 165)
             assigns *__fc_stdin;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 186)
+[ Extern  ] Froms (file share/libc/stdio.h, line 165)
             assigns *__fc_stdin \from *(format + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1111,10 +1047,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vsnprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 191)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 170)
             assigns *(s + (0 .. n - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 191)
+[ Extern  ] Froms (file share/libc/stdio.h, line 170)
             assigns *(s + (0 .. n - 1)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1125,10 +1061,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'vsprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 197)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 176)
             assigns *(s + (0 ..));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 197)
+[ Extern  ] Froms (file share/libc/stdio.h, line 176)
             assigns *(s + (0 ..)) \from *(format + (..)), arg;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1139,7 +1075,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 208)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 187)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1150,19 +1086,19 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 214)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 193)
             ensures \result ≡ \null ∨ \result ≡ \old(s)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 212)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 191)
             assigns *(s + (0 .. n - 1)), *stream, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 212)
+[ Extern  ] Froms (file share/libc/stdio.h, line 191)
             assigns *(s + (0 .. n - 1)) \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 212)
+[ Extern  ] Froms (file share/libc/stdio.h, line 191)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 213)
+[ Extern  ] Froms (file share/libc/stdio.h, line 192)
             assigns \result \from s, n, *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1173,7 +1109,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fputc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 219)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 198)
             assigns *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1184,10 +1120,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fputs'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 222)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 201)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 222)
+[ Extern  ] Froms (file share/libc/stdio.h, line 201)
             assigns *stream \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1198,13 +1134,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'getc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 226)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 205)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 226)
+[ Extern  ] Froms (file share/libc/stdio.h, line 205)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 226)
+[ Extern  ] Froms (file share/libc/stdio.h, line 205)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1218,7 +1154,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 229)
+[ Extern  ] Froms (file share/libc/stdio.h, line 208)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1229,16 +1165,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'gets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 234)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 213)
             ensures \result ≡ \old(s) ∨ \result ≡ \null
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 232)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 211)
             assigns *(s + (..)), \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 232)
+[ Extern  ] Froms (file share/libc/stdio.h, line 211)
             assigns *(s + (..)) \from *__fc_stdin;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 233)
+[ Extern  ] Froms (file share/libc/stdio.h, line 212)
             assigns \result \from s, __fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1249,10 +1185,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 238)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 217)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 238)
+[ Extern  ] Froms (file share/libc/stdio.h, line 217)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1263,10 +1199,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putchar'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 241)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 220)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 241)
+[ Extern  ] Froms (file share/libc/stdio.h, line 220)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1277,10 +1213,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'puts'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 244)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 223)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 244)
+[ Extern  ] Froms (file share/libc/stdio.h, line 223)
             assigns *__fc_stdout \from *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1291,10 +1227,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ungetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 247)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 226)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 247)
+[ Extern  ] Froms (file share/libc/stdio.h, line 226)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1305,21 +1241,21 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fread'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 255)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 234)
             ensures \result ≤ \old(nmemb)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 256)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 235)
             ensures
             \initialized((char *)\old(ptr) + (0 .. \result * \old(size) - 1))
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 253)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 232)
             assigns *((char *)ptr + (0 .. nmemb * size - 1)), \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 253)
+[ Extern  ] Froms (file share/libc/stdio.h, line 232)
             assigns *((char *)ptr + (0 .. nmemb * size - 1))
               \from size, nmemb, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 254)
+[ Extern  ] Froms (file share/libc/stdio.h, line 233)
             assigns \result \from size, *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1330,16 +1266,16 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fwrite'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 267)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 246)
             ensures \result ≤ \old(nmemb)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 266)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 245)
             assigns *stream, \result;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+[ Extern  ] Froms (file share/libc/stdio.h, line 245)
             assigns *stream \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 266)
+[ Extern  ] Froms (file share/libc/stdio.h, line 245)
             assigns \result \from *((char *)ptr + (0 .. nmemb * size - 1));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1350,10 +1286,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fgetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 274)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 253)
             assigns *pos;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 274)
+[ Extern  ] Froms (file share/libc/stdio.h, line 253)
             assigns *pos \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1364,11 +1300,22 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fseek'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 278)
-            assigns *stream, __FC_errno;
+[ Extern  ] Assigns (file share/libc/stdio.h, line 260)
+            assigns *stream, \result, __fc_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 278)
-            assigns *stream \from offset, whence;
+[ Extern  ] Froms (file share/libc/stdio.h, line 260)
+            assigns *stream
+              \from *stream, (indirect: offset), (indirect: whence);
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 261)
+            assigns \result
+              \from (indirect: *stream), (indirect: offset),
+                    (indirect: whence);
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 261)
+            assigns __fc_errno
+              \from (indirect: *stream), (indirect: offset),
+                    (indirect: whence);
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1378,10 +1325,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'fsetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 282)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 265)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 282)
+[ Extern  ] Froms (file share/libc/stdio.h, line 265)
             assigns *stream \from *pos;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1392,14 +1339,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ftell'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 285)
-            assigns \result, __FC_errno;
+[ Extern  ] Assigns (file share/libc/stdio.h, line 268)
+            assigns \result, __fc_errno;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 285)
+[ Extern  ] Froms (file share/libc/stdio.h, line 268)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 285)
-            assigns __FC_errno \from *stream;
+[ Extern  ] Froms (file share/libc/stdio.h, line 268)
+            assigns __fc_errno \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1409,10 +1356,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'rewind'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 288)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 271)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 288)
+[ Extern  ] Froms (file share/libc/stdio.h, line 271)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1423,10 +1370,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'clearerr'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 291)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 274)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 291)
+[ Extern  ] Froms (file share/libc/stdio.h, line 274)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1440,7 +1387,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 294)
+[ Extern  ] Froms (file share/libc/stdio.h, line 277)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1454,7 +1401,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 297)
+[ Extern  ] Froms (file share/libc/stdio.h, line 280)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1465,10 +1412,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'flockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 300)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 283)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 300)
+[ Extern  ] Froms (file share/libc/stdio.h, line 283)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1479,10 +1426,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'funlockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 303)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 286)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 303)
+[ Extern  ] Froms (file share/libc/stdio.h, line 286)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1493,13 +1440,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'ftrylockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 306)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 289)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 306)
+[ Extern  ] Froms (file share/libc/stdio.h, line 289)
             assigns \result \from \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 306)
+[ Extern  ] Froms (file share/libc/stdio.h, line 289)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1513,7 +1460,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 309)
+[ Extern  ] Froms (file share/libc/stdio.h, line 292)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1524,11 +1471,11 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'perror'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 312)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 295)
             assigns __fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 312)
-            assigns __fc_stdout \from __FC_errno, *(s + (..));
+[ Extern  ] Froms (file share/libc/stdio.h, line 295)
+            assigns __fc_stdout \from __fc_errno, *(s + (..));
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             default behavior
@@ -1538,13 +1485,13 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'getc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 315)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 298)
             assigns \result, *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 315)
+[ Extern  ] Froms (file share/libc/stdio.h, line 298)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 315)
+[ Extern  ] Froms (file share/libc/stdio.h, line 298)
             assigns *stream \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1558,7 +1505,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 317)
+[ Extern  ] Froms (file share/libc/stdio.h, line 300)
             assigns \result \from *__fc_stdin;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1569,10 +1516,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putc_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 319)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 302)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 319)
+[ Extern  ] Froms (file share/libc/stdio.h, line 302)
             assigns *stream \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1583,10 +1530,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'putchar_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 321)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 304)
             assigns *__fc_stdout;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 321)
+[ Extern  ] Froms (file share/libc/stdio.h, line 304)
             assigns *__fc_stdout \from c;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1597,10 +1544,10 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'clearerr_unlocked'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 324)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 307)
             assigns *stream;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 324)
+[ Extern  ] Froms (file share/libc/stdio.h, line 307)
             assigns *stream \from \nothing;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1614,7 +1561,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 326)
+[ Extern  ] Froms (file share/libc/stdio.h, line 309)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1628,7 +1575,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 328)
+[ Extern  ] Froms (file share/libc/stdio.h, line 311)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1642,7 +1589,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 330)
+[ Extern  ] Froms (file share/libc/stdio.h, line 313)
             assigns \result \from *stream;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1653,14 +1600,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 67)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 68)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 71)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 72)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 70)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 71)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1676,14 +1623,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acosf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 80)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 81)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 84)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 85)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 83)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 84)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1699,14 +1646,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acosl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 93)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 94)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 97)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 98)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 96)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 97)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1722,14 +1669,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asin'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 106)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 107)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 110)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 111)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 109)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 110)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1745,14 +1692,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asinf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 119)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 120)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 123)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 124)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 122)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 123)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1768,14 +1715,14 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'asinl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 132)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 133)
             ensures \is_finite(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 136)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 137)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 135)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 136)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'normal' nothing
             assigns \nothing;
@@ -1794,7 +1741,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 145)
+[ Extern  ] Froms (file share/libc/math.h, line 146)
             assigns \result \from y, x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1808,7 +1755,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 150)
+[ Extern  ] Froms (file share/libc/math.h, line 151)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1822,7 +1769,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 155)
+[ Extern  ] Froms (file share/libc/math.h, line 156)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1833,17 +1780,17 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acosh'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 168)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 169)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 172)
+[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 173)
             ensures \is_plus_infinity(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 176)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 177)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 175)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 176)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
             assigns \nothing;
@@ -1865,17 +1812,17 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acoshf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 185)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 186)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 189)
+[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 190)
             ensures \is_plus_infinity(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 193)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 194)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 192)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 193)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
             assigns \nothing;
@@ -1897,17 +1844,17 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'acoshl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 202)
+[ Extern  ] Post-condition for 'normal' (file share/libc/math.h, line 203)
             ensures \is_finite(\result) ∧ \result ≥ 0
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 206)
+[ Extern  ] Post-condition for 'infinite' (file share/libc/math.h, line 207)
             ensures \is_plus_infinity(\result)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 210)
-            ensures __FC_errno ≡ 1
+[ Extern  ] Post-condition for 'edom' (file share/libc/math.h, line 211)
+            ensures __fc_errno ≡ 1
             Unverifiable but considered Valid.
-[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 209)
-            assigns __FC_errno;
+[ Extern  ] Assigns for 'edom' (file share/libc/math.h, line 210)
+            assigns __fc_errno;
             Unverifiable but considered Valid.
 [ Extern  ] Assigns for 'infinite' nothing
             assigns \nothing;
@@ -1932,7 +1879,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 235)
+[ Extern  ] Froms (file share/libc/math.h, line 236)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1946,7 +1893,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 238)
+[ Extern  ] Froms (file share/libc/math.h, line 239)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1960,7 +1907,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 262)
+[ Extern  ] Froms (file share/libc/math.h, line 263)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1974,7 +1921,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 265)
+[ Extern  ] Froms (file share/libc/math.h, line 266)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -1988,7 +1935,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 269)
+[ Extern  ] Froms (file share/libc/math.h, line 270)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2002,7 +1949,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 272)
+[ Extern  ] Froms (file share/libc/math.h, line 273)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2016,7 +1963,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 312)
+[ Extern  ] Froms (file share/libc/math.h, line 313)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2030,7 +1977,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 315)
+[ Extern  ] Froms (file share/libc/math.h, line 316)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2044,7 +1991,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 319)
+[ Extern  ] Froms (file share/libc/math.h, line 320)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2058,7 +2005,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 322)
+[ Extern  ] Froms (file share/libc/math.h, line 323)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2072,7 +2019,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 342)
+[ Extern  ] Froms (file share/libc/math.h, line 343)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2086,7 +2033,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 345)
+[ Extern  ] Froms (file share/libc/math.h, line 346)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2100,7 +2047,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 350)
+[ Extern  ] Froms (file share/libc/math.h, line 351)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2114,7 +2061,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 353)
+[ Extern  ] Froms (file share/libc/math.h, line 354)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2128,7 +2075,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 374)
+[ Extern  ] Froms (file share/libc/math.h, line 375)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2142,7 +2089,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 377)
+[ Extern  ] Froms (file share/libc/math.h, line 378)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2156,7 +2103,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 390)
+[ Extern  ] Froms (file share/libc/math.h, line 391)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2170,7 +2117,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 393)
+[ Extern  ] Froms (file share/libc/math.h, line 394)
             assigns \result \from x;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2184,7 +2131,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [ Extern  ] Assigns nothing
             assigns \nothing;
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/math.h, line 398)
+[ Extern  ] Froms (file share/libc/math.h, line 399)
             assigns \result \from x, y;
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
@@ -2195,7 +2142,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nan'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 418)
+[ Extern  ] Post-condition (file share/libc/math.h, line 419)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2209,7 +2156,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 425)
+[ Extern  ] Post-condition (file share/libc/math.h, line 426)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2223,7 +2170,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 --- Properties of Function 'nanl'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/math.h, line 432)
+[ Extern  ] Post-condition (file share/libc/math.h, line 433)
             ensures \is_NaN(\result)
             Unverifiable but considered Valid.
 [ Extern  ] Assigns nothing
@@ -2484,13 +2431,75 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
             assert Value: initialisation: \initialized(&res[i].pme[j][k]);
             By RedundantAlarms, with pending:
              - Assertion 'Value,initialisation' (file tests/idct/ieee_1180_1990.c, line 368)
+[  Valid  ] Instance of 'Pre-condition (file tests/idct/ieee_1180_1990.c, line 195)' at call 'printf_va_1' (file tests/idct/ieee_1180_1990.c, line 195)
+
+            status of 'requires
+            valid_read_string(format)' of printf_va_1 at stmt 238
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/idct/ieee_1180_1990.c, line 196)' at call 'printf_va_2' (file tests/idct/ieee_1180_1990.c, line 196)
+
+            status of 'requires
+            valid_read_string(format)' of printf_va_2 at stmt 239
+            by Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'printf_va_1'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/idct/ieee_1180_1990.c, line 195)
+            requires valid_read_string(format)
+            by Call Preconditions.
+[ Extern  ] Assigns (file tests/idct/ieee_1180_1990.c, line 195)
+            assigns \result, __fc_stdout->__fc_FILE_data;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/idct/ieee_1180_1990.c, line 195)
+            assigns __fc_stdout->__fc_FILE_data
+              \from (indirect: __fc_stdout->__fc_FILE_id),
+                    __fc_stdout->__fc_FILE_data,
+                    (indirect: *(format + (0 ..)));
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/idct/ieee_1180_1990.c, line 195)
+            assigns \result
+              \from (indirect: __fc_stdout->__fc_FILE_id),
+                    __fc_stdout->__fc_FILE_data,
+                    (indirect: *(format + (0 ..)));
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'printf_va_2'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/idct/ieee_1180_1990.c, line 196)
+            requires valid_read_string(format)
+            by Call Preconditions.
+[ Extern  ] Assigns (file tests/idct/ieee_1180_1990.c, line 196)
+            assigns \result, __fc_stdout->__fc_FILE_data;
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/idct/ieee_1180_1990.c, line 196)
+            assigns __fc_stdout->__fc_FILE_data
+              \from (indirect: __fc_stdout->__fc_FILE_id),
+                    __fc_stdout->__fc_FILE_data,
+                    (indirect: *(format + (0 ..)));
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file tests/idct/ieee_1180_1990.c, line 196)
+            assigns \result
+              \from (indirect: __fc_stdout->__fc_FILE_id),
+                    __fc_stdout->__fc_FILE_data,
+                    (indirect: *(format + (0 ..)));
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            default behavior
+            by Frama-C kernel.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
    113 Completely validated
     16 Locally validated
-   250 Considered valid
+   249 Considered valid
     56 To be validated
-   435 Total
+   434 Total
 --------------------------------------------------------------------------------

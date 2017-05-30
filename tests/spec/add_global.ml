@@ -15,8 +15,8 @@ object(self)
           ("MyAxiomatic",
            [ Dlemma(
                  "myaxiom", true, [], [],
-                 Logic_const.ptrue, Cil_datatype.Location.unknown)],
-          Cil_datatype.Location.unknown)
+                 Logic_const.ptrue, [], Cil_datatype.Location.unknown)],
+           [], Cil_datatype.Location.unknown)
       in
       Queue.add (fun () -> Annotations.add_global emitter ax)
         self#get_filling_actions;

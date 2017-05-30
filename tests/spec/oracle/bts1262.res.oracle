@@ -4,8 +4,7 @@
 int main(void)
 {
   int __retres;
-  char *s;
-  s = (char *)"\\\\.\\";
+  char *s = (char *)"\\\\.\\";
   /*@ assert *(s + 0) ≡ '\\'; */ ;
   *(s + 2) = (char)'\\';
   __retres = 0;

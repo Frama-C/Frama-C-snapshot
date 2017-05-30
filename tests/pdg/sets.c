@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/pdg/sets.ml -lib-entry -main f -pdg -inout -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -val-show-progress -load-script tests/pdg/sets.ml -lib-entry -main f -pdg -inout -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 

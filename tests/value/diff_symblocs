@@ -1,11 +1,11 @@
 diff tests/value/oracle/alias.0.res.oracle tests/value/oracle_symblocs/alias.0.res.oracle
-108,109c108,109
+109,110c109,110
 <   t ∈ {1; 2; 4}
 <   u ∈ {2; 3; 4; 5}
 ---
 >   t ∈ {4}
 >   u ∈ {5}
-115c115
+116c116
 <   t2 ∈ {0; 3; 6}
 ---
 >   t2 ∈ {6}
@@ -24,12 +24,6 @@ diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_symblocs/alias.6.r
 <   x ∈ {0; 4; 33}
 ---
 >   x ∈ {33}
-Only in tests/value/oracle: behavior_statuses.0.err.oracle
-Only in tests/value/oracle: behavior_statuses.0.res.oracle
-Only in tests/value/oracle: behavior_statuses.1.err.oracle
-Only in tests/value/oracle: behavior_statuses.1.res.oracle
-Only in tests/value/oracle_symblocs: behavior_statuses.err.oracle
-Only in tests/value/oracle_symblocs: behavior_statuses.res.oracle
 diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_symblocs/bitwise_pointer.res.oracle
 55c55
 <   x ∈ [0..9]
@@ -66,8 +60,8 @@ diff tests/value/oracle/leaf.res.oracle tests/value/oracle_symblocs/leaf.res.ora
 ---
 > [value] Called Frama_C_show_each_F({5})
 diff tests/value/oracle/library.res.oracle tests/value/oracle_symblocs/library.res.oracle
-95d94
-< tests/value/library.i:31:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
+101d100
+< tests/value/library.i:44:[value] warning: non-finite float value. assert \is_finite((float)(*pf + *pf));
 diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_natural.res.oracle
 54a55,56
 > tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
@@ -87,10 +81,10 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_n
 > tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
 73a83
 > tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
-131a142
-> tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
-180,187d190
+97,106d106
+< tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
 < tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+< tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
 < tests/value/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
@@ -98,14 +92,13 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_n
 < tests/value/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
 < tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
-200,201d202
-< tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
-< tests/value/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+141a142
+> tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
 diff tests/value/oracle/plevel.res.oracle tests/value/oracle_symblocs/plevel.res.oracle
-11a12
-> tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
-15d15
-< tests/value/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+12d11
+< [value] Recording results for main
+13a13
+> [value] Recording results for main
 diff tests/value/oracle/ptr_relation.0.res.oracle tests/value/oracle_symblocs/ptr_relation.0.res.oracle
 24c24
 <   i ∈ {0; 77; 333}
@@ -121,31 +114,31 @@ diff tests/value/oracle/redundant_alarms.res.oracle tests/value/oracle_symblocs/
 29,30d24
 < tests/value/redundant_alarms.c:32:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
 < tests/value/redundant_alarms.c:33:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
-42,45d35
+49,52d42
 < [scope:rm_asserts] removing 3 assertion(s)
 < tests/value/redundant_alarms.c:12:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(p);
 < tests/value/redundant_alarms.c:32:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[j]);
 < tests/value/redundant_alarms.c:33:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[i]);
-85d74
+91d80
 <   /*@ assert Value: initialisation: \initialized(p); */
-87d75
+93d81
 <   /*@ assert Value: initialisation: \initialized(p); */
-104d91
+110d97
 <   /*@ assert Value: initialisation: \initialized(&t[i]); */
-106d92
+112d98
 <   /*@ assert Value: initialisation: \initialized(&t[i]); */
-120d105
+125d110
 <     /*@ assert Value: initialisation: \initialized(&t[j]); */
-122d106
+127d111
 <     /*@ assert Value: initialisation: \initialized(&t[i]); */
-167d150
-<   int w;
-170,172d152
+179a164
+>   int z;
+182,184d166
 <   *p = 1;
-<   z = *p + 1;
-<   w = *p + 2;
+<   int z = *p + 1;
+<   int w = *p + 2;
 diff tests/value/oracle/relations2.res.oracle tests/value/oracle_symblocs/relations2.res.oracle
-123d122
+119d118
 < [value] Called Frama_C_show_each_NO2()
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_symblocs/struct2.res.oracle
 50a51
@@ -154,17 +147,17 @@ diff tests/value/oracle/struct2.res.oracle tests/value/oracle_symblocs/struct2.r
 < tests/value/struct2.i:82:[value] warning: accessing out of bounds index. assert 0 ≤ (int)(tab2[i] + j);
 76a77
 > tests/value/struct2.i:185:[value] assertion 'Value,index_bound' got final status valid.
-114,115c115
+115,116c116
 <   tab4[0] ∈ {0; 2}
 <       [1] ∈ {0}
 ---
 >   tab4[0..1] ∈ {0}
-118c118,119
+119c119,120
 <   tab6[0..1] ∈ {0; 2}
 ---
 >   tab6[0] ∈ {0}
 >       [1] ∈ {2}
-189c190
+190c191
 <                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
 ---
 >                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];
@@ -222,14 +215,25 @@ diff tests/value/oracle/symbolic_locs.res.oracle tests/value/oracle_symblocs/sym
 >                    Z: {[  ]}
 >                    I: {[  ]}
 >                    S: {[  ]}
-104a150,154
-> [value:d-symblocs] DUMPING SYMBLOCS STATE of file tests/value/symbolic_locs.i line 76
+109a155,159
+> [value:d-symblocs] DUMPING SYMBLOCS STATE of file tests/value/symbolic_locs.i line 98
+>                    V: {[  ]}
+>                    Z: {[  ]}
+>                    I: {[  ]}
+>                    S: {[  ]}
+116,117c166
+< tests/value/symbolic_locs.i:111:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
+< [value] Called Frama_C_show_each([0..2147483647])
+---
+> [value] Called Frama_C_show_each([10001..2147483647])
+125a175,179
+> [value:d-symblocs] DUMPING SYMBLOCS STATE of file tests/value/symbolic_locs.i line 125
 >                    V: {[  ]}
 >                    Z: {[  ]}
 >                    I: {[  ]}
 >                    S: {[  ]}
 diff tests/value/oracle/test.0.res.oracle tests/value/oracle_symblocs/test.0.res.oracle
-26c26
+27c27
 <   tmp ∈ [--..--] or UNINITIALIZED
 ---
 >   tmp ∈ [-2147483647..2147483647] or UNINITIALIZED

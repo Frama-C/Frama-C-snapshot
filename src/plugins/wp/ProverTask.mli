@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,6 +54,9 @@ val p_until_space : string (** No space group pattern "\\([^ \t\n]*\\)" *)
 
 val location : string -> int -> Lexing.position
 
+val timeout : int option -> int
+val stepout : int option -> int
+val depth : int option -> int
 type logs = [ `OUT | `ERR | `BOTH ]
 
 class virtual command : string ->
@@ -77,7 +80,13 @@ class virtual command : string ->
 
 val server : ?procs:int -> unit -> Task.server
 
-val spawn : ?monitor:('a option -> unit) -> ('a * bool Task.task) list -> unit
+val schedule : 'a Task.task -> unit
+
+val spawn :
+  ?monitor:('a option -> unit) ->
+  ?pool:Task.pool ->
+  ('a * bool Task.task) list -> unit
 (** Spawn all the tasks over the server and retain the first 'validated' one.
     The callback [monitor] is called with [Some] at first success, and [None]
-    if none succeed. *)
+    if none succeed. 
+    An option [pool] task can be passed to register the associated threads. *)

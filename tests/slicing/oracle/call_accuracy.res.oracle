@@ -214,7 +214,7 @@ tests/slicing/call_accuracy.i:65:[value] warning: signed overflow. assert (int)(
   \result FROM S4.b; x; y
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [slicing] slicing requests in progress...
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main
 [pdg] done for function main
@@ -279,9 +279,8 @@ int test_set_slice_1(int y)
   int __retres;
   int b;
   struct st s1;
-  struct st s3;
   int tab[5];
-  s3.b = 2;
+  struct st s3 = {.a = 1, .b = 2};
   f_set_slice_1(& b,y);
   f_set_slice_1(& s1.b,y);
   f_set_slice_1(& tab[1],y);
@@ -305,12 +304,9 @@ int test_struct_slice_1(void)
 int main(int x, int y, int z)
 {
   int __retres;
-  int r1;
-  int r2;
-  int r3;
-  r1 = test_struct_slice_1();
-  r2 = test_cond_slice_1(x,y,z);
-  r3 = test_set_slice_1(y);
+  int r1 = test_struct_slice_1();
+  int r2 = test_cond_slice_1(x,y,z);
+  int r3 = test_set_slice_1(y);
   __retres = (((r1 + r2) + r3) + S3.b) + S4.b;
   return __retres;
 }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,7 +65,7 @@ module type S = sig
   val forward_index : typ -> value -> offset -> offset
 
   (** [reduce_index_by_array_size ~size_expr ~index_expr size index] reduces
-      the value [index] to fit into the inverval [0..(size-1)]. It also returns
+      the value [index] to fit into the interval [0..(size-1)]. It also returns
       out-of-bound alarms if it was not already the case. [size_expr] and
       [index_expr] are the Cil expressions of the array size and the index,
       needed to create the alarms. *)
@@ -88,7 +88,7 @@ module type S = sig
 
   (** [reduce_loc_by_validity for_writing bitfield lval loc] reduce the location
       [loc] by its valid part for a read or write operation, according to the
-      [for_writing] boolean. It also returns the alarms enusuring this validity.
+      [for_writing] boolean. It also returns the alarms ensuring this validity.
       [bitfield] indicates whether the location may be the one of a bitfield;
       if it does not hold, the location is assumed to be byte aligned.
       [lval] is only used to create the alarms. *)
@@ -97,7 +97,7 @@ module type S = sig
 
   (** {3 Backward Operations } *)
 
-  (** For an unary forward operation F, the inverse backward opereror B tries to
+  (** For an unary forward operation F, the inverse backward operator B tries to
       reduce the argument values of the operation, given its result.
 
       It must satisfy:

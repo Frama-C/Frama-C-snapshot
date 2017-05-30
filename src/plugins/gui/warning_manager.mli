@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ val append: t -> Log.event -> unit
 (** Append a new message warning. *)
 
 val clear: t -> unit
-(** Clear all the stored warnigns. *)
+(** Clear all the stored warnings. *)
 
 (*
 Local Variables:

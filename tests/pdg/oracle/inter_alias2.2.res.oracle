@@ -57,18 +57,18 @@ tests/pdg/inter_alias2.c:26:[value] warning: signed overflow. assert v1 + v2 ≤
  {n3}: In1
    -[a--]-> 2
  {n4}: VarDecl : x1
- {n5}: x1 = a;
+ {n5}: int x1 = a;
    -[-c-]-> 1
    -[--d]-> 2
    -[--d]-> 3
    -[a--]-> 4
- {n6}: Call6-InCtrl : incr_ptr(& x1);
+ {n6}: Call5-InCtrl : incr_ptr(& x1);
    -[-c-]-> 1
- {n7}: Call6-In1 : incr_ptr(& x1);
+ {n7}: Call5-In1 : incr_ptr(& x1);
    -[-c-]-> 1
    -[--d]-> 4
    -[-c-]-> 6
- {n8}: Call6-Out(x1) : incr_ptr(& x1);
+ {n8}: Call5-Out(x1) : incr_ptr(& x1);
    -[-c-]-> 1
    -[--d]-> 5
    -[-c-]-> 6

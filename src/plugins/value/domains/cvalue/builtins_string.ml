@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -210,7 +210,7 @@ type imprecise_builtin =
 let bytes_of_bits ?inexact i =
   if I.(i % eight <> zero) &&
   match inexact with | Some b -> not b | None -> true then
-    (* message for debugging purposes motly, should not happen *)
+    (* message for debugging purposes mostly, should not happen *)
     Value_parameters.warning "bytes_of_bits: inexact division (%a / 8)"
       Int.pretty i;
   I.(i / eight)
@@ -576,7 +576,7 @@ let ival_of_opt_int_pair = function
    [maybe_found_stop] is used to indicate, in the case where [bounds] is [None],
    whether the stopping character has possibly been found *before* the searched
    character (which implies a valid "not found" result).
-   [is] indicates the possibility of errors (initialization, dangligness,
+   [is] indicates the possibility of errors (initialization, danglingness,
    invalid access).
    [Never_ok(is)] indicates that no valid solution exists (the function always
    fails). [is] contains the error(s) that occur (it should never be
@@ -680,7 +680,7 @@ module Search_single_offset = struct
   let process_search_in_byte range_start range_end bs acc =
     match bs.BS.search_st with
     | FS.Bottom ->
-      (* this Invalid can only be due to initialization/dangligness;
+      (* this Invalid can only be due to initialization/danglingness;
          check if min_fuel has been reached (for strnlen), to find out
          which exception to raise *)
       begin
@@ -905,7 +905,7 @@ module Search_single_offset = struct
         end
     in
     fpf "search_and_acc (offset: %a), n_len: {%a}, last_byte_to_look: %a, \
-         ajusted last_byte_to_look: %a" Int.pretty offset
+         adjusted last_byte_to_look: %a" Int.pretty offset
       (Pretty_utils.pp_opt Ival.pretty) n_len Int.pretty last_byte_to_look
       Int.pretty actual_last_byte;
     let res = search bytecharmap offset n_len actual_last_byte in
@@ -1481,7 +1481,9 @@ let search_char_n bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh str : bm_r
               search_f ~ret_rel_offs base offs ~n_ival:n_ival_all ~include_exh ()
             ) offs_map
         | Ival.Float _ -> (*should not happen*)
-          raise (Invalid_argument "n argument contains float")
+          Value_parameters.error
+            "float (%a) value in str" Ival.pretty n_ival_all;
+          raise Db.Value.Aborted
     in
     bm_res
   with

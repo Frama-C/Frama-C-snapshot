@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,7 @@ sig
   type t = {
     lemma : Definitions.dlemma ;
     depends : logic_lemma list ;
-    (* list of axioms and lemma on which the proof depends on *)
+    mutable sequent : Conditions.sequent option ;
   }
 
   val is_trivial : t -> bool
@@ -79,6 +79,7 @@ module VC_Annot :
 sig
 
   type t = {
+    axioms : Definitions.axioms option ;
     goal : GOAL.t ;
     tags : Splitter.tag list ;
     warn : Warning.t list ;
@@ -121,7 +122,6 @@ type po = t and t = {
     po_idx   : index ;   (* goal index *)
     po_model : Model.t ;
     po_pid   : WpPropId.prop_id ; (* goal target property *)
-    po_updater : Emitter.t ; (* property status updater *)
     po_formula : formula ; (* proof obligation *)
   }
 
@@ -148,19 +148,27 @@ val get_file_logerr : t -> prover -> string (** only filename, might not exists 
 
 val get_files : t -> (string * string) list
 
+val qed_time : t -> float
+
 val clear : unit -> unit
 val remove : t -> unit
-val resolve : t -> bool
+val on_remove : (t -> unit) -> unit
 
 val add : t -> unit
 val age : t -> int (* generation *)
-val set_result : t -> prover -> result -> unit
 
-(** Dynamically exported. *)
+val resolve : t -> bool (** tries simplification *)
+val set_result : t -> prover -> result -> unit
+val clear_results : t -> unit
+
+val compute : t -> Definitions.axioms option * Conditions.sequent
+
+val has_verdict : t -> prover -> bool
 val get_result : t -> prover -> result
 val get_results : t -> (prover * result) list
 val get_proof : t -> bool * Property.t
 val is_trivial : t -> bool
+val is_proved : t -> bool
 val warnings : t -> Warning.t list
 
 (** [true] if the result is valid. Dynamically exported.
@@ -172,6 +180,7 @@ val get_time: result -> float
 val get_steps: result -> int
 
 val is_check : t -> bool
+val is_tactic : t -> bool
 
 val iter :
   ?ip:Property.t ->

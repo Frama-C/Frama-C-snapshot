@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -241,6 +241,7 @@ module type Lattice_Set_Generic = sig
   val iter: ( O.elt -> unit) -> t -> unit
   val exists: (O.elt -> bool) -> t -> bool
   val for_all: (O.elt -> bool) -> t -> bool
+  val filter: (O.elt -> bool) -> t -> t
   val project : t -> O.t
   val mem : O.elt -> t -> bool
 end

@@ -1,6 +1,6 @@
 /* run.config*
- OPT: -val-use-spec f,h -val @VALUECONFIG@ -inout -inout-callwise -calldeps
- OPT: -val-use-spec f,h -val @VALUECONFIG@ -inout -inout-callwise -calldeps -show-indirect-deps
+ OPT: -no-autoload-plugins -load-module from,inout,value -val-use-spec f,h -val @VALUECONFIG@ -inout -calldeps
+ OPT: -no-autoload-plugins -load-module from,inout,value -val-use-spec f,h -val @VALUECONFIG@ -inout -calldeps -show-indirect-deps
 */
 
 

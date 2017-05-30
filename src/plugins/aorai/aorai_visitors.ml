@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -451,7 +451,7 @@ let get_unchanged_aux_var loc current_state =
   Data_for_aorai.Aorai_state.Map.fold treat_one_pre_state current_state []
 
 (**
-   This visitor adds a specification to each fonction and to each loop,
+   This visitor adds a specification to each function and to each loop,
    according to specifications stored into Data_for_aorai.
 *)
 class visit_adding_pre_post_from_buch treatloops =
@@ -1096,7 +1096,7 @@ object(self)
       ChangeDoChildrenPost(stmt,after)
 
   method! vinst = function
-  | Call _ -> self#call (); DoChildren
+  | Call _ | Local_init (_, ConsInit _, _) -> self#call (); DoChildren
   | _ -> DoChildren
 
 end
@@ -1125,15 +1125,18 @@ object (*(self)*)
   method! vfunc _f = DoChildren
 
   method! vstmt_aux stmt =
+    let add_ignore name =
+      (* If the called function is neither ignored, nor declared,
+         then it has to be added to ignored functions. *)
+      if (not (Data_for_aorai.isIgnoredFunction name))
+      && (not (isDeclaredInC name)) then
+        (Data_for_aorai.addIgnoredFunction name)
+    in
     match stmt.skind with
       | Instr(Call (_,funcexp,_,_)) ->
-          let name = get_call_name funcexp in
-          (* If the called function is neither ignored, nor declared,
-             then it has to be added to ignored functions. *)
-          if (not (Data_for_aorai.isIgnoredFunction name))
-            && (not (isDeclaredInC name)) then
-                (Data_for_aorai.addIgnoredFunction name);
-          DoChildren
+        add_ignore (get_call_name funcexp); DoChildren
+      | Instr(Local_init (_, ConsInit (f,_,_), _)) ->
+        add_ignore f.vname; DoChildren
       | _ -> DoChildren
 
 end

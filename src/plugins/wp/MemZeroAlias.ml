@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,10 +67,12 @@ let compare_path p q = match p,q with
   | _ , I -> 1
   | F f , F g -> Fieldinfo.compare f g
 
-let rec pp_path fmt = function
+[@@@ warning "-32"]
+let pp_path fmt = function
   | S -> Format.pp_print_char fmt '*'
   | I -> Format.pp_print_string fmt "[]"
   | F f -> Format.pp_print_char fmt '.' ; Fieldinfo.pretty fmt f
+[@@@ warning "+32"]
 
 let rec object_of_rpath x = function
   | [] -> Ctypes.object_of x.vtype
@@ -92,13 +94,16 @@ struct
   let compare (x,p) (y,q) =
     let cmp = Varinfo.compare x y in
     if cmp <> 0 then cmp else Qed.Hcons.compare_list compare_path p q
-  let pretty fmt (x,p) =
-    begin
-      Format.pp_open_hbox fmt () ;
-      Varinfo.pretty fmt x ;
-      List.iter (pp_path fmt) p ;
-      Format.pp_close_box fmt () ;
-    end
+
+  let rec pp x fmt = function
+    | [] -> Varinfo.pretty fmt x
+    | [S] -> Format.fprintf fmt "*%a" Varinfo.pretty x
+    | S::ps -> Format.fprintf fmt "*(%a)" (pp x) ps
+    | I::ps -> Format.fprintf fmt "%a[]" (pp x) ps
+    | F f::S::ps -> Format.fprintf fmt "%a->%a" (pp x) ps Fieldinfo.pretty f
+    | F f::ps -> Format.fprintf fmt "%a.%a" (pp x) ps Fieldinfo.pretty f
+  
+  let pretty fmt (x,p) = Format.fprintf fmt "@[<hov 2>%a@]" (pp x) (List.rev p)
   let tau_of_chunk (x,p) =
     let te = Lang.tau_of_object (object_of_rpath x (List.rev p)) in
     dim_of_path te p
@@ -113,9 +118,9 @@ type loc =
   | Null
   | Var of varinfo
   | Star of loc
-  | Array of loc * F.term  
+  | Array of loc * F.term
   | Field of loc * fieldinfo
-             
+
 type sigma = Sigma.t
 type segment = loc rloc
 
@@ -127,12 +132,12 @@ let rec pretty fmt = function
   | Array(p,k) -> Format.fprintf fmt "%a[%a]" pretty p Lang.F.pp_term k
   | Field(Star p,f) -> Format.fprintf fmt "%a->%a" pretty p Fieldinfo.pretty f
   | Field(p,f) -> Format.fprintf fmt "%a.%a" pretty p Fieldinfo.pretty f
-  
+
 let rec vars = function
   | Var _ | Null -> Vars.empty
   | Star p | Field(p,_) -> vars p
   | Array(p,k) -> Vars.union (vars p) (F.vars k)
-                                 
+
 let rec occurs x = function
   | Null | Var _ -> false
   | Star p | Field(p,_) -> occurs x p
@@ -178,7 +183,7 @@ let rec update a ks v =
   match ks with
   | [] -> v
   | k::ks -> F.e_set a k (update (F.e_get a k) ks v)
-               
+
 let set s m ks v = if ks = [] then v else update (e_var (Sigma.get s m)) ks v
 
 let load sigma obj l =
@@ -193,6 +198,52 @@ let copied seq obj a b =
   stored seq obj a (value seq.pre b)
 
 let assigned _s _obj _sloc = []
+
+type state = Chunk.t Tmap.t
+let state (s:sigma) =
+  let m = ref Tmap.empty in
+  Sigma.iter (fun c x -> m := Tmap.add (F.e_var x) c !m) s ; !m
+
+let imval c = Memory.Mchunk (Pretty_utils.to_string Chunk.pretty c)
+let iter f s = Tmap.iter (fun v c -> f (imval c) v) s
+let lookup (s : state) (e : Lang.F.term) = imval (F.Tmap.find e s)
+let apply f s =
+  let m = ref Tmap.empty in
+  Tmap.iter (fun e c -> m := Tmap.add (f e) c !m) s ; !m
+
+let rec ipath lv = function
+  | [] -> lv
+  | S::w -> ipath (Mval lv,[]) w
+  | I::_ -> raise Not_found
+  | F f::w ->
+      let (host,path) = lv in
+      ipath (host, path @ [Mfield f]) w
+let ilval (x,p) = ipath (Mvar x,[]) p
+
+let heap domain state =
+  Tmap.fold
+    (fun m c w ->
+       if Vars.intersect (F.vars m) domain
+       then Heap.Map.add c m w else w
+    ) state Heap.Map.empty
+
+let updates seq domain =
+  let pre = heap domain seq.pre in
+  let post = heap domain seq.post in
+  let pool = ref Bag.empty in
+  Heap.Map.iter2
+    (fun c v1 v2 ->
+       try
+         match v1,v2 with
+         | _,None -> ()
+         | None,Some v ->
+             pool := Bag.add (Mstore(ilval c,v)) !pool
+         | Some v1,Some v2 ->
+             if v2 != v1 then
+               pool := Bag.add (Mstore (ilval c,v2)) !pool
+       with Not_found -> ()
+    ) pre post ;
+  !pool
 
 let no_pointer () = Warning.error ~source "No Pointer"
 

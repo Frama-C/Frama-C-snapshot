@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -24,6 +24,7 @@
 #ifndef __FC_MATH
 #define __FC_MATH
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "__fc_string_axiomatic.h"
 #include "errno.h"
@@ -67,11 +68,11 @@ typedef double double_t;
     ensures \is_finite(\result) && \result >= 0;
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-double acos(double x);
+extern double acos(double x);
 
 /*@
   behavior normal:
@@ -80,11 +81,11 @@ double acos(double x);
     ensures \is_finite(\result) && \result >= 0;
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-float acosf(float x);
+extern float acosf(float x);
 
 /*@
   behavior normal:
@@ -93,11 +94,11 @@ float acosf(float x);
     ensures \is_finite(\result) && \result >= 0;
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-long double acosl(long double x);
+extern long double acosl(long double x);
 
 /*@
   behavior normal:
@@ -106,11 +107,11 @@ long double acosl(long double x);
     ensures \is_finite(\result);
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-double asin(double x);
+extern double asin(double x);
 
 /*@
   behavior normal:
@@ -119,11 +120,11 @@ double asin(double x);
     ensures \is_finite(\result);
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-float asinf(float x);
+extern float asinf(float x);
 
 /*@
   behavior normal:
@@ -132,34 +133,34 @@ float asinf(float x);
     ensures \is_finite(\result);
   behavior edom:
     assumes \is_infinite(x) || (\is_finite(x) && \abs(x) > 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, edom;
  */
-long double asinl(long double x);
+extern long double asinl(long double x);
 
-float atanf(float x);
-double atan(double x);
-long double atanl(long double x);
+extern float atanf(float x);
+extern double atan(double x);
+extern long double atanl(long double x);
 
 /*@ assigns \result \from y, x; */
-double atan2(double y, double x);
-float atan2f(float y, float x);
-long double atan2l(long double y, long double x);
+extern double atan2(double y, double x);
+extern float atan2f(float y, float x);
+extern long double atan2l(long double y, long double x);
 
 /*@ assigns \result \from x; */
-double cos(double x);
-float cosf(float x);
-long double cosl(long double x);
+extern double cos(double x);
+extern float cosf(float x);
+extern long double cosl(long double x);
 
 /*@ assigns \result \from x; */
-double sin(double x);
-float sinf(float x);
-long double sinl(long double x);
+extern double sin(double x);
+extern float sinf(float x);
+extern long double sinl(long double x);
 
-double tan(double x);
-float tanf(float x);
-long double tanl(long double x);
+extern double tan(double x);
+extern float tanf(float x);
+extern long double tanl(long double x);
 
 /*@
   behavior normal:
@@ -172,11 +173,11 @@ long double tanl(long double x);
     ensures \is_plus_infinity(\result);
   behavior edom:
     assumes \is_minus_infinity(x) || (\is_finite(x) && x < 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, infinite, edom;
  */
-double acosh(double x);
+extern double acosh(double x);
 
 /*@
   behavior normal:
@@ -189,11 +190,11 @@ double acosh(double x);
     ensures \is_plus_infinity(\result);
   behavior edom:
     assumes \is_minus_infinity(x) || (\is_finite(x) && x < 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, infinite, edom;
  */
-float acoshf(float x);
+extern float acoshf(float x);
 
 /*@
   behavior normal:
@@ -206,257 +207,258 @@ float acoshf(float x);
     ensures \is_plus_infinity(\result);
   behavior edom:
     assumes \is_minus_infinity(x) || (\is_finite(x) && x < 1);
-    assigns __FC_errno;
-    ensures __FC_errno == 1;
+    assigns __fc_errno;
+    ensures __fc_errno == 1;
   disjoint behaviors normal, infinite, edom;
  */
-long double acoshl(long double x);
+extern long double acoshl(long double x);
 
-double asinh(double x);
-float asinhf(float x);
-long double asinhl(long double x);
+extern double asinh(double x);
+extern float asinhf(float x);
+extern long double asinhl(long double x);
 
-double atanh(double x);
-float atanhf(float x);
-long double atanhl(long double x);
+extern double atanh(double x);
+extern float atanhf(float x);
+extern long double atanhl(long double x);
 
-double cosh(double x);
-float coshf(float x);
-long double coshl(long double x);
+extern double cosh(double x);
+extern float coshf(float x);
+extern long double coshl(long double x);
 
-double sinh(double x);
-float sinhf(float x);
-long double sinhl(long double x);
+extern double sinh(double x);
+extern float sinhf(float x);
+extern long double sinhl(long double x);
 
-double tanh(double x);
-float tanhf(float x);
-long double tanhl(long double x);
-
-/*@ assigns \result \from x; */
-double exp(double x);
+extern double tanh(double x);
+extern float tanhf(float x);
+extern long double tanhl(long double x);
 
 /*@ assigns \result \from x; */
-float expf(float x);
-long double expl(long double x);
-
-double exp2(double x);
-float exp2f(float x);
-long double exp2l(long double x);
-
-double expm1(double x);
-float expm1f(float x);
-long double expm1l(long double x);
-
-double frexp(double value, int *exp);
-float frexpf(float value, int *exp);
-long double frexpl(long double value, int *exp);
-
-int ilogb(double x);
-int ilogbf(float x);
-int ilogbl(long double x);
-
-double ldexp(double x, int exp);
-float ldexpf(float x, int exp);
-long double ldexpl(long double x, int exp);
+extern double exp(double x);
 
 /*@ assigns \result \from x; */
-double log(double x);
+extern float expf(float x);
+extern long double expl(long double x);
+
+extern double exp2(double x);
+extern float exp2f(float x);
+extern long double exp2l(long double x);
+
+extern double expm1(double x);
+extern float expm1f(float x);
+extern long double expm1l(long double x);
+
+extern double frexp(double value, int *exp);
+extern float frexpf(float value, int *exp);
+extern long double frexpl(long double value, int *exp);
+
+extern int ilogb(double x);
+extern int ilogbf(float x);
+extern int ilogbl(long double x);
+
+extern double ldexp(double x, int exp);
+extern float ldexpf(float x, int exp);
+extern long double ldexpl(long double x, int exp);
 
 /*@ assigns \result \from x; */
-float logf(float x);
-long double logl(long double x);
+extern double log(double x);
 
 /*@ assigns \result \from x; */
-double log10(double x);
+extern float logf(float x);
+extern long double logl(long double x);
 
 /*@ assigns \result \from x; */
-float log10f(float x);
-long double log10l(long double x);
+extern double log10(double x);
 
-double log1p(double x);
-float log1pf(float x);
-long double log1pl(long double x);
+/*@ assigns \result \from x; */
+extern float log10f(float x);
+extern long double log10l(long double x);
 
-double log2(double x);
-float log2f(float x);
-long double log2l(long double x);
+extern double log1p(double x);
+extern float log1pf(float x);
+extern long double log1pl(long double x);
 
-double logb(double x);
-float logbf(float x);
-long double logbl(long double x);
+extern double log2(double x);
+extern float log2f(float x);
+extern long double log2l(long double x);
 
-double modf(double value, double *iptr);
-float modff(float value, float *iptr);
-long double modfl(long double value, long double *iptr);
+extern double logb(double x);
+extern float logbf(float x);
+extern long double logbl(long double x);
 
-double scalbn(double x, int n);
-float scalbnf(float x, int n);
-long double scalbnl(long double x, int n);
+extern double modf(double value, double *iptr);
+extern float modff(float value, float *iptr);
+extern long double modfl(long double value, long double *iptr);
 
-double scalbln(double x, long int n);
-float scalblnf(float x, long int n);
-long double scalblnl(long double x, long int n);
+extern double scalbn(double x, int n);
+extern float scalbnf(float x, int n);
+extern long double scalbnl(long double x, int n);
 
-double cbrt(double x);
-float cbrtf(float x);
-long double cbrtl(long double x);
+extern double scalbln(double x, long int n);
+extern float scalblnf(float x, long int n);
+extern long double scalblnl(long double x, long int n);
 
-double fabs(double x);
-float fabsf(float x);
-long double fabsl(long double x);
+extern double cbrt(double x);
+extern float cbrtf(float x);
+extern long double cbrtl(long double x);
 
-double hypot(double x, double y);
-float hypotf(float x, float y);
-long double hypotl(long double x, long double y);
+extern double fabs(double x);
+extern float fabsf(float x);
+extern long double fabsl(long double x);
+
+extern double hypot(double x, double y);
+extern float hypotf(float x, float y);
+extern long double hypotl(long double x, long double y);
 
 /*@ assigns \result \from x, y; */
-double pow(double x, double y);
+extern double pow(double x, double y);
 
 /*@ assigns \result \from x, y; */
-float powf(float x, float y);
-long double powl(long double x, long double y);
+extern float powf(float x, float y);
+extern long double powl(long double x, long double y);
 
 /*@ assigns \result \from x; */
-double sqrt(double x);
+extern double sqrt(double x);
 
 /*@ assigns \result \from x; */
-float sqrtf(float x);
-long double sqrtl(long double x);
+extern float sqrtf(float x);
+extern long double sqrtl(long double x);
 
-double erf(double x);
-float erff(float x);
-long double erfl(long double x);
+extern double erf(double x);
+extern float erff(float x);
+extern long double erfl(long double x);
 
-double erfc(double x);
-float erfcf(float x);
-long double erfcl(long double x);
+extern double erfc(double x);
+extern float erfcf(float x);
+extern long double erfcl(long double x);
 
-double lgamma(double x);
-float lgammaf(float x);
-long double lgammal(long double x);
+extern double lgamma(double x);
+extern float lgammaf(float x);
+extern long double lgammal(long double x);
 
-double tgamma(double x);
-float tgammaf(float x);
-long double tgammal(long double x);
-
-/*@ assigns \result \from x; */
-double ceil(double x);
+extern double tgamma(double x);
+extern float tgammaf(float x);
+extern long double tgammal(long double x);
 
 /*@ assigns \result \from x; */
-float ceilf(float x);
-
-long double ceill(long double x);
+extern double ceil(double x);
 
 /*@ assigns \result \from x; */
-double floor(double x);
+extern float ceilf(float x);
+
+extern long double ceill(long double x);
 
 /*@ assigns \result \from x; */
-float floorf(float x);
-
-long double floorl(long double x);
-
-double nearbyint(double x);
-float nearbyintf(float x);
-long double nearbyintl(long double x);
-
-double rint(double x);
-float rintf(float x);
-long double rintl(long double x);
-
-long int lrint(double x);
-long int lrintf(float x);
-long int lrintl(long double x);
-
-long long int llrint(double x);
-long long int llrintf(float x);
-long long int llrintl(long double x);
+extern double floor(double x);
 
 /*@ assigns \result \from x; */
-double round(double x);
+extern float floorf(float x);
+
+extern long double floorl(long double x);
+
+extern double nearbyint(double x);
+extern float nearbyintf(float x);
+extern long double nearbyintl(long double x);
+
+extern double rint(double x);
+extern float rintf(float x);
+extern long double rintl(long double x);
+
+extern long int lrint(double x);
+extern long int lrintf(float x);
+extern long int lrintl(long double x);
+
+extern long long int llrint(double x);
+extern long long int llrintf(float x);
+extern long long int llrintl(long double x);
 
 /*@ assigns \result \from x; */
-float roundf(float x);
-
-long double roundl(long double x);
-
-long int lround(double x);
-long int lroundf(float x);
-long int lroundl(long double x);
-
-long long int llround(double x);
-long long int llroundf(float x);
-long long int llroundl(long double x);
+extern double round(double x);
 
 /*@ assigns \result \from x; */
-double trunc(double x);
+extern float roundf(float x);
+
+extern long double roundl(long double x);
+
+extern long int lround(double x);
+extern long int lroundf(float x);
+extern long int lroundl(long double x);
+
+extern long long int llround(double x);
+extern long long int llroundf(float x);
+extern long long int llroundl(long double x);
 
 /*@ assigns \result \from x; */
-float truncf(float x);
+extern double trunc(double x);
 
-long double truncl(long double x);
+/*@ assigns \result \from x; */
+extern float truncf(float x);
+
+extern long double truncl(long double x);
 
 /*@ assigns \result \from x, y; */
-double fmod(double x, double y);
-float fmodf(float x, float y);
-long double fmodl(long double x, long double y);
+extern double fmod(double x, double y);
+extern float fmodf(float x, float y);
+extern long double fmodl(long double x, long double y);
 
-double remainder(double x, double y);
-float remainderf(float x, float y);
-long double remainderl(long double x, long double y);
+extern double remainder(double x, double y);
+extern float remainderf(float x, float y);
+extern long double remainderl(long double x, long double y);
 
-double remquo(double x, double y, int *quo);
-float remquof(float x, float y, int *quo);
-long double remquol(long double x, long double y, int *quo);
+extern double remquo(double x, double y, int *quo);
+extern float remquof(float x, float y, int *quo);
+extern long double remquol(long double x, long double y, int *quo);
 
-double copysign(double x, double y);
-float copysignf(float x, float y);
-long double copysignl(long double x, long double y);
+extern double copysign(double x, double y);
+extern float copysignf(float x, float y);
+extern long double copysignl(long double x, long double y);
 
 /*@
   requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
-double nan(const char *tagp);
+extern double nan(const char *tagp);
 
 /*@
   requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
-float nanf(const char *tagp);
+extern float nanf(const char *tagp);
 
 /*@
   requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
-long double nanl(const char *tagp);
+extern long double nanl(const char *tagp);
 
-double nextafter(double x, double y);
-float nextafterf(float x, float y);
-long double nextafterl(long double x, long double y);
+extern double nextafter(double x, double y);
+extern float nextafterf(float x, float y);
+extern long double nextafterl(long double x, long double y);
 
-double nexttoward(double x, long double y);
-float nexttowardf(float x, long double y);
-long double nexttowardl(long double x, long double y);
+extern double nexttoward(double x, long double y);
+extern float nexttowardf(float x, long double y);
+extern long double nexttowardl(long double x, long double y);
 
-double fdim(double x, double y);
-float fdimf(float x, float y);
-long double fdiml(long double x, long double y);
+extern double fdim(double x, double y);
+extern float fdimf(float x, float y);
+extern long double fdiml(long double x, long double y);
 
-double fmax(double x, double y);
-float fmaxf(float x, float y);
-long double fmaxl(long double x, long double y);
+extern double fmax(double x, double y);
+extern float fmaxf(float x, float y);
+extern long double fmaxl(long double x, long double y);
 
-double fmin(double x, double y);
-float fminf(float x, float y);
-long double fminl(long double x, long double y);
+extern double fmin(double x, double y);
+extern float fminf(float x, float y);
+extern long double fminl(long double x, long double y);
 
-double fma(double x, double y, double z);
-float fmaf(float x, float y, float z);
-long double fmal(long double x, long double y, long double z);
+extern double fma(double x, double y, double z);
+extern float fmaf(float x, float y, float z);
+extern long double fmal(long double x, long double y, long double z);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif

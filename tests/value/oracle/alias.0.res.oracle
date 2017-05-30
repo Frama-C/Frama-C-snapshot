@@ -57,6 +57,7 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
+tests/value/alias.i:40:[value] warning: initialization of volatile variable vol ignored
 [value] computing for function f <- main.
         Called from tests/value/alias.i:45.
 [value] Recording results for f

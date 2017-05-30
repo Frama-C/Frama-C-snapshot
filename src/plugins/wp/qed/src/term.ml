@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -373,6 +373,13 @@ struct
   module COMPARE =
   struct
 
+    let fun_rank f =
+      match Fun.category f with
+      | Function -> 3
+      | Injection -> 2
+      | Constructor -> 1
+      | Operator _ -> 0
+
     let cmp_size a b = Pervasives.compare a.size b.size
     let rank_bind = function Forall -> 0 | Exists -> 1 | Lambda -> 2
     let cmp_bind p q = rank_bind p - rank_bind q
@@ -415,14 +422,16 @@ struct
       | Mod(a1,b1) , Mod(a2,b2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = phi a1 a2 in
-          if cmp <> 0 then cmp else phi b1 b2
+            let cmp = phi a1 a2 in
+            if cmp <> 0 then cmp else phi b1 b2
       | Fun(f,xs) , Fun(g,ys) ->
-          let cmp = cmp_size a b in
+          let cmp = fun_rank f - fun_rank g in
           if cmp <> 0 then cmp else
-          let cmp = Fun.compare f g in
-          if cmp <> 0 then cmp else
-            Hcons.compare_list phi xs ys
+            let cmp = cmp_size a b in
+            if cmp <> 0 then cmp else
+              let cmp = Fun.compare f g in
+              if cmp <> 0 then cmp else
+                Hcons.compare_list phi xs ys
       | Fun (_,[]) , _ -> (-1)  (* (a) as a variable *)
       | _ , Fun (_,[]) -> 1
       | Eq _ , _ -> (-1)        (* (b) equality *)
@@ -439,12 +448,12 @@ struct
       | Times(a1,x) , Times(a2,y) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = Z.compare a1 a2 in
-          if cmp <> 0 then cmp else phi x y
+            let cmp = Z.compare a1 a2 in
+            if cmp <> 0 then cmp else phi x y
       | Times _ , _ -> (-1)
       | _ , Times _ -> 1
 
-      | Not x , Not y ->           
+      | Not x , Not y ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
             phi x y
@@ -454,18 +463,18 @@ struct
       | Imply(h1,p1) , Imply(h2,p2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          Hcons.compare_list phi (p1::h1) (p2::h2)
+            Hcons.compare_list phi (p1::h1) (p2::h2)
       | Imply _ , _ -> (-1)
       |  _ , Imply _ -> 1
 
       | Add xs , Add ys
       | Mul xs , Mul ys
       | And xs , And ys
-      | Or xs , Or ys ->           
+      | Or xs , Or ys ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
             Hcons.compare_list phi xs ys
-              
+
       | Add _ , _ -> (-1)
       | _ , Add _ -> 1
       | Mul _ , _ -> (-1)
@@ -482,61 +491,61 @@ struct
       | If(a1,b1,c1) , If(a2,b2,c2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = phi a1 a2 in
-          if cmp <> 0 then cmp else
-            let cmp = phi b1 b2 in
-            if cmp <> 0 then cmp else phi c1 c2
+            let cmp = phi a1 a2 in
+            if cmp <> 0 then cmp else
+              let cmp = phi b1 b2 in
+              if cmp <> 0 then cmp else phi c1 c2
       | If _ , _ -> (-1)
       |  _ , If _ -> 1
 
       | Aget(a1,b1) , Aget(a2,b2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = phi a1 a2 in
-          if cmp <> 0 then cmp else phi b1 b2
+            let cmp = phi a1 a2 in
+            if cmp <> 0 then cmp else phi b1 b2
       | Aget _ , _ -> (-1)
       |  _ , Aget _ -> 1
 
       | Aset(a1,k1,v1) , Aset(a2,k2,v2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = phi a1 a2 in
-          if cmp <> 0 then cmp else
-            let cmp = phi k1 k2 in
-            if cmp <> 0 then cmp else phi v1 v2
+            let cmp = phi a1 a2 in
+            if cmp <> 0 then cmp else
+              let cmp = phi k1 k2 in
+              if cmp <> 0 then cmp else phi v1 v2
       | Aset _ , _ -> (-1)
       |  _ , Aset _ -> 1
 
       | Rget(r1,f1) , Rget(r2,f2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = phi r1 r2 in
-          if cmp <> 0 then cmp else Field.compare f1 f2
+            let cmp = phi r1 r2 in
+            if cmp <> 0 then cmp else Field.compare f1 f2
       | Rget _ , _ -> (-1)
       |  _ , Rget _ -> 1
 
       | Rdef fxs , Rdef gys ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          Hcons.compare_list (cmp_field phi) fxs gys
+            Hcons.compare_list (cmp_field phi) fxs gys
       | Rdef _ , _ -> (-1)
       |  _ , Rdef _ -> 1
 
       | Apply(a,xs) , Apply(b,ys) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          Hcons.compare_list phi (a::xs) (b::ys)
+            Hcons.compare_list phi (a::xs) (b::ys)
       | Apply _ , _ -> (-1)
       | _ , Apply _ -> 1
 
       | Bind(q1,t1,p1) , Bind(q2,t2,p2) ->
           let cmp = cmp_size a b in
           if cmp <> 0 then cmp else
-          let cmp = cmp_bind q1 q2 in
-          if cmp <> 0 then cmp else
-            let cmp = phi p1 p2 in
+            let cmp = cmp_bind q1 q2 in
             if cmp <> 0 then cmp else
-              Tau.compare t1 t2
+              let cmp = phi p1 p2 in
+              if cmp <> 0 then cmp else
+                Tau.compare t1 t2
 
     let rec compare a b =
       if a == b then 0 else
@@ -561,8 +570,11 @@ struct
   let compare_raising_absorbant a b =
     if a == b then 0
     else
-      let a' = if is_prop a then (let na = !extern_not a in if na == b then raise Absorbant; na) else a in
-      let b' = if is_prop b then (let nb = !extern_not b in if nb == a then raise Absorbant; nb) else b in
+      let negate ~abs e =
+        let ne = !extern_not e in
+        if abs == ne then raise Absorbant ; ne in
+      let a' = if is_prop a then negate ~abs:b a else a in
+      let b' = if is_prop b then negate ~abs:a b else b in
       if a == b' || a' == b
       then COMPARE.compare a b
       else COMPARE.compare (atom_min a a') (atom_min b b')
@@ -742,7 +754,7 @@ struct
   let c_lt  x y = insert (Lt (x,y))
   let insert_eq  x y = insert (Eq (x,y))
   let insert_neq x y = insert (Neq(x,y))
-  let sym c x y = if compare x y > 0 then c y x else c x y
+  let sym c x y = if compare x y < 0 then c y x else c x y
   let compare_field (f,x) (g,y) =
     let cmp = Field.compare f g in
     if cmp = 0 then compare x y else cmp
@@ -870,11 +882,11 @@ struct
       | NEQ -> !extern_not (builtin_eq a b)
       | LT  -> !extern_not (builtin_leq b a)
     with Not_found ->
-      match cmp with
-      | EQ  -> c_eq a b
-      | NEQ -> c_neq a b
-      | LT  -> c_lt a b
-      | LEQ -> c_leq a b
+    match cmp with
+    | EQ  -> c_eq a b
+    | NEQ -> c_neq a b
+    | LT  -> c_lt a b
+    | LEQ -> c_leq a b
 
   let dispatch = function
     | NOT p -> !cached_not p.repr
@@ -936,7 +948,7 @@ struct
   (* --- Negation                                                           --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let e_not p =
+  let rec e_not p =
     match p.repr with
     | True -> e_false
     | False -> e_true
@@ -946,6 +958,8 @@ struct
     | Neq(x,y) -> c_eq x y
     | Not x -> x
     | (And _ | Or _ | Imply _) -> operation (NOT p)
+    | Bind(Forall,t,p) -> c_bind Exists t (e_not p)
+    | Bind(Exists,t,p) -> c_bind Forall t (e_not p)
     | _ -> c_not p
 
   let () = extern_not := e_not
@@ -967,7 +981,7 @@ struct
     | [_] as l -> l
     | x::( (y::_) as w ) -> if x==y then op_idempotent w else x :: op_idempotent w
 
-  let op_inversible xs ys =
+  let op_invertible xs ys =
     let rec simpl modified turn xs ys = match xs , ys with
       | x::xs , y::ys when x==y -> simpl true turn xs ys
       | _ ->
@@ -978,18 +992,23 @@ struct
           else modified,xs,ys
     in simpl false true xs ys
 
-  let element = function
+  let rec element = function
     | E_none -> assert false
     | E_int k -> e_int k
     | E_true -> e_true
     | E_false -> e_false
     | E_const f -> c_fun f []
+    | E_fun (f,l) -> c_fun f (List.map element l)
 
-  let is_element e x = match e , x.repr with
+  let rec is_element e x = match e , x.repr with
     | E_int k , Kint z -> Z.equal (Z.of_int k) z
     | E_true , True -> true
     | E_false , False -> false
     | E_const f , Fun(g,[]) -> Fun.equal f g
+    | E_fun (f,fl) , Fun(g,gl) ->
+        Fun.equal f g &&
+        List.length fl = List.length gl &&
+        List.for_all2 is_element fl gl
     | _ -> false
 
   let isnot_element e x = not (is_element e x)
@@ -1285,7 +1304,7 @@ struct
     type t = { mutable modif : bool ; polarity : p }
 
     let mark w = w.modif <- true ; w
-    
+
     let rec gen w hs ts =
       match hs with
       | [] -> ts
@@ -1310,14 +1329,14 @@ struct
       let w = { modif = false ; polarity } in
       let ws = gen w hs ts in
       if w.modif then ws else ts
-    
+
   end
-  
+
   let consequence_and = Consequence.(filter CONJ)
   let consequence_or  = Consequence.(filter DISJ)
-          
+
   let merge hs hs0 = List.sort_uniq compare_raising_absorbant (hs@hs0)
-                     
+
   let rec implication hs b = match b.repr with
     | Imply(hs0,b0) -> implication_imply hs b hs0 b0
     | And bs -> implication_and [] hs b bs
@@ -1326,10 +1345,10 @@ struct
   and implication_and hs0 hs b0 bs = try
       let hs'= merge hs0 hs in
       try 
-	match consequence_and hs bs with
-	| []  -> e_true (* [And hs] implies [b0] *)
-	| [b] -> implication hs' b
-	| bs' -> c_imply hs' (if bs'==bs then b0 else c_and bs')
+        match consequence_and hs bs with
+        | []  -> e_true (* [And hs] implies [b0] *)
+        | [b] -> implication hs' b
+        | bs' -> c_imply hs' (if bs'==bs then b0 else c_and bs')
       with Absorbant -> implication_false hs' (* [And hs] implies [Not b0] *)
     with Absorbant -> e_true (* [False = And (hs@hs0)] *)
   and implication_or hs0 hs b0 bs = try
@@ -1352,8 +1371,8 @@ struct
                 | _ -> c_imply (merge hs0 hs) b0
           with Absorbant -> e_true (* [False = And (hs@hs0)] *)
     with Absorbant -> (* [And hs] implies [Not b0] *)
-      try implication_false (merge hs hs0)
-      with Absorbant -> e_true  (* [False = And (hs@hs0)] *)
+    try implication_false (merge hs hs0)
+    with Absorbant -> e_true  (* [False = And (hs@hs0)] *)
   and implication_false hs =
     e_not (c_and hs)
 
@@ -1384,11 +1403,11 @@ struct
               | _,     false, [] -> b'
               | true,  false, _  -> c_imply xs' b'
               | false, _,     _  -> implication xs' b'
-           with Absorbant -> e_false
+            with Absorbant -> e_false
           end
-       end
+      end
     | _ -> x
-      
+
   let rec consequence h x = 
     let not_x = e_not x in
     match h.repr with
@@ -1403,7 +1422,7 @@ struct
     | S_equal        (* equal constants or constructors *)
     | S_disequal     (* different constants or constructors *)
     | S_injection    (* same function, injective or constructor *)
-    | S_inversible   (* same function, inversible on both side *)
+    | S_invertible   (* same function, invertible on both side *)
     | S_disjunction  (* both constructors, but different ones *)
     | S_functions    (* general functions *)
 
@@ -1411,7 +1430,7 @@ struct
     if Fun.equal f g then
       match Fun.category f with
       | Logic.Injection -> S_injection
-      | Logic.Operator { inversible=true } -> S_inversible
+      | Logic.Operator { invertible=true } -> S_invertible
       | Logic.Constructor -> S_equal
       | Logic.Function | Logic.Operator _ -> S_functions
     else
@@ -1487,8 +1506,8 @@ struct
           | S_injection -> eq_maybe x y (eq_all e_eq xs ys)
           | S_disjunction -> e_false
           | S_functions -> c_builtin_eq x y
-          | S_inversible ->
-              let modified,xs,ys = op_inversible xs ys in
+          | S_invertible ->
+              let modified,xs,ys = op_invertible xs ys in
               if modified
               then c_builtin_eq (e_fun f xs) (e_fun g ys)
               else c_builtin_eq x y
@@ -1533,8 +1552,8 @@ struct
           | S_injection -> neq_maybe x y (neq_any e_neq xs ys)
           | S_disjunction -> e_true
           | S_functions -> c_builtin_neq x y
-          | S_inversible ->
-              let modified,xs,ys = op_inversible xs ys in
+          | S_invertible ->
+              let modified,xs,ys = op_invertible xs ys in
               if modified
               then c_builtin_neq (e_fun f xs) (e_fun g ys)
               else c_builtin_neq x y
@@ -1576,14 +1595,14 @@ struct
     | _  when a == b -> e_true
     | _  when a == e_not b -> b
     | _, _ -> implication [a] b
-                
+
   let imply2 hs b =
     match b.repr with
     | And bs -> implication_and [] hs b bs
     | _ -> try
           match consequence_and hs [b] with
           | [] -> e_true (* [And hs] implies [b] *)
-          | _  -> 
+          | _  ->
               match b.repr with
               | Or bs -> implication_or [] hs b bs
               | Imply(hs0,b0) -> implication_imply hs b hs0 b0
@@ -1593,7 +1612,7 @@ struct
   let e_imply hs p =
     match p.repr with
     | True -> e_true
-    | _ -> 
+    | _ ->
         try
           let hs = fold_and [] hs in
           let hs = List.sort_uniq compare_raising_absorbant hs in
@@ -1602,7 +1621,7 @@ struct
           | [a] -> imply1 a p
           | _   -> imply2 hs p
         with Absorbant -> e_true
-          
+
   let () = cached_not := function
       | And xs -> e_or (List.map e_not xs)
       | Or  xs -> e_and (List.map e_not xs)
@@ -1779,6 +1798,11 @@ struct
   let e_exists = bind_xs Exists
   let e_lambda = bind_xs Lambda
 
+  let rec binders e =
+    match e.repr with
+    | Bind(q,_,e) -> q :: binders e
+    | _ -> []
+
   (* -------------------------------------------------------------------------- *)
   (* --- Substitutions                                                      --- *)
   (* -------------------------------------------------------------------------- *)
@@ -1830,12 +1854,12 @@ struct
     | _ ->
         try cache_find mu e
         with Not_found ->
-          cache_bind mu e
-            (if lc_closed e
-             then
-               try sigma e
-               with Not_found -> rebuild (gsubst mu sigma) e
-             else rebuild (gsubst mu sigma) e)
+          let e0 = rebuild (gsubst mu sigma) e in
+          let e1 =
+            if lc_closed e0 then
+              try sigma e0 with Not_found -> e0
+            else e0 in
+          cache_bind mu e e1
 
   let e_subst ?sigma f e =
     let cache = match sigma with None -> ref Tmap.empty | Some c -> c in
@@ -1870,7 +1894,7 @@ struct
     | Fun(f,xs) , Fun(g,ys) ->
         begin
           match structural f g with
-          | S_equal | S_disequal | S_disjunction | S_inversible -> []
+          | S_equal | S_disequal | S_disjunction | S_invertible -> []
           | S_injection -> concat2 congr_argeq xs ys
           | S_functions -> raise NO_CONGRUENCE
         end
@@ -1888,7 +1912,7 @@ struct
     | Fun(f,xs) , Fun(g,ys) ->
         begin
           match structural f g with
-          | S_equal | S_disequal | S_disjunction | S_inversible -> []
+          | S_equal | S_disequal | S_disjunction | S_invertible -> []
           | S_injection -> concat2 congr_argneq xs ys
           | S_functions -> raise NO_CONGRUENCE
         end
@@ -1932,7 +1956,7 @@ struct
           | S_disequal -> e_false
           | S_injection -> e_all2 flat_eq xs ys
           | S_disjunction -> e_false
-          | S_functions | S_inversible -> e_eq a b
+          | S_functions | S_invertible -> e_eq a b
         end
     | Rdef fxs , Rdef gys ->
         begin
@@ -1952,7 +1976,7 @@ struct
           | S_disequal -> e_true
           | S_injection -> e_any2 flat_neq xs ys
           | S_disjunction -> e_true
-          | S_functions | S_inversible -> e_neq a b
+          | S_functions | S_invertible -> e_neq a b
         end
     | Rdef fxs , Rdef gys ->
         begin
@@ -2265,6 +2289,25 @@ struct
   let size e =
     let k = ref 0 in count k (ref Tset.empty) e ; !k
 
+
+  (* ------------------------------------------------------------------------ *)
+  (* ---  Sub Term Test                                                   --- *)
+  (* ------------------------------------------------------------------------ *)
+
+  let rec scan_subterm m a e =
+    if a == e then raise Exit ;
+    if a.size <= e.size && not (Tset.mem e !m) then
+      begin
+        m := Tset.add e !m ;
+        if Vars.subset a.vars e.vars then
+          lc_iter (scan_subterm m a) e
+      end
+
+  let is_subterm a e =
+    (a == e) ||
+    try scan_subterm (ref Tset.empty) a e ; false
+    with Exit -> true
+
   (* ------------------------------------------------------------------------ *)
   (* ---  Shared Sub-Terms                                                --- *)
   (* ------------------------------------------------------------------------ *)
@@ -2277,6 +2320,7 @@ struct
   type marks = {
     marked : (term -> bool) ;    (* context-letified terms *)
     shareable : (term -> bool) ; (* terms that can be shared *)
+    subterms : (term -> unit) -> term -> unit ; (* subterm iterator *)
     mutable mark : mark Tmap.t ; (* current marks during traversal *)
     mutable shared : Tset.t ;    (* marked several times *)
     mutable roots : term list ;  (* added as marked roots *)
@@ -2304,12 +2348,12 @@ struct
             else
               begin
                 set_mark m e FirstMark ;
-                lc_iter (walk m r) e ;
+                m.subterms (walk m r) e ;
               end
         | FirstMark ->
             if m.shareable e && lc_closed_at r e
             then m.shared <- Tset.add e m.shared
-            else lc_iter (walk m r) e ;
+            else m.subterms (walk m r) e ;
             set_mark m e Marked
         | Marked ->
             ()
@@ -2325,10 +2369,10 @@ struct
         m.roots <- e :: m.roots ;
         m.shared <- Tset.add e m.shared ;
         m.mark <- Tmap.add e Marked m.mark ;
-        lc_iter (walk m (Bvars.order e.bind)) e
+        m.subterms (walk m (Bvars.order e.bind)) e
       end
     else mark m e
-  
+
   type defs = {
     mutable stack : term list ;
     mutable defined : Tset.t ;
@@ -2346,11 +2390,11 @@ struct
   let none = fun _ -> false
   let all = fun _ -> true
 
-  let marks ?(shared=none) ?(shareable=all) () =
+  let marks ?(shared=none) ?(shareable=all) ?(subterms=lc_iter) () =
     {
-      shareable ;
-      marked = shared ;
-      shared = Tset.empty ;
+      shareable ; subterms ;
+      marked = shared ; (* already shared are set to be marked *)
+      shared = Tset.empty ; (* accumulator initially empty *)
       mark = Tmap.empty ;
       roots = [] ;
     }
@@ -2360,9 +2404,83 @@ struct
     List.iter (collect m.shared defines) m.roots ;
     List.rev defines.stack
 
-  let shared ?shared ?shareable es =
-    let m = marks ?shared ?shareable () in
+  let shared ?shared ?shareable ?subterms es =
+    let m = marks ?shared ?shareable ?subterms () in
     List.iter (mark m) es ;
     defs m
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Typing                                                             --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let tau_of_sort = function
+    | Sint -> Int
+    | Sreal -> Real
+    | Sbool -> Bool
+    | Sprop | Sdata | Sarray _ -> raise Not_found
+
+  let tau_of_arraysort = function
+    | Sarray s -> tau_of_sort s
+    | _ -> raise Not_found
+
+  let tau_merge a b =
+    match a,b with
+    | Bool , Bool -> Bool
+    | (Bool|Prop) , (Bool|Prop) -> Prop
+    | Int , Int -> Int
+    | (Int|Real) , (Int|Real) -> Real
+    | _ -> raise Not_found
+
+  let rec merge_list t f = function
+    | [] -> t
+    | e::es -> merge_list (tau_merge t (f e)) f es
+
+  type env = {
+    field : Field.t -> tau ;
+    record : Field.t -> tau ;
+    call : Fun.t -> tau ;
+  }
+
+  let rec typecheck env e =
+    match e.sort with
+    | Sint -> Int
+    | Sreal -> Real
+    | Sbool -> Bool
+    | Sprop -> Prop
+    | Sdata | Sarray _ ->
+        match e.repr with
+        | Bvar (_,ty) -> ty
+        | Fvar x -> tau_of_var x
+        | Aset(m,k,v) ->
+            (try typecheck env m
+             with Not_found ->
+               Array(typecheck env k,typecheck env v))
+        | Fun(f,_) ->
+            (try tau_of_sort (Fun.sort f)
+             with Not_found -> env.call f)
+        | Aget(m,_) ->
+            (try match typecheck env m with
+               | Array(_,v) -> v
+               | _ -> raise Not_found
+             with Not_found -> tau_of_arraysort m.sort)
+        | Rdef [] -> raise Not_found
+        | Rdef ((f,_)::_) -> env.record f
+        | Rget (_,f) ->
+            (try tau_of_sort (Field.sort f)
+             with Not_found -> env.field f)
+        | True | False -> Bool
+        | Kint _ -> Int
+        | Kreal _ -> Real
+        | Times(_,e) -> typecheck env e
+        | Add es | Mul es -> merge_list Int (typecheck env) es
+        | Div (a,b) | Mod (a,b) | If(_,a,b) ->
+            tau_merge (typecheck env a) (typecheck env b)
+        | Eq _ | Neq _ | Leq _ | Lt _ | And _ | Or _ | Not _ | Imply _ -> Bool
+        | Bind((Forall|Exists),_,_) -> Prop
+        | Apply _ | Bind(Lambda,_,_) -> raise Not_found
+
+  let undefined _ = raise Not_found
+  let typeof ?(field=undefined) ?(record=undefined) ?(call=undefined) e =
+    typecheck { field ; record ; call } e
 
 end

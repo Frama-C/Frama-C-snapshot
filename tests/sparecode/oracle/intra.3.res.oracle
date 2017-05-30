@@ -15,7 +15,7 @@ tests/sparecode/intra.i:109:[value] assertion got status valid.
 [value] Done for function f10
 [value] Recording results for main2
 [value] done for function main2
-[slicing] making slicing project 'Slicing'...
+[slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main2
 [from] Computing for function f10
@@ -52,10 +52,8 @@ int main2(void)
 {
   int __retres;
   int tmp_0;
-  { /* sequence */
-    tmp_0 = f10_slice_1(3);
-    X10.a.y += tmp_0;
-  }
+  tmp_0 = f10_slice_1(3);
+  X10.a.y += tmp_0;
   __retres = X10.a.x + X10.a.y;
   return __retres;
 }

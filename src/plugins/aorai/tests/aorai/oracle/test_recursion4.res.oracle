@@ -148,7 +148,6 @@ void isPresent_post_func(int res)
 int isPresent(int *t, int size, int val)
 {
   int __retres;
-  int r;
   int tmp;
   isPresent_pre_func(t,size,val);
   if (size == 0) {
@@ -160,7 +159,7 @@ int isPresent(int *t, int size, int val)
     goto return_label;
   }
   tmp = isPresent(t + 1,size - 1,val);
-  r = 1 + tmp;
+  int r = 1 + tmp;
   if (r == 0) r = -1;
   __retres = r;
   return_label: isPresent_post_func(__retres);
@@ -342,14 +341,9 @@ void main_post_func(int res)
 int main(int argc, char **argv)
 {
   int __retres;
-  int tab[4];
-  int r;
   main_pre_func(argc,argv);
-  tab[0] = 10;
-  tab[1] = 20;
-  tab[2] = 33;
-  tab[3] = 15;
-  r = isPresent(tab,4,33);
+  int tab[4] = {10, 20, 33, 15};
+  int r = isPresent(tab,4,33);
   if (r == -1) foo();
   __retres = 1;
   main_post_func(__retres);

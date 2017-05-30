@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -202,7 +202,7 @@ let labels_loop_assigns s l = labels_loop_inv s l
 (* --- User Defined Predicates                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let labels_predicate lab_pairs = fun l ->
+let labels_predicate lab_pairs l = 
   try List.assoc l lab_pairs
   with Not_found -> l
 

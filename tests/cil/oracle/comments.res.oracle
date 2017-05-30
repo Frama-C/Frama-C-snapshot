@@ -22,10 +22,8 @@ void g(void)
 
 int bts_2176(void)
 {
-  int r;
-  int i;
-  r = 0;
-  i = 0;
+  int r = 0;
+  int i = 0;
   /*  comment 1  */
   /*  comment 2  */
   r = 1;

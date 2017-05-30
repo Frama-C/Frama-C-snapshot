@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,6 +80,8 @@ let pretty_stmt_kind fmt stmt =
   | Loop _ -> Format.fprintf fmt "loop"
   | Switch _ -> Format.fprintf fmt "switch"
   | Instr (Call _) -> Format.fprintf fmt "function call"
+  | Instr (Local_init(_,ConsInit _,_)) ->
+    Format.fprintf fmt "function call (initializer)"
   | _ -> Format.fprintf fmt "statement"
 
 let pp_numbered_stacks fmt callstacks =
@@ -260,7 +262,8 @@ class stmt_collector to_ignore = object
   method! vstmt stmt =
     begin
       match stmt.skind with
-      | Instr (Call (_, {enode = Lval (Var vi, _)}, _, _)) when
+      | (Instr (Call (_, {enode = Lval (Var vi, _)}, _, _))
+        | Instr (Local_init (_, ConsInit(vi,_,_), _))) when
           (ignore_kf vi.vname to_ignore) -> ()
       | _ -> instr_stmts := stmt :: !instr_stmts
     end;

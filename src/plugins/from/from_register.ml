@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,6 +92,34 @@ let main () =
   let not_quiet = From_parameters.verbose_atleast 1 in
   let forcedeps = From_parameters.ForceDeps.get () in
   let forcecalldeps = From_parameters.ForceCallDeps.get () in
+  let treat_call s funtype =
+    let caller = Kernel_function.find_englobing_kf s in
+    let f, typ_f =
+      if !Db.Value.no_results (Kernel_function.get_definition caller)
+      then "<unknown>", funtype
+      else
+        try
+          let set = Db.Value.call_to_kernel_function s in
+          let kf = Kernel_function.Hptset.choose set in
+          Pretty_utils.to_string Kernel_function.pretty kf,
+          Kernel_function.get_type kf
+        with
+        | Not_found ->
+          From_parameters.fatal
+            ~source:(fst (Cil_datatype.Stmt.loc s))
+            "Invalid call %a@." Printer.pp_stmt s
+    in
+    (fun fmt ->
+       Format.fprintf fmt "@[call to %s at %a (by %a)%t:@]"
+         f
+         Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc s)
+         Kernel_function.pretty caller
+         (fun fmt ->
+            if From_parameters.debug_atleast 1 then
+              Format.fprintf fmt " <sid %d>" s.Cil_types.sid)
+    ),
+    typ_f
+  in
   if forcedeps then begin
     !Db.From.compute_all ();
     From_parameters.ForceDeps.output
@@ -111,37 +139,13 @@ These dependencies hold at termination for the executions that terminate:";
          (fun ki d ->
          let header, typ =
            match ki with
-             | Cil_types.Kglobal ->
+             | Kglobal ->
                  (fun fmt -> Format.fprintf fmt "@[entry point:@]"),
                  Kernel_function.get_type (fst (Globals.entry_point ()))
-             | Cil_types.Kstmt ({skind = Instr (Call (_, ekf, _, _))} as s) ->
-               let caller = Kernel_function.find_englobing_kf s in
-               let f, typ_f =
-                 if !Db.Value.no_results (Kernel_function.get_definition caller)
-                 then
-                   "<unknown>", (Cil.typeOf ekf)
-                 else                     
-                   try
-                     let set = Db.Value.call_to_kernel_function s in
-                     let kf = Kernel_function.Hptset.choose set in
-                     Pretty_utils.to_string Kernel_function.pretty kf,
-                     Kernel_function.get_type kf
-                   with
-                   | Not_found ->
-                     From_parameters.fatal
-                       ~source:(fst (Cil_datatype.Stmt.loc s))
-                       "Invalid call %a@." Printer.pp_stmt s
-                 in
-                 (fun fmt ->
-                   Format.fprintf fmt "@[call to %s at %a (by %a)%t:@]"
-                     f
-                     Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc s)
-                     Kernel_function.pretty caller
-                     (fun fmt ->
-                        if From_parameters.debug_atleast 1 then
-                          Format.fprintf fmt " <sid %d>" s.Cil_types.sid)
-                 ),
-                 typ_f
+             | Kstmt ({skind = Instr (Call (_, ekf, _, _))} as s) ->
+               treat_call s (Cil.typeOf ekf)
+             | Kstmt ({skind = Instr (Local_init(_,ConsInit(f,_,_),_))} as s)->
+               treat_call s f.vtype
              | _ -> assert false (* Not a call *)
          in
          From_parameters.printf ~header

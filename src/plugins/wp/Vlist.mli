@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,21 +20,31 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Lang
+
 (** VList Theory Builtins
 
     Empty API, the module only registers builtins. *)
 
-val check_tau : Lang.tau -> bool
-val check_term : Lang.F.term -> bool
+val check_tau : tau -> bool
+val check_term : F.term -> bool
 
 class type engine =
   object
     method callstyle : Qed.Engine.callstyle
-    method pp_atom : Format.formatter -> Lang.F.term -> unit
-    method pp_flow : Format.formatter -> Lang.F.term -> unit
+    method pp_atom : Format.formatter -> F.term -> unit
+    method pp_flow : Format.formatter -> F.term -> unit
   end
 
-val f_concat : Lang.Fun.t
-val pp_concat : #engine -> Format.formatter -> Lang.F.term list -> unit
+val f_nil : Fun.t
+val f_elt : Fun.t
+val f_nth : Fun.t
+val f_cons : Fun.t
+val f_concat : Fun.t
+val f_repeat : Fun.t
 
-val configure : Model.tuning
+val export : #engine -> Format.formatter -> F.term list -> unit
+val pretty : #engine -> Format.formatter -> F.term list -> unit
+val elements : #engine -> Format.formatter -> F.term list -> unit
+val pprepeat : #engine -> Format.formatter -> F.term list -> unit
+val shareable : F.term -> bool

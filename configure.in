@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2016                                               #
+#  Copyright (C) 2007-2017                                               #
 #    CEA   (Commissariat à l'énergie atomique et aux énergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -160,7 +160,7 @@ fi
 # Select devel compilation (warnings, warn-error) #
 ###################################################
 
-# It is herited by the plugins
+# It is inherited by the plugins
 
 if test -e ".for_devel"; then
    DEFAULT_DEVEL_MODE=yes
@@ -170,8 +170,8 @@ fi
 
 AC_ARG_ENABLE(
   devel-mode,
-  [  --enable-devel-mode    force the devel mode (warnings and warn-error).
-  --disable-devel-mode   force the distrib mode (no warnings and no warn-error).
+  [  --enable-devel-mode     force the devel mode (warnings and warn-error).
+  --disable-devel-mode    force the distrib mode (no warnings and no warn-error).
 ],
   DEVELOPMENT=$enableval,
   DEVELOPMENT=$DEFAULT_DEVEL_MODE, # default value
@@ -214,26 +214,6 @@ if test "$OCAMLYACC" = no ; then
         AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
-#################################################
-# Check for other (optional) tools/libraries    #
-#################################################
-
-new_section "configure optional tools and libraries"
-
-AC_CHECK_PROG(OCAMLDOC,ocamldoc,ocamldoc,no)
-if test "$OCAMLDOC" = no ; then
-  AC_MSG_RESULT(ocamldoc discarded not present)
-else
-        OCAMLDOC="$OCAMLFIND ocamldoc"
-fi
-
-AC_CHECK_PROG(OCAMLMKTOP,ocamlmktop,ocamlmktop,no)
-if test "$OCAMLMKTOP" = no ; then
-  AC_MSG_RESULT(Cannot find ocamlmktop: toplevels cannot be built.)
-else
-        OCAMLMKTOP="$OCAMLFIND ocamlmktop"
-fi
-
 # ocamlcp
 AC_CHECK_PROG(OCAMLCP,ocamlcp,ocamlcp,no)
 if test "$OCAMLCP" = no ; then
@@ -242,11 +222,8 @@ else
         OCAMLCP="$OCAMLFIND ocamlcp"
 fi
 
-AC_CHECK_PROG(OTAGS,otags,otags,)
-
-##############
-# ocamlgraph #
-##############
+# ocamlgraph
+############
 
 AC_MSG_CHECKING(for ocamlgraph)
 
@@ -272,35 +249,36 @@ esac
 # zarith
 ########
 
-AC_ARG_ENABLE(
-  zarith,
-  [  --enable-zarith=<dir> use ZArith library],
-  ZARITH_PATH=$enableval,)
+AC_MSG_CHECKING(for zarith)
 
-AC_MSG_CHECKING(for Zarith)
-
-if test -z "$ZARITH_PATH"; then
-  # standard installation procedure of zarith diverges according to
-  # ocamlfind installation (see zarith's README)
-    ZARITH_PATH=$($OCAMLFIND query zarith 2>/dev/null | tr -d '\r\n')
-    if test -z "$ZARITH_PATH"; then
-      HAS_ZARITH="no";
-    else
-      HAS_ZARITH="yes";
-    fi;
-  if test "$HAS_ZARITH" = "no"; then
-    AC_MSG_WARN(Zarith not found: will use the default less efficient library instead)
-  else
-    AC_MSG_RESULT(found)
-  fi
+ZARITH=$($OCAMLFIND query zarith -format %v)
+if test -z "$ZARITH" ; then
+  AC_MSG_ERROR(Cannot find zarith via ocamlfind.)
 else
-  AC_CHECK_FILE($ZARITH_PATH/zarith.$LIB_SUFFIX,HAS_ZARITH=yes,HAS_ZARITH=no)
-  if test "$HAS_ZARITH" = "no"; then
-    AC_MSG_ERROR(Zarith: file $ZARITH_PATH/zarith.$LIB_SUFFIX not found.)
-  else
-    AC_MSG_RESULT(found)
-  fi
+  AC_MSG_RESULT(found)
 fi
+
+#################################################
+# Check for other (optional) tools/libraries    #
+#################################################
+
+new_section "configure optional tools and libraries"
+
+AC_CHECK_PROG(OCAMLDOC,ocamldoc,ocamldoc,no)
+if test "$OCAMLDOC" = no ; then
+  AC_MSG_RESULT(ocamldoc discarded not present)
+else
+        OCAMLDOC="$OCAMLFIND ocamldoc"
+fi
+
+AC_CHECK_PROG(OCAMLMKTOP,ocamlmktop,ocamlmktop,no)
+if test "$OCAMLMKTOP" = no ; then
+  AC_MSG_RESULT(Cannot find ocamlmktop: toplevels cannot be built.)
+else
+        OCAMLMKTOP="$OCAMLFIND ocamlmktop"
+fi
+
+AC_CHECK_PROG(OTAGS,otags,otags,)
 
 # apron
 ########
@@ -316,6 +294,30 @@ else
   AC_MSG_RESULT(not found. The corresponding domains won't be available in Eva)
 fi;
 
+# landmarks (profiling tool, for developers)
+########
+
+AC_ARG_ENABLE(
+  landmarks,
+  [  --enable-landmarks      enable landmarks profiling (default: yes if package installed)],
+  ENABLE_LANDMARKS=$enableval,
+  ENABLE_LANDMARKS=yes)
+
+if test "$ENABLE_LANDMARKS" = yes ; then
+  AC_MSG_CHECKING(for Landmarks)
+  LANDMARKS_PATH=$($OCAMLFIND query landmarks 2>/dev/null | tr -d '\r\n')
+  LANDMARKS_PPX_PATH=$($OCAMLFIND query landmarks.ppx 2>/dev/null | tr -d '\r\n')
+  if test -f "$LANDMARKS_PATH/landmarks.cmxs" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
+    HAS_LANDMARKS="yes";
+    AC_MSG_RESULT(found)
+  else
+    HAS_LANDMARKS="no";
+    AC_MSG_RESULT(not found.)
+  fi;
+else
+  AC_MSG_RESULT(Landmarks profiling disabled);
+  HAS_LANDMARKS="no"
+fi
 
 ############
 # Platform #
@@ -381,7 +383,7 @@ AC_CHECK_HEADERS(unistd.h)
 # Local machdep feature (to generate new platforms)
 AC_ARG_ENABLE(
   localmachdep,
-  [  --enable-localmachdep    enable local machdep configuration],
+  [  --enable-localmachdep   enable local machdep configuration],
   LOCAL_MACHDEP=$enableval,
   LOCAL_MACHDEP=no)
 
@@ -474,7 +476,7 @@ fi # local machdep configuration
 # Specific preprocessor support
 AC_ARG_WITH(
         cpp,
-        [  --with-cpp             customize defaut preprocessor for Frama-C],
+        [  --with-cpp             customize default preprocessor for Frama-C],
         [FRAMAC_DEFAULT_CPP=$withval],
         [FRAMAC_DEFAULT_CPP=])
 
@@ -528,6 +530,45 @@ AC_ARG_WITH(
 
 AC_MSG_RESULT(Default preprocessor is '$FRAMAC_DEFAULT_CPP'.)
 
+FRAMAC_DEFAULT_CPP_ARGS=$CPPFLAGS
+
+# Test if preprocessor supports options such as -m16/-m32/-m64
+
+DEFAULT_CPP_SUPPORTED_ARCH_OPTS=
+
+# Store original value of CPPFLAGS before doing tests
+OLD_CPPFLAGS=$CPPFLAGS
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m32"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m32 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m32\"; ';
+  fi], [])
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m64"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m64 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m64\"; ';
+  fi], [])
+
+rm -f conftest.i
+CPPFLAGS="$OLD_CPPFLAGS -m16"
+AC_PREPROC_IFELSE(
+  [AC_LANG_SOURCE([/* Check if preprocessor supports option -m16 */])],
+  [if test -e conftest.i; then
+    DEFAULT_CPP_SUPPORTED_ARCH_OPTS+='\"-m16\"; ';
+  fi], [])
+
+# revert CPPFLAGS to original value
+CPPFLAGS=$OLD_CPPFLAGS
+
+AC_MSG_RESULT(Default preprocessor supported architecture-related options: $DEFAULT_CPP_SUPPORTED_ARCH_OPTS)
+
+
 #################
 # Plugin wished #
 #################
@@ -562,10 +603,6 @@ REQUIRE_LABLGTK=
 USE_LABLGTK=
 HAS_LABLGTK=
 
-REQUIRE_NATIVE_DYNLINK=
-USE_NATIVE_DYNLINK=
-HAS_NATIVE_DYNLINK=uncheck
-
 # Tool declarations
 ####################
 
@@ -584,7 +621,7 @@ PLUGINS_FORCE_LIST=
 # Plug-in sections #                                                          #
 ####################                                                          #
 #                                                                             #
-# For 'internal' developpers:                                                 #
+# For 'internal' developers:                                                 #
 # Add your own plug-in here                                                   #
 #                                                                             #
 ###############################################################################
@@ -835,81 +872,28 @@ configure_library([LABLGTK],
 
 configure_tool([DOT],[dot],[dot not found: you should install GraphViz],no)
 
-# Native dynlink
-################
-
-define([force_static_plugins],
-  [# compile statically all dynamic plug-ins
-   # except contrary instructions
-   [USE_NATIVE_DYNLINK]="";
-   for plugin in m4_flatten(PLUGINS_LIST); do
-     n=NAME_$plugin
-     d=DYNAMIC_$plugin
-     s=STATIC_$plugin
-     eval np=\$$n
-     eval dp=\$$d
-     eval sp=\$$s
-     if test "$dp" = "yes"; then
-       if test "$sp" = "no"; then
-         # force to be dynamic
-         USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} $np";
-       else
-         eval STATIC_$plugin=yes;
-         eval DYNAMIC_$plugin=no;
-       fi
-     fi
-   done])
-
-configure_library([NATIVE_DYNLINK],
-                  [$OCAMLLIB/dynlink.cmxa],
-                  [native dynlink unavailable],
-                  yes,
-                  [force_static_plugins])
-
 # Checking some other things which cannot be done too early
 ###########################################################
 
-# Usable native dynlink
+# Check that native dynlink works
 
-# Checking internal invariant
-if test "$HAS_NATIVE_DYNLINK" = "uncheck"; then
-   AC_MSG_ERROR([Internal error with check of native dynlink. Please report.])
+echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
+if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
+  2> /dev/null ; \
+then
+  AC_MSG_RESULT([native dynlink works fine. Great.])
+else
+  AC_MSG_ERROR([native dynlink does not work.])
 fi
-
-HAS_USABLE_NATIVE_DYNLINK=no
-
-if test "$HAS_NATIVE_DYNLINK" != "no" ; then
-  echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
-  if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
-    2> /dev/null ; \
-  then
-    HAS_USABLE_NATIVE_DYNLINK=yes
-    AC_MSG_RESULT([native dynlink works fine. Great.])
-  else
-    REQUIRE_USABLE_NATIVE_DYNLINK=$REQUIRE_NATIVE_DYNLINK
-    USE_USABLE_NATIVE_DYNLINK=$USE_NATIVE_DYNLINK
-    HAS_USABLE_NATIVE_DYNLINK=no
-#   we know that dynlink does not work:
-#   configure a dummy library "dynlink" in order to
-#   configure plug-ins depending on dynlink in a proper way
-    configure_library([USABLE_NATIVE_DYNLINK],
-                      [dynlink],
-                      [native dynlink unsupported on this platform],
-                      yes,
-                      [force_static_plugins])
-  fi
-  rm -f test_dynlink.*
-fi
+rm -f test_dynlink.*
 
 # Native version of ptests can be used only if
 # - a native compiler exists
-# - native dynlink is usable
 # - native threads are usable
 
 PTESTSBEST=byte
 if test \
      "$OCAMLBEST" = "opt" -a \
-     "$HAS_USABLE_NATIVE_DYNLINK" = "yes" -a \
      "$HAS_NATIVE_THREADS" = "yes"; \
 then
    PTESTSBEST=opt;
@@ -933,10 +917,8 @@ AC_SUBST(VERBOSEMAKE)
 AC_SUBST(DEVELOPMENT)
 AC_SUBST(DOT)
 AC_SUBST(HAS_DOT)
-AC_SUBST(HAS_ZARITH)
-AC_SUBST(ZARITH_PATH)
 AC_SUBST(HAS_APRON)
-AC_SUBST(APRON_PATH)
+AC_SUBST(HAS_LANDMARKS)
 AC_SUBST(OCAMLBEST)
 AC_SUBST(OCAMLVERSION)
 AC_SUBST(OCAMLLIB)
@@ -954,13 +936,14 @@ AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
 AC_SUBST(FRAMAC_DEFAULT_CPP)
+AC_SUBST(FRAMAC_DEFAULT_CPP_ARGS)
+AC_SUBST(DEFAULT_CPP_SUPPORTED_ARCH_OPTS)
 AC_SUBST(FRAMAC_GNU_CPP)
 AC_SUBST(DEFAULT_CPP_KEEP_COMMENTS)
 AC_SUBST(CC)
 
 AC_SUBST(EXTERNAL_PLUGINS)
 
-AC_SUBST(HAS_USABLE_NATIVE_DYNLINK)
 AC_SUBST(HAS_NATIVE_THREADS)
 AC_SUBST(PTESTSBEST)
 AC_SUBST(LABLGTK_PATH)

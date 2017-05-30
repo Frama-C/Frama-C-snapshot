@@ -40,8 +40,8 @@ tests/value/fun_ptr.i:38:[value] warning: pointer to function with incompatible 
                  assert \valid_function((double (*)(int ))t[nd]);
 [value] Recording results for test3
 [value] Done for function test3
-tests/value/fun_ptr.i:83:[value] warning: Function type must match type at call site: assert(function type matches)
-tests/value/fun_ptr.i:85:[value] warning: Function type must match type at call site: assert(function type matches)
+tests/value/fun_ptr.i:83:[value] warning: pointer to function with incompatible type. assert \valid_function(*ph);
+tests/value/fun_ptr.i:85:[value] warning: pointer to function with incompatible type. assert \valid_function(*ph);
 [value] computing for function h <- main.
         Called from tests/value/fun_ptr.i:87.
 [value] Recording results for h

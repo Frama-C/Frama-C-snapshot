@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -124,10 +124,10 @@ val loopInit     : string
 
 (** C variables *)
 
-(** Name of curOp C generated variable (Name of the curent operation) *)
+(** Name of curOp C generated variable (Name of the current operation) *)
 val curOp        : string
 
-(** Name of curOpStatus C generated variable (Status Return or Call of the curent operation) *)
+(** Name of curOpStatus C generated variable (Status Return or Call of the current operation) *)
 val curOpStatus  : string
 
 (** Name of curState C generated variable (Table of states that can be synchronized with the program) *)

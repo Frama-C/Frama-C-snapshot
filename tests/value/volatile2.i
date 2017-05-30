@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -print -val @VALUECONFIG@ -machdep x86_16
+   OPT: -no-autoload-plugins -load-module from,inout,value -print -val @VALUECONFIG@ -machdep x86_16
 */
 
 
@@ -119,6 +119,19 @@ void main8() { // Test that volatile qualifiers hidden inside typedefs are taken
   Frama_C_show_each(a, b, c, d, e);
 }
 
+extern struct { volatile int i1; int i2; } S9;
+volatile int u9[10];
+
+// Check that remove-redundant-alarms does not propagate information
+// about predicates that involve volatile memory zones
+void main9 () {
+  int t9[10];
+  t9[S9.i1] = 1;
+  t9[S9.i1] = 2;
+  t9[u9[1]] = 3;
+  t9[u9[1]] = 4;
+}
+
 void main() {
   main1();
   main2();
@@ -128,4 +141,5 @@ void main() {
   main6();
   main7();
   main8();
+  main9();
 }

@@ -6,10 +6,8 @@
       ensures \true; */
 int f(int z)
 {
-  int x;
-  int y;
-  x = z;
-  y = 2;
+  int x = z;
+  int y = 2;
   /*@ assigns y; */
   __asm__ ("mov %1, %0\n\t" : "=r" (y) : "r" (x));
   /*@ assigns x;

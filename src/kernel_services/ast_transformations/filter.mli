@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,7 +119,7 @@ module type RemoveInfo = sig
   *)
   val result_visible : kernel_function -> fct -> bool
 
-  (** [cond_edge_visible f s] emplies that [s] is an 'if' in [f]. The
+  (** [cond_edge_visible f s] implies that [s] is an 'if' in [f]. The
       first returned boolean indicates that the 'then' edge is useful,
       the second one the 'else' is. Setting one or both to true will
       lead to the simplification in the 'if'. *)

@@ -14,12 +14,9 @@ tests/rte/addsub.c:11:[rte] warning: guaranteed RTE:
 int main(void)
 {
   int __retres;
-  int x;
-  int y;
-  int z;
-  x = 0;
-  y = 0;
-  z = 0;
+  int x = 0;
+  int y = 0;
+  int z = 0;
   /*@ assert rte: signed_overflow: 0x7fffffff + 0x7fffffff ≤ 2147483647; */
   z = 0x7fffffff + 0x7fffffff;
   /*@ assert

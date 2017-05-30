@@ -33,6 +33,7 @@ comp f(comp s, comp *p) {
 //@ assigns \result \from \nothing;
 struct empty ret_empty();
 
+/*@ allocates \result; ensures \fresh(\result, sizeof(struct empty)); */
 struct empty * ret_ptr_empty();
 
 int main() {

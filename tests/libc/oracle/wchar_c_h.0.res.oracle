@@ -18,8 +18,8 @@
 [value] Done for function wmemcmp
 [value] computing for function wmemcpy <- main.
         Called from tests/libc/wchar_c_h.c:25.
-share/libc/wchar.h:44:[value] function wmemcpy: precondition got status valid.
-share/libc/wchar.h:47:[value] function wmemcpy: postcondition got status valid.
+share/libc/wchar.h:45:[value] function wmemcpy: precondition got status valid.
+share/libc/wchar.h:48:[value] function wmemcpy: postcondition got status valid.
 [value] Recording results for wmemcpy
 [value] Done for function wmemcpy
 [value] computing for function wmemcpy <- main.
@@ -38,7 +38,7 @@ share/libc/wchar.h:47:[value] function wmemcpy: postcondition got status valid.
 [value] Done for function wmemmove
 [value] computing for function wmemset <- main.
         Called from tests/libc/wchar_c_h.c:27.
-share/libc/wchar.h:61:[value] function wmemset: postcondition got status valid.
+share/libc/wchar.h:62:[value] function wmemset: postcondition got status valid.
 [value] Recording results for wmemset
 [value] Done for function wmemset
 [value] computing for function wmemset <- main.
@@ -71,7 +71,7 @@ share/libc/wchar.h:61:[value] function wmemset: postcondition got status valid.
 [value] Done for function wcscmp
 [value] computing for function wcscpy <- main.
         Called from tests/libc/wchar_c_h.c:30.
-share/libc/wchar.h:84:[value] function wcscpy: postcondition got status valid.
+share/libc/wchar.h:85:[value] function wcscpy: postcondition got status valid.
 [value] Recording results for wcscpy
 [value] Done for function wcscpy
 [value] computing for function wcscpy <- main.
@@ -123,7 +123,7 @@ share/libc/wchar.h:84:[value] function wcscpy: postcondition got status valid.
 [value] computing for function wcslcpy <- main.
         Called from tests/libc/wchar_c_h.c:33.
 [value] using specification for function wcslcpy
-share/libc/wchar.h:100:[value] function wcslcpy: precondition got status valid.
+share/libc/wchar.h:101:[value] function wcslcpy: precondition got status valid.
 [value] Done for function wcslcpy
 [value] computing for function wcslcpy <- main.
         Called from tests/libc/wchar_c_h.c:33.
@@ -205,8 +205,8 @@ share/libc/wchar.h:100:[value] function wcslcpy: precondition got status valid.
 [value] Done for function wcsncmp
 [value] computing for function wcsncpy <- main.
         Called from tests/libc/wchar_c_h.c:36.
-share/libc/wchar.h:120:[value] function wcsncpy: precondition got status valid.
-share/libc/wchar.h:123:[value] function wcsncpy: postcondition got status valid.
+share/libc/wchar.h:121:[value] function wcsncpy: precondition got status valid.
+share/libc/wchar.h:124:[value] function wcsncpy: postcondition got status valid.
 [value] Recording results for wcsncpy
 [value] Done for function wcsncpy
 [value] computing for function wcsncpy <- main.
@@ -381,7 +381,7 @@ share/libc/wchar.h:123:[value] function wcsncpy: postcondition got status valid.
 [value] Done for function wcsstr
 [value] computing for function wcscat <- main.
         Called from tests/libc/wchar_c_h.c:44.
-share/libc/wchar.h:68:[value] function wcscat: postcondition got status valid.
+share/libc/wchar.h:69:[value] function wcscat: postcondition got status valid.
 [value] Recording results for wcscat
 [value] Done for function wcscat
 [value] computing for function wcscat <- main.
@@ -422,7 +422,7 @@ share/libc/wchar.h:68:[value] function wcscat: postcondition got status valid.
         Called from share/libc/wchar.c:89.
 [value] Recording results for wcslen
 [value] Done for function wcslen
-share/libc/wchar.h:112:[value] function wcsncat: postcondition got status valid.
+share/libc/wchar.h:113:[value] function wcsncat: postcondition got status valid.
 [value] Recording results for wcsncat
 [value] Done for function wcsncat
 [value] computing for function wcsncat <- main.

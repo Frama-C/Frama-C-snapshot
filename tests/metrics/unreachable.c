@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-metrics-value-cover" +"-then" +"-main foo"
+   STDOPT: +"-load-module scope -metrics-value-cover -then -main foo"
 **/
 void foo () {
   int i = 0;

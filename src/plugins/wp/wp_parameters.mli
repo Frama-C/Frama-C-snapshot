@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,6 +58,7 @@ module Literals : Parameter_sig.Bool
 (** {2 Computation Strategies} *)
 
 module Init: Parameter_sig.Bool
+module InitAlias: Parameter_sig.Bool
 module InitWithForall: Parameter_sig.Bool
 module BoundForallUnfolding: Parameter_sig.Int
 module RTE: Parameter_sig.Bool
@@ -68,9 +69,10 @@ module Prune: Parameter_sig.Bool
 module Clean: Parameter_sig.Bool
 module Filter: Parameter_sig.Bool
 module Bits: Parameter_sig.Bool
+module Ground: Parameter_sig.Bool
 module QedChecks : Parameter_sig.String_set
 module Split: Parameter_sig.Bool
-module Invariants: Parameter_sig.Bool
+module SplitDepth: Parameter_sig.Int
 module DynCall : Parameter_sig.Bool
 module SimplifyIsCint : Parameter_sig.Bool
 module SimplifyForall : Parameter_sig.Bool
@@ -118,7 +120,9 @@ module Check: Parameter_sig.Bool
 (** {2 Environment Variables} *)
 
 val get_env : ?default:string -> string -> string
-val is_out : unit -> bool (* -wp-out <dir> positionned *)
+val is_out : unit -> bool (* -wp-out <dir> positioned *)
+val get_session : unit -> string
+val get_session_dir : string -> string
 val get_output : unit -> string
 val get_output_dir : string -> string
 val get_includes: unit -> string list

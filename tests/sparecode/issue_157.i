@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable
+   OPT: -sparecode-debug 1 -sparecode-analysis -val-show-progress -journal-disable
 */
 
 int f() {

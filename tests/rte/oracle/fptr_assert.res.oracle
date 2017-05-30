@@ -30,13 +30,7 @@ int main(int i)
   int __retres;
   void (*fp1)();
   int (*fp2)(int );
-  fptr ma[2];
-  { /* sequence */
-    ;
-    ;
-  }
-  ma[0] = & f;
-  ma[1] = & h;
+  fptr ma[2] = {& f, & h};
   fp1 = (void (*)())(& g);
   fp2 = & f;
   /*@ assert rte: function_pointer: \valid_function(fp1); */

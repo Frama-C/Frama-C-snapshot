@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -309,7 +309,7 @@ and bal = parse
 
 
   let op = {
-    inversible = false ;
+    invertible = false ;
     associative = false ;
     commutative = false ;
     idempotent = false ;
@@ -344,8 +344,8 @@ and bal = parse
 	  op_link { op with commutative = true ; associative = true } input
       | ID "idempotent" -> skip input ; skipkey input ":" ;
 	  op_link { op with idempotent = true } input
-      | ID "inversible" -> skip input ; skipkey input ":" ;
-	  op_link { op with inversible = true } input
+      | ID "invertible" -> skip input ; skipkey input ":" ;
+	  op_link { op with invertible = true } input
       | ID "neutral" ->
 	  skip input ; let e = op_elt input in
 	  op_link { op with neutral = e } input
@@ -361,7 +361,7 @@ and bal = parse
 	  Function, link `Nary input
       | ID "constructor" ->
 	  skip input ; skipkey input ":" ;
-	  Constructor, link `Nary input
+	  Qed.Logic.Constructor, link `Nary input
       | ID "injective" ->
 	  skip input ; skipkey input ":" ;
 	  Injection, link `Nary input

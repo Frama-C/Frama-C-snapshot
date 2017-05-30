@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,9 +58,15 @@ let selection_of_localizable = function
                     s_stmt = stmt ;
                   }
             end
+        | { skind=Instr(Local_init(_,ConsInit (vi, _, _),_)) } ->
+            S_call {
+              s_called = Globals.Functions.get vi ;
+              s_caller = kf ;
+              s_stmt = stmt ;
+            }
         | _ -> S_none
       end
-  | PVDecl (Some kf,{vglob=true}) -> S_fun kf
+  | PVDecl (Some kf,_,{vglob=true}) -> S_fun kf
   | PIP ip -> S_prop ip
   | PVDecl _ | PLval _ | PExp _ | PTermLval _ | PGlobal _ -> S_none
 
@@ -99,14 +105,14 @@ class popup () =
 
     method private rte_popup menu main loc =
       match loc with
-      | PVDecl (Some kf,{vglob=true}) ->
+      | PVDecl (Some kf,_,{vglob=true}) ->
           if not (is_rte_generated kf) then
             self#add_rte menu main "Insert WP-safety guards"
               Db.RteGen.do_all_rte kf ;
           if not (is_rte_precond kf) then
             self#add_rte menu main "Insert all callees contract"
               Db.RteGen.do_precond kf;
-      | PStmt(kf,({ skind=Instr(Call _) })) ->
+      | PStmt(kf,({ skind=Instr(Call _ | Local_init (_, ConsInit _, _)) })) ->
           if not (is_rte_precond kf) then
             self#add_rte menu main "Insert callees contract (all calls)"
               Db.RteGen.do_precond kf;
@@ -216,7 +222,8 @@ class highlighter (main:Design.main_window_extension_points) =
                     path <- instructions a.VC_Annot.path ;
                     deps <- a.VC_Annot.deps ;
               end ;
-              if not (WpPropId.is_check pid) then
+              if not (WpPropId.is_check pid || WpPropId.is_tactic pid)
+              then
                 ( let ip = WpPropId.property_of_id pid in
                   goal <- Some ip ) ;
               Wutil.later self#scroll ;

@@ -3,7 +3,7 @@
 */
 
 /* run.config_qualif
-   OPT: -wp -wp-proof alt-ergo -wp-par 1 -wp-model +ref
+   OPT: -wp-model +ref
 */
 
 //@ predicate simple (int * p3) = *p3 == 0;

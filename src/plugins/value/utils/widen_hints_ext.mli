@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,13 +26,17 @@ open Cil_types
 
 val dkey: Log.category
 
-(** String used for hints applying to all variables. *)
-val all_vars_str : string
+type hint_vars =
+  | HintAllVars (* "all" vars: static hint *)
+  | HintVar of varinfo (* static hint *)
+  | HintMem of exp * offset (* dynamic hint *)
 
-(** Type of widening hints: an optional variable (None means "all variables")
+val pp_hvars : Format.formatter -> hint_vars -> unit
+
+(** Type of widening hints: a special kind of lval
     for which the hints will apply and a list of names (e.g. global). *)
 type hint_lval = {
-  vars : lval option;
+  vars : hint_vars;
   names : string list;
   loc : Cil_datatype.Location.t;
 }
@@ -45,3 +49,6 @@ val get_stmt_widen_hint_terms : stmt -> t list
 
 (** [is_global wh] returns true iff widening hint [wh] has a "global" prefix. *)
 val is_global : t -> bool
+
+(** [is_dynamic wh] returns true iff widening hint [wh] has a "dynamic" prefix. *)
+val is_dynamic : t -> bool

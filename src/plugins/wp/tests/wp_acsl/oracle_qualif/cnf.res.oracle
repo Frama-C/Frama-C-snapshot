@@ -1,0 +1,289 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/cnf.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 43 goals scheduled
+[wp:cnf] CNF=P_A /\ P_A1 /\ P_A2
+[wp] [Qed] Goal typed_f_post_a0 : Valid
+[wp:cnf] CNF=P_A \/ P_A1 \/ P_A2
+[wp] [Qed] Goal typed_f_post_a1 : Valid
+[wp:cnf] CNF=P_A2
+[wp] [Qed] Goal typed_f_post_a2 : Valid
+[wp:cnf] CNF=((not P_A1) \/ P_A2) /\ (P_A1 \/ (not P_A2))
+[wp] [Alt-Ergo] Goal typed_f_post_a3 : Valid
+[wp:cnf] CNF=((not P_A) \/ P_A1) /\ (P_A \/ P_A2)
+[wp] [Alt-Ergo] Goal typed_f_post_a4 : Valid
+[wp:cnf] CNF=(P_A \/ P_B) /\ (P_A \/ P_B1) /\ (P_A \/ P_B2) /\ (P_A \/ P_C)
+              /\ (P_A1 \/ P_B) /\ (P_A1 \/ P_B1) /\ (P_A1 \/ P_B2) /\ (P_A1 \/ P_C)
+              /\ (P_A2 \/ P_B) /\ (P_A2 \/ P_B1) /\ (P_A2 \/ P_B2) /\ (P_A2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_a5 : Valid
+[wp:cnf] CNF=(P_A \/ P_A1 \/ P_A2 \/ P_C) /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_a6 : Valid
+[wp:cnf] CNF=((not P_A) \/ (not P_A1) \/ P_A2 \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B1) \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ (not P_B1) \/ P_B2)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ (not P_B1) \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ (not P_A1) \/ P_A2 \/ (not P_B1) \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_a7 : Valid
+[wp:cnf] CNF=((not P_A1) \/ P_A2 \/ P_C) /\ (P_A1 \/ (not P_A2) \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ (not P_B1) \/ P_B2)
+              /\ ((not P_A1) \/ P_A2 \/ (not P_B1) \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ (not P_B2) \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ P_B1 \/ (not P_B2))
+              /\ ((not P_A1) \/ P_A2 \/ P_B1 \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ P_B2 \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ (not P_B1) \/ P_B2)
+              /\ (P_A1 \/ (not P_A2) \/ (not P_B1) \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ (not P_B2) \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ (not P_B2))
+              /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ P_B2 \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ (not P_B1) \/ (not P_B2) \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ (not P_B1) \/ P_B2 \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ P_B1 \/ (not P_B2) \/ P_C)
+              /\ ((not P_A1) \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ (not P_B1) \/ (not P_B2) \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ (not P_B1) \/ P_B2 \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ (not P_B2) \/ P_C)
+              /\ (P_A1 \/ (not P_A2) \/ P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_a8 : Valid
+[wp:cnf] CNF=((not P_A) \/ P_A1 \/ P_C) /\ (P_A \/ P_A2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B1)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B2 \/ P_C) /\ (P_A \/ P_A1 \/ P_A2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_B1)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_C) /\ (P_A \/ P_A2 \/ P_B \/ P_B2)
+              /\ (P_A \/ P_A2 \/ P_B \/ P_C) /\ (P_A \/ P_A2 \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A2 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B1 \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_B1 \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B2)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ P_B \/ P_B1 \/ P_B2)
+              /\ (P_A \/ P_A2 \/ P_B \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A2 \/ P_B \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ (not P_B) \/ P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A2 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_A) \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ (not P_B) \/ P_B1 \/ P_B2 \/ P_C)
+              /\ (P_A \/ P_A1 \/ P_A2 \/ P_B \/ P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_a9 : Valid
+[wp:cnf] CNF=P_B /\ P_B1 /\ P_B2 /\ P_C
+[wp] [Qed] Goal typed_f_post_b0 : Valid
+[wp:cnf] CNF=P_C /\ (P_B \/ P_B1 \/ P_B2)
+[wp] [Qed] Goal typed_f_post_b1 : Valid
+[wp:cnf] CNF=P_C /\ ((not P_B) \/ (not P_B1) \/ P_B2)
+[wp] [Alt-Ergo] Goal typed_f_post_b2 : Valid
+[wp:cnf] CNF=P_C /\ ((not P_B1) \/ P_B2) /\ (P_B1 \/ (not P_B2))
+[wp] [Alt-Ergo] Goal typed_f_post_b3 : Valid
+[wp:cnf] CNF=P_C /\ ((not P_B) \/ P_B1) /\ (P_B \/ P_B2)
+[wp] [Alt-Ergo] Goal typed_f_post_b4 : Valid
+[wp:cnf] CNF=true
+[wp] [Qed] Goal typed_f_post_b5 : Valid
+[wp:cnf] CNF=P_B \/ P_B1 \/ P_B2 \/ P_C1
+[wp] [Qed] Goal typed_f_post_b6 : Valid
+[wp] [Qed] Goal typed_f_post_b7 : Valid
+[wp] [Qed] Goal typed_f_post_b8 : Valid
+[wp:cnf] CNF=true
+[wp] [Qed] Goal typed_f_post_b9 : Valid
+[wp:cnf] CNF=(P_B \/ P_C) /\ (P_B1 \/ P_C) /\ (P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_c0 : Valid
+[wp:cnf] CNF=P_B \/ P_B1 \/ P_B2 \/ P_C
+[wp] [Qed] Goal typed_f_post_c1 : Valid
+[wp:cnf] CNF=(not P_B) \/ (not P_B1) \/ P_B2 \/ P_C
+[wp] [Alt-Ergo] Goal typed_f_post_c2 : Valid
+[wp:cnf] CNF=((not P_B1) \/ P_B2 \/ P_C) /\ (P_B1 \/ (not P_B2) \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_c3 : Valid
+[wp:cnf] CNF=((not P_B) \/ P_B1 \/ P_C) /\ (P_B \/ P_B2 \/ P_C)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ P_C) /\ (P_B \/ P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_c4 : Valid
+[wp:cnf] CNF=(P_B \/ (not P_C) \/ (not P_C1)) /\ (P_B \/ P_C \/ P_C1)
+              /\ (P_B1 \/ (not P_C) \/ (not P_C1)) /\ (P_B1 \/ P_C \/ P_C1)
+              /\ (P_B2 \/ (not P_C) \/ (not P_C1)) /\ (P_B2 \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B) \/ P_B1 \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ P_B2 \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B) \/ P_B2 \/ P_C \/ P_C1)
+              /\ ((not P_B1) \/ P_B2 \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B1) \/ P_B2 \/ P_C \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_C) \/ (not P_C1))
+              /\ (P_B \/ (not P_B1) \/ P_C \/ P_C1)
+              /\ (P_B \/ (not P_B2) \/ (not P_C) \/ (not P_C1))
+              /\ (P_B \/ (not P_B2) \/ P_C \/ P_C1) /\ (P_B \/ P_B1 \/ P_C \/ P_C1)
+              /\ (P_B \/ P_B2 \/ P_C \/ P_C1)
+              /\ (P_B1 \/ (not P_B2) \/ (not P_C) \/ (not P_C1))
+              /\ (P_B1 \/ (not P_B2) \/ P_C \/ P_C1) /\ (P_B1 \/ P_B2 \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_B2) \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B) \/ P_B1 \/ (not P_B2) \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ P_C \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_B2) \/ (not P_C) \/ (not P_C1))
+              /\ (P_B \/ (not P_B1) \/ (not P_B2) \/ P_C \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ P_B2 \/ P_C \/ P_C1)
+              /\ (P_B \/ P_B1 \/ (not P_B2) \/ P_C \/ P_C1)
+[wp] [Alt-Ergo] Goal typed_f_post_c5 : Valid
+[wp:cnf] CNF=((not P_B) \/ P_C1) /\ ((not P_B1) \/ P_C1) /\ ((not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B2) \/ P_C1) /\ ((not P_B) \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_C1) /\ ((not P_B) \/ P_B2 \/ P_C1)
+              /\ ((not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B1) \/ (not P_C) \/ P_C1) /\ ((not P_B1) \/ P_B2 \/ P_C1)
+              /\ ((not P_B2) \/ (not P_C) \/ P_C1) /\ (P_B \/ (not P_B1) \/ P_C1)
+              /\ (P_B \/ (not P_B2) \/ P_C1) /\ (P_B1 \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ P_C1)
+              /\ ((not P_B) \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ ((not P_B1) \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ P_B2 \/ P_C1)
+              /\ (P_B \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ P_B1 \/ (not P_B2) \/ P_C1)
+              /\ (P_B1 \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ P_B1 \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C) \/ (not P_C1))
+              /\ (P_B \/ P_B1 \/ P_B2 \/ P_C \/ P_C1)
+[wp] [Alt-Ergo] Goal typed_f_post_c6 : Valid
+[wp:cnf] CNF=((not P_B2) \/ P_C1) /\ (P_B \/ P_C1) /\ (P_B1 \/ P_C1)
+              /\ ((not P_B) \/ (not P_B2) \/ P_C1) /\ ((not P_B) \/ P_B1 \/ P_C1)
+              /\ ((not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B2) \/ (not P_C) \/ P_C1) /\ (P_B \/ (not P_B1) \/ P_C1)
+              /\ (P_B \/ (not P_B2) \/ P_C1) /\ (P_B \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ P_B1 \/ P_C1) /\ (P_B \/ P_B2 \/ P_C1)
+              /\ (P_B1 \/ (not P_B2) \/ P_C1) /\ (P_B1 \/ (not P_C) \/ P_C1)
+              /\ (P_B1 \/ P_B2 \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_B2) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ P_C1)
+              /\ ((not P_B1) \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_B2) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ P_B2 \/ P_C1) /\ (P_B \/ P_B1 \/ P_B2 \/ P_C1)
+              /\ (P_B \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ (P_B1 \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ (not P_C) \/ P_C1)
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C) \/ (not P_C1))
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ P_C \/ P_C1)
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C) \/ P_C1)
+              /\ (P_B \/ (not P_B1) \/ P_B2 \/ (not P_C) \/ P_C1)
+[wp] [Alt-Ergo] Goal typed_f_post_c7 : Valid
+[wp:cnf] Too big CNF/DNF
+[wp:cnf] CNF=((P_C \/ (P_B2 <-> P_B1)) -> ((P_B2 <-> P_B1) <-> P_C1))
+              /\ (((P_B2 <-> P_B1) <-> P_C1) -> (P_C \/ (P_B2 <-> P_B1)))
+[wp] [Alt-Ergo] Goal typed_f_post_c8 : Valid
+[wp:cnf] Too big CNF/DNF
+[wp:cnf] CNF=((P_C \/ ((P_B -> P_B1) /\ ((not P_B) -> P_B2)))
+               -> ((P_B2 <-> P_B1) <-> P_C1))
+              /\ (((P_B2 <-> P_B1) <-> P_C1)
+                  -> (P_C \/ ((P_B -> P_B1) /\ ((not P_B) -> P_B2))))
+[wp] [Alt-Ergo] Goal typed_f_post_c9 : Valid
+[wp:cnf] CNF=(P_B \/ (not P_C)) /\ (P_B1 \/ (not P_C)) /\ (P_B2 \/ (not P_C))
+              /\ ((not P_B) \/ (not P_B1) \/ (not P_B2) \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_d0 : Valid
+[wp:cnf] CNF=((not P_B) \/ P_C) /\ ((not P_B1) \/ P_C) /\ ((not P_B2) \/ P_C)
+              /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d1 : Valid
+[wp:cnf] CNF=((not P_B2) \/ P_C) /\ (P_B \/ P_C) /\ (P_B1 \/ P_C)
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d2 : Valid
+[wp:cnf] CNF=((not P_B1) \/ (not P_B2) \/ P_C) /\ ((not P_B1) \/ P_B2 \/ (not P_C))
+              /\ (P_B1 \/ (not P_B2) \/ (not P_C)) /\ (P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_d3 : Valid
+[wp:cnf] CNF=((not P_B) \/ (not P_B1) \/ P_C) /\ ((not P_B) \/ P_B1 \/ (not P_C))
+              /\ ((not P_B1) \/ (not P_B2) \/ P_C) /\ (P_B \/ (not P_B2) \/ P_C)
+              /\ (P_B \/ P_B2 \/ (not P_C))
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C))
+              /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d4 : Valid
+[wp:cnf] CNF=((not P_B1) \/ P_B2) /\ (P_B \/ (not P_B1)) /\ (P_B \/ (not P_B2))
+              /\ (P_B \/ (not P_C)) /\ (P_B1 \/ (not P_B2)) /\ (P_B1 \/ (not P_C))
+              /\ (P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d5 : Valid
+[wp:cnf] CNF=((not P_B) \/ P_B1 \/ P_B2 \/ P_C) /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d6 : Valid
+[wp:cnf] CNF=((not P_B) \/ (not P_B1) \/ P_B2) /\ (P_B1 \/ P_B2 \/ P_C)
+              /\ ((not P_B) \/ (not P_B1) \/ P_B2 \/ (not P_C))
+              /\ (P_B \/ P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_d7 : Valid
+[wp:cnf] CNF=((not P_B1) \/ P_B2) /\ (P_B1 \/ (not P_B2))
+              /\ ((not P_B1) \/ P_B2 \/ (not P_C))
+              /\ (P_B1 \/ (not P_B2) \/ (not P_C)) /\ (P_B1 \/ P_B2 \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_d8 : Valid
+[wp:cnf] CNF=((not P_B) \/ P_B1 \/ (not P_B2)) /\ ((not P_B) \/ P_B1 \/ (not P_C))
+              /\ (P_B \/ (not P_B1) \/ P_B2) /\ (P_B \/ P_B2 \/ (not P_C))
+              /\ ((not P_B) \/ P_B1 \/ P_B2 \/ (not P_C))
+              /\ (P_B \/ P_B1 \/ P_B2 \/ (not P_C))
+[wp] [Alt-Ergo] Goal typed_f_post_d9 : Valid
+[wp:cnf] CNF=P_A /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_e0 : Valid
+[wp:cnf] CNF=P_B /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_e1 : Valid
+[wp:cnf] CNF=P_C /\ ((not P_B) \/ P_C) /\ ((not P_A) \/ (not P_B) \/ P_C)
+[wp] [Alt-Ergo] Goal typed_f_post_e2 : Valid
+[wp] Proved goals:   43 / 43
+     Qed:            11 
+     Alt-Ergo:       32
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                   11     32 (358)   43       100%
+----------------------------------------------------------

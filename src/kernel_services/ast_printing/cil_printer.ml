@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,6 +63,12 @@ let register_behavior_extension = Behavior_extensions.register
 let reserved_attributes = ref []
 let register_shallow_attribute s = reserved_attributes:=s::!reserved_attributes
 
+let keep_attr = function
+  | Attr (s,_) -> not (List.mem s !reserved_attributes)
+  | AttrAnnot _ -> true
+
+let filter_printing_attributes l = List.filter keep_attr l
+
 let needs_quote =
   let regex = Str.regexp "^[A-Za-z0-9_]+$" in
   fun s -> not (Str.string_match regex s 0)
@@ -76,13 +82,34 @@ let print_as_source source =
 let print_global g =
   (* This function decides whether to hide Frama-C's own builtins (in
      fc_builtin_for_normalization). *)
+  let attrs = Cil_datatype.Global.attr g in
+  let printable =
+    not (Cil.hasAttribute "fc_stdlib" attrs) || Kernel.PrintLibc.get()
+  in
   let print_var v =
     not (Cil.is_unused_builtin v) || Kernel.is_debug_key_enabled debug_builtins
   in
   match g with
   | GVar (vi,_,_) | GFun ({svar = vi},_) | GVarDecl (vi,_) | GFunDecl (_,vi,_)->
-    print_var vi
-  | _ -> true
+    print_var vi && printable
+  | _ -> printable
+
+let print_std_includes fmt globs =
+  if not (Kernel.PrintLibc.get ()) then begin
+    let extract_file acc = function
+      | AStr s -> Datatype.String.Set.add s acc
+      | _ -> Kernel.warning "Unexpected attribute parameter for fc_stdlib"; acc
+    in
+    let add_file acc g =
+      let attrs = Cil_datatype.Global.attr g in
+      match Cil.findAttribute "fc_stdlib" attrs with
+      | [ arg ] -> extract_file acc arg
+      | _ -> acc
+    in
+    let includes = List.fold_left add_file Datatype.String.Set.empty globs in
+    let print_one_include s = Format.fprintf fmt "#include \"%s\"@." s in
+    Datatype.String.Set.iter print_one_include includes
+  end
 
 let pretty_C_constant suffix k fmt i =
   let nb_signed_bits =
@@ -371,6 +398,9 @@ let extract_acsl_list t =
   in
   aux [] t
 
+let is_cfg_block =
+  function Stmt_block _ -> false | Then_with_else | Other | Body -> true
+
 class cil_printer () = object (self)
 
   val mutable logic_printer_enabled = true
@@ -436,6 +466,8 @@ class cil_printer () = object (self)
 
   val mutable has_annot = false
   method private has_annot = has_annot && logic_printer_enabled
+
+  method private stmt_has_annot _ = false
 
   method private push_stmt s = Stack.push s current_stmt
   method private pop_stmt s =
@@ -726,6 +758,26 @@ class cil_printer () = object (self)
   method instr fmt (i:instr) = (* imperative instruction *)
     fprintf fmt "%a"
       (self#line_directive ~forcefile:false) (Cil_datatype.Instr.loc i);
+    let pp_call dest e fmt args =
+      (match dest with
+       | None -> ()
+       | Some lv ->
+         fprintf fmt "%a = " self#lval lv;
+         (* Maybe we need to print a cast *)
+         (let destt = Cil.typeOfLval lv in
+          match Cil.unrollType (Cil.typeOf e) with
+          | TFun(rt, _, _, _) when (Cil.need_cast rt destt) ->
+            fprintf fmt "(%a)" (self#typ None) destt
+          | _ -> ()));
+      (* Now the function name *)
+      (match e.enode with
+       | Lval(Var _, _) -> self#exp fmt e
+       | _ -> fprintf fmt "(%a)"  self#exp e);
+      (* Now the arguments *)
+      Pretty_utils.pp_flowlist ~left:"(" ~sep:"," ~right:")" self#exp fmt args;
+      (* Now the terminator *)
+      fprintf fmt "%s" instr_terminator
+    in
     match i with
     | Skip _ -> fprintf fmt ";"
     | Set(lv,e,_) -> begin
@@ -773,6 +825,16 @@ class cil_printer () = object (self)
             instr_terminator
 
       end
+    | Local_init(vi, AssignInit i, _) ->
+      Format.fprintf fmt "@[<2>%a =@ %a%s@]"
+        self#vdecl vi self#init i instr_terminator
+    | Local_init(vi, ConsInit(f, args, Constructor), _) ->
+      let args = Cil.mkAddrOfVi vi :: args in
+      Format.fprintf fmt "@[<2>%a%s@]@\n" self#vdecl vi instr_terminator;
+      pp_call None (Cil.evar f) fmt args
+    | Local_init(vi, ConsInit(f, args, Plain_func), _) ->
+      Format.fprintf fmt "@[<2>%a =@ %a@]" self#vdecl vi
+      (pp_call None (Cil.evar f)) args;
     (* In cabs2cil we have turned the call to builtin_va_arg into a
        three-argument call: the last argument is the address of the 
        destination *)
@@ -840,25 +902,7 @@ class cil_printer () = object (self)
         "__builtin_types_compatible_p: cabs2cil should have added sizeof to \
          the arguments."
 
-    | Call(dest,e,args,_) ->
-      (match dest with
-       | None -> ()
-       | Some lv ->
-         fprintf fmt "%a = " self#lval lv;
-         (* Maybe we need to print a cast *)
-         (let destt = Cil.typeOfLval lv in
-          match Cil.unrollType (Cil.typeOf e) with
-          | TFun(rt, _, _, _) when (Cil.need_cast rt destt) ->
-            fprintf fmt "(%a)" (self#typ None) destt
-          | _ -> ()));
-      (* Now the function name *)
-      (match e.enode with
-       | Lval(Var _, _) -> self#exp fmt e
-       | _ -> fprintf fmt "(%a)"  self#exp e);
-      (* Now the arguments *)
-      Pretty_utils.pp_flowlist ~left:"(" ~sep:"," ~right:")" self#exp fmt args;
-      (* Now the terminator *)
-      fprintf fmt "%s" instr_terminator
+    | Call(dest,e,args,_) -> pp_call dest e fmt args
 
     | Asm(attrs, tmpls, ext_asm, l) ->
       self#line_directive fmt l;
@@ -961,7 +1005,8 @@ class cil_printer () = object (self)
 
   method stmt_labels fmt (s:stmt) =
     if s.labels <> [] then
-      Pretty_utils.pp_list ~sep:"@ " ~suf:"@]@ " self#label fmt s.labels
+      Pretty_utils.pp_list
+        ~pre:"@[<hov>" ~sep:"@ " ~suf:"@]@ " self#label fmt s.labels
 
   method label fmt = function
     | Label (s, _, b) when b || not verbose -> fprintf fmt "@[%s:@]" s
@@ -974,9 +1019,8 @@ class cil_printer () = object (self)
   method private display_comment () = not is_ghost || verbose
 
   method annotated_stmt (next: stmt) fmt (s: stmt) =
-    pp_open_hvbox fmt 2;
-    self#stmt_labels fmt s;
     pp_open_hvbox fmt 0;
+    self#stmt_labels fmt s;
     (* print the statement. *)
     if Cil.is_skip s.skind && not s.ghost then begin
       if verbose || s.labels <> [] then fprintf fmt ";"
@@ -994,29 +1038,61 @@ class cil_printer () = object (self)
         self#pp_close_annotation fmt
       end
     end;
-    pp_close_box fmt ();
     pp_close_box fmt ()
 
-  method private require_braces ?(has_annot=self#has_annot) blk = 
-    force_brace 
+  method private require_braces ctxt blk =
+    force_brace
     || verbose || Kernel.is_debug_key_enabled debug_sid
     (* If one the of condition above is true, /* sid:... */ will be printed
        on its own line before s. Braces are needed *)
+    || ctxt = Body (* function body is always between braces. *)
     ||
-    match blk.bstmts, blk.battrs, blk.blocals with
-    | _ :: _ :: _, _, _ | _, _, _ :: _ | _, _ :: _, _ -> true
-    | [ { skind = Block b } ], _, _ -> has_annot || self#require_braces b
-    | _, _, _ -> has_annot
+    (let attrs = filter_printing_attributes blk.battrs in
+     match blk.bstmts, attrs, blk.blocals, ctxt with
+     | _, _, _ :: _,_ | _, _ :: _, _, _ -> true
+     | _::_::_,[],[],Stmt_block s ->
+       not (Cil.has_extern_local_init blk) && self#stmt_has_annot s
+       (* Do not put braces around a Local_init statement if we are not
+          in the appropriate block. This trumps the presence of a binding
+          annotation, in case of something like:
+          { /* start of scoping block */
+           //@ slicing pragma stmt;
+           /* { */ /* start of non-scoping block
+             int x = 42;
+             x++;
+             ...
+           /* } */ /* end of non-scoping block
+           x++;
+          } /* end of scoping block */
+        In such case, the pretty-printer can't satisfy the scope of the
+        annotation and the scope of x at the same time. We favor x, which
+        gives us at least a correct, compilable, C code.
+       *)
+     | _::_::_,[],[],_ -> is_cfg_block ctxt
+     | [ { skind = Block b } as s' ], [], [], Stmt_block _ ->
+       b.bscoping && self#require_braces ctxt b &&
+       not (self#require_braces (Stmt_block s') b)
+       (* If b wants braces in current context but not in subcontext, put
+          braces directly there. Otherwise, wait for children to do it. *)
+     | [ { skind = Block b } ], [], [], _ -> self#require_braces ctxt b
+     | [ { skind = UnspecifiedSequence s } ], [], [], _ ->
+         self#require_braces ctxt (Cil.block_from_unspecified_sequence s)
+     | [_],[],[], Then_with_else -> self#block_has_dangling_else blk
+     | [ _ ], [], [], _ -> false
+     | [],[],[],_ -> false)
 
-  method private inline_block ?has_annot blk = match blk.bstmts with
-    | [] | [ { skind = (Instr _ | Return _ | Goto _ | Break _ | Continue _ ) } ] 
-      -> 
-      not (self#require_braces ?has_annot blk)
-    | [ { skind = Block blk } ] -> self#inline_block blk
+  method private inline_block ctxt blk = match blk.bstmts with
+    | [] | [ { skind = (Instr _ | Return _ | Goto _ | Break _ | Continue _ ) } ]
+      ->
+      not (self#require_braces ctxt blk)
+    | [ { skind = Block blk } ] -> self#inline_block ctxt blk
     | _ -> false
 
   method private block_is_function blk = match blk.bstmts with
     | [ { skind = Instr (Call _) } ] -> true
+    | [ { skind = Instr (Local_init (_, ConsInit _, _)) } ] -> true
+      (* NB: a block consisting solely of an initializer is pretty useless,
+         but who knows? *)
     | [ { skind = Block blk } ] -> self#block_is_function blk
     | _ -> false
 
@@ -1045,24 +1121,24 @@ class cil_printer () = object (self)
        else ignore)
 
   (* no box around the block *)
-  method private unboxed_block ?(cut=true) ?braces ?has_annot fmt blk =
-    let braces = match braces with
-      | None -> self#require_braces ?has_annot blk
-      | Some b -> b
-    in
-    let inline = not braces && self#inline_block ?has_annot blk in
+  method private unboxed_block
+      ?(cut=true) ctxt fmt blk =
+    let braces = self#require_braces ctxt blk in
+    let inline = not braces && self#inline_block ctxt blk in
     if braces then pp_print_char fmt '{';
     if braces && not inline then pp_print_space fmt ();
     if blk.blocals <> [] && verbose then
       fprintf fmt "@[/* Locals: %a */@]@ "
 	(Pretty_utils.pp_list ~sep:",@ " self#varinfo) blk.blocals;
+    if verbose && not blk.bscoping then fprintf fmt "/* non-scoping */@\n";
     if blk.battrs <> [] then 
       (* [JS 2012/12/07] could directly call self#attributesGen whenever we are
 	 sure than it puts its printing material inside a box *)
       fprintf fmt "@[%a@]" (self#attributesGen true) blk.battrs;
-    if blk.blocals <> [] then
+    let locals_decl = List.filter (fun v -> not v.vdefined) blk.blocals in
+    if locals_decl <> [] then
       Pretty_utils.pp_list ~pre:"@[<v>" ~sep:"@;" ~suf:"@]@ " 
-	self#vdecl_complete fmt blk.blocals;
+	self#vdecl_complete fmt locals_decl;
     let rec iterblock ~cut fmt = function
       | [] -> ()
       | [ s ] ->
@@ -1079,19 +1155,11 @@ class cil_printer () = object (self)
     else fprintf fmt "%a" (iterblock ~cut) stmts;
     if braces then Format.fprintf fmt "@;<1 -2>}"
 
-  (* no box around the block *)
-  method block ?braces fmt (blk: block) =
-    let braces = 
-      match braces with None -> self#require_braces blk | Some b -> b
-    in
-    let open_box =
-      if self#inline_block blk then pp_open_hvbox else pp_open_vbox 
-    in
-    open_box fmt (if braces then 2 else 0);
-    if verbose then Pretty_utils.pp_open_block fmt "/*block:begin*/@ ";
-    self#unboxed_block ~cut:false ~braces fmt blk;
-    if verbose then Pretty_utils.pp_close_block fmt "/*block:end*/";
-    pp_close_box fmt ()
+  (* wrapper for unboxed_block. Mainly for keeping a method per type in
+     Cil_types. All internal calls are directed to unboxed_block.
+  *)
+  method block fmt (blk: block) =
+    fprintf fmt "@[<v 2>%a@]" (self#unboxed_block Other) blk
 
   (* Store here the name of the last file printed in a line number. This is
      private to the object *)
@@ -1127,6 +1195,12 @@ class cil_printer () = object (self)
 
   method stmtkind (next: stmt) fmt = function
     | UnspecifiedSequence seq ->
+      let ctxt =
+        match self#current_stmt with None -> Other | Some s -> Stmt_block s
+      in
+      let as_block = Cil.block_from_unspecified_sequence seq in
+      let require_braces = self#require_braces ctxt as_block in
+      let inline_block = self#inline_block ctxt as_block in
       let print_stmt pstmt fmt (stmt, modifies, writes, reads,_) =
         pstmt fmt stmt;
         if verbose || Kernel.is_debug_key_enabled debug_unspecified then
@@ -1138,18 +1212,21 @@ class cil_printer () = object (self)
       let rec iterblock fmt = function
         | [] -> ()
         | [ srw ] ->
-	  fprintf fmt "@ " ;
 	  print_stmt (self#next_stmt Cil.invalidStmt) fmt srw
         | srw_first :: ((s_next,_,_,_,_) :: _ as tail) ->
-	  fprintf fmt "@ " ;
-	  print_stmt (self#next_stmt s_next) fmt srw_first ;
+          print_stmt (self#next_stmt s_next) fmt srw_first ;
+          pp_print_space fmt ();
 	  iterblock fmt tail
       in
-      fprintf fmt "@[<v 2>{%t%a@;<1 -2>}@]"
-        (if self#display_comment () then 
-	   fun fmt -> fprintf fmt " @[/* sequence */@]"
-         else ignore)
-        iterblock seq;
+      fprintf fmt "%t%a%t"
+        (fun fmt ->
+           if require_braces then
+             fprintf fmt "@[<v 0>@[<v 2>{ /* sequence */@;"
+           else if inline_block then fprintf fmt "@[<hv 0>"
+           else fprintf fmt "@[<v 0>")
+        iterblock seq
+        (if require_braces then fun fmt -> fprintf fmt "@]@;}@]"
+         else fun fmt -> pp_close_box fmt ())
 
     | Return(None, l) ->
       fprintf fmt "@[%a%a;@]"
@@ -1194,7 +1271,7 @@ class cil_printer () = object (self)
         (fun fmt -> self#line_directive ~forcefile:false fmt) l
         self#pp_keyword "if"
         self#exp be
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) t
+        (self#unboxed_block Other) t
 
     | If(be,t,{bstmts=[{skind=Goto(gref,_);labels=[]}]; battrs=[]},l)
       when !gref == next && not state.print_cil_as_is ->
@@ -1202,7 +1279,7 @@ class cil_printer () = object (self)
         (fun fmt -> self#line_directive ~forcefile:false fmt) l
         self#pp_keyword "if"
         self#exp be
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) t
+        (self#unboxed_block Other) t
 
     | If(be,{bstmts=[];battrs=[]},e,l) 
       when not state.print_cil_as_is ->
@@ -1210,7 +1287,7 @@ class cil_printer () = object (self)
         (fun fmt -> self#line_directive ~forcefile:false fmt) l
         self#pp_keyword "if"
         self#exp (Cil.dummy_exp(UnOp(LNot,be,Cil.intType)))
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) e
+        (self#unboxed_block Other) e
 
     | If(be,{bstmts=[{skind=Goto(gref,_);labels=[]}]; battrs=[]},e,l)
       when !gref == next && not state.print_cil_as_is ->
@@ -1218,30 +1295,26 @@ class cil_printer () = object (self)
         (fun fmt -> self#line_directive ~forcefile:false fmt) l
         self#pp_keyword "if"
         self#exp (Cil.dummy_exp(UnOp(LNot,be,Cil.intType)))
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) e;
+        (self#unboxed_block Other) e;
 
     | If(be,t,e,l) ->
       pp_open_hvbox fmt 0;
       self#line_directive fmt l;
-      let braces_then = 
-        self#require_braces ~has_annot:false t || self#block_has_dangling_else t
-      in
-      let else_at_newline = 
-        braces_then
-        || not (self#inline_block ~has_annot:false t)
-        || not (self#inline_block ~has_annot:false e)
+      let else_at_newline =
+        (self#require_braces Then_with_else t)
+        || not (self#inline_block Then_with_else t)
+        || not (self#inline_block Other e)
         || (* call to a function in both branches (for GUI' status bullets) *)
 	(force_brace && self#block_is_function t && self#block_is_function e)
       in
       fprintf fmt "@[<v 2>%a (%a) %a@]"
         self#pp_keyword "if"
         self#exp be
-        (fun fmt -> self#unboxed_block ~has_annot:false ~braces:braces_then fmt) 
-        t;
+        (self#unboxed_block Then_with_else) t;
       if else_at_newline then fprintf fmt "@\n" else fprintf fmt "@ ";
       fprintf fmt "@[<v 2>%a %a@]"
         self#pp_keyword "else"
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) e;
+        (self#unboxed_block Other) e;
       pp_close_box fmt ()
 
     | Switch(e,b,_,l) ->
@@ -1249,7 +1322,7 @@ class cil_printer () = object (self)
         (fun fmt -> self#line_directive ~forcefile:false fmt) l
         self#pp_keyword "switch"
         self#exp e
-        (fun fmt -> self#unboxed_block ~has_annot:false fmt) b
+        (self#unboxed_block Other) b
 
     | Loop(a, b, l, _, _) ->
       Format.pp_open_hvbox fmt 0;
@@ -1297,46 +1370,49 @@ class cil_printer () = object (self)
 	    (fun fmt -> self#line_directive fmt) l
             self#pp_keyword "while"
 	    self#exp term
-	    (fun fmt -> self#unboxed_block ~has_annot:false fmt) b;
+	    (self#unboxed_block Other) b;
         with Not_found ->
 	  Format.fprintf fmt "%a@[<v 2>%a (1) %a@]"
 	    (fun fmt -> self#line_directive fmt) l
             self#pp_keyword "while"
-	    (fun fmt -> self#unboxed_block ~has_annot:false fmt) b);
+	    (self#unboxed_block Other) b);
       Format.pp_close_box fmt ()
 
     | Block b ->
+      let ctxt =
+        match self#current_stmt with None -> Other | Some s -> Stmt_block s
+      in
       (* We do not want to put extra braces in presence of blocks included in
          another block (that's often the case). So the following line
          specifically limits the number of braces in that case. But that
          assumes that the required braces have already been put before by the
          callers *)
-      let braces = 
-        b.blocals <> [] || b.battrs <> [] ||
-        (Kernel.is_debug_key_enabled debug_sid) || verbose
-        || (self#has_annot 
-	    && logic_printer_enabled
-	    && (* at least two statements inside *) 
-	    match b.bstmts with [] | [ _ ] -> false | _ -> true)
+      let braces = self#require_braces ctxt b in
+      let open_box =
+        if self#inline_block ctxt b then pp_open_hvbox else pp_open_vbox
       in
-      self#block fmt ~braces b
+      open_box fmt (if braces then 2 else 0);
+      if verbose then Pretty_utils.pp_open_block fmt "/*block:begin*/@ ";
+      self#unboxed_block ~cut:false ctxt fmt b;
+      if verbose then Pretty_utils.pp_close_block fmt "/*block:end*/";
+      pp_close_box fmt ()
 
     | TryFinally (b, h, l) ->
       fprintf fmt "@[%a@[<v 2>__try@ %a@]@ @[<v 2>__finally@ %a@]@]"
         (fun fmt -> self#line_directive fmt) l
-        (fun fmt -> self#block fmt) b
-        (fun fmt -> self#block fmt) h
+        (self#unboxed_block Other) b
+        (self#unboxed_block Other) h
 
     | TryExcept (b, (il, e), h, l) ->
       fprintf fmt "@[%a@[<v 2>__try@ %a@]@ @[<v 2>__except(@\n@["
         (fun fmt -> self#line_directive fmt) l
-        (fun fmt -> self#block fmt) b;
+        (self#unboxed_block Other) b;
       (* Print the instructions but with a comma at the end, instead of
        * semicolon *)
       instr_terminator <- ",";
       Pretty_utils.pp_list ~sep:"@\n" self#instr fmt il;
       instr_terminator <- ";";
-      fprintf fmt "%a) @]@ %a@]" self#exp e (fun fmt -> self#block fmt) h
+      fprintf fmt "%a) @]@ %a@]" self#exp e (self#unboxed_block Other) h
 
     | Throw (e,_) ->
       let print_expr fmt (e,_) = self#exp fmt e in
@@ -1347,23 +1423,23 @@ class cil_printer () = object (self)
       let print_var_catch_all fmt v =
         match v with
         | Catch_all -> pp_print_string fmt "..."
-        | Catch_exn(v,l) -> 
+        | Catch_exn(v,l) ->
           fprintf fmt "@[<v 2>@[%a@]%a@]"
             self#vdecl v
             (Pretty_utils.pp_list ~pre:"@;" ~sep:"@;"
                (fun fmt (v,_) -> self#vdecl fmt v)) l
       in
-      let braces = false in
       let print_one_catch fmt (v,b) =
-        fprintf fmt "@[<v 2>@[%a (@;%a@;)@] {@;%a@]@;}"
+        fprintf fmt "@[<v 2>@[%a (@;%a@;)@] %a@]"
           self#pp_keyword "catch"
           print_var_catch_all v
-          (self#block ~braces) b
+          (self#unboxed_block Other) b
       in
-      fprintf fmt "@[<v 2>%a@ @[%a@]@]@\n@[<v 2>%a@]"
+      fprintf fmt "@[<v 0>@[<v 2>%a %a@]@;@[<v 2>%a@]@]"
         self#pp_keyword "try"
-        (self#block ~braces) body
-        (Pretty_utils.pp_list ~sep:"@;" print_one_catch) catch
+        (self#unboxed_block Other) body
+        (Pretty_utils.pp_list
+           ~pre:"" ~sep:"@;" ~suf:"" print_one_catch) catch
 
   (*** GLOBALS ***)
   method global fmt (g:global) =
@@ -1374,11 +1450,12 @@ class cil_printer () = object (self)
         (* If the function has attributes then print a prototype because
          * GCC cannot accept function attributes in a definition *)
         let oldattr = fundec.svar.vattr in
-        (* Always pring the file name before function declarations *)
+        let oldattr = List.filter keep_attr oldattr in
+        (* Always print the file name before function declarations *)
         (* Prototype first *)
         if oldattr <> [] then
           (self#line_directive fmt l;
-           fprintf fmt "%a;@\n"
+           fprintf fmt "%a@\n"
              self#vdecl_complete fundec.svar);
         (* Temporarily remove the function attributes *)
         fundec.svar.vattr <- [];
@@ -1519,6 +1596,7 @@ class cil_printer () = object (self)
          fprintf fmt "/* #pragma %s */@\n" a*)
 
       | GAnnot (decl,l) ->
+        (* attributes are purely internal. *)
         self#line_directive fmt l;
         fprintf fmt "%t@ %a@ %t@\n"
           (fun fmt -> self#pp_open_annotation ~block:false fmt)
@@ -1565,7 +1643,7 @@ class cil_printer () = object (self)
     (*List.iter (fprintf fmt "@\n%a;" self#vdecl) f.slocals ;*)
     (* body. *)
     if entering_ghost then is_ghost <- true;
-    self#unboxed_block ~has_annot:false ~braces:true fmt f.sbody;
+    self#unboxed_block Body fmt f.sbody;
     if entering_ghost then is_ghost <- false;
     fprintf fmt "@]%t@]@."
       (if entering_ghost
@@ -1817,7 +1895,7 @@ class cil_printer () = object (self)
          true
        | s, _ when s = Cil.bitfield_attribute_name && not state.print_cil_as_is ->
          false
-       | _ -> (* This is the dafault case *)
+       | _ -> (* This is the default case *)
          (* Add underscores to the name *)
          let an' =
 	   if Cil.msvcMode () then "__" ^ an else "__" ^ an ^ "__"
@@ -1898,14 +1976,14 @@ class cil_printer () = object (self)
           begin
             (* __blockattribute__ is not standard, and is used only when
                we are outputting something destined to Cil. Otherwise we
-               ouput everything between comments. *)
+               output everything between comments. *)
             let for_cil s = if state.print_cil_input then "" else s in
             if block
             then fprintf fmt " %s __blockattribute__(" (for_cil "/*")
             else fprintf fmt " __attribute__((";
             Pretty_utils.pp_list ~sep:",@ "
               Format.pp_print_string fmt in__attr__;
-            if not block (* reversed so that hightlighting matches *)
+            if not block (* reversed so that highlighting matches *)
             then fprintf fmt "))"
             else fprintf fmt ") %s" (for_cil "*/")
           end
@@ -1922,11 +2000,7 @@ class cil_printer () = object (self)
           loop in__attr__ rest
         end
     in
-    let keep_attr = function
-      | Attr (s,_) -> not (List.mem s !reserved_attributes)
-      | AttrAnnot _ -> true
-    in
-    loop [] (List.filter keep_attr a);
+    loop [] (filter_printing_attributes a);
 
     (* ******************************************************************* *)
     (* Logic annotations printer *)
@@ -2836,7 +2910,8 @@ class cil_printer () = object (self)
       current_label <- old_label
     | Dmodel_annot (mfi,_) ->
       self#model_info fmt mfi
-    | Dcustom_annot(_c, n ,_) ->
+    | Dcustom_annot(_c, n ,_attr, _) ->
+      (* attributes are meant to be purely internal for now. *)
       fprintf fmt "@[%a %s: <...>@]@\n"
         self#pp_acsl_keyword "custom" n
     | Dinvariant (pred,_) ->
@@ -2847,7 +2922,8 @@ class cil_printer () = object (self)
         self#logic_var pred.l_var_info
         self#predicate (pred_body pred.l_body);
       current_label <- old_label
-    | Dlemma(name, is_axiom, labels, tvars, pred,_) ->
+    | Dlemma(name, is_axiom, labels, tvars, pred, _attr, _) ->
+      (* attributes are meant to be purely internal for now. *)
       let old_lab = current_label in
       fprintf fmt "@[<hv 2>@[<hov 1>%a %a%a%a:@]@ %t%a;@]@\n"
         self#pp_acsl_keyword (if is_axiom then "axiom" else "lemma")
@@ -2934,7 +3010,8 @@ class cil_printer () = object (self)
 	   self#term def);
       fprintf fmt "@]@\n";
       current_label <- old_lab
-    | Dvolatile(tsets,rvi_opt,wvi_opt,_) ->
+    | Dvolatile(tsets,rvi_opt,wvi_opt,_attr, _) ->
+      (* attributes are meant to be purely internal for now. *)
       let pp_vol txt fmt = function
         | None -> () ;
         | Some vi -> fprintf fmt "@ %s %a" txt self#varinfo vi
@@ -2946,7 +3023,8 @@ class cil_printer () = object (self)
         tsets
         (pp_vol "reads") rvi_opt
         (pp_vol "writes") wvi_opt ;
-    | Daxiomatic(id,decls,_) ->
+    | Daxiomatic(id,decls,_attr, _) ->
+      (* attributes are meant to be purely internal for now. *)
       fprintf fmt "@[<v 2>@[%a %s {@]@\n%a}@]@\n"
         self#pp_acsl_keyword "axiomatic"
         id
@@ -2966,6 +3044,7 @@ class cil_printer () = object (self)
 
   method file fmt file =
     fprintf fmt "@[/* Generated by Frama-C */@\n" ;
+    print_std_includes fmt file.globals;
     Cil.iterGlobals file (fun g -> self#global fmt g);
     fprintf fmt "@]@."
 

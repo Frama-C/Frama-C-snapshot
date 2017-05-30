@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,10 +33,10 @@ type use_builtin = Always | OnAuto
 let table = Hashtbl.create 17
 
 let register_builtin name ?replace f =
-  Hashtbl.add table name (f, Always);
+  Hashtbl.replace table name (f, None, Always);
   match replace with
   | None -> ()
-  | Some name -> Hashtbl.add table name (f, OnAuto)
+  | Some fname -> Hashtbl.replace table fname (f, Some name, OnAuto)
 
 let () = Db.Value.register_builtin := register_builtin
 
@@ -45,24 +45,65 @@ let () = Db.Value.register_builtin := register_builtin
 let registered_builtins () =
   let l =
     Hashtbl.fold
-      (fun name (f, u) acc -> if u = Always then (name, f) :: acc else acc)
+      (fun name (f, _, u) acc -> if u = Always then (name, f) :: acc else acc)
       table []
   in
   List.sort (fun (name1, _) (name2, _) -> String.compare name1 name2) l
 
 let () = Db.Value.registered_builtins := registered_builtins
 
+let builtin_names_and_replacements () =
+  let stand_alone, replacements =
+    Hashtbl.fold (fun name (_, replaced_by, _) (acc1, acc2) ->
+        match replaced_by with
+        | None -> name :: acc1, acc2
+        | Some rep_by -> acc1, (name, rep_by) :: acc2
+      ) table ([], [])
+  in
+  List.sort String.compare stand_alone,
+  List.sort (fun (name1, _) (name2, _) -> String.compare name1 name2) replacements
+
+let () =
+  Cmdline.run_after_configuring_stage
+    (fun () ->
+       if Value_parameters.BuiltinsList.get () then begin
+         let stand_alone, replacements = builtin_names_and_replacements () in
+         Log.print_on_output
+           (fun fmt ->
+              Format.fprintf fmt "@[*** LIST OF EVA BUILTINS@\n@\n\
+                                  ** Replacements set by -val-builtins-auto:\
+                                  @\n   unless otherwise specified, \
+                                  function <f> is replaced by builtin \
+                                  Frama_C_<f>:@\n@\n   @[%a@]@]@\n"
+                (Pretty_utils.pp_list ~sep:",@ "
+                   (fun fmt (name, rep_by) ->
+                      if rep_by = "Frama_C_" ^ name then
+                        Format.fprintf fmt "%s" name
+                      else
+                        Format.fprintf fmt "%s (replaced by: %s)" name rep_by))
+                replacements);
+         Log.print_on_output
+           (fun fmt ->
+              Format.fprintf fmt "@\n@[** Full list of builtins \
+                                  (configurable via -val-builtin):@\n\
+                                  @\n   @[%a@]@]@\n"
+                (Pretty_utils.pp_list ~sep:",@ "
+                   Format.pp_print_string) stand_alone);
+         raise Cmdline.Exit
+       end)
+
 let find_builtin name =
-  let f, u = Hashtbl.find table name in
+  let f, _, u = Hashtbl.find table name in
   if u = Always then f
   else raise Not_found
 
 let mem_builtin name =
-  try snd (Hashtbl.find table name) = Always
+  try
+    let _, _, u = Hashtbl.find table name in
+    u = Always
   with Not_found -> false
 
 let () = Db.Value.mem_builtin := mem_builtin
-
 
 let find_builtin_override kf =
   let name =
@@ -70,10 +111,26 @@ let find_builtin_override kf =
     with Not_found -> Kernel_function.get_name kf
   in
   try
-    let f, u = Hashtbl.find table name in
+    let f, _, u = Hashtbl.find table name in
     if u = Always || Value_parameters.BuiltinsAuto.get () then Some f
     else None
   with Not_found -> None
+
+let warn_definitions_overridden_by_builtins () =
+  Globals.Functions.iter (fun kf ->
+      try
+        let bname = Value_parameters.BuiltinsOverrides.find kf in
+        if Kernel_function.is_definition kf &&
+           not (Cil.hasAttribute "fc_stdlib" (Kernel_function.get_vi kf).vattr)
+        then
+          let fname = Kernel_function.get_name kf in
+          let source = fst (Kernel_function.get_location kf) in
+          Value_parameters.warning ~source ~once:true
+            "function %s: definition will be overridden by %s@ \
+             (use '-no-val-warn-builtin-override' to disable this warning)"
+            fname (if fname = bname then "its builtin" else "builtin " ^ bname)
+      with Not_found -> ()
+    )
 
 (* -------------------------------------------------------------------------- *)
 (* --- Returning a clobbered set                                          --- *)
@@ -127,7 +184,11 @@ let warning_gen stmt ~kind ~text =
   let loc = Cil_datatype.Stmt.loc stmt in
   let pred = List.hd (Logic_env.find_all_logic_functions "\\warning") in
   let s = Logic_const.tstring ~loc text in
-  let np = Logic_const.unamed ~loc (Papp (pred, [], [s])) in
+  (* We need a label here, to indicate that [\warning] "accesses" the memory
+     (in its own way). *)
+  let np = Logic_const.unamed ~loc
+      (Papp (pred, [LogicLabel (None, "L"), Logic_const.here_label], [s]))
+  in
   let np = { np with pred_name = [kind] } in
   let ca = Logic_const.new_code_annotation (AAssert([], np)) in
   ca

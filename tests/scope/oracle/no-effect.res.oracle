@@ -24,10 +24,9 @@ void main(tt const *p1)
   while (1) 
     /*@ assert Value: mem_access: \valid_read(&(p1 + 1)->v); */
     switch ((p1 + 1)->v) {
-      int tmp;
       case 1: case 2: case 3: case 4: ;
       /*@ assert Value: mem_access: \valid_read(&(p1 + 1)->v); */
-      tmp = (p1 + 1)->v;
+      int tmp = (p1 + 1)->v;
       break;
     }
   return;

@@ -4,6 +4,7 @@ let mach =
 {
   version          = "foo";
   compiler         = "bar";
+  cpp_arch_flags   = [];
   sizeof_short     = 2;
   sizeof_int       = 3;
   sizeof_long      = 4;

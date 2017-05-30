@@ -98,7 +98,7 @@ tests/sparecode/bts324_bis.i:57:[pdg] warning: no final state. Probably unreacha
 [pdg] done for function loop_body
 [sparecode] look for annotations in function main
 [pdg] computing for function main
-[pdg] warning: unreachable entry point (sid:24, function main)
+[pdg] warning: unreachable entry point (sid:21, function main)
 [pdg] Bottom for function main
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main_bis

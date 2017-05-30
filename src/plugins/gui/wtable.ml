@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,14 +122,18 @@ class ['a] makecolumns ?packing ?width ?height
     method update_all = GtkBase.Widget.queue_draw view#as_tree_view
 
     method update_row x =
-      (*TODO : get the rectangle for raw and use queue_draw_area
+      try
+        (*TODO : get the rectangle for raw and use queue_draw_area
           See  : http://www.gtkforums.com/viewtopic.php?t=1716
           Sadly this is not available in LablGtk2 yet...*)
-      model#custom_row_changed (model#custom_get_path x) x
+        model#custom_row_changed (model#custom_get_path x) x
+      with Not_found -> ()
 
     method insert_row x =
-      let path = model#custom_get_path x in
-      model#custom_row_inserted path x
+      try
+        let path = model#custom_get_path x in
+        model#custom_row_inserted path x
+      with Not_found -> ()
 
     method reload =
       begin
@@ -185,7 +189,8 @@ class ['a] makecolumns ?packing ?width ?height
       in ignore (view#connect#row_activated ~callback)
 
     method is_selected item =
-      view#selection#path_is_selected (model#custom_get_path item)
+      try view#selection#path_is_selected (model#custom_get_path item)
+      with Not_found -> false
 
     method on_selection f =
       ignore (view#selection#connect#changed ~callback:f)
@@ -203,11 +208,11 @@ class ['a] makecolumns ?packing ?width ?height
         view#selection#get_selected_rows
 
     method set_focus item col =
-      begin
+      try
         let path = model#custom_get_path item in
         view#scroll_to_cell path col ;
         view#selection#select_path path ;
-      end
+      with Not_found -> ()
 
     val mutable empty : GTree.view_column option = None
 

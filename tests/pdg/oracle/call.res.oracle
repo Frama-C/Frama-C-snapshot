@@ -69,25 +69,25 @@ tests/pdg/call.c:14:[value] warning: signed overflow. assert a + G.a ≤ 2147483
  {n18}: In3
    -[a--]-> 17
  {n19}: VarDecl : r
- {n20}: Call5-InCtrl : r = f(x + y,z);
+ {n20}: Call5-InCtrl : int r = f(x + y,z);
    -[-c-]-> 12
- {n21}: Call5-In1 : r = f(x + y,z);
+ {n21}: Call5-In1 : int r = f(x + y,z);
    -[-c-]-> 12
    -[--d]-> 13
    -[--d]-> 14
    -[--d]-> 15
    -[--d]-> 16
    -[-c-]-> 20
- {n22}: Call5-In2 : r = f(x + y,z);
+ {n22}: Call5-In2 : int r = f(x + y,z);
    -[-c-]-> 12
    -[--d]-> 17
    -[--d]-> 18
    -[-c-]-> 20
- {n23}: Call5-Out(G.b) : r = f(x + y,z);
+ {n23}: Call5-Out(G.b) : int r = f(x + y,z);
    -[-c-]-> 12
    -[-c-]-> 20
    -[--d]-> 22
- {n24}: Call5-OutRet : r = f(x + y,z);
+ {n24}: Call5-OutRet : int r = f(x + y,z);
    -[-c-]-> 12
    -[a--]-> 19
    -[-c-]-> 20

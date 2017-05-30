@@ -237,7 +237,7 @@ and print_struct_name_attr keyword fmt (name, extraAttrs) =
       (pp_cond (extraAttrs <> [])) "@ "
       print_attributes extraAttrs name
 
-(* This is the main printer for declarations. It is easy bacause the
+(* This is the main printer for declarations. It is easy because the
  * declarations are laid out as they need to be printed. *)
 and print_decl (n: string) fmt = function
     JUSTBASE ->

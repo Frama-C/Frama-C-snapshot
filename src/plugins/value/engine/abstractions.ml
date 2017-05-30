@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -275,42 +275,53 @@ let add_offsm abstract =
   end : Abstract)
 
 (* -------------------------------------------------------------------------- *)
-(*                            Symbolic locations                              *)
+(*                   Domains on standard locations and values                 *)
 (* -------------------------------------------------------------------------- *)
 
-let add_symbolic_locs abstract =
+module type Standard_abstraction = Abstract_domain.Internal
+  with type value = Cvalue.V.t
+   and type location = Precise_locs.precise_location
+
+let add_standard_domain d abstract =
   let module Abstract = (val abstract : Abstract) in
   let module K = struct
     type v = Cvalue.V.t
     let key = Main_values.cvalue_key
   end in
   let module Conv = Convert (Abstract.Val) (K) in
-  let module SymbLocs = Domain_lift.Make (Symbolic_locs.D) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(SymbLocs) in
+  let module D = (val d: Standard_abstraction) in
+  let module LD = Domain_lift.Make (D) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(LD) in
   (module struct
     module Val = Abstract.Val
     module Loc = Abstract.Loc
     module Dom = Dom
   end : Abstract)
+
+(* List of abstractions registered by other plugins *)
+let dynamic_abstractions = ref []
+
+let add_dynamic_abstractions abstract =
+  List.fold_left
+    (fun d abstract -> add_standard_domain abstract d)
+    abstract !dynamic_abstractions
+
+let register_dynamic_abstraction d =
+  dynamic_abstractions := d :: !dynamic_abstractions
+
+(* --------------------------------------------------------------------------*)
+(*                            Symbolic locations                             *)
+(* --------------------------------------------------------------------------*)
+
+let add_symbolic_locs =
+  add_standard_domain (module Symbolic_locs.D)
 
 (* -------------------------------------------------------------------------- *)
 (*                            Gauges                                          *)
 (* -------------------------------------------------------------------------- *)
 
-let add_gauges abstract =
-  let module Abstract = (val abstract : Abstract) in
-  let module K = struct
-    type v = Cvalue.V.t
-    let key = Main_values.cvalue_key
-  end in
-  let module Conv = Convert (Abstract.Val) (K) in
-  let module Gauges = Domain_lift.Make (Gauges_domain.D) (Conv) in
-  let module Dom = Domain_product.Make (Abstract.Val)(Abstract.Dom)(Gauges) in
-  (module struct
-    module Val = Abstract.Val
-    module Loc = Abstract.Loc
-    module Dom = Dom
-  end : Abstract)
+let add_gauges =
+  add_standard_domain (module Gauges_domain.D)
 
 (* -------------------------------------------------------------------------- *)
 (*                            Build Abstractions                              *)
@@ -372,6 +383,7 @@ let build_abstractions config =
     then add_gauges abstractions
     else abstractions
   in
+  let abstractions = add_dynamic_abstractions abstractions in
   abstractions
 
 

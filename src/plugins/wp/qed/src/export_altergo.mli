@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,7 @@ sig
 
   open T
   module Env : Engine.Env with type term := term
-  
+
   type trigger = (T.var,Fun.t) Engine.ftrigger
   type typedef = (tau,Field.t,Fun.t) Engine.ftypedef
 
@@ -43,13 +43,10 @@ sig
     object
       method set_quantify_let : bool -> unit
 
-      method typecheck : term -> tau (** or raise Not_found *)
-      method typeof_call : Fun.t -> tau (** or raise Not_found *)
-      method typeof_setfield : Field.t -> tau (** or raise Not_found *)
-      method typeof_getfield : Field.t -> tau (** or raise Not_found *)
-
       method virtual get_typedef : ADT.t -> tau option
       method virtual set_typedef : ADT.t -> tau -> unit
+
+      method typeof : term -> tau (** Defaults to T.typeof *)
 
       inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term,Env.t] Engine.engine
       method marks : Env.t * T.marks

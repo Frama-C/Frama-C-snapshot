@@ -10,7 +10,7 @@ tests/rte/postcond2.c:7:[kernel] warning: parsing obsolete ACSL construct '\vali
     assigns *x \from y;
     assigns \result \from *x;
  */
-extern int g(int *x, int y);
+int g(int *x, int y);
 
 /*@ requires \valid(tab + 0);
     assigns \nothing; */
@@ -23,15 +23,13 @@ int f(int *tab)
 
 int main(void)
 {
-  int tab[2];
-  int a;
   int tmp_0;
-  tab[0] = 3;
-  tab[1] = 4;
+  int tab[2] = {3, 4};
   /*@ behavior pre_f:
         requires \valid((int *)tab + 0);
         assigns a; */
-  a = f(tab);
+  int a = f(tab);
+  /*@ assert rte: signed_overflow: 3 - tab[0] ≤ 2147483647; */
   /*@ behavior pre_g:
         requires \valid(&tab[(int)(3 - tab[0])] + a);
         requires \valid((&tab[(int)(3 - tab[0])] + a) + (0 .. 10));

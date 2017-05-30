@@ -8,7 +8,7 @@
   t[0..9] ∈ {0}
   u[0..9] ∈ [--..--]
 [value] computing for function main2_kill_direct <- main.
-        Called from tests/value/symbolic_locs.i:72.
+        Called from tests/value/symbolic_locs.i:119.
 tests/value/symbolic_locs.i:29:[value] warning: assertion got status unknown.
 [value] DUMPING STATE of file tests/value/symbolic_locs.i line 32
         v ∈ [--..--]
@@ -29,7 +29,7 @@ tests/value/symbolic_locs.i:29:[value] warning: assertion got status unknown.
 [value] Recording results for main2_kill_direct
 [value] Done for function main2_kill_direct
 [value] computing for function main3_kill_indirect <- main.
-        Called from tests/value/symbolic_locs.i:73.
+        Called from tests/value/symbolic_locs.i:120.
 tests/value/symbolic_locs.i:41:[value] warning: assertion got status unknown.
 [value] DUMPING STATE of file tests/value/symbolic_locs.i line 44
         v ∈ [--..--]
@@ -52,7 +52,7 @@ tests/value/symbolic_locs.i:41:[value] warning: assertion got status unknown.
 [value] Recording results for main3_kill_indirect
 [value] Done for function main3_kill_indirect
 [value] computing for function main4_scope_right <- main.
-        Called from tests/value/symbolic_locs.i:74.
+        Called from tests/value/symbolic_locs.i:121.
 tests/value/symbolic_locs.i:51:[value] warning: assertion got status unknown.
 [value] DUMPING STATE of file tests/value/symbolic_locs.i line 55
         v ∈ [--..--]
@@ -77,7 +77,7 @@ tests/value/symbolic_locs.i:55:[value] warning: locals {x} escaping the scope of
 [value] Recording results for main4_scope_right
 [value] Done for function main4_scope_right
 [value] computing for function main5_scope_lv <- main.
-        Called from tests/value/symbolic_locs.i:75.
+        Called from tests/value/symbolic_locs.i:122.
 tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
 [value] DUMPING STATE of file tests/value/symbolic_locs.i line 65
         v ∈ [--..--]
@@ -96,7 +96,28 @@ tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
         =END OF DUMP==
 [value] Recording results for main5_scope_lv
 [value] Done for function main5_scope_lv
-[value] DUMPING STATE of file tests/value/symbolic_locs.i line 76
+[value] computing for function main6_ghost_dep <- main.
+        Called from tests/value/symbolic_locs.i:123.
+tests/value/symbolic_locs.i:83:[value] warning: assertion got status unknown.
+tests/value/symbolic_locs.i:86:[value] warning: assertion got status unknown.
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 98
+        v ∈ [--..--]
+        t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+         [9] ∈ {0}
+        u[0..9] ∈ [--..--]
+        x ∈ [--..--]
+        =END OF DUMP==
+tests/value/symbolic_locs.i:93:[value] entering loop for the first time
+[value] Recording results for main6_ghost_dep
+[value] Done for function main6_ghost_dep
+[value] computing for function main7_widening <- main.
+        Called from tests/value/symbolic_locs.i:124.
+tests/value/symbolic_locs.i:110:[value] entering loop for the first time
+tests/value/symbolic_locs.i:111:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
+[value] Called Frama_C_show_each([0..2147483647])
+[value] Recording results for main7_widening
+[value] Done for function main7_widening
+[value] DUMPING STATE of file tests/value/symbolic_locs.i line 125
         v ∈ [--..--]
         t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
          [9] ∈ {0}
@@ -127,6 +148,12 @@ tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
   t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
    [9] ∈ {0}
   z ∈ {1}
+[value:final-states] Values at end of function main6_ghost_dep:
+  x ∈ {1}
+[value:final-states] Values at end of function main7_widening:
+  b ∈ [0..2147483647]
+  c ∈ [0..2147483647]
+  p ∈ {{ &b ; &c }}
 [value:final-states] Values at end of function main:
   t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
    [9] ∈ {0}
@@ -140,6 +167,10 @@ tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
 [from] Done for function main4_scope_right
 [from] Computing for function main5_scope_lv
 [from] Done for function main5_scope_lv
+[from] Computing for function main6_ghost_dep
+[from] Done for function main6_ghost_dep
+[from] Computing for function main7_widening
+[from] Done for function main7_widening
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -153,6 +184,10 @@ tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
   t[0..8] FROM v (and SELF)
 [from] Function main5_scope_lv:
   t[0..8] FROM v (and SELF)
+[from] Function main6_ghost_dep:
+  NO EFFECTS
+[from] Function main7_widening:
+  NO EFFECTS
 [from] Function main:
   t[0..8] FROM v (and SELF)
 [from] ====== END OF DEPENDENCIES ======
@@ -171,6 +206,14 @@ tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
 [inout] Out (internal) for function main5_scope_lv:
           t[0..8]; z; i
 [inout] Inputs for function main5_scope_lv:
+          v
+[inout] Out (internal) for function main6_ghost_dep:
+          x; y; z; k; p; tmp; tmp_0
+[inout] Inputs for function main6_ghost_dep:
+          v
+[inout] Out (internal) for function main7_widening:
+          b; c; p; tmp
+[inout] Inputs for function main7_widening:
           v
 [inout] Out (internal) for function main:
           t[0..8]

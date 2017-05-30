@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -172,6 +172,14 @@
       preprocess_buffer "# %d %s \n" !curr_line !curr_file
 
   let make_newline () = incr curr_line
+
+  let process_annot_start () =
+    is_newline := CHAR;
+    has_annot := true;
+    Buffer.add_string output_buffer annot_content;
+    Buffer.add_string preprocess_buffer annot_beg;
+    Buffer.add_char preprocess_buffer '\n';
+    add_preprocess_line_info()
 }
 
 rule main = parse
@@ -198,12 +206,7 @@ rule main = parse
         comment c lexbuf;}
   | "/*"  (_ as c) {
       if c = !Clexer.annot_char then begin
-        is_newline:=CHAR;
-        has_annot := true;
-        Buffer.add_string output_buffer annot_content;
-        Buffer.add_string preprocess_buffer annot_beg;
-        Buffer.add_char preprocess_buffer '\n';
-        add_preprocess_line_info();
+        process_annot_start ();
         annot lexbuf
       end else begin
         if c = '\n' then make_newline();
@@ -216,12 +219,7 @@ rule main = parse
       } 
   | "//"  (_ as c) {
       if c = !Clexer.annot_char then begin
-        is_newline:=CHAR;
-        has_annot:=true;
-        Buffer.add_string output_buffer annot_content;
-        Buffer.add_string preprocess_buffer annot_beg;
-        Buffer.add_char preprocess_buffer '\n';
-        add_preprocess_line_info();
+        process_annot_start ();
         oneline_annot lexbuf
       end
       else if c = '\n' then begin

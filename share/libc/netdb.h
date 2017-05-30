@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2016                                               */
+/*  Copyright (C) 2007-2017                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,6 +23,7 @@
 #ifndef __FC_NETDB
 #define __FC_NETDB
 #include "features.h"
+__PUSH_FC_STDLIB
 
 #include "netinet/in.h"
 #include "sys/socket.h"
@@ -108,36 +109,37 @@ struct addrinfo
 # define EAI_SYSTEM	  -11	/* System error returned in `errno'.  */
 # define EAI_OVERFLOW	  -12	/* Argument buffer overflow.  */
 
-void endhostent(void);
-void endnetent(void);
-void endprotoent(void);
-void endservent(void);
-void freeaddrinfo(struct addrinfo *);
-const char *gai_strerror(int);
-int getaddrinfo(const char *restrict, const char *restrict,
+extern void endhostent(void);
+extern void endnetent(void);
+extern void endprotoent(void);
+extern void endservent(void);
+extern void freeaddrinfo(struct addrinfo *);
+extern const char *gai_strerror(int);
+extern int getaddrinfo(const char *restrict, const char *restrict,
  const struct addrinfo *restrict,
  struct addrinfo **restrict);
-struct hostent *gethostbyaddr(const void *, socklen_t, int);
-struct hostent *gethostbyname(const char *);
-struct hostent *gethostent(void);
-int getnameinfo(const struct sockaddr *restrict, socklen_t,
+extern struct hostent *gethostbyaddr(const void *, socklen_t, int);
+extern struct hostent *gethostbyname(const char *);
+extern struct hostent *gethostent(void);
+extern int getnameinfo(const struct sockaddr *restrict, socklen_t,
  char *restrict, socklen_t, char *restrict,
  socklen_t, int);
-struct netent *getnetbyaddr(uint32_t, int);
-struct netent *getnetbyname(const char *);
-struct netent *getnetent(void);
-struct protoent *getprotobyname(const char *);
-struct protoent *getprotobynumber(int);
-struct protoent *getprotoent(void);
-struct servent *getservbyname(const char *, const char *);
-struct servent *getservbyport(int, const char *);
-struct servent *getservent(void);
-void sethostent(int);
-void setnetent(int);
-void setprotoent(int);
-void setservent(int);
+extern struct netent *getnetbyaddr(uint32_t, int);
+extern struct netent *getnetbyname(const char *);
+extern struct netent *getnetent(void);
+extern struct protoent *getprotobyname(const char *);
+extern struct protoent *getprotobynumber(int);
+extern struct protoent *getprotoent(void);
+extern struct servent *getservbyname(const char *, const char *);
+extern struct servent *getservbyport(int, const char *);
+extern struct servent *getservent(void);
+extern void sethostent(int);
+extern void setnetent(int);
+extern void setprotoent(int);
+extern void setservent(int);
 
 __END_DECLS
 
+__POP_FC_STDLIB
 #endif
 

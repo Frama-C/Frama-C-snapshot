@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,7 @@ type annot_kind =
              but not an hypothesis (see Aboth): A /\ ...*)
   | Aboth of bool
   (* annotation can be used as both hypothesis and goal :
-     	 - with true : considerer as both : A /\ A=>..
+     	 - with true : considered as both : A /\ A=>..
      	 - with false : we just want to use it as hyp right now. *)
   | AcutB of bool
   (* annotation is use as a cut :
@@ -56,8 +56,8 @@ type annot_kind =
 module ForCall = Kernel_function.Map
 
 (** Some elements can be used as both Hyp and Goal : because of the selection
- * mecanism, we need to add a boolean [as_goal] to tell if the element is to be
- * considered as a goal. If [false], the element can still be used as hypthesis.
+ * mechanism, we need to add a boolean [as_goal] to tell if the element is to be
+ * considered as a goal. If [false], the element can still be used as hypothesis.
 *)
 type annots = {
   p_hyp : WpPropId.pred_info list;
@@ -223,7 +223,8 @@ let fold_bhv_post_cond ~warn f_normal f_exits acc b =
     match termination_kind with
     | Normal -> f_normal p_acc pe, e_acc
     | Exits -> p_acc, f_exits e_acc pe
-    | (Breaks|Continues|Returns) -> (* TODO *)
+    | Returns -> p_acc, e_acc (* HANDLED by an ASSERT from CIL *)
+    | (Breaks|Continues) -> (* TODO *)
         begin
           if warn then
             Wp_parameters.warning
@@ -513,8 +514,7 @@ let add_node_annots tbl cfg v (before, (post, exits)) =
     begin
       let edges_after = Cil2cfg.get_post_edges cfg v in
       if edges_after = []
-      then Wp_parameters.warning ~once:true
-          "Ignoring annotation rooted after statement with no succ"
+      then (* unreachable (see [process_unreached_annots]) *) ()
       else add_on_edges tbl post edges_after
     end;
   if exits <> empty_acc then
@@ -555,8 +555,8 @@ let add_axiom tbl lemma =
 let add_all_axioms tbl =
   let rec do_g g =
     match g with
-    | Daxiomatic (_ax_name, globs,_) -> do_globs globs
-    | Dlemma (name,_,_,_,_,_) ->
+    | Daxiomatic (_ax_name, globs,_,_) -> do_globs globs
+    | Dlemma (name,_,_,_,_,_,_) ->
         let lem = LogicUsage.logic_lemma name in
         add_axiom tbl lem
     | _ -> ()
@@ -588,9 +588,6 @@ type strategy = {
   desc : string ;
   cfg : Cil2cfg.t;
   behavior_name : string option ;
-
-  new_loops : bool;
-
   strategy_kind : strategy_kind;
   annots : annots_tbl;
 }
@@ -602,8 +599,8 @@ let get_bhv s = s.behavior_name
 let is_default_behavior s =
   match s.behavior_name with None -> true | Some _ -> false
 
-let mk_strategy desc cfg bhv_name new_loops kind tbl = {
-  desc = desc; cfg = cfg; behavior_name = bhv_name; new_loops = new_loops;
+let mk_strategy desc cfg bhv_name kind tbl = {
+  desc = desc; cfg = cfg; behavior_name = bhv_name;
   strategy_kind = kind; annots = tbl;
 }
 
@@ -614,7 +611,6 @@ let strategy_kind strat = strat.strategy_kind
 let strategy_has_prop_goal strat = strat.annots.tbl_has_prop_goal
 let strategy_has_asgn_goal strat = strat.annots.tbl_has_asgn_goal
 let get_annots strat = get_annots strat.annots
-let new_loop_computation strat = strat.new_loops
 
 let pp_info_of_strategy fmt strat =
   Format.fprintf fmt "@[%s@]" strat.desc

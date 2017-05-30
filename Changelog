@@ -13,6 +13,97 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+##################################
+Open Source Release <next-release>
+##################################
+
+
+#######################################
+Open Source Release Phosphorus-20170501
+#######################################
+
+-* Eva        [2017/05/08] Fix widening in the gauges domain, in particular with
+              nested loops and pointers that change base address through
+              iterations
+-* Eva        [2017/04/25] Perform widening in the symbolic locations domain.
+-* Eva        [2017/04/24] Fixes a crash when backward-propagating an imprecise
+              value on a 32-bits floating point addition. A non-single precision
+              value was erroneously returned.
+-* Eva        [2017/04/05] Fixes a crash with the -val-subdivide-non-linear
+              option, on subdivisions of evaluations involving pointer values.
+-! Eva        [2017/03/31] Renamed dynamic allocation builtins for
+              improved consistency. In particular, Frama_C_alloc_size
+              becomes Frama_C_malloc_fresh.
+-  Eva        [2017/03/31] New option -val-builtins-list
+-* Scope      [2017/03/31] Fix bug in the functions of Db.Scope in presence of
+              alarms refering to volatile memory locations, or to variables
+              that leave scope. Also impacts Eva option -remove-redundant-alarms
+-  Eva        [2017/03/31] Activate option -remove-redundant-alarms by default.
+-  Inout      [2017/03/28] Option -inout-callwise is now always active, and will
+              be removed in a later version
+-* Inout      [2017/03/28] Prevent formal variables of functions with only a
+              specification from leaking into results
+-  Kernel     [2017/03/28] Dynlink is now mandatory, no degraded static mode.
+o! Eva        [2017/03/17] Incompatible API changes in module Cvalue.Model.
+              Functions named 'unspecified' have been renamed into
+              'indeterminate', and some arguments have been removed.
+o! Gui        [2017/03/10] Signature change for constructor
+              Pretty_source.PVDecl
+-! Kernel     [2017/03/10] Explicit AST nodes to mark local variables
+              initialization.
+-! Kernel     [2017/03/10] Better handling of VLA (use explicit function calls
+              to mark deallocation of VLA at appropriate program points)
+-* Callgraph  [2017/03/10] Fixes inverted callers/callee in indirect calls
+-! Eva        [2017/03/09] Option -val-show-progress is now unset by default
+-* Eva        [2017/03/08] Fix bug #2277. The initial state of the analysis
+              now depends on all relevant options, including kernel options
+              -warn-...
+-! Variadic   [2017/03/08] Change of command line argument names for the
+              plugin Variadic. The new names are more expressive and avoid
+              confusions with the plugin Value. Use -variadic-translation or
+              -variadic-no-translation instead of -va or -no-va.
+-! Value      [2017/03/07] Support for the legacy value analysis has been
+              abandoned, Eva is now always active. Option -no-eva has been
+              removed.
+-* Eva        [2017/03/07] Unsound support for recursion, through option
+              -val-ignore-recursive-calls. The support of recursion through
+              the use of 'assigns' clauses, previously available in Value,
+              was unsound and has been removed
+-! Kernel     [2017/03/01] Zarith library is now required
+-* Kernel     [2017/02/24] Fix crash when loading a saved file without a plug-in
+              which has previously emitted a status with a tuning parameter.
+-  Eva        [2017/02/06] New (internal) mechanism to handle C functions'
+              return values. Messages now mention \result<foo> for the
+              value returned by 'foo'.
+-  Variadic   [2017/02/08] The plugin is now enabled by default. Use the
+              option -variadic-no-translation to keep the original behaviour.
+              The specification generated for the fprintf function family is
+              now more accurate.
+-  Kernel     [2017/01/26] New option -print-libc, to expand include directives
+              for files in the Frama-C stdlib (no longer expanded by default).
+-* Obfuscator [2017/01/19] Fix typo in help message (bts #2269).
+-  Kernel     [2017/01/09] Bash completion for Frama-C options. See #@154.
+-* Kernel     [2016/12/09] Fixes oneret normalization in presence of
+              statement contract and absence of return. See #@255 and #2235.
+-  Kernel     [2016/12/06] New option -print-machdep (help group).
+-  Rte        [2016/11/25] Remove option -rte-all.
+-* Cil        [2016/11/20] Pointer subtractions with arguments of incompatible
+              types are now refused. The resulting expression is typed as
+              ptrdiff_t instead of int.
+-  Value      [2016/11/18] Widen hints directives @widen_hints now accept
+              arbitrary l-values (evaluated at analysis time) in place of
+              variables.
+-* Kernel     [2016/11/17] Fixed some issues with #pragma pack() behavior,
+              in both GCC and MSVC machdeps. Also fixed some related issues
+              with __aligned__ and __packed__ attributes (including bts #2249).
+-  Metrics    [2016/11/17] Programmatic API for some functions via Metrics.mli.
+-  Kernel     [2016/11/07] New option -no-autoload-plugins (equivalent to old
+              -no-dynlink); mostly for internal use.
+-! Kernel     [2016/10/19] Stricter verification for extern, static and inline
+              specifiers (support for CERT DCL-36-C coding rule)
+o* Eva        [2016/10/22] Functions Db.Value.fun_set_args and
+              Db.Value.globals_set_initial_state are now compatible with Eva.
+
 ######################################
 Open Source Release Silicon-20161101
 ######################################
@@ -48,7 +139,7 @@ Open Source Release Silicon-20161101
 -! Libc       [2016/10/07] Functions in share/libc.c have been inlined into
               the proper .c files under share/libc
 -  Eva        [2016/10/07] More systematic backward-propagation between
-              actual paramaters and formals
+              actual parameters and formals
 -  Nonterm    [2016/10/05] overall increase in precision, especially on
               compound statements (if, switch, loops...). Verbosity has been
               decreased
@@ -178,7 +269,7 @@ o! Value      [2016/03/30] API change in functor Lmap.Make.
               bounds and -slevel-function parameters. Invoked using option
               -loop.
 -* ACSL       [2016/03/30] Fixes precedence uncompliance within ACSL Manual of
-              some bitwise operators and more agressive checks of consistent
+              some bitwise operators and more aggressive checks of consistent
               relation chains.
 -* Metrics    [2016/03/24] Fix list of undefined functions; functions that
               are never called were not reported.
@@ -231,7 +322,7 @@ o! Value      [2016/03/30] API change in functor Lmap.Make.
 -* Libc       [2016/02/02] Fix specifications of memchr and strncpy.
 -* ACSL       [2016/01/27] Fixes example of logic label use. Fixes bug #2203.
 -* Logic      [2016/01/17] Meaningless assigns clauses are now rejected more
-              agressively. Fixes bug #1790.
+              aggressively. Fixes bug #1790.
 o  Kernel     [2016/01/08] Several incompatible changes in module Property.
 -  Kernel     [2016/01/08] Automatic generation of assigns from GCC's extended
               asm.
@@ -246,7 +337,7 @@ o  Kernel     [2016/01/08] Several incompatible changes in module Property.
               compatibility between the type of the pointer and the function
               being pointed.
 -* Eva        [2016/01/01] Fixed some bugs related to 0. vs. -0. in conditions.
--  Eva        [2016/01/01] More agressive reductions in complex conditions
+-  Eva        [2016/01/01] More aggressive reductions in complex conditions
               such as if(a+3 < 10).
 -*! Value     [2016/01/01] Reimplementation of all the upper layers of the
               plugin. Compatibility with the legacy version is almost complete,
@@ -283,7 +374,7 @@ o! Gui        [2015/12/01] Refactor GUI Helpers.
               precise) when the loops are not fully unrolled by slevel.
 -! Makefile   [2015/11/26] Target 'make rebuild' has been renamed into
               'make clean-rebuild'.
--* Value      [2015/11/24] The preconditions of functions overriden by builtins
+-* Value      [2015/11/24] The preconditions of functions overridden by builtins
               no longer receive an 'Unreachable status for calls within dead
               code: the specification is ignored everywhere. Fixes bug #!1956.
 -! Cil        [2015/11/23] Incorrect return statements (return void on non-void
@@ -430,7 +521,7 @@ o! Value      [2015/06/25] Remove duplicate values Ival.singleton_zero and
 -*  Parsing   [2015/06/22] Black-list gcc's builtin macros for logic
               pre-processing to avoid warnings for duplication. Fixes bug #2161.
 -*  Logic     [2015/06/15] Fix typing bug when converting into a term an
-              expression containing a pointer substraction.
+              expression containing a pointer subtraction.
 -* Value      [2015/06/09] Pointer comparisons using relational operators (<,
               >=, etc) between a pointer and NULL is now flagged as undefined.
 o! Kernel     [2015/06/09] Remove support of plug-ins without .mli.
@@ -510,6 +601,7 @@ o!  Logic     [2015/04/08] Functions Db.Properties.Interp.lval and
 -  Cil        [2015/03/19] Fix incorrect simplifications of '!E' to 0 when
               E is either an enum with value 0 (bug #2090), or an expression
               whose value wraps.
+-! Kernel     [2015/03/17] Removed option -no-dynlink.
 -  Kernel     [2015/03/10] macro __FRAMAC__ is defined when pre-processing
               C files in Frama-C.
 o! Kernel     [2015/03/10] AST change: split GVarDecl into GVarDecl and GFunDecl
@@ -894,7 +986,7 @@ o  Kernel     [2013/12/23] Plug-ins may now have a non-empty .mli interface.
               unspecified offset.
 o! Value      [2013/11/28] Functions previously required by some functors in
               directories src/ai and src/memory_state are no longer needed.
-              Use script bin/fluorine2seon.sh for partially automatic migration.
+              Use script bin/fluorine2neon.sh for partially automatic migration.
 -  Scope      [2013/11/27] Option -inout-callwise can be used to improve
               the precision of computations, including the effects of option
               -remove-redundant-alarms. Option -calldeps is no longer necessary
@@ -956,14 +1048,14 @@ o  Kernel     [2013/11/08] parameters can be preserved across project creation
 o* Value      [2013/10/27] Type Base.string_id is now concrete. No more need
               for function Base.cstring_of_string_id
 -* RTE        [2013/10/28] Better normalization when using -rte-precond.
--  Kernel     [2013/10/27] Generate more agressive assigns clauses for
+-  Kernel     [2013/10/27] Generate more aggressive assigns clauses for
               unspecified library functions that arguments with type pointer
               to void or char
 -* Kernel     [2013/10/26] Do not generate invalid assigns clauses when some
               formals are pointers to arrays
 -  Kernel     [2013/10/22] Support for static evaluation of the
               __builtin_compatible_p GCC specific function.
--  Kernel     [2013/10/22] Add -agressive-merging option to merge two
+-  Kernel     [2013/10/22] Add -aggressive-merging option to merge two
               inline functions if they are equal modulo alpha conversion.
 -* Kernel     [2013/10/17] Correctly distinguish typenames and declared
               identifiers in declarations. Fixes #1500
@@ -1027,7 +1119,7 @@ o* Kernel     [2013/09/11] Fixed buggy function Property.location.
 -  Value      [2013/09/07] Degeneration points are now shown in the GUI
 -  Value      [2013/09/07] Value analysis can now be aborted while keeping
               intermediate results, by sending SIGUSR1 to Frama-C
--  Value      [2013/09/06] More agressive evaluation of \initialized(p)
+-  Value      [2013/09/06] More aggressive evaluation of \initialized(p)
               when p points to a memory zone containing both bottom and
               non-bottom values
 o! Value      [2013/09/06] Function Cvalue.Model.find_unspecified now requires
@@ -1118,7 +1210,7 @@ o  Kernel     [2013/06/21] adding a category do not set debugging level to 1.
 -  Value      [2013/06/05] Preliminary support on \forall and \exists
               quantification when the introduced variables have a C type.
 o! Value      [2013/06/05] API change in module Base. Use script
-              bin/fluorine2seon.sh for automatic migration.
+              bin/fluorine2neon.sh for automatic migration.
 -  Value      [2013/05/26] Evaluation of \base_addr, \offset and \block_length
               logic predicates.
 o! Cil        [2013/05/26] Rename function sizeOf_int into bytesSizeOf.
@@ -1283,7 +1375,7 @@ o! Cil        [2013/02/02] Remove unused 'alignof_char_array' machdep field.
 -* Kernel     [2013/02/01] Ghost status is appropriately propagated in
               statements (instead of only instructions) and pretty-printed
               accordingly. Fixes issue #1328.
--  Value      [2013/02/01] Value more agressive evaluation of construct
+-  Value      [2013/02/01] Value more aggressive evaluation of construct
               '//@ for b: assert p' when b is guaranteed to be active.
               Harmonize behaviors-related messages.
 -  Kernel     [2013/01/29] The level of verbose is at least the level of debug.
@@ -1357,7 +1449,7 @@ o! Kernel     [2012/11/24] Various types whose names started by t_ in
 o  Rte        [2012/11/23] Export function "exp_annotations" to get RTEs of a C
               expression as annotations.
 o*!Kernel     [2012/11/23] Added TLogic_coerce constructor to mark
-              explicitely a conversion from a C type to a logical one
+              explicitly a conversion from a C type to a logical one
               (in particular floating point -> real and integral -> integer).
               Fixes issue #1309.
 o! Kernel     [2012/11/22] Remove unintuitive ?prj argument from Cil visitors,
@@ -1396,7 +1488,7 @@ o! Kernel     [2012/10/18] New API for module Alarms.
               annotations corresponding to an alarm.
 o* Kernel     [2012/10/18] Fixes incorrect visitor behavior with JustCopy
               (issue #1282).
--  Value      [2012/10/16] Reduce more agressively on accesses *p where p is
+-  Value      [2012/10/16] Reduce more aggressively on accesses *p where p is
               imprecise but contains only one valid value.
 -* Value      [2012/10/16] Correct potentially incorrect reduction on l-values
               of the form *(p+off) or *(p-off).
@@ -1932,7 +2024,7 @@ o! Value      [2011/08/09] Module Cvalue_type renamed to Cvalue.
 o  Kernel     [2011/08/04] Add Kernel.Unicode.without_unicode, which applies
               a function without upsetting the Unicode option in the gui.
 -* Impact     [2011/08/04] Correct a journalisation bug in gui mode.
--  Value      [2011/08/01] More precise when an alarm is emited in a loop.
+-  Value      [2011/08/01] More precise when an alarm is emitted in a loop.
 o! Kernel     [2011/08/01] Signature of Plugin renamed for consistency.
               Use carbon2nitrogen for automatic translation.
 o! Kernel     [2011/08/01] Annotations.replace and
@@ -2007,7 +2099,7 @@ o! Value      [2011/06/03] Functions valid_* now take an argument ~for_writing
               Pass true when the lvalue being considered is used for
               writing in the program. Pass false when unsure.
 -  Value      [2011/06/03] Literal strings are now read-only.
--  Value      [2011/06/03] More agressive state reduction when emiting
+-  Value      [2011/06/03] More aggressive state reduction when emitting
               pointer_comparable assertions. Use option
               -undefined-pointer-comparison-propagate-all if you liked
               the old behavior better.
@@ -2113,8 +2205,8 @@ o* Kernel     [2011/04/13] Fix bug #790: AST integrity checker issue.
 -* Pdg        [2011/04/13] Fix bug #787 but leads to less precise dependencies.
 -* Slicing    [2011/04/02] Fix bug #786: missing label in sliced program.
 -* Value      [2011/04/12] Correctly emit \pointer_comparable(...) alarms.
--* From       [2011/04/11] Fix  #781: handling of function calls with an implict
-              cast for the assignment of the result.
+-* From       [2011/04/11] Fix  #781: handling of function calls with an
+              implicit cast for the assignment of the result.
 o  Makefile   [2011/04/08] Add target to launch the tests of a specific
               dynamic internal plugin from Frama-C's main Makefile.
 -* Aorai      [2011/04/08] Existing assigns are augmented with the locations
@@ -2423,7 +2515,7 @@ o! Kernel     [2010/12/07] Remove function Globals.has_entry_point. Use
               Relevant messages changed a little.
 -! Cil        [2010/11/16] Cil normalization takes care of abrupt clauses
 o  Kernel     [2010/11/15] New Task module: a monadic library for calling
-              asynchroneous commands from the toplevel and the gui.
+              asynchronous commands from the toplevel and the gui.
 o! Kernel     [2010/11/05] File.check_file takes a new argument, allowing to
               describe which AST fails integrity check in case of trouble.
 -!* Kernel    [2010/11/05] Fixed #620 (default assigns generation).
@@ -2495,7 +2587,7 @@ o! Value      [2010/07/21] There was one too many function called "find_ival".
               sandbox.
 -  Configure  [2010/07/05] Better detection of native dynlink support.
 -* GUI        [2010/06/30] Fixed parsing of floats in frama-c-gui.config
--  Cil        [2010/06/30] Be less agressive during inline function merge.
+-  Cil        [2010/06/30] Be less aggressive during inline function merge.
               Alpha equivalent function are now kept separate.
 -  GUI        [2010/06/29] One tooltip by parameter in the launcher
 o! Cil        [2010/06/23] Removed function varinfo_from_vid. You can use
@@ -2537,7 +2629,7 @@ o! Kernel     [2010/05/20] Added field b_extended in behaviors to
 -* Logic      [2010/05/19] Checking for loop variant position
 -  Kernel     [2010/05/19] Feature #484 about requires into named behaviors
 -* Inout      [2010/05/12] Fixed bug in -inout where operational inputs of
-              called library function were improperly infered from assigns
+              called library function were improperly inferred from assigns
 -* Value      [2010/05/12] Fixed bug with extern variables of incomplete type
 -* Logic      [2010/05/11] Fixed wrong precedence of <==>
 -  Value      [2010/05/11] Improved Frama_C_memcpy built-in.
@@ -2720,7 +2812,7 @@ o! Kernel     [2009/11/24] Use of global logic constants is now a
               settable via the launcher dialog box (bts #!317).
 -* Logic      [2009/11/04] Fixed bug #272 (complete behaviors wo name)
 -  Logic      [2009/11/03] Better error message when using = in annotations
--* Makefile   [2009/11/02] Fixed bug #310: improve robustness againts new
+-* Makefile   [2009/11/02] Fixed bug #310: improve robustness against new
               ocaml warnings.
 -  Kernel     [2009/11/02] New option -no-dynlink in order to prevent
               loading of dynamic plug-ins.
@@ -2808,7 +2900,7 @@ o* Makefile   [2009/09/18] Fixed bugs with the use of PLUGIN_EXTRA_BYTE
               part of Why.
 -  Makefile   [2009/09/08] Why is no longer a compilation dependency.
               It is required only at runtime for the experimental WP plugin.
--* Makefile   [2009/09/07] Fixed compilation error occuring on a platform
+-* Makefile   [2009/09/07] Fixed compilation error occurring on a platform
               which does not support native dynlink and with ocaml >= 3.11
               (bts #224).
 
@@ -2872,7 +2964,7 @@ o  Value      [2009/06/23] New constructor Signed_overflow_alarm for type
 -! Jessie     [2009/06/18] GUI mode is now the default, options -jessie-gui and
               -jessie-goals do not exists anymore
 -* Jessie     [2009/06/18] Full support for loop assigns, including those
-              implictly generated from function's assigns, fixes bug #41
+              implicitly generated from function's assigns, fixes bug #41
 -  GUI        [2009/06/18] Change the warning to panel to preserve decent
               performance. This imposes lablgtk 2.12 at least.
 -  Semantic_callgraph [2009/06/15] small change in the computation of services:
@@ -2896,7 +2988,7 @@ o  GUI        [2009/06/05] The plug-in GUI is now packed with the core plug-in
 -* Jessie     [2009/06/05] Fix bug #!8, compilation of jessie with Apron
 -* Configure  [2009/06/05] Fixed issues in configure and makefile if
               lablgtk2 is not enabled.
-o! Kernel     [2009/06/03] Moved lightweigth annotation support from
+o! Kernel     [2009/06/03] Moved lightweight annotation support from
               Jessie to Kernel. They are now available for all plugins.
               Support for lightweight global invariants on globals has
               been dropped.
@@ -3030,7 +3122,7 @@ o! Kernel     [2009/01/05] Some changes in API of module Type
               registration. No more in module Journal. Only in module Type.
 -* GUI        [2008/12/22] Reentrancy fix with left panels.
 -* Impact     [2008/12/22] In the GUI, fixed bug while the analysis raised
-              an exception. It is now properly catched and displayed on stderr.
+              an exception. It is now properly caught and displayed on stderr.
 -  Impact     [2008/12/22] In the GUI, highlight the selected statement in cyan.
 -! Impact     [2008/12/22] Do not select anymore the selected statements
               except if they are effectively impacted themselves (bts #?411).
@@ -3241,7 +3333,7 @@ o* Makefile   [2008/05/21] Fixed bug in "make clean-doc" (and "make distclean").
 Open Source Release Hydrogen-20080501
 #####################################
 
--! Value      [2008/04/24] Display a warning whenever an unitialized value
+-! Value      [2008/04/24] Display a warning whenever an uninitialized value
               causes the death of a branch.
 -  GUI        [2008/04/18] Project names are pairwise different in the GUI.
 -* GUI        [2008/04/17] Win32 default fonts fixed.

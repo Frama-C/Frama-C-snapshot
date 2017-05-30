@@ -2,9 +2,30 @@
    STDOPT: +"-val-subdivide-non-linear 14 -value-msg-key nonlin"
 */
 
+#include "__fc_builtin.h"
+
 volatile int v; volatile short vs;
 
-void main() {
+/* Checks that the subdivision does not fail when pointer values get involved. */
+void subdivide_pointer () {
+  int y, x = 17;
+  int *p = &x;
+  int i = Frama_C_interval(0,100);
+
+  /* The complete expression is a pointer. */
+  int *q = p + i - i;
+
+  /* The complete expression is an integer, but the subterm on which the
+     subdivision is done is a pointer. */
+  y = *(p + i - i);
+
+  /* The splitted lvalue contains a pointer value. */
+  i = v ? i : &x;
+  y = *(p + i - i);
+}
+
+
+void subdivide_integer () {
   int y;
   short z = v;
   int k = (z+675) * (z+675);
@@ -21,4 +42,9 @@ void main() {
   short idx = vs;
   //@ assert 0 <= idx <= 10;
   t[idx*idx] = 1;
+}
+
+void main () {
+  subdivide_integer ();
+  subdivide_pointer ();
 }

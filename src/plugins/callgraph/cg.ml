@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ open Cil_types
 
 (* Kernel functions with a custom function [compare] independent of vids. So the
    callgraph and its iterations are independent from the vids generator and is
-   only dependent of the analyzed program itsef. *)
+   only dependent of the analyzed program itself. *)
 module Kf_sorted = struct
   type t =  Kernel_function.t
   let equal = Kernel_function.equal
@@ -147,14 +147,23 @@ let syntactic_compute g =
       (* call via a function pointer: add an edge from each function which
          the address is taken to this callee. *)
       let pointed = get_pointed_kfs () in
-      let callee = Extlib.the self#current_kf in
+      let caller = Extlib.the self#current_kf in
       List.iter
-        (fun caller ->
+        (fun callee ->
           G.add_edge_e g (caller, Extlib.the self#current_stmt, callee))
         pointed;
       Cil.SkipChildren
-    | _ ->
-      (* skip childrens for efficiency *)
+    | Local_init (_,ConsInit(v,_,_),_) ->
+      let callee =
+        try Globals.Functions.get v
+        with Not_found -> assert false
+      in
+      let caller = Extlib.the self#current_kf in
+      G.add_edge_e g (caller, Extlib.the self#current_stmt, callee);
+      Cil.SkipChildren
+    | Local_init (_, AssignInit _, _) | Set _
+    | Skip _ | Asm _ | Code_annot _  ->
+      (* skip children for efficiency *)
       Cil.SkipChildren
 
     (* for efficiency purpose, skip many items *)
@@ -165,7 +174,7 @@ let syntactic_compute g =
     method !vbehavior _ = Cil.SkipChildren
   end in
   Visitor.visitFramacFileSameGlobals o (Ast.get ());
-  (* now remove the potential unrelevant nodes wrt selected options *)
+  (* now remove the potential irrelevant nodes wrt selected options *)
   if not (Options.Uncalled.get () && Options.Uncalled_leaf.get ()) then
     G.iter_vertex
       (fun kf ->

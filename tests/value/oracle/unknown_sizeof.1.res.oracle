@@ -8,5 +8,5 @@ tests/value/unknown_sizeof.i:8:[kernel] imprecise size for variable s (abstract 
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   s.[bits 0 to ..] ∈ {0} or UNINITIALIZED
-tests/value/unknown_sizeof.i:23:[value] user error: Function argument *((struct s *)((char *)(& s) + 1)) has unknown size. Aborting
+tests/value/unknown_sizeof.i:24:[value] user error: Function argument *((struct s *)((char *)(& s) + 1)) has unknown size. Aborting
 [kernel] Plug-in value aborted: invalid user input.

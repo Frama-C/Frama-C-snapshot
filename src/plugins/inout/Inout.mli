@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 (** Inputs-outputs computations. *)
 
 (** No function is directly exported: they are registered in:
-    - {!Db.Inputs} for computations of non functionnal inputs;
+    - {!Db.Inputs} for computations of non functional inputs;
     - {!Db.Outputs} for computations of outputs;
     - {!Db.Operational_inputs} for computation of inout context; and
     - {!Db.Derefs}. *)

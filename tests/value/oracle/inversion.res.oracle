@@ -23,6 +23,7 @@
     [2].p ∈ {{ &px }}
     [3..4] ∈ {0}
   ii[0..1] ∈ {0}
+tests/value/inversion.i:21:[value] warning: initialization of volatile variable k ignored
 tests/value/inversion.i:23:[value] entering loop for the first time
 tests/value/inversion.i:30:[value] entering loop for the first time
 [value] Recording results for main

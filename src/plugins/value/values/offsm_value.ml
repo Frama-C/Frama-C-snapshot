@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,7 +63,8 @@ let basic_paste ?(start=Int.zero) ~src ~size_src dst =
 let basic_find ?(start=Int.zero) ~size o =
   let validity = enough_validity ~start ~size in
   let offsets = Ival.inject_singleton start in
-  snd (V_Offsetmap.find ~validity ~offsets ~size o)
+  let _, v = V_Offsetmap.find ~validity ~offsets ~size o in
+  V_Or_Uninitialized.map (fun v -> fst (V.cast ~signed:false ~size v)) v
 
 (* Paste [v] of size [size] at position [start] in [o] *)
 let basic_add ?(start=Int.zero) ~size v o =
@@ -92,8 +93,8 @@ let read_bit o bit =
     | false, false (* bottom *) -> `Zero
   with V.Not_based_on_null -> `ZeroOne
 
-(** Decompose the range [b..e] (inclusive) of [a] into ranges of consecutive
-    equal bits. Raise [NotConstant] if [o] is not constant on this range. *)
+(** Decompose the range [b..e] (inclusive) of [o] into ranges of consecutive
+    equal bits. *)
 let explode_range o (b, e) =
   (* result. only [b..e] will be modified *)
   let r = ref o in
@@ -128,7 +129,7 @@ let explode_range o (b, e) =
 let explode o =
   let r = ref o in
   let aux (e, b) _ =
-    r := explode_range o (Integer.to_int e, Integer.to_int b)
+    r := explode_range !r (Integer.to_int e, Integer.to_int b)
   in
   V_Offsetmap.iter aux o;
   List.rev (V_Offsetmap.fold (fun r v acc -> (r, v) :: acc) !r [])
@@ -402,7 +403,7 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
   let narrow o1 o2 = match o1, o2 with
     | Top, o | o, Top -> `Value o
     | O o1, O o2 ->
-      V_Offsetmap.narrow o1 o2 >>-: (fun o -> O o)
+      V_Offsetmap.narrow_reinterpret o1 o2 >>-: (fun o -> O o)
 
   (* Simple values cannot be injected because we do not known their type
      (hence size in bits *)

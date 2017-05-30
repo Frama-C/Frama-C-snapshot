@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2016                                               *)
+(*  Copyright (C) 2007-2017                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -141,7 +141,7 @@ let process_one_call data stmt lvaloption froms =
   let used = res_used || out_used in
     used, data
 
-let process_call data_after stmt lvaloption funcexp args =
+let process_call data_after stmt lvaloption funcexp args _loc =
   let funcexp_dpds, called_functions =
     !Db.Value.expr_to_kernel_function ~with_alarms:CilE.warn_none_mode
       (Kstmt stmt) ~deps:(Some Data.bottom) funcexp
@@ -209,20 +209,38 @@ module Computer (Param:sig val states : Ctx.t end) = struct
 
   let doStmt _stmt = Dataflow2.Default
 
+  let do_assign stmt lval exp data =
+    let l_dpds, exact, l_zone =
+      Datascope.get_lval_zones ~for_writing:true stmt lval in
+    let r_dpds = Data.exp_zone stmt exp in
+    let used, data = compute_new_data data l_zone l_dpds exact r_dpds in
+    let _ = if used then add_used_stmt stmt in
+    data
+
   let doInstr stmt instr data =
     match instr with
-      | Set (lval, exp, _) ->
-          let l_dpds, exact, l_zone =
-            Datascope.get_lval_zones ~for_writing:true stmt lval in
-          let r_dpds = Data.exp_zone stmt exp in
-          let used, data = compute_new_data data l_zone l_dpds exact r_dpds in
-          let _ = if used then add_used_stmt stmt in
-              Dataflow2.Done data
-      |  Call (lvaloption,funcexp,args,_) ->
-          let used, data = process_call data stmt lvaloption funcexp args in
+      | Set (lval, exp, _) -> Dataflow2.Done (do_assign stmt lval exp data)
+      | Local_init (v, AssignInit i, _) ->
+        let rec aux lv i acc =
+          match i with
+          | SingleInit e -> do_assign stmt lv e data
+          | CompoundInit(ct, initl) ->
+            let implicit = true in
+            let doinit o i _ data = aux (Cil.addOffsetLval o lv) i data in
+            Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc
+        in
+        Dataflow2.Done (aux (Cil.var v) i data)
+      |  Call (lvaloption,funcexp,args,loc) ->
+          let used, data = process_call data stmt lvaloption funcexp args loc in
           let _ = if used then add_used_stmt stmt in
             Dataflow2.Done data
-      | _ -> Dataflow2.Default
+      | Local_init(v, ConsInit(f, args, k), l) ->
+        let used, data =
+          Cil.treat_constructor_as_func (process_call data stmt) v f args k l
+        in
+        if used then add_used_stmt stmt;
+        Dataflow2.Done data
+      | Skip _ | Code_annot _ | Asm _ -> Dataflow2.Default
 
   let filterStmt _stmt _next = true
 

@@ -5,6 +5,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
+[value:initial-state] creating variable S_tb with imprecise size (type int [10][a])
 tests/value/not_ct_array_arg.i:9:[value] warning: during initialization of variable 'tb', size of type 'int [a]' cannot be
                  computed (Array with non-constant length.)
 tests/value/not_ct_array_arg.i:10:[value] warning: out of bounds write. assert \valid((int *)tb);

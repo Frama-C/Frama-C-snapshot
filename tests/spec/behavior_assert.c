@@ -1,6 +1,6 @@
 /* run.config 
-OPT: -val -deps -out -input -journal-disable -lib-entry
-OPT: -val -deps -out -input -journal-disable
+OPT: -val -val-show-progress -deps -out -input -journal-disable -lib-entry
+OPT: -val -val-show-progress -deps -out -input -journal-disable
 */
 
 int e;

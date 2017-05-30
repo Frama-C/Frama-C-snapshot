@@ -4,8 +4,8 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
-[wp] 10 goals scheduled
-[wp] [Alt-Ergo] Goal typed_copy_post : Valid
+[wp] 9 goals scheduled
+[wp] [Qed] Goal typed_copy_post : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_preserved : Valid
 [wp] [Qed] Goal typed_copy_loop_inv_established : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_2_preserved : Valid
@@ -13,12 +13,11 @@
 [wp] [Qed] Goal typed_copy_loop_assign_part1 : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_assign_part2 : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_assign_part3 : Valid
-[wp] [Qed] Goal typed_copy_assign_part1 : Valid
-[wp] [Alt-Ergo] Goal typed_copy_assign_part2 : Valid
-[wp] Proved goals:   10 / 10
+[wp] [Alt-Ergo] Goal typed_copy_assign : Valid
+[wp] Proved goals:    9 / 9
      Qed:             3 
-     Alt-Ergo:        7
+     Alt-Ergo:        6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-copy                 3      7 (584)   10       100%
+copy                 3      6 (735)    9       100%
 ----------------------------------------------------------

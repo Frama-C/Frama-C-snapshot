@@ -4,8 +4,7 @@
 int t[10];
 void main(void)
 {
-  int v;
-  v = (int)sizeof(t);
+  int v = (int)sizeof(t);
   /*@
   assert
   /*(type:ℤ *//*(type:int */v/*)*//*)*/ ≡

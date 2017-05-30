@@ -3,5 +3,11 @@
 tests/value/array_zero_length.i:10:[kernel] user error: declaration of array of 'zero-length arrays' ('char [0]`);
                      zero-length arrays are not allowed in C99
 tests/value/array_zero_length.i:12:[kernel] user error: empty initializers only allowed for GCC/MSVC
+                     10    char W[][0];
+                     11    
+                     12    char T1[] = {};
+                           ^^^^^^^^^^^^^^^
+                     13    char U1[0] = {};
+                     14    char V1[][2] = {};
 [kernel] user error: stopping on file "tests/value/array_zero_length.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.
