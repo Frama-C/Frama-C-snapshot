@@ -53,7 +53,7 @@ let rec insert_group cc = function
 let add_composer (c : #composer) =
   let id = c#id in
   if Tmap.mem id !composers then
-    Wp_parameters.error "Composer #%s already registered (skiped)" id
+    Wp_parameters.error "Composer #%s already registered (skipped)" id
   else
     begin
       composers := Tmap.add id (c :> composer) !composers ;
@@ -404,7 +404,7 @@ let tacticals = ref Tmap.empty
 let register t =
   let id = t#id in
     if Tmap.mem id !tacticals then
-      Wp_parameters.error "Tactical #%s already registered (skiped)" id
+      Wp_parameters.error "Tactical #%s already registered (skipped)" id
     else
       tacticals := Tmap.add id (t :> t) !tacticals
 

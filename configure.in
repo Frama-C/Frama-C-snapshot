@@ -138,11 +138,32 @@ else
         fi
 fi
 
+# In case we have a native compiler, check that native dynlink works.
+# Otherwise, fall back to bytecode-only compilation
+
+if test "$OCAMLBEST" = opt; then
+  echo "let f x y =" > test_dynlink.ml
+  echo "  Dynlink.loadfile \"foo\"; " >> test_dynlink.ml
+  echo "  ignore (Dynlink.is_native);" >> test_dynlink.ml
+  echo "  abs_float (x -. y)" >> test_dynlink.ml
+  if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
+    2> /dev/null ; \
+then
+  AC_MSG_RESULT([native dynlink works fine. Great.])
+else
+  AC_MSG_WARN([Native dynlink does not work, disabling native compilation.])
+  OCAMLBEST=byte
+fi
+rm -f test_dynlink.*
+fi
+
 if test "$OCAMLBEST" = "opt"; then
    LIB_SUFFIX=cmxa
+   DYN_SUFFIX=cmxs
    OBJ_SUFFIX=cmx;
 else
    LIB_SUFFIX=cma
+   DYN_SUFFIX=cma
    OBJ_SUFFIX=cmo;
 fi
 
@@ -286,7 +307,7 @@ AC_CHECK_PROG(OTAGS,otags,otags,)
 AC_MSG_CHECKING(for Apron)
 
 APRON_PATH=$($OCAMLFIND query apron 2>/dev/null | tr -d '\r\n')
-if test -f "$APRON_PATH/apron.cmxs"; then
+if test -f "$APRON_PATH/apron.$DYN_SUFFIX"; then
   HAS_APRON="yes";
   AC_MSG_RESULT(found)
 else
@@ -307,7 +328,7 @@ if test "$ENABLE_LANDMARKS" = yes ; then
   AC_MSG_CHECKING(for Landmarks)
   LANDMARKS_PATH=$($OCAMLFIND query landmarks 2>/dev/null | tr -d '\r\n')
   LANDMARKS_PPX_PATH=$($OCAMLFIND query landmarks.ppx 2>/dev/null | tr -d '\r\n')
-  if test -f "$LANDMARKS_PATH/landmarks.cmxs" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
+  if test -f "$LANDMARKS_PATH/landmarks.$DYN_SUFFIX" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
     HAS_LANDMARKS="yes";
     AC_MSG_RESULT(found)
   else
@@ -349,19 +370,23 @@ else
     EXE=
   fi
 
-  # OCaml native threads
-  AC_MSG_CHECKING([OCaml native threads])
-  echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
-  if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
-      test_native_threads.ml) 2> /dev/null ; \
-  then
-    HAS_NATIVE_THREADS=yes
-    AC_MSG_RESULT([ok.])
+  if test "$OCAMLBEST" = opt; then
+    # OCaml native threads
+    AC_MSG_CHECKING([OCaml native threads])
+    echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
+    if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
+         test_native_threads.ml) 2> /dev/null ;
+    then
+      HAS_NATIVE_THREADS=yes
+      AC_MSG_RESULT([ok.]);
+    else
+      HAS_NATIVE_THREADS=no
+      AC_MSG_WARN([unsupported.]);
+    fi
+    rm -f test_native_threads*;
   else
-    HAS_NATIVE_THREADS=no
-    AC_MSG_WARN([unsupported.])
+    HAS_NATIVE_THREADS=no; # no native compilation anyway
   fi
-  rm -f test_native_threads*
 fi
 
 # C and POSIX standard headers used by C bindings.
@@ -874,18 +899,6 @@ configure_tool([DOT],[dot],[dot not found: you should install GraphViz],no)
 
 # Checking some other things which cannot be done too early
 ###########################################################
-
-# Check that native dynlink works
-
-echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
-if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
-  2> /dev/null ; \
-then
-  AC_MSG_RESULT([native dynlink works fine. Great.])
-else
-  AC_MSG_ERROR([native dynlink does not work.])
-fi
-rm -f test_dynlink.*
 
 # Native version of ptests can be used only if
 # - a native compiler exists

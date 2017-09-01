@@ -188,14 +188,18 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 TARGETS := $(TARGET_META) $(TARGET_CMI)
 TARGETS_TOP := $(TARGET_TOP_CMO) $(TARGET_TOP_CMX) \
 	       $(TARGET_TOP_CMA) $(TARGET_TOP_CMXS)
-TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) \
-               $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
+TARGETS_GUI_BYTE := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO)
+TARGETS_GUI := $(TARGETS_GUI_BYTE) $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
 TARGETS_BYTE:= $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMO) $(TARGET_TOP_CMA)
 TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMX) $(TARGET_TOP_CMXS)
 
 byte:: $(TARGETS_BYTE)
 opt:: $(TARGETS_OPT)
+ifeq ($(OCAMLBEST),byte)
+gui:: $(TARGETS_GUI_BYTE)
+else
 gui:: $(TARGETS_GUI)
+endif
 
 # do not define additional targets if you come from the Frama-C Makefile
 ifneq ($(FRAMAC_INTERNAL),yes)

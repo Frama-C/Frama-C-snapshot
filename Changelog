@@ -17,6 +17,10 @@
 Open Source Release <next-release>
 ##################################
 
+-* Kernel     [2017/08/31] Fixes configure script on bytecode only architecture.
+              Initial version of the patch by Debian. Fixes #2325
+-* Kernel     [2017/05/08] Fix various typos in source code and user messages.
+              Patch by Debian. Fixes #2323
 
 #######################################
 Open Source Release Phosphorus-20170501

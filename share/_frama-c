@@ -1,0 +1,148 @@
+#compdef frama-c frama-c-gui frama-c.byte frama-c-gui.byte
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2017                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# zsh completion for Frama-C
+# ==========================
+#
+# Installation
+# ============
+#
+# This file must be placed in a directory listed in the $fpath variable.
+# You can add a directory to $fpath by adding a line like the following
+# to your ~/.zshrc file:
+#
+#   fpath=(~/newdir $fpath)
+#
+# It also works with relative paths, such as 'bin/frama-c'.
+#
+#
+# The autocompletion can benefit from the caching system offered by zsh:
+# `zstyle ':completion:*' use-cache on` to enable caching for all commands
+# `zstyle ':completion:*:*:frama-c*:*' use-cache on` only for frama-c
+#
+# -----------------------------------------------------------------------------
+
+# TODO:
+# - use _call_program to call frama-c instead of calling frama-c directly ?
+# - other ideas when to renew cache ?
+
+#local curcontext="$curcontext" state state_descr line # expl ret=1 ??
+#typeset -A opt_args
+
+# filter_load takes a command line calling frama-c and
+# removes everything not a -load-module or -load-script
+# argument 1 is the variable name of the input
+# argument 2 is the variable name of the output
+function filter_load () {
+  local next=0
+  local -a my_args
+  my_args=(${(P)1[1]})
+  for w in ${(P)1}; do
+    if [[ $next -eq 1 ]]; then
+      my_args+=($w)
+      next=0
+    else
+      # very strange behaviour when ' is used instead of " around -load-*
+      # actually not related to this
+      if [[ $w = '-load-module' ]] || [[ $w = '-load-script' ]]; then
+        my_args+=("$w")
+        next=1
+      fi
+    fi
+  done
+  eval "$2=($my_args)"
+}
+
+function _frama_c () {
+  local ret=1 # the return value (1 if no autocompletion is done, 0 otherwise)
+
+  local -a my_words
+  my_words=($words)
+  my_words[1]=${my_words[1]//%-gui} # call frama-c instead of frama-c-gui
+
+  # we do not waste our time on computation if we are not completing an option
+  if [[ -prefix -* ]]; then # if the first character of the current word is a '-'
+    # is the first word on the line executable ?
+    if $my_words[1] 2>/dev/null; then
+      local -a the_args
+      local -a the_previous_args
+      # we keep only parts of the command line relevant to -load-module/-load-script
+      filter_load my_words the_args
+      # we load the previous filtered command from cache if available
+      _retrieve_cache frama-c_previous_command # can overwrite the_previous_args
+      # some gymnastics because the name of the variable matters
+      local -a tmp
+      tmp=($the_previous_args)
+      the_previous_args=($the_args)
+      _store_cache frama-c_previous_command the_previous_args
+      the_previous_args=($tmp)
+
+      # if the time of the most recent modification in
+      # `frama-c -print-plugin-path` is not the same as the one
+      # in the cache, we deduce that it is not the same "frama-c"
+      # as before and recompute the cache.
+      # We put the new date in the cache and store
+      # this information in $recompute
+      local last_change
+      _retrieve_cache frama-c_last_change
+      zmodload -F zsh/stat b:zstat 2>/dev/null
+      local current_last_change=$(zstat +mtime $($my_words[1] -print-plugin-path)/**/*(.om[1]))
+      local recompute
+      (( recompute = $current_last_change != ${last_change:-0} ))
+      if (( $recompute )); then
+        last_change=$current_last_change
+        _store_cache frama-c_last_change last_change
+      fi
+
+      # if something in `frama-c -print-plugin-path` changed,
+      # if the filtered current command is different from the remembered one or
+      # if the cache is unavailable, recompute the list of options,
+      # otherwise just load the cache
+      if (( $recompute )) ||
+         [[ $the_args != $the_previous_args ]] ||
+         _cache_invalid frama-c_autocompletion ||
+         ! _retrieve_cache frama-c_autocompletion
+      then
+        local -a autocompletion
+        local autocomp
+        # call frama-c with all the -load-module ; if it fails, test without the load-modules ;
+        # if it fails again, abort
+        autocomp=$($the_args -autocomplete 2>/dev/null) || autocomp=$($my_words[1] -autocomplete 2>/dev/null) || unset autocomp
+        (( $+autocomp )) && autocompletion=($(grep -o "\-[^ ]*" <<< $autocomp | sort))
+        (( $#autocompletion )) || _message "$my_words[1] exists, but no option was detected"
+        _store_cache frama-c_autocompletion autocompletion
+      fi
+        _describe 'options' autocompletion && ret=0
+    else
+      _message "$my_words[1] not found, dynamic autocompletion aborted"
+      _files && ret=0 # defaults to _files
+    fi
+  else
+    # if we complete a file (not sure if '_files' is the best default)
+    _files && ret=0
+  fi
+  return $ret
+}
+
+# call _frama_c when autocompletion is requested
+_frama_c "$@"

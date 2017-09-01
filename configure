@@ -2881,11 +2881,34 @@ $as_echo "ok" >&6; }
         fi
 fi
 
+# In case we have a native compiler, check that native dynlink works.
+# Otherwise, fall back to bytecode-only compilation
+
+if test "$OCAMLBEST" = opt; then
+  echo "let f x y =" > test_dynlink.ml
+  echo "  Dynlink.loadfile \"foo\"; " >> test_dynlink.ml
+  echo "  ignore (Dynlink.is_native);" >> test_dynlink.ml
+  echo "  abs_float (x -. y)" >> test_dynlink.ml
+  if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
+    2> /dev/null ; \
+then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: native dynlink works fine. Great." >&5
+$as_echo "native dynlink works fine. Great." >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Native dynlink does not work, disabling native compilation." >&5
+$as_echo "$as_me: WARNING: Native dynlink does not work, disabling native compilation." >&2;}
+  OCAMLBEST=byte
+fi
+rm -f test_dynlink.*
+fi
+
 if test "$OCAMLBEST" = "opt"; then
    LIB_SUFFIX=cmxa
+   DYN_SUFFIX=cmxs
    OBJ_SUFFIX=cmx;
 else
    LIB_SUFFIX=cma
+   DYN_SUFFIX=cma
    OBJ_SUFFIX=cmo;
 fi
 
@@ -3370,7 +3393,7 @@ fi
 $as_echo_n "checking for Apron... " >&6; }
 
 APRON_PATH=$($OCAMLFIND query apron 2>/dev/null | tr -d '\r\n')
-if test -f "$APRON_PATH/apron.cmxs"; then
+if test -f "$APRON_PATH/apron.$DYN_SUFFIX"; then
   HAS_APRON="yes";
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
@@ -3396,7 +3419,7 @@ if test "$ENABLE_LANDMARKS" = yes ; then
 $as_echo_n "checking for Landmarks... " >&6; }
   LANDMARKS_PATH=$($OCAMLFIND query landmarks 2>/dev/null | tr -d '\r\n')
   LANDMARKS_PPX_PATH=$($OCAMLFIND query landmarks.ppx 2>/dev/null | tr -d '\r\n')
-  if test -f "$LANDMARKS_PATH/landmarks.cmxs" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
+  if test -f "$LANDMARKS_PATH/landmarks.$DYN_SUFFIX" -a -f "$LANDMARKS_PPX_PATH/ppx_landmarks"; then
     HAS_LANDMARKS="yes";
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
@@ -3482,22 +3505,26 @@ $as_echo "Unix" >&6; }
     EXE=
   fi
 
-  # OCaml native threads
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml native threads" >&5
+  if test "$OCAMLBEST" = opt; then
+    # OCaml native threads
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml native threads" >&5
 $as_echo_n "checking OCaml native threads... " >&6; }
-  echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
-  if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
-      test_native_threads.ml) 2> /dev/null ; \
-  then
-    HAS_NATIVE_THREADS=yes
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok." >&5
-$as_echo "ok." >&6; }
+    echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
+    if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
+         test_native_threads.ml) 2> /dev/null ;
+    then
+      HAS_NATIVE_THREADS=yes
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok." >&5
+$as_echo "ok." >&6; };
+    else
+      HAS_NATIVE_THREADS=no
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unsupported." >&5
+$as_echo "$as_me: WARNING: unsupported." >&2;};
+    fi
+    rm -f test_native_threads*;
   else
-    HAS_NATIVE_THREADS=no
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unsupported." >&5
-$as_echo "$as_me: WARNING: unsupported." >&2;}
+    HAS_NATIVE_THREADS=no; # no native compilation anyway
   fi
-  rm -f test_native_threads*
 fi
 
 # C and POSIX standard headers used by C bindings.
@@ -11174,19 +11201,6 @@ fi
 
 # Checking some other things which cannot be done too early
 ###########################################################
-
-# Check that native dynlink works
-
-echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
-if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
-  2> /dev/null ; \
-then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: native dynlink works fine. Great." >&5
-$as_echo "native dynlink works fine. Great." >&6; }
-else
-  as_fn_error $? "native dynlink does not work." "$LINENO" 5
-fi
-rm -f test_dynlink.*
 
 # Native version of ptests can be used only if
 # - a native compiler exists

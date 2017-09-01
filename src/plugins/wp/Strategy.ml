@@ -131,7 +131,7 @@ let registry = ref Tmap.empty
 let register s =
   let id = s#id in
   if Tmap.mem id !registry then
-    Wp_parameters.error "Strategy #%s already registered (skiped)" id
+    Wp_parameters.error "Strategy #%s already registered (skipped)" id
   else
     registry := Tmap.add id (s :> heuristic) !registry
 

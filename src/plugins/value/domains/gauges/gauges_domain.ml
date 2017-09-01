@@ -460,11 +460,11 @@ module G = struct
 
     (* Widen [i1] and [i2]. The number of iterations is widened only if
        [widen_nb] holds. *)
-    let widen stmt ~widen_nb i1 i2 =
+    let widen _stmt ~widen_nb i1 i2 =
       let nb =
         if widen_nb then
           let threshold =
-            if false then LoopAnalysis.Loop_analysis.get_bounds stmt else None
+            None (* LoopAnalysis.Loop_analysis.get_bounds _stmt *)
           in
           let threshold = Extlib.opt_map Integer.of_int threshold in
           let (min, max as w) = Bounds.widen ?threshold i1.nb i2.nb in

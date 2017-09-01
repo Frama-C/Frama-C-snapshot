@@ -231,6 +231,7 @@ DISTRIB_FILES:=\
       VERSION $(wildcard licenses/*)                                    \
       $(LIBC_FILES)							\
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
+      share/_frama-c                                                    \
       share/configure.ac                                                \
       share/Makefile.config.in share/Makefile.common                    \
       share/Makefile.generic						\
@@ -1531,7 +1532,7 @@ install:: install-lib
 	  $(wildcard share/*.c share/*.h) \
 	  share/Makefile.dynamic share/Makefile.plugin.template share/Makefile.kernel \
 	  share/Makefile.config share/Makefile.common share/Makefile.generic \
-	  share/configure.ac share/autocomplete_frama-c \
+	  share/configure.ac share/autocomplete_frama-c share/_frama-c \
 	  $(FRAMAC_DATADIR)
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
@@ -1975,6 +1976,11 @@ endif
 		-headache-config-file ./headers/headache_config.txt \
 		$(HEADER_SPEC_FILE)
 	$(PRINT_TAR) $(DISTRIB).tar.gz
+	# hdrck messes up timestamps, leading make to possibly consider that
+	# a configure file from a freshly extracted archive needs to be
+	# recomputed from configure.in (which would require autoconf on the
+	# host machine).
+	touch $(CLIENT_DIR)/configure
 	(cd $(DISTRIB_DIR); $(TAR) zcf ../$(DISTRIB).tar.gz \
 			$(DISTRIB_EXCLUDE) \
 			--exclude "*autom4te.cache*" \

@@ -379,7 +379,7 @@ let help (main_ui:Design.main_window_extension_points) =
        ^"and the data is the one that is selected if any, "
        ^"or it can be given via a popup.\n"
        ^"\tIf the text given in the popup is empty, or 'Cancel' is chosen, "
-       ^"the selection of the command is reseted.");
+       ^"the selection of the command is reset.");
     add (ShowDef.help);
     add (Zones.help);
     add (DataScope.help);

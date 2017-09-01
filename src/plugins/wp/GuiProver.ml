@@ -165,7 +165,7 @@ class prover ~(console:Wtext.text) ~prover =
           Pretty_utils.ksfprintf self#set_label "%a" VCS.pp_prover prover ;
       | VCS.Computing signal ->
           self#set_status `EXECUTE ;
-          self#set_action ~tooltip:"Interrrupt Prover" ~icon:`STOP ~callback:signal () ;
+          self#set_action ~tooltip:"Interrupt Prover" ~icon:`STOP ~callback:signal () ;
           Pretty_utils.ksfprintf self#set_label "%a (...)" VCS.pp_prover prover ;
       | VCS.Valid | VCS.Checked ->
           self#set_status ok_status ;

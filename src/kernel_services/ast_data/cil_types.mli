@@ -543,7 +543,7 @@ and varinfo = {
   (**
      - For global variables, true iff the variable or function
        is defined in the file.
-     - For local variables, true iff the variable is explicitely initialized
+     - For local variables, true iff the variable is explicitly initialized
        at declaration time.
      - Unused for formals variables and logic variables.
   *)

@@ -276,7 +276,7 @@ module SplitDepth =
     let option_name = "-wp-split-depth"
     let default = 0
     let arg_name = "p"
-    let help = "Set depth of exploration for spliting conjunctions into sub-goals.\n\
+    let help = "Set depth of exploration for splitting conjunctions into sub-goals.\n\
 Value `-1` means an unlimited depth."
   end)
 
@@ -681,7 +681,7 @@ module TruncPropIdFileName =
     let option_name = "-wp-filename-truncation"
     let default = 60
     let arg_name = "n"
-    let help = "Truncate basename of proof obligation files after <n> characters. Since numbers can be added as suffixes to make theses names unique, filename lengths can be highter to <n>. No truncation is performed when the value equals to zero (defaut: 60)."
+    let help = "Truncate basename of proof obligation files after <n> characters. Since numbers can be added as suffixes to make theses names unique, filename lengths can be highter to <n>. No truncation is performed when the value equals to zero (default: 60)."
   end)
 
 
