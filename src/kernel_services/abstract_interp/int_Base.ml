@@ -73,8 +73,6 @@ let neg x =
     | Top -> x
 let inject i = Value i
 
-exception Error_Top
-
 let project = function
   | Top -> raise Error_Top
   | Value i -> i

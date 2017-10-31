@@ -125,23 +125,27 @@ let rank_term = function
 (** {3 Cabs types} *)
 (**************************************************************************)
 
-module Cabs_file =
-  Make
+module Cabs_file =struct
+
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include  Make
     (struct
       type t = Cabs.file
       let name = "Cabs_file"
       let reprs = [ "", []; "", [ true, Cabs.GLOBANNOT [] ] ]
       let varname (s, _) = "cabs_" ^ s
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
      end)
-
+end
+                    
 (**************************************************************************)
 (** {3 C types} *)
 (**************************************************************************)
 
-module Position =
-  Make_with_collections
+module Position =  struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = Lexing.position
       let name = "Position"
@@ -156,7 +160,8 @@ module Position =
           (Filepath.pretty pos.Lexing.pos_fname) pos.Lexing.pos_lnum
           (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
       let varname _ = "pos"
-     end)
+    end)
+end
 
 module Location = struct
   let unknown = Lexing.dummy_pos, Lexing.dummy_pos
@@ -632,15 +637,16 @@ module Exp = struct
      end)
 end
 
-module Label =
-  Make_with_collections
+module Label = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = label
       let name = "Label"
       let reprs =
 	[ Label("", Location.unknown, false); Default Location.unknown ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
       let hash = function
         | Default _ -> 7
@@ -666,7 +672,8 @@ module Label =
       let equal = Datatype.from_compare
       let copy = Datatype.undefined
      end)
-
+end
+    
 module Varinfo_Id = struct
   let pretty_ref = ref (fun _ _ -> assert false)
   let internal_pretty_code_ref = ref (fun _ _ _ -> assert false)
@@ -719,8 +726,9 @@ module Varinfo = struct
   let () = clear_caches := Hptset.clear_caches :: !clear_caches
 end
 
-module Compinfo =
-  Make_with_collections
+module Compinfo = struct
+  let pretty_ref = Extlib.mk_fun "Cil_datatype.Compinfo.pretty_ref"
+  include Make_with_collections
     (struct
       type t = compinfo
       let name = "compinfo"
@@ -738,9 +746,10 @@ module Compinfo =
       let equal v1 v2 = v1.ckey = v2.ckey
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt f = !pretty_ref fmt f                               
       let varname = Datatype.undefined
-     end)
+    end)
+end
 
 module Fieldinfo = struct
   let pretty_ref = Extlib.mk_fun "Cil_datatype.Fieldinfo.pretty_ref"
@@ -784,8 +793,9 @@ module Fieldinfo = struct
      end)
 end
 
-module Enuminfo =
-  Make_with_collections
+module Enuminfo = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
        include Datatype.Undefined
        type t = enuminfo
@@ -800,10 +810,13 @@ module Enuminfo =
        let compare v1 v2 = String.compare v1.ename v2.ename
        let hash v = Hashtbl.hash v.ename
        let equal v1 v2 = v1.ename = v2.ename
+       let pretty fmt v = !pretty_ref fmt v               
      end)
-
-module Enumitem =
-  Make_with_collections
+end
+                   
+module Enumitem = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       include Datatype.Undefined
       type t = enumitem
@@ -821,8 +834,10 @@ module Enumitem =
       let compare v1 v2 = String.compare v1.einame v2.einame
       let hash v = Hashtbl.hash v.einame
       let equal v1 v2 = v1.einame = v2.einame
+      let pretty fmt v = !pretty_ref fmt v
      end)
-
+end
+    
 let compare_constant c1 c2 = match c1, c2 with
   | CInt64(v1,k1,_), CInt64(v2,k2,_) ->
     compare_chain Integer.compare v1 v2 Extlib.compare_basic k1 k2
@@ -1167,8 +1182,9 @@ module Logic_var = struct
      end)
 end
 
-module Builtin_logic_info =
-  Make_with_collections
+module Builtin_logic_info = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = builtin_logic_info
       let name = "Builtin_logic_info"
@@ -1183,12 +1199,14 @@ module Builtin_logic_info =
       let equal i1 i2 = i1.bl_name = i2.bl_name
       let copy = Datatype.identity (* works only if an AST is never modified *)
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
      end)
-
-module Logic_type_info =
-  Make_with_collections
+end
+    
+module Logic_type_info = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = logic_type_info
       let name = "Logic_type_info"
@@ -1199,12 +1217,14 @@ module Logic_type_info =
       let hash t = Hashtbl.hash t.lt_name
       let copy = Datatype.identity (* works only if an AST is never modified *)
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
-     end)
+    end)
+end
 
-module Logic_ctor_info =
-  Make_with_collections
+module Logic_ctor_info = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = logic_ctor_info
       let name = "Logic_ctor_info"
@@ -1217,12 +1237,14 @@ module Logic_ctor_info =
       let hash t = Hashtbl.hash t.ctor_name
       let copy = Datatype.identity (* works only if an AST is never modified *)
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
      end)
-
-module Initinfo =
-  Make
+end
+                           
+module Initinfo = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make
     (struct
       type t = initinfo
       let name = "Initinfo"
@@ -1230,12 +1252,14 @@ module Initinfo =
 	{ init = None } ::
 	  List.map (fun t -> { init = Some (CompoundInit(t, [])) }) Typ.reprs
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
-     end)
+    end)
+end
 
-module Logic_info =
-  Make_with_collections
+module Logic_info = struct
+  let pretty_ref = ref (fun fmt f -> Logic_var.pretty fmt f.l_var_info)
+  include  Make_with_collections
     (struct
       type t = logic_info
       let name = "Logic_info"
@@ -1254,10 +1278,11 @@ module Logic_info =
       let hash i = Logic_var.hash i.l_var_info
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty fmt f = Logic_var.pretty fmt f.l_var_info
+      let pretty = !pretty_ref
       let varname _ = "logic_varinfo"
      end)
-
+end
+    
 let rec compare_logic_type config v1 v2 =
   let rank = function
     | Linteger -> 0
@@ -1437,7 +1462,7 @@ let rec compare_term t1 t2 =
     | Tapp(f1,labs1,ts1) , Tapp(f2,labs2,ts2) ->
       let cf = Logic_info.compare f1 f2 in
       if cf <> 0 then cf else
-	let cl = compare_list compare_logic_label_pair labs1 labs2 in
+	let cl = compare_list compare_logic_label labs1 labs2 in
 	if cl <> 0 then cl else compare_list compare_term ts1 ts2
     | Tlambda(q1,t1) , Tlambda(q2,t2) ->
       let cq = compare_list Logic_var.compare q1 q2 in
@@ -1526,20 +1551,12 @@ and compare_toffset off1 off2 =
   | TModel _, (TField _ | TNoOffset)
   | TIndex _, (TModel _ | TField _ | TNoOffset) -> 1
 
-and compare_logic_label_pair (x1,p1) (x2,p2) =
-  let c1 = compare_logic_label x1 x2 in
-  if c1 <> 0 then c1 else compare_logic_label p1 p2
-
 and compare_logic_label l1 l2 = match l1, l2 with
   | StmtLabel s1 , StmtLabel s2 -> Stmt.compare !s1 !s2
-  | LogicLabel (None,l1), LogicLabel (None,l2) -> String.compare l1 l2
-  | LogicLabel (Some s1,l1), LogicLabel (Some s2,l2) ->
-    let cl = String.compare l1 l2 in
-    if cl <> 0 then cl else Stmt.compare s1 s2
-  | (StmtLabel _ , LogicLabel _
-	| LogicLabel (None,_),LogicLabel (Some _,_)) -> (-1)
-  | ( LogicLabel _ , StmtLabel _
-	| LogicLabel (Some _,_),LogicLabel (None,_)) -> 1
+  | FormalLabel s1, FormalLabel s2 -> String.compare s1 s2
+  | BuiltinLabel l1, BuiltinLabel l2 -> Pervasives.compare l1 l2
+  | (StmtLabel _ | FormalLabel _), (FormalLabel _ | BuiltinLabel _) -> -1
+  | (BuiltinLabel _ | FormalLabel _), (StmtLabel _ | FormalLabel _) -> 1
 
 and compare_ctor c1 c2 = String.compare c1.ctor_name c2.ctor_name
 
@@ -1565,7 +1582,8 @@ let hash_logic_constant = function
 let hash_label x =
   match x with
       StmtLabel r -> 2*(Stmt.hash !r)
-    | LogicLabel(_,l) -> 2*(Hashtbl.hash l) + 1
+    | BuiltinLabel l -> 2*(Hashtbl.hash l) + 1
+    | FormalLabel s -> 2*(Hashtbl.hash s) + 3
 
 let rec hash_term (acc,depth,tot) t =
   if tot <= 0 || depth <= 0 then raise (StopRecursion acc)
@@ -1591,9 +1609,9 @@ let rec hash_term (acc,depth,tot) t =
       | TStartOf lv -> hash_tlval (acc+209,depth-1,tot-1) lv
       | Tapp (li,labs,apps) ->
         let hash1 = acc + 228 + Logic_info.hash li in
-        let hash_lb (acc,tot) (_,lb) =
+        let hash_lb (acc,tot) l =
           if tot = 0 then raise (StopRecursion acc)
-          else (acc + hash_label lb,tot - 1)
+          else (acc + hash_label l,tot - 1)
         in
         let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
         let res = List.fold_left hash_lb (hash1,tot-1) labs in
@@ -1703,8 +1721,9 @@ and hash_toffset (acc, depth, tot) t =
 
 let hash_fct f t = try fst (f (0,10,100) t) with StopRecursion n -> n
 
-module Logic_constant =
-  Make_with_collections
+module Logic_constant = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include  Make_with_collections
     (struct
       type t = logic_constant
       let name = "Logic_constant"
@@ -1714,9 +1733,10 @@ module Logic_constant =
       let hash = hash_logic_constant
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname _ = "lconst"
-     end)
+    end)
+end
 
 module Term = struct
   let pretty_ref = ref (fun _ _ -> assert false)
@@ -1742,8 +1762,9 @@ module Term = struct
      end)
 end
 
-module Identified_term =
-  Make_with_collections
+module Identified_term = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
         type t = identified_term
         let name = "Identified_term"
@@ -1756,12 +1777,14 @@ module Identified_term =
           { it_id = x.it_id; it_content = Term.copy x.it_content }
         let hash x = x.it_id
         let internal_pretty_code = Datatype.undefined
-        let pretty = Datatype.undefined
+        let pretty = !pretty_ref
         let varname _ = "id_term"
      end)
-
-module Term_lhost =
-  Make_with_collections
+end
+                           
+module Term_lhost = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = term_lhost
       let name = "Term_lhost"
@@ -1779,9 +1802,10 @@ module Term_lhost =
       let hash = hash_fct hash_tlhost
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
-     end)
+    end)
+end
 
 module Term_offset = struct
   let pretty_ref = ref (fun _ _ -> assert false)
@@ -1816,7 +1840,7 @@ module Logic_label = struct
         type t = logic_label
         let name = "Logic_label"
         let reprs =
-          (LogicLabel (None,"Pre"))
+          (BuiltinLabel Pre)
           :: List.map (fun x -> StmtLabel (ref x)) Stmt.reprs
         let compare = compare_logic_label
         let equal = Datatype.from_compare
@@ -2195,7 +2219,8 @@ module Funspec = struct
      end)
 end
 
-module Fundec = struct 
+module Fundec = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
 
   let make_dummy vi fs = { 
     svar = vi; 
@@ -2237,17 +2262,19 @@ end
     Sorted by alphabetic order. *)
 (**************************************************************************)
 
-module Lexpr =
-  Make
+module Lexpr =  struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make
     (struct
       open Logic_ptree
       type t = lexpr
       let name = "Lexpr"
       let reprs = [ { lexpr_node = PLvar ""; lexpr_loc = Location.unknown } ]
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty = !pretty_ref
       let varname = Datatype.undefined
-     end)
+    end)
+end
 
 (**************************************************************************)
 (** {3 Other types} *)

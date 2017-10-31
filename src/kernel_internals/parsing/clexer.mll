@@ -43,7 +43,7 @@
 
 (* FrontC -- lexical analyzer
 **
-** 1.0	3.22.99	Hugues Cassé	First version.
+** 1.0	3.22.99	Hugues CassÃ©	First version.
 ** 2.0  George Necula 12/12/00: Many extensions
 *)
 {
@@ -51,7 +51,7 @@ open Cparser
 module H = Hashtbl
 module E = Errorloc
 
-let currentLoc () = Errorloc.currentLoc ()
+let currentLoc () = E.currentLoc ()
 
 let one_line_ghost = ref false
 let is_oneline_ghost () = !one_line_ghost
@@ -379,8 +379,9 @@ let () =
   Kernel.ReadAnnot.add_set_hook
     (fun _ x ->
       (* prevent the C lexer interpretation of comments *)
-      annot_char := if x then '@' else '\000');
-  Kernel.CustomAnnot.add_set_hook (fun _ s -> annot_char:=s.[0])
+      annot_char := if x then '@' else '\000')
+(* ;
+  Kernel.CustomAnnot.add_set_hook (fun _ s -> annot_char:=s.[0]) *)
 
 let annot_start_pos = ref Cabshelper.cabslu
 let buf = Buffer.create 1024
@@ -465,16 +466,10 @@ let no_parse_pragma =
 
 
 rule initial = parse
-| "/*" | "/*@{" | "/*@}" (* Skip special doxygen comments. Use of '@' instead
-                            of '!annot_char' is intentional *)
+| "/*" ("" | "@{" | "@}" as suf) (* Skip special doxygen comments. Use of '@'
+                                    instead of '!annot_char' is intentional *)
       {
-        let s = Lexing.lexeme lexbuf in
-        let first_string =
-          if String.length s > 2 then
-            String.sub s 2 (String.length s - 2)
-          else ""
-        in
-	do_lex_comment ~first_string comment lexbuf ;
+        do_lex_comment ~first_string:suf comment lexbuf ;
         initial lexbuf
       }
 
@@ -495,15 +490,9 @@ rule initial = parse
 	end
     }
 
-| "//" | "//@{" | "//@}" (* See comment for "/*@{" above *)
+| "//" ("" | "@{" | "@}" as suf) (* See comment for "/*@{" above *)
     { 
-      let s = Lexing.lexeme lexbuf in
-      let first_string =
-        if String.length s > 2 then
-          String.sub s 2 (String.length s - 2)
-        else ""
-      in
-      do_lex_comment ~first_string onelinecomment lexbuf ;
+      do_lex_comment ~first_string:suf onelinecomment lexbuf ;
       E.newline();
       if is_oneline_ghost () then begin
         exit_oneline_ghost ();
@@ -559,17 +548,30 @@ rule initial = parse
 |		'#'			{ hash lexbuf}
 |		"%:"			{ hash lexbuf}
 |               "_Pragma" 	        { PRAGMA (currentLoc ()) }
-|		'\''			{ CST_CHAR (chr lexbuf, currentLoc ())}
-|		"L'"			{ CST_WCHAR (chr lexbuf, currentLoc ()) }
-|		'"'			{  
-(* matth: BUG:  this could be either a regular string or a wide string.
- *  e.g. if it's the "world" in
- *     L"Hello, " "world"
- *  then it should be treated as wide even though there's no L immediately
- *  preceding it.  See test/small1/wchar5.c for a failure case. *)
-                                          CST_STRING (str lexbuf, currentLoc())}
-|		"L\""			{ (* weimer: wchar_t string literal *)
-                                          CST_WSTRING(str lexbuf, currentLoc())}
+|		'\''			{
+      let start = Lexing.lexeme_start_p lexbuf in
+      let content = chr lexbuf in
+      let last = Lexing.lexeme_end_p lexbuf in
+      CST_CHAR (content, (start,last))
+    }
+|		"L'"			{
+      let start = Lexing.lexeme_start_p lexbuf in
+      let content = chr lexbuf in
+      let last = Lexing.lexeme_end_p lexbuf in
+      CST_WCHAR (content, (start,last))
+    }
+|		'"'			{
+      let start = Lexing.lexeme_start_p lexbuf in
+      let content = str lexbuf in
+      let last = Lexing.lexeme_end_p lexbuf in
+      CST_STRING (content, (start,last))
+    }
+|		"L\""			{
+      let start = Lexing.lexeme_start_p lexbuf in
+      let content = str lexbuf in
+      let last = Lexing.lexeme_end_p lexbuf in
+      CST_WSTRING(content, (start,last))
+    }
 |		floatnum		{CST_FLOAT (Lexing.lexeme lexbuf, currentLoc ())}
 |		binarynum               { (* GCC Extension for binary numbers *) 
                                           CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
@@ -715,16 +717,11 @@ and file =  parse
 |	blank			{file lexbuf}
 (* The //-ending file directive is a GCC extension that provides the CWD of the
    preprocessor when the file was preprocessed. *)
-|       '"' [^ '\012' '\t' '"']* '/' '/' '"' {
-                                 let n = Lexing.lexeme lexbuf in
-				 let n1 = String.sub n 1 ((String.length n) - 4) in
-                                 E.setCurrentWorkingDirectory n1;
+|       '"' ([^ '\012' '\t' '"']* as d) "//\"" {
+        E.setCurrentWorkingDirectory d;
                                  endline lexbuf }
-|	'"' [^ '\012' '\t' '"']* '"' 	{  (* '"' *)
-                                   let n = Lexing.lexeme lexbuf in
-                                   let n1 = String.sub n 1
-                                       ((String.length n) - 2) in
-                                   E.setCurrentFile n1;
+|	'"' ([^ '\012' '\t' '"']* as f) '"' {
+                                 E.setCurrentFile f;
 				 endline lexbuf}
 
 |	_			{endline lexbuf}

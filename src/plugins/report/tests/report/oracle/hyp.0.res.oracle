@@ -1,11 +1,7 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/report/hyp.i (no preprocessing)
 [report] Computing properties status...
-
 --------------------------------------------------------------------------------
---- Status Report Summary
---------------------------------------------------------------------------------
-     0 Total
+--- No status to report
 --------------------------------------------------------------------------------
 tests/report/hyp.i:25:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [kernel] SETTING STATUS OF assert \false; TO unknown

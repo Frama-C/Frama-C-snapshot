@@ -19,6 +19,6 @@
   den FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b
+          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
 [inout] Inputs for function main:
           Frama_C_entropy_source; x; y; min_f

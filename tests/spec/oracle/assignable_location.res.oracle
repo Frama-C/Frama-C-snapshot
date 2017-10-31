@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/assignable_location.i (no preprocessing)
 tests/spec/assignable_location.i:36:[kernel] warning: unexpected token ';'
 tests/spec/assignable_location.i:28:[kernel] warning: not an addressable left value: \result. Ignoring logic specification of function annotations_to_reject

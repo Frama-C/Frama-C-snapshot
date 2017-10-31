@@ -112,19 +112,19 @@ let refresh_code_annotation annot =
 (** {2 pre-defined logic labels} *)
 (* empty line for ocamldoc *)
 
-let init_label = LogicLabel (None, "Init")
+let init_label = BuiltinLabel Init
 
-let pre_label = LogicLabel (None, "Pre")
+let pre_label = BuiltinLabel Pre
 
-let post_label = LogicLabel (None, "Post")
+let post_label = BuiltinLabel Post
 
-let here_label = LogicLabel (None, "Here")
+let here_label = BuiltinLabel Here
 
-let old_label = LogicLabel (None, "Old")
+let old_label = BuiltinLabel Old
 
-let loop_current_label = LogicLabel (None, "LoopCurrent")
+let loop_current_label = BuiltinLabel LoopCurrent
 
-let loop_entry_label = LogicLabel (None, "LoopEntry")
+let loop_entry_label = BuiltinLabel LoopEntry
 
 (** {2 Types} *)
 

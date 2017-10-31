@@ -63,7 +63,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.4pl6|8.5*|trunk)
+        8.5*|8.6*|trunk)
           AC_MSG_RESULT(coqc version $COQVERSION found)
           ;;
         *) 
@@ -72,7 +72,7 @@ if test "$ENABLE_WP" != "no"; then
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using coq 8.5)
+      AC_MSG_NOTICE(rerun configure to make wp using coq 8.5+)
     fi
   else
     COQC="no"

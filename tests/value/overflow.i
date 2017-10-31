@@ -3,7 +3,7 @@
    STDOPT: #"-no-warn-signed-overflow"
 */
 extern int printf (__const char *__restrict __format, ...);
-/* L'analyseur déborde et dit i=-1 */
+/* L'analyseur dÃ©borde et dit i=-1 */
 int main (int c) {
   unsigned long long i = 0xFFFFFFFFFFFFFFFFULL;
   unsigned long j = 0xFFFFFFFFUL;

@@ -212,7 +212,7 @@ let add_ctor name kinds ~library ~link () =
   register name kinds (LFUN lfun)
 
 let add_type name ~library ?(link=Lang.infoprover name) () =
-  Lang.builtin_type ~name ~library ~link
+  ignore (Lang.builtin_type ~name ~library ~link)
 
 let sanitizers = Hashtbl.create 10
 

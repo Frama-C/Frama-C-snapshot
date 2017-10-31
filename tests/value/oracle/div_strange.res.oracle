@@ -1,11 +1,10 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/div_strange.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value] Called Frama_C_show_each_F({1073741823})
+tests/value/div_strange.i:7:[value] Frama_C_show_each_F: {1073741823}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

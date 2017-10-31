@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/switch.i (no preprocessing)
 tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for switch expression. Nothing to worry.
 [value] Analyzing a complete application starting at main
@@ -10,7 +9,7 @@ tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for
   result4 ∈ {0}
   result2 ∈ {7}
   d2 ∈ {0}
-[value] Called Frama_C_show_each_F({0})
+tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

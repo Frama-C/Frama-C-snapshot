@@ -24,6 +24,10 @@
 (* --- Provers                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
+let dkey_no_time_info = Wp_parameters.register_category "no-time-info"
+let dkey_no_step_info = Wp_parameters.register_category "no-step-info"
+let dkey_no_goals_info = Wp_parameters.register_category "no-goals-info"
+
 type prover =
   | Why3 of string (* Prover via WHY *)
   | Why3ide
@@ -193,9 +197,6 @@ let current () = {
 
 let default = { valid = false ; timeout = None ; stepout = None ; depth = None }
 
-let timer s = 5 + max 0 (int_of_float (s +. 0.5))
-let steper s = max 100 (s + s / 2)
-
 let get_timeout = function
   | { timeout = None } -> Wp_parameters.Timeout.get ()
   | { timeout = Some t } -> t
@@ -239,21 +240,53 @@ let is_verdict r = match r.verdict with
 
 let is_valid r = r.verdict = Valid
 
-let configure r = {
-  valid = (r.verdict = Valid) ;
-  timeout = if r.prover_time > 0.0 then Some (timer r.prover_time) else None ;
-  stepout = if r.prover_steps > 0 then Some (steper r.prover_steps) else None ;
-  depth = if r.prover_depth > 0 then Some r.prover_depth else None ;
+let configure r =
+  let valid = (r.verdict = Valid) in
+  let timeout =
+    let t = r.prover_time in
+    if t > 0.0 then
+      let timeout = Wp_parameters.Timeout.get() in
+      let margin = Wp_parameters.TimeExtra.get() + int_of_float (t +. 0.5) in
+      Some(max timeout margin)
+    else
+      None in
+  let stepout =
+    if r.prover_steps > 0 && r.prover_time <= 0.0 then
+      let stepout = Wp_parameters.Steps.get () in
+      let margin = 1000 + r.prover_depth in
+      Some(max stepout margin)
+    else None in
+  let depth =
+    if r.prover_depth > 0 then Some r.prover_depth else None
+  in
+  {
+    valid ;
+    timeout ;
+    stepout ;
+    depth ;
 }
 
-let fit result option =
-  result = 0 ||
-  let vopt = option () in vopt = 0 || result <= vopt
+let time_fits t =
+  t = 0.0 ||
+  let timeout = Wp_parameters.Timeout.get () in
+  timeout = 0 ||
+  let margin = Wp_parameters.TimeMargin.get () in
+  t < float (timeout - margin)
+
+let step_fits n =
+  n = 0 ||
+  let stepout = Wp_parameters.Steps.get () in
+  stepout = 0 || n < stepout
+
+let depth_fits n =
+  n = 0 ||
+  let depth = Wp_parameters.Depth.get () in
+  depth = 0 || n < depth
 
 let autofit r =
-  fit (timer r.prover_time) Wp_parameters.Timeout.get &&
-  fit (steper r.prover_steps) Wp_parameters.Steps.get &&
-  fit r.prover_depth Wp_parameters.Depth.get
+  time_fits r.prover_time &&
+  step_fits r.prover_steps &&
+  depth_fits r.prover_depth 
 
 let result ?(solver=0.0) ?(time=0.0) ?(steps=0) ?(depth=0) verdict =
   {
@@ -286,30 +319,35 @@ let failed ?pos msg = {
 
 let kfailed ?pos msg = Pretty_utils.ksfprintf (failed ?pos) msg
 
-let pp_perf fmt r =
+let perfo extended dkey = extended || not (Wp_parameters.has_dkey dkey)
+
+let pp_perf ~extended fmt r =
   begin
     let t = r.solver_time in
-    if t > Rformat.epsilon && not (Wp_parameters.has_dkey "no-time-info")
+    if t > Rformat.epsilon && perfo extended dkey_no_time_info
     then Format.fprintf fmt " (Qed:%a)" Rformat.pp_time t ;
     let t = r.prover_time in
-    if t > Rformat.epsilon && not (Wp_parameters.has_dkey "no-time-info")
+    if t > Rformat.epsilon && perfo extended dkey_no_time_info
     then Format.fprintf fmt " (%a)" Rformat.pp_time t ;
     let s = r.prover_steps in
-    if s > 0 && not (Wp_parameters.has_dkey "no-step-info")
+    if s > 0 && perfo extended dkey_no_step_info
     then Format.fprintf fmt " (%d)" s
   end
 
-let pp_result fmt r =
+let pp_res ~extended fmt r =
   match r.verdict with
-  | NoResult -> Format.pp_print_string fmt "-"
+  | NoResult -> Format.pp_print_string fmt (if extended then "No Result" else "-")
   | Invalid -> Format.pp_print_string fmt "Invalid"
   | Computing _ -> Format.pp_print_string fmt "Computing"
-  | Valid -> Format.fprintf fmt "Valid%a" pp_perf r
+  | Valid -> Format.fprintf fmt "Valid%a" (pp_perf ~extended) r
   | Checked -> Format.fprintf fmt "Typechecked"
-  | Unknown -> Format.fprintf fmt "Unknown%a" pp_perf r
-  | Timeout -> Format.fprintf fmt "Timeout%a" pp_perf r
-  | Stepout -> Format.fprintf fmt "Step limit%a" pp_perf r
+  | Unknown -> Format.fprintf fmt "Unknown%a" (pp_perf ~extended) r
+  | Timeout -> Format.fprintf fmt "Timeout%a" (pp_perf ~extended) r
+  | Stepout -> Format.fprintf fmt "Step limit%a" (pp_perf ~extended) r
   | Failed -> Format.fprintf fmt "Failed@ %s" r.prover_errmsg
+
+let pp_result = pp_res ~extended:false
+let pp_result_perf = pp_res ~extended:true
 
 let compare p q =
   let rank = function

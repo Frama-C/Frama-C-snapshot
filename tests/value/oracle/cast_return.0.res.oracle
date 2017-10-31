@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/cast_return.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -16,7 +15,9 @@
         Called from tests/value/cast_return.c:27.
 [value] Recording results for g
 [value] Done for function g
-tests/value/cast_return.c:27:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:27:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp_0);
+                 (tmp_0 from g())
 [value] computing for function h <- main1 <- main.
         Called from tests/value/cast_return.c:31.
 [value] Recording results for h
@@ -31,12 +32,16 @@ tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid
         Called from tests/value/cast_return.c:50.
 [value] Recording results for fl1
 [value] Done for function fl1
-tests/value/cast_return.c:50:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:50:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp);
+                 (tmp from fl1())
 [value] computing for function fl2 <- main2 <- main.
         Called from tests/value/cast_return.c:51.
 [value] Recording results for fl2
 [value] Done for function fl2
-tests/value/cast_return.c:51:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
+tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value.
+                 assert \initialized(&tmp_0);
+                 (tmp_0 from fl2())
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
@@ -51,6 +56,7 @@ tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is
 [value] Recording results for main
 [value] done for function main
 tests/value/cast_return.c:31:[value] assertion 'Value,mem_access' got final status invalid.
+tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   
@@ -137,11 +143,11 @@ tests/value/cast_return.c:31:[value] assertion 'Value,mem_access' got final stat
 [inout] Inputs for function h:
           \nothing
 [inout] Out (internal) for function main1:
-          f_; tmp; v; x; p
+          f_; tmp; v; tmp_0; x; p; tmp_1
 [inout] Inputs for function main1:
           i; c
 [inout] Out (internal) for function main2:
-          d1; d2
+          d1; d2; tmp; tmp_0
 [inout] Inputs for function main2:
           c
 [inout] Out (internal) for function main3:
@@ -183,13 +189,18 @@ void main1(void)
     float f_ = (float)tmp;
   }
   if (c) {
-    long long v = g();
+    int tmp_0;
+    tmp_0 = g();
+    /*@ assert Value: initialisation: \initialized(&tmp_0); */
+    long long v = (long long)tmp_0;
   }
   if (c) {
+    char tmp_1;
     int *x = (int *)0;
     int **p = & x;
+    tmp_1 = h();
     /*@ assert Value: mem_access: \valid(*p); */
-    *(*p) = (int)h();
+    *(*p) = (int)tmp_1;
   }
   return;
 }
@@ -212,8 +223,16 @@ void main2(void)
 {
   double d1;
   double d2;
-  if (c) d1 = (double)fl1();
-  d2 = (double)fl2();
+  float tmp_0;
+  if (c) {
+    float tmp;
+    tmp = fl1();
+    /*@ assert Value: initialisation: \initialized(&tmp); */
+    d1 = (double)tmp;
+  }
+  tmp_0 = fl2();
+  /*@ assert Value: initialisation: \initialized(&tmp_0); */
+  d2 = (double)tmp_0;
   return;
 }
 
@@ -302,7 +321,6 @@ tests/value/cast_return.c:38:[value] assertion 'Value,initialisation' got final 
 [value:final-states] Values at end of function main1:
   
 [value:final-states] Values at end of function main2:
-  d1 ∈ UNINITIALIZED
   d2 ∈ {1.}
 [value:final-states] Values at end of function main3:
   f1 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
@@ -373,11 +391,11 @@ tests/value/cast_return.c:38:[value] assertion 'Value,initialisation' got final 
 [inout] Inputs for function h:
           \nothing
 [inout] Out (internal) for function main1:
-          f_; tmp; v; x; p
+          f_; tmp; v; tmp_0; x; p; tmp_1
 [inout] Inputs for function main1:
           i; c
 [inout] Out (internal) for function main2:
-          d1; d2
+          d2; tmp; tmp_0
 [inout] Inputs for function main2:
           c
 [inout] Out (internal) for function main3:

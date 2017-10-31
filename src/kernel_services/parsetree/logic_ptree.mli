@@ -244,7 +244,29 @@ and decl_node =
   | LDvolatile of lexpr list * (string option * string option)
       (** volatile clause read/write. *)
 
-and deps = lexpr Cil_types.deps (** C locations. *)
+(** dependencies of an assigned location. *)
+and deps =
+  | From of lexpr list (** tsets. Empty list means \nothing. *)
+  | FromAny (** Nothing specified. Any location can be involved. *)
+
+and from = (lexpr * deps)
+
+(** zone assigned with its dependencies. *)
+and assigns =
+  | WritesAny (** Nothing specified. Anything can be written. *)
+  | Writes of from list
+    (** list of locations that can be written. Empty list means \nothing. *)
+
+(** allocates and frees. 
+    @since Oxygen-20120901  *)
+and allocation =
+  | FreeAlloc of lexpr list * lexpr list (** tsets. Empty list means \nothing. *)
+  | FreeAllocAny (** Nothing specified. Semantics depends on where it 
+		     is written. *)
+
+(** variant of a loop or a recursive function. *)
+and variant = lexpr * string option
+
 
 type extension = string * lexpr list
 
@@ -255,8 +277,8 @@ type behavior = {
   mutable b_requires : lexpr list; (** require clauses. *)
   mutable b_assumes : lexpr list; (** assume clauses. *)
   mutable b_post_cond : (Cil_types.termination_kind * lexpr) list; (** post-condition. *)
-  mutable b_assigns : lexpr Cil_types.assigns; (** assignments. *)
-  mutable b_allocation : lexpr Cil_types.allocation; (** frees, allocates. *)
+  mutable b_assigns : assigns; (** assignments. *)
+  mutable b_allocation : allocation; (** frees, allocates. *)
   mutable b_extended : extension list (** extensions *)
 }
 
@@ -266,7 +288,7 @@ type spec = {
   mutable spec_behavior : behavior list;
   (** behaviors *)
 
-  mutable spec_variant : lexpr Cil_types.variant option;
+  mutable spec_variant : variant option;
   (** variant for recursive functions. *)
 
   mutable spec_terminates: lexpr option;
@@ -281,7 +303,32 @@ type spec = {
      It is possible to have more than one set of disjoint behaviors *)
 }
 
-(** all annotations that can be found in the code. This type shares the name of 
+(** Pragmas for the value analysis plugin of Frama-C. *)
+
+type loop_pragma =
+  | Unroll_specs of lexpr list
+  | Widen_hints of lexpr list
+  | Widen_variables of lexpr list
+
+(** Pragmas for the slicing plugin of Frama-C. *)
+and slice_pragma =
+  | SPexpr of lexpr
+  | SPctrl
+  | SPstmt
+
+(** Pragmas for the impact plugin of Frama-C. *)
+and impact_pragma =
+  | IPexpr of lexpr
+  | IPstmt
+
+(** The various kinds of pragmas. *)
+and pragma =
+  | Loop_pragma of loop_pragma
+  | Slice_pragma of slice_pragma
+  | Impact_pragma of impact_pragma
+
+
+(** all annotations that can be found in the code. This type shares the name of
     its constructors with {!Cil_types.code_annotation_node}. *)
 type code_annot =
   | AAssert of string list * lexpr
@@ -297,30 +344,24 @@ type code_annot =
       this invariant applies.  The boolean flag is true for normal loop
       invariants and false for invariant-as-assertions. *)
 
-  | AVariant of lexpr Cil_types.variant
+  | AVariant of variant
   (** loop variant. Note that there can be at most one variant associated to a
       given statement *)
 
-  | AAssigns of string list * lexpr Cil_types.assigns
+  | AAssigns of string list * assigns
   (** loop assigns.  (see [b_assigns] in the behaviors for other assigns).  At
       most one clause associated to a given (statement, behavior) couple.  *)
 
-  | AAllocation of string list * lexpr Cil_types.allocation
+  | AAllocation of string list * allocation
   (** loop allocation clause.  (see [b_allocation] in the behaviors for other
       allocation clauses).
       At most one clause associated to a given (statement, behavior) couple.
       @since Oxygen-20120901 when [b_allocation] has been added.  *)
 
-  | APragma of lexpr Cil_types.pragma (** pragma. *)
+  | APragma of pragma (** pragma. *)
   | AExtended of string list * extension
     (** extension in a loop annotation.
         @since Silicon-20161101 *)
-
-(** assignment performed by a C function. *)
-type assigns = lexpr Cil_types.assigns
-
-(** variant for loop or recursive function. *)
-type variant = lexpr Cil_types.variant
 
 (** custom trees *)
 

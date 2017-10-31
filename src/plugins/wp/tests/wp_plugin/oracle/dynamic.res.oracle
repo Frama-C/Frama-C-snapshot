@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Computing dynamic calls.
@@ -12,8 +11,8 @@
 
 Goal calls f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
 Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
-Let a_1 = global(G_f2_75).
-Let a_2 = global(G_f1_69).
+Let a_1 = global(G_f2_26).
+Let a_2 = global(G_f1_20).
 Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
   Type: is_sint32(x).
@@ -47,8 +46,9 @@ Assume {
   (* Heap *)
   Have: (region(closure_0.base) <= 0) /\ framed(Mptr_0).
   (* Pre-condition *)
-  Have: (Mptr_0[shiftfield_F1_S_f(closure_0)] = global(G_f1_69)) /\
-      (abs_int(x) <= 5).
+  Have: abs_int(x) <= 5.
+  (* Instance of 'f1' *)
+  Have: Mptr_0[shiftfield_F1_S_f(closure_0)] = global(G_f1_20).
 }
 Prove: ((-10) <= x) /\ (x <= 10).
 

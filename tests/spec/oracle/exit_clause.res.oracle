@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/exit_clause.c (with preprocessing)
 tests/spec/exit_clause.c:23:[kernel] warning: \result meaningless. Ignoring logic specification of function f
 tests/spec/exit_clause.c:26:[kernel] warning: unbound logic variable \exit_status. Ignoring logic specification of function g

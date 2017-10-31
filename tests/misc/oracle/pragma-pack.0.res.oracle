@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/pragma-pack.c (with preprocessing)
 [kernel:cabs2cil:pragma] Pushing fc_stdlib stdint.h
 [kernel:cabs2cil:pragma] Pushing fc_stdlib __fc_define_intptr_t.h
@@ -7,6 +6,8 @@
 [kernel:cabs2cil:pragma] Pushing fc_stdlib stddef.h
 [kernel:cabs2cil:pragma] Pushing fc_stdlib __fc_define_size_t.h
 [kernel:cabs2cil:pragma] Popping fc_stdlib __fc_define_size_t.h
+[kernel:cabs2cil:pragma] Pushing fc_stdlib __fc_define_wchar_t.h
+[kernel:cabs2cil:pragma] Popping fc_stdlib __fc_define_wchar_t.h
 [kernel:cabs2cil:pragma] Popping fc_stdlib stddef.h
 tests/misc/pragma-pack.c:52:[kernel:cabs2cil:pragma] packing pragma: setting alignment to 8
 tests/misc/pragma-pack.c:53:[kernel:cabs2cil:pragma] adding aligned(1) attribute to field 'PACK8.i' due to packing pragma

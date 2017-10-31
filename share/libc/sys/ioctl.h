@@ -23,6 +23,11 @@
 #ifndef FC_IOCTL
 #define FC_IOCTL
 
+// This file is neither in the C standard nor POSIX; it is here for
+// compatibility reasons.
+
+// For the ioctl() prototype
+#include "../stropts.h"
 
 /* Routing table calls.  */
 #define SIOCADDRT	0x890B		/* add routing table entry	*/

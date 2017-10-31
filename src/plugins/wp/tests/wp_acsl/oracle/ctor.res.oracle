@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/ctor.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+------------------------------------------------------------
+  Axiomatic 'Event'
+------------------------------------------------------------
+
+Lemma cons:
+Prove: true
+
+------------------------------------------------------------
+
+Lemma diff:
+Assume: 'cons'
+Prove: true
+
+------------------------------------------------------------

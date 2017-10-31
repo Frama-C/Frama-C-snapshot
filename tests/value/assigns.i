@@ -35,7 +35,7 @@ void j(int *p);
 int x;
 int k = 53;
 
-/*@ assigns \at(x, Post) \from \at(x, Post);
+/*@ assigns x \from \at(x, Post);
     assigns Tpost[\at(i, Post)];
     assigns Tpost[\at(k, Post)];
 */
@@ -46,12 +46,12 @@ void main1(void)
   F1(T);
 
   for (int i=0;i<=5;i++)
-    f(&t[i].f2);
+    f((char*)&t[i].f2);
 
   g(2 * (int)(&T) );
-  h(2 * (int)(&t3) );
+  h((int*)(2 * (int)(&t3)));
   
-  j(T+9);
+  j((int*)(T+9));
 
   assigns_post(18);
 }

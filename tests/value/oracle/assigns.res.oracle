@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/assigns.i (no preprocessing)
 tests/value/assigns.i:31:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [value] Analyzing a complete application starting at main
@@ -58,7 +57,7 @@ tests/value/assigns.i:52:[value] warning: signed overflow. assert 2 * (int)(&t3)
 [value] Done for function h
 [value] computing for function j <- main1 <- main.
         Called from tests/value/assigns.i:54.
-tests/value/assigns.i:54:[value] Cannot evaluate range bound foo(*p)
+tests/value/assigns.i:32:[value] Cannot evaluate range bound foo(*p)
         (unsupported ACSL construct: logic functions or predicates). Approximating
 [value] using specification for function j
 [value] Done for function j
@@ -66,12 +65,12 @@ tests/value/assigns.i:54:[value] Cannot evaluate range bound foo(*p)
         Called from tests/value/assigns.i:56.
 [value] using specification for function assigns_post
 tests/value/assigns.i:39:[value] warning: no \from part
-                 for clause 'assigns Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];' of
-                 function assigns_post
-tests/value/assigns.i:56:[value] warning: cannot interpret 'from' clause 'assigns \at(x,Post) \from \at(x,Post);'
-                 of function assigns_post
+                 for clause 'assigns Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];'
+tests/value/assigns.i:56:[value] warning: cannot interpret 'from' clause 'assigns x \from \at(x,Post);'
                  (no environment to evaluate \at(_,Post))
-tests/value/assigns.i:56:[value] warning: cannot interpret assigns Tpost[\at(k,Post)] in function assigns_post
+tests/value/assigns.i:56:[value] warning: cannot interpret assigns Tpost[\at(\old(i),Post)]
+                 (no environment to evaluate \at(_,Post)); effects will be ignored
+tests/value/assigns.i:56:[value] warning: cannot interpret assigns Tpost[\at(k,Post)]
                  (no environment to evaluate \at(_,Post)); effects will be ignored
 [value] Done for function assigns_post
 [value] Recording results for main1
@@ -86,7 +85,7 @@ tests/value/assigns.i:60:[value] warning: no 'assigns \result \from ...' clause 
 [value] computing for function ff3 <- main2 <- main.
         Called from tests/value/assigns.i:78.
 [value] using specification for function ff3
-tests/value/assigns.i:68:[value] warning: no \from part for clause 'assigns y1, y3;' of function ff3
+tests/value/assigns.i:68:[value] warning: no \from part for clause 'assigns y1, y3;'
 [value] Done for function ff3
 [value] computing for function ff4 <- main2 <- main.
         Called from tests/value/assigns.i:79.
@@ -136,9 +135,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main1:
   T[0..99] ∈ [--..--]
-  Tpost[0..17] ∈ {0}
-       [18] ∈ [--..--]
-       [19..99] ∈ {0}
+  Tpost[0..99] ∈ {0}
   t[0].f1 ∈ {0}
    {[0].f2; [1..5]} ∈ [--..--]
    [6..9] ∈ {0}
@@ -358,9 +355,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
          [99].f2 ∈ {0}
 [value:final-states] Values at end of function main:
   T[0..99] ∈ [--..--]
-  Tpost[0..17] ∈ {0}
-       [18] ∈ [--..--]
-       [19..99] ∈ {0}
+  Tpost[0..99] ∈ {0}
   t[0].f1 ∈ {0}
    {[0].f2; [1..5]} ∈ [--..--]
    [6..9] ∈ {0}
@@ -587,6 +582,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) locations to update in ar
 [from] Computing for function j <-main1
 [from] Done for function j
 [from] Computing for function assigns_post <-main1
+tests/value/assigns.i:56:[value] warning: Failed to interpret inputs in assigns clause 'assigns x \from \at(x,Post);'no environment to evaluate \at(_,Post)
 [from] Done for function assigns_post
 [from] Done for function main1
 [from] Computing for function main2
@@ -621,7 +617,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) dependencies to update. A
   T[0..99] FROM T[0..99] (and SELF)
 [from] Function assigns_post:
   Tpost{[18]; [53]} FROM ANYTHING(origin:Unknown) (and SELF)
-  x FROM x (and SELF)
+  x FROM ANYTHING(origin:Unknown) (and SELF)
 [from] Function f:
   t{[0].f2; [1..5]} FROM t{[1..5]; [6].f1} (and SELF)
 [from] Function f_main4_1:
@@ -686,7 +682,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) dependencies to update. A
   t{[0].f2; [1..5]} FROM t{[1..5]; [6].f1} (and SELF)
   t2[0..99999] FROM \nothing (and SELF)
   t3[0..99999] FROM \nothing (and SELF)
-  x FROM x (and SELF)
+  x FROM ANYTHING(origin:Unknown) (and SELF)
 [from] Function main2:
   y1 FROM ANYTHING(origin:Unknown) (and SELF)
   y2 FROM y2 (and SELF)
@@ -722,7 +718,7 @@ tests/value/assigns.i:105:[kernel] more than 200(1000) dependencies to update. A
   t{[0].f2; [1..5]} FROM t{[1..5]; [6].f1} (and SELF)
   t2[0..99999] FROM \nothing (and SELF)
   t3[0..99999] FROM \nothing (and SELF)
-  x FROM x (and SELF)
+  x FROM ANYTHING(origin:Unknown) (and SELF)
   y1 FROM ANYTHING(origin:Unknown) (and SELF)
   y2 FROM y2 (and SELF)
   y3 FROM ANYTHING(origin:Unknown) (and SELF)
@@ -894,8 +890,8 @@ void j(int *p);
 
 int x;
 int k = 53;
-/*@ assigns \at(x,Post), Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];
-    assigns \at(x,Post) \from \at(x,Post);
+/*@ assigns x, Tpost[\at(\old(i),Post)], Tpost[\at(k,Post)];
+    assigns x \from \at(x,Post);
  */
 void assigns_post(int i);
 

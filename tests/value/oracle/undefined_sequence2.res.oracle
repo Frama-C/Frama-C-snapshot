@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/undefined_sequence2.i (no preprocessing)
 tests/value/undefined_sequence2.i:11:[kernel] warning: Unspecified sequence with side effect:
                   /* *x <- x */
@@ -58,7 +57,7 @@ tests/value/undefined_sequence2.i:26:[value] warning: undefined multiple accesse
         Called from tests/value/undefined_sequence2.i:62.
 [value] Recording results for multiple_update_unsafe
 [value] Done for function multiple_update_unsafe
-[value] Called Frama_C_show_each_passed4()
+tests/value/undefined_sequence2.i:62:[value] Frama_C_show_each_passed4:
 [value] computing for function multiple_update_unsafe <- main.
         Called from tests/value/undefined_sequence2.i:64.
 tests/value/undefined_sequence2.i:34:[value] warning: undefined multiple accesses in expression. assert \separated(x, y);
@@ -68,12 +67,12 @@ tests/value/undefined_sequence2.i:34:[value] warning: undefined multiple accesse
         Called from tests/value/undefined_sequence2.i:66.
 [value] Recording results for multiple_update_safe
 [value] Done for function multiple_update_safe
-[value] Called Frama_C_show_each_passed6()
+tests/value/undefined_sequence2.i:66:[value] Frama_C_show_each_passed6:
 [value] computing for function multiple_update_safe <- main.
         Called from tests/value/undefined_sequence2.i:68.
 [value] Recording results for multiple_update_safe
 [value] Done for function multiple_update_safe
-[value] Called Frama_C_show_each_passed7()
+tests/value/undefined_sequence2.i:68:[value] Frama_C_show_each_passed7:
 [value] Recording results for main
 [value] done for function main
 tests/value/undefined_sequence2.i:11:[value] assertion 'Value,separation' got final status invalid.

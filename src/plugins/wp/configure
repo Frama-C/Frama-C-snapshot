@@ -586,7 +586,6 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 WHY3COQC
 COQC
-DYNAMIC_WP
 ENABLE_WP
 ENABLE_GUI
 FRAMAC_VERSION
@@ -609,7 +608,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -633,7 +631,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_wp
-with_wp_static
 enable_wp_coq
 enable_wp_why3
 '
@@ -678,7 +675,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -931,15 +927,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1077,7 +1064,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1230,7 +1217,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1261,11 +1247,6 @@ Optional Features:
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
   --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
-
-Optional Packages:
-  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
-  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-wp-static        link wp statically (default: no)
 
 Report bugs to the package provider.
 _ACEOF
@@ -2048,7 +2029,6 @@ compute_dependency () {
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Makefile.in" >&5
 $as_echo_n "checking for Makefile.in... " >&6; }
 if ${ac_cv_file_Makefile_in+:} false; then :
@@ -2088,21 +2068,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "wp is not available" "$LINENO" 5
 fi
@@ -2116,35 +2081,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_WP=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-wp-static was given.
-if test "${with_wp_static+set}" = set; then :
-  withval=$with_wp_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_WP=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} wp"
-     DYNAMIC_WP=yes
-   else
-     DYNAMIC_WP=no
-   fi
-
-
 
 echo "wp... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -2254,7 +2195,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.4pl6|8.5*|trunk)
+        8.5*|8.6*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
@@ -2265,8 +2206,8 @@ $as_echo "unsupported coqc version $COQVERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5" >&5
-$as_echo "$as_me: rerun configure to make wp using coq 8.5" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5+" >&5
+$as_echo "$as_me: rerun configure to make wp using coq 8.5+" >&6;}
     fi
   else
     COQC="no"

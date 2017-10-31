@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Hoare' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp/wp_strategy.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'

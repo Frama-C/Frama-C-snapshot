@@ -51,8 +51,8 @@ module Datatype_UHCE = Datatype.Make (struct
       | E _, LV _  -> 1
 
     let pretty fmt = function
-      | E e ->   Format.fprintf fmt "(e)%a" Exp.pretty e
-      | LV lv -> Format.fprintf fmt "(l)%a" Lval.pretty lv
+      | E e ->   Format.fprintf fmt "%a" Exp.pretty e
+      | LV lv -> Format.fprintf fmt "%a" Lval.pretty lv
 
     let hash = function
       | E e -> Exp.hash e
@@ -76,7 +76,7 @@ module HCE = struct
 
   let to_exp h = match get h with
     | E e -> e
-    | LV lv -> Cil.dummy_exp (Lval lv)
+    | LV lv -> Value_util.lval_to_exp lv
 
 end
 

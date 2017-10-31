@@ -1,5 +1,4 @@
 # frama-c -wp -warn-unsigned-overflow [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_gallery/binary-multiplication-without-overflow.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -25,7 +24,7 @@ Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic mult       2     -           3      66.7%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-BinaryMultiplication   2    6 (56)     9      88.9%
+BinaryMultiplication   2    6 (68)     9      88.9%
 ----------------------------------------------------------
 [wp] Running WP plugin...
 [rte] annotating function BinaryMultiplication
@@ -45,5 +44,5 @@ Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic mult       2     -           3      66.7%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-BinaryMultiplication   2   10 (56)    13      92.3%
+BinaryMultiplication   2   10 (68)    13      92.3%
 ----------------------------------------------------------

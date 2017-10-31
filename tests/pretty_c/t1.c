@@ -1,3 +1,6 @@
+/*run.config
+  STDOPT: +"-no-val-malloc-returns-null"
+*/
 static int a;
 static int b = 4;
 

@@ -211,25 +211,6 @@ end
 let get_all = Files.get
 let pre_register = Files.pre_register
 
-let pre_register_in_share s =
-  let real_s = Filename.concat Config.datadir s in
-  if not (Sys.file_exists real_s) then
-    Kernel.abort
-      "Cannot find file %s, needed for Frama-C initialization. \
-       Please check that %s is the correct share path for Frama-C, and that \
-       Frama-C has been installed."
-      s
-      Config.datadir;
-  pre_register (from_filename real_s)
-
-(* Registers the initial builtins, for each new project. *)
-let () =
-  Project.register_create_hook
-    (fun p ->
-      let selection = State_selection.singleton Files.pre_register_state in
-      Project.on ~selection p pre_register_in_share
-        (Filename.concat "libc" "__fc_builtin_for_normalization.i"))
-
 
 (* ************************************************************************* *)
 (** {2 Machdep} *)
@@ -240,11 +221,24 @@ let print_machdep fmt (m : Cil_types.mach) =
   begin
     let open Cil_types in
     Format.fprintf fmt "Machine: %s@\n" m.version ;
+    let pp_size_error fmt v =
+      if v < 0
+      then Format.pp_print_string fmt "error"
+      else Format.fprintf fmt "%2d" v
+    in
+    let pp_size_bits fmt v =
+      if v >= 0 then Format.fprintf fmt "%d bits, " (v*8)
+    in
+    let pp_align_error fmt v =
+      if v < 0
+      then Format.pp_print_string fmt "alignof error"
+      else Format.fprintf fmt "aligned on %d bits" (v*8)
+    in
     List.iter
       (fun (name,size,align) ->
          Format.fprintf fmt
-           "   sizeof %11s = %2d (%d bits, aligned on %d bits)@\n"
-           name size (size*8) (align*8))
+           "   sizeof %11s = %a (%a%a)@\n"
+           name pp_size_error size pp_size_bits size pp_align_error align)
       [
         "short",  m.sizeof_short, m.alignof_short ;
         "int",    m.sizeof_int,   m.alignof_int ;
@@ -254,8 +248,8 @@ let print_machdep fmt (m : Cil_types.mach) =
         "double", m.sizeof_double, m.alignof_double ;
         "long double", m.sizeof_longdouble, m.alignof_longdouble ;
         "pointer", m.sizeof_ptr, m.alignof_ptr ;
-        "function", m.sizeof_fun, m.alignof_fun ;
         "void", m.sizeof_void, 1 ;
+        "function", m.sizeof_fun, m.alignof_fun ;
       ] ;
     List.iter
       (fun (name,typeof) ->
@@ -270,7 +264,7 @@ let print_machdep fmt (m : Cil_types.mach) =
     Format.fprintf fmt "   machine is %s endian@\n"
       (if m.little_endian then "little" else "big") ;
     Format.fprintf fmt "   strings are %s chars@\n"
-      (if m.underscore_name then "const" else "writable") ;
+      (if m.const_string_literals then "const" else "writable") ;
     Format.fprintf fmt "   assembly names %s leading '_'@\n"
       (if m.underscore_name then "have" else "have no") ;
     Format.fprintf fmt "   compiler %s builtin __va_list@\n"
@@ -646,20 +640,10 @@ let files_to_cabs_cil files =
   let cil_files = List.rev cil_files in
   let cabs_files = List.rev cabs_files in
   Ast.UntypedFiles.set cabs_files;
-  (* Clean up useless parts in each file *)
-  Kernel.feedback ~level:2 "cleaning unused parts";
-  (* remove unused functions. However, we keep declarations that have a spec,
-     since they might be merged with another one which is used. If this is not
-     the case, these declarations will be removed after Mergecil.merge. *)
-  List.iter
-    (Rmtmps.removeUnusedTemps ~isRoot:(keep_entry_point ~specs:true)) 
-    cil_files;
   (* Perform symbolic merge of all files *)
   Kernel.feedback ~level:2 "symbolic link";
   let merged_file = Mergecil.merge cil_files "whole_program" in
-  (* Tidy up resulting files; in particular remove unused globals *)
   Logic_utils.complete_types merged_file;
-  Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point merged_file;
   if Kernel.UnspecifiedAccess.get () then
     Undefined_sequence.check_sequences merged_file;
   merged_file, cabs_files
@@ -668,11 +652,12 @@ let files_to_cabs_cil files =
    'Frama_C_implicit_init'. Currently, this concerns statements that are
    generated to initialize local variables. *)
 module Implicit_annotations =
-  State_builder.Set_ref
-    (Property.Set)
+  State_builder.Hashtbl
+    (Property.Hashtbl)(Datatype.List(Property))
     (struct
         let name = "File.Implicit_annotations"
         let dependencies = [Annotations.code_annot_state]
+        let size = 32
      end)
 
 let () = Ast.add_linked_state Implicit_annotations.self
@@ -686,11 +671,11 @@ let () =
          Implicit_annotations.remove p
        end)
 
-let emit_status p =
+let emit_status p hyps =
   Kernel.debug
     ~dkey:dkey_annot "Marking implicit property %a as true"
     Property.pretty p;
-  Property_status.emit Emitter.kernel ~hyps:[] p Property_status.True
+  Property_status.emit Emitter.kernel ~hyps p Property_status.True
 
 let emit_all_statuses _ =
   Kernel.debug ~dkey:dkey_annot "Marking properties";
@@ -707,7 +692,7 @@ let add_annotation kf st a =
       ([],
        ({ spec_behavior = [ { b_name = "Frama_C_implicit_init" } as bhv]})) ->
     let props = Property.ip_post_cond_of_behavior kf (Kstmt st) [] bhv in
-    List.iter Implicit_annotations.add props
+    List.iter (fun p -> Implicit_annotations.add p []) props
   | _ -> ()
 
 let synchronize_source_annot has_new_stmt kf =
@@ -828,18 +813,31 @@ effects";
 
 let register_global = function
   | GFun (fundec, loc) ->
-      (* ensure there is only one return *)
-      Oneret.oneret fundec;
-      (* Build the Control Flow Graph for all
+    let onerets = ref [] in
+    let callback return goto = onerets := (return,goto) :: !onerets in
+    (* ensure there is only one return *)
+    Oneret.oneret ~callback fundec;
+    (* Build the Control Flow Graph for all
          functions *)
-      if Kernel.SimplifyCfg.get () then begin
-        Cfg.prepareCFG ~keepSwitch:(Kernel.KeepSwitch.get ()) fundec;
-        Cfg.clearCFGinfo fundec;
-        Cfg.cfgFun fundec;
-        (* prepareCFG may add additional labels that are not used in the end. *)
-        Rmtmps.remove_unused_labels fundec;
-      end;
-      Globals.Functions.add (Definition(fundec,loc));
+    if Kernel.SimplifyCfg.get () then begin
+      Cfg.prepareCFG ~keepSwitch:(Kernel.KeepSwitch.get ()) fundec;
+      Cfg.clearCFGinfo fundec;
+      Cfg.cfgFun fundec;
+      (* prepareCFG may add additional labels that are not used in the end. *)
+      Rmtmps.remove_unused_labels fundec;
+    end;
+    Globals.Functions.add (Definition(fundec,loc));
+    let kf = Globals.Functions.get fundec.svar in
+    (* Finally set property-status on oneret clauses *)
+    List.iter
+      (fun ((sret,b,pret),gotos) ->
+         let ipreturns =
+           Property.ip_of_ensures kf (Kstmt sret) b (Returns,pret) in
+         let ipgotos = List.map
+             (fun (sgot,agot) -> Property.ip_of_code_annot_single kf sgot agot)
+             gotos in
+         Implicit_annotations.add ipreturns ipgotos
+      ) !onerets ;
   | GFunDecl (spec, f,loc) ->
       (* global prototypes *)
       let args =
@@ -1087,7 +1085,8 @@ let prepare_cil_file ast =
     Cil.visitCilFileSameGlobals print_renaming ast
   end;
   Transform_before_cleanup.apply ast;
-  (* Compute the list of functions and their CFG *)
+  (* Remove unused temp variables and globals. *)
+  Kernel.feedback ~level:2 "cleaning unused parts";
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point ast;
   if Kernel.Check.get () then begin
     Filecheck.check_ast ~is_normalized:false ~ast "Removed temp vars"

@@ -3,6 +3,8 @@
    STDOPT: +" -machdep gcc_x86_32 -cpp-extra-args=-DP2 -lib-entry"
    STDOPT: +" -machdep gcc_x86_32 -cpp-extra-args=-DP3 -lib-entry"
    STDOPT: +" -cpp-extra-args=-DP1 -lib-entry"
+   STDOPT: +" -cpp-extra-args=-DP1 -absolute-valid-range 0-1 -main main2"
+   STDOPT: +"  -cpp-extra-args=\"-DP1 -DP5\" -machdep gcc_x86_32 -absolute-valid-range 0-1 -main main3"
 */
 
 // BTS 1416 and 1874
@@ -57,5 +59,29 @@ struct super_block {
  /* pas de return */
 }
 
-void main();
+#endif
+
+// tests that dereferencing a (invalid) pointer to an empty struct does not
+// crash when -valid-absolute-range is set
+struct empty {};
+void main2(int n) {
+  struct empty * ptr_ret = (struct empty *)0x2;
+  if (n) *ptr_ret; // invalid access, but should not crash
+}
+
+#ifdef P5
+#include <stdlib.h>
+struct empty empties[100];
+volatile int nondet;
+void main3(int n) {
+  struct empty *q = malloc(0);
+  struct empty *r = realloc(q, 0);
+  struct empty *p = empties;
+  for (int i = 0; i < 100; i++) {
+    empties[i] = *r;
+  }
+  *p = empties[99];
+  *p = *r;
+  free(r);
+}
 #endif

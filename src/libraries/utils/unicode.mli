@@ -25,3 +25,6 @@
 val inset_string : unit -> string
 
 val emptyset_string : unit -> string
+
+val top_string: unit -> string
+val bottom_string: unit -> string

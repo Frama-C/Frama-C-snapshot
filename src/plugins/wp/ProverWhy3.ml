@@ -232,9 +232,10 @@ class visitor fmt c =
               | Rec -> engine#declare_fixpoint ~prefix:"fix_"
               | Def -> engine#declare_definition
             in pp fmt d.d_lfun d.d_params Logic.Prop (F.e_prop p)
-        | Inductive _ ->
+        | Inductive dl ->
             engine#declare_signature fmt
-              d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop
+              d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop;
+            List.iter self#on_dlemma dl
       end
 
   end

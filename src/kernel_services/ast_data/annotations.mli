@@ -74,7 +74,7 @@ val behaviors:
     @raise No_funspec whenever the given function has no specification *)
 
 val decreases:
-  ?emitter:Emitter.t -> ?populate:bool -> kernel_function -> term variant option
+  ?emitter:Emitter.t -> ?populate:bool -> kernel_function -> variant option
 (** If any, get the decrease clause of the contract associated to the given
     function. Meaning of [emitter] and [populate] is similar to {!funspec}. 
     @raise No_funspec whenever the given function has no specification *)
@@ -181,24 +181,24 @@ val fold_ensures:
   (** Fold on the ensures of the corresponding behavior. *)
 
 val iter_assigns:
-  (Emitter.t -> identified_term assigns -> unit) -> 
+  (Emitter.t -> assigns -> unit) -> 
   kernel_function -> string -> unit
   (** Iter on the assigns of the corresponding behavior. 
       @since Fluorine-20130401 *)
 
 val fold_assigns:
-  (Emitter.t -> identified_term assigns -> 'a -> 'a) -> 
+  (Emitter.t -> assigns -> 'a -> 'a) -> 
   kernel_function -> string -> 'a -> 'a
   (** Fold on the assigns of the corresponding behavior. *)
 
 val iter_allocates:
-  (Emitter.t -> identified_term allocation -> unit) -> 
+  (Emitter.t -> allocation -> unit) -> 
   kernel_function -> string -> unit
   (** Iter on the allocates of the corresponding behavior. 
       @since Fluorine-20130401 *)
 
 val fold_allocates:
-  (Emitter.t -> identified_term allocation -> 'a -> 'a) -> 
+  (Emitter.t -> allocation -> 'a -> 'a) -> 
   kernel_function -> string -> 'a -> 'a
   (** Fold on the allocates of the corresponding behavior. *)
 
@@ -248,12 +248,12 @@ val fold_terminates:
   (** apply f to the terminates predicate if any. *)
 
 val iter_decreases:
-  (Emitter.t -> term variant -> unit) -> kernel_function -> unit
+  (Emitter.t -> variant -> unit) -> kernel_function -> unit
   (** apply f to the decreases term if any.
       @since Fluorine-20130401 *)
 
 val fold_decreases:
-  (Emitter.t -> term variant -> 'a -> 'a) -> kernel_function -> 'a -> 'a
+  (Emitter.t -> variant -> 'a -> 'a) -> kernel_function -> 'a -> 'a
   (** apply f to the decreases term if any. *)
 
 (**************************************************************************)
@@ -319,7 +319,7 @@ val add_behaviors:
     @modify Aluminium-20160501 restructuration of annotations management
 *)
 
-val add_decreases: Emitter.t -> kernel_function -> term variant -> unit
+val add_decreases: Emitter.t -> kernel_function -> variant -> unit
 (** Add a decrease clause into the contract of the given function. 
     No decrease clause must previously be attached to this function. 
 
@@ -378,7 +378,7 @@ val add_ensures:
 *)
 
 val add_assigns:
-  keep_empty:bool -> identified_term assigns behavior_component_addition
+  keep_empty:bool -> assigns behavior_component_addition
 (** Add new assigns into the given behavior.
 
     If [keep_empty] is [true] and the assigns clause were empty, then
@@ -389,7 +389,7 @@ val add_assigns:
     @modify Aluminium-20160501 restructuration of annotations management
 *)
 
-val add_allocates: identified_term allocation behavior_component_addition
+val add_allocates: allocation behavior_component_addition
 (** Add new allocates into the given behavior. *)
 
 val add_extended: acsl_extension behavior_component_addition
@@ -469,12 +469,12 @@ val remove_ensures:
       by the given emitter. *)
 
 val remove_allocates:
-  Emitter.t -> kernel_function -> identified_term allocation -> unit
+  Emitter.t -> kernel_function -> allocation -> unit
   (** Remove the corresponding allocation clause. Do nothing if the clause
       does not exist or was not emitted by the given emitter. *)
 
 val remove_assigns:
-  Emitter.t -> kernel_function -> identified_term assigns -> unit
+  Emitter.t -> kernel_function -> assigns -> unit
   (** Remove the corresponding assigns clause. Do nothing if the clause
       does not exist or was not emitted by the given emitter. *)
 

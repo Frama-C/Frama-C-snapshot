@@ -338,7 +338,7 @@ class spinner ?min ?max ?(step=1) ~value ?tooltip () =
         set_tooltip b tooltip ;
         let fmap v = function None -> v | Some x -> float x in
         b#adjustment#set_bounds
-          ~lower:(fmap 0.0 min) ~upper:(fmap max_float max)
+          ~lower:(fmap (float min_int) min) ~upper:(fmap (float max_int) max)
           ~step_incr:(float step) () ;
         b#set_value (float value) ;
         let callback () = s#set b#value_as_int in

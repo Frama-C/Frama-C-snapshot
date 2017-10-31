@@ -34,3 +34,13 @@ val may: (unit -> unit) -> unit
 val may_map: dft:'a -> (unit -> 'a) -> 'a
 (** apply the given closure if the slicing project has been initialized through
     {!Db.Slicing.reset_slice}, or else return the default value.*)
+
+val self: State.t
+(** Internal state of the slicing tool from project viewpoints.
+    @since Sulfur-20171101 *)
+
+val reset_slicing: unit -> unit
+(** Function that can be used for:
+    - initializing the slicing tool before starting a slicing project;
+    - removing all computed slices and all internal pending requests
+      of the current slicing project. *)

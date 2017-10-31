@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/const1.i (no preprocessing)
 tests/float/const1.i:1:[kernel] warning: Floating-point constant 1e40f is not represented exactly. Will use inf. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main

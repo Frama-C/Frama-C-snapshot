@@ -98,11 +98,14 @@ module type Lattice = sig
   (** Inclusion test. *)
   val join: state -> state -> state
   (** Semi-lattice structure. *)
-  val join_and_is_included: state -> state -> state * bool
-  (** Do both operations simultaneously *)
   val widen: kernel_function -> stmt -> state -> state -> state
   (** [widen h t1 t2] is an over-approximation of [join t1 t2].
       Assumes [is_included t1 t2] *)
+  val narrow: state -> state -> state or_bottom
+  (** Over-approximation of the intersection of two abstract states (called meet
+      in the literature). Used only to gain some precision when interpreting the
+      complete behaviors of a function specification. Can be very imprecise
+      without impeding the analysis: [meet x y = `Value x] is always sound. *)
 end
 
 
@@ -160,6 +163,18 @@ module type Queries = sig
 
 end
 
+(** Results of an evaluation: the results of all intermediate calculation (the
+    value of each expression and the location of each lvalue) are cached in a
+    map. *)
+module type Valuation = sig
+  type t
+  type value  (** Abstract value. *)
+  type origin (** Origin of abstract values. *)
+  type loc    (** Abstract memory location. *)
+  val find : t -> exp -> (value, origin) record_val or_top
+  val fold : (exp -> (value, origin) record_val -> 'a -> 'a) -> t -> 'a -> 'a
+  val find_loc : t -> lval -> loc record_loc or_top
+end
 
 (** Transfer function of the domain. *)
 module type Transfer = sig
@@ -217,42 +232,37 @@ module type Transfer = sig
       - [stmt] is the statement of the call site;
       - [call] represents the function call and its arguments.
       - [pre] and [post] are the states before and at the end of the call
-      respectively.
-  *)
+      respectively. *)
   val finalize_call:
     stmt -> value call -> pre:state -> post:state -> state or_bottom
 
   val approximate_call:
     stmt -> value call -> state -> state list or_bottom
 
+  (** Called on the Frama_C_show_each directives. Prints the internal properties
+      inferred by the domain in the [state] about the expression [exp]. Can use
+      the [valuation] resulting from the cooperative evaluation of the
+      expression. *)
+  val show_expr: valuation -> state -> Format.formatter -> exp -> unit
 end
 
 
-(** Logic evaluation. Temporary API.
-    TODO: factorization of these functions for generic abstract domain. *)
-module type Logic = sig
-  type state
-  type eval_env (** Evaluation environment. *)
-  val env_current_state: eval_env -> state or_bottom
-  val env_annot: pre:state -> here:state -> unit -> eval_env
-  val env_pre_f: pre:state -> unit -> eval_env
-  val env_post_f: pre:state -> post:state -> result:varinfo option ->  unit -> eval_env
-  val eval_predicate: eval_env -> predicate -> Alarmset.status
-  val reduce_by_predicate: eval_env -> bool -> predicate -> eval_env
-end
+(** Environment for the logical evaluation of predicates. *)
+type 'state logic_environment = {
+  (** The logic can refer to the states at other points of the program using
+      labels. [states] associates a state (which can be top) to each label. *)
+  states: logic_label -> 'state;
+  (** [result] contains the variable corresponding to \result. It is None when
+      \result is meaningless. *)
+  result: varinfo option;
+}
 
-(** Results of an evaluation: the results of all intermediate calculation (the
-    value of each expression and the location of each lvalue) are cached in a
-    map. *)
-module type Valuation = sig
-  type t
-  type value  (** Abstract value. *)
-  type origin (** Origin of abstract values. *)
-  type loc    (** Abstract memory location. *)
-  val find : t -> exp -> (value, origin) record_val or_top
-  val fold : (exp -> (value, origin) record_val -> 'a -> 'a) -> t -> 'a -> 'a
-  val find_loc : t -> lval -> loc record_loc or_top
-end
+(** Value for the initialization of variables. Can be either zero or top. *)
+type init_value = Zero | Top
+
+(* Kind of variable being initialized by initialize_variable_using_type. *)
+type init_kind =
+    Main_Formal | Library_Global | Spec_Return of kernel_function
 
 (** Signature for the abstract domains of the analysis. *)
 module type S = sig
@@ -273,19 +283,34 @@ module type S = sig
       (Valuation: Valuation with type value = value
                              and type origin = origin
                              and type loc = location)
-    : Transfer with type state = t
-                and type value = value
-                and type location = location
-                and type valuation = Valuation.t
-
+    : Transfer with type state := t
+                and type value := value
+                and type location := location
+                and type valuation := Valuation.t
 
   (** {3 Logic } *)
 
-  (* TODO: revise this signature. *)
-  val compute_using_specification:
-    kinstr -> value call -> funspec -> state -> state list or_bottom
+  (** Logical evaluation. This API is subject to changes. *)
+  (* TODO: cooperative evaluation of predicates in the engine. *)
 
-  include Logic with type state := t
+  (** [logic_assign from loc_asgn pre state] applies the effect of the
+      [assigns ... \from ...] clause [from] to [state]. [pre] is the state
+      before the assign clauses, in which the terms of the clause are evaluated.
+      [loc_asgn] is the result of the evaluation of the [assigns] part of [from]
+      in [pre]. *)
+  val logic_assign: from -> location -> pre:state -> state -> state
+
+  (** Evaluates a [predicate] to a logical status in the current [state].
+      The [logic_environment] contains the states at some labels and the
+      potential variable for \result. *)
+  val evaluate_predicate:
+    state logic_environment -> state -> predicate -> Alarmset.status
+
+  (** [reduce_by_predicate env state pred b] reduces the current [state] by
+      assuming that the predicate [pred] evaluates to [b]. [env] contains the
+      states at some labels and the potential variable for \result. *)
+  val reduce_by_predicate:
+    state logic_environment -> state -> predicate -> bool -> state or_bottom
 
   (** {3 Miscellaneous } *)
 
@@ -303,10 +328,27 @@ module type S = sig
   val leave_loop: stmt -> state -> state
 
   (** Initialization *)
+
+  (** The initial state with which the analysis start. *)
   val empty: unit -> t
-  val initialize_var: t -> lval -> location -> (value * bool) or_bottom -> t
-  val initialize_var_using_type: t -> varinfo -> t
-  val global_state: unit -> (t or_bottom) option
+
+  (** Introduces the list of global variables in the state.  At this point,
+      these variables are uninitialized: they will be initialized through the
+      two functions below.*)
+  val introduce_globals: varinfo list -> t -> t
+
+  (** [initialize_variable lval loc ~initialized init_value state] initializes
+      the value of the location [loc] of lvalue [lval] in [state] with:
+      - bits 0 if init_value = Zero;
+      - any bits if init_value = Top.
+      The boolean initialized is true if the location is initialized, and false
+      if the location may be not initialized. *)
+  val initialize_variable:
+    lval -> location -> initialized:bool -> init_value -> t -> t
+
+  (** Initializes a variable according to its type. TODO: move some parts
+      of the cvalue implementation of this function in the generic engine. *)
+  val initialize_variable_using_type: init_kind -> varinfo -> t -> t
 
   (** Mem exec. *)
   val filter_by_bases: Base.Hptset.t -> t -> t
@@ -343,8 +385,13 @@ type 'a structure = 'a Structure.Key_Domain.structure =
 (** Structure of a domain. *)
 module type S_with_Structure = sig
   include S
+
   (** A structure matching the type of the domain. *)
   val structure : t structure
+
+  (** Category for the messages about the domain.
+      Must be created through {Value_parameters.register_category}. *)
+  val log_category : Log.category
 end
 
 (** External interface of a domain, with accessors.
@@ -377,17 +424,19 @@ end
 (** Automatic storage of the states computed during the analysis. *)
 module type Store = sig
   type state
+  val register_global_state: state or_bottom -> unit
   val register_initial_state: Value_types.callstack -> state -> unit
   val register_state_before_stmt: Value_types.callstack -> stmt -> state -> unit
   val register_state_after_stmt: Value_types.callstack -> stmt -> state -> unit
 
+  val get_global_state: unit -> state or_bottom
   val get_initial_state: kernel_function -> state or_bottom
   val get_initial_state_by_callstack:
-    kernel_function -> state Value_types.Callstack.Hashtbl.t option
+    kernel_function -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
 
   val get_stmt_state: stmt -> state or_bottom
   val get_stmt_state_by_callstack:
-    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t option
+    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
 end
 
 (** Full implementation of domains. Automatically built by

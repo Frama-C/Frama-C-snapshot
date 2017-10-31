@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/bts0442-2.i (no preprocessing)
 [kernel] Parsing tests/syntax/bts0442.i (no preprocessing)
 [kernel] warning: merging definitions of enum E using int type

@@ -25,7 +25,7 @@ const INT4 y1 = {0, 1, 2, 3, 4};
 const INT5 y2 = {1, 2, 3, 4, 5};
 
 extern const INT4 y3;
-const int y3[7] = {1, 2};
+const int y4[7] = {1, 2};
 
 int main() {
 }

@@ -25,6 +25,7 @@
 #define __FC_STDLIB
 #include "features.h"
 __PUSH_FC_STDLIB
+#include "__fc_machdep.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_wchar_t.h"
 
@@ -47,7 +48,7 @@ typedef struct __fc_lldiv_t {
 #include "__fc_define_null.h"
 
 /* These could be customizable */
-#define EXIT_FAILURE (-1)
+#define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
 
 #include "limits.h"
@@ -247,7 +248,7 @@ extern unsigned long long int strtoull(
      char ** restrict endptr,
      int base);
 
-//@ ghost int __fc_random_counter __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
+//@ ghost extern int __fc_random_counter __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
 const unsigned long __fc_rand_max = __FC_RAND_MAX;
 /* ISO C: 7.20.2 */
 /*@ assigns \result \from __fc_random_counter ;
@@ -455,20 +456,46 @@ extern void qsort(void *base, size_t nmemb, size_t size,
 
 /* ISO C: 7.20.6 */
 
-/*@ 
-  requires abs_representable:(int)(-j) == -j ;
-  assigns \result \from j ;
-*/
+/*@
+  requires abs_representable: j > INT_MIN;
+  assigns \result \from j;
+  behavior neg:
+    assumes j < 0;
+    ensures \result == -j;
+  behavior nonneg:
+    assumes j >= 0;
+    ensures \result == j;
+  complete behaviors;
+  disjoint behaviors;
+ */
 extern int abs(int j);
 
-/*@ 
-  requires abs_representable:(long)(-j) == -j ;
-  assigns \result \from j ; */
+/*@
+  requires abs_representable: j > LONG_MIN ;
+  assigns \result \from j;
+  behavior neg:
+    assumes j < 0;
+    ensures \result == -j;
+  behavior nonneg:
+    assumes j >= 0;
+    ensures \result == j;
+  complete behaviors;
+  disjoint behaviors;
+ */
 extern long int labs(long int j);
 
 /*@
-  requires abs_representable:(long long)(-j) == -j ;
-  assigns \result \from j ; */
+  requires abs_representable: j > LLONG_MIN ;
+  assigns \result \from j;
+  behavior neg:
+    assumes j < 0;
+    ensures \result == -j;
+  behavior nonneg:
+    assumes j >= 0;
+    ensures \result == j;
+  complete behaviors;
+  disjoint behaviors;
+ */
 extern long long int llabs(long long int j);
 
 /*@ assigns \result \from numer,denom ; */
@@ -480,13 +507,13 @@ extern lldiv_t lldiv(long long int numer, long long int denom);
 
 /* ISO C: 7.20.7 */
 
-//@ ghost int __fc_mblen_state;
+//@ ghost extern int __fc_mblen_state;
 
 /*@ assigns \result, __fc_mblen_state \from
     indirect:s, indirect:s[0 ..], indirect:n, __fc_mblen_state; */
 extern int mblen(const char *s, size_t n);
 
-//@ ghost int __fc_mbtowc_state;
+//@ ghost extern int __fc_mbtowc_state;
 
 /*@
   requires \separated(pwc, s);
@@ -500,7 +527,7 @@ extern int mbtowc(wchar_t * restrict pwc,
      const char * restrict s,
      size_t n);
 
-//@ ghost int __fc_wctomb_state;
+//@ ghost extern int __fc_wctomb_state;
 
 /*@
   assigns \result \from indirect:wc, __fc_wctomb_state;

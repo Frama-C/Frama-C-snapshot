@@ -20,11 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil
 open Cil_types
 open Cil_datatype
-open Visitor
-open Options
 
 let rec pp_stmt fmt s = match s.skind with
   | Instr _ | Return _ | Goto _ | Break _ | Continue _ | TryFinally _
@@ -65,14 +62,14 @@ let compute_from_nodes kf nodes =
 
 
 let compute_multiple_stmts skip kf ls =
-  debug "computing impact of statement(s) %a" 
+  Options.debug "computing impact of statement(s) %a"
     (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls;
   let reason = Options.Reason.get () in
   let res, _, _ = Compute_impact.nodes_impacted_by_stmts ~skip ~reason kf ls in
   let res_nodes = Compute_impact.result_to_nodes res in
   let res_stmts = Compute_impact.nodes_to_stmts res_nodes in
-  if Print.get () then begin
-    result "@[<v 2>@[impacted statements of stmt(s) %a are:@]@ %a@]"
+  if Options.Print.get () then begin
+    Options.result "@[<v 2>@[impacted statements of stmt(s) %a are:@]@ %a@]"
       (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls
       print_results res_stmts
   end;
@@ -80,22 +77,24 @@ let compute_multiple_stmts skip kf ls =
 
 (* Slice on the given list of stmts *)
 let slice (stmts:stmt list) =
-  feedback ~level:2 "beginning slicing";
+  Options.feedback ~level:2 "beginning slicing";
   let name = "impact slicing" in
-  !Db.Slicing.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   let select sel ({ sid = id } as stmt) =
     let kf = Kernel_function.find_englobing_kf stmt in
-    debug ~level:3 "selecting sid %d (of %s)" id (Kernel_function.get_name kf);
-    !Db.Slicing.Select.select_stmt sel ~spare:false stmt kf
+    Options.debug ~level:3 "selecting sid %d (of %s)"
+      id
+      (Kernel_function.get_name kf);
+    Slicing.Api.Select.select_stmt sel ~spare:false stmt kf
   in
-  let sel = List.fold_left select Db.Slicing.Select.empty_selects stmts in
-  debug ~level:2 "applying slicing request";
-  !Db.Slicing.Request.add_persistent_selection sel;
-  !Db.Slicing.Request.apply_all_internal ();
-  !Db.Slicing.Slice.remove_uncalled ();
-  let extracted_prj = !Db.Slicing.Project.extract name () in
-  !Db.Slicing.Project.print_extracted_project ?fmt:None ~extracted_prj ;
-  feedback ~level:2 "slicing done"
+  let sel = List.fold_left select Slicing.Api.Select.empty_selects stmts in
+  Options.debug ~level:2 "applying slicing request";
+  Slicing.Api.Request.add_persistent_selection sel;
+  Slicing.Api.Request.apply_all_internal ();
+  Slicing.Api.Slice.remove_uncalled ();
+  let extracted_prj = Slicing.Api.Project.extract name in
+  Options.feedback ~level:2 "slicing done";
+  extracted_prj
 
 let all_pragmas_kf l =
   List.fold_left
@@ -123,17 +122,18 @@ let compute_pragmas () =
           (fun a -> s, a)
         (Annotations.code_annot ~filter:Logic_utils.is_impact_pragma s)
       @ !pragmas;
-      DoChildren
+      Cil.DoChildren
   end
   in
   (* fill [pragmas] with all the pragmas of all the selected functions *)
-  let pragmas = Pragma.fold
-    (fun kf acc ->
-      (* Pragma option only accept defined functions. *)
-      let f = Kernel_function.get_definition kf in
-      ignore (visitFramacFunction visitor f);
-      if !pragmas != [] then (kf, !pragmas) :: acc else acc)
-    []
+  let pragmas =
+    Options.Pragma.fold
+      (fun kf acc ->
+        (* Pragma option only accept defined functions. *)
+        let f = Kernel_function.get_definition kf in
+        ignore (Visitor.visitFramacFunction visitor f);
+        if !pragmas != [] then (kf, !pragmas) :: acc else acc)
+      []
   in
   let skip = Compute_impact.skip () in
   (* compute impact analyses on each kf *)
@@ -149,11 +149,11 @@ let compute_pragmas () =
 ;;
 
 let main () =
-  if is_on () then begin
-    feedback "beginning analysis";
-    assert (not (Pragma.is_empty ()));
+  if Options.is_on () then begin
+    Options.feedback "beginning analysis";
+    assert (not (Options.Pragma.is_empty ()));
     ignore (!Db.Impact.compute_pragmas ());
-    feedback "analysis done"
+    Options.feedback "analysis done"
   end
 let () = Db.Main.extend main
 

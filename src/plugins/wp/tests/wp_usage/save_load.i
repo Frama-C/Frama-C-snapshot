@@ -1,5 +1,5 @@
 /* run.config
-   EXECNOW: LOG save_load.sav.res LOG save_load.sav.err BIN @PTEST_NAME@.sav @frama-c@ -no-autoload-plugins -load-module wp -wp -wp-print -wp-prover none @PTEST_FILE@ -save @PTEST_DIR@/@PTEST_NAME@.sav > @PTEST_DIR@/result/@PTEST_NAME@.sav.res 2> @PTEST_DIR@/result/@PTEST_NAME@.sav.err
+   EXECNOW: LOG save_load.sav.res LOG save_load.sav.err BIN @PTEST_NAME@.sav @frama-c@ -no-autoload-plugins -load-module wp -wp-share ./share -wp -wp-print -wp-prover none @PTEST_FILE@ -save @PTEST_DIR@/@PTEST_NAME@.sav > @PTEST_DIR@/result/@PTEST_NAME@.sav.res 2> @PTEST_DIR@/result/@PTEST_NAME@.sav.err
    CMD: @frama-c@ -no-autoload-plugins -load-module wp -load @PTEST_DIR@/@PTEST_NAME@.sav
    OPT: -print
    OPT: -wp -wp-prover none -wp-print

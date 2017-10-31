@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
 tests/value/loop_wvar.i:38:[kernel] warning: invalid pragma '12'. Ignoring loop annotation
 [value] Analyzing a complete application starting at main_err2

@@ -24,7 +24,9 @@ include Plugin.S
 
 val name: string
 module Filename: Parameter_sig.String
-module Init_func: Parameter_sig.Kernel_function_set
+module Roots: Parameter_sig.Kernel_function_set
+module Service_roots: Parameter_sig.Kernel_function_set
+module Function_pointers: Parameter_sig.Bool
 module Uncalled: Parameter_sig.Bool
 module Uncalled_leaf: Parameter_sig.Bool
 module Services: Parameter_sig.Bool
@@ -34,6 +36,6 @@ val dump: (out_channel -> 'a -> unit) -> 'a -> unit
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

@@ -79,9 +79,20 @@
  *)
 
 
+type returns_clause =
+  Cil_types.stmt * Cil_types.behavior * Cil_types.identified_predicate
+
+type goto_annot =
+  Cil_types.stmt * Cil_types.code_annotation
+
+type callback = returns_clause -> goto_annot list -> unit
+
 (** Make sure that there is only one Return statement in the whole body. 
     Replace all the other returns with Goto. Make sure that there is a return 
     if the function is supposed to return something, and it is not declared to 
-    not return. *)
-val oneret: Cil_types.fundec -> unit
+    not return. 
+    @modify Sulfur-20171101 The [~callback], when provided,
+    is invoked with all the original returns clauses and their associated 
+    annotation on inserted gotos. *)
+val oneret: ?callback:callback -> Cil_types.fundec -> unit
 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/copy_logic.i (no preprocessing)
 tests/syntax/copy_logic.i:5:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 tests/syntax/copy_logic.i:7:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.

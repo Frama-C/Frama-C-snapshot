@@ -26,61 +26,115 @@
  * \brief E-ACSL memory allocation bindings.
 ***************************************************************************/
 
-/* Should be included after
- * printf, debug and assert but before the actual code */
+#ifndef E_ACSL_MALLOC_H
+#define E_ACSL_MALLOC_H
 
+#include <stdint.h>
 #include <stddef.h>
 
-#ifndef E_ACSL_MALLOC
-#define E_ACSL_MALLOC
+/* Memory allocated for internal use of RTL and for the use by the application
+ * is split into two mspaces (memory spaces). Memory allocation itself is
+ * delegated to a slightly customised version of dlmalloc shipped with the
+ * RTL. The overall pattern is as follows:
+ *    mspace space = create_mspace(capacity, locks);
+ *    char *p = mspace_malloc(space, size); */
 
-/** Define `aliasname` as a strong alias for `name`. */
-# define strong_alias(name, aliasname) _strong_alias(name, aliasname)
-# define _strong_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((alias (#name)));
+/* Block size units in bytes */
+#define KB (1024)         //!< Bytes in a kilobyte
+#define MB (1024*KB)      //!< Bytes in a megabyte
+#define GB (1024*MB)      //!< Bytes in a gigabyte
+#define KB_SZ(_s) (_s/KB) //!< Convert bytes to kilobytes
+#define MB_SZ(_s) (_s/MB) //!< Convert bytes to megabytes
+#define GB_SZ(_s) (_s/GB) //!< Convert bytes to gigabytes
 
-/** Define `aliasname` as a weak alias for `name`. */
-# define weak_alias(name, aliasname) _weak_alias (name, aliasname)
-# define _weak_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
+typedef void* mspace;
 
-# define preconcat(x,y) x ## y
-# define concat(x,y) preconcat(x,y)
+static struct memory_spaces {
+  mspace rtl_mspace; /* `private` (RTL) mspace */
+  mspace heap_mspace;  /* `public` (application) mspace */
+  uintptr_t heap_start; /* least address in application mspace */
+  uintptr_t heap_end; /* greatest address in application mspace */
+  uintptr_t heap_mspace_least; /* Initial least address in heap mspace */
+} mem_spaces;
 
-/** Prefix added to all jemalloc functions, e.g., an actual jemalloc `malloc`
- * is renamed to `__e_acsl_native_malloc` */
-# define native_prefix __e_acsl_native_
-# define alloc_func_def(f,...) concat(native_prefix,f)(__VA_ARGS__)
-# define alloc_func_macro(f) concat(native_prefix,f)
+/* While it is possible to generate prefixes using an extra level of
+ * indirection with macro definitions it is probably best not to do it,
+ * becomes barely readable ...*/
 
-/** Prefix added to public functions of E-ACSL public API */
-# define public_prefix __e_acsl_
-/** Make a strong alias from some function named `f` to __e_acsl_f */
-# define public_alias(f) strong_alias(f, concat(public_prefix,f))
-/** Make a strong alias from some function named `f1` to __e_acsl_f2 */
-# define public_alias2(f1,f2) strong_alias(f1, concat(public_prefix,f2))
+/* Mspace allocators {{{ */
+extern mspace __e_acsl_create_mspace(size_t, int);
+extern size_t __e_acsl_destroy_mspace(mspace);
+extern void*  __e_acsl_mspace_malloc(mspace, size_t);
+extern void   __e_acsl_mspace_free(mspace, void*);
+extern void*  __e_acsl_mspace_calloc(mspace msp, size_t, size_t);
+extern void*  __e_acsl_mspace_realloc(mspace msp, void*, size_t);
+extern void*  __e_acsl_mspace_aligned_alloc(mspace, size_t, size_t);
+extern int    __e_acsl_mspace_posix_memalign(mspace, void **, size_t, size_t);
+extern void*  __e_acsl_mspace_least_addr(mspace);
 
-/* The following declares jemalloc allocation functions.
- * For instance:
- *  extern void *alloc_func_def(malloc, size_t);
- * becomes:
- *  extern void *__e_acsl_native_malloc(size_t); */
-extern void  *alloc_func_def(malloc, size_t);
-extern void  *alloc_func_def(calloc, size_t, size_t);
-extern void  *alloc_func_def(realloc, void*, size_t);
-extern void  *alloc_func_def(aligned_alloc, size_t, size_t);
-extern int    alloc_func_def(posix_memalign, void **, size_t, size_t);
-extern void   alloc_func_def(free,void*);
+#define create_mspace          __e_acsl_create_mspace
+#define destroy_mspace         __e_acsl_destroy_mspace
+#define mspace_least_addr      __e_acsl_mspace_least_addr
+#define mspace_malloc          __e_acsl_mspace_malloc
+#define mspace_free            __e_acsl_mspace_free
+#define mspace_calloc          __e_acsl_mspace_calloc
+#define mspace_realloc         __e_acsl_mspace_realloc
+#define mspace_posix_memalign  __e_acsl_mspace_posix_memalign
+#define mspace_aligned_alloc   __e_acsl_mspace_aligned_alloc
+/* }}} */
 
-/* Shortcuts for allocation functions used within this RTL (so they are not
- * tracked). For example:
- *  native_malloc => __e_acsl_native_malloc */
-# define native_malloc          alloc_func_macro(malloc)
-# define native_realloc         alloc_func_macro(realloc)
-# define native_calloc          alloc_func_macro(calloc)
-# define native_posix_memalign  alloc_func_macro(posix_memalign)
-# define native_aligned_alloc   alloc_func_macro(aligned_alloc)
-# define native_free            alloc_func_macro(free)
+/* Public allocators used within RTL to override standard allocation {{{ */
+/* Shortcuts for public allocation functions */
+# define public_malloc(...)         mspace_malloc(mem_spaces.heap_mspace, __VA_ARGS__)
+# define public_realloc(...)        mspace_realloc(mem_spaces.heap_mspace, __VA_ARGS__)
+# define public_calloc(...)         mspace_calloc(mem_spaces.heap_mspace, __VA_ARGS__)
+# define public_free(...)           mspace_free(mem_spaces.heap_mspace, __VA_ARGS__)
+# define public_aligned_alloc(...)  mspace_aligned_alloc(mem_spaces.heap_mspace, __VA_ARGS__)
+# define public_posix_memalign(...) mspace_posix_memalign(mem_spaces.heap_mspace, __VA_ARGS__)
+/* }}} */
+
+/* Private allocators usable within RTL and GMP {{{ */
+void * __e_acsl_private_malloc(size_t sz) {
+  return mspace_malloc(mem_spaces.rtl_mspace, sz);
+}
+
+void *__e_acsl_private_calloc(size_t nmemb, size_t sz) {
+  return mspace_calloc(mem_spaces.rtl_mspace, nmemb, sz);
+}
+
+void *__e_acsl_private_realloc(void *p, size_t sz) {
+  return mspace_realloc(mem_spaces.rtl_mspace, p, sz);
+}
+
+void __e_acsl_private_free(void *p) {
+  mspace_free(mem_spaces.rtl_mspace, p);
+}
+
+#define private_malloc  __e_acsl_private_malloc
+#define private_calloc  __e_acsl_private_calloc
+#define private_realloc __e_acsl_private_realloc
+#define private_free    __e_acsl_private_free
+/* }}} */
+
+/* \brief Create two memory spaces, one for RTL and the other for application
+   memory. This function *SHOULD* be called before any allocations are made
+   otherwise execution fails */
+static void make_memory_spaces(size_t rtl_size, size_t heap_size) {
+  mem_spaces.rtl_mspace = create_mspace(rtl_size, 0);
+  mem_spaces.heap_mspace = create_mspace(heap_size, 0);
+  /* Do not use `mspace_least_addr` here, as it returns the address of the
+     mspace header. */
+  mem_spaces.heap_start = (uintptr_t)mspace_malloc(mem_spaces.heap_mspace,1);
+  mem_spaces.heap_end = mem_spaces.heap_start + heap_size;
+  /* Save initial least address of heap memspace. This address is used later
+     to check whether memspace has been moved. */
+  mem_spaces.heap_mspace_least = (uintptr_t)mspace_least_addr(mem_spaces.heap_mspace);
+}
+
+static void destroy_memory_spaces() {
+  destroy_mspace(mem_spaces.rtl_mspace);
+  destroy_mspace(mem_spaces.heap_mspace);
+}
 
 /* \return a true value if x is a power of 2 and false otherwise */
 static int powof2(size_t x) {

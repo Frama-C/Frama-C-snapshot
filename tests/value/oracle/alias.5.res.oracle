@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/alias.i (no preprocessing)
 [value] Analyzing a complete application starting at main11
 [value] Computing initial state
@@ -61,7 +60,8 @@
 tests/value/alias.i:260:[value] entering loop for the first time
 [value] computing for function f2 <- main11.
         Called from tests/value/alias.i:268.
-[value] DUMPING STATE of file tests/value/alias.i line 23
+tests/value/alias.i:23:[value] Frama_C_dump_each:
+        # Cvalue domain:
         NULL[rbits 0 to 2047] ∈ [--..--]
         x_0 ∈ {{ (char *)&p2 }}
         q_0 ∈ {{ &p2 + {1} }}
@@ -122,7 +122,7 @@ tests/value/alias.i:260:[value] entering loop for the first time
         char1 ∈ {0}
         ll1 ∈ {0}
         i_0 ∈ {0}
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for f2
 [value] Done for function f2
 tests/value/alias.i:271:[value] warning: signed overflow. assert c2 + 1 ≤ 2147483647;
@@ -176,8 +176,6 @@ tests/value/alias.i:292:[value] warning: signed overflow. assert c1 + 1 ≤ 2147
   ll1 ∈ {15; 16}
   i_0 ∈ {100}
 [from] Computing for function f2
-[from] Computing for function Frama_C_dump_each <-f2
-[from] Done for function Frama_C_dump_each
 [from] Done for function f2
 [from] Computing for function main11
 [from] Done for function main11

@@ -20,295 +20,323 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Creation of the initial state of abstract domain. *)
+(* Creation of the initial state of abstract domains. *)
 
 open Cil_types
 open Eval
-
-type source = Supplied | Computed
 
 module type S = sig
   type state
   val initial_state : lib_entry:bool -> state or_bottom
   val initial_state_with_formals :
     lib_entry:bool -> kernel_function -> state or_bottom
-  val initialize_var: with_alarms:CilE.warn_mode ->
+  val initialize_local_variable:
     stmt -> varinfo -> Cil_types.init -> state -> state or_bottom
 end
 
-(* Is the padding filled with fully initialized values. In this case, we
-   can speed up the generation of the initial state in a few cases. *)
-let fully_initialized_padding () =
-  Value_parameters.InitializationPaddingGlobals.get () = "yes"
+type padding_initialization = [
+  | `Initialized
+  | `Uninitialized
+  | `MaybeInitialized
+]
 
+(* There are two different options for locals and for globals variables:
+   a three-valued parameter of Eva for globals, and a boolean parameter of
+   the kernel for locals. Please don't ask. *)
+let padding_initialization ~local : padding_initialization =
+  if local
+  then
+    if Kernel.InitializedPaddingLocals.get ()
+    then `Initialized else `Uninitialized
+  else
+    match Value_parameters.InitializationPaddingGlobals.get () with
+    | "yes" -> `Initialized
+    | "maybe" -> `MaybeInitialized
+    | "no" -> `Uninitialized
+    | _ -> assert false
 
-let warn_unknown_size_aux pp v (messt, t) =
-  Value_parameters.warning ~once:true ~current:true
-    "@[during initialization@ of %a,@ size of@ type '%a'@ cannot be@ computed@ \
-     (%s)@]" pp v Printer.pp_typ t messt
-
-let warn_unknown_size =
-  warn_unknown_size_aux
-    (fun fmt v -> Format.fprintf fmt "variable '%a'" Printer.pp_varinfo v)
-
-let warn_size vi =
+(* Warn if the size is unknown. *)
+let warn_unknown_size vi =
   try
     ignore (Cil.bitsSizeOf vi.vtype);
     false
   with Cil.SizeOfError (s, t)->
-    warn_unknown_size vi (s, t);
+    let pp fmt v = Format.fprintf fmt "variable '%a'" Printer.pp_varinfo v in
+    Value_parameters.warning ~once:true ~current:true
+      "@[during initialization@ of %a,@ size of@ type '%a'@ cannot be@ \
+       computed@ (%s)@]" pp vi Printer.pp_typ t s;
     true
 
+let warn_on_volatile kinstr lval =
+  let is_local = match kinstr with Kglobal -> false | Kstmt _ -> true in
+  let is_var = match lval with (Var _, NoOffset) -> true | _ -> false in
+  Value_util.warning_once_current
+    "%sinitialization of volatile %s %a ignored"
+    (if is_local then "" else "global ")
+    (if is_var then "variable" else "zone")
+    Printer.pp_lval lval
+
+(* A bottom in any part of an initializer results in a bottom for the
+   whole initialization. Thus, the following monad raises an exception on a
+   bottom case; the exception is catched by the root initialization functions
+   to return a proper `Bottom. *)
+exception Initialization_failed
+
+let (>>>) t f = match t with
+  | `Bottom -> raise Initialization_failed
+  | `Value v -> f v
 
 let counter = ref 0
 
 module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.S with type value = Value.t)
-    (Domain: Abstract_domain.External with type value = Value.t
-                                       and type location = Loc.location)
+    (Domain: Abstract_domain.External)
     (Eva: Evaluation.S with type state = Domain.state
-                        and type value = Domain.value
-                        and type origin = Domain.origin
                         and type loc = Domain.location)
+    (Transfer: Transfer_stmt.S with type state = Domain.t)
 = struct
 
-  incr counter;
+  incr counter;;
 
-  module Transfer = Domain.Transfer (Eva.Valuation)
+  (* Evaluation in the top state: we do not want a location to depend on
+     other globals. *)
+  let lval_to_loc lval =
+    fst (Eva.lvaluate ~for_writing:false Domain.top lval)
+    >>> fun (_valuation, loc, _typ) -> loc
 
-  (** Padding value. The exact contents (bottom | zero | top_int),
-      initialized or not, is determined from [lib_entry] and option
-      [-val-initialization-padding-globals] *)
-  let padding_value init_kind lib_entry =
-    match init_kind with
-    | "yes" -> `Value ((if lib_entry then Value.top_int else Value.zero), true)
-    | "no"  -> `Bottom
-    | "maybe" ->
-      `Value ((if lib_entry then Value.top_int else Value.zero), false)
-    | _ -> assert false
 
-  exception Initialization_failed
+  (* ------------------------- Apply initializer ---------------------------- *)
 
-  (* Evaluation in Top state.
-     We do not want the location to depend on other globals. *)
-  let lval_to_loc ?valuation lval =
-    Eva.lvaluate ?valuation ~for_writing:false Domain.top lval
+  (* Conventions:
+     - functions in *_var_* act on the entire variables, and receive only
+       the corresponding varinfo
+     - other functions act on a lvalue, which they directly receive *)
 
-  let init_var state lval varinfo value =
-    ignore (warn_size varinfo);
-    let lloc = Loc.eval_varinfo varinfo in
-    Domain.initialize_var state lval lloc (`Value (value, true))
-
-  let init_var' state lval varinfo v =
-    ignore (warn_size varinfo);
-    let loc = Loc.eval_varinfo varinfo in
-    Domain.initialize_var state lval loc v
-
-  let init_var_lib_entry state lval varinfo =
-    let loc = Loc.eval_varinfo varinfo in
-    if warn_size varinfo then
-      Domain.initialize_var state lval loc (`Value (Value.top_int, true))
-    else
-      (* add padding everywhere *)
-      let padding =
-        padding_value
-          (Value_parameters.InitializationPaddingGlobals.get ()) true
+  (* Initializes an entire variable [vi], in particular padding bits,
+     according to [local] and [lib_entry] mode. *)
+  let initialize_var_padding ~local ~lib_entry vi state =
+    let lval = Cil.var vi in
+    match padding_initialization ~local with
+    | `Uninitialized -> state
+    | `Initialized | `MaybeInitialized as i ->
+      let initialized = i = `Initialized in
+      let init_value =
+        if not local && lib_entry
+        then Abstract_domain.Top
+        else Abstract_domain.Zero
       in
-      let state = Domain.initialize_var state lval loc padding in
-      (* then initialize non-padding bits according to the type *)
-      Domain.initialize_var_using_type state varinfo
+      let location = lval_to_loc lval in
+      Domain.initialize_variable lval location ~initialized init_value state
 
-  let init_by_eval ?valuation state lval expr =
-    lval_to_loc ?valuation lval >>= fun (valuation, lloc, ltyp) ->
-    Eva.evaluate ~valuation state expr >>=: fun (valuation, value) ->
-    let left_lv = { lval; ltyp; lloc } in
-    left_lv, expr, Assign value, valuation
+  (* Initializes a volatile lvalue to top. *)
+  let initialize_volatile lval state =
+    let location = lval_to_loc lval in
+    let init_value = Abstract_domain.Top in
+    Domain.initialize_variable lval location ~initialized:true init_value state
 
-  let init_by_copy ?valuation state lval expr rlval =
-    Locations.Location_Bytes.do_track_garbled_mix false;
-    lval_to_loc ?valuation lval >>= fun (valuation, lloc, ltyp) ->
-    let r = Eva.copy_lvalue ~valuation state rlval in
-    Locations.Location_Bytes.do_track_garbled_mix true;
-    r >>=: fun (valuation, value) ->
-    let left_lv = { lval; ltyp; lloc } in
-    left_lv, expr, Copy (rlval, value), valuation
-
-  let assign_single_initializer kinstr state lval expr =
-    match kinstr with
-    | Kglobal -> init_by_eval state lval expr
-    | Kstmt stmt ->
-      let kf = Kernel_function.find_englobing_kf stmt in
-      Eva.can_copy ~is_ret:false state kf lval expr >>=
-      fun (right_lv, valuation) ->
-      match right_lv with
-      | Some right_lval ->
-        init_by_copy ~valuation state lval expr right_lval
-      | None ->
-        init_by_eval ~valuation state lval expr
-
-  (* Evaluation of a [SingleInit] in Cil parlance.
-     TODO: volatile *)
-  let init_single_initializer
-      ?(with_alarms=Value_util.warn_all_quiet_mode()) kinstr state lval expr =
-    let eval, alarms = assign_single_initializer kinstr state lval expr in
-    Alarmset.emit with_alarms kinstr alarms;
-    match eval with
+  (* Applies a single Cil initializer, using the standard transfer function on
+     assignments. Warns if the results is bottom. *)
+  let apply_cil_single_initializer kinstr state lval expr =
+    match Transfer.assign state kinstr lval expr with
     | `Bottom ->
       if kinstr = Kglobal then
         Value_parameters.result ~source:(fst expr.eloc)
           "evaluation of initializer '%a' failed@." Printer.pp_exp expr;
       raise Initialization_failed
-    | `Value (lv, expr, assigned, valuation) ->
-      Transfer.assign kinstr lv expr assigned valuation state
+    | `Value v -> v
 
-
-  (* Apply an initializer (not recursively). Take volatile qualifiers into
-     account. If [warn] holds, we warn when an initializer is ignored
-     because it points to a volatile location.
-     TODO: volatile *)
-  let rec init_initializer_or_volatile
-      ?with_alarms kinstr state lval init warn =
-    let is_local = match kinstr with Kglobal -> false | Kstmt _ -> true in
-    let is_var = match lval with (Var _, NoOffset) -> true | _ -> false in
-    if Cil.typeHasQualifier "volatile" (Cil.typeOfLval lval) then begin
-      if warn then
-        Value_util.warning_once_current
-          "%sinitialization of volatile %s %a ignored"
-          (if is_local then "" else "global ")
-          (if is_var then "variable" else "zone")
-          Printer.pp_lval lval;
-      let eval, _alarms = lval_to_loc lval in
-      eval >>-: fun (_valuation, loc, _typ) ->
-      Domain.initialize_var state lval loc (`Value (Value.top_int, true))
-    end
+  (* Applies an initializer. Take volatile qualifiers into account.
+     If [warn] holds, warns when an initializer is ignored because it points
+     to a volatile location. *)
+  let rec apply_cil_initializer kinstr ~warn lval init state =
+    if Cil.typeHasQualifier "volatile" (Cil.typeOfLval lval)
+    then
+      if warn
+      then (warn_on_volatile kinstr lval; state)
+      else initialize_volatile lval state
     else
       match init with
-      | SingleInit exp ->
-        init_single_initializer ?with_alarms kinstr state lval exp
-      | CompoundInit (base_typ, l) ->
-        Cil.foldLeftCompound
-          ~implicit:false
-          ~doinit:
-            (fun off init _typ state ->
-               state >>- fun state ->
-               let lval' = Cil.addOffsetLval off lval in
-               init_initializer_or_volatile kinstr state lval' init warn)
-          ~ct:base_typ
-          ~initl:l
-          ~acc:(`Value state)
+      | SingleInit exp -> apply_cil_single_initializer kinstr state lval exp
+      | CompoundInit (typ, l) ->
+        let doinit off init _typ state =
+          let lval = Cil.addOffsetLval off lval in
+          apply_cil_initializer kinstr ~warn lval init state
+        in
+        Cil.foldLeftCompound ~implicit:false ~doinit ~ct:typ ~initl:l ~acc:state
 
-  (* Special initializers. Only lval with attributes 'const' and non-volatile
-     are initialized *)
-  let rec init_const_initializer ?with_alarms kinstr state lval = function
+  (* Initialization of a variable to zero (or top if volatile), field by field.
+     Very inefficient. *)
+  let initialize_var_zero_or_volatile kinstr vi state =
+    let loc = Cil_datatype.Location.unknown in
+    let zero_init = Cil.makeZeroInit ~loc vi.vtype in
+    apply_cil_initializer kinstr ~warn:false (Cil.var vi) zero_init state
+
+  (* ----------------------- Non Lib-entry mode ----------------------------- *)
+
+  (* Initializes a varinfo, padding bits + optionaly an initializer. *)
+  let initialize_var_not_lib_entry kinstr ~local vi init state =
+    ignore (warn_unknown_size vi);
+    let typ = vi.vtype in
+    let lval = Cil.var vi in
+    let volatile_everywhere = Cil.typeHasQualifier "volatile" typ in
+    if volatile_everywhere && padding_initialization ~local = `Initialized
+    then
+      let () = if init <> None then warn_on_volatile kinstr lval in
+      initialize_volatile lval state
+    else
+      (* Initializes padding bits everywhere (non padding bits are overwritten
+         afterwards). *)
+      let state =
+        initialize_var_padding vi ~local ~lib_entry:false state
+      in
+      (* Initializes everything except padding bits: non-volatile locations
+         to zero, volatile locations to top. We only do so if the variable
+         must be different from zero somewhere. This is a not-so minor
+         optimization. *)
+      let state =
+        if padding_initialization ~local = `Initialized &&
+           not (Cil.typeHasAttributeDeep "volatile" typ)
+        then state
+        else initialize_var_zero_or_volatile kinstr vi state
+      in
+      (* Applies the real initializer on top. *)
+      match init with
+      | None -> state
+      | Some init -> apply_cil_initializer kinstr ~warn:true lval init state
+
+
+  (* --------------------------- Lib-entry mode ----------------------------- *)
+
+  (* Special application of an initializer: only non-volatile lval with
+     attributes 'const' are initialized. *)
+  let rec apply_cil_const_initializer kinstr state lval = function
     | SingleInit exp ->
       let typ_lval = Cil.typeOfLval lval in
       if Cil.typeHasQualifier "const" typ_lval &&
          not (Cil.typeHasQualifier "volatile" typ_lval)
-      then
-        init_single_initializer ?with_alarms kinstr state lval exp
-      else `Value state
-    | CompoundInit (base_typ, l) ->
-      if Cil.typeHasQualifier "volatile" base_typ ||
-         not (Cil.typeHasAttributeDeep "const" base_typ)
-      then `Value state (* initializer is not useful *)
+      then apply_cil_single_initializer kinstr state lval exp
+      else state
+    | CompoundInit (typ, l) ->
+      if Cil.typeHasQualifier "volatile" typ ||
+         not (Cil.typeHasAttributeDeep "const" typ)
+      then state (* initializer is not useful *)
       else
-        Cil.foldLeftCompound
-          ~implicit:true
-          ~doinit:
-            (fun off init _typ state ->
-               state >>- fun state ->
-               init_const_initializer
-                 ?with_alarms kinstr state (Cil.addOffsetLval off lval) init)
-          ~ct:base_typ
-          ~initl:l
-          ~acc:(`Value state)
+        let doinit off init _typ state =
+          apply_cil_const_initializer
+            kinstr state (Cil.addOffsetLval off lval) init
+        in
+        Cil.foldLeftCompound ~implicit:true ~doinit ~ct:typ ~initl:l ~acc:state
 
-
-  (* initialize [vi] when [-lib-entry] is not set, by writing successively
-     the padding, zero, and the initializers. *)
-  let init_var_not_lib_entry_initializer ?with_alarms kinstr vi init state =
-    Cil.CurrentLoc.set vi.vdecl;
-    let volatile_somewhere = Cil.typeHasAttributeDeep "volatile" vi.vtype in
-    let volatile_everywhere = Cil.typeHasQualifier "volatile" vi.vtype in
-    let is_local = match kinstr with Kglobal -> false | Kstmt _ -> true in
-    let lval = Var vi, NoOffset in
-    if not is_local && fully_initialized_padding () &&
-       (volatile_everywhere || not volatile_somewhere)
-    then
-      (* shortcut: padding and volatile won't interfere, we can do a global
-         initialisation, then write the initializer on top if there is one. *)
-      if volatile_everywhere then begin
-        if init <> None then
-          Value_util.warning_once_current
-            "global initialization of volatile variable %a ignored"
-            Printer.pp_varinfo vi;
-        `Value (init_var state lval vi Value.top_int)
-      end
-      else
-        let state = init_var state lval vi Value.zero in
-        match init with
-        | None -> `Value state
-        | Some init ->
-          init_initializer_or_volatile ?with_alarms kinstr state lval init true
-    else (* "slow" initialization *)
-      let padding_kind =
-        if is_local then
-          (* Decision on the initialization of local padding is done in
-             the kernel, and is a boolean and not a three-valued string.
-             Please don't ask.
-          *)
-          if Kernel.InitializedPaddingLocals.get () then "yes"
-          else "no"
-        else Value_parameters.InitializationPaddingGlobals.get ()
-      in
-      let padding = padding_value padding_kind false in
-      let state = init_var' state lval vi padding in
-      let typ = vi.vtype in
-      let loc = Cil_datatype.Location.unknown in
-      let zi = Cil.makeZeroInit ~loc typ in
-      (* initialise everything (except padding) to zero). Do not warn, as
-         most of the initializer is generated. *)
-      init_initializer_or_volatile ?with_alarms kinstr state lval zi false
-      >>- fun state ->
-      (* then write the real initializer on top *)
-      match init with
-      | None -> `Value state
-      | Some init ->
-        init_initializer_or_volatile ?with_alarms kinstr state lval init true
-
-
-  (* initialize [vi] as if in [-lib-entry] mode. Active when [-lib-entry] is set,
-     or when [vi] is extern. [const] initializers, explicit or implicit, are
-     taken into account *)
-  let init_var_lib_entry_initializer ?with_alarms kinstr vi init state =
-    Cil.CurrentLoc.set vi.vdecl;
-    let lval = Var vi, NoOffset in
+  (* Initializes [vi] as if in [-lib-entry] mode. Active when [-lib-entry] is
+     set, or when [vi] is extern. [const] initializers, explicit or implicit,
+     are taken into account *)
+  let initialize_var_lib_entry kinstr vi init state =
     if Cil.typeHasQualifier "const" vi.vtype && not (vi.vstorage = Extern)
-    then (* Fully const base. Ignore -lib-entry altogether *)
-      init_var_not_lib_entry_initializer kinstr vi init state
+    then (* Fully const base. Ignore -lib-entry altogether. *)
+      initialize_var_not_lib_entry kinstr ~local:false vi init state
     else
-      (* Fill padding + contents of non-padding bits according to the type *)
-      let state = init_var_lib_entry state lval vi in
-      (* if needed, initialize const fields according to the initialiser
+      let unknown_size =  warn_unknown_size vi in
+      let state =
+        if unknown_size then
+          (* the type is unknown, initialize everything to Top *)
+          let lval = Cil.var vi in
+          let loc = lval_to_loc lval in
+          let v = Abstract_domain.Top in
+          Domain.initialize_variable lval loc ~initialized:true v state
+        else
+          (* Add padding everywhere. *)
+          let state =
+            initialize_var_padding vi ~local:false ~lib_entry:true state
+          in
+          (* Then initialize non-padding bits according to the type. *)
+          let kind = Abstract_domain.Library_Global in
+          Domain.initialize_variable_using_type kind vi state
+      in
+      (* If needed, initializes const fields according to the initialiser
          (or generate one if there are none). In the first phase, they have been
-         set to generic values *)
+         set to generic values. *)
       if Cil.typeHasAttributeDeep "const" vi.vtype && not (vi.vstorage = Extern)
       then
         let init = match init with
           | None -> Cil.makeZeroInit ~loc:vi.vdecl vi.vtype
           | Some init -> init
         in
-        init_const_initializer ?with_alarms kinstr state lval init
-      else  `Value state
+        apply_cil_const_initializer kinstr state (Cil.var vi) init
+      else state
 
-  let initialize_var ~with_alarms stmt vi init state =
+
+  (* ------------- Adds formal argument of the main function  --------------- *)
+
+  (* Compute values for the formals of [kf] (as if those were variables in
+     lib-entry mode) and add them to [state] *)
+  let compute_main_formals kf state =
+    match kf.fundec with
+    | Declaration (_, _, None, _) -> state
+    | Declaration (_, _, Some l, _)
+    | Definition ({ sformals = l }, _) ->
+      if l <> [] && Value_parameters.InterpreterMode.get ()
+      then
+        Value_parameters.abort "Entry point %a has arguments"
+          Kernel_function.pretty kf
+      else
+        let kind = Abstract_domain.Main_Formal in
+        List.fold_right (Domain.initialize_variable_using_type kind) l state
+
+  (* Use the values supplied in [actuals] for the formals of [kf], and
+     bind them in [state] *)
+  let add_supplied_main_formals kf actuals state =
+    match Domain.get Cvalue_domain.key with
+    | None ->
+      Value_parameters.abort "Function Db.Value.fun_set_args cannot be used \
+                              without the Cvalue domain"
+    | Some get_cvalue ->
+      let formals = Kernel_function.get_formals kf in
+      if (List.length formals) <> List.length actuals then
+        raise Db.Value.Incorrect_number_of_arguments;
+      let cvalue_state = get_cvalue state in
+      let add_actual state actual formal =
+        let actual = Eval_op.offsetmap_of_v ~typ:formal.vtype actual in
+        Cvalue.Model.add_base (Base.of_varinfo formal) actual state
+      in
+      let cvalue_state =
+        List.fold_left2 add_actual cvalue_state actuals formals
+      in
+      let set_domain = Domain.set Cvalue_domain.key in
+      set_domain cvalue_state state
+
+  let add_main_formals kf state =
+    match Db.Value.fun_get_args () with
+    | None -> compute_main_formals kf state
+    | Some actuals -> add_supplied_main_formals kf actuals state
+
+
+  (* ------------------------ High-level functions -------------------------- *)
+
+  let initialize_local_variable stmt vi init state =
     try
-      init_var_not_lib_entry_initializer
-        ~with_alarms (Kstmt stmt) vi (Some init) state
+      `Value
+        (initialize_var_not_lib_entry
+           (Kstmt stmt) ~local:true vi (Some init) state)
     with Initialization_failed -> `Bottom
 
-  module Domain_with_Bottom = Bottom.Make_Datatype (Domain)
+  let initialize_global_variable ~lib_entry vi init state =
+    Cil.CurrentLoc.set vi.vdecl;
+    let state = Domain.introduce_globals [vi] state in
+    if vi.vsource then
+      let initialize =
+        if lib_entry || (vi.vstorage = Extern)
+        then initialize_var_lib_entry
+        else initialize_var_not_lib_entry ~local:false
+      in
+      initialize Kglobal vi init.init state
+    else state
+
+  (* Compute the initial state with all global variable initialized. *)
+  let compute_global_state ~lib_entry () =
+    Value_parameters.debug ~level:2 "Computing globals values";
+    let state = Domain.empty () in
+    let initialize = initialize_global_variable ~lib_entry in
+    try `Value (Globals.Vars.fold_in_file_order initialize state)
+    with Initialization_failed -> `Bottom
 
   (* Dependencies for the Frama-C states containing the initial states
      of EVA: all correctness parameters of EVA, plus the AST itself. We
@@ -321,128 +349,54 @@ module Make
       (fun p -> State.get p.Typed_parameter.name)
       Value_parameters.parameters_correctness
 
-  module NotLibEntryGlobals =
+  module InitialState =
     State_builder.Option_ref
-      (Domain_with_Bottom)
+      (Bottom.Make_Datatype (Domain))
       (struct
-        let name = "Value.Initialization.NotLibEntryGlobals"
-                   ^ "(" ^ string_of_int !counter ^ ")"
+        let name = "Value.Initialization" ^ "(" ^ string_of_int !counter ^ ")"
         let dependencies = correctness_deps
       end)
+  let () = Ast.add_monotonic_state InitialState.self
 
-  module LibEntryGlobals =
-    State_builder.Option_ref
-      (Domain_with_Bottom)
-      (struct
-        let name = "Value.Initialization.LibEntryGlobals"
-                   ^ "(" ^ string_of_int !counter ^ ")"
-        let dependencies = correctness_deps
-      end)
-  let () = Ast.add_monotonic_state LibEntryGlobals.self
+  (* The computation depends on the lib_entry option, which is a corrrectness
+     parameter of the analyzer: the InitialState memoization is thus safely
+     cleaned when lib_entry changes. *)
+  let global_state ~lib_entry =
+    InitialState.memo (compute_global_state ~lib_entry)
 
-  let initial_state ~lib_entry () =
-    Value_parameters.debug ~level:2 "Computing globals values";
-    try
-      `Value
-        (Globals.Vars.fold_in_file_order
-           (fun vi init state ->
-              if vi.vsource then begin
-                let initialize =
-                  if lib_entry || (vi.vstorage = Extern (* use -lib-entry mode. *))
-                  then init_var_lib_entry_initializer
-                  else init_var_not_lib_entry_initializer
-                in
-                match initialize Kglobal vi init.init state with
-                | `Bottom -> raise Initialization_failed
-                | `Value state -> state
-              end
-              else state
-           ) (Domain.empty ()))
-    with Initialization_failed -> `Bottom
-
-  let initial_state_not_lib_entry () =
-    NotLibEntryGlobals.memo (initial_state ~lib_entry:false)
-
-  let initial_state_lib_entry () =
-    LibEntryGlobals.memo (initial_state ~lib_entry:true)
-
-  let compute_initial_state ~lib_entry =
-    if lib_entry then
-      initial_state_lib_entry ()
-    else
-      initial_state_not_lib_entry ()
+  (* The global cvalue state may be supplied by the user. *)
+  let supplied_state () =
+    let cvalue_state = Db.Value.globals_state () in
+    if Cvalue.Model.is_reachable cvalue_state
+    then `Value (Domain.set Cvalue_domain.key cvalue_state Domain.top)
+    else `Bottom
 
   let initial_state ~lib_entry =
-    match Domain.global_state () with
-    | Some state -> state
-    | None -> compute_initial_state lib_entry
-
-  (* Print cvalue state only. TODO: apply to the whole state. *)
-  let report_initial_state init_state source =
-    let cvalue_state = Cvalue_domain.extract Domain.get init_state in
-    match source with
-    | Supplied ->
-      Value_parameters.feedback "Initial state supplied by user";
-      Value_parameters.printf
-        ~header:(fun fmt -> Format.pp_print_string fmt
-                    "Values of globals")
-        ~level:2 "@[  %a@]" Cvalue.Model.pretty cvalue_state
-    | Computed ->
-      Value_parameters.feedback "Initial state computed";
-      Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
-        ~header:(fun fmt -> Format.pp_print_string fmt
-                    "Values of globals at initialization")
-        "@[  %a@]" Cvalue.Model.pretty cvalue_state
-
-  let compute_main_formals kf state =
-    match kf.fundec with
-    | Declaration (_, _, None, _) -> state
-    | Declaration (_, _, Some l, _)
-    | Definition ({ sformals = l }, _) ->
-      if l <> [] && Value_parameters.InterpreterMode.get()
-      then begin
-        Value_parameters.error "Entry point %a has arguments"
-          Kernel_function.pretty kf;
-        exit 0;
-      end;
-      List.fold_right
-        (fun vi state -> Domain.initialize_var_using_type state vi)
-        l
-        state
-
-  let add_main_formals kf state =
-    match Db.Value.fun_get_args () with
-    | None -> compute_main_formals kf state
-    | Some actuals ->
-      match Domain.get Cvalue_domain.key with
-      | None ->
-        Value_parameters.abort "Function Db.Value.fun_set_args cannot be used \
-                                without the Cvalue domain"
-      | Some get_cvalue ->
-        let formals = Kernel_function.get_formals kf in
-        if (List.length formals) <> List.length actuals then
-          raise Db.Value.Incorrect_number_of_arguments;
-        let cvalue_state = get_cvalue state in
-        let add_actual state actual formal =
-          let actual = Eval_op.offsetmap_of_v ~typ:formal.vtype actual in
-          Cvalue.Model.add_base (Base.of_varinfo formal) actual state
-        in
-        let cvalue_state =
-          List.fold_left2 add_actual cvalue_state actuals formals
-        in
-        let set_domain = Domain.set Cvalue_domain.key in
-        set_domain cvalue_state state
-
+    if Db.Value.globals_use_supplied_state ()
+    then supplied_state ()
+    else global_state ~lib_entry
 
   let initial_state_with_formals ~lib_entry kf =
-    let init_state, source =
-      match Domain.global_state () with
-      | Some state -> state, Supplied
-      | None ->
+    let init_state =
+      if Db.Value.globals_use_supplied_state ()
+      then begin
+        Value_parameters.feedback "Initial state supplied by user";
+        supplied_state ()
+      end
+      else begin
         Value_parameters.feedback "Computing initial state";
-        compute_initial_state lib_entry, Computed
+        let state = global_state ~lib_entry in
+        Value_parameters.feedback "Initial state computed";
+        state
+      end
     in
-    report_initial_state init_state source;
+    Domain.Store.register_global_state init_state;
+    (* Prints the initial cvalue state. *)
+    let cvalue_state = Cvalue_domain.extract Domain.get init_state in
+    Value_parameters.printf ~dkey:Value_parameters.dkey_initial_state
+      ~header:(fun fmt -> Format.pp_print_string fmt
+                  "Values of globals at initialization")
+      "@[  %a@]" Cvalue.Model.pretty cvalue_state;
     init_state >>-: add_main_formals kf
 
 end

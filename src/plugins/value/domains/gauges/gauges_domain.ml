@@ -696,9 +696,6 @@ module G = struct
     Kernel.result ~current:true "INCL %b@.%a@.@.%a" r pretty s1 pretty s2;
     r
   
-  let join_and_is_included a b =
-    join a b, is_included a b
-
   (* hypothesis from Value: s2 is supposed to happen 'after' s1. This widening
      function is full of heuristics to maintain some precision, i.e. do not
      widen everything to Top immediately. Basically:
@@ -750,6 +747,8 @@ module G = struct
     let l = if MV.equal ctj ct2 then widen_l l1 lj else lj in
     let l = restrict ct l in
     ct, l
+
+  let narrow x _y = `Value x
 
   let enter_loop stmt (ct, l: t) : t =
     ct, (stmt, PreciseIteration 0) :: l
@@ -1094,9 +1093,11 @@ module G = struct
       let g = translate_exp state to_loc to_v e in
       store_gauge b g state
     with Untranslatable ->
-      Locations.Location_Bits.fold_topset_ok
-        (fun b _ state -> kill_base b state) loc.Locations.loc state
-  
+      try
+        Locations.Location_Bits.fold_topset_ok
+          (fun b _ state -> kill_base b state) loc.Locations.loc state
+      with Abstract_interp.Error_Top -> top state
+
 end
 
 let dkey = Value_parameters.register_category "d-gauges"
@@ -1112,7 +1113,10 @@ module D_Impl : Abstract_domain.S_with_Structure
 
   include G
 
+  let name = "Gauges domain"
+
   let structure = Abstract_domain.Void
+  let log_category = dkey
 
   let empty _ = G.empty
 
@@ -1146,39 +1150,32 @@ module D_Impl : Abstract_domain.S_with_Structure
     in
     `Value [ post_state ]
 
+  let kill loc state =
+    let loc = Precise_locs.imprecise_location loc in
+    let loc = loc.Locations.loc in
+    let aux_base b _ acc =
+      try Base.to_varinfo b :: acc
+      with Base.Not_a_C_variable (* NULL *) -> acc
+    in
+    let vars = Locations.Location_Bits.fold_topset_ok aux_base loc [] in
+    remove_variables vars state
+
   module Transfer (Valuation:
                      Abstract_domain.Valuation with type value = value
                                                 and type origin = origin
                                                 and type loc = location)
     : Abstract_domain.Transfer
-      with type state = state
-       and type value = value
-       and type location = location
-       and type valuation = Valuation.t
+      with type state := state
+       and type value := value
+       and type location := location
+       and type valuation := Valuation.t
   = struct
-    type value = Cvalue.V.t
-    type state = G.t
-    type location = Precise_locs.precise_location
-    type valuation = Valuation.t
 
     let update _valuation st = st (* TODO? *)
 
-    let kill loc state =
-      let loc = loc.Locations.loc in
-      let aux_base b _ acc =
-        try Base.to_varinfo b :: acc
-        with Base.Not_a_C_variable (* NULL *) -> acc
-      in
-      let vars = Locations.Location_Bits.fold_topset_ok aux_base loc [] in
-      remove_variables vars state
-
-    let imprecise_assign lv _value state =
-      let loc = Precise_locs.imprecise_location lv.lloc in
-      `Value (kill loc state)
-
     exception Unassignable
     
-    let assign _kinstr lv e assignment valuation (state:state) =
+    let assign _kinstr lv e _assignment valuation (state:state) =
       let to_loc lv =
         match Valuation.find_loc valuation lv with
         | `Value r -> Precise_locs.imprecise_location r.loc
@@ -1193,7 +1190,7 @@ module D_Impl : Abstract_domain.S_with_Structure
           | _ -> raise Unassignable
       in
       try `Value (G.assign to_loc to_val lv.lval e state)
-      with Unassignable -> imprecise_assign lv assignment state
+      with Unassignable -> `Value (kill lv.lloc state)
 
     let assume_exp valuation e r state =
       if r.reductness = Created || r.reductness = Reduced then
@@ -1254,28 +1251,16 @@ module D_Impl : Abstract_domain.S_with_Structure
         with Untranslatable -> state
       in
       let state = List.fold_left aux_arg state call.arguments in
-      Compute (Continue state, true)
+      Compute state
 
-    let approximate_call _stmt call state =
-      let kf = call.kf in
-      let name = Kernel_function.get_name kf in
-      if Ast_info.is_cea_dump_function name then begin
-        let l = fst (Cil.CurrentLoc.get ()) in
-        Value_parameters.result ~dkey "DUMPING GAUGES STATE \
-                                       of file %s line %d@.%a"
-          (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-          pretty state;
-      end;
-      approximate_call kf state
+    let approximate_call _stmt call state = approximate_call call.kf state
 
+    let show_expr _valuation _state _fmt _expr = ()
   end
 
   let enter_loop = G.enter_loop
   let incr_loop_counter _ = G.inc
   let leave_loop = G.leave_loop
-
-  let compute_using_specification _ call _spec state =
-    approximate_call call.kf state
 
   (* TODO: it would be interesting to return something here, but we
      currently need a valuation to perform the translation. *) 
@@ -1306,18 +1291,14 @@ module D_Impl : Abstract_domain.S_with_Structure
   let reuse ~current_input:_ ~previous_output = previous_output
 
   (* Initial state *)
-  let global_state () = None
-  let initialize_var_using_type state _ = state
-  let initialize_var state _ _ _ = state
+  let introduce_globals _ state = state
+  let initialize_variable_using_type _ _ state = state
+  let initialize_variable _ _ ~initialized:_ _ state = state
 
   (* Logic *)
-  type eval_env = state
-  let env_current_state state = `Value state
-  let env_annot ~pre:_ ~here () = here
-  let env_pre_f ~pre () = pre
-  let env_post_f ~pre:_ ~post ~result:_ () = post
-  let eval_predicate _ _ = Alarmset.Unknown
-  let reduce_by_predicate state _ _ = state
+  let logic_assign _assigns location ~pre:_ state = kill location state
+  let evaluate_predicate _ _ _ = Alarmset.Unknown
+  let reduce_by_predicate _ state _ _ = `Value state
 
   let top = G.empty (* must not be used, not neutral w.r.t. join (because
                        join crashes...)!! *)
@@ -1328,6 +1309,6 @@ module D = struct
   include D_Impl
   module Store = Domain_store.Make (struct
       include D_Impl
-      let storage _ = false    
+      let storage = Value_parameters.GaugesStorage.get
     end)
 end

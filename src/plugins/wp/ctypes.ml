@@ -125,15 +125,15 @@ let c_float fkind =
   | FDouble -> make_c_float mach.sizeof_double
   | FLongDouble -> make_c_float mach.sizeof_longdouble
 
-let sub_c_float f1 f2 = f_bits f1 <= f_bits f2
+let equal_float f1 f2 = f_bits f1 = f_bits f2
 
 (* Array objects, with both the head view and the flatten view. *)
 
 type arrayflat = {
   arr_size     : int ;  (* number of elements in the array *)
-  arr_dim      : int ;   (* number of dimensions in the array *)
-  arr_cell     : typ ;   (* type of elementary cells of the flatten array *)
-  arr_cell_nbr : int ; (* number of elementary cells in the flatten array *)
+  arr_dim      : int ;  (* number of dimensions in the array *)
+  arr_cell     : typ ;  (* type of elementary cells of the flatten array *)
+  arr_cell_nbr : int ;  (* number of elementary cells in the flatten array *)
 }
 
 type arrayinfo = {
@@ -401,16 +401,6 @@ let rec object_of_logic_pointed t =
            "@[<hov 2>pointed of logic type@ (%a)@]"
            Printer.pp_logic_type t
 
-let array_dim arr =
-  match arr.arr_flat with
-  | Some f -> object_of f.arr_cell , f.arr_dim - 1
-  | None ->
-      let rec collect_dim arr n =
-        match object_of arr.arr_element with
-        | C_array arr -> collect_dim arr (succ n)
-        | te -> te,n
-      in collect_dim arr 1
-
 let rec array_dimensions a =
   let te = object_of a.arr_element in
   let d = match a.arr_flat with None -> None | Some f -> Some f.arr_size in
@@ -442,6 +432,11 @@ let array_size = function
 let get_array_size = function
   | C_array a -> array_size a
   | _ -> None
+
+let get_array_dim = function
+  | C_array { arr_flat=Some a } -> a.arr_dim
+  | C_array _ -> 1
+  | _ -> 0
 
 let get_array = function
   | C_array a -> Some( object_of a.arr_element, array_size a )
@@ -509,12 +504,6 @@ let promote a1 a2 =
   | C_float _ , C_int _ -> a1
   | _ -> WpLog.not_yet_implemented
            "promotion between arithmetics and pointer types"
-
-let merge a b =
-  match a,b with
-  | C_int i, C_int i' -> if sub_c_int i' i then a else b
-  | C_float f , C_float f' -> if sub_c_float f' f then a else b
-  | _ -> assert (equal a b) ; a
 
 let rec basename = function
   | C_int i -> Format.asprintf "%a" pp_int i

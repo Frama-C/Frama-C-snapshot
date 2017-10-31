@@ -1,0 +1,31 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_acsl/assign_array.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function jobA
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assign_array.i, line 11) in 'jobA':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assign_array.i, line 11) in 'jobA':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function jobG
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assign_array.i, line 19) in 'jobG':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assign_array.i, line 19) in 'jobG':
+Prove: true.
+
+------------------------------------------------------------

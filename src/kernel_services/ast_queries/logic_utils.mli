@@ -167,13 +167,38 @@ val points_to_valid_string: ?loc:location -> term -> predicate
     addition is translated into an addition of [real] numbers).
     @plugin development guide *)
 val expr_to_term : cast:bool -> exp -> term
-
 (** same as {!expr_to_term}, except that if the new term has an arithmetic
     type, it is automatically coerced into real (or integer for integral types).
 
     @since Magnesium-20151001
 *)
 val expr_to_term_coerce: cast:bool -> exp -> term
+
+val is_zero_comparable: term -> bool
+(** [true] if the given term has a type for which a comparison to 0 exists
+    (i.e. scalar C types, logic integers and reals).
+
+    @since Sulfur-20171101
+*)
+
+val expr_to_predicate: cast:bool -> exp -> identified_predicate
+(** same as {expr_to_term}, but the result is a predicate. Expressions starting
+    with relational operators ([==], [<=], etc) are translated directly.
+    Otherwise, the result of [expr_to_predicate e] is the predicate
+    [e <> 0].
+
+    @raise Fatal error if the expression is not a comparison and cannot be
+           compared to zero.
+    @since Sulfur-20171101
+*)
+
+val scalar_term_to_predicate: term -> predicate
+(** Compare the given term with the constant 0 (of the appropriate type)
+    to return the result of the comparison [e <> 0].
+
+    @raise Fatal error if the argument cannot be compared to 0
+    @since Sulfur-20171101
+*)
 
 val lval_to_term_lval : cast:bool -> lval -> term_lval
 val host_to_term_host : cast:bool -> lhost -> term_lhost
@@ -273,14 +298,12 @@ val is_same_identified_predicate :
   identified_predicate -> identified_predicate -> bool
 val is_same_identified_term :
   identified_term -> identified_term -> bool
-val is_same_deps :
-  identified_term deps ->
-  identified_term deps -> bool
+val is_same_deps : deps -> deps -> bool
 val is_same_allocation :
-  identified_term allocation -> identified_term allocation -> bool
+  allocation -> allocation -> bool
 val is_same_assigns :
-  identified_term assigns -> identified_term assigns -> bool
-val is_same_variant : term variant -> term variant -> bool
+  assigns -> assigns -> bool
+val is_same_variant : variant -> variant -> bool
 val is_same_post_cond :
   termination_kind * identified_predicate ->
   termination_kind * identified_predicate -> bool
@@ -290,17 +313,10 @@ val is_same_logic_type_def :
   logic_type_def -> logic_type_def -> bool
 val is_same_logic_type_info :
   logic_type_info -> logic_type_info -> bool
-val is_same_loop_pragma :
-  term loop_pragma ->
-  term loop_pragma -> bool
-val is_same_slice_pragma :
-  term slice_pragma ->
-  term slice_pragma -> bool
-val is_same_impact_pragma :
-  term impact_pragma ->
-  term impact_pragma -> bool
-val is_same_pragma :
-  term pragma -> term pragma -> bool
+val is_same_loop_pragma : loop_pragma -> loop_pragma -> bool
+val is_same_slice_pragma : slice_pragma -> slice_pragma -> bool
+val is_same_impact_pragma : impact_pragma -> impact_pragma -> bool
+val is_same_pragma : pragma -> pragma -> bool
 val is_same_code_annotation : code_annotation -> code_annotation -> bool
 val is_same_global_annotation : global_annotation -> global_annotation -> bool
 val is_same_axiomatic :
@@ -323,29 +339,21 @@ val get_behavior_names : spec -> string list
 (** Concatenates two assigns if both are defined, 
     returns WritesAny if one (or both) of them is WritesAny. 
     @since Nitrogen-20111001 *)
-val concat_assigns:
-  identified_term assigns ->
-  identified_term assigns -> identified_term assigns
+val concat_assigns: assigns -> assigns -> assigns
 
 (** merge assigns: take the one that is defined and select an arbitrary one
     if both are, emitting a warning unless both are syntactically the same. *)
-val merge_assigns :
-  identified_term assigns ->
-  identified_term assigns -> identified_term assigns
+val merge_assigns : assigns -> assigns -> assigns
 
 (** Concatenates two allocation clauses if both are defined, 
     returns FreeAllocAny if one (or both) of them is FreeAllocAny. 
     @since Nitrogen-20111001 *)
-val concat_allocation:
-  identified_term allocation ->
-  identified_term allocation -> identified_term allocation
+val concat_allocation: allocation -> allocation -> allocation
 
 (** merge allocation: take the one that is defined and select an arbitrary one
     if both are, emitting a warning unless both are syntactically the same. 
     @since Oxygen-20120901 *)
-val merge_allocation :
-  identified_term allocation ->
-  identified_term allocation -> identified_term allocation
+val merge_allocation : allocation -> allocation -> allocation
 
 val merge_behaviors :
   silent:bool -> funbehavior list -> funbehavior list -> funbehavior list
@@ -380,11 +388,11 @@ val is_loop_annot : code_annotation -> bool
 
 val is_trivial_annotation : code_annotation -> bool
 
-val is_property_pragma : term pragma -> bool
+val is_property_pragma : pragma -> bool
 (** Should this pragma be proved by plugins *)
 
 val extract_loop_pragma :
-  code_annotation list -> term loop_pragma list
+  code_annotation list -> loop_pragma list
 val extract_contract :
   code_annotation list -> (string list * funspec) list
 

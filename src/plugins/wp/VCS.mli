@@ -79,7 +79,6 @@ type config = {
 }
 
 
-val timer : float -> int (** Suitable timeout w.r.t measured time and number of process *)
 val current : unit -> config (** Current parameters *)
 val default : config (** all None *)
 
@@ -129,5 +128,10 @@ val configure : result -> config
 val autofit : result -> bool (** Result that fits the default configuration *)
 
 val pp_result : Format.formatter -> result -> unit
+val pp_result_perf : Format.formatter -> result -> unit
 
 val compare : result -> result -> int (* best is minimal *)
+
+val dkey_no_time_info: Log.category
+val dkey_no_step_info: Log.category
+val dkey_no_goals_info: Log.category

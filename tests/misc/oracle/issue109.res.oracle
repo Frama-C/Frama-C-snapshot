@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/issue109.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -13,7 +12,6 @@ tests/misc/issue109.i:10:[value] assertion got status valid.
 [value:final-states] Values at end of function main:
   i ∈ {10}
   j ∈ {10}
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/issue109.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state

@@ -62,8 +62,7 @@ module CVal = struct
     | CEnum _ -> assert false
 
   let forward_unop ~context typ unop value =
-    let value, alarms =
-      Cvalue_forward.forward_unop ~check_overflow:true ~context typ unop value in
+    let value, alarms = Cvalue_forward.forward_unop ~context typ unop value in
     (* TODO: `Bottom must be in CValue and Cvalue_forward. *)
     if Cvalue.V.is_bottom value
     then `Bottom, alarms
@@ -76,14 +75,20 @@ module CVal = struct
         Cvalue_forward.forward_binop_float_alarm
           (Value_util.get_rounding_mode ()) ~context fkind v1 binop v2
       | TInt _ | TPtr _ | _ as typ ->
-        Cvalue_forward.forward_binop_int ~context ~typ v1 binop v2
+        Cvalue_forward.forward_binop_int ~context ~typ ~logic:false v1 binop v2
     in
     if Cvalue.V.is_bottom value
     then `Bottom, alarms
     else `Value value, alarms
 
-  let reinterpret e t v =
-    let v, alarms = Cvalue_forward.reinterpret e t v in
+  let truncate_integer expr range value =
+    let v, alarms = Cvalue_forward.truncate_integer expr range value in
+    if Cvalue.V.is_bottom v then `Bottom, alarms else `Value v, alarms
+
+  let rewrap_integer = Cvalue_forward.rewrap_integer
+
+  let cast_float expr fkind value =
+    let v, alarms = Cvalue_forward.cast_float expr fkind value in
     if Cvalue.V.is_bottom v then `Bottom, alarms else `Value v, alarms
 
   let do_promotion ~src_typ ~dst_typ exp v =
@@ -137,9 +142,10 @@ let interval_key = Structure.Key_Value.create_key "interval"
 module Interval = struct
 
   include Datatype.Option (Ival)
-
   let structure = Structure.Key_Value.Leaf interval_key
 
+  let pretty_typ _ = pretty
+  
   let top = None
 
   let is_included a b = match a, b with
@@ -171,12 +177,18 @@ module Interval = struct
 
   let resolve_functions ~typ_pointer:_ _ = `Top, true
 
-  let reinterpret_int_alarms range value =
-    let size = Integer.of_int range.Eval_typ.i_bits in
-    let signed = range.Eval_typ.i_signed in
-    `Value (Some (Ival.cast ~signed ~size ~value)), Alarmset.all (* TODO *)
+  (* TODO *)
+  let truncate_integer _expr _range value = `Value value, Alarmset.all
 
-  let reinterpret_float fkind ival =
+  let rewrap_integer range value =
+    match value with
+    | None -> value
+    | Some value ->
+      let size = Integer.of_int range.Eval_typ.i_bits in
+      let signed = range.Eval_typ.i_signed in
+      Some (Ival.cast ~signed ~size ~value)
+
+  let cast_float_aux fkind ival =
     match Value_util.float_kind fkind with
     | Fval.Float32 ->
       let rounding_mode = Value_util.get_rounding_mode () in
@@ -188,24 +200,17 @@ module Interval = struct
       let b', ival = Ival.cast_double ival in
       b || b', ival
 
-  let reinterpret_float_alarms exp fkind v =
-    let overflow, res = reinterpret_float fkind v in
-    let alarms =
-      if overflow
-      then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
-      else Alarmset.none
-    in
-    `Value (Some res), alarms
-
-  let reinterpret expr typ = function
-    | None -> top_eval
-    | Some ival ->
-      match Eval_typ.classify_as_scalar typ with
-      | Eval_typ.TSInt ik | Eval_typ.TSPtr ik ->
-        reinterpret_int_alarms ik ival
-      | Eval_typ.TSFloat fk ->
-        reinterpret_float_alarms expr fk ival
-      | Eval_typ.TSNotScalar -> `Value None, Alarmset.all
+  let cast_float exp fkind value =
+    match value with
+    | None -> `Value value, Alarmset.all
+    | Some value ->
+      let overflow, res = cast_float_aux fkind value in
+      let alarms =
+        if overflow
+        then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
+        else Alarmset.none
+      in
+      `Value (Some res), alarms
 
   let backward_unop ~typ_arg:_ _unop ~arg:_ ~res:_ = `Value None
   let backward_binop ~input_type:_ ~resulting_type:_ _binop ~left:_ ~right:_ ~result:_ =

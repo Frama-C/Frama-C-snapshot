@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/forall_loop_invariant.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
@@ -87,5 +86,4 @@ int main(void)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_0_forall_loop_invariant.i (no preprocessing)

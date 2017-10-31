@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/metrics/locals_size.i (no preprocessing)
 [metrics] function	locals_size_no_temps	locals_size_with_temps	max_call_size_no_temps	max_call_size_with_temps
 [metrics] user error: unsupported recursive call detected: recurse2 <- recurse1 <- recurse2

@@ -33,6 +33,8 @@ type config = {
   polka_loose : bool;
   polka_strict : bool;
   polka_equalities : bool;
+  inout: bool;
+  signs: bool;
 }
 
 let configure () = {
@@ -46,6 +48,8 @@ let configure () = {
   polka_loose = Value_parameters.PolkaLoose.get ();
   polka_strict = Value_parameters.PolkaStrict.get ();
   polka_equalities = Value_parameters.PolkaEqualities.get ();
+  inout = Value_parameters.InoutDomain.get ();
+  signs = Value_parameters.SignDomain.get ();
 }
 
 let default_config = configure ()
@@ -61,6 +65,8 @@ let legacy_config = {
   polka_loose = false;
   polka_strict = false;
   polka_equalities = false;
+  inout = false;
+  signs = false;
 }
 
 module type Value = sig
@@ -95,10 +101,21 @@ let has_apron config =
   config.apron_oct || config.apron_box || config.polka_equalities
   || config.polka_loose || config.polka_strict
 
-let add_value_abstraction value v =
-  let module Value = (val value : Abstract_value.Internal) in
-  let module V = (val v : Abstract_value.Internal) in
-  (module Value_product.Make (Value) (V) : Abstract_value.Internal)
+(* The apron domains relies on a specific interval abstraction to communicate
+   with other domains. This function adds the intervals to the current [value]
+   abstraction. These intervals carry the same information as the cvalue
+   abstractions (if they are enabled). Do not display the intervals in the GUI
+   in this case. *)
+let add_apron_value config value =
+  let module Left = ((val value: Abstract_value.Internal)) in
+  let module V = struct
+    include Value_product.Make (Left) (Main_values.Interval)
+    let pretty_typ =
+      if config.cvalue
+      then fun fmt typ (left, _right) -> Left.pretty_typ fmt typ left
+      else pretty_typ
+  end in
+  (module V: Abstract_value.Internal)
 
 let open_value_abstraction value =
   let module Value = (val value : Abstract_value.Internal) in
@@ -114,8 +131,15 @@ let build_value config =
     else (module Main_values.CVal : Abstract_value.Internal)
   in
   let value =
+    if config.signs
+    then
+      let module V = Value_product.Make ((val value)) (Sign_value) in
+      (module V: Abstract_value.Internal)
+    else value
+  in
+  let value =
     if has_apron config
-    then add_value_abstraction value (module Main_values.Interval)
+    then add_apron_value config value
     else value
   in
   open_value_abstraction value
@@ -324,6 +348,33 @@ let add_gauges =
   add_standard_domain (module Gauges_domain.D)
 
 (* -------------------------------------------------------------------------- *)
+(*                            Inout                                           *)
+(* -------------------------------------------------------------------------- *)
+
+let add_inout =
+  add_standard_domain (module Inout_domain.D)
+
+(* -------------------------------------------------------------------------- *)
+(*                            Sign Domain                                     *)
+(* -------------------------------------------------------------------------- *)
+
+let add_signs abstract =
+  let module Abstract = (val abstract : Abstract) in
+  let module K = struct
+    type v = Sign_value.t
+    let key = Sign_value.sign_key
+  end in
+  let module Conv = Convert (Abstract.Val) (K) in
+  let module Sign = Domain_lift.Make (Sign_domain) (Conv) in
+  let module Dom = Domain_product.Make (Abstract.Val) (Abstract.Dom) (Sign) in
+  (module struct
+    module Val = Abstract.Val
+    module Loc = Abstract.Loc
+    module Dom = Dom
+  end : Abstract)
+
+
+(* -------------------------------------------------------------------------- *)
 (*                            Build Abstractions                              *)
 (* -------------------------------------------------------------------------- *)
 
@@ -381,6 +432,16 @@ let build_abstractions config =
   let abstractions =
     if config.gauges
     then add_gauges abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.inout
+    then add_inout abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.signs
+    then add_signs abstractions
     else abstractions
   in
   let abstractions = add_dynamic_abstractions abstractions in

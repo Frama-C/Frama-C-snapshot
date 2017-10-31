@@ -1,11 +1,11 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp/sharing.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp:print-generated] (* ---------------------------------------------------------- *)
+[wp:print-generated] "WPOUT/typed/f_post.ergo"
+                     (* ---------------------------------------------------------- *)
                      (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
                      (* ---------------------------------------------------------- *)
                      

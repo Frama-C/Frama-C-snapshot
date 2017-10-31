@@ -31,17 +31,17 @@ module Enabled = struct
     (Datatype.Bool)
     (struct
        let name = "Slicing_gui.State"
-       let dependencies = [!Db.Slicing.self]
+       let dependencies = [Api.self]
        let default () = false
      end)
 end
 
 (* for slicing callback *)
-let mk_selection fselect = fselect Db.Slicing.Select.empty_selects
+let mk_selection fselect = fselect Api.Select.empty_selects
 
 (* for slicing callback *)
 let mk_selection_cad fselect =
-  mk_selection fselect (!Db.Slicing.Mark.make ~ctrl:true ~addr:true ~data:true)
+  mk_selection fselect (Api.Mark.make ~ctrl:true ~addr:true ~data:true)
 
 (* for slicing callback *)
 let mk_selection_all fselect =
@@ -50,15 +50,15 @@ let mk_selection_all fselect =
 (* for slicing callback *)
 let mk_slice selection =
   Enabled.set true;
-  !Db.Slicing.Project.reset_slice ();
-  !Db.Slicing.Request.add_persistent_selection selection ;
-  !Db.Slicing.Request.apply_all_internal ();
+  Api.Project.reset_slicing ();
+  Api.Request.add_persistent_selection selection ;
+  Api.Request.apply_all_internal ();
   if SlicingParameters.Mode.Callers.get () then
-    !Db.Slicing.Slice.remove_uncalled ();
+    Api.Slice.remove_uncalled ();
   let sliced_project_name =
     SlicingParameters.ProjectName.get () ^ SlicingParameters.ExportedProjectPostfix.get ()
   in
-  !Db.Slicing.Project.extract sliced_project_name ()
+  Api.Project.extract sliced_project_name
 
 (* To add a sensitive/insensitive menu item to a [factory] *)
 let add_item (factory:GMenu.menu GMenu.factory) ~callback name arg_opt =
@@ -146,36 +146,36 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
             let add_mark_info txt = gui_annot_info ~level main_ui
               (fun fmt -> Format.fprintf fmt "Tag: %s" (txt ()))
             in
-            let slices = !Db.Slicing.Slice.get_all kf in
+            let slices = Api.Slice.get_all kf in
             match slices with
             | [] -> (* No slice for this kf *)
                 add_mark_info (fun () ->
-                                 if !Db.Slicing.Project.is_called kf
+                                 if Api.Project.is_called kf
                                  then (* but the source function is called *)
                                    (Format.asprintf "<src>%a"
-                                      !Db.Slicing.Mark.pretty (!Db.Slicing.Mark.get_from_src_func kf))
+                                      Api.Mark.pretty (Api.Mark.get_from_src_func kf))
                                  else
                                    "<   ><   >")
             | slices ->
-                if !Db.Slicing.Project.is_called kf
+                if Api.Project.is_called kf
                 then begin (* The source function is also called *)
                   assert (not (kf == fst (Globals.entry_point ()))) ;
                   add_mark_info (fun () ->
                                    Format.asprintf "<src>%a"
-                                     !Db.Slicing.Mark.pretty (!Db.Slicing.Mark.get_from_src_func kf))
+                                     Api.Mark.pretty (Api.Mark.get_from_src_func kf))
                 end ;
                 let mark_slice slice =
-                  add_mark_info (fun () -> Format.asprintf "%a" !Db.Slicing.Mark.pretty (get_mark slice))
+                  add_mark_info (fun () -> Format.asprintf "%a" Api.Mark.pretty (get_mark slice))
                 in List.iter mark_slice slices
           in match localizable with
           | Pretty_source.PTermLval(Some kf,(Kstmt ki),_,_)
           | Pretty_source.PLval (Some kf,(Kstmt ki),_)
           | Pretty_source.PStmt (kf,ki) ->
             slicing_mark kf
-              (fun slice -> !Db.Slicing.Slice.get_mark_from_stmt slice ki)
+              (fun slice -> Api.Slice.get_mark_from_stmt slice ki)
           | Pretty_source.PVDecl (Some kf,_,vi) ->
             slicing_mark kf
-              (fun slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
+              (fun slice -> Api.Slice.get_mark_from_local_var slice vi)
           | _ -> ()
         in
         SlicingState.may slicing_mark
@@ -202,7 +202,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                Format.fprintf fmt
                  "Request for slicing effects of function %a"
                  Kernel_function.pretty kf)
-             (mk_selection_all !Db.Slicing.Select.select_func_calls_to kf)
+             (mk_selection_all Api.Select.select_func_calls_to kf)
          in
          add_slicing_item "Slice calls to" kf_opt ~callback);
 
@@ -212,7 +212,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                Format.fprintf fmt
                  "Request for slicing entrance into function %a"
                  Kernel_function.pretty kf)
-             (mk_selection_all !Db.Slicing.Select.select_func_calls_into kf)
+             (mk_selection_all Api.Select.select_func_calls_into kf)
          in
         add_slicing_item "Slice calls into" kf_opt ~callback);
 
@@ -222,7 +222,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                Format.fprintf fmt
                  "Request for returned value of function %a"
                  Kernel_function.pretty kf)
-             (mk_selection_all !Db.Slicing.Select.select_func_return kf)
+             (mk_selection_all Api.Select.select_func_return kf)
          in
          add_slicing_item "Slice result"
            (Extlib.opt_filter
@@ -241,16 +241,16 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                Format.fprintf fmt
                  "Request for slicing effects of statement %d"
                  ki.sid)
-             (mk_selection_all !Db.Slicing.Select.select_stmt ki kf)
+             (mk_selection_all Api.Select.select_stmt ki kf)
          in
          add_slicing_item "Slice stmt" kf_ki_lv_opt ~callback);
 
         let get_lv lvopt text =
           match lvopt with
           | None ->
-            GToolbox.input_string ~title:"Enter an lvalue" text
+            Gtk_helper.input_string ~title:"Enter an lvalue" text
           | Some lv ->
-            (* For probably dubious reasons, the functions in Db.Slicing.Select
+            (* For probably dubious reasons, the functions in Api.Select
                require strings instead of directly a lvalue. Thus, we convert
                our shiny lvalue to string, so that it may be parsed back... *)
             Some (Pretty_utils.to_string Printer.pp_lval lv)
@@ -267,7 +267,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                     "Request for slicing lvalue %s before statement %d"
                     txt
                     ki.sid)
-                (mk_selection_cad !Db.Slicing.Select.select_stmt_lval
+                (mk_selection_cad Api.Select.select_stmt_lval
                    lval_str ~before:true ki ~eval:ki kf)
             with e ->
               main_ui#error "Invalid expression: %s" (Printexc.to_string e)
@@ -291,7 +291,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                      "Request for slicing read accesses to lvalue %s"
                      txt)
                  (mk_selection_cad
-                    !Db.Slicing.Select.select_func_lval_rw
+                    Api.Select.select_func_lval_rw
                     ~rd:lval_str
                     ~wr:Datatype.String.Set.empty
                     ~eval:ki kf)
@@ -317,7 +317,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                      "Request for slicing written accesses to lvalue %s"
                      txt)
                  (mk_selection_cad
-                    !Db.Slicing.Select.select_func_lval_rw
+                    Api.Select.select_func_lval_rw
                     ~rd:Datatype.String.Set.empty
                     ~wr:lval_str
                     ~eval:ki kf)
@@ -337,7 +337,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
               Format.fprintf fmt
                 "Request for slicing accessibility to statement %d"
                 ki.sid)
-            (mk_selection_all !Db.Slicing.Select.select_stmt_ctrl ki kf)
+            (mk_selection_all Api.Select.select_stmt_ctrl ki kf)
         in
         add_slicing_item "Slice ctrl" kf_ki_lv_opt ~callback
       in
@@ -400,35 +400,35 @@ let slicing_highlighter(buffer:Design.reactive_buffer) localizable ~start ~stop=
           let apply_mark mark =
             if SlicingParameters.debug_atleast 1 then
               SlicingParameters.debug "Got mark: %a"
-                !Db.Slicing.Mark.pretty mark;
-            if !Db.Slicing.Mark.is_bottom mark then
+                Api.Mark.pretty mark;
+            if Api.Mark.is_bottom mark then
               Gtk_helper.apply_tag buffer unused_code_area pb pe;
-            if !Db.Slicing.Mark.is_spare mark then
+            if Api.Mark.is_spare mark then
               Gtk_helper.apply_tag buffer spare_code_area pb pe;
-            if (!Db.Slicing.Mark.is_ctrl mark
-                || !Db.Slicing.Mark.is_data mark
-                || !Db.Slicing.Mark.is_addr mark)
+            if (Api.Mark.is_ctrl mark
+                || Api.Mark.is_data mark
+                || Api.Mark.is_addr mark)
             then
               Gtk_helper.apply_tag buffer necessary_code_area pb pe
           in
-          let slices = !Db.Slicing.Slice.get_all kf in
+          let slices = Api.Slice.get_all kf in
           begin
             match slices with
             | [] ->
                 (* No slice for this kf *)
-                if !Db.Slicing.Project.is_called kf
+                if Api.Project.is_called kf
                 then begin
                   SlicingParameters.debug "Got source code@." ;
-                  apply_mark (!Db.Slicing.Mark.get_from_src_func kf)
+                  apply_mark (Api.Mark.get_from_src_func kf)
                 end
                 else
                   Gtk_helper.apply_tag buffer unused_code_area pb pe
             | slices ->
-                if !Db.Slicing.Project.is_called kf
+                if Api.Project.is_called kf
                 then begin
                   assert (not (kf == fst (Globals.entry_point ()))) ;
                   SlicingParameters.debug "Got source code" ;
-                  apply_mark (!Db.Slicing.Mark.get_from_src_func kf)
+                  apply_mark (Api.Mark.get_from_src_func kf)
                 end ;
                 if SlicingParameters.debug_atleast 1 then begin
                   let l = List.length slices in
@@ -447,7 +447,7 @@ let slicing_highlighter(buffer:Design.reactive_buffer) localizable ~start ~stop=
             kf
             pb
             pe
-            (fun slice -> !Db.Slicing.Slice.get_mark_from_stmt slice stmt)
+            (fun slice -> Api.Slice.get_mark_from_stmt slice stmt)
         in
         let tag_vdecl kf vi pb pe =
           if not vi.vglob then
@@ -455,7 +455,7 @@ let slicing_highlighter(buffer:Design.reactive_buffer) localizable ~start ~stop=
               kf
               pb
               pe
-              (fun slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
+              (fun slice -> Api.Slice.get_mark_from_local_var slice vi)
         in
         match localizable with
         | Pretty_source.PStmt (kf,stmt) -> tag_stmt kf stmt start stop
@@ -581,8 +581,8 @@ let file_tree_decorate (file_tree:Filetree.t) =
                 begin
                   try
                     let kf = Globals.Functions.get vi
-                    in (!Db.Slicing.Project.is_called kf)
-                    || ( [] != (!Db.Slicing.Slice.get_all kf))
+                    in (Api.Project.is_called kf)
+                    || ( [] != (Api.Slice.get_all kf))
                   with Not_found -> false
                 end
               |  _ -> false)

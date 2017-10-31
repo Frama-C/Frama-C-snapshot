@@ -41,6 +41,10 @@ module Exp_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
   State_builder.Hashtbl with type key = Cil_types.exp
                          and type data = Data.t
 
+module Lval_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
+  State_builder.Hashtbl with type key = Cil_types.lval
+                         and type data = Data.t
+
 module Kernel_function_hashtbl
     (Data:Datatype.S)(Info: State_builder.Info_with_size):
   State_builder.Hashtbl with type key = Cil_types.kernel_function

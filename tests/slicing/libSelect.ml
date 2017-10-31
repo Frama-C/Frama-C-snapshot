@@ -8,8 +8,6 @@ exception No_return
 exception Unknown_data of string
 exception Unknown_stmt of int
 
-module S = Db.Slicing
-
 (*--------------------------*)
 (* Useful functions to find and print thinks *)
 
@@ -33,23 +31,22 @@ let print_stmt kf =
 (* print PDG (for debugging purposes) *)
 let print_pdg kf = !Db.Pdg.pretty fmt (!Db.Pdg.get kf) ;;
 
-let print_ff ff = !S.Slice.pretty fmt ff
+let print_ff ff = Slicing.Api.Slice.pretty fmt ff
 
 (* print the project (functions with their marks + pending actions) *)
-let print_project () = !S.Project.pretty fmt ;;
+let print_project () = Slicing.Api.Project.pretty fmt ;;
 
 (* print pending actions *)
-let print_requests () = !S.Request.pretty fmt ;;
+let print_requests () = Slicing.Api.Request.pretty fmt ;;
 
 (* build the application and print the result *)
 let extract_and_print () =
-  let prj = !S.Project.extract "Sliced code" () in
+  let prj = Slicing.Api.Project.extract "Sliced code" in
   File.pretty_ast ~prj ()
-
 
 (*--------------------------*)
 
-let apply () = !S.Request.apply_next_internal (); print_project ()
+let apply () = Slicing.Api.Request.apply_next_internal (); print_project ()
 
 (*--------------------------*)
 
@@ -79,14 +76,14 @@ let get_stmt sid = fst (Kernel_function.find_from_sid sid)
 let get_zones str_data (kinst, kf) =
   let lval_term = !Db.Properties.Interp.term_lval kf str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
-  let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Cil_types.Kstmt kinst) lval in
-    Locations.enumerate_valid_bits ~for_writing:false loc
+  let loc = !Db.Value.lval_to_loc (Cil_types.Kstmt kinst) lval in
+  Locations.enumerate_valid_bits ~for_writing:false loc
 ;;
 
 let select_data_before_stmt str_data kinst kf =
-  let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
+  let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
   let zone = get_zones str_data (kinst, kf) in
-    !S.Select.select_stmt_zone_internal kf kinst true zone mark
+    Slicing.Api.Select.select_stmt_zone_internal kf kinst true zone mark
 
 
 (** build the selection for returned value of the function *)
@@ -99,9 +96,9 @@ let select_retres kf =
 	  ~for_writing:false
 	  loc
       in
-      let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
+      let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
       let before = false in
-        !S.Select.select_stmt_zone_internal kf ki before zone mark
+        Slicing.Api.Select.select_stmt_zone_internal kf ki before zone mark
     with Db.Value.Void_Function -> raise No_return
 ;;
 
@@ -109,9 +106,9 @@ let select_retres kf =
 let select_data data kf =
   try
     let ki = Kernel_function.find_return kf in
-    let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
+    let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
     let zone = get_zones data (ki, kf) in
-      !S.Select.select_stmt_zone_internal kf ki true zone mark
+      Slicing.Api.Select.select_stmt_zone_internal kf ki true zone mark
   (* with Logic_interp.Error (_, str) -> raise (Unknown_data data) *)
   with _ -> raise (Unknown_data data)
 ;;
@@ -122,10 +119,10 @@ let select_ctrl numstmt kf =
   try
     let s = get_stmt numstmt in
     (*
-    let mark = !S.Mark.make ~data:false ~addr:false ~ctrl:true in
-    !S.Select.select_stmt_internal kf ki mark
+    let mark = Slicing.Api.Mark.make ~data:false ~addr:false ~ctrl:true in
+    Slicing.Api.Select.select_stmt_internal kf ki mark
     *)
-    !S.Select.select_stmt_ctrl_internal kf s
+    Slicing.Api.Select.select_stmt_ctrl_internal kf s
   with _ -> raise (Unknown_stmt numstmt)
 ;;
 
@@ -136,8 +133,8 @@ let prop_to_callers (kf, ff) =
   let rec prop kf ff =
     let callers = !Db.Value.callers kf in
     let process_caller (kf_caller,_) =
-      let ff_caller = !S.Slice.create kf_caller in
-        !S.Request.add_call_slice ~caller:ff_caller ~to_call:ff;
+      let ff_caller = Slicing.Api.Slice.create kf_caller in
+        Slicing.Api.Request.add_call_slice ~caller:ff_caller ~to_call:ff;
         prop kf_caller ff_caller
     in
       List.iter process_caller callers
@@ -149,21 +146,21 @@ let prop_to_callers (kf, ff) =
 * If [do_prop_to_callers] if also recursively computes new functions for
 * [fname] callers in order to call the new slices. *)
 let test ?(keep_project=false) fname ?(do_prop_to_callers=false) select_fct =
-  if not keep_project then !S.Project.reset_slice ();
+  if not keep_project then Slicing.Api.Project.reset_slicing ();
   try
     let kf = Globals.Functions.find_def_by_name fname in
-    let ff = !S.Slice.create kf in
+    let ff = Slicing.Api.Slice.create kf in
     let select = select_fct kf in
-    !S.Request.add_slice_selection_internal ff select;
+    Slicing.Api.Request.add_slice_selection_internal ff select;
     if do_prop_to_callers then
       begin
-        !S.Request.apply_all_internal ();
+        Slicing.Api.Request.apply_all_internal ();
         prop_to_callers (kf, ff)
       end;
     let fmt =  Format.std_formatter in
-    !S.Request.pretty fmt;
-    (* !S.Request.apply_next_internal project *)
-    (* !S.Project.pretty fmt project *)
+    Slicing.Api.Request.pretty fmt;
+    (* Slicing.Api.Request.apply_next_internal *)
+    (* Slicing.Api.Project.pretty fmt *)
     extract_and_print ()
   with
   | No_return ->

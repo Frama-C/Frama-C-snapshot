@@ -1,9 +1,7 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_switch2.c (with preprocessing)
 [aorai] Welcome to the Aorai plugin
 tests/aorai/test_switch2.c:34:[aorai] warning: Call to opc not conforming to automaton (post-cond). Assuming it is on a dead path
 tests/aorai/test_switch2.c:23:[aorai] warning: Call to opc not conforming to automaton (pre-cond). Assuming it is on a dead path
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_switch20.i (no preprocessing)
 /tmp/aorai_test_switch20.i:4:[wp] warning: Global invariant not handled yet ('inv' ignored)
 [wp] Collecting axiomatic usage

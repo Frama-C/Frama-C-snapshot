@@ -1,13 +1,12 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/issue-189-bis.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 
 Goal Post-condition 'memcpy,ok' in 'memcpy_context_vars':
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
   (* Goal *)
@@ -35,8 +34,8 @@ Prove: Mint_0[shift_uint8(a_1, i)] = Mint_1[shift_uint8(a, i)].
 ------------------------------------------------------------
 
 Goal Post-condition 'unmodified,ok' in 'memcpy_context_vars':
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Let a_2 = shift_uint8(a, i).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
@@ -65,8 +64,8 @@ Prove: Mint_0[a_2] = Mint_1[a_2].
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,cpy' (file tests/wp_usage/issue-189-bis.i, line 55):
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Let m = Mint_0[dst2_0 <- Mint_0[src2_0]].
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1) /\ is_sint32(len_1 - 1).
@@ -110,8 +109,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,len' (file tests/wp_usage/issue-189-bis.i, line 51):
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Assume {
   Type: is_sint32(len_1) /\ is_sint32(len_0) /\ is_sint32(len_0 - 1).
   (* Heap *)
@@ -158,8 +157,8 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_usage/issue-189-bis.i, line 54) (2/5):
 Effect at line 59
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Let a_2 = shift_uint8(a_1, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
@@ -201,8 +200,8 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_usage/issue-189-bis.i, line 54) (5/5):
 Effect at line 60
-Let a = global(G_src_89).
-Let a_1 = global(G_dst_90).
+Let a = global(G_src_43).
+Let a_1 = global(G_dst_44).
 Let a_2 = shift_uint8(a_1, 0).
 Assume {
   Type: is_sint32(len_0) /\ is_sint32(len_1).
@@ -232,7 +231,7 @@ Prove: included(tmp_0, 1, a_2, len_0).
 
 Goal Assigns (file tests/wp_usage/issue-189-bis.i, line 44) in 'memcpy_context_vars':
 Effect at line 59
-Let a = shift_uint8(global(G_dst_90), 0).
+Let a = shift_uint8(global(G_dst_44), 0).
 Assume {
   Have: valid_rd(Malloc_0, a, len_0).
   Type: is_sint32(len_0).

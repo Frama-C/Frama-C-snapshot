@@ -10,7 +10,7 @@ let compute_and_print pp str_data =
   let stmt, kf = pp in
   let lval_term = !Db.Properties.Interp.term_lval kf str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
-  let defs = !Db.Scope.get_defs kf stmt lval in
+  let defs = Scope.Defs.get_defs kf stmt lval in
     Format.printf "* @[<v 2>Defs for (%s) at current program point=@[<v 2>@." 
       str_data;
   let _ = match defs with

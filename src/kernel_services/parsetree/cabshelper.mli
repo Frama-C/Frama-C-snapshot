@@ -82,8 +82,8 @@ val mk_behavior :
   ?assumes:Logic_ptree.lexpr list ->
   ?requires:Logic_ptree.lexpr list ->
   ?post_cond:(Cil_types.termination_kind * Logic_ptree.lexpr) list ->
-  ?assigns:Logic_ptree.lexpr Cil_types.assigns ->
-  ?allocation:Logic_ptree.lexpr Cil_types.allocation ->
+  ?assigns:Logic_ptree.assigns ->
+  ?allocation:Logic_ptree.allocation ->
   ?extended:Logic_ptree.extension list ->
   unit ->
   Logic_ptree.behavior

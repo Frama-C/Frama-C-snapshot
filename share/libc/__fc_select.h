@@ -40,7 +40,41 @@ extern int pselect(int nfds, fd_set * readfds,
        const struct timespec * timeout,
        const sigset_t * sigmask);
 
-/* assigns \result \from nfds, *readfds, *writefds,*errorfds,*timeout ;*/
+// __fc_fds_state is a very coarse model for the state of all
+// file descriptor sets; it is sound, but very imprecise.
+//@ ghost volatile int __fc_fds_state;
+
+/*@
+  requires nfds >= 0;
+  requires readfds == \null || \valid(readfds);
+  requires writefds == \null || \valid(writefds);
+  requires errorfds == \null || \valid(errorfds);
+  requires timeout == \null || \valid(timeout);
+  assigns __fc_fds_state \from __fc_fds_state;
+  assigns readfds  == \null ? \empty : *readfds,
+          writefds == \null ? \empty : *writefds,
+          errorfds == \null ? \empty : *errorfds,
+          timeout == \null ? \empty : *timeout,
+          \result
+    \from indirect:nfds,
+          indirect:readfds, indirect:*readfds,
+          indirect:writefds, indirect:*writefds,
+          indirect:errorfds, indirect:*errorfds,
+          indirect:timeout, indirect:*timeout,
+          __fc_fds_state;
+  behavior read_notnull:
+    assumes readfds != \null;
+    ensures \initialized(readfds);
+  behavior write_notnull:
+    assumes writefds != \null;
+    ensures \initialized(writefds);
+  behavior error_notnull:
+    assumes errorfds != \null;
+    ensures \initialized(errorfds);
+  behavior timeout_notnull:
+    assumes timeout != \null;
+    ensures \initialized(timeout);
+ */
 extern int select(int nfds, fd_set * readfds,
        fd_set * writefds, fd_set * errorfds,
        struct timeval * timeout);

@@ -470,6 +470,7 @@ and bal = parse
 
   (*TODO[LC] Think about projectification ... *)
   let dkey = Wp_parameters.register_category "includes"
+  let dkey_driver = Wp_parameters.register_category "driver"
 
   let loaded : (string list * string list, driver) Hashtbl.t =Hashtbl.create 10
   let load_driver () =
@@ -492,7 +493,7 @@ and bal = parse
             try [Wp_parameters.Share.dir ~error:false ()]
             with Wp_parameters.Share.No_dir -> [] in
           let directories = includes @ shared in
-          if Wp_parameters.has_dkey "includes" then
+          if Wp_parameters.has_dkey dkey then
             Wp_parameters.debug ~dkey "Included directories:%t"
               (fun fmt ->
                  List.iter
@@ -514,7 +515,7 @@ and bal = parse
         load ~ontty default;
         List.iter load drivers;
         Hashtbl.add loaded key (Context.get LogicBuiltins.driver);
-        if Wp_parameters.has_dkey "driver" then LogicBuiltins.dump ()
+        if Wp_parameters.has_dkey dkey_driver  then LogicBuiltins.dump ()
     end ; Context.get LogicBuiltins.driver
 
 }

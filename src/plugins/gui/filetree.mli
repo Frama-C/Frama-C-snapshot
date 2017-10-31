@@ -89,6 +89,23 @@ class type t =  object
         @modify Nitrogen-20111001 Changed argument from a list
         of globals to [filetree_node] *)
 
+  method append_text_column:
+    title:string ->
+    tooltip:string ->
+    visible:(unit -> bool) ->
+    text:(Cil_types.global -> string) ->
+    ?sort:(Cil_types.global -> Cil_types.global -> int) ->
+    ([`Visibility | `Contents] -> unit)
+  (** [append_text_column ~title ~tooltip ~visible ~text ~sort] appends a new
+      column with name [title] to the file tree, and registers [text] as a
+      callback computing the text for each global variable. The column is
+      displayed when [visible] returns true. Rows of the filetree can be sorted
+      according to [sort], if it is provided. Otherwise, they can be sorted
+      according to the alphabetical order established by [text].
+      The returned function can be used to force an update on the display of the
+      column. [`Visibility] means that the column must be shown or hidden.
+      [`Contents] means what it contains has changed. *)
+
   method append_pixbuf_column:
     title:string ->
     (Cil_types.global list -> GTree.cell_properties_pixbuf list) ->

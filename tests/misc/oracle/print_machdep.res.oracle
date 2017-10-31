@@ -7,14 +7,14 @@ Machine: gcc 4.0.3 - X86-32bits mode
    sizeof      double =  8 (64 bits, aligned on 32 bits)
    sizeof long double = 12 (96 bits, aligned on 32 bits)
    sizeof     pointer =  4 (32 bits, aligned on 32 bits)
-   sizeof    function =  1 (8 bits, aligned on 8 bits)
    sizeof        void =  1 (8 bits, aligned on 8 bits)
+   sizeof    function = error (alignof error)
    typeof   sizeof(T) = unsigned int
    typeof     wchar_t = int
    typeof   ptrdiff_t = int
    char is signed
    machine is little endian
-   strings are writable chars
+   strings are const chars
    assembly names have no leading '_'
    compiler has builtin __va_list
    compiler uses __head as a keyword

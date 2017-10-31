@@ -14,7 +14,7 @@ include LibSelect;;
 let main _ =
 
   let proj_name = "slicing_merge" in
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
 
   let kf_init = Globals.Functions.find_def_by_name "init" in
   let _kf_add = Globals.Functions.find_def_by_name "add" in
@@ -24,12 +24,12 @@ let main _ =
 
   (* build graphs representation if there is something in [anim_title] *)
   let build_slice kf data n anim_title apply =
-    let ff = !S.Slice.create kf in
+    let ff = Slicing.Api.Slice.create kf in
     let select = select_data data kf in
-    !S.Request.add_slice_selection_internal ff select;
+    Slicing.Api.Request.add_slice_selection_internal ff select;
     let n =
       if anim_title = ""
-      then (if apply then !S.Request.apply_all_internal (); n)
+      then (if apply then Slicing.Api.Request.apply_all_internal (); n)
       else LibAnim.build_all_graphs proj_name anim_title n
     in n, ff
   in
@@ -45,7 +45,7 @@ let main _ =
   (*
     Format.printf "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";;
     Format.printf "=== Function g_1 computes G1 and should call init_1 :\n";
-    !S.Project.export None project;;
+    Slicing.Api.Project.extract "merge_1";;
     Format.printf "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";;
   *)
 
@@ -58,14 +58,14 @@ let main _ =
   (*
     Format.printf "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";;
     Format.printf "=== g_2 should call init_2 and g_3, init_3 :\n";
-    !S.Project.export None project;;
+    Slicing.Api.Project.extract "merge_2";;
     Format.printf "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";;
   *)
 
   ignore (LibAnim.print_proj proj_name "After selections" n);
   let n = n+1 in
 
-  ignore (!S.Request.merge_slices ff_init1 ff_init2 ~replace:true);
+  ignore (Slicing.Api.Request.merge_slices ff_init1 ff_init2 ~replace:true);
   let title = "merging init_1 and init_2" in
   ignore (LibAnim.print_proj proj_name title n);
   let n = n+1 in
@@ -73,14 +73,14 @@ let main _ =
   let title = "merging init_1 and init_2" in
   let n = LibAnim.build_all_graphs proj_name title n in
 
-  !S.Slice.remove ff_init1;
-  !S.Slice.remove ff_init2;
+  Slicing.Api.Slice.remove ff_init1;
+  Slicing.Api.Slice.remove ff_init2;
 
   let title = "After removing init_1 and init_2" in
   ignore (LibAnim.print_proj proj_name title n);
   let _n = n+1 in
 
-  let _ = !S.Request.copy_slice ff_g3 in
+  let _ = Slicing.Api.Request.copy_slice ff_g3 in
 
   extract_and_print ();
 

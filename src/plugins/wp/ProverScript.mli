@@ -35,4 +35,5 @@ type 'a process =
 val prove : unit Task.task process
 val spawn : unit process
 
+val get : Wpo.t -> [ `Script | `Proof | `Saved | `None ]
 val save : Wpo.t -> unit

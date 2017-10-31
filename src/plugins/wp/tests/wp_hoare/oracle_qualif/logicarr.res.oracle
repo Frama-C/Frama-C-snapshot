@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/logicarr.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -13,5 +12,5 @@
      Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-job                 -       3 (31)     3       100%
+job                 -       3 (70)     3       100%
 ----------------------------------------------------------

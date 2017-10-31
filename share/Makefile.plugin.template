@@ -39,8 +39,6 @@ endif
 PLUGIN_DIR?=
 PLUGIN_ENABLE?=  # Whether the plugin is enabled
 PLUGIN_DEPENDS?= # Deprecated (static plug-in dependencies, Frama-C only)
-PLUGIN_DYNAMIC?= # Set it to yes if the plugin is only
-                 # dynamically linked with Frama-C.
 
 # META file
 # ---------
@@ -177,10 +175,15 @@ PLUGIN_RESET?=yes # Set it to no in order to NOT reset plug-in variable.
 # Where the other plug-ins to load are already installed
 ifeq ($(FRAMAC_INTERNAL),yes)
 INSTALLED_PLUGIN_DIR:=$(FRAMAC_ROOT_SRCDIR)/lib/plugins
-else
-INSTALLED_PLUGIN_DIR:=$(PLUGIN_INSTALL_DIR)
-endif
+# Also inform the main Makefile that there's another plug-in to be
+# considered
+PLUGIN_LIST+=$(PLUGIN_DIR)/@PLUGIN_NAME@
 
+else
+
+INSTALLED_PLUGIN_DIR:=$(PLUGIN_INSTALL_DIR)
+
+endif
 
 # The plugin types .cm* files
 PLUGIN_TYPES_CMO:=$(addsuffix .cmo,$(PLUGIN_TYPES_CMO))
@@ -318,11 +321,7 @@ else
 TARGET_TOP_CMXA:=
 endif
 
-ifeq ("$(PLUGIN_DYNAMIC)","yes")
 TARGET_TOP_CMXS:= $(TARGET_TOP_CMX:.cmx=.cmxs)
-else
-TARGET_TOP_CMXS:=
-endif
 
 # The packed files for GUI mode (in directory 'gui')
 ifeq ($(HAS_GUI),yes)
@@ -332,11 +331,7 @@ TARGET_GUI_CMI:= $(TARGET_GUI_CMO:.cmo=.cmi)
 TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
 TARGET_GUI_CMA:= $(TARGET_GUI_CMO:.cmo=.cma)
 TARGET_GUI_CMXA:= $(TARGET_GUI_CMX:.cmx=.cmxa)
-ifeq ("$(PLUGIN_DYNAMIC)","yes")
 TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
-else
-TARGET_GUI_CMXS:=
-endif
 else
 TARGET_GUI_MLI:=
 TARGET_GUI_CMO:=
@@ -467,9 +462,7 @@ META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmxa
 else
 META.$(PLUGIN_PKG).NATIVE :=@PLUGIN_NAME@.cmx
 endif
-ifeq ("$(PLUGIN_DYNAMIC)","yes")
 META.$(PLUGIN_PKG).PLUGIN :=@PLUGIN_NAME@.cmxs
-endif
 
 ifeq ($(FRAMAC_INTERNAL),yes)
 # In internal mode, we depend on the main Makefile for plugins that do not
@@ -573,14 +566,12 @@ $(TARGET_TOP_CMX): $(PLUGIN_CMX) \
 	  $(@PLUGIN_NAME@_TARGET_OFLAGS) \
 	  $(@PLUGIN_NAME@_CMI_ONLY) $(@PLUGIN_NAME@_CMX)
 
-ifeq ("$(PLUGIN_DYNAMIC)","yes")
 $(TARGET_TOP_CMXS): $(TARGET_TOP_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
 	$(OCAMLOPT) -o $(call winpath,$@) -shared \
 	  $(@PLUGIN_NAME@_OFLAGS) \
 	  $(@PLUGIN_NAME@_EXTRA_OPT) \
           $(@:.cmxs=.cmx)
-endif
 
 ifdef PLUGIN_EXTRA_BYTE
 $(TARGET_TOP_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO)
@@ -631,7 +622,6 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_CMI) $(TARGET_GUI_CMI)
 	  $(@PLUGIN_NAME@_GUI_CMI_ONLY) \
 	  $(@PLUGIN_NAME@_GUI_CMX)
 
-ifeq ("$(PLUGIN_DYNAMIC)","yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
@@ -640,7 +630,6 @@ $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
           $(@PLUGIN_NAME@_GUI_TARGET_OFLAGS) \
           $(@PLUGIN_NAME@_EXTRA_OPT) \
 	  $^
-endif
 
 ifdef PLUGIN_EXTRA_BYTE
 $(TARGET_GUI_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_GUI_CMO)
@@ -957,11 +946,7 @@ $(PLUGIN_DIR)/@PLUGIN_NAME@_CLEAN_DOC: $(@PLUGIN_NAME@_DOC_DIR)
 
 PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
 
-ifeq ($(PLUGIN_DYNAMIC),yes)
-#dynamic plugin
 PLUGIN_META_LIST += $(TARGET_META)
-PLUGIN_DYN_EXISTS:=yes
-PLUGIN_DYN_LIST += $(PLUGIN_DIR)/@PLUGIN_NAME@
 PLUGIN_DYN_CMI_LIST += $(TARGET_CMI)
 ifdef PLUGIN_EXTRA_BYTE
 .PRECIOUS: $(TARGET_TOP_CMO)
@@ -989,28 +974,6 @@ endif #EXTRA_OPT
 ifeq ($(HAS_GUI),yes)
 PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
 endif # HAS_GUI
-
-else # Normal plugin
-PLUGIN_LIST += $(PLUGIN_DIR)/@PLUGIN_NAME@
-ifdef PLUGIN_EXTRA_BYTE
-.PRECIOUS: $(TARGET_TOP_CMO) $(TARGET_GUI_CMO)
-PLUGIN_CMO_LIST += $(TARGET_TOP_CMA)
-PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMA)
-else
-PLUGIN_CMO_LIST += $(TARGET_TOP_CMO)
-PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
-endif
-ifdef PLUGIN_EXTRA_OPT
-.PRECIOUS: $(TARGET_TOP_CMX) $(TARGET_GUI_CMX)
-PLUGIN_CMX_LIST += $(TARGET_TOP_CMXA)
-PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMXA)
-DEP_CMXS=$(TARGET_TOP_CMXA)
-else
-PLUGIN_CMX_LIST += $(TARGET_TOP_CMX)
-PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
-DEP_CMXS=$(TARGET_TOP_CMX)
-endif
-endif
 
 PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)
 PLUGIN_INTERNAL_CMX_LIST += $(PLUGIN_CMX)
@@ -1044,7 +1007,6 @@ PLUGIN_OFLAGS:=
 PLUGIN_DEPFLAGS:=
 PLUGIN_DOCFLAGS:=
 PLUGIN_GENERATED:=
-PLUGIN_DYNAMIC:=
 PLUGIN_TYPES_CMO:=
 PLUGIN_GUI_CMO:=
 PLUGIN_GUI_CMX:=

@@ -105,18 +105,10 @@ module Transfer
   (*                              Assignments                               *)
   (* ---------------------------------------------------------------------- *)
 
-  let with_alarms = Value_util.warn_all_quiet_mode ()
-
-  let warn_imprecise_lval_read lval loc v =
-    Warn.warn_imprecise_lval_read ~with_alarms lval loc v
-
-  let warn_right_imprecision lval loc v =
-    Warn.warn_right_exp_imprecision ~with_alarms lval loc v
-
   let write_abstract_value state (lval, loc, typ) assigned_value =
     let {v; initialized; escaping} = assigned_value in
     let value = unbottomize v in
-    warn_right_imprecision lval loc value;
+    Warn.warn_right_exp_imprecision lval loc value;
     let value =
       if Cil.typeHasQualifier "volatile" typ
       then Cvalue_forward.make_volatile value
@@ -144,7 +136,7 @@ module Transfer
     let left_lval, left_loc, left_typ = left_lv
     and right_lval, right_loc, right_typ = right_lv in
     (* Warn if right_loc is imprecise *)
-    warn_imprecise_lval_read right_lval right_loc Cvalue.V.bottom;
+    Warn.warn_imprecise_lval_read right_lval right_loc Cvalue.V.bottom;
     (* top size is tested before this function is called, in which case
        the imprecise copy mode is used. *)
     let size = Int_Base.project right_loc.Locations.size in
@@ -168,7 +160,7 @@ module Transfer
         raise Do_assign_imprecise_copy;
       let () =
         match offsetmap_contains_imprecision offsetmap with
-        | Some v -> warn_right_imprecision left_lval left_loc v
+        | Some v -> Warn.warn_right_exp_imprecision left_lval left_loc v
         | _ -> ()
       in
       `Value
@@ -284,12 +276,8 @@ module Transfer
   (* Apply special builtins, such as Frama_C_show_each_foo *)
   let apply_special_builtins valuation name state actuals =
     if Ast_info.can_be_cea_function name then
-      (* A few special functions that are not registered in the builtin table *)
-      if Ast_info.is_cea_dump_function name then
-        Some (Builtins_misc.dump_state state actuals)
-      else if Ast_info.is_cea_function name then
-        Some (Builtins_misc.dump_args name state actuals)
-      else if Ast_info.is_cea_dump_file_function name then
+      (* One special function that is not registered in the builtin table *)
+      if Ast_info.is_cea_dump_file_function name then
         Some (Builtins_misc.dump_state_file name state actuals)
       else
         None
@@ -320,39 +308,32 @@ module Transfer
   (*                             Function Calls                             *)
   (* ---------------------------------------------------------------------- *)
 
+  let warn_if_imprecise lval loc offsm =
+    match offsetmap_contains_imprecision offsm with
+    | Some v ->
+      let loc = Precise_locs.imprecise_location loc in
+      Warn.warn_imprecise_lval_read lval loc v
+    | None -> ()
+
+  let offsetmap_of_lval valuation state lval =
+    let record = match Valuation.find_loc valuation lval with
+      | `Value record -> record
+      | `Top -> assert false
+    in
+    let offsm =
+      try Eval_op.offsetmap_of_loc record.loc state
+      with Abstract_interp.Error_Top ->
+        (* Subsumed by check_arg_size? *)
+        Value_parameters.abort ~current:true
+          "Function argument %a has unknown size. Aborting"
+          Printer.pp_lval lval;
+    in
+    match offsm with
+    | `Value offsm -> warn_if_imprecise lval record.loc offsm; offsm
+    | `Bottom -> raise InvalidCall
+
   let offsetmap_of_formal valuation state typ = function
-    | Copy (lval, _value) ->
-      let record = match Valuation.find_loc valuation lval with
-        | `Value record -> record
-        | `Top -> assert false
-      in
-      let aux loc offsm_res =
-        let open Locations in
-        try
-          let size = Int_Base.project loc.size in
-          let copy = Cvalue.Model.copy_offsetmap loc.loc size state in
-          Bottom.join Cvalue.V_Offsetmap.join copy offsm_res
-        with
-          Int_Base.Error_Top ->
-          (* Subsumed by check_arg_size? *)
-          Value_parameters.abort ~current:true
-            "Function argument %a has unknown size. Aborting"
-            Printer.pp_lval lval;
-      in
-      let o = Precise_locs.fold aux record.loc `Bottom in
-      let offsm, _ =
-        match o with
-        | `Value offsm ->
-          begin match offsetmap_contains_imprecision offsm with
-            | Some v ->
-              let loc = Precise_locs.imprecise_location record.loc in
-              warn_imprecise_lval_read lval loc v
-            | None -> ()
-          end;
-          offsm, state
-        | `Bottom -> raise InvalidCall
-      in
-      offsm
+    | Copy (lval, _value) -> offsetmap_of_lval valuation state lval
     | Assign value -> offsetmap_of_v ~typ value
 
   let actualize_formals valuation state arguments rest =
@@ -382,7 +363,7 @@ module Transfer
     let stack_with_call = Value_util.call_stack () in
     Db.Value.Call_Value_Callbacks.apply (with_formals, stack_with_call);
     match compute_maybe_builtin call valuation state list rest with
-    | None -> Compute (Continue with_formals, true), Base.SetLattice.bottom
+    | None -> Compute with_formals, Base.SetLattice.bottom
     | Some res ->
       (* Store the initial state, but do not called mark_as_called. Uninteresting
          Value builtins are intentionally skipped *)
@@ -404,7 +385,24 @@ module Transfer
       Result (Bottom.bot_of_list list, res.Value_types.c_cacheable),
       res.Value_types.c_clobbered
 
-  let finalize_call _stmt _call ~pre:_ ~post:state = `Value state
+  let finalize_call stmt call ~pre:_ ~post:state =
+    (* Deallocate memory allocated via alloca().
+       To minimize computations, only do it for function definitions. *)
+    let state' =
+      if Kernel_function.is_definition call.kf then
+        let stack = (call.kf, Kstmt stmt) :: (Value_util.call_stack ()) in
+        Builtins_malloc.free_automatic_bases stack state
+      else state
+    in
+    `Value state'
 
   let approximate_call _stmt _call _t = assert false
+
+  let show_expr valuation state fmt expr =
+    match expr.enode with
+    | Lval lval ->
+      let offsm = offsetmap_of_lval valuation state lval in
+      let typ = Cil.typeOf expr in
+      Eval_op.pretty_offsetmap typ fmt offsm
+    | _ -> Format.fprintf fmt "%s" (Unicode.top_string ())
 end

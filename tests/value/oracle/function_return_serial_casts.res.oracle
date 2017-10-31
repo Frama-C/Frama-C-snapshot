@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/function_return_serial_casts.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -55,6 +54,6 @@
 [inout] Inputs for function g:
           x
 [inout] Out (internal) for function main:
-          y; z; t; __retres
+          y; z; t; tmp; tmp_0; __retres
 [inout] Inputs for function main:
           x

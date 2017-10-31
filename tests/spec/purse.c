@@ -2,11 +2,11 @@
 /*                                                                        */
 /*  The Why/Caduceus/Krakatoa tool suite for program certification        */
 /*  Copyright (C) 2002-2006                                               */
-/*    Jean-François COUCHOT                                               */
+/*    Jean-FranÃ§ois COUCHOT                                               */
 /*    Mehdi DOGGUY                                                        */
-/*    Jean-Christophe FILLIÂTRE                                           */
+/*    Jean-Christophe FILLIÃ‚TRE                                           */
 /*    Thierry HUBERT                                                      */
-/*    Claude MARCHÉ                                                       */
+/*    Claude MARCHÃ‰                                                       */
 /*    Yannick MOY                                                         */
 /*                                                                        */
 /*  This software is free software; you can redistribute it and/or        */

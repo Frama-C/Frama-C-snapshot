@@ -99,6 +99,12 @@ let emit_message_and_status kind kf behavior active property named_pred status =
     (* No statuses are emitted for 'assumes' clauses, and for the moment we
        do not emit text either *) ()
 
+let create_conjunction l=
+  let loc = match l with
+    | [] -> None
+    | p :: _ -> Some p.ip_content.pred_loc
+  in
+  Logic_const.(List.fold_right (fun p1 p2 -> pand ?loc (p1, p2)) (List.map pred_of_id_pred l) ptrue)
 
 (* -------------------------- Active behaviors ------------------------------ *)
 
@@ -117,7 +123,7 @@ module ActiveBehaviors = struct
     end)
 
   let is_active eval_predicate b =
-    let assumes = Logic_const.(pands (List.map pred_of_id_pred b.b_assumes)) in
+    let assumes = create_conjunction b.b_assumes in
     eval_predicate assumes
 
   let create eval_predicate funspec =
@@ -143,6 +149,20 @@ module ActiveBehaviors = struct
     try List.find (fun b' -> b'.b_name = b) ab.funspec.spec_behavior
     with Not_found -> raise No_such_behavior
 end
+
+let () =
+  Db.Value.valid_behaviors :=
+    (fun kf state ->
+       let funspec = Annotations.funspec kf in
+       let eval_predicate pred =
+         match Eval_terms.(eval_predicate (env_pre_f ~pre:state ()) pred) with
+         | Eval_terms.True -> Alarmset.True
+         | Eval_terms.False -> Alarmset.False
+         | Eval_terms.Unknown -> Alarmset.Unknown
+       in
+       let ab = ActiveBehaviors.create eval_predicate funspec in
+       ActiveBehaviors.active_behaviors ab
+    )
 
 let ip_from_precondition kf call_ki b pre =
   let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
@@ -179,12 +199,8 @@ let process_inactive_behavior kf call_ki behavior =
       "%a: assumes got status invalid; behavior not evaluated.%t"
       (pp_header kf) behavior Value_util.pp_callstack
 
-(* Emits informative messages about inactive behaviors, and emits a valid
-   status for requires and ensures that have not been evaluated. *)
-let process_inactive_behaviors kf call_ki ab =
-  List.iter (process_inactive_behavior kf call_ki)
-    (List.filter (fun b -> ab.ActiveBehaviors.is_active b = Alarmset.False)
-       ab.ActiveBehaviors.funspec.spec_behavior)
+let process_inactive_behaviors call_ki kf behaviors =
+  List.iter (process_inactive_behavior kf call_ki) behaviors
 
 (* Emits informative messages about behavior postconditions not evaluated
    because the _requires_ of the behavior are invalid. *)
@@ -208,11 +224,6 @@ let process_inactive_postconds kf inactive_bhvs =
 
 (* -------------------------------- Functor --------------------------------- *)
 
-module type Domain = sig
-  include Abstract_domain.Logic
-  include Datatype.S with type t = state
-end
-
 module type S = sig
   type state
   type states
@@ -220,16 +231,15 @@ module type S = sig
   val create: state -> kernel_function -> ActiveBehaviors.t
   val create_from_spec: state -> spec -> ActiveBehaviors.t
 
-  val check_fct_preconditions_for_behavior:
-    kernel_function -> ActiveBehaviors.t -> per_behavior:bool -> kinstr ->
-    states -> behavior -> states
+  val check_fct_preconditions_for_behaviors:
+    kinstr -> kernel_function -> behavior list -> Alarmset.status ->
+    states -> states
 
   val check_fct_preconditions:
-    kernel_function -> ActiveBehaviors.t -> kinstr -> state -> states or_bottom
+    kinstr -> kernel_function -> ActiveBehaviors.t -> state -> states or_bottom
 
   val check_fct_postconditions_for_behaviors:
-    kernel_function -> ActiveBehaviors.t -> behavior list -> termination_kind ->
-    per_behavior:bool ->
+    kernel_function -> behavior list -> Alarmset.status ->
     pre_state:state -> post_states:states -> result:varinfo option -> states
 
   val check_fct_postconditions:
@@ -237,8 +247,7 @@ module type S = sig
     pre_state:state -> post_states:states -> result:varinfo option ->
     states or_bottom
 
-  val reduce_by_assumes_of_behavior:
-    kernel_function -> behavior -> states -> states
+  val evaluate_assumes_of_behavior: state -> behavior -> Alarmset.status
 
   val interp_annot:
     limit:int -> record:bool ->
@@ -246,17 +255,52 @@ module type S = sig
     initial_state:state -> states -> states
 end
 
+module type LogicDomain = sig
+  type t
+  val top: t
+  val equal: t -> t -> bool
+  val evaluate_predicate:
+    t Abstract_domain.logic_environment -> t -> predicate -> Alarmset.status
+  val reduce_by_predicate:
+    t Abstract_domain.logic_environment -> t -> predicate -> bool -> t or_bottom
+end
 
 module Make
-    (Domain: Domain)
+    (Domain: LogicDomain)
     (States: Powerset.S with type state = Domain.t)
 = struct
 
   type state = Domain.t
   type states = States.t
 
+  let pre_env ~pre =
+    let states = function
+      | BuiltinLabel Pre -> pre
+      | BuiltinLabel Here -> pre
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> Domain.top
+    in
+    Abstract_domain.{ states; result = None }
+
+  let post_env ~pre ~post ~result =
+    let states = function
+      | BuiltinLabel Pre -> pre
+      | BuiltinLabel Old -> pre
+      | BuiltinLabel Post -> post
+      | BuiltinLabel Here -> post
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> Domain.top
+    in
+    Abstract_domain.{ states; result }
+
+  let here_env  ~pre ~here =
+    let states = function
+      | BuiltinLabel Pre -> pre
+      | BuiltinLabel Here -> here
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> Domain.top
+    in
+    Abstract_domain.{ states; result = None }
+
   let create_from_spec pre funspec =
-    let eval_predicate = Domain.eval_predicate (Domain.env_pre_f ~pre ()) in
+    let eval_predicate = Domain.evaluate_predicate (pre_env ~pre) pre in
     ActiveBehaviors.create eval_predicate funspec
 
   let create init_state kf =
@@ -279,8 +323,7 @@ module Make
     else if nb <= limit
     then begin (* Can split and maybe reduce *)
       let treat_subpred pred acc =
-        let r = Domain.reduce_by_predicate env true pred in
-        match Domain.env_current_state r with
+        match Domain.reduce_by_predicate env state pred true with
         | `Bottom -> acc
         | `Value current_state ->
           if Domain.equal current_state state then
@@ -296,8 +339,7 @@ module Make
     end
     else if reduce then
       (* Not enough slevel to split, but we should reduce in a global way *)
-      let reduced = Domain.reduce_by_predicate env true pred in
-      match Domain.env_current_state reduced with
+      match Domain.reduce_by_predicate env state pred true with
       | `Bottom -> States.empty
       | `Value s -> States.singleton s
     else (* Not enough slevel to split, and reduction not required *)
@@ -305,7 +347,7 @@ module Make
 
   let eval_split_and_reduce limit active pred build_env state =
     let env = build_env state in
-    let status = Domain.eval_predicate env pred in
+    let status = Domain.evaluate_predicate env state pred in
     let  reduced_states =
       if active then
         match status with
@@ -354,10 +396,10 @@ module Make
   (* [per_behavior] indicates if we are processing each behavior separately.
      If this is the case, then [Unknown] and [True] behaviors are treated
      in the same way. *)
-  let refine_active ab b ~per_behavior =
-    match ActiveBehaviors.is_active ab b with
+  let refine_active ~per_behavior behavior status =
+    match status with
     | Alarmset.True -> Some true
-    | Alarmset.Unknown -> Some (per_behavior || Cil.is_default_behavior b)
+    | Alarmset.Unknown -> Some (per_behavior || Cil.is_default_behavior behavior)
     | Alarmset.False -> None
 
   (* [eval_and_reduce_p_kind kf b active p_kind ips states build_prop build_env]
@@ -421,16 +463,16 @@ module Make
   (** Check the postcondition of [kf] for the list of [behaviors].
       This may result in splitting [post_states] if the postconditions contain
       disjunctions. *)
-  let check_fct_postconditions_of_behaviors kf ab behaviors kind
+  let check_fct_postconditions_of_behaviors kf behaviors is_active kind
       ~per_behavior ~pre_state ~post_states ~result =
     if behaviors = [] then post_states
     else
-      let build_env s = Domain.env_post_f ~post:s ~pre:pre_state ~result () in
+      let build_env s = post_env ~pre:pre_state ~post:s ~result in
       let k = Postcondition (post_kind kf) in
       let check_one_behavior states b =
         let posts = List.filter (fun (x, _) -> x = kind) b.b_post_cond in
         let posts = List.map snd posts in
-        let refine = refine_active ab b per_behavior in
+        let refine = refine_active ~per_behavior b (is_active b) in
         let build_prop p = Property.ip_of_ensures kf Kglobal b (kind, p) in
         eval_and_reduce kf b refine k posts states build_prop build_env
       in
@@ -439,62 +481,82 @@ module Make
   (** Check the postcondition of [kf] for the list [behaviors] and for
       the default behavior, treating them separately if [per_behavior] is [true],
       merging them otherwise. *)
-  let check_fct_postconditions_for_behaviors kf ab behaviors kind
-      ~per_behavior ~pre_state ~post_states ~result =
+  let check_fct_postconditions_for_behaviors kf behaviors status
+      ~pre_state ~post_states ~result =
     let behaviors =
       if List.exists Cil.is_default_behavior behaviors && behaviors <> []
       then behaviors
-      else match Cil.find_default_behavior ab.ActiveBehaviors.funspec with
+      else match Cil.find_default_behavior kf.spec with
         | None -> behaviors
         | Some default -> default :: behaviors
     in
-    check_fct_postconditions_of_behaviors kf ab behaviors kind
-      ~per_behavior ~pre_state ~post_states ~result
+    let is_active _ = status in
+    let kind = Normal in
+    check_fct_postconditions_of_behaviors kf behaviors is_active kind
+      ~per_behavior:true ~pre_state ~post_states ~result
 
   (** Check the postcondition of [kf] for every behavior.
       The postcondition of the global behavior is applied for each behavior,
       to help reduce the final state. *)
   let check_fct_postconditions kf ab kind ~pre_state ~post_states ~result =
     let behaviors = Annotations.behaviors kf in
+    let is_active = ActiveBehaviors.is_active ab in
     let states =
       check_fct_postconditions_of_behaviors
-        kf ab behaviors kind ~per_behavior:false ~pre_state ~post_states ~result
+        kf behaviors is_active kind ~per_behavior:false
+        ~pre_state ~post_states ~result
     in
     if States.is_empty states then `Bottom else `Value states
 
+
+  let check_fct_preconditions_of_behaviors call_ki kf ~per_behavior behaviors
+      is_active states =
+    if behaviors = [] then states
+    else
+      let build_env pre = pre_env ~pre in
+      let k = Precondition in
+      let check_one_behavior states b =
+        let refine = refine_active ~per_behavior b (is_active b) in
+        let build_prop assume = Property.ip_of_assumes kf Kglobal b assume in
+        let states =
+          eval_and_reduce kf b refine Assumes b.b_assumes states build_prop build_env
+        in
+        if refine = None then process_inactive_behavior kf call_ki b;
+        let build_prop = ip_from_precondition kf call_ki b in
+        let states =
+          eval_and_reduce kf b refine k b.b_requires states build_prop build_env
+        in
+        if States.is_empty states
+        then process_inactive_postconds kf [b];
+        states
+      in
+      List.fold_left check_one_behavior states behaviors
 
   (** Check the precondition of [kf] for a given behavior [b].
       This may result in splitting [states] if the precondition contains
       disjunctions. *)
-  let check_fct_preconditions_for_behavior kf ab ~per_behavior call_ki states b =
-    let build_env pre = Domain.env_pre_f ~pre () in
-    let refine = refine_active ab b per_behavior in
-    let k = Precondition in
-    if refine = None then process_inactive_behavior kf call_ki b;
-    let ip = ip_from_precondition kf call_ki b in
-    eval_and_reduce kf b refine k b.b_requires states ip build_env
+  let check_fct_preconditions_for_behaviors call_ki kf behaviors status states =
+    let is_active _ = status in
+    check_fct_preconditions_of_behaviors call_ki kf ~per_behavior:true
+      behaviors is_active states
 
   (*  Check the precondition of [kf]. This may result in splitting [init_state]
       into multiple states if the precondition contains disjunctions. *)
-  let check_fct_preconditions kf ab call_ki init_state =
+  let check_fct_preconditions call_ki kf ab init_state =
     let init_states = States.singleton init_state in
-    let spec = Annotations.funspec kf in
+    let behaviors = Annotations.behaviors kf in
+    let is_active = ActiveBehaviors.is_active ab in
     let states =
-      List.fold_left
-        (check_fct_preconditions_for_behavior ~per_behavior:false kf ab call_ki)
-        init_states spec.spec_behavior
+      check_fct_preconditions_of_behaviors call_ki kf ~per_behavior:false
+        behaviors is_active init_states
     in
     if States.is_empty states then `Bottom else `Value states
 
-
-  (* Applies the given [assumes] clauses of a given behavior [b] to the states
-     passed as argument, in order to reduce them (no status is emitted). *)
-  let reduce_by_assumes_of_behavior kf b states =
-    let build_prop assume = Property.ip_of_assumes kf Kglobal b assume in
-    let build_env pre = Domain.env_pre_f ~pre () in
-    eval_and_reduce_p_kind
-      kf b true Assumes b.b_assumes states build_prop build_env
-
+  let evaluate_assumes_of_behavior state =
+    let pre_env = pre_env ~pre:state in
+    fun behavior ->
+      let assumes = create_conjunction behavior.b_assumes in
+      Domain.evaluate_predicate pre_env state assumes
 
   let code_annotation_text ca =
     match ca.annot_content with
@@ -558,8 +620,8 @@ module Make
         let reduced_states =
           States.fold
             (fun (here: Domain.t) accstateset ->
-               let env = Domain.env_annot ~pre:initial_state ~here () in
-               let res = Domain.eval_predicate env p in
+               let env = here_env ~pre:initial_state ~here in
+               let res = Domain.evaluate_predicate env here p in
                (* if record [holds], emit statuses in the Kernel,
                   and print a message *)
                if record then emit res;
@@ -572,7 +634,7 @@ module Make
                  accstateset
 
                | (Alarmset.Unknown | Alarmset.True), `True ->
-                 let env = Domain.env_annot ~pre:initial_state ~here () in
+                 let env = here_env ~pre:initial_state ~here in
                  (* Reduce by p if it is a disjunction, or if it did not
                     evaluate to True *)
                  let reduce = res = Alarmset.Unknown in

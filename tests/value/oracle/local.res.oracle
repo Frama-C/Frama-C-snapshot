@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/local.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -31,7 +30,8 @@ tests/value/local.i:14:[value] warning: accessing left-value that contains escap
 [value] Done for function g
 tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through U
 tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g through \result<g>
-[value] DUMPING STATE of file tests/value/local.i line 35
+tests/value/local.i:35:[value] Frama_C_dump_each:
+        # Cvalue domain:
         X ∈ ESCAPINGADDR
         Y ∈ ESCAPINGADDR
         Z ∈ ESCAPINGADDR
@@ -39,7 +39,7 @@ tests/value/local.i:34:[value] warning: locals {d} escaping the scope of g throu
         U ∈ ESCAPINGADDR
         V ∈ {0}
         e ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] computing for function h <- main.
         Called from tests/value/local.i:36.
 [value] Recording results for h
@@ -80,8 +80,6 @@ tests/value/local.i:14:[value] assertion 'Value,dangling_pointer' got final stat
 [from] Computing for function i
 [from] Done for function i
 [from] Computing for function main
-[from] Computing for function Frama_C_dump_each <-main
-[from] Done for function Frama_C_dump_each
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:

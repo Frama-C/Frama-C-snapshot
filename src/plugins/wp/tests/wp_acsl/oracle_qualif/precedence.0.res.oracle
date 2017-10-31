@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_acsl/precedence.i (no preprocessing)
 tests/wp_acsl/precedence.i:90:[kernel] warning: unexpected token ';'
 tests/wp_acsl/precedence.i:135:[kernel] warning: Inconsistent relation chain.

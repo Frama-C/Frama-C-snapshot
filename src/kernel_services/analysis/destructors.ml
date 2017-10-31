@@ -109,6 +109,36 @@ class vis flag = object(self)
 
   val blocks = Stack.create ()
 
+  (* We sometimes move labels between statements. This table maps the old
+     statements to the new ones. *)
+  val moved_labels = Cil_datatype.Stmt.Hashtbl.create 17
+
+  (* List of goto statements encountered in a function. If their target label
+     has been moved, they need to be updated afterwards. *)
+  val mutable gotos = []
+
+  (* Updates the goto statements whose target has been changed after the
+     introduction of the vla destructors. No destructor can have been added
+     between a switch statement and its cases, so no need to update switches. *)
+  method! vfunc _fundec =
+    let update_target sref =
+      try
+        let new_target = Cil_datatype.Stmt.Hashtbl.find moved_labels !sref in
+        sref := new_target
+      with Not_found -> ()
+    in
+    let update_goto stmt = match stmt.skind with
+      | Goto (sref, _loc) -> update_target sref
+      | _ -> assert false
+    in
+    let post_goto_updater id =
+      List.iter update_goto gotos;
+      gotos <- [];
+      Cil_datatype.Stmt.Hashtbl.clear moved_labels;
+      id
+    in
+    Cil.DoChildrenPost post_goto_updater
+
   method! vblock b =
     Stack.push b.bstmts blocks;
     let post b =
@@ -142,6 +172,13 @@ class vis flag = object(self)
       if has_destructors then begin
         flag:=true;
         let curr_block = Stack.pop blocks in
+        (* Moves the labels of [s] into the first destructor, as any goto
+           jumping to [s] must also apply the destructors. *)
+        let first_destructor = List.hd stmts in
+        first_destructor.labels <- s.labels;
+        s.labels <- [];
+        (* Retains the move of labels to update later the gotos jumping to s. *)
+        Cil_datatype.Stmt.Hashtbl.add moved_labels s first_destructor;
         let curr_block = insert_destructors stmts s curr_block in
         Stack.push curr_block blocks;
       end;
@@ -194,7 +231,9 @@ class vis flag = object(self)
        of VLA or similar non trivial types (C++). See 6.8.6.1§1 of C11 and
        stmt.dcl§3 of C++11
     *)
-    | Goto _ -> treat_jump_open "goto" s; treat_jump_close s
+    | Goto _ ->
+      gotos <- s :: gotos;
+      treat_jump_open "goto" s; treat_jump_close s
     (* Ensures that there's no VLA declared between the switch and the case
        label. See 6.8.4§2 of C11 and stmt.dcl§3 and footnote 88 of C++11. *)
     | Switch _ -> treat_jump_open "switch" s; Cil.DoChildren

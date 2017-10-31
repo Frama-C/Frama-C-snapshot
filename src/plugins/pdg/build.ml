@@ -706,7 +706,6 @@ let process_call pdg state stmt lvaloption funcexp argl _loc =
   let state_with_args = state in
   let funcexp_dpds, called_functions =
     !Db.Value.expr_to_kernel_function
-       ~with_alarms:CilE.warn_none_mode
       (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
   in
   let mixed_froms =

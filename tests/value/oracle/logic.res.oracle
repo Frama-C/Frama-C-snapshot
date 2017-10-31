@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/logic.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -13,7 +12,7 @@
   v ∈ [--..--]
 [value] computing for function eq_tsets <- main.
         Called from tests/value/logic.c:155.
-tests/value/logic.c:7:[value] cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#2>
+tests/value/logic.c:7:[value] cannot evaluate ACSL term, unsupported ACSL construct: == operation on non-supported type set<_#1>
 tests/value/logic.c:7:[value] warning: assertion got status unknown.
 tests/value/logic.c:9:[value] assertion got status valid.
 tests/value/logic.c:10:[value] warning: assertion got status unknown.
@@ -51,7 +50,7 @@ tests/value/logic.c:47:[value] warning: assertion got status unknown.
 [value] Done for function eq_tsets
 [value] computing for function eq_char <- main.
         Called from tests/value/logic.c:156.
-[value] Called Frama_C_show_each({-126})
+tests/value/logic.c:53:[value] Frama_C_show_each: {-126}
 tests/value/logic.c:54:[value] assertion got status valid.
 tests/value/logic.c:55:[value] assertion got status valid.
 [value] Recording results for eq_char
@@ -85,24 +84,24 @@ tests/value/logic.c:78:[value] warning: assertion got status unknown.
         Called from tests/value/logic.c:160.
 tests/value/logic.c:86:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/logic.c:88:[value] warning: assertion 'UNK' got status unknown.
-[value] Called Frama_C_show_each({-1; 1})
+tests/value/logic.c:89:[value] Frama_C_show_each: {-1; 1}
 tests/value/logic.c:90:[value] warning: assertion 'UNK' got status unknown.
-[value] Called Frama_C_show_each({-1; 1})
+tests/value/logic.c:91:[value] Frama_C_show_each: {-1; 1}
 tests/value/logic.c:93:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/logic.c:94:[value] assertion 'OK' got status valid.
-[value] Called Frama_C_show_each({1})
+tests/value/logic.c:95:[value] Frama_C_show_each: {1}
 tests/value/logic.c:96:[value] assertion 'OK' got status valid.
-[value] Called Frama_C_show_each({1})
+tests/value/logic.c:97:[value] Frama_C_show_each: {1}
 tests/value/logic.c:101:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/logic.c:102:[value] warning: assertion 'UNK' got status unknown.
-[value] Called Frama_C_show_each({0; 1})
+tests/value/logic.c:103:[value] Frama_C_show_each: {0; 1}
 tests/value/logic.c:104:[value] warning: assertion 'UNK' got status unknown.
-[value] Called Frama_C_show_each({0; 1})
+tests/value/logic.c:105:[value] Frama_C_show_each: {0; 1}
 tests/value/logic.c:107:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/logic.c:108:[value] assertion 'OK' got status valid.
-[value] Called Frama_C_show_each({1})
+tests/value/logic.c:109:[value] Frama_C_show_each: {1}
 tests/value/logic.c:110:[value] assertion 'OK' got status valid.
-[value] Called Frama_C_show_each({1})
+tests/value/logic.c:111:[value] Frama_C_show_each: {1}
 [value] Recording results for alarms
 [value] Done for function alarms
 [value] computing for function cond_in_lval <- main.

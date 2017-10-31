@@ -51,11 +51,43 @@ let l_repeat = Lang.(E.({
     coq = F_call "repeat" ;
   }))
 
+(*--- Typechecking ---*)
+
+let a_list = Lang.builtin_type ~library ~name:t_list ~link:l_list
+
+let ty_nil = function _ -> L.Data(a_list,[L.Tvar 0])
+
+let ty_listelt = function
+  | L.Data(_,[t]) -> (t : tau)
+  | _ -> raise Not_found
+
+let ty_cons = function
+  | [ _ ; Some l ] -> l
+  | [ Some e ; _ ] -> L.Data(a_list,[e])
+  | _ -> raise Not_found
+
+let ty_elt = function
+  | [ Some e ] -> L.Data(a_list,[e])
+  | _ -> raise Not_found
+
+let ty_nth = function
+  | Some l :: _ -> ty_listelt l
+  | _ -> raise Not_found
+
+let rec ty_concat = function
+  | Some l :: _ -> l
+  | None :: w -> ty_concat w
+  | [] -> raise Not_found 
+
+let ty_repeat = function
+  | Some l :: _ -> l
+  | _ -> raise Not_found
+
 (*--- Qed Symbols ---*)
 
-let f_cons = Lang.extern_f ~library "cons" (* rewritten in concat(elt) *)
-let f_nil  = Lang.extern_f ~library ~category:L.Constructor "nil"
-let f_elt = Lang.extern_f ~library ~category:L.Constructor ~link:l_elt "elt"
+let f_cons = Lang.extern_f ~library ~typecheck:ty_cons "cons" (* rewriten in concat(elt) *)
+let f_nil  = Lang.extern_f ~library ~typecheck:ty_nil ~category:L.Constructor "nil"
+let f_elt = Lang.extern_f ~library ~category:L.Constructor ~typecheck:ty_elt ~link:l_elt "elt"
 
 let concatenation = L.(Operator {
     invertible = true ;
@@ -66,10 +98,10 @@ let concatenation = L.(Operator {
     absorbant = E_none ;
   })
 
-let f_nth    = Lang.extern_f ~library "nth"
+let f_nth    = Lang.extern_f ~library ~typecheck:ty_nth "nth"
 let f_length = Lang.extern_f ~library ~sort:L.Sint "length"
-let f_concat = Lang.extern_f ~library ~category:concatenation ~link:l_concat "concat"
-let f_repeat = Lang.extern_f ~library "repeat" ~link:l_repeat
+let f_concat = Lang.extern_f ~library ~category:concatenation ~typecheck:ty_concat ~link:l_concat "concat"
+let f_repeat = Lang.extern_f ~library ~typecheck:ty_repeat ~link:l_repeat "repeat" 
 
 (*--- ACSL Builtins ---*)
 
@@ -102,8 +134,8 @@ let rewrite_cons a w = v_concat [v_elt a ; w]
 let rewrite_length e =
   match F.repr e with
   | L.Fun( nil , [] ) when nil == f_nil -> F.e_zero
-  | L.Fun( elt , [_] ) when elt = f_elt -> F.e_one
-  | L.Fun( concat , es ) when concat = f_concat ->
+  | L.Fun( elt , [_] ) when elt == f_elt -> F.e_one
+  | L.Fun( concat , es ) when concat == f_concat ->
       F.e_sum (List.map v_length es)
   | _ -> raise Not_found
 
@@ -136,7 +168,7 @@ let rewrite_repeat s n =
   if F.equal s v_nil then v_nil else
     match F.repr s with
     | L.Fun( repeat , [s0 ; n0] )
-      when (repeat = f_repeat) &&
+      when (repeat == f_repeat) &&
            (Cint.is_positive_or_null n) &&
            (Cint.is_positive_or_null n0) -> v_repeat s0 (F.e_mul n0 n)
     | _ -> raise Not_found
@@ -154,7 +186,7 @@ let rec rightmost ms a =
   | L.Fun( concat , es ) when concat == f_concat ->
       begin match List.rev es with
         | [] -> ms , a
-        | e::es -> rightmost (ms@es) e
+        | e::es -> rightmost (ms @ List.rev es) e
       end
   | L.Fun( repeat , [ u ; n ] ) when repeat == f_repeat && Cint.is_positive_or_null n ->
       rightmost (ms @ [v_repeat u (F.e_sub n F.e_one)]) u
@@ -217,13 +249,13 @@ let f_list = [ f_nil ; f_cons ; f_elt ; f_repeat ; f_concat ]
 
 let check_tau = Lang.is_builtin_type ~name:t_list
 
-let check_term e = match F.repr e with
+let check_term e =
+  try match F.repr e with
   | L.Fvar x -> check_tau (F.tau_of_var x)
   | L.Bvar(_,t) -> check_tau t
-  | L.Fun( f , _ ) ->
-      List.memq f f_list ||
-      (try check_tau (Lang.tau_of_lfun f) with Not_found -> false)
+    | L.Fun( f , _ ) -> List.memq f f_list || check_tau (Lang.F.typeof e)
   | _ -> false
+  with Not_found -> false
 
 (* -------------------------------------------------------------------------- *)
 (* --- Export                                                             --- *)

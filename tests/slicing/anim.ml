@@ -12,8 +12,8 @@
 let add_select_fun_calls kf =
   let selections = Db.Slicing.Select.empty_selects in
   let selections =
-    !Db.Slicing.Select.select_func_calls_into selections ~spare:false kf
-  in !Db.Slicing.Select.iter_selects_internal
+    Slicing.Api.Select.select_func_calls_into selections ~spare:false kf
+  in Slicing.Api.Select.iter_selects_internal
        (fun s -> !Db.Slicing.Request.add_selection_internal s)
        selections
 

@@ -12,6 +12,6 @@ int main()
   // GCC extension. See https://gcc.gnu.org/onlinedocs/gcc/Cast-to-Union.html
   w = (union X) a;
   short b;
-  w = (union X) b;
+  x = (union X) b;
 }
 

@@ -114,11 +114,6 @@ module Cil = struct
   let is_variadic_function vi =
     Typ.is_variadic vi.vtype
 
-  let rec static_string a = match a.enode with
-    | Const (CStr s) -> Some s
-    | CastE (_, e) -> static_string e
-    | _ -> None
-
   let get_fundec_return_type fd = match fd.svar.vtype with
     | TFun(rt, _, _, _) -> rt
     | _ -> Options.Self.fatal "Varinfo of fundec does not have function type."

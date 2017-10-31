@@ -29,21 +29,20 @@
     pointer, and that are not the result of a translation *)
 
 
-(** Sets of source locations *)
-module LocationSetLattice : sig
-  include Lattice_type.Lattice_Set with type O.elt = Cil_types.location
-  val currentloc_singleton : unit -> t
-    val compare:t -> t -> int
+(** Lattice of source locations. *)
+module LocationLattice : sig
+  include Lattice_type.Lattice_Base with type l = Cil_types.location
+  val current_loc : unit -> t
 end
 
 (** List of possible origins. Most of them also include the set of
     source locations where the operation took place. *)
 type origin =
-  | Misalign_read of LocationSetLattice.t (** Read of not all the bits of a
+  | Misalign_read of LocationLattice.t (** Read of not all the bits of a
                                    pointer, typically through a pointer cast *)
-  | Leaf of LocationSetLattice.t (** Result of a function without a body *)
-  | Merge of LocationSetLattice.t (** Join between two control-flows *)
-  | Arith of LocationSetLattice.t (** Arithmetic operation that cannot be
+  | Leaf of LocationLattice.t (** Result of a function without a body *)
+  | Merge of LocationLattice.t (** Join between two control-flows *)
+  | Arith of LocationLattice.t (** Arithmetic operation that cannot be
                                       represented, eg. ['&x * 2'] *)
   | Well (** Imprecise variables of the initial state *)
   | Unknown
@@ -70,6 +69,7 @@ val is_top: t -> bool
 val bottom: t
 
 val join: t -> t -> t
+val link: t -> t -> t
 val meet: t -> t -> t
 val narrow: t -> t -> t
 

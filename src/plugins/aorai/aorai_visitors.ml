@@ -1101,46 +1101,6 @@ object(self)
 
 end
 
-
-
-
-
-(****************************************************************************)
-(**
-  This visitor computes the list of ignored functions.
-  A function is ignored if its call is present in the C program,
-  while its definition is not available.
-*)
-class visit_computing_ignored_functions () =
-  let declaredFunctions = Data_for_aorai.getFunctions_from_c () in
-  let isDeclaredInC fname =
-    List.exists
-      (fun s -> (String.compare fname s)=0)
-      declaredFunctions
-  in
-object (*(self)*)
-
-  inherit Visitor.frama_c_inplace
-
-  method! vfunc _f = DoChildren
-
-  method! vstmt_aux stmt =
-    let add_ignore name =
-      (* If the called function is neither ignored, nor declared,
-         then it has to be added to ignored functions. *)
-      if (not (Data_for_aorai.isIgnoredFunction name))
-      && (not (isDeclaredInC name)) then
-        (Data_for_aorai.addIgnoredFunction name)
-    in
-    match stmt.skind with
-      | Instr(Call (_,funcexp,_,_)) ->
-        add_ignore (get_call_name funcexp); DoChildren
-      | Instr(Local_init (_, ConsInit (f,_,_), _)) ->
-        add_ignore f.vname; DoChildren
-      | _ -> DoChildren
-
-end
-
 let add_pre_post_from_buch file treatloops  =
   let visitor = new visit_adding_pre_post_from_buch treatloops in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file;
@@ -1166,11 +1126,6 @@ let add_pre_post_from_buch file treatloops  =
 
 let add_sync_with_buch file  =
   let visitor = new visit_adding_code_for_synchronisation in
-  Cil.visitCilFile (visitor :> Cil.cilVisitor) file
-
-(* Call of the visitor *)
-let compute_ignored_functions file =
-  let visitor = new visit_computing_ignored_functions () in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file
 
 (*

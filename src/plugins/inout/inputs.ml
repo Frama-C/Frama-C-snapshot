@@ -58,7 +58,6 @@ class virtual do_it_ = object(self)
   method private do_assign lv =
     let deps,_loc =
       !Db.Value.lval_to_loc_with_deps (* loc ignored *)
-        ~with_alarms:CilE.warn_none_mode
         ~deps:Zone.bottom
         self#current_kinstr
         lv
@@ -127,7 +126,6 @@ class virtual do_it_ = object(self)
     | AddrOf lv | StartOf lv ->
         let deps,_loc =
           !Db.Value.lval_to_loc_with_deps (* loc ignored *)
-            ~with_alarms:CilE.warn_none_mode
             ~deps:Zone.bottom
             self#current_kinstr lv
         in
@@ -163,7 +161,7 @@ let get_internal = Analysis.kernel_function
 module Externals =
   Kernel_function.Make_Table(Locations.Zone)
     (struct
-       let name = "External inputs"
+       let name = "Inout.Inputs.Externals"
        let dependencies = [ Analysis.Memo.self ]
        let size = 17
      end)

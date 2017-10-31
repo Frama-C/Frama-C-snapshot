@@ -36,7 +36,8 @@ val acsl_lit : Cil_types.logic_real -> term
 
 val real_of_int : unop
 val float_of_int : c_float -> unop
-val convert : c_float -> unop
+val float_of_real : c_float -> unop
+val real_of_float : c_float -> unop
 val range : c_float -> term -> pred
 
 val fopp : c_float -> unop
@@ -44,6 +45,11 @@ val fadd : c_float -> binop
 val fsub : c_float -> binop
 val fmul : c_float -> binop
 val fdiv : c_float -> binop
+
+val flt : c_float -> cmp
+val fle : c_float -> cmp
+val feq : c_float -> cmp
+val fneq : c_float -> cmp
 
 val f_iabs : lfun
 val f_rabs : lfun

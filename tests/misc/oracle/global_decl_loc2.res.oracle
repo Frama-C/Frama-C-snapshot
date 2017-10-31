@@ -1,0 +1,3 @@
+[kernel] Parsing tests/misc/global_decl_loc2.i (no preprocessing)
+[kernel] Parsing tests/misc/global_decl_loc.i (no preprocessing)
+[kernel] global variable g declared at tests/misc/global_decl_loc.i:4

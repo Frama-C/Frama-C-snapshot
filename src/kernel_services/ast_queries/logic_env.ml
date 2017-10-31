@@ -36,7 +36,7 @@ module Logic_builtin =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Builtin_logic_info)
     (struct
-       let name = "built-in logic functions table"
+       let name = "Logic_env.Logic_builtin"
        let dependencies = []
        let size = 17
      end)
@@ -46,7 +46,7 @@ module Logic_info =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_info)
     (struct
-       let name = "logic functions table"
+       let name = "Logic_env.Logic_info"
        let dependencies = [ Logic_builtin.self ]
        let size = 17
      end)
@@ -55,7 +55,7 @@ module Logic_builtin_used = struct
   include State_builder.Ref
     (Cil_datatype.Logic_info.Set)
     (struct
-      let name = "used built-in logic functions"
+      let name = "Logic_env.Logic_builtin_used"
       let dependencies = [ Logic_builtin.self; Logic_info.self ]
       let default () = Cil_datatype.Logic_info.Set.empty
      end)
@@ -69,7 +69,7 @@ module Logic_type_builtin =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_type_info)
     (struct
-       let name = "built-in logic types table"
+       let name = "Logic_env.Logic_type_builtin"
        let dependencies = []
        let size = 17
      end)
@@ -82,7 +82,7 @@ module Logic_type_info =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_type_info)
     (struct
-       let name = "logic types table"
+       let name = "Logic_env.Logic_type_info"
        let dependencies = [ Logic_type_builtin.self ]
        let size = 17
      end)
@@ -92,7 +92,7 @@ module Logic_ctor_builtin =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_ctor_info)
     (struct
-       let name = "built-in logic constructors table"
+       let name = "Logic_env.Logic_ctor_builtin"
        let dependencies = []
        let size = 17
      end)
@@ -102,7 +102,7 @@ module Logic_ctor_info =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Logic_ctor_info)
     (struct
-       let name = "logic constructors table"
+       let name = "Logic_env.Logic_ctor_info"
        let dependencies = [ Logic_ctor_builtin.self ]
        let size = 17
      end)
@@ -112,7 +112,7 @@ module Lemmas =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Global_annotation)
     (struct
-        let name = "lemmas"
+        let name = "Logic_env.Lemmas"
         let dependencies = []
         let size = 17
      end)
@@ -122,7 +122,7 @@ module Model_info =
     (Datatype.String.Hashtbl)
     (Cil_datatype.Model_info)
     (struct
-      let name = "model fields table"
+      let name = "Logic_env.Model_info"
       let dependencies = []
       let size = 17
      end)
@@ -255,7 +255,7 @@ module Builtins= struct
   module Applied =
     State_builder.False_ref
       (struct
-        let name = "Application of logic built-ins hook"
+        let name = "Logic_env.Builtins.Applied"
         let dependencies = builtin_states
          (* if the built-in states are not kept, hooks must be replayed. *)
        end)

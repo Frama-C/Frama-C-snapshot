@@ -372,15 +372,6 @@ struct
     | _, Bottom -> false
     | Map m1, Map m2 -> is_included_map m1 m2
 
- let join_and_is_included m1 m2 = match (m1,m2) with
-   | _, Top -> (Top, true)
-   | Top, _ -> (Top, false)
-   | Bottom, m2 -> (m2, true)
-   | m1, Bottom -> (m1, false)
-   | Map mm1, Map mm2 ->
-     let m = join_on_map mm1 mm2 in
-     if LBase.equal m mm2 then m2, true else Map m, false
-
  let filter_base f m =
    match m with
    | Top -> Top

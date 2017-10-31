@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+val product_category: Log.category
 
 module Make
     (Value: Abstract_value.S)

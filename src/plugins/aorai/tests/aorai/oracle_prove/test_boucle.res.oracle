@@ -1,8 +1,6 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_boucle.c (with preprocessing)
 tests/aorai/test_boucle.c:16:[kernel] warning: Calling undeclared function call_to_an_undefined_function. Old style K&R code?
 [aorai] Welcome to the Aorai plugin
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_boucle0.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

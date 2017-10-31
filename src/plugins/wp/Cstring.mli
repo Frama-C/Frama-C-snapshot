@@ -32,9 +32,16 @@ type cst =
 
 val pretty : Format.formatter -> cst -> unit
 
-val str_len : cst -> term -> pred
-val str_val : cst -> term (** The array containing all [char] of the constant *)
-val str_id : cst -> int (** Non-zero integer, unique for each different string literal *)
+val str_len : cst -> term -> pred 
+(** Property defining the size of the string in bytes, 
+    with [\0] terminator included. *)
+
+val str_val : cst -> term 
+(** The array containing the [char] of the constant *)
+
+val str_id : cst -> int
+(** Non-zero integer, unique for each different string literal *)
+
 val char_at : cst -> term -> term
 
 val cluster : unit -> Definitions.cluster

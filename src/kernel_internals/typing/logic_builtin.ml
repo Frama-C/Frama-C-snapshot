@@ -164,7 +164,7 @@ let init =
             "\\pointer_comparable", [], [], [("p1", object_ptr);
                                          ("p2", fun_ptr)];
             "\\points_to_valid_string", [], [], ["p", object_ptr];
-            "\\warning", [], [LogicLabel (None, "L")], [("str", string_type)];
+            "\\warning", [], [FormalLabel "L"], [("str", string_type)];
           ];
         (* functions *)
         List.iter

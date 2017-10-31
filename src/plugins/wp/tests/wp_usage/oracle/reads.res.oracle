@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/reads.i (no preprocessing)
 [wp] Running WP plugin...
 tests/wp_usage/reads.i:86:[kernel] warning: No code nor implicit assigns clause for function recursive_usage, generating default assigns from the prototype

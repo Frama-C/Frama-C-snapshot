@@ -42,5 +42,7 @@ val reset_panel : 'a -> unit ;;
 (** register_metrics [metrics_name] [display_function] () adds a selectable
     choice for the metrics [metrics_name] and add a hook calling
     [display_function] whenever this metrics is selected and launched.
+    If [apply] is true, [display_function] is immediately applied. [apply] is
+    false by default.
 *)
-val register_metrics : string -> (GPack.box -> unit) -> unit ;;
+val register_metrics : ?apply:bool -> string -> (GPack.box -> unit) -> unit ;;

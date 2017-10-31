@@ -97,11 +97,11 @@ sig
   (** {3 Application} *)
 
   val call_fun : env -> logic_info
-    -> (logic_label * logic_label) list
+    -> logic_label list
     -> F.term list -> F.term
 
   val call_pred : env -> logic_info
-    -> (logic_label * logic_label) list
+    -> logic_label list
     -> F.term list -> F.pred
 
   (** {3 Logic Variable and ACSL Constants} *)

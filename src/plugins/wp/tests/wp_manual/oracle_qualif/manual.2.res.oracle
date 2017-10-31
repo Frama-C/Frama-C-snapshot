@@ -2,7 +2,7 @@
 [rte] annotating function swap
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-swap                 6      3 (17)     9       100%
+swap                 5      3 (19)     8       100%
 ----------------------------------------------------------
 [report] Computing properties status...
 

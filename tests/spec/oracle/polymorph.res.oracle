@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/polymorph.c (with preprocessing)
 tests/spec/polymorph.c:1:[kernel] warning: parsing obsolete ACSL construct 'logic type declaration'. 'an axiomatic block' should be used instead.
 tests/spec/polymorph.c:4:[kernel] warning: unexpected token 'a'

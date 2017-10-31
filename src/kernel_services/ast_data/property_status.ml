@@ -164,7 +164,7 @@ module Status =
      end)
     (Emitted_status)
     (struct 
-      let name = "Property_status" 
+      let name = "Property_status.Status" 
       let dependencies = [ Ast.self ]
       let kinds = [ Emitter.Property_status ]
       let size = 97
@@ -845,7 +845,7 @@ Check your axiomatics and implicit hypotheses."
       (Property.Hashtbl)
       (D)
       (struct
-	let name = "Consolidated_status"
+	let name = "Property_status.Consolidated_status"
 	let dependencies = [ Status.self ]
 	let size = 97
        end)
@@ -1401,7 +1401,7 @@ module Consolidation_graph = struct
 	 (Datatype.Make
 	    (struct
 	      type t = G.t
-	      let name = "consolidation graph"
+	      let name = "Property_status.Graph_by_property"
 	      let reprs = [ G.empty ]
 	      include Datatype.Serializable_undefined
 	     end))

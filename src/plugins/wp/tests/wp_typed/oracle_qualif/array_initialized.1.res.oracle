@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
 tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
 [wp] Running WP plugin...
@@ -19,6 +18,6 @@ Functions           WP   Alt-Ergo    Total   Success
 main1               -       1 (20)     1       100%
 main2               -       1 (125)    1       100%
 main3                1     -           1       100%
-main_pointer        -       1 (68)     1       100%
+main_pointer        -       1 (65)     1       100%
 simpl               -       1 (16)     1       100%
 ----------------------------------------------------------

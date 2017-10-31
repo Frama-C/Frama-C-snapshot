@@ -40,7 +40,7 @@ let warning ?current = match current with
 let resetdemon = ref []
 let on_reset f = resetdemon := f :: !resetdemon
 let reset () = List.iter (fun f -> f ()) !resetdemon
-let has_dkey k = Datatype.String.Set.mem k (Debug_category.get())
+let has_dkey (k:Log.category) = Datatype.String.Set.mem (k :> string) (Debug_category.get())
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Generation                                                   --- *)
@@ -224,10 +224,26 @@ module ExtEqual =
   end)
 
 let () = Parameter_customize.set_group wp_model
+module Overflows =
+  False(struct
+    let option_name = "-wp-overflows"
+    let help = "Collect hypotheses for absence of overflow and downcast\n\
+                (incompatible with RTE generator plug-in)"
+  end)
+
+let () = Parameter_customize.set_group wp_model
 module Literals =
   False(struct
     let option_name = "-wp-literals"
     let help = "Export content of string literals."
+  end)
+
+let () = Parameter_customize.set_group wp_model
+module Volatile =
+  True(struct
+    let option_name = "-wp-volatile"
+    let help = "Sound modeling of volatile access.\n\
+                Use -wp-no-volatile to ignore volatile attributes."
   end)
 
 (* ------------------------------------------------------------------------ *)
@@ -336,10 +352,31 @@ module Ground =
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
+module Reduce =
+  True(struct
+    let option_name = "-wp-reduce"
+    let help = "Reduce function equalities with precedence to constructors."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
 module Filter =
   True(struct
     let option_name = "-wp-filter"
     let help = "Use variable filtering."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
+module Parasite =
+  True(struct
+    let option_name = "-wp-parasite"
+    let help = "Use singleton-variable filtering."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
+module Prenex =
+  False(struct
+    let option_name = "-wp-prenex"
+    let help = "Normalize nested foralls into prenex-form"
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
@@ -357,6 +394,13 @@ module SimplifyIsCint =
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
+module SimplifyLandMask =
+  True(struct
+    let option_name = "-wp-simplify-land-mask"
+    let help = "Tight logical masks on unsigned integers."
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
 module SimplifyForall =
   False(struct
     let option_name = "-wp-simplify-forall"
@@ -368,14 +412,6 @@ module SimplifyType =
   False(struct
     let option_name = "-wp-simplify-type"
     let help = "Remove all `Type` constraints."
-  end)
-
-let () = Parameter_customize.set_group wp_simplifier
-module QedChecks =
-  String_set(struct
-    let option_name = "-wp-qed-checks"
-    let arg_name = "qed-key,..."
-    let help = "Check internal simplifications."
   end)
 
 let () = Parameter_customize.set_group wp_simplifier
@@ -392,6 +428,14 @@ module BoundForallUnfolding =
     let help = "Instantiate up to <n> forall-integers hypotheses."
     let arg_name="n"
     let default = 1000
+  end)
+
+let () = Parameter_customize.set_group wp_simplifier
+module QedChecks =
+  String_set(struct
+    let option_name = "-wp-qed-checks"
+    let arg_name = "qed-key,..."
+    let help = "Check internal simplifications."
   end)
 
 (* ------------------------------------------------------------------------ *)
@@ -469,6 +513,31 @@ module Timeout =
     let help =
       Printf.sprintf
         "Set the timeout (in seconds) for provers (default: %d)." default
+  end)
+
+let () = Parameter_customize.set_group wp_prover
+module TimeExtra =
+  Int(struct
+    let option_name = "-wp-time-extra"
+    let default = 5
+    let arg_name = "n"
+    let help =
+      Printf.sprintf
+        "Set extra-time (in seconds) for proof replay (default: %d)." default
+  end)
+
+let () = Parameter_customize.set_group wp_prover
+module TimeMargin =
+  Int(struct
+    let option_name = "-wp-time-margin"
+    let default = 2
+    let arg_name = "n"
+    let help =
+      Printf.sprintf
+        "Set margin-time (in seconds) for considering a proof automatic.\n\
+         When using the 'tip' prover, scripts are created or cancelled\n\
+         if the proof time is greater or lower than (timeout - margin).\n\
+         (default: %d)." default
   end)
 
 let () = Parameter_customize.set_group wp_prover
@@ -825,6 +894,7 @@ let base_output () =
               | dir ->
                   make_output_dir dir ; dir in
       base_output := Some output;
+      Filepath.add_symbolic_dir "WPOUT" output ;
       output
   | Some output -> output
 
@@ -862,13 +932,18 @@ let get_includes () =
 
 let cat_print_generated = register_category "print-generated"
 
-let has_print_generated () = has_dkey "print-generated"
+let has_print_generated () = has_dkey cat_print_generated
 
-let print_generated file =
-  debug ~dkey:cat_print_generated
-    "%a@."
-    (fun fmt file ->
-       Command.read_lines file (fun s ->
-           Format.pp_print_string fmt s;
-           Format.pp_print_newline fmt ()))
-    file;
+let print_generated ?header file =
+  let header = match header with
+    | None -> Filepath.pretty file
+    | Some head -> head in
+  debug ~dkey:cat_print_generated "%S@\n%t@." header
+    begin fun fmt ->
+      if not (Sys.file_exists file) then
+        Format.pp_print_string fmt "<missing file>"
+      else
+        Command.read_lines file (fun s ->
+            Format.pp_print_string fmt s;
+            Format.pp_print_newline fmt ())
+    end

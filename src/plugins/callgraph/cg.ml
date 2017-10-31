@@ -75,24 +75,28 @@ let get_pointed_kfs =
   let res = ref None in
   fun () ->
     let compute () =
-      let l = ref [] in
-      let o = object
-        inherit Visitor.frama_c_inplace
-        method !vexpr e = match e.enode with
-        | AddrOf (Var vi, NoOffset) when Cil.isFunctionType vi.vtype ->
+      if Options.Function_pointers.get () then
+        let l = ref [] in
+        let o = object
+          inherit Visitor.frama_c_inplace
+          method !vexpr e = match e.enode with
+          | AddrOf (Var vi, NoOffset) when Cil.isFunctionType vi.vtype ->
           (* function pointer *)
-          let kf =
-            try Globals.Functions.get vi
-            with Not_found -> assert false
-          in
-          l := kf :: !l;
-          Cil.SkipChildren
-        | _ ->
-          Cil.DoChildren
-      end
-      in
-      Visitor.visitFramacFileSameGlobals o (Ast.get ());
-      !l
+            let kf =
+              try Globals.Functions.get vi
+              with Not_found -> assert false
+            in
+            l := kf :: !l;
+            Cil.SkipChildren
+          | _ ->
+            Cil.DoChildren
+        end
+        in
+        Visitor.visitFramacFileSameGlobals o (Ast.get ());
+        !l
+      else
+        (* ignore function pointers when the option is off *)
+        []
     in
     match !res with
     | None ->
@@ -235,6 +239,18 @@ let compute () = ignore (compute ())
 
 module Graphviz_attributes = struct
   include G
+  (* We rewrite [iter_edges_e] so that multiple calls to the same function
+     from the same caller do not give rise to multi-edges. *)
+  let iter_edges_e iter g =
+    let aux_e v =
+      (* This comparison function ignores the statement (as we want to
+         coalesce all call sites together). The first element of the triple
+         is always [v], so it can also be ignored. *)
+      let comp_e (_, _, kf1) (_, _, kf2) = Kf_sorted.compare kf1 kf2 in
+      let uniq_e = List.sort_uniq comp_e (G.succ_e g v) in
+      List.iter iter uniq_e
+    in
+    G.iter_vertex aux_e g
   let graph_attributes _ = [ `Ratio (`Float 0.5) ]
   let vertex_name = Kernel_function.get_name
   let vertex_attributes kf =
@@ -245,9 +261,20 @@ module Graphviz_attributes = struct
   let get_subgraph _ = None
 end
 
+module Subgraph =
+  Subgraph.Make
+    (G)
+    (D)
+    (struct
+      let self = State.self
+      let name = State.name
+      let get = get
+      let vertex kf = kf
+     end)
+
 let dump () =
   let module GV = Graph.Graphviz.Dot(Graphviz_attributes) in
-  let g = get () in
+  let g = Subgraph.get () in
   Options.dump GV.output_graph g
 
 include Journalize.Make
@@ -262,6 +289,6 @@ include Journalize.Make
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

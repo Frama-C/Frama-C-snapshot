@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/logicarr.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -9,15 +8,16 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'PTR' in 'job':
-Let a = shift_A10_sint32(global(G_arr_80), 0).
+Let a = global(G_arr_31).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
-Let a_2 = shift_sint32(a, j).
-Let m = Mint_0[a_1 <- Mint_0[a_2]][a_2 <- x][shift_sint32(a, k) <- x].
+Let a_2 = shift_sint32(a, 0).
+Let a_3 = shift_sint32(a, j).
+Let m = Mint_0[a_1 <- Mint_0[a_3]][a_3 <- x][shift_sint32(a, k) <- x].
 Assume {
-  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\
-      IsArray1_sint32(Array1_int(a, 10, Mint_0)) /\ is_sint32(x) /\
-      IsArray1_sint32(Array1_int(a, 10, m)).
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ is_sint32(x) /\
+      IsArray1_sint32(Array1_int(a_2, 10, Mint_0)) /\
+      IsArray1_sint32(Array1_int(a_2, 10, m)).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= 9).
   (* Pre-condition *)
@@ -25,21 +25,22 @@ Assume {
   (* Pre-condition *)
   Have: (0 <= k) /\ (k <= 9).
 }
-Prove: P_p_pointer(m, Mint_0, a, i, j).
+Prove: P_p_pointer(m, Mint_0, a_2, i, j).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ARR' in 'job':
-Let a = shift_A10_sint32(global(G_arr_80), 0).
-Let m = Array1_int(a, 10, Mint_0).
+Let a = global(G_arr_31).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
-Let a_2 = shift_sint32(a, j).
-Let m_1 = Array1_int(a, 10,
-            Mint_0[a_1 <- Mint_0[a_2]][a_2 <- x][shift_sint32(a, k) <- x]).
+Let a_2 = shift_sint32(a, 0).
+Let m = Array1_int(a_2, 10, Mint_0).
+Let a_3 = shift_sint32(a, j).
+Let m_1 = Array1_int(a_2, 10,
+            Mint_0[a_1 <- Mint_0[a_3]][a_3 <- x][shift_sint32(a, k) <- x]).
 Assume {
-  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ IsArray1_sint32(m) /\
-      is_sint32(x) /\ IsArray1_sint32(m_1).
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ is_sint32(x) /\
+      IsArray1_sint32(m) /\ IsArray1_sint32(m_1).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= 9).
   (* Pre-condition *)
@@ -52,16 +53,16 @@ Prove: P_p_arrays(m, i, m_1, j).
 ------------------------------------------------------------
 
 Goal Post-condition 'DUM' in 'job':
-Let a = shift_A10_sint32(global(G_arr_80), 0).
+Let a = global(G_arr_31).
 Let a_1 = shift_sint32(a, i).
 Let x = Mint_0[a_1].
-Let a_2 = shift_sint32(a, j).
-Let m = Array1_int(a, 10,
-          Mint_0[a_1 <- Mint_0[a_2]][a_2 <- x][shift_sint32(a, k) <- x]).
+Let a_2 = shift_sint32(a, 0).
+Let a_3 = shift_sint32(a, j).
+Let m = Array1_int(a_2, 10,
+          Mint_0[a_1 <- Mint_0[a_3]][a_3 <- x][shift_sint32(a, k) <- x]).
 Assume {
-  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\
-      IsArray1_sint32(Array1_int(a, 10, Mint_0)) /\ is_sint32(x) /\
-      IsArray1_sint32(m).
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(k) /\ is_sint32(x) /\
+      IsArray1_sint32(Array1_int(a_2, 10, Mint_0)) /\ IsArray1_sint32(m).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= 9).
   (* Pre-condition *)

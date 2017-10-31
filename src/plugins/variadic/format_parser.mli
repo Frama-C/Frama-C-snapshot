@@ -30,7 +30,7 @@ val check_f_format : f_format -> f_format
 val check_s_format : s_format -> s_format
 val check_format : format -> format
 
-val parse_f_format : string -> f_format
-val parse_s_format : string -> s_format
-val parse_format : format_kind -> string -> format
+val parse_f_format : Format_string.t -> f_format
+val parse_s_format : Format_string.t -> s_format
+val parse_format : format_kind -> Format_string.t -> format
 

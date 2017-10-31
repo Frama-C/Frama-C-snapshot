@@ -6,10 +6,10 @@
 include LibSelect;;
 
 let main _ =
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   let pretty_pdg fmt kf = !Db.Pdg.pretty fmt (!Db.Pdg.get kf) in
-  let apply_all_actions = !S.Request.apply_all_internal in
-  let print_slice = !S.Slice.pretty in
+  let apply_all_actions = Slicing.Api.Request.apply_all_internal in
+  let print_slice = Slicing.Api.Slice.pretty in
   let print_fct_stmts kf =
     Slicing.PrintSlice.print_fct_stmts fmt kf in
   let get_fct name =
@@ -18,18 +18,18 @@ let main _ =
   in
   let select_stmt_and_print kf num_stmt =
     let stmt = get_stmt num_stmt in
-    let mark = !S.Mark.make ~data:true ~addr:true ~ctrl:true in
-    let select = !S.Select.select_stmt_internal kf stmt mark in
-    let ff = !S.Slice.create kf in
-    !S.Request.add_slice_selection_internal ff select;
-    !S.Request.pretty fmt;
+    let mark = Slicing.Api.Mark.make ~data:true ~addr:true ~ctrl:true in
+    let select = Slicing.Api.Select.select_stmt_internal kf stmt mark in
+    let ff = Slicing.Api.Slice.create kf in
+    Slicing.Api.Request.add_slice_selection_internal ff select;
+    Slicing.Api.Request.pretty fmt;
     apply_all_actions ();
     print_slice fmt ff
   in
   let select_and_print kf select =
-    let ff = !S.Slice.create kf in
-    !S.Request.add_slice_selection_internal ff select;
-    !S.Request.pretty fmt ;
+    let ff = Slicing.Api.Slice.create kf in
+    Slicing.Api.Request.add_slice_selection_internal ff select;
+    Slicing.Api.Request.pretty fmt ;
     apply_all_actions ();
     print_slice fmt ff
   in
@@ -106,6 +106,6 @@ BY 2011-04-14 sid for return_label is 128
 VP 2012-04-09: sid for return_label is 134
 *)
 
-  !S.Project.pretty Format.std_formatter
+  Slicing.Api.Project.pretty Format.std_formatter
 
 let () = Db.Main.extend main

@@ -40,21 +40,6 @@ tests/ptests_config: Makefile.generating share/Makefile.config
 	$(ECHO) "FRAMAC_LIB=./lib/fc" >> $@
 	$(CHMOD_RO) $@
 
-share/Makefile.kernel: Makefile.generating share/Makefile.config share/Makefile.common
-	$(PRINT_MAKING) $@
-	$(RM) $@
-	$(ECHO) "# This makefile was automatically generated." > $@
-	$(ECHO) "# Do not modify." >> $@
-	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES),$(BLINKFLAGS)) $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
-	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_BYTE_LIBS)))" >> $@
-	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS),$(BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(ALL_BATCH_CMO)))" >> $@
-	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES),$(OLINKFLAGS))  $(addprefix -I ,$(filter +%,$(INCLUDES)))" >> $@
-	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(GEN_OPT_LIBS)))" >> $@
-	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS),$(OPT_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_LIBDIR)/,$(notdir $(ALL_BATCH_CMX)))" >> $@
-	$(CHMOD_RO) $@
-
 ALL_LIBRARY_NAMES=$(shell ocamlfind query -r -p-format $(LIBRARY_NAMES) $(LIBRARY_NAMES_GUI))
 
 $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generating configure.in
@@ -72,8 +57,6 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
 	  -e "s|@FRAMAC_GNU_CPP@|$(FRAMAC_GNU_CPP)|" \
           -e "s|@DEFAULT_CPP_KEEP_COMMENTS@|$(DEFAULT_CPP_KEEP_COMMENTS)|" \
           -e "s|@DEFAULT_CPP_SUPPORTED_ARCH_OPTS@|$(DEFAULT_CPP_SUPPORTED_ARCH_OPTS)|" \
-	  -e "s|@STATIC_PLUGINS@|$(STATIC_PLUGINS)|" \
-          -e "s|@STATIC_GUI_PLUGINS@|$(STATIC_GUI_PLUGINS)|" \
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
           -e "s|@LIBRARY_NAMES@|$(foreach p,$(ALL_LIBRARY_NAMES),\"$p\";)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
@@ -152,7 +135,7 @@ src/kernel_internals/runtime/frama_c_config.ml: src/kernel_internals/runtime/con
 
 GENERATED+= src/kernel_internals/runtime/frama_c_config.ml
 
-bin/frama-c-config$(EXE): src/kernel_internals/runtime/frama_c_config.ml
+bin/fc-config$(EXE): src/kernel_internals/runtime/frama_c_config.ml
 ifeq ($(OCAMLBEST),opt)
 	$(OCAMLOPT) str.cmxa $< -o $@
 else

@@ -1,0 +1,4 @@
+[kernel] Parsing tests/misc/function_ptr_alignof.i (no preprocessing)
+tests/misc/function_ptr_alignof.i:10:[kernel] user error: alignof() called on a function.
+[kernel] user error: stopping on file "tests/misc/function_ptr_alignof.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

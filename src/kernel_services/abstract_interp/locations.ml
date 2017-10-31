@@ -56,17 +56,43 @@ module Comp_exact = struct
      a t least cardinal two. *)
 end
 
-module MapLatticeIval =
-  Map_Lattice.Make
-    (Base.Base)(Base.SetLattice)(Ival)(Comp_exact)(Initial_Values)
+
 
 module Location_Bytes = struct
 
-  include MapLatticeIval
+  module M =
+    Hptmap.Make
+      (Base.Base) (Ival) (Comp_exact) (Initial_Values)
+      (struct let l = [ Ast.self ] end)
+  let () = Ast.add_monotonic_state M.self
+  let clear_caches = M.clear_caches
+
+  module MapLattice = struct
+    include Map_lattice.Make_Map_Lattice (Base) (Ival) (M)
+    include With_Cardinality (Ival)
+  end
+
+  module MapSetLattice = struct
+    include Map_lattice.Make_MapSet_Lattice
+        (Base.Base) (Base.SetLattice) (Ival) (MapLattice)
+    include With_Cardinality (MapLattice)
+  end
+
+  include MapSetLattice
     (* Invariant :
        [Top (s, _) must always contain NULL, _and_ at least another base.
        Top ({Null}, _) is replaced by Top_int]. See inject_top_origin_internal
        below. *)
+
+  let find_or_bottom = MapLattice.find_or_bottom
+  let is_bottom = equal bottom
+
+  let filter_base = filter_keys
+  let fold_bases = fold_keys
+  let fold_i f t acc = match t with
+    | Top _ -> raise Error_Top
+    | Map m -> MapLattice.fold f m acc
+  let fold_topset_ok = fold
 
   let inject_ival i = inject Base.null i
 
@@ -88,21 +114,15 @@ module Location_Bytes = struct
 
   (* [shift offset l] is the location [l] shifted by [offset] *)
   let shift offset l =
-    if Ival.is_bottom offset then bottom else
-    try
-      map_offsets (Ival.add_int offset) l
-    with Error_Top -> l
+    if Ival.is_bottom offset then bottom
+    else map (Ival.add_int offset) l
 
   (* [shift_under offset l] is the location [l] (an
      under-approximation) shifted by [offset] (another
      under-approximation); returns an underapproximation. *)
   let shift_under offset l =
-    if Ival.is_bottom offset then bottom else
-    try
-      map_offsets (Ival.add_int_under offset) l
-    (* Note: having an under-approximation at top is probably
-       wrong. *)
-    with Error_Top -> assert false
+    if Ival.is_bottom offset then bottom
+    else map (Ival.add_int_under offset) l
 
   let sub_pointwise ?factor l1 l2 =
     let factor = match factor with
@@ -155,15 +175,15 @@ module Location_Bytes = struct
      the creation order (except it is reversed), while the set is used to test
      inclusion efficiently so far. Only "original" garbled mix are tracked,
      i.e. operations that _transform a garbled mix are not tracked. *)
-  module ListGarbledMix = State_builder.List_ref(MapLatticeIval)
+  module ListGarbledMix = State_builder.List_ref(MapSetLattice)
       (struct
         let name = "Locations.ListGarbledMix"
-        let dependencies = [MapLatticeIval.M.self]
+        let dependencies = [M.self]
       end)
-  module SetGarbledMix = State_builder.Set_ref(MapLatticeIval.Set)
+  module SetGarbledMix = State_builder.Set_ref(MapSetLattice.Set)
       (struct
         let name = "Locations.SetGarbledMix"
-        let dependencies = [MapLatticeIval.M.self]
+        let dependencies = [M.self]
       end)
 
   let get_garbled_mix () = List.rev (ListGarbledMix.get ())
@@ -191,7 +211,7 @@ module Location_Bytes = struct
   let track_garbled_mix gm =
     if !ref_track_garbled_mix && is_gm_to_log gm && not (SetGarbledMix.mem gm)
     then begin
-      SetGarbledMix.set (MapLatticeIval.Set.add gm (SetGarbledMix.get ()));
+      SetGarbledMix.set (MapSetLattice.Set.add gm (SetGarbledMix.get ()));
       ListGarbledMix.set (gm :: ListGarbledMix.get ());
     end;
     gm
@@ -227,20 +247,21 @@ module Location_Bytes = struct
  let topify_with_origin o v =
    match v with
    | Top (s,a) ->
-       Top (s, Origin.join a o)
+     Top (s, Origin.join a o)
    | v when is_zero v -> v
-   | Map m ->
-       if is_bottom v then v
-       else inject_top_origin o (get_bases m)
+   | Map _ ->
+     if equal v bottom then v
+     else
+       match get_keys v with
+       | Base.SetLattice.Top -> top_with_origin o
+       | Base.SetLattice.Set b ->
+         track_garbled_mix (inject_top_origin_internal o b)
 
  let topify_with_origin_kind ok v =
    let o = Origin.current ok in
    topify_with_origin o v
 
- let get_bases m =
-   match m with
-   | Top(top_param,_) -> top_param
-   | Map m -> Base.SetLattice.inject (get_bases m)
+ let get_bases = get_keys
 
  let is_relationable m =
    try
@@ -396,7 +417,12 @@ module Location_Bytes = struct
        in
        map_partially_overlaps m1 m2
 
-   let widen (size, wh) =
+
+  type size_widen_hint = Ival.size_widen_hint
+  type generic_widen_hint = Base.t -> Ival.generic_widen_hint
+  type widen_hint = size_widen_hint * generic_widen_hint
+
+  let widen (size, wh) =
     let widen_map =
       let decide k v1 v2 =
         (* Do not perform size-based widening for pointers. This will only
@@ -411,10 +437,9 @@ module Location_Bytes = struct
     in
     fun m1 m2 ->
       match m1, m2 with
-        | _ , Top _ -> m2
-        | Top _, _ -> assert false (* m2 should be larger than m1 *)
-        | Map m1, Map m2 ->
-            Map (widen_map m1 m2)
+      | _ , Top _ -> m2
+      | Top _, _ -> assert false (* m2 should be larger than m1 *)
+      | Map m1, Map m2 -> Map (widen_map m1 m2)
 
 end
 
@@ -424,12 +449,30 @@ module Zone = struct
 
   module Initial_Values = struct let v = [  ] end
 
-  include Map_Lattice.Make_without_cardinal
-  (Base.Base)
-  (Base.SetLattice)
-  (Int_Intervals)
-  (Hptmap.Comp_unused)
-  (Initial_Values)
+  module M =
+    Hptmap.Make
+      (Base.Base) (Int_Intervals) (Hptmap.Comp_unused) (Initial_Values)
+      (struct let l = [ Ast.self ] end)
+  let () = Ast.add_monotonic_state M.self
+  let clear_caches = M.clear_caches
+
+  module MapLattice =
+    Map_lattice.Make_Map_Lattice (Base) (Int_Intervals) (M)
+
+  type map_t = MapLattice.t
+  let find_or_bottom = MapLattice.find_or_bottom
+
+  include Map_lattice.Make_MapSet_Lattice
+      (Base.Base) (Base.SetLattice) (Int_Intervals) (MapLattice)
+
+  let is_bottom = equal bottom
+
+  let filter_base = filter_keys
+  let fold_bases = fold_keys
+  let fold_i f t acc = match t with
+    | Top _ -> raise Error_Top
+    | Map m -> MapLattice.fold f m acc
+  let fold_topset_ok = fold
 
   let pretty fmt m =
     match m with
@@ -497,7 +540,8 @@ exception Found_two
 
 (* Reduce [offsets] so that reading [size] from [offsets] fits within
    the validity of [base]. If [aligned] is set to true, make the offset
-   congruent to 0 modulo 8. *)
+   congruent to 0 modulo 8.
+   Maintain synchronized with Precise_locs.reduce_offset_by_validity. *)
 let reduce_offset_by_validity ~for_writing ?(bitfield=true) base offsets size =
   if for_writing && Base.is_read_only base then
     Ival.bottom
@@ -509,7 +553,10 @@ let reduce_offset_by_validity ~for_writing ?(bitfield=true) base offsets size =
       | _, Int_Base.Top -> offsets
       | (Base.Known (minv,maxv) | Base.Unknown (minv,_,maxv)),
         Int_Base.Value size ->
-          let maxv = Int.succ (Int.sub maxv size) in
+          (* The maximum offset is maxv - (size - 1), except if size = 0,
+             in which case the maximum offset is exactly maxv. *)
+          let pred_size = Int.max Int.zero (Int.pred size) in
+          let maxv = Int.sub maxv pred_size in
           let range =
             if bitfield
             then Ival.inject_range (Some minv) (Some maxv)
@@ -517,7 +564,8 @@ let reduce_offset_by_validity ~for_writing ?(bitfield=true) base offsets size =
           in
           Ival.narrow range offsets
       | Base.Variable variable_v, Int_Base.Value size ->
-          let maxv = Int.succ (Int.sub variable_v.Base.max_alloc size) in
+          let pred_size = Int.max Int.zero (Int.pred size) in
+          let maxv = Int.sub variable_v.Base.max_alloc pred_size in
           let range =
             Ival.inject_range (Some Int.zero) (Some maxv)
           in
@@ -553,30 +601,17 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
           true
         end
     with
-      | Int_Base.Error_Top | Found_two -> false
+      | Abstract_interp.Error_Top | Found_two -> false
 
 
 let loc_bytes_to_loc_bits x =
-  match x with
-    | Location_Bytes.Map _ ->
-        Location_Bytes.map_offsets
-          (Ival.scale (Bit_utils.sizeofchar()))
-          x
-    | Location_Bytes.Top _ -> x
+  Location_Bytes.map (Ival.scale (Bit_utils.sizeofchar())) x
 
 let loc_bits_to_loc_bytes x =
-    match x with
-      | Location_Bits.Map _ ->
-          Location_Bits.map_offsets
-            (Ival.scale_div ~pos:true (Bit_utils.sizeofchar())) x
-      | Location_Bits.Top _ -> x
+  Location_Bits.map (Ival.scale_div ~pos:true (Bit_utils.sizeofchar())) x
 
 let loc_bits_to_loc_bytes_under x =
-    match x with
-      | Location_Bits.Map _ ->
-          Location_Bits.map_offsets
-            (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar())) x
-      | Location_Bits.Top _ -> x
+  Location_Bits.map (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar())) x
 
 
 let loc_to_loc_without_size {loc = loc} = loc_bits_to_loc_bytes loc
@@ -585,16 +620,13 @@ let loc_size { size = size } = size
 let make_loc loc_bits size = { loc = loc_bits; size = size }
 
 let is_valid ~for_writing {loc; size} =
-  try
-    let size = Int_Base.project size in
+  match size with
+  | Int_Base.Top -> false
+  | Int_Base.Value size ->
     let is_valid_offset b o = Base.is_valid_offset ~for_writing size b o in
     match loc with
-      | Location_Bits.Top _ -> false
-      | Location_Bits.Map m ->
-          Location_Bits.M.iter is_valid_offset m;
-          true
-  with
-  | Int_Base.Error_Top | Base.Not_valid_offset -> false
+    | Location_Bits.Top _ -> false
+    | Location_Bits.Map m -> Location_Bits.M.for_all is_valid_offset m
 
 
 let filter_base f loc =
@@ -626,7 +658,7 @@ let loc_of_typoffset b typ offset =
     make_loc (Location_Bits.inject b Ival.top) Int_Base.top
 
 let loc_bottom = make_loc Location_Bits.bottom Int_Base.top
-let is_bottom_loc l = Location_Bits.is_bottom l.loc
+let is_bottom_loc l = Location_Bits.(equal l.loc bottom)
 
 let cardinal_zero_or_one { loc = loc ; size = size } =
   Location_Bits.cardinal_zero_or_one loc &&
@@ -659,7 +691,7 @@ let pretty_english ~prefix fmt { loc = m ; size = size } =
       Format.fprintf fmt "somewhere in %a (origin:%a)"
         Base.SetLattice.pretty s
         Origin.pretty a
-  | Location_Bits.Map _ when Location_Bits.is_bottom m ->
+  | Location_Bits.Map _ when Location_Bits.(equal m bottom) ->
       Format.fprintf fmt "nowhere"
   | Location_Bits.Map off ->
       let print_binding fmt (k, v) =
@@ -733,8 +765,8 @@ let valid_part ~for_writing ?(bitfield=true) {loc = loc; size = size } =
       | Location_Bits.Top (Base.SetLattice.Set _, _) ->
           Location_Bits.(Map (fold_topset_ok compute_loc loc M.empty))
       | Location_Bits.Map m ->
-          Location_Bits.inject_map
-            (Location_Bits.M.fold compute_loc m Location_Bits.M.empty)
+        Location_Bits.Map
+          (Location_Bits.M.fold compute_loc m Location_Bits.M.empty)
   in
   make_loc locbits size
 
@@ -762,32 +794,6 @@ let zone_of_varinfo var = enumerate_bits (loc_of_varinfo var)
 (** [invalid_part l] is an over-approximation of the invalid part
    of the location [l] *)
 let invalid_part l = l (* TODO (but rarely useful) *)
-
-
-let filter_loc ({loc = loc; size = size } as initial) zone =
-  try
-    let result = Location_Bits.fold_i
-      (fun base ival acc ->
-         let result_ival =
-           match zone,size with
-           | Zone.Top _, _ | _, Int_Base.Top -> ival
-           | Zone.Map zone_m,Int_Base.Value size ->
-               Int_Intervals.fold
-                 (fun (bi,ei) acc ->
-                    let width = Int.length bi ei in
-                    if Int.lt width size
-                    then acc
-                    else
-                      Ival.inject_range (Some bi) (Some (Int.length size ei)))
-                 (Zone.find_or_bottom base zone_m)
-                 Ival.bottom
-         in
-         Location_Bits.join acc (Location_Bits.inject base result_ival))
-      loc
-      Location_Bits.bottom
-    in
-    make_loc result size
-  with Location_Bits.Error_Top -> initial
 
 module Location =
   Datatype.Make

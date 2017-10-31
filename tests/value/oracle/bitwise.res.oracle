@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/bitwise.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -20,23 +19,24 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [value] Done for function main_bug1
 [value] computing for function main_bug2 <- main.
         Called from tests/value/bitwise.i:67.
-[value] Called Frama_C_show_each_then()
-[value] Called Frama_C_show_each_else()
+tests/value/bitwise.i:40:[value] Frama_C_show_each_then:
+tests/value/bitwise.i:40:[value] Frama_C_show_each_else:
 [value] Recording results for main_bug2
 [value] Done for function main_bug2
 [value] computing for function main_bug3 <- main.
         Called from tests/value/bitwise.i:68.
-[value] DUMPING STATE of file tests/value/bitwise.i line 47
+tests/value/bitwise.i:47:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         l_1180 ∈ {69166447}
         foo ∈ {4225800849}
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main_bug3
 [value] Done for function main_bug3
 [value] computing for function main_bug4 <- main.
         Called from tests/value/bitwise.i:69.
-[value] Called Frama_C_show_each_then()
-[value] Called Frama_C_show_each_else()
+tests/value/bitwise.i:57:[value] Frama_C_show_each_then:
+tests/value/bitwise.i:59:[value] Frama_C_show_each_else:
 [value] Recording results for main_bug4
 [value] Done for function main_bug4
 [value] Recording results for main
@@ -76,8 +76,6 @@ tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
 [from] Computing for function main_bug2
 [from] Done for function main_bug2
 [from] Computing for function main_bug3
-[from] Computing for function Frama_C_dump_each <-main_bug3
-[from] Done for function Frama_C_dump_each
 [from] Done for function main_bug3
 [from] Computing for function main_bug4
 [from] Done for function main_bug4

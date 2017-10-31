@@ -39,7 +39,7 @@ let pretty fmt = function
 
 (* Returns (alarm, reduced_ival)] *)
 let trim_by_validity ?(origin=Origin.Unknown) ival size validity =
-  let pred_size = Int.pred size in
+  let pred_size = Int.max Int.zero (Int.pred size) in
   (* reduce [ival] so that all accesses fit within [min_valid] and
      [max_maybe_valid]; uses [opt_max_sure_valid] to generate alarms *)
   let reduce_for_bounds min_valid opt_max_sure_valid max_maybe_valid =

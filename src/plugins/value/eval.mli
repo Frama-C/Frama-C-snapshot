@@ -37,6 +37,8 @@ include module type of Bottom.Type
     is managed separately. *)
 type 'a or_top    = [ `Value of 'a | `Top ]
 
+type 'a or_top_or_bottom = [ `Value of 'a | `Top | `Bottom ]
+
 
 (* -------------------------------------------------------------------------- *)
 (**                    {2 Types for the evaluations }                         *)
@@ -74,7 +76,6 @@ type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
     expressions needed to create the appropriate alarms. *)
 type unop_context = {
   operand: exp;
-  result: exp;
 }
 
 (** Context for the evaluation of a binary operator: contains the expressions
@@ -84,7 +85,6 @@ type binop_context = {
   left_operand: exp;
   right_operand: exp;
   binary_result: exp;
-  result_typ: typ;
 }
 
 
@@ -133,6 +133,19 @@ type 'a flagged_value = {
   initialized: bool;
   escaping: bool;
 }
+
+module Flagged_Value : sig
+  val bottom: 'a flagged_value
+  val equal:
+    ('a -> 'a -> bool) ->
+    'a flagged_value -> 'a flagged_value -> bool
+  val join:
+    ('a -> 'a -> 'a) ->
+    'a flagged_value -> 'a flagged_value -> 'a flagged_value
+  val pretty:
+    (Format.formatter -> 'a -> unit) ->
+    Format.formatter -> 'a flagged_value -> unit
+end
 
 (** Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
@@ -219,25 +232,12 @@ type 'value call = {
   recursive: bool;
 }
 
-(** Initialization of a dataflow analysis, by defining the initial value of
-    each statement. *)
-type 't init =
-  | Default
-  (** The entry point is initialized to top, and all the others to bottom. *)
-  | Continue of 't
-  (** The entry point is initialized to the current value,
-      and all the others to bottom. *)
-  | Custom of (stmt * 't) list
-  (** Custom association list for the initial values of statements. Other
-      statements are initialized to bottom. *)
-
 (** Action to perform on a call site. *)
 type 'state call_action =
-  | Compute of 'state init * bool
-  (** Analyze the called function with the given initialization. If the summary
-      of a previous analysis for this initialization has been cached, it will
-      be used without re-computation.
-      The second boolean indicates whether the result must be cached. *)
+  | Compute of 'state
+  (** Analyze the called function, starting with the given state at the
+      entry-point. If the summary of a previous analysis for this initialization
+      has been cached, it will be used without re-computation. *)
   | Result  of 'state list or_bottom * Value_types.cacheable
   (** Direct computation of the result. *)
 

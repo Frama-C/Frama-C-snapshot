@@ -32,14 +32,14 @@ module Build = Va_build
 let params_types params =
   List.map (fun (_,typ,_) -> typ) params
 
-let pp_prototype name f tparams =
-  Format.fprintf f "%s(%a)"
+let pp_prototype name fmt tparams =
+  Format.fprintf fmt "%s(%a)"
     name
     (Pretty_utils.pp_list ~sep:", " Printer.pp_typ) tparams
 
-let pp_overload name f l =
+let pp_overload name fmt l =
   let prototypes = List.map fst l in
-  Pretty_utils.pp_list ~sep:"@\n" (pp_prototype name) f prototypes
+  Pretty_utils.pp_list ~sep:"@\n" (pp_prototype name) fmt prototypes
 
 
 let new_globals : (global list) ref = ref []
@@ -51,6 +51,27 @@ let new_globals : (global list) ref = ref []
 
 exception Translate_call_exn
 
+(* Extended integer types (e.g. int8_t, uint_least16_t, int_fast32_t)
+   do not have their own character modifiers, but instead use macros that are
+   converted into "standard" modifiers (e.g. "%hhd", "%hu", "%d", etc.).
+   Therefore, we cannot enforce their types the same way as for e.g. size_t,
+   which has its own modifier. We weaken the check, allowing a different name
+   but still requiring same size and signedness. *)
+let extended_integer_typenames =
+  ["int8_t"; "uint8_t"; "int_least8_t"; "uint_least8_t";
+   "int_fast8_t"; "uint_fast8_t";
+   "int16_t"; "uint16_t"; "int_least16_t"; "uint_least16_t";
+   "int_fast16_t"; "uint_fast16_t";
+   "int32_t"; "uint32_t"; "int_least32_t"; "uint_least32_t";
+   "int_fast32_t"; "uint_fast32_t";
+   "int64_t"; "uint64_t"; "int_least64_t"; "uint_least64_t";
+   "int_fast64_t"; "uint_fast64_t"]
+
+let is_extended_integer_type t =
+  match t with
+  | TNamed (ti, _) -> List.mem ti.tname extended_integer_typenames
+  | _ -> false
+
 let can_cast given expected =
   let integral_rep ikind =
     Cil.bitsSizeOfInt ikind, Cil.isSigned ikind
@@ -58,12 +79,14 @@ let can_cast given expected =
     Cil.type_remove_attributes_for_c_cast (Cil.unrollType t)
   in
   match expose given, expose expected with
-  | (TInt (i1,a1) | TEnum({ekind=i1},a1)), 
-    (TInt (i2,a2) | TEnum({ekind=i2},a2)) when not (Strict.get ()) ->
-      integral_rep i1 = integral_rep i2 &&
-      Cil_datatype.Attributes.equal a1 a2
+  | (TInt (i1,a1) | TEnum({ekind=i1},a1)),
+    (TInt (i2,a2) | TEnum({ekind=i2},a2))
+    when not (Strict.get ()) || is_extended_integer_type given ->
+    integral_rep i1 = integral_rep i2 &&
+    Cil_datatype.Attributes.equal a1 a2
   | TPtr _, TPtr _ -> true
-  | _,_ -> Cil_datatype.Typ.equal given expected
+  | exposed_given, exposed_expected ->
+    Cil_datatype.Typ.equal exposed_given exposed_expected
 
 
 (* cast the i-th argument exp to paramtyp *)
@@ -185,29 +208,24 @@ let rec check_arg_matching given expected =
 
 let rec check_call_matching tparams targs =
   match tparams, targs with
-  (* No more args needed -> always valid *)
-  | [], _ -> true
+  | [], [] -> true
+  | [], _
+  (* too many args: this is allowed by the standard (the extra arguments
+     are ignored), but in practice this leads to disambiguation issues in
+     some cases (e.g. last argument is 0 instead of NULL), so we prefer to
+     be strict *)
   (* Not enough input args *)
   | _, [] -> false
   | a1 :: l1, a2 :: l2 ->
-      check_arg_matching a1 a2 && 
-      check_call_matching l1 l2
+    check_arg_matching a1 a2 &&
+    check_call_matching l1 l2
 
 
 let filter_matching_prototypes overload args =
   (* Find suitable candidates for this call *)
   let targs = List.map Cil.typeOf args in
-  let check (tparams, vi) =
-    if check_call_matching tparams targs then
-      Some ((tparams, vi), List.length tparams)
-    else
-      None
-  in
-  let candidates = List.filter_map check overload in
-  (* Keep only best candidates (those with most parameters) *)
-  let max_params = List.fold_left (fun i (_,j) -> max i j) 0 candidates in
-  let candidates = List.filter (fun (_,i) -> i = max_params) candidates in
-  List.map fst candidates
+  let check (tparams, _vi) = check_call_matching tparams targs in
+  List.filter check overload
 
 
 let overloaded_call ~fundec overload block loc mk_call vf args =
@@ -218,11 +236,13 @@ let overloaded_call ~fundec overload block loc mk_call vf args =
     match filter_matching_prototypes overload args with
     | [] -> (* No matching prototype *)
         Self.warning ~current:true
-          "No matching prototype found for this call to %s. \
-           Candidates were: \
-           %a"
-          name
-          (pp_overload name) overload;
+          "@[No matching prototype found for this call to %s.@.\
+           Expected candidates:@.\
+           @[<v>       %a@]@.\
+           Given arguments:@.\
+           @[<v>       %a@]"
+          name (pp_overload name) overload
+          (pp_prototype name) (List.map Cil.typeOf args);
         raise Translate_call_exn;
     | [(tparams,vi)] -> (* Exactly one matching prototype *)
         tparams, vi
@@ -248,6 +268,12 @@ let overloaded_call ~fundec overload block loc mk_call vf args =
 (* ************************************************************************ *)
 
 (* --- Specification building --- *)
+
+let rec static_string a = match a.enode with
+  | Const (CStr s) -> Some (Format_string.String s)
+  | Const (CWStr s) -> Some (Format_string.WString s)
+  | CastE (_, e) -> static_string e
+  | _ -> None
 
 let find_global env name =
   try
@@ -279,22 +305,36 @@ let find_field env structname fieldname =
       structname fieldname;
     None
 
+let find_predicate_by_width typ narrow_name wide_name =
+  match Cil.unrollTypeDeep typ with
+  | TPtr (TInt(IChar, _), _) -> find_predicate narrow_name
+  | TPtr (t, _) when
+      (* drop attributes to remove 'const' qualifiers and fc_stdlib attributes *)
+      Cil_datatype.Typ.equal
+        (Cil.typeDeepDropAllAttributes (Cil.unrollTypeDeep t))
+        Cil.theMachine.Cil.wcharType ->
+    find_predicate wide_name
+  | _ ->
+    Self.warning ~current:true
+      "expected single/wide character pointer type, got %a (%a, unrolled %a)"
+      Printer.pp_typ typ Cil_types_debug.pp_typ typ Cil_types_debug.pp_typ (Cil.unrollTypeDeep typ);
+    None
+
 let build_fun_spec env loc vf format_fun tvparams formals =
   let open Format_types in
   let _ = () in
   let fixed_params_count = Typ.params_count vf.vf_original_type in
   let sformals, vformals = List.break fixed_params_count formals in
+  let here = Logic_const.here_label in
 
   (* Spec *)
   let sources = ref []
   and dests = ref []
   and requires = ref []
   and ensures = ref [] in
-  let elval lval =
-    Build.logic_elval ~loc lval in
   let iterm lval =
-    Logic_const.new_identified_term (elval lval)
-  and insert x t = 
+    Logic_const.new_identified_term (Build.tlval ~loc lval)
+  and insert x t =
     t := x :: !t
   in
   let insert_source ?(indirect=false) lval =
@@ -316,45 +356,57 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   let add_lval ~indirect (lval,dir) =
     (* Add the lval to the list of sources/dests *)
     begin match dir with
-    | (`ArgIn | `ArgInArray) -> insert_source ~indirect lval
+    | (`ArgIn | `ArgInArray _) -> insert_source ~indirect lval
     | (`ArgOut | `ArgOutArray) -> insert_dest lval
     | `ArgInOut -> insert_source ~indirect lval; insert_dest lval
     end
-  in 
-  let add_var (vi,dir) =
+  in
+  let add_var ?pos (vi,dir) =
     (* Use the appropriate logical lval *)
     let lval = match dir with
-    | `ArgIn -> Build.logic_var vi
-    | (`ArgInArray | `ArgOutArray) -> Build.logic_varrange ~loc vi
-    | (`ArgOut | `ArgInOut) -> Build.logic_varmem ~loc vi
+    | `ArgIn -> Build.lvar vi
+    | (`ArgInArray _ | `ArgOutArray) -> Build.trange_from_vi ~loc vi
+    | (`ArgOut | `ArgInOut) -> Build.tvarmem ~loc vi
     in
     (* Build requires/ensures *)
-    let term = elval (Build.logic_var vi)
-    and here = Logic_const.here_label in
+    let term = Build.tvar ~loc vi in
     begin match dir with
-    | `ArgInArray ->
-        let pred = match Cil.unrollTypeDeep vi.vtype with
-          | TPtr (TInt(IChar, _), _) ->
-              find_predicate "valid_read_string"
-          | TPtr (typ, _) when typ = Cil.theMachine.Cil.wcharType ->
-              find_predicate "valid_wstring"
-          | _ -> None
+      | `ArgInArray None ->
+        let pred =
+          find_predicate_by_width vi.vtype "valid_read_string" "valid_read_wstring"
         in
         begin match pred with
-        | Some logic_info ->
-            let labels =
-              List.map (fun l -> l,Logic_const.here_label) logic_info.l_labels
-            in
+          | Some logic_info ->
+            let labels = List.map (fun _ -> here) logic_info.l_labels in
             let p = Logic_const.papp ~loc (logic_info, labels, [term]) in
             insert_require p
-        | None -> ()
+          | None -> ()
         end
 
-    | `ArgOut ->
+      | `ArgInArray (Some precision) ->
+        assert (pos <> None);
+        let pred =
+          find_predicate_by_width vi.vtype "valid_read_nstring" "valid_read_nwstring"
+        in
+        begin match pred with
+          | Some logic_info ->
+            let labels = List.map (fun _ -> here) logic_info.l_labels in
+            let nterm = match precision with
+              | PStar ->
+                let n_vi = List.nth vformals (Extlib.the pos) in
+                Logic_utils.numeric_coerce Linteger (Build.tvar ~loc n_vi)
+              | PInt n -> Cil.lconstant ~loc (Integer.of_int n)
+            in
+            let p = Logic_const.papp ~loc (logic_info, labels, [term; nterm]) in
+            insert_require p
+          | None -> ()
+        end
+
+      | `ArgOut ->
         insert_require (Logic_const.pvalid ~loc (here,term));
         insert_ensure (Logic_const.pinitialized ~loc (here,term))
 
-    | _ -> ()
+      | _ -> ()
     end;
     (* Cil.hasAttribute "const" *)
     add_lval (lval,dir)
@@ -363,12 +415,12 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   (* Build variadic parameter source/dest list *)
   let dirs = List.map snd tvparams in
   let l = List.combine vformals dirs in
-  List.iter (add_var ~indirect:false) l;
+  let pos = ref (-1) in
+  List.iter (incr pos; add_var ~indirect:false ~pos:!pos) l;
 
   (* Add format source and additional parameters *)
-  add_var ~indirect:true (List.nth sformals format_fun.f_format_pos, `ArgInArray);
-  List.iter (fun p -> add_var ~indirect:true (List.nth sformals p, `ArgIn))
-    format_fun.f_additional_args;
+  let fmt_vi = List.nth sformals format_fun.f_format_pos in
+  add_var ~indirect:true (fmt_vi, `ArgInArray None);
 
   (* Add buffer source/dest *)
   let add_stream vi =
@@ -376,17 +428,52 @@ let build_fun_spec env loc vf format_fun tvparams formals =
          \from stream->__fc_FILE_data, __fc_FILE_id *)
     begin match find_field env "__fc_FILE" "__fc_FILE_data" with
     | Some fieldinfo ->
-        let varfield = Build.logic_varfield ~loc vi fieldinfo in
+        let varfield = Build.tvarfield ~loc vi fieldinfo in
         add_lval ~indirect:false (varfield, `ArgInOut)
     | None ->
         add_var ~indirect:false (vi, `ArgInOut)
     end;
     begin match find_field env "__fc_FILE" "__fc_FILE_id" with
     | Some fieldinfo ->
-        let varfield = Build.logic_varfield ~loc vi fieldinfo in
+        let varfield = Build.tvarfield ~loc vi fieldinfo in
         add_lval ~indirect:true (varfield, `ArgIn)
     | None -> ()
     end
+  in
+
+  (* Add a bounded buffer *)
+  let add_buffer vi_buffer vi_size =
+    add_var ~indirect:true (vi_size, `ArgIn);
+    (* this is an snprintf-like function; compute and add its precondition:
+       \valid(s + (0..n-1)) || \valid(s + (0..format_length(format)-1)) *)
+    let make_valid_range tvalid_length =
+      let tvar = Build.tvar ~loc vi_buffer
+      and tmin = Build.tzero ~loc
+      and tmax = Build.tminus ~loc tvalid_length (Build.tone ~loc) in
+      let toffs = Build.trange ~loc (Some tmin) (Some tmax) in
+      let term = Build.tbinop ~loc PlusPI tvar toffs in
+      Logic_const.pvalid ~loc (here, term)
+    in
+    let size_var = Build.tvar ~loc vi_size in
+    let left_pred = make_valid_range size_var in
+    let pred =
+      find_predicate_by_width vi_buffer.vtype "format_length" "wformat_length"
+    in
+    match pred with
+    | Some format_length ->
+      let labels = List.map (fun _ -> here) format_length.l_labels in
+      let fmt_var = Build.tvar ~loc fmt_vi in
+      let flen_app =
+        try Build.tapp ~loc format_length labels [fmt_var]
+        with Build.NotAFunction ->
+          Self.abort ~current:true
+            "%a should be a logic function, not a predicate"
+            Printer.pp_logic_var format_length.l_var_info
+      in
+      let right_pred = make_valid_range flen_app in
+      let p = Logic_const.por ~loc (left_pred, right_pred) in
+      insert_require p
+    | None -> insert_require left_pred
   in
 
   begin match format_fun.f_buffer, format_fun.f_kind with
@@ -400,10 +487,15 @@ let build_fun_spec env loc vf format_fun tvparams formals =
       | Some vi -> add_stream vi
       | None -> ()
       end
-  | Arg i, ScanfLike -> 
-      add_var ~indirect:true (List.nth sformals i, `ArgInArray)
-  | Arg i, PrintfLike -> 
-      add_var ~indirect:true (List.nth sformals i, `ArgOutArray)
+  | Arg (i, _), ScanfLike ->
+      add_var ~indirect:true (List.nth sformals i, `ArgInArray None)
+  | Arg (i, size_pos), PrintfLike ->
+      add_var ~indirect:true (List.nth sformals i, `ArgOutArray);
+      begin match size_pos with
+      | Some n ->
+        add_buffer (List.nth sformals i) (List.nth sformals n)
+      | None -> ()
+      end
   | Stream i, _ ->
       add_stream (List.nth sformals i)
   | File i, _ ->
@@ -415,7 +507,7 @@ let build_fun_spec env loc vf format_fun tvparams formals =
   (* Add return value dest *)
   let rettyp = Cil.getReturnType vf.vf_decl.vtype in
   if not (Cil.isVoidType rettyp) then
-    add_lval ~indirect:true (Build.logic_return rettyp, `ArgOut);
+    add_lval ~indirect:true (Build.tresult rettyp, `ArgOut);
 
   (* Build the assign clause *)
   let froms = List.map (fun iterm -> iterm, From !sources) !dests in
@@ -439,16 +531,11 @@ let format_fun_call ~fundec env format_fun scope loc mk_call vf args =
   (* Extract the format if possible *)
   let format =
     try
-      let format_arg =
-        try List.nth args format_fun.f_format_pos
-        with  Failure _ (* nth *)-> Self.abort
-          "The function %s does not have the expected number of arguments."
-          name
-      in
-      match  Cil.static_string format_arg with
+      let format_arg = List.nth args format_fun.f_format_pos in
+      match static_string format_arg with
       | None ->
         Self.warning ~current:true
-          "Call to function function %s with non-static format argument:@ \
+          "Call to function %s with non-static format argument:@ \
            no specification will be generated." name;
         raise Translate_call_exn (* No syntactic hint *)
       | Some s -> Format_parser.parse_format format_fun.f_kind s
@@ -458,7 +545,18 @@ let format_fun_call ~fundec env format_fun scope loc mk_call vf args =
 
   (* Try to type expected parameters if possible *)
   let find_typedef = Environment.find_type env in
-  let tvparams = Format_typer.type_format ~find_typedef format in
+  let tvparams =
+    try
+      Format_typer.type_format ~find_typedef format
+    with Format_typer.Type_not_found type_name ->
+      Self.warning ~current:true
+        "Unable to find type %s in the source code which should be used in \
+         this call:@ no specification will be generated.@ \
+         Note that due to cleanup, the type may have been defined in the \
+         original code but not used anywhere."
+        type_name;
+      raise Translate_call_exn
+  in
   let new_param i (typ,_dir) =
     let typ = if Cil.isIntegralType typ then
         Cil.integralPromotion typ
@@ -477,8 +575,10 @@ let format_fun_call ~fundec env format_fun scope loc mk_call vf args =
   and new_name = name ^ "_va_" ^ (string_of_int vf.vf_specialization_count)
   and mk_spec formals = build_fun_spec env loc vf format_fun tvparams formals
   in
-  let new_callee, glob = Build.function_declaration ~loc:vf.vf_decl.vdecl
-    name new_callee_typ mk_spec in
+  let new_callee, glob =
+    Build.function_declaration ~vattr:[Attr ("fc_stdlib_generated", [])]
+      ~loc:vf.vf_decl.vdecl name new_callee_typ mk_spec
+  in
   new_callee.vname <- new_name;
   new_globals := glob :: !new_globals;
 

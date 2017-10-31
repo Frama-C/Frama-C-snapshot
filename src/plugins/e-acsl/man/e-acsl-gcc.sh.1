@@ -49,6 +49,9 @@ By default no compilation is performed.
 Enable runtime debug features, i.e., compile unoptimized executable
 with assertions and extra checks.
 .TP
+.B -V, --rt-verbose
+Output extra messages when executing generated code
+.TP
 .B -X, --instrumented-only
 Do not compile original code. Has effect only in the presence of the \fI-c\fP
 flag.
@@ -96,6 +99,16 @@ use the \fBFrama-C\fP standard library instead of a system-wide one.
 .B -M, --full-mmodel
 maximize memory-related instrumentation.
 .TP
+.B --temporal
+enable checking for temporal memory errors in \\\fBvalid\fP and \\\fBvalid_read\fP predicates.
+.TP
+.B --weak-validity
+enable notion of weak validity. By default expression \fB(p+i)\fP, where \fBp\fP
+is a pointer and \fBi\fP is an integer offset is deemed valid if both addresses
+\fBp\fP and \fB(p+i)\fP belong to the same allocated block. With weak validity
+\fB(p+i)\fP is valid if the memory location which address is given by
+expression \fB(p+i)\fP is allocated.
+.TP
 .B -g, --gmp
 always use GMP integers instead of C integral types.
 By default the GMP integers are used on as-needed basis.
@@ -136,6 +149,22 @@ Valid arguments are:
 .B -A, --rte-select=\fI<OPTSTRING>
 Restrict annotations to a given list of functions.
 \fIOPTSTRING\fP is a comma-separated string comprising function names.
+.TP
+.B --stack-size=\fI<NUMBER>
+Set the size (in MB) of the stack shadow space
+.TP
+.B --heap-size=\fI<NUMBER>
+Set the size (in MB) of the heap shadow space
+.TP
+.B -k, --keep-going
+Continue execution after an assertion failure
+.TP
+.B --free-valid-address
+Trigger failure if a NULL-pointer is used as an input to free function
+.TP
+.B --fail-with-code=\fI<NUMBER>
+On assertion failure exit with the given integer code intead of raising an abort
+signal
 .TP
 .B -m, --memory-model=\fI<model>
 memory model (i.e., a runtime library for checking memory related annotations)

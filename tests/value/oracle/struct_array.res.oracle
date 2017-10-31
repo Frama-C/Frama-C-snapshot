@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/struct_array.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -50,47 +49,50 @@ tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \vali
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/struct_array.i:57.
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0] ∈ {2}
-                                 .t[1] ∈ {3}
-                                 .t[2] ∈ {4}
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 .t[5] ∈ {7}
-                                 .t[6] ∈ {8}
-                                 .b ∈ {9})
+tests/value/struct_array.i:41:[value] Frama_C_show_each:
+        .a ∈ {1}
+        .t[0] ∈ {2}
+        .t[1] ∈ {3}
+        .t[2] ∈ {4}
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        .t[5] ∈ {7}
+        .t[6] ∈ {8}
+        .b ∈ {9}
 [value] computing for function f1 <- main2 <- main.
         Called from tests/value/struct_array.i:42.
 [value] using specification for function f1
 [value] Done for function f1
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0] ∈ {2}
-                                 .t[1] ∈ {3}
-                                 .t[2] ∈ {4}
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 .t[5..6] ∈ [--..--]
-                                 .b ∈ {9})
+tests/value/struct_array.i:43:[value] Frama_C_show_each:
+        .a ∈ {1}
+        .t[0] ∈ {2}
+        .t[1] ∈ {3}
+        .t[2] ∈ {4}
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        .t[5..6] ∈ [--..--]
+        .b ∈ {9}
 [value] computing for function f2 <- main2 <- main.
         Called from tests/value/struct_array.i:44.
 [value] using specification for function f2
 [value] Done for function f2
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0..2] ∈ [--..--]
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 .t[5] ∈ {7}
-                                 .t[6] ∈ {8}
-                                 .b ∈ {9})
+tests/value/struct_array.i:45:[value] Frama_C_show_each:
+        .a ∈ {1}
+        .t[0..2] ∈ [--..--]
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        .t[5] ∈ {7}
+        .t[6] ∈ {8}
+        .b ∈ {9}
 [value] computing for function f3 <- main2 <- main.
         Called from tests/value/struct_array.i:46.
 [value] using specification for function f3
 [value] Done for function f3
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0..6] ∈ [--..--]
-                                 .b ∈ {9})
+tests/value/struct_array.i:47:[value] Frama_C_show_each: .a ∈ {1}
+                           .t[0..6] ∈ [--..--]
+                           .b ∈ {9}
 tests/value/struct_array.i:50:[value] assertion got status valid.
-[value] Called Frama_C_show_each_reach()
+tests/value/struct_array.i:51:[value] Frama_C_show_each_reach:
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -272,38 +274,41 @@ tests/value/struct_array.i:36:[value] warning: out of bounds write. assert \vali
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/struct_array.i:57.
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0] ∈ {2}
-                                 .t[1] ∈ {3}
-                                 .t[2] ∈ {4}
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 .t[5] ∈ {7}
-                                 .t[6] ∈ {8}
-                                 .b ∈ {9})
+tests/value/struct_array.i:41:[value] Frama_C_show_each:
+        .a ∈ {1}
+        .t[0] ∈ {2}
+        .t[1] ∈ {3}
+        .t[2] ∈ {4}
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        .t[5] ∈ {7}
+        .t[6] ∈ {8}
+        .b ∈ {9}
 [value] computing for function f1 <- main2 <- main.
         Called from tests/value/struct_array.i:42.
 [value] Done for function f1
-[value] Called Frama_C_show_each(.a ∈ {1}
-                                 .t[0] ∈ {2}
-                                 .t[1] ∈ {3}
-                                 .t[2] ∈ {4}
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 {.t[5..6]; .b} ∈ [--..--])
+tests/value/struct_array.i:43:[value] Frama_C_show_each:
+        .a ∈ {1}
+        .t[0] ∈ {2}
+        .t[1] ∈ {3}
+        .t[2] ∈ {4}
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        {.t[5..6]; .b} ∈ [--..--]
 [value] computing for function f2 <- main2 <- main.
         Called from tests/value/struct_array.i:44.
 [value] Done for function f2
-[value] Called Frama_C_show_each({.a; .t[0..2]} ∈ [--..--]
-                                 .t[3] ∈ {5}
-                                 .t[4] ∈ {6}
-                                 .t[5] ∈ {7}
-                                 .t[6] ∈ {8}
-                                 .b ∈ {9})
+tests/value/struct_array.i:45:[value] Frama_C_show_each:
+        {.a; .t[0..2]} ∈ [--..--]
+        .t[3] ∈ {5}
+        .t[4] ∈ {6}
+        .t[5] ∈ {7}
+        .t[6] ∈ {8}
+        .b ∈ {9}
 [value] computing for function f3 <- main2 <- main.
         Called from tests/value/struct_array.i:46.
 [value] Done for function f3
-[value] Called Frama_C_show_each([--..--])
+tests/value/struct_array.i:47:[value] Frama_C_show_each: [--..--]
 tests/value/struct_array.i:50:[value] warning: assertion got status invalid (stopping propagation).
 [value] Recording results for main2
 [value] Done for function main2

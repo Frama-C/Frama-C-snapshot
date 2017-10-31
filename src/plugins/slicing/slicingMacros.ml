@@ -175,11 +175,7 @@ let is_call_stmt stmt =
 let get_called_kf call_stmt = match call_stmt.skind with
   | Instr (Call (_, funcexp,_,_)) ->
     let _funcexp_dpds, called_functions =
-      !Db.Value.expr_to_kernel_function
-        ~with_alarms:CilE.warn_none_mode
-        ~deps:(Some Locations.Zone.bottom)
-        (Kstmt call_stmt)
-        funcexp
+      !Db.Value.expr_to_kernel_function ~deps:None (Kstmt call_stmt) funcexp
     in
     (match Kernel_function.Hptset.contains_single_elt called_functions with
      | Some kf -> kf

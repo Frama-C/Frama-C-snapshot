@@ -53,7 +53,10 @@ int main(int c, int z, int zz) {
     r += (long)t << 8;
   }
 
-  unsigned int shl = 2U << 31; // "Unsigned overflow."
+  unsigned int shl = 1;
+  if (v) {
+    shl = 2U << 31; // "Unsigned overflow."
+  }
 
   return b;
 }

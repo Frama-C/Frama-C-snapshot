@@ -1,7 +1,5 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/generate_assigns_bts1290.i (no preprocessing)
 [aorai] Welcome to the Aorai plugin
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_generate_assigns_bts12900.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

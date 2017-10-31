@@ -23,7 +23,6 @@
 let no_status = `Share "theme/default/never_tried.png"
 let ok_status = `Share "theme/default/surely_valid.png"
 let ko_status = `Share "theme/default/unknown.png"
-let go_status = `Share "theme/default/valid_under_hyp.png"
 let wg_status = `Share "theme/default/invalid.png"
 
 let filter = function
@@ -61,14 +60,10 @@ let depth_for = function
       Some spin
   | _ -> None
 
-let configure widget option =
-  match widget , option with
-  | Some spinner , Some value -> spinner#set value
-  | _ -> ()
-
 class prover ~(console:Wtext.text) ~prover =
   let tooltip = "Configure Prover" in
   let content = new Wpane.form () in
+  let result = new Widget.label ~style:`Code ~align:`Center ~text:"No Result" () in
   let timeout = timeout_for prover in
   let stepout = stepout_for prover in
   let depth = depth_for prover in
@@ -77,6 +72,7 @@ class prover ~(console:Wtext.text) ~prover =
     initializer
       begin
         assert (filter prover) ;
+        content#add_row ~xpadding:6 ~ypadding:4 result#coerce ;
         Wutil.on timeout (fun spin -> content#add_field ~label:"Timeout" spin#coerce) ;
         Wutil.on stepout (fun spin -> content#add_field ~label:"Steps" spin#coerce) ;
         Wutil.on depth (fun spin -> content#add_field ~label:"Depth" spin#coerce) ;
@@ -119,26 +115,7 @@ class prover ~(console:Wtext.text) ~prover =
         let server = ProverTask.server () in
         Task.spawn server thread ;
         Task.launch server ;
-        self#update wpo ;
-      end
-
-    method private retry wpo ~icn ~msg ?(cfg=msg) = function
-      | Some spin when spin#get > 0 ->
-          begin
-            self#set_status icn ;
-            let value = 2 * spin#get in
-            let tooltip =
-              Format.asprintf "Retry Prover with extended %s (%d)" cfg value in
-            let callback () = spin#set value ; self#run wpo in
-            self#set_action ~tooltip ~icon:`MEDIA_FORWARD ~callback () ;
-            Pretty_utils.ksfprintf self#set_label "%a (%s)" VCS.pp_prover prover msg ;
-          end
-      | _ ->
-          begin
-            self#set_status icn ;
-            let callback () = self#run wpo in
-            self#set_action ~tooltip:"Retry Prover" ~icon:`MEDIA_FORWARD ~callback () ;
-            Pretty_utils.ksfprintf self#set_label "%a (%s)" VCS.pp_prover prover msg ;
+        Wutil.later (fun () -> self#update wpo) ;
           end
 
     method clear =
@@ -146,40 +123,38 @@ class prover ~(console:Wtext.text) ~prover =
         self#set_status no_status ;
         self#set_action ~icon:`MEDIA_PLAY ~tooltip:"Run Prover" ?callback:None () ;
         Pretty_utils.ksfprintf self#set_label "%a" VCS.pp_prover prover ;
+        result#set_text "No Goal" ;
       end
 
     method update wpo =
+      begin
       let res = Wpo.get_result wpo prover in
-      if VCS.is_verdict res then
-        begin
-          let cfg = VCS.configure res in
-          configure timeout cfg.VCS.timeout ;
-          configure stepout cfg.VCS.stepout ;
-          configure depth cfg.VCS.depth ;
-        end ;
+        result#set_text (Pretty_utils.to_string VCS.pp_result_perf res) ;
       match res.VCS.verdict with
       | VCS.NoResult ->
           let callback () = self#run wpo in
           self#set_status no_status ;
-          self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY ~callback () ;
-          Pretty_utils.ksfprintf self#set_label "%a" VCS.pp_prover prover ;
-      | VCS.Computing signal ->
+            self#set_action ~icon:`MEDIA_PLAY ~tooltip:"Run Prover" ~callback () ;
+        | VCS.Computing callback ->
           self#set_status `EXECUTE ;
-          self#set_action ~tooltip:"Interrupt Prover" ~icon:`STOP ~callback:signal () ;
+            self#set_action ~tooltip:"Interrupt Prover" ~icon:`STOP ~callback () ;
           Pretty_utils.ksfprintf self#set_label "%a (...)" VCS.pp_prover prover ;
       | VCS.Valid | VCS.Checked ->
+            let callback () = self#run wpo in
           self#set_status ok_status ;
-          self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY () ;
+            self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY ~callback () ;
           Pretty_utils.ksfprintf self#set_label "%a (%a)" VCS.pp_prover prover
             Rformat.pp_time res.VCS.prover_time ;
+        | VCS.Invalid | VCS.Unknown | VCS.Timeout | VCS.Stepout ->
+            let callback () = self#run wpo in
+            self#set_status ko_status ;
+            self#set_action ~tooltip:"Run Prover" ~icon:`MEDIA_PLAY ~callback () ;
+            Pretty_utils.ksfprintf self#set_label "%a (?)" VCS.pp_prover prover ;
       | VCS.Failed ->
+            let callback () = self#log wpo res in
           self#set_status `DIALOG_WARNING ;
-          let callback () = self#log wpo res in
           self#set_action ~tooltip:"Dump Logs" ~icon:`FILE ~callback () ;
           Pretty_utils.ksfprintf self#set_label "%a (failed)" VCS.pp_prover prover ;
-      | VCS.Invalid -> self#retry wpo ~icn:wg_status ~msg:"invalid" None
-      | VCS.Unknown -> self#retry wpo ~icn:ko_status ~msg:"unknown" ~cfg:"depth" depth
-      | VCS.Timeout -> self#retry wpo ~icn:`CUT ~msg:"timeout" ~cfg:"time" timeout
-      | VCS.Stepout -> self#retry wpo ~icn:`CUT ~msg:"stepout" ~cfg:"steps" stepout
+      end
 
   end

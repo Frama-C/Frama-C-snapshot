@@ -1,0 +1,1 @@
+EXECNOW: make -s @PTEST_DIR@/global_decl_loc.cmxs

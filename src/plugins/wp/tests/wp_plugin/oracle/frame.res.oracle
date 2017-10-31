@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/frame.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -9,7 +8,7 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'alias':
-Let a = global(P_r_86).
+Let a = global(P_r_37).
 Let x = Mint_1[a].
 Let x_1 = Mint_0[a].
 Assume {

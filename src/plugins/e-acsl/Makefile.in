@@ -66,15 +66,16 @@ PLUGIN_CMO:= local_config \
 	gmpz \
 	literal_strings \
 	mmodel_analysis \
-	prepare_ast \
-	dup_functions \
 	exit_points \
 	label \
 	env \
+	dup_functions \
 	interval \
 	typing \
 	quantif \
 	translate \
+	temporal \
+	prepare_ast \
 	loops \
 	visit \
 	main
@@ -128,7 +129,7 @@ $(EACSL_PLUGIN_DIR)/local_config.ml: $(EACSL_PLUGIN_DIR)/Makefile.in $(VERSION_F
 
 ifeq (@MAY_RUN_TESTS@,yes)
 
-PLUGIN_TESTS_DIRS := reject runtime bts gmp no-main full-mmodel
+PLUGIN_TESTS_DIRS := reject runtime bts gmp no-main full-mmodel temporal
 PLUGIN_TESTS_LIB := $(EACSL_PLUGIN_DIR)/tests/print.ml
 E_ACSL_TESTS: $(EACSL_PLUGIN_DIR)/tests/test_config
 
@@ -146,68 +147,74 @@ clean::
 endif
 
 ################################################
-# E-ACSL C Libs: libjemalloc, libgmp           #
+# Third-party C libraries                      #
 ################################################
 
 EACSL_LIBDIR := $(EACSL_PLUGIN_DIR)/lib
-EACSL_JEMALLOC_DIR := $(EACSL_PLUGIN_DIR)/contrib/libjemalloc
-EACSL_JEMALLOC_LIBNAME = libeacsl-jemalloc.a
-EACSL_JEMALLOC_LIB = $(EACSL_LIBDIR)/$(EACSL_JEMALLOC_LIBNAME)
 
-$(EACSL_JEMALLOC_LIB):
-	cd $(EACSL_JEMALLOC_DIR) && $(MAKE) $(MAKEOPTS)
+############
+# DLMALLOC #
+############
+
+EACSL_DLMALLOC_REL_DIR := contrib/libdlmalloc
+EACSL_DLMALLOC_DIR := $(EACSL_PLUGIN_DIR)/$(EACSL_DLMALLOC_REL_DIR)
+EACSL_DLMALLOC_LIBNAME = libeacsl-dlmalloc.a
+EACSL_DLMALLOC_LIB = $(EACSL_LIBDIR)/$(EACSL_DLMALLOC_LIBNAME)
+EACSL_DLMALLOC_SRC = $(EACSL_DLMALLOC_DIR)/dlmalloc.c
+EACSL_DLMALLOC_OBJ  = dlmalloc.o
+EACSL_DLMALLOC_FLAGS = \
+  -DHAVE_MORECORE=0 \
+  -DHAVE_MMAP=1  \
+  -DNO_MALLINFO=1 \
+  -DNO_MALLOC_STATS=1 \
+  -DMSPACES=1 \
+  -DONLY_MSPACES \
+  -DMALLOC_ALIGNMENT=32 \
+  -DMSPACE_PREFIX="__e_acsl_"
+
+$(EACSL_DLMALLOC_LIB): $(EACSL_DLMALLOC_SRC)
 	$(MKDIR) $(EACSL_LIBDIR)
-	$(CP) $(EACSL_JEMALLOC_DIR)/lib/libjemalloc.a $@
+	echo 'CC           $<'
+	$(CC) $< -c -O2 -g3 -o$(EACSL_DLMALLOC_OBJ) $(EACSL_DLMALLOC_FLAGS)
+	echo 'AR           $@'
+	$(AR) crus $@ $(EACSL_DLMALLOC_OBJ)
+	echo 'RANLIB       $@'
+	ranlib $@
 
-EACSL_GMP_DIR := $(EACSL_PLUGIN_DIR)/contrib/libgmp
+############
+# GMP 	   #
+############
+
+EACSL_GMP_REL_DIR:=contrib/libgmp
+EACSL_GMP_DIR := $(EACSL_PLUGIN_DIR)/$(EACSL_GMP_REL_DIR)
 EACSL_GMP_LIBNAME = libeacsl-gmp.a
 EACSL_GMP_LIB = $(EACSL_LIBDIR)/$(EACSL_GMP_LIBNAME)
-EACSL_GMP_DIR := $(EACSL_PLUGIN_DIR)/contrib/libgmp
-EACSL_GMP_MINI = mini-gmp.o
+EACSL_GMP_OBJ = mini-gmp.o
+EACSL_GMP_SRC = $(EACSL_GMP_DIR)/mini-gmp.c
+EACSL_GMP_FLAGS = \
+	-Dmalloc=__e_acsl_private_malloc \
+	-Drealloc=__e_acsl_private_realloc \
+	-Dfree=__e_acsl_private_free
 
-ifeq (@FULL_GMP@, no)
-############
-# Mini GMP #
-############
-CPPGMPFLAGS += -Dmalloc=__e_acsl_native_malloc
-CPPGMPFLAGS += -Drealloc=__e_acsl_native_realloc
-CPPGMPFLAGS += -Dfree=__e_acsl_native_free
-
-$(EACSL_GMP_LIB): $(EACSL_GMP_DIR)/mini-gmp/mini-gmp.c
+$(EACSL_GMP_LIB): $(EACSL_GMP_SRC)
 	$(MKDIR) $(EACSL_LIBDIR)
-	echo 'CC          $< '
-	$(CC) $< $(CPPGMPFLAGS) -c -O2 -g3 -o$(EACSL_GMP_MINI)
-	echo 'AR          $@'
-	$(AR) crus $(EACSL_GMP_LIB) $(EACSL_GMP_MINI)
+	echo 'CC           $< '
+	$(CC) $< $(EACSL_GMP_FLAGS) -c -O2 -g3 -o$(EACSL_GMP_OBJ)
+	echo 'AR           $@'
+	$(AR) crus $(EACSL_GMP_LIB) $(EACSL_GMP_OBJ)
+	echo 'RANLIB       $@'
 	ranlib $(EACSL_GMP_LIB)
-else
-############
-# Full GMP #
-############
-$(EACSL_GMP_LIB):
-	cd $(EACSL_GMP_DIR) && $(MAKE) $(MAKEOPTS)
-	$(MKDIR) $(EACSL_LIBDIR)
-	$(CP) $(EACSL_GMP_DIR)/.libs/libgmp.a $@
-endif
 
-all:: $(EACSL_JEMALLOC_LIB) $(EACSL_GMP_LIB)
+all:: $(EACSL_DLMALLOC_LIB) $(EACSL_GMP_LIB)
 
-e-acsl-distclean::
-	$(PRINT_RM) e-acsl contrib libraries
-	if test -f $(EACSL_JEMALLOC_DIR)/Makefile; \
-		then $(MAKE) -s -C$(EACSL_JEMALLOC_DIR) relclean; \
-	fi
-	if test -f $(EACSL_GMP_DIR)/Makefile; \
-		then $(MAKE) -s -C$(EACSL_GMP_DIR) distclean; \
-	fi
+clean::
+	$(RM) $(EACSL_DLMALLOC_LIB) $(EACSL_GMP_LIB)
 
 ############
 # Cleaning #
 ############
 
-EACSL_CLEANFILES = $(wildcard \
-	$(EACSL_JEMALLOC_LIB) $(EACSL_GMP_LIB) \
-	doc/doxygen/doxygen.cfg \
+EACSL_CLEANFILES = $(wildcard doc/doxygen/doxygen.cfg \
 	Makefile config.log config.status configure .depend autom4te.cache/* \
 	META.frama-c-e_acsl Makefile.plugin.generated local_config.ml top/*)
 
@@ -225,12 +232,14 @@ EACSL_OCAML_FILES = $(wildcard *.mli) \
 	$(filter-out $(wildcard *local_config.ml), $(wildcard *.ml))
 
 EACSL_CONTRIB_FILES = \
-  $(shell $(CAT) $(EACSL_PLUGIN_DIR)/contrib/MANIFEST | $(SED) 's/^/contrib\//g')
+  $(EACSL_GMP_REL_DIR)/mini-gmp.c \
+  $(EACSL_GMP_REL_DIR)/mini-gmp.h \
+  $(EACSL_DLMALLOC_REL_DIR)/dlmalloc.c
+
+EACSL_MANUAL_FILES = $(wildcard $(E_ACSL_DIR)/doc/manuals/*.pdf)
 
 EACSL_DOC_FILES = \
-	doc/manuals/e-acsl-manual.pdf  \
-	doc/manuals/e-acsl.pdf \
-	doc/manuals/e-acsl-implementation.pdf \
+	$(EACSL_MANUAL_FILES) \
 	doc/doxygen/doxygen.cfg.in \
 	doc/Changelog \
 	man/e-acsl-gcc.sh.1
@@ -294,12 +303,14 @@ e-acsl-install-distrib: e-acsl-distrib
 	$(PRINT) Copying to website
 	$(CP) $(EXPORT).tar.gz $(WWW)/distrib/download/e-acsl
 	$(CP) $(EACSL_DOC_FILES) $(WWW)/distrib/download/e-acsl
+ifneq ("$(EACSL_MANUAL_FILES)","")
 	$(CP) doc/manuals/e-acsl-manual.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-manual-$(EACSL_VERSION).pdf
 	$(CP) doc/manuals/e-acsl.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-1.7.pdf
 	$(CP) doc/manuals/e-acsl-implementation.pdf \
 	      $(WWW)/distrib/download/e-acsl/e-acsl-implementation-$(EACSL_VERSION).pdf
+endif
 
 ##############################
 # Check source distribution  #
@@ -362,27 +373,22 @@ include $(FRAMAC_SHARE)/Makefile.dynamic
 # Install #
 ###########
 
-MANUALS=$(wildcard $(E_ACSL_DIR)/doc/manuals/*.pdf)
-
 install::
 	$(PRINT_INSTALL) E-ACSL share files
 	$(MKDIR) $(FRAMAC_DATADIR)/e-acsl
 	$(CP) $(E_ACSL_DIR)/share/e-acsl/*.[ch] $(FRAMAC_DATADIR)/e-acsl
 	$(MKDIR) $(FRAMAC_DATADIR)/e-acsl/bittree_model \
-	         $(FRAMAC_DATADIR)/e-acsl/segment_model \
-	         $(FRAMAC_DATADIR)/e-acsl/glibc
+	         $(FRAMAC_DATADIR)/e-acsl/segment_model
 	$(CP) $(E_ACSL_DIR)/share/e-acsl/bittree_model/* \
 	      $(FRAMAC_DATADIR)/e-acsl/bittree_model
 	$(CP) $(E_ACSL_DIR)/share/e-acsl/segment_model/* \
 	      $(FRAMAC_DATADIR)/e-acsl/segment_model
-	$(CP) $(E_ACSL_DIR)/share/e-acsl/glibc/* \
-	      $(FRAMAC_DATADIR)/e-acsl/glibc
         # manuals are not present in standard distribution.
         # Don't fail because of that.
-ifneq ("$(MANUALS)","")
+ifneq ("$(EACSL_MANUAL_FILES)","")
 	$(PRINT_INSTALL) E-ACSL manuals
 	$(MKDIR) $(FRAMAC_DATADIR)/manuals
-	$(CP) $(MANUALS) $(FRAMAC_DATADIR)/manuals;
+	$(CP) $(EACSL_MANUAL_FILES) $(FRAMAC_DATADIR)/manuals;
 endif
 	$(PRINT_INSTALL) E-ACSL libraries
 	$(MKDIR) $(LIBDIR)
@@ -398,9 +404,7 @@ uninstall::
 	$(PRINT_RM) E-ACSL share files
 	$(RM) -r $(FRAMAC_DATADIR)/e-acsl
 	$(PRINT_RM) E-ACSL manuals
-	$(RM) $(FRAMAC_DATADIR)/manuals/e-acsl.pdf \
-	      $(FRAMAC_DATADIR)/manuals/e-acsl-implementation.pdf \
-	      $(FRAMAC_DATADIR)/manuals/e-acsl-manual.pdf
+	$(RM) $(FRAMAC_DATADIR)/manuals/*.pdf
 	$(PRINT_RM) E-ACSL libraries
 	$(RM) $(LIBDIR)/libeacsl-*.a
 	$(PRINT_RM) E-ACSL scripts

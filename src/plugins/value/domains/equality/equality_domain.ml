@@ -51,6 +51,7 @@ module type InternalDatatype = sig
   include Abstract_domain.Lattice with type state = t
   module Store: Abstract_domain.Store with type state := state
   val structure : t Abstract_domain.structure
+  val log_category : Log.category
   val key : t Abstract_domain.key
   type equalities
   val project : t -> equalities
@@ -144,25 +145,27 @@ module MakeDatatype
 
     type state = t
 
-    let key = Structure.Key_Domain.create_key "equality_domain"
+    let name = "Equality domain"
+    let key = Structure.Key_Domain.create_key name
     let structure : t Abstract_domain.structure = Abstract_domain.Leaf key
+    let log_category = dkey
 
     type equalities = Equality.Set.t
     let project (t, _, _) = t
-
-    let pretty fmt (eqs, _, _) =
-      Format.fprintf fmt "@[<v>Eqs: %a@]" Equality.Set.pretty eqs
 
     let top = Equality.Set.empty, Atom.Deps.empty, Locations.Zone.top
     let is_included (a, _, y) (b, _, z) =
       Equality.Set.subset b a && Locations.Zone.is_included y z
     let join (e1, d1, z1) (e2, d2, z2) =
       Equality.Set.inter e1 e2, Atom.Deps.join d1 d2, Locations.Zone.join z1 z2
-    let join_and_is_included a b =
-      join a b, is_included a b
 
     (* TODO *)
     let widen _kf _stmt a b = join a b
+
+    let narrow (e1, d1, z1) (e2, d2, z2) =
+      if Atom.Deps.equal d1 d2
+      then `Value (Equality.Set.union e1 e2, d1, Locations.Zone.narrow z1 z2)
+      else `Value (e1, d1, z1)
 
     let storage = Value_parameters.EqualityStorage.get
 
@@ -183,12 +186,13 @@ module MakeDomain
 
   include Internal
 
+  let get_cvalue = Value.get Main_values.cvalue_key
+
   type value = Value.t
   type location = Precise_locs.precise_location
   type origin = unit
 
-  let pretty fmt (eqs, _, _) =
-    Format.fprintf fmt "@[<v>Eqs: %a@]" Equality.Set.pretty eqs
+  let pretty fmt (eqs, _, _) = Equality.Set.pretty fmt eqs
 
   let pretty_debug fmt (eqs, deps, modified) =
     Format.fprintf fmt
@@ -222,9 +226,6 @@ module MakeDomain
   let concat (e1, d1, z1) (e2, d2, z2) =
     Equality.Set.union e1 e2, Atom.Deps.concat d1 d2, Locations.Zone.join z1 z2
 
-  let join_and_is_included a b =
-    join a b, is_included a b
-
   (* TODO *)
   let widen _kf _stmt a b = join a b
 
@@ -242,6 +243,21 @@ module MakeDomain
   let alarms_inter x y = (* TODO *)
     if Alarmset.is_empty y then x else Alarmset.all
 
+  (* Remove all 'origin' information from the Cvalue component of a value.
+     Since we perform evaluations at the current statement, the origin
+     information we compute is incompatible with the one obtained from e.g.
+     the Cvalue domain. *)
+  let imprecise_origin =
+    match get_cvalue with
+    | None -> fun v -> v
+    | Some get ->
+      fun v ->
+        let c = get v in
+        if Cvalue.V.is_imprecise c then
+          let c' = Cvalue.V.topify_with_origin Origin.top c in
+          Value.set Main_values.cvalue_key c' v
+        else v
+
   let coop_eval oracle equalities atom_src =
     match Equality.Set.find_option atom_src equalities with
     | Some equality ->
@@ -250,6 +266,8 @@ module MakeDomain
         else
           let e = Atom.to_exp atom in
           let v', alarms = oracle e in
+          (* Remove 'origin' information *)
+          let v' = v' >>-: imprecise_origin in
           Bottom.narrow Value.narrow accv v', alarms_inter accalarms alarms
       in
       Equality.fold aux_eq equality (`Value Value.top, Alarmset.none)
@@ -319,19 +337,12 @@ module MakeDomain
         and type loc = Precise_locs.precise_location)
   = struct
 
-    type state = t
-    type value = Value.t
-    type location = Precise_locs.precise_location
-    type valuation = Valuation.t
-
     let find_loc valuation = fun lval ->
       match Valuation.find_loc valuation lval with
       | `Top -> assert false (* TODO *)
       | `Value record -> record.loc
 
     let update _valuation state = state
-
-    let get_cvalue = Value.get Main_values.cvalue_key
 
     let is_singleton = match get_cvalue with
       | None -> fun _ -> false
@@ -443,22 +454,10 @@ module MakeDomain
         | ISFormals -> assign_formals valuation call empty
         | ISEmpty   -> empty
       in
-      Compute (Continue state, true)
+      Compute state
 
     let finalize_call _stmt call ~pre ~post =
       let kf = call.kf in
-      let name = Kernel_function.get_name kf in
-      if  Ast_info.is_frama_c_builtin name then begin
-        if Ast_info.is_cea_dump_function name &&
-           Value_parameters.is_debug_key_enabled dkey
-        then begin
-          let l = fst (Cil.CurrentLoc.get ()) in
-          Value_parameters.result "DUMPING EQ STATE \
-                                   of file %s line %d@.%a"
-            (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-            pretty post;
-        end;
-      end;
       (* remove equalities involving formals, that will no longer be in scope.
          equalities on locals have already been removed. *)
       let post = unscope post (Kernel_function.get_formals kf) in
@@ -480,18 +479,20 @@ module MakeDomain
     let approximate_call _stmt call state =
       approximate_call call.kf state
 
+    let show_expr _valuation (equalities, _, _) fmt expr =
+      let atom = Atom.of_exp expr in
+      match Equality.Set.find_option atom equalities with
+      | Some equality -> Equality.pretty fmt equality
+      | None -> ()
   end
 
-  let compute_using_specification _ call _spec state =
-    approximate_call call.kf state
+  let logic_assign _assigns location ~pre:_ state =
+    let loc = Precise_locs.imprecise_location location in
+    let zone = Locations.enumerate_bits loc in
+    kill AddAsModified zone state
 
-  type eval_env = state
-  let env_current_state state = `Value state
-  let env_annot ~pre:_ ~here () = here
-  let env_pre_f ~pre () = pre
-  let env_post_f ~pre:_ ~post ~result:_ () = post
-  let eval_predicate _ _ = Alarmset.Unknown
-  let reduce_by_predicate state _ _ = state
+  let evaluate_predicate _ _ _ = Alarmset.Unknown
+  let reduce_by_predicate _ state _ _ = `Value state
 
   let enter_scope _kf _vars state = state
   let leave_scope _kf vars state = unscope state vars
@@ -501,9 +502,9 @@ module MakeDomain
   let leave_loop _ state = state
 
   let empty () = empty
-  let initialize_var state _ _ _ = state
-  let initialize_var_using_type state _  = state
-  let global_state () = None
+  let introduce_globals _vars state = state
+  let initialize_variable _ _ ~initialized:_ _ state = state
+  let initialize_variable_using_type _ _ state  = state
 
   let filter_by_bases _ state = state
   let reuse ~current_input:_ ~previous_output:state = state

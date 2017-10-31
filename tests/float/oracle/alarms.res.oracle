@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/alarms.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -12,7 +11,8 @@
   ull ∈ {0}
 tests/float/alarms.i:9:[value] warning: non-finite float value. assert \is_finite(u1.f);
 tests/float/alarms.i:11:[value] warning: non-finite double value. assert \is_finite(u2.d);
-[value] DUMPING STATE of file tests/float/alarms.i line 12
+tests/float/alarms.i:12:[value] Frama_C_dump_each:
+        # Cvalue domain:
         u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
           [-3.40282346639e+38 .. 3.40282346639e+38]
           {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
@@ -24,7 +24,7 @@ tests/float/alarms.i:11:[value] warning: non-finite double value. assert \is_fin
         l ∈ [--..--]
         tmp ∈ UNINITIALIZED
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:14.
 tests/float/alarms.i:14:[kernel] warning: Neither code nor specification for function fd, generating default assigns from the prototype
@@ -70,8 +70,6 @@ tests/float/alarms.i:19:[value] warning: non-finite double value. assert \is_fin
   mvd ∈ [-4.49423283716e+307 .. 4.49423283716e+307]
   __retres ∈ {0}
 [from] Computing for function main
-[from] Computing for function Frama_C_dump_each <-main
-[from] Done for function Frama_C_dump_each
 [from] Computing for function fd <-main
 [from] Done for function fd
 [from] Done for function main

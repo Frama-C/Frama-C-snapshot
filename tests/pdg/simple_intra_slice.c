@@ -2,20 +2,20 @@
    GCC:
    OPT: -val-show-progress -pdg -journal-disable  -pdg-print -pdg-verbose 2
 */
-/* test conçu initialement comme test pour le slicing */
+/* test conÃ§u initialement comme test pour le slicing */
 int Unknown;
 int G;
 
 
-/* on sélectionne le return.
+/* on sÃ©lectionne le return.
    on doit garder juste a (pas G et b) */
 int f1 (int x, int y) {
   int a = 1, b = 2;
   G = x + a;
   return y + b;
 }
-/* on sélectionne le return.
-   pas de réduction intreproc -> b doit être marqué Spare
+/* on sÃ©lectionne le return.
+   pas de rÃ©duction intreproc -> b doit Ãªtre marquÃ© Spare
    et recursivement a aussi.
 */
 int f2 (void) {
@@ -23,7 +23,7 @@ int f2 (void) {
   return f1 (b, c);
 }
 
-/* avec un IF : sélection de la branche then */
+/* avec un IF : sÃ©lection de la branche then */
 int f3 (int c) {
   int a = 1, b = 2;
   int x = 0;
@@ -33,7 +33,7 @@ int f3 (int c) {
     G = a;
   return x;
 }
-/* avec un IF : sélection de la branche else */
+/* avec un IF : sÃ©lection de la branche else */
 int f4 (int c) {
   int a = 1, b = 2;
   int x = 0;

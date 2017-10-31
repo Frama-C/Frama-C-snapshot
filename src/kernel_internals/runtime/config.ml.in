@@ -74,9 +74,6 @@ let preprocessor_supported_arch_options = [@DEFAULT_CPP_SUPPORTED_ARCH_OPTS@]
 let preprocessor_keep_comments =
   env_or_default (fun _ -> true) @DEFAULT_CPP_KEEP_COMMENTS@
 
-let static_plugins = [@STATIC_PLUGINS@]
-let static_gui_plugins = [@STATIC_GUI_PLUGINS@]
-
 let compilation_unit_names = [@COMPILATION_UNITS@]
 let library_names = [@LIBRARY_NAMES@]
 

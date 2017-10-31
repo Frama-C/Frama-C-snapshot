@@ -30,17 +30,11 @@ module type S = sig
   type state
   type value
 
-  val init: with_alarms:CilE.warn_mode ->
-    state -> kernel_function -> stmt -> varinfo -> Cil_types.init ->
-    state or_bottom
+  val assign: state -> kinstr -> lval -> exp -> state or_bottom
 
-  val assign: with_alarms:CilE.warn_mode ->
-    state -> kernel_function -> stmt -> lval -> exp -> state or_bottom
+  val assume: state -> stmt -> exp -> bool -> state or_bottom
 
-  val assume: with_alarms:CilE.warn_mode ->
-    state -> stmt -> exp -> bool -> state or_bottom
-
-  val call: with_alarms:CilE.warn_mode ->
+  val call:
     stmt -> lval option -> exp -> exp list -> state ->
     state list or_bottom * Value_types.cacheable
 
@@ -48,7 +42,6 @@ module type S = sig
     kernel_function -> exp -> Integer.t list -> state list -> state list list
 
   val check_unspecified_sequence:
-    with_alarms:CilE.warn_mode ->
     Cil_types.stmt ->
     state ->
     (* TODO *)
@@ -63,23 +56,15 @@ module type S = sig
   val compute_call_ref: (kinstr -> value call -> state -> call_result) ref
 end
 
-module type Domain = sig
-  include Abstract_domain.Transfer
-  val leave_scope: kernel_function -> varinfo list -> state -> state
-  module Store: Abstract_domain.Store with type state := state
-  include Datatype.S with type t = state
-end
-
 module Make
-    (Value: Abstract_value.S)
+    (Value: Abstract_value.External)
     (Location: Abstract_location.External)
-    (Domain: Domain with type value = Value.t
-                     and type location = Location.location)
-    (Init: Initialization.S with type state := Domain.state)
+    (Domain: Abstract_domain.External with type value = Value.t
+                                       and type location = Location.location)
     (Eva: Evaluation.S with type state = Domain.state
                         and type value = Domain.value
                         and type loc = Domain.location
-                        and type Valuation.t = Domain.valuation)
+                        and type origin = Domain.origin)
   : S with type state = Domain.state
        and type value = Domain.value
 

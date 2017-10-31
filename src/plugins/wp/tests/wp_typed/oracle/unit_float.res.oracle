@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/unit_float.i (no preprocessing)
 tests/wp_typed/unit_float.i:21:[kernel] warning: Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3. See documentation for option -warn-decimal-float
 [wp] Running WP plugin...

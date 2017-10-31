@@ -8,5 +8,4 @@
 [kernel] 1
 [kernel] 2
 [kernel] 3
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/saveload/serialized_queue.i (no preprocessing)

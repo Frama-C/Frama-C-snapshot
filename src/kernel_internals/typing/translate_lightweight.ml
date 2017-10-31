@@ -117,7 +117,7 @@ class annotateFunFromDeclspec =
               let labels = 
                 match p.l_labels with
                 | [] -> []
-                | [l] -> [ l, Logic_const.here_label ]
+                | [_] -> [ Logic_const.here_label ]
                 | _ -> assert false
               in
               let args = term_of_var v :: args in

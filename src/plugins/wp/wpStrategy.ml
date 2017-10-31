@@ -164,7 +164,7 @@ let add_prop_fct_bhv_pre acc kind kf bhv ~impl_assumes =
 
 let add_prop_stmt_pre acc kind kf s bhv ~assumes pre =
   let id = WpPropId.mk_pre_id kf (Kstmt s) bhv pre in
-  let labels = NormAtLabels.labels_stmt_pre s in
+  let labels = NormAtLabels.labels_stmt_pre ~kf s in
   let p = Logic_const.pred_of_id_pred pre in
   let p = normalize id labels ?assumes p in
   add_prop acc kind id p
@@ -185,7 +185,7 @@ let add_prop_stmt_spec_pre acc kind kf s spec =
 
 let add_prop_stmt_post acc kind kf s bhv tkind l_post ~assumes post =
   let id = WpPropId.mk_stmt_post_id kf s bhv (tkind, post) in
-  let labels = NormAtLabels.labels_stmt_post s l_post in
+  let labels = NormAtLabels.labels_stmt_post ~kf s l_post in
   let p = Logic_const.pred_of_id_pred post in
   let p = normalize id labels ?assumes p in
   add_prop acc kind id p
@@ -207,12 +207,12 @@ let add_prop_call_post acc kind called_kf bhv tkind ~assumes post =
 
 let add_prop_assert acc kind kf s ca p =
   let id = WpPropId.mk_assert_id kf s ca in
-  let labels = NormAtLabels.labels_assert_before s in
+  let labels = NormAtLabels.labels_assert_before ~kf s in
   let p = normalize id labels p in
   add_prop acc kind id p
 
-let add_prop_loop_inv acc kind s id p =
-  let labels = NormAtLabels.labels_loop_inv s in
+let add_prop_loop_inv acc kind s ~established id p =
+  let labels = NormAtLabels.labels_loop_inv ~established s in
   let p = normalize id labels p in
   add_prop acc kind id p
 
@@ -311,7 +311,7 @@ let add_stmt_spec_assigns_hyp acc kf s l_post spec =
       | None -> add_assigns_any acc Ahyp
                   (WpPropId.mk_stmt_any_assigns_info s)
       | Some id ->
-          let labels = NormAtLabels.labels_stmt_assigns s l_post in
+          let labels = NormAtLabels.labels_stmt_assigns ~kf s l_post in
           let assigns = NormAtLabels.preproc_assigns labels assigns in
           let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
           add_assigns acc Ahyp id a_desc
@@ -339,7 +339,8 @@ let add_call_assigns_hyp acc kf_caller s ~called_kf l_post spec_opt =
               let asgn = WpPropId.mk_stmt_any_assigns_info s in
               add_assigns_any acc (AcallHyp called_kf) asgn
           | Some pid ->
-              let labels = NormAtLabels.labels_stmt_assigns s l_post in
+              let kf = kf_caller in
+              let labels = NormAtLabels.labels_stmt_assigns ~kf s l_post in
               let assigns = NormAtLabels.preproc_assigns labels assigns in
               let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
               add_assigns acc (AcallHyp called_kf) pid a_desc
@@ -641,11 +642,11 @@ let mk_variant_properties kf s ca v =
   let vpos_id = WpPropId.mk_var_pos_id kf s ca in
   let vdecr_id = WpPropId.mk_var_decr_id kf s ca in
   let loc = v.term_loc in
-  let lhead = Clabels.loop_head_label s in
-  let vhead = Logic_const.tat ~loc (v, lhead) in
+  let lcurr = Clabels.to_logic (Clabels.loop_current s) in
+  let vcurr = Logic_const.tat ~loc (v, lcurr) in
   let zero = Cil.lzero ~loc () in
-  let vpos = Logic_const.prel ~loc (Rle, zero, vhead) in
-  let vdecr = Logic_const.prel ~loc (Rlt, v, vhead) in
+  let vpos = Logic_const.prel ~loc (Rle, zero, vcurr) in
+  let vdecr = Logic_const.prel ~loc (Rlt, v, vcurr) in
   (vpos_id, vpos), (vdecr_id, vdecr)
 
 (* -------------------------------------------------------------------------- *)

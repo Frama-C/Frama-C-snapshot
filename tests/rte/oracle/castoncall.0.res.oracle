@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/castoncall.c (with preprocessing)
 [rte] annotating function g
 [rte] annotating function nondet_ptr

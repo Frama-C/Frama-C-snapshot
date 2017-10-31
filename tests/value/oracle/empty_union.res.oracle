@@ -1,10 +1,8 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/empty_union.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 tests/value/empty_union.c:59:[value] warning: during initialization of variable 'f1', size of type 'int []' cannot be
                  computed (Size of array without number of elements.)
-tests/value/empty_union.c:59:[kernel] imprecise size for variable f1 (Size of array without number of elements.)
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
@@ -12,28 +10,24 @@ tests/value/empty_union.c:59:[kernel] imprecise size for variable f1 (Size of ar
   f1[bits 0 to ..] ∈ {0} or UNINITIALIZED
   f2.data[0] ∈ {1}
     .data[1..2] ∈ {0}
-tests/value/empty_union.c:75:[value] assertion got status valid.
-tests/value/empty_union.c:76:[value] assertion got status valid.
-[value] Called Frama_C_show_each_global_empty(∅)
-[value] Called Frama_C_show_each_e1(∅)
-tests/value/empty_union.c:80:[value] Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
-tests/value/empty_union.c:85:[value] Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{4}))
-[value] Called Frama_C_show_each_c2({77})
-[value] Called Frama_C_show_each_c2_e(∅)
+tests/value/empty_union.c:67:[value] assertion got status valid.
+tests/value/empty_union.c:68:[value] assertion got status valid.
+tests/value/empty_union.c:70:[value] Frama_C_show_each_global_empty: ∅
+tests/value/empty_union.c:71:[value] Frama_C_show_each_e1: ∅
+tests/value/empty_union.c:72:[value] Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
+tests/value/empty_union.c:77:[value] Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{4}))
+tests/value/empty_union.c:78:[value] Frama_C_show_each_c2: {77}
+tests/value/empty_union.c:79:[value] Frama_C_show_each_c2_e: ∅
 [value] computing for function f <- main.
-        Called from tests/value/empty_union.c:88.
+        Called from tests/value/empty_union.c:80.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function copy_empty <- main.
-        Called from tests/value/empty_union.c:89.
+        Called from tests/value/empty_union.c:81.
 tests/value/empty_union.c:37:[value] function copy_empty: postcondition got status valid.
 [value] Recording results for copy_empty
 [value] Done for function copy_empty
-[value] Called Frama_C_show_each_res({74})
-[value] computing for function gcc_zero_length_examples <- main.
-        Called from tests/value/empty_union.c:102.
-[value] Recording results for gcc_zero_length_examples
-[value] Done for function gcc_zero_length_examples
+tests/value/empty_union.c:83:[value] Frama_C_show_each_res: {74}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -41,8 +35,6 @@ tests/value/empty_union.c:37:[value] function copy_empty: postcondition got stat
   
 [value:final-states] Values at end of function f:
   res{.a; .e{}; .b} ∈ {74}
-[value:final-states] Values at end of function gcc_zero_length_examples:
-  
 [value:final-states] Values at end of function main:
   c1{.a; .e{}; .b} ∈ {77}
   c2{.a; .e{}; .b} ∈ {77}
@@ -56,8 +48,6 @@ tests/value/empty_union.c:37:[value] function copy_empty: postcondition got stat
 [from] Done for function copy_empty
 [from] Computing for function f
 [from] Done for function f
-[from] Computing for function gcc_zero_length_examples
-[from] Done for function gcc_zero_length_examples
 [from] Computing for function main
 [from] Computing for function memcpy <-main
 [from] Done for function memcpy
@@ -68,8 +58,6 @@ tests/value/empty_union.c:37:[value] function copy_empty: postcondition got stat
   NO EFFECTS
 [from] Function f:
   \result FROM s
-[from] Function gcc_zero_length_examples:
-  NO EFFECTS
 [from] Function memcpy:
   c2 FROM c1 (and SELF)
   \result FROM dest
@@ -84,10 +72,6 @@ tests/value/empty_union.c:37:[value] function copy_empty: postcondition got stat
           res
 [inout] Inputs for function f:
           nondet
-[inout] Out (internal) for function gcc_zero_length_examples:
-          \nothing
-[inout] Inputs for function gcc_zero_length_examples:
-          \nothing
 [inout] Out (internal) for function main:
           c1; c2; res; cb; ce; p; pc; __retres
 [inout] Inputs for function main:

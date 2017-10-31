@@ -25,3 +25,9 @@ let inset_string () =
 
 let emptyset_string () =
   if Kernel.Unicode.get () then Utf8_logic.emptyset else "EMPTY_SET"
+
+let top_string () =
+  if Kernel.Unicode.get () then Utf8_logic.top else "TOP"
+
+let bottom_string () =
+  if Kernel.Unicode.get () then Utf8_logic.bottom else "BOTTOM"

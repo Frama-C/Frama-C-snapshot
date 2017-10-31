@@ -38,23 +38,16 @@ module type S = sig
   val initial_state_with_formals :
     lib_entry:bool -> kernel_function -> state or_bottom
 
-  (** add to the current state a varinfo with its initialization. Also used
-      for initializing locals.
-      @since Phosphorus-20170501-beta1
-  *)
-  val initialize_var: with_alarms:CilE.warn_mode ->
-    stmt -> varinfo -> Cil_types.init -> state -> state or_bottom
+  (** Initializes a local variable in the current state. *)
+  val initialize_local_variable:
+    stmt -> varinfo -> init -> state -> state or_bottom
 end
 
 module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.S with type value = Value.t)
-    (Domain: Abstract_domain.External with type value = Value.t
-                                       and type location = Loc.location)
+    (Domain: Abstract_domain.External)
     (Eva: Evaluation.S with type state = Domain.state
-                        and type value = Domain.value
-                        and type origin = Domain.origin
                         and type loc = Domain.location)
+    (Transfer: Transfer_stmt.S with type state = Domain.t)
   : S with type state := Domain.t
 
 

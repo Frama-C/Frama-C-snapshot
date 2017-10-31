@@ -43,16 +43,16 @@ type identified_assigns =
     kernel_function
     * kinstr
     * behavior_or_loop
-    * identified_term from list
+    * from list
 
 type identified_from =
     kernel_function
     * kinstr
     * behavior_or_loop
-    * (identified_term from (* * identified_term list *) )
+    * from
 
 type identified_decrease =
-    kernel_function * kinstr * code_annotation option * term variant
+    kernel_function * kinstr * code_annotation option * variant
 
 type identified_behavior =
   kernel_function * kinstr * Datatype.String.Set.t * funbehavior

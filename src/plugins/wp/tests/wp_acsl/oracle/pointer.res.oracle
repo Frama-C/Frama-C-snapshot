@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -19,9 +18,9 @@ Assume {
   (* Goal *)
   When: q.offset < p.offset.
   (* Heap *)
-  Have: (region(G_t_68) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(G_t_19) <= 0) /\ (region(q.base) <= 0).
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
 Prove: addr_lt(q, p).
 
@@ -32,9 +31,9 @@ Assume {
   (* Goal *)
   When: i_1 <= i.
   (* Heap *)
-  Have: (region(G_t_68) <= 0) /\ (region(q.base) <= 0).
+  Have: (region(G_t_19) <= 0) /\ (region(q.base) <= 0).
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
 Prove: (4 * i) <= (4 * i_1).
 
@@ -119,11 +118,11 @@ Assume {
   (* Goal *)
   When: 0 < w.
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: addr_lt(shift_A10_sint32(global(G_t_68), 0), p).
+Prove: addr_lt(shift_sint32(global(G_t_19), 0), p).
 
 ------------------------------------------------------------
 
@@ -135,11 +134,11 @@ Assume {
   (* Goal *)
   When: 0 <= w.
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: addr_le(shift_A10_sint32(global(G_t_68), 0), p).
+Prove: addr_le(shift_sint32(global(G_t_19), 0), p).
 
 ------------------------------------------------------------
 
@@ -149,11 +148,11 @@ tests/wp_acsl/pointer.i:47: warning from Reference Variable Model:
    Reason: Uncomparable locations p_0 and mem:t
 Assume {
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: shift_A10_sint32(global(G_t_68), 0) = p.
+Prove: shift_sint32(global(G_t_19), 0) = p.
 
 ------------------------------------------------------------
 
@@ -165,11 +164,11 @@ Assume {
   (* Goal *)
   When: w != 0.
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: shift_A10_sint32(global(G_t_68), 0) != p.
+Prove: shift_sint32(global(G_t_19), 0) != p.
 
 ------------------------------------------------------------
 
@@ -181,11 +180,11 @@ Assume {
   (* Goal *)
   When: 0 <= w.
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: addr_lt(shift_A10_sint32(global(G_t_68), 0), p).
+Prove: addr_lt(shift_sint32(global(G_t_19), 0), p).
 
 ------------------------------------------------------------
 
@@ -197,11 +196,11 @@ Assume {
   (* Goal *)
   When: 0 < w.
   (* Heap *)
-  Have: region(G_t_68) <= 0.
+  Have: region(G_t_19) <= 0.
   (* Pre-condition *)
-  Have: p.base = G_t_68.
+  Have: p.base = G_t_19.
 }
-Prove: addr_le(p, shift_A10_sint32(global(G_t_68), 0)).
+Prove: addr_le(p, shift_sint32(global(G_t_19), 0)).
 
 ------------------------------------------------------------
 ------------------------------------------------------------

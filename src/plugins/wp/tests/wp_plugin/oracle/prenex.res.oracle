@@ -1,0 +1,207 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/prenex.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function diag
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/prenex.i, line 11) in 'diag':
+Assume {
+  Type: is_sint32(diag_0) /\ is_sint32(i) /\ is_sint32(i_1) /\
+      is_sint32(j) /\ is_sint32(m) /\ is_sint32(n).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  (* Pre-condition *)
+  Have: (0 <= m) /\ (0 <= n).
+  (* Invariant 'PI' *)
+  Have: forall i_3,i_2 : Z. ((0 <= i_2) -> ((i_2 < m) -> ((0 <= i_3) ->
+      ((i_3 < i_1) ->
+      (Mint_0[shift_sint32(p, i_3)] < Mint_0[shift_sint32(q, i_2)]))))).
+  (* Invariant 'I' *)
+  Have: (0 <= i_1) /\ (i_1 <= n).
+  If i_1 < n
+  Then {
+    Let x = Mint_0[shift_sint32(p, i)].
+    (* Invariant 'PJ' *)
+    Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < j) ->
+        (x < Mint_0[shift_sint32(q, i_2)]))).
+    (* Invariant 'J' *)
+    Have: (0 <= j) /\ (j <= m).
+    (* Then *)
+    Have: j < m.
+    Have: i_1 = i.
+    (* Then *)
+    Have: Mint_0[shift_sint32(q, j)] <= x.
+    (* Return *)
+    Have: diag_0 = 0.
+  }
+  Else { (* Return *) Have: diag_0 = 1. }
+}
+Prove: (forall i_2 : Z. ((0 <= i_2) -> ((i_2 < n) ->
+        (forall i_3 : Z. ((0 <= i_3) -> ((i_3 < m) ->
+         (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_3)]))))))) <->
+    (diag_0 != 0).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'I' (file tests/wp_plugin/prenex.i, line 19):
+Assume {
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(m) /\ is_sint32(n) /\
+      is_sint32(1 + i).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  (* Pre-condition *)
+  Have: (0 <= m) /\ (0 <= n).
+  (* Invariant 'PI' *)
+  Have: forall i_2,i_1 : Z. ((0 <= i_1) -> ((i_1 < m) -> ((0 <= i_2) ->
+      ((i_2 < i) ->
+      (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_1)]))))).
+  (* Invariant 'I' *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Invariant 'PJ' *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < j) ->
+      (Mint_0[shift_sint32(p, i)] < Mint_0[shift_sint32(q, i_1)]))).
+  (* Invariant 'J' *)
+  Have: (0 <= j) /\ (j <= m).
+  (* Else *)
+  Have: m <= j.
+}
+Prove: (-1) <= i.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'I' (file tests/wp_plugin/prenex.i, line 19):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'PI' (file tests/wp_plugin/prenex.i, line 21):
+Assume {
+  Type: is_sint32(i_2) /\ is_sint32(j) /\ is_sint32(m) /\ is_sint32(n) /\
+      is_sint32(1 + i_2).
+  (* Goal *)
+  When: (0 <= i) /\ (0 <= i_1) /\ (i_1 < m) /\ (i <= i_2).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  (* Pre-condition *)
+  Have: (0 <= m) /\ (0 <= n).
+  (* Invariant 'PI' *)
+  Have: forall i_4,i_3 : Z. ((0 <= i_3) -> ((i_3 < m) -> ((0 <= i_4) ->
+      ((i_4 < i_2) ->
+      (Mint_0[shift_sint32(p, i_4)] < Mint_0[shift_sint32(q, i_3)]))))).
+  (* Invariant 'I' *)
+  Have: (0 <= i_2) /\ (i_2 <= n).
+  (* Then *)
+  Have: i_2 < n.
+  (* Invariant 'PJ' *)
+  Have: forall i_3 : Z. ((0 <= i_3) -> ((i_3 < j) ->
+      (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_3)]))).
+  (* Invariant 'J' *)
+  Have: (0 <= j) /\ (j <= m).
+  (* Else *)
+  Have: m <= j.
+}
+Prove: Mint_0[shift_sint32(p, i)] < Mint_0[shift_sint32(q, i_1)].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'PI' (file tests/wp_plugin/prenex.i, line 21):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'J' (file tests/wp_plugin/prenex.i, line 28):
+Let x = Mint_0[shift_sint32(p, i)].
+Let x_1 = Mint_0[shift_sint32(q, j)].
+Assume {
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(m) /\ is_sint32(n) /\
+      is_sint32(1 + j) /\ is_sint32(x) /\ is_sint32(x_1).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  (* Pre-condition *)
+  Have: (0 <= m) /\ (0 <= n).
+  (* Invariant 'PI' *)
+  Have: forall i_2,i_1 : Z. ((0 <= i_1) -> ((i_1 < m) -> ((0 <= i_2) ->
+      ((i_2 < i) ->
+      (Mint_0[shift_sint32(p, i_2)] < Mint_0[shift_sint32(q, i_1)]))))).
+  (* Invariant 'I' *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Invariant 'PJ' *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < j) ->
+      (x < Mint_0[shift_sint32(q, i_1)]))).
+  (* Invariant 'J' *)
+  Have: (0 <= j) /\ (j <= m).
+  (* Then *)
+  Have: j < m.
+  (* Else *)
+  Have: x < x_1.
+}
+Prove: (-1) <= j.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'J' (file tests/wp_plugin/prenex.i, line 28):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'PJ' (file tests/wp_plugin/prenex.i, line 30):
+Let x = Mint_0[shift_sint32(p, i)].
+Let x_1 = Mint_0[shift_sint32(q, j)].
+Assume {
+  Type: is_sint32(i) /\ is_sint32(j) /\ is_sint32(m) /\ is_sint32(n) /\
+      is_sint32(1 + j) /\ is_sint32(x) /\ is_sint32(x_1).
+  (* Goal *)
+  When: (0 <= i_1) /\ (i_1 <= j).
+  (* Heap *)
+  Have: (region(p.base) <= 0) /\ (region(q.base) <= 0).
+  (* Pre-condition *)
+  Have: (0 <= m) /\ (0 <= n).
+  (* Invariant 'PI' *)
+  Have: forall i_3,i_2 : Z. ((0 <= i_2) -> ((i_2 < m) -> ((0 <= i_3) ->
+      ((i_3 < i) ->
+      (Mint_0[shift_sint32(p, i_3)] < Mint_0[shift_sint32(q, i_2)]))))).
+  (* Invariant 'I' *)
+  Have: (0 <= i) /\ (i <= n).
+  (* Then *)
+  Have: i < n.
+  (* Invariant 'PJ' *)
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < j) ->
+      (x < Mint_0[shift_sint32(q, i_2)]))).
+  (* Invariant 'J' *)
+  Have: (0 <= j) /\ (j <= m).
+  (* Then *)
+  Have: j < m.
+  (* Else *)
+  Have: x < x_1.
+}
+Prove: x < Mint_0[shift_sint32(q, i_1)].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'PJ' (file tests/wp_plugin/prenex.i, line 30):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/prenex.i, line 24) (1/2):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/prenex.i, line 24) (2/2):
+Effect at line 34
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/prenex.i, line 32):
+Prove: true.
+
+------------------------------------------------------------

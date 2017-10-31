@@ -3,7 +3,7 @@
 /*@
 assigns *p;
 */
-extern int f(char * p); // fonction de mise à jour qui "écrit" dans *p
+extern int f(char * p); // fonction de mise Ã  jour qui "Ã©crit" dans *p
 
 int main(char *x) {
 

@@ -438,7 +438,7 @@ module Component = struct
                 (* [TODO optimisation:]
                    en fait, regarder from_deep:
                    si vrai, faire pour chaque caller
-                   sinon, faire uniquement pour le caller d'où on vient *)
+                   sinon, faire uniquement pour le caller d'oÃ¹ on vient *)
                 match kind, callstack_length with
                 | (Direct | Indirect_Backward), 0 ->
                     (* input of a deep security annotation: foreach call

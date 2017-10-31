@@ -190,7 +190,7 @@ class autorange =
       let ranged = Range.ranges (Range.compute hyps) in
       Tmap.iter
         (fun e (a,b) ->
-           if Strategy.occurs_p e goal then
+           if Strategy.occurs_p e goal && b-a <= 1024 then
              let selection = Tactical.(Inside(Goal goal,e)) in
              push (range selection ~vmin:a ~vmax:b)
         ) ranged

@@ -22,6 +22,11 @@
 
 #ifndef __FC_DEFINE_BLKCNT_T
 #define __FC_DEFINE_BLKCNT_T
+#include "features.h"
+__PUSH_FC_STDLIB
+__BEGIN_DECLS
 typedef unsigned int blkcnt_t; 
+__END_DECLS
+__POP_FC_STDLIB
 #endif
 

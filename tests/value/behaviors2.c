@@ -306,6 +306,20 @@ void test5() {
   f4(x);
 }
 
+// test below not directly related to behaviors; tests the precision of
+// logic reductions
+/*@
+  assigns p == \null ? \empty : *p \from indirect:p;
+  ensures p == \null || *p == 1; // if p non-null, then *p must equal 1;
+ */
+void opt_ptr(int *p);
+
+void test_red() {
+  int a = 2;
+  opt_ptr(&a);
+  //@ assert a == 1;
+}
+
 int main() {
   int quotient, remainder, sign;
   char errmsg[MAX_ERRMSG_LEN];
@@ -316,6 +330,7 @@ int main() {
   test3();
   test4();
   test5();
+  test_red();
 
   return 0;
 }

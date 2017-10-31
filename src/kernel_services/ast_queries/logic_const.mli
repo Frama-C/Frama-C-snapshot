@@ -103,7 +103,7 @@ val pold: ?loc:location -> predicate -> predicate
 (** application of predicate*)
 val papp:
   ?loc:location ->
-  logic_info * (logic_label * logic_label) list * term list -> 
+  logic_info * logic_label list * term list -> 
   predicate
 
 (** && *)
@@ -191,7 +191,7 @@ val pseparated: ?loc:location -> term list -> predicate
 (** {2 Logic types} *)
 (* ************************************************************************** *)
 
-(** returns [true] if the type is a set<t>.
+(** returns [true] if the type is a list<t>.
     @since Aluminium-20160501 *)
 val is_list_type: logic_type -> bool
 

@@ -200,8 +200,6 @@ module F = struct
   let ff = 4.5
   let minus_ff = -4.5
 
-  let of_int = float_of_int
-
   let widen_up f =
     if f <= zero then zero
     else if f <= one then one
@@ -472,20 +470,6 @@ let contains_minus_zero = is_included minus_zero
 
 (* Returns true if [f] is certainly a zero (positive, negative or both). *)
 let is_a_zero f = is_included f zeros
-
-let fold_split n f (FRange.I(b, e)) acc =
-  let bound = ref b in
-  let acc = ref acc in
-  begin
-    for i = n downto 2 do
-      let new_bound = F.add !bound (F.div (F.sub e !bound) (F.of_int i)) in
-      acc := f (inject !bound new_bound) !acc;
-      bound := new_bound
-    done;
-  end;
-  (*    Format.printf "float fold_split %a@."
-        pretty (!bound, e); *)
-  f (inject !bound e) !acc
 
 let contains_a_zero (FRange.I(b, e)) =
   F.le_ieee b F.zero && F.le_ieee F.zero e
@@ -1340,39 +1324,33 @@ let froundf = exact_aux Float32 F.fround
 let subdiv_float_interval ~size (FRange.I(l, u) as i) =
   let midpoint = F.avg l u in
   let midpointl, midpointu =
-    if size <> 32 && size <> 64
-    then midpoint, midpoint
-    else
-      let smidpoint = F.next_float midpoint in
-      if size = 64
-      then
-        if F.le smidpoint u
-        then
-          if F.next_float l = u
-          then
-            l, u
-          else
-            midpoint, smidpoint
-        else midpoint, u
-      else begin (* 32 *)
-        let i1 = Int64.bits_of_float l in
-        if i1 = Int64.min_int &&
-           (Int64.bits_of_float u) = Int64.zero
-        then
-          l ,u
-        else begin
-          Floating_point.set_round_upward ();
-          let midpointu =
-            Floating_point.round_to_single_precision_float smidpoint
-          in
-          Floating_point.set_round_downward ();
-          let midpointl =
-            Floating_point.round_to_single_precision_float midpoint
-          in
-          Floating_point.set_round_nearest_even ();
-          midpointl, midpointu
-        end
+    match size with
+    | None (* all rounding modes *) -> midpoint, midpoint
+    | Some Float32 ->
+      if F.equal l F.minus_zero && F.equal u F.zero then l, u
+      else begin
+        let smidpoint = F.next_float midpoint in
+        Floating_point.set_round_upward ();
+        let midpointu =
+          Floating_point.round_to_single_precision_float smidpoint
+        in
+        Floating_point.set_round_downward ();
+        let midpointl =
+          Floating_point.round_to_single_precision_float midpoint
+        in
+        Floating_point.set_round_nearest_even ();
+        midpointl, midpointu
       end
+    | Some Float64 ->
+      let smidpoint = F.next_float midpoint in
+      if F.le smidpoint u
+      then
+        if F.next_float l = u
+        then
+          l, u
+        else
+          midpoint, smidpoint
+      else midpoint, u
   in
   if F.le midpointu l || F.le u midpointl
   then raise Can_not_subdiv;

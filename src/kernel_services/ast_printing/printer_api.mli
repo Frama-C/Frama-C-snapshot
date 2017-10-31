@@ -237,6 +237,7 @@ class type extensible_printer_type = object
   method term_lval: Format.formatter -> term_lval -> unit
   method model_field: Format.formatter -> model_info -> unit
   method term_offset: Format.formatter -> term_offset -> unit
+  method logic_builtin_label:  Format.formatter -> logic_builtin_label -> unit
   method logic_label:  Format.formatter -> logic_label -> unit
   method logic_info: Format.formatter -> logic_info -> unit
   method logic_var: Format.formatter -> logic_var -> unit
@@ -261,23 +262,23 @@ class type extensible_printer_type = object
   method funspec: Format.formatter -> funspec -> unit
 
   method assigns:
-    string -> Format.formatter -> identified_term assigns -> unit
+    string -> Format.formatter -> assigns -> unit
   (** first parameter is the introducing keyword (e.g. loop_assigns or
       assigns). *)
 
   method allocation:
-    isloop:bool -> Format.formatter -> identified_term allocation -> unit
+    isloop:bool -> Format.formatter -> allocation -> unit
   (** first parameter is the introducing keyword
       (e.g. loop_allocates, loop_frees, allocates or free)
       @since Oxygen-20120901. *)
 
-  method from: string -> Format.formatter -> identified_term from -> unit
+  method from: string -> Format.formatter -> from -> unit
   (** prints an assignment with its dependencies. *)
 
   method code_annotation: Format.formatter -> code_annotation -> unit
   method global_annotation: Format.formatter -> global_annotation -> unit
-  method decreases: Format.formatter -> term variant -> unit
-  method variant: Format.formatter -> term variant -> unit
+  method decreases: Format.formatter -> variant -> unit
+  method variant: Format.formatter -> variant -> unit
 
   (* ******************************************************************* *)
   (** {3 Modifying pretty-printer behavior}                              *)
@@ -406,6 +407,7 @@ module type S = sig
   val pp_term:  Format.formatter -> term -> unit
   val pp_model_field: Format.formatter -> model_info -> unit
   val pp_term_offset: Format.formatter -> term_offset -> unit
+  val pp_logic_builtin_label: Format.formatter -> logic_builtin_label -> unit
   val pp_logic_label: Format.formatter -> logic_label -> unit
 
   val pp_predicate_node: Format.formatter -> predicate_node -> unit
@@ -415,18 +417,18 @@ module type S = sig
   val pp_funspec: Format.formatter -> funspec -> unit
   val pp_behavior: Format.formatter -> funbehavior -> unit
   val pp_global_annotation: Format.formatter -> global_annotation -> unit
-  val pp_decreases: Format.formatter -> term variant -> unit
-  val pp_variant: Format.formatter -> term variant -> unit
-  val pp_from: Format.formatter -> identified_term from -> unit
-  val pp_assigns: Format.formatter -> identified_term assigns -> unit
+  val pp_decreases: Format.formatter -> variant -> unit
+  val pp_variant: Format.formatter -> variant -> unit
+  val pp_from: Format.formatter -> from -> unit
+  val pp_assigns: Format.formatter -> assigns -> unit
 
-  val pp_allocation: Format.formatter -> identified_term allocation -> unit
+  val pp_allocation: Format.formatter -> allocation -> unit
   (** @since Oxygen-20120901 *)
 
-  val pp_loop_from: Format.formatter -> identified_term from -> unit
-  val pp_loop_assigns: Format.formatter -> identified_term assigns -> unit
+  val pp_loop_from: Format.formatter -> from -> unit
+  val pp_loop_assigns: Format.formatter -> assigns -> unit
 
-  val pp_loop_allocation: Format.formatter -> identified_term allocation -> unit
+  val pp_loop_allocation: Format.formatter -> allocation -> unit
   (** @since Oxygen-20120901 *)
 
   val pp_post_cond: 
@@ -437,7 +439,7 @@ module type S = sig
   (* ********************************************************************* *)
 
   val pp_full_assigns:
-    string -> Format.formatter -> identified_term assigns -> unit
+    string -> Format.formatter -> assigns -> unit
   (** first parameter is the introducing keyword (e.g. loop_assigns or
       assigns). *)
 

@@ -26,6 +26,8 @@ open Logic_typing
 open Logic_ptree
 open Cil_datatype
 
+let dkey_calls = Wp_parameters.register_category "calls"
+
 (* -------------------------------------------------------------------------- *)
 (* --- Typing                                                             --- *)
 (* -------------------------------------------------------------------------- *)
@@ -129,7 +131,7 @@ class dyncall =
              List.iter
                (fun (bhv,kfs) ->
                   begin
-                    if Wp_parameters.has_dkey "calls" then
+                    if Wp_parameters.has_dkey dkey_calls then
                       let source = snd (Stmt.loc stmt) in
                       if Cil.default_behavior_name = bhv then
                         Wp_parameters.result ~source

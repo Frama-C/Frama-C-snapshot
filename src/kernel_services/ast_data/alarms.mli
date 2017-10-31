@@ -66,6 +66,7 @@ type alarm =
   | Valid_string of exp
   | Function_pointer of exp (** the type of the pointer is compatible with
                                 the type of the pointed function. *)
+  | Uninitialized_union of lval list
 
 include Datatype.S_with_collections with type t = alarm
 

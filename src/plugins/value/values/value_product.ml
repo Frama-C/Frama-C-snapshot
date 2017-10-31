@@ -43,6 +43,10 @@ module Make
 
   let structure = Structure.Key_Value.Node (Left.structure, Right.structure)
 
+  let pretty_typ typ =
+    Pretty_utils.pp_pair ~pre:"@[" ~sep:",@ " ~suf:"@]"
+      (Left.pretty_typ typ) (Right.pretty_typ typ)
+
   let top = Left.top, Right.top
   let is_included (l1, r1) (l2, r2) =
     Left.is_included l1 l2 && Right.is_included r1 r2
@@ -74,9 +78,17 @@ module Make
     Right.forward_binop ~context typ binop r1 r2 >>=: fun right ->
     left, right
 
-  let reinterpret expr typ (left, right) =
-    Left.reinterpret expr typ left >>= fun left ->
-    Right.reinterpret expr typ right >>=: fun right ->
+  let truncate_integer expr range (left, right) =
+    Left.truncate_integer expr range left >>= fun left ->
+    Right.truncate_integer expr range right >>=: fun right ->
+    left, right
+
+  let rewrap_integer range (left, right) =
+    Left.rewrap_integer range left, Right.rewrap_integer range right
+
+  let cast_float expr fkind (left, right) =
+    Left.cast_float expr fkind left >>= fun left ->
+    Right.cast_float expr fkind right >>=: fun right ->
     left, right
 
   let do_promotion ~src_typ ~dst_typ expr (left, right) =

@@ -389,6 +389,12 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
 
   let structure = Structure.Key_Value.Leaf offsm_key
 
+  let pretty_typ typ fmt = function
+    | Top as o -> pretty fmt o
+    | O o ->
+      Format.fprintf fmt "O @[%a@]"
+        (V_Offsetmap.pretty_generic ?typ ()) o
+  
   let top = Top
 
   let is_included o1 o2 = match o1, o2 with
@@ -466,7 +472,9 @@ module Offsm : Abstract_value.Internal with type t = offsm_or_top = struct
   let backward_cast ~src_typ:_ ~dst_typ:_ ~src_val:_ ~dst_val:_ =
     `Value None
 
-  let reinterpret _e _typ o = `Value o, Alarmset.all
+  let truncate_integer _e _range o = `Value o, Alarmset.all
+  let rewrap_integer _range o = o
+  let cast_float _e _fkind o = `Value o, Alarmset.all
 
   let do_promotion ~src_typ ~dst_typ _e o =
     let o' =
@@ -539,7 +547,7 @@ module CvalueOffsm : Abstract_value.Internal with type t = V.t * offsm_or_top
           let shiftn = if op = Shiftlt then SLeft i else SRight (i, signed) in
           let o = shift (size typ) (to_offsm typ l) shiftn in
           Main_values.CVal.forward_binop ~context typ op v_l v_r >>=: fun v ->
-          strengthen_v typ (v, O o)
+          v, O o
         with V.Not_based_on_null | Ival.Not_Singleton_Int ->
           forward_binop ~context typ op l r
       end

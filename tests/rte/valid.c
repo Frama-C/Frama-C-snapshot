@@ -49,8 +49,8 @@ int main() {
   q.id[i0] = 0;
   p.q = q;
   p.tq[i0][i1] = q;
-  p.id[i1] = p.id[i2];
-  p.id[i1] = p.id[i3];
+  p2.id[i1] = p.id[i2];
+  p2.id[i1] = p.id[i3];
 
   struct P np = *(p.next);
   struct P* npp = p.next;

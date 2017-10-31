@@ -43,6 +43,34 @@ open Cil_types
 
 (**/**)
 
+(* Look at (only once) the callers of [kf] ([kf] included). *)
+let exists_fun_callers fpred kf =
+  let table = ref Kernel_function.Set.empty in
+  let rec exists_fun_callers kf =
+    if fpred kf
+    then true
+    else 
+      if Kernel_function.Set.mem kf !table
+      then false (* no way to call the initial [kf]. *)
+      else begin
+        table := Kernel_function.Set.add kf !table ;
+        List.exists
+          (fun (kf,_) -> exists_fun_callers kf)
+          (!Db.Value.callers kf)
+      end
+  in
+  exists_fun_callers kf
+
+let is_src_fun_visible = exists_fun_callers SlicingMacros.is_src_fun_visible
+
+let is_src_fun_called kf =
+  let kf_entry, _library = Globals.entry_point () in
+  let fpred f =
+    if (kf_entry == f)
+    then SlicingMacros.is_src_fun_visible f (* for the entry point *)
+    else SlicingMacros.is_src_fun_called f (* for the others *)
+  in exists_fun_callers fpred kf
+
 (** Manage the information related to a function call in a slice.
 * It is composed of the called function if it has been established yet,
 * and the call signature. Also deals with the [called_by] information. *)
@@ -124,7 +152,7 @@ end = struct
       | _ -> assert false
     in
     let _, called_functions =
-      !Db.Value.expr_to_kernel_function ~with_alarms:CilE.warn_none_mode
+      !Db.Value.expr_to_kernel_function
         (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
     in
     Kernel_function.Hptset.elements called_functions
@@ -1452,10 +1480,10 @@ let merge_fun_callers get_list get_value merge is_top acc kf =
   end
 
 (** The mark [m] related to all statements of a source function [kf].
-    Property : [is_bottom (get_from_func proj kf) = not (Project.is_called proj kf) ] *)
+    Property : [is_bottom (get_from_func kf) = not (is_src_fun_called kf) ] *)
 let get_mark_from_src_fun kf =
   let kf_entry, _library = Globals.entry_point () in
-    if !Db.Slicing.Project.is_called kf_entry then
+    if is_src_fun_called kf_entry then
       SlicingMarks.mk_user_mark ~data:true ~addr:true ~ctrl:true
     else
       let directly_called kf = (SlicingMacros.get_kf_fi kf).SlicingInternals.f_called_by in

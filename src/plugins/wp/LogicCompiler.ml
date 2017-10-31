@@ -35,6 +35,8 @@ open Lang.F
 open Memory
 open Definitions
 
+let dkey_lemma = Wp_parameters.register_category "lemma"
+
 type polarity = [ `Positive | `Negative | `NoPolarity ]
 
 module Make( M : Memory.Model ) =
@@ -157,7 +159,7 @@ struct
       gamma = Lang.get_gamma () ;
       triggers = [] ;
       call = Some call ;
-      labels = wrap_mem [ Clabels.Init , init ; Clabels.Pre , mem ] ;
+      labels = wrap_mem [ Clabels.init , init ; Clabels.pre , mem ] ;
     }
 
   let call_post init call seq =
@@ -169,9 +171,9 @@ struct
       triggers = [] ;
       call = Some call ;
       labels = wrap_mem [
-          Clabels.Init , init ;
-          Clabels.Pre , seq.pre ;
-          Clabels.Post , seq.post ;
+          Clabels.init , init ;
+          Clabels.pre , seq.pre ;
+          Clabels.post , seq.post ;
         ] ;
     }
 
@@ -189,7 +191,7 @@ struct
          (Lang.local ~pool:f.pool ~gamma:f.gamma cc))
 
   let mem_at_frame frame label =
-    assert (label <> Clabels.Here) ;
+    assert (not (Clabels.is_here label));
     try LabelMap.find label frame.labels
     with Not_found ->
       let s = M.Sigma.create () in
@@ -267,15 +269,11 @@ struct
   let move env s = { env with lhere = Some s ; current = Some s }
 
   let env_at env label =
-    let s = match label with
-      | Clabels.Here ->  env.lhere
-      | label -> Some(mem_frame label)
+    let s = if Clabels.is_here label then env.lhere else Some(mem_frame label)
     in { env with current = s }
 
   let mem_at env label =
-    match label with
-    | Clabels.Here -> sigma env
-    | _ -> mem_frame label
+    if Clabels.is_here label then sigma env else mem_frame label
 
   let env_let env x v = { env with vars = Logic_var.Map.add x v env.vars }
   let env_letp env x p = env_let env x (Vexp (F.e_prop p))
@@ -306,7 +304,7 @@ struct
           ) Heap.Set.empty vars
       in List.fold_left
         (fun acc l ->
-           let label = Clabels.c_label l in
+           let label = Clabels.of_logic l in
            let sigma = Sigma.create () in
            Heap.Set.fold_sorted
              (fun chunk (parm,sigm) ->
@@ -329,7 +327,7 @@ struct
           profile
 
   let default_label env = function
-    | [l] -> move env (mem_frame (Clabels.c_label l))
+    | [l] -> move env (mem_frame (Clabels.of_logic l))
     | _ -> env
 
   (* -------------------------------------------------------------------------- *)
@@ -676,7 +674,7 @@ struct
   let define_type = Definitions.define_type
   let define_logic c a = Signature.compile (compile_logic c a)
   let define_lemma c l =
-    if l.lem_labels <> [] && Wp_parameters.has_dkey "lemma" then
+    if l.lem_labels <> [] && Wp_parameters.has_dkey dkey_lemma then
       Wp_parameters.warning ~source:l.lem_position
         "Lemma '%s' has labels, consider using global invariant instead."
         l.lem_name ;
@@ -724,22 +722,23 @@ struct
   (* --- Binding Formal with Actual w.r.t Signature                         --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec bind_labels env labels : M.Sigma.t LabelMap.t =
-    match labels with
-    | [] -> LabelMap.empty
-    | (l1,l2) :: labels ->
-        let l1 = Clabels.c_label l1 in
-        let l2 = Clabels.c_label l2 in
-        LabelMap.add l1 (mem_at env l2) (bind_labels env labels)
+  let rec bind_labels env phi_labels labels : M.Sigma.t LabelMap.t =
+    match phi_labels, labels with
+    | [], [] -> LabelMap.empty
+    | l1 :: phi_labels, l2 :: labels ->
+        let l1 = Clabels.of_logic l1 in
+        let l2 = Clabels.of_logic l2 in
+        LabelMap.add l1 (mem_at env l2) (bind_labels env phi_labels labels)
+    | _ -> Wp_parameters.fatal "Incorrect by AST typing"
 
   let call_params env
       (phi:logic_info)
-      (labels:(logic_label * logic_label) list)
+      (labels:logic_label list)
       (sparam : sig_param list)
       (parameters:F.term list)
     : F.term list =
     let mparams = wrap_lvar phi.l_profile parameters in
-    let mlabels = bind_labels env labels in
+    let mlabels = bind_labels env phi.l_labels labels in
     List.map
       (function
         | Sig_value lv -> Logic_var.Map.find lv mparams
@@ -754,7 +753,7 @@ struct
 
   let call_fun env
       (phi:logic_info)
-      (labels:(logic_label * logic_label) list)
+      (labels:logic_label list)
       (parameters:F.term list) : F.term =
     match signature phi with
     | CST c -> e_zint c
@@ -764,7 +763,7 @@ struct
 
   let call_pred env
       (phi:logic_info)
-      (labels:(logic_label * logic_label) list)
+      (labels:logic_label list)
       (parameters:F.term list) : F.pred =
     match signature phi with
     | CST _ -> assert false

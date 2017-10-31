@@ -1,0 +1,26 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue-364.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Assertion 'ZERO' (file tests/wp_bts/issue-364.i, line 5):
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: valid_rd(Malloc_0, shift_sint8(global(Str_1), 3), 1).
+
+------------------------------------------------------------
+
+Goal Assertion 'OVER' (file tests/wp_bts/issue-364.i, line 6):
+Let a = global(Str_1).
+Assume {
+  (* Heap *)
+  Have: linked(Malloc_0).
+  (* Assertion 'ZERO' *)
+  Have: valid_rd(Malloc_0, shift_sint8(a, 3), 1).
+}
+Prove: !valid_rd(Malloc_0, shift_sint8(a, 4), 1).
+
+------------------------------------------------------------

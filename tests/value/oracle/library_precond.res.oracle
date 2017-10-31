@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/library_precond.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -8,6 +7,7 @@
 [value] computing for function mxml <- main.
         Called from tests/value/library_precond.i:9.
 [value] using specification for function mxml
+tests/value/library_precond.i:5:[value] warning: no 'assigns \result \from ...' clause specified for function mxml
 tests/value/library_precond.i:3:[value] warning: function mxml: precondition got status invalid.
 [value] Done for function mxml
 [value] Recording results for main

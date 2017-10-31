@@ -248,11 +248,20 @@ __BEGIN_DECLS
   @ predicate valid_read_string{L}(char *s) =
   @   0 <= strlen(s) && \valid_read(s+(0..strlen(s)));
   @
+  @ predicate valid_read_nstring{L}(char *s, ℤ n) =
+  @   \valid_read(s+(0..n-1)) || valid_read_string{L}(s);
+  @
   @ predicate valid_string_or_null{L}(char *s) =
   @   s == \null || valid_string(s);
   @
   @ predicate valid_wstring{L}(wchar_t *s) =
   @   0 <= wcslen(s) && \valid(s+(0..wcslen(s)));
+  @
+  @ predicate valid_read_wstring{L}(wchar_t *s) =
+  @   0 <= wcslen(s) && \valid_read(s+(0..wcslen(s)));
+  @
+  @ predicate valid_read_nwstring{L}(wchar_t *s, ℤ n) =
+  @   \valid_read(s+(0..n-1)) || valid_read_wstring{L}(s);
   @
   @ predicate valid_wstring_or_null{L}(wchar_t *s) =
   @   s == \null || valid_wstring(s);

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/widen_non_constant.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -13,61 +12,61 @@
 [value] computing for function main1 <- main.
         Called from tests/value/widen_non_constant.i:84.
 tests/value/widen_non_constant.i:10:[value] entering loop for the first time
-[value] Called Frama_C_show_each_out({0})
+tests/value/widen_non_constant.i:11:[value] Frama_C_show_each_out: {0}
 tests/value/widen_non_constant.i:12:[value] entering loop for the first time
-[value] Called Frama_C_show_each_in({0}, {1})
-[value] Called Frama_C_show_each_in({0}, {1; 2})
-[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
-[value] Called Frama_C_show_each_in({0}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1})
-[value] Called Frama_C_show_each_in({0; 1}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1; 2})
-[value] Called Frama_C_show_each_in({0; 1; 2}, [1..23])
-[value] Called Frama_C_show_each_out([0..22])
-[value] Called Frama_C_show_each_in([0..23], [1..23])
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0}, {1}
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0}, {1; 2}
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0}, {1; 2; 3}
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0}, [1..23]
+tests/value/widen_non_constant.i:11:[value] Frama_C_show_each_out: {0; 1}
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0; 1}, [1..23]
+tests/value/widen_non_constant.i:11:[value] Frama_C_show_each_out: {0; 1; 2}
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: {0; 1; 2}, [1..23]
+tests/value/widen_non_constant.i:11:[value] Frama_C_show_each_out: [0..22]
+tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: [0..23], [1..23]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/widen_non_constant.i:85.
 tests/value/widen_non_constant.i:26:[value] entering loop for the first time
-[value] Called Frama_C_show_each_out({0})
+tests/value/widen_non_constant.i:27:[value] Frama_C_show_each_out: {0}
 tests/value/widen_non_constant.i:28:[value] entering loop for the first time
-[value] Called Frama_C_show_each_in({0}, {1})
-[value] Called Frama_C_show_each_in({0}, {1; 2})
-[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
-[value] Called Frama_C_show_each_in({0}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1})
-[value] Called Frama_C_show_each_in({0; 1}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1; 2})
-[value] Called Frama_C_show_each_in([0..25], [1..23])
-[value] Called Frama_C_show_each_out([0..22])
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0}, {1}
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0}, {1; 2}
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0}, {1; 2; 3}
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0}, [1..23]
+tests/value/widen_non_constant.i:27:[value] Frama_C_show_each_out: {0; 1}
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0; 1}, [1..23]
+tests/value/widen_non_constant.i:27:[value] Frama_C_show_each_out: {0; 1; 2}
+tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: [0..25], [1..23]
+tests/value/widen_non_constant.i:27:[value] Frama_C_show_each_out: [0..22]
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
         Called from tests/value/widen_non_constant.i:86.
 tests/value/widen_non_constant.i:45:[value] entering loop for the first time
-[value] Called Frama_C_show_each_out({0})
+tests/value/widen_non_constant.i:46:[value] Frama_C_show_each_out: {0}
 tests/value/widen_non_constant.i:47:[value] entering loop for the first time
-[value] Called Frama_C_show_each_in({0}, {1})
-[value] Called Frama_C_show_each_in({0}, {1; 2})
-[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
-[value] Called Frama_C_show_each_in({0}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1})
-[value] Called Frama_C_show_each_in({0; 1}, [1..23])
-[value] Called Frama_C_show_each_out({0; 1; 2})
-[value] Called Frama_C_show_each_in([0..2147483647], [1..23])
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0}, {1}
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0}, {1; 2}
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0}, {1; 2; 3}
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0}, [1..23]
+tests/value/widen_non_constant.i:46:[value] Frama_C_show_each_out: {0; 1}
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0; 1}, [1..23]
+tests/value/widen_non_constant.i:46:[value] Frama_C_show_each_out: {0; 1; 2}
+tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: [0..2147483647], [1..23]
 tests/value/widen_non_constant.i:49:[value] warning: out of bounds read. assert \valid_read(p + j);
 tests/value/widen_non_constant.i:45:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each_out([0..22])
+tests/value/widen_non_constant.i:46:[value] Frama_C_show_each_out: [0..22]
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
         Called from tests/value/widen_non_constant.i:87.
 tests/value/widen_non_constant.i:63:[value] entering loop for the first time
 tests/value/widen_non_constant.i:69:[value] entering loop for the first time
-[value] Called Frama_C_show_each({43})
+tests/value/widen_non_constant.i:72:[value] Frama_C_show_each: {43}
 tests/value/widen_non_constant.i:75:[value] entering loop for the first time
-[value] Called Frama_C_show_each({35; 36; 37; 38; 39; 40; 41; 42})
+tests/value/widen_non_constant.i:78:[value] Frama_C_show_each: {35; 36; 37; 38; 39; 40; 41; 42}
 [value] Recording results for main4
 [value] Done for function main4
 [value] Recording results for main

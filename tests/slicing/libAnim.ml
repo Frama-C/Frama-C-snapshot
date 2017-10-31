@@ -20,7 +20,7 @@ let print_proj basename title n =
   let name = nth_name basename n in
   let dot_name = (name^".dot") in
   let jpg_name = (name^".jpg") in
-  !Db.Slicing.Project.print_dot ~filename:dot_name ~title:title;
+  Slicing.Api.Project.print_dot ~filename:dot_name ~title:title;
   if use_dot then
     ignore (Sys.command ("dot -Tjpg -o "^jpg_name^" "^dot_name^" 2>/dev/null"));
   Sys.remove dot_name;
@@ -35,7 +35,7 @@ let build_all_graphs basename title first_n =
   let rec next n =
     Format.printf ".@?";
     try
-      !Db.Slicing.Request.apply_next_internal ();
+      Slicing.Api.Request.apply_next_internal ();
       let title = title^" ("^(string_of_int (n - first_n))^")" in
       let n = print_proj basename title n in
       next n

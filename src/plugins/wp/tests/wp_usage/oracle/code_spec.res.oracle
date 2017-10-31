@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/code_spec.i (no preprocessing)
 [wp] Running WP plugin...
 tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns clause for function by_addr_in_spec, generating default assigns from the prototype

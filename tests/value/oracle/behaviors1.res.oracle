@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/behaviors1.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -348,7 +347,7 @@ tests/value/behaviors1.i:580:[value] function f8_bis: precondition got status va
 [value] computing for function f9 <- test_promote <- main.
         Called from tests/value/behaviors1.i:609.
 [value] using specification for function f9
-tests/value/behaviors1.i:609:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:601:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 tests/value/behaviors1.i:609:[value] function f9, behavior b1: assumes got status invalid; behavior not evaluated.
 [value] Done for function f9
 [value] Recording results for test_promote
@@ -358,7 +357,10 @@ tests/value/behaviors1.i:609:[value] function f9, behavior b1: assumes got statu
 [value] computing for function f10 <- test_narrow <- main.
         Called from tests/value/behaviors1.i:634.
 [value] using specification for function f10
-tests/value/behaviors1.i:634:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:616:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:622:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+tests/value/behaviors1.i:625:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] Done for function f10
 [value] Recording results for test_narrow
 [value] Done for function test_narrow

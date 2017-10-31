@@ -172,13 +172,11 @@ module CyclomaticMetricsGUI = struct
             in
 	    let callback2 () =
 	      (* function selected is kf *)
-	       let semantic = Metrics_coverage.compute_semantic ~libc in
-	       let l = (Metrics_coverage.compute_coverage_by_fun semantic) in
+	       Metrics_coverage.compute_coverage_by_fun ();
 	       (* Got a list of (kf,value,total,percent).
 		  Now let's scan this list *)
 	       try 
-		 let (_,valeur,total,percent) =
-		   (List.find (fun (kf2,_,_,_) -> Kernel_function.equal kf kf2) l) in
+		 let valeur,total,percent = Metrics_coverage.get_coverage kf in
 		 self#do_value main_ui localizable valeur total percent
 	       with Not_found -> ()
 	    in
@@ -222,7 +220,13 @@ module ValueCoverageGUI = struct
   let name = "Value coverage"
 
   let result = ref None 
-  let highlight = ref true 
+  let highlight = ref false
+
+  let update_filetree = ref (fun _ -> ())
+  let filetree_enabled = ref true
+
+  let filetree_visible () =
+    !filetree_enabled && Metrics_coverage.is_computed_by_fun ()
 
   (* TODO : Metrics data structure must be projectified ? *)
   let compute ~libc =
@@ -233,8 +237,53 @@ module ValueCoverageGUI = struct
           result := Some (Metrics_coverage.compute ~libc)
         | Some _ -> ()
     end;
+    Metrics_coverage.compute_coverage_by_fun ();
+    !update_filetree `Contents;
     Extlib.the !result
-  
+
+  let decorate_filetree (main_ui: Design.main_window_extension_points) =
+    let compute get = function
+      | Cil_types.GFun ({Cil_types.svar = v }, _) ->
+        begin
+          try
+            let kf = Globals.Functions.get v in
+            get (Metrics_coverage.get_coverage kf)
+          with Not_found -> -1
+        end
+      | _ -> -1
+    in
+    let percentage (_, _, pct_covered) = truncate (100. -. pct_covered) in
+    let number (total, value, _) = total - value in
+    let text get =
+      fun g -> let i = compute get g in if i < 0 then "" else string_of_int i
+    in
+    let sort get =
+      fun g h -> Datatype.Int.compare (compute get g) (compute get h)
+    in
+    let refresh_percentage =
+      main_ui#file_tree#append_text_column
+        ~title:"Dead code %"
+        ~tooltip:"Percentage of dead code in each function"
+        ~visible:filetree_visible
+        ~text:(text percentage)
+        ~sort:(sort percentage)
+    in
+    let refresh_number =
+      main_ui#file_tree#append_text_column
+        ~title:"Dead stmts"
+        ~tooltip:"Number of dead statements in each function"
+        ~visible:filetree_visible
+        ~text:(text number)
+        ~sort:(sort number)
+    in
+    let refresh x = refresh_percentage x; refresh_number x in
+    update_filetree := refresh
+
+  let () =
+    Db.Value.Table_By_Callstack.add_hook_on_update
+      (fun _ ->
+         Metrics_coverage.clear_coverage_by_fun ();
+        !update_filetree `Visibility)
 
   (* Functions are highlighted using different colors according to the
      following scheme:
@@ -290,14 +339,20 @@ module ValueCoverageGUI = struct
     let _ = Gtk_helper.on_bool box "Highlight results" (fun () -> !highlight)
       (fun b -> highlight := b; main_ui#rehighlight ()) 
     in
+    let _ = Gtk_helper.on_bool box "Show columns"
+        ~tooltip:"Shows the columns related to dead code in the filetree."
+        (fun () -> !filetree_enabled)
+        (fun b -> filetree_enabled := b; !update_filetree `Visibility)
+    in
     main_ui#rehighlight ()
 
   let register ~libc main_ui =
     Design.register_reset_extension (fun _ -> result := None);
     main_ui#register_source_highlighter highlighter;
-    Metrics_gui.register_metrics name (display_result ~libc main_ui);
+    let apply = Metrics_parameters.ValueCoverage.get () in
+    Metrics_gui.register_metrics ~apply name (display_result ~libc main_ui);
 end
-  
+
 let register_final ?(libc=Metrics_parameters.Libc.get ()) main_ui =
   let box = Metrics_gui.init_panel main_ui in
   Design.register_reset_extension Metrics_gui.reset_panel;
@@ -310,4 +365,5 @@ let gui (main_ui:Design.main_window_extension_points) =
   main_ui#register_panel register_final
 
 let () =
-  Design.register_extension gui
+  Design.register_extension gui;
+  Design.register_extension ValueCoverageGUI.decorate_filetree

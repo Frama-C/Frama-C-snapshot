@@ -56,12 +56,13 @@ let rec condToDNF cond =
     | TOr  (c1, c2) -> (condToDNF c1)@(condToDNF c2)
     | TAnd (c1, c2) -> 
         let d1,d2=(condToDNF c1), (condToDNF c2) in
-        List.fold_left 
-          (fun lclause clauses2 -> 
-             (List.map (fun clauses1 -> clauses1@clauses2) d1) @ lclause
-          )
-          [] d2
-    | TNot (c) -> 
+        List.rev
+          (List.fold_left
+             (fun lclause clauses1 ->
+             (List.map (fun clauses2 -> clauses1@clauses2) d2) @ lclause
+             )
+             [] d1)
+    | TNot (c) ->
         begin
           match c with
             | TOr  (c1, c2) -> condToDNF (TAnd(TNot(c1),TNot(c2)))
@@ -146,52 +147,57 @@ let positiveCallOrRet clause =
         (None, [])
         clause
     in
+    let computePositive = List.rev computePositive in
     (* Step 2 : Remove negatives not enough expressive *)
     match positive with 
       | None -> computePositive
       | Some (TCall (kf1,None)) ->
-        List.fold_left
-          (fun treated term -> 
-            match term with 
-              | TNot(TCall (kf2,_)) ->
-                if Kernel_function.equal kf1 kf2 then raise Exit
-                (* Positive information more specific than negative *)
-                else treated
-              | TNot(TReturn _) -> treated
-              | _  -> term::treated
-          )
-          [] computePositive
+          List.rev
+            (List.fold_left
+               (fun treated term -> 
+                 match term with 
+                   | TNot(TCall (kf2,_)) ->
+                       if Kernel_function.equal kf1 kf2 then raise Exit
+                       (* Positive information more specific than negative *)
+                       else treated
+                   | TNot(TReturn _) -> treated
+                   | _  -> term::treated
+               )
+               [] computePositive)
       | Some (TCall (kf1, Some b1)) ->
-        List.fold_left
-          (fun treated term -> 
-            match term with 
-              | TNot(TCall (kf2,None)) ->
-                if Kernel_function.equal kf1 kf2 then raise Exit
-                (* Positive information more specific than negative *)
-                else treated
-              | TNot(TCall(kf2, Some b2)) ->
-                if Kernel_function.equal kf1 kf2 then
-                  if Datatype.String.equal b1.b_name b2.b_name then raise Exit
-                  else term :: treated
-                else treated
-              | TNot(TReturn _) -> treated
-              | _  -> term::treated
-          )
-          [] computePositive
-        
+          List.rev
+            (List.fold_left
+               (fun treated term ->
+                 match term with
+                   | TNot(TCall (kf2,None)) ->
+                       if Kernel_function.equal kf1 kf2 then raise Exit
+                       (* Positive information more specific than negative *)
+                       else treated
+                   | TNot(TCall(kf2, Some b2)) ->
+                       if Kernel_function.equal kf1 kf2 then
+                         if Datatype.String.equal b1.b_name b2.b_name then
+                           raise Exit
+                         else term :: treated
+                       else treated
+                   | TNot(TReturn _) -> treated
+                   | _  -> term::treated
+               )
+               [] computePositive)
       | Some (TReturn kf1) ->
-        List.fold_left
-          (fun treated term -> 
-            match term with 
-              | TNot(TCall _) -> treated
-              | TNot(TReturn kf2) -> 
-                (* Two opposite information *) 
-                if Kernel_function.equal kf1 kf2 then raise Exit else treated
-              | _ -> term::treated
-          )
-          [] computePositive
-      | _ -> 
-        Aorai_option.fatal "inconsistent environment in positiveCallOrRet"
+          List.rev
+            (List.fold_left
+               (fun treated term ->
+                 match term with
+                   | TNot(TCall _) -> treated
+                   | TNot(TReturn kf2) ->
+                       (* Two opposite information *)
+                       if Kernel_function.equal kf1 kf2 then raise Exit
+                       else treated
+                   | _ -> term::treated
+               )
+               [] computePositive)
+      | _ ->
+          Aorai_option.fatal "inconsistent environment in positiveCallOrRet"
   with Exit -> [TFalse] (* contradictory requirements for current event. *)
 
 let rel_are_equals (rel1,t11,t12) (rel2,t21,t22) =
@@ -213,56 +219,6 @@ let contradict_rel r1 (rel2,t21,t22) =
   rel_are_equals r1 (opposite_rel rel2, t21,t22)
   || rel_are_equals (swap_rel r1) (opposite_rel rel2, t21, t22)
 
-(** Simplify redundant relations. *)
-let simplify clause =
-  try
-    List.fold_left
-      (fun clause term -> 
-        match term with
-          | TTrue | TNot(TFalse) -> clause
-          | TFalse | TNot(TTrue) -> raise Exit
-          | TRel(rel1,t11,t12) ->
-            if 
-              List.exists
-                (fun term -> 
-                  match term with
-                    | TRel(rel2,t21,t22) 
-                        when contradict_rel (rel1,t11,t12) (rel2, t21,t22) ->
-                      raise Exit
-                    | TRel(rel2,t21,t22) ->
-                      rel_are_equals (rel1,t11,t12) (rel2,t21,t22)
-                    | TNot(TRel(rel2,t21,t22))
-                        when (rel_are_equals (rel1,t11,t12) (rel2,t21,t22)) -> 
-                      raise Exit
-                    | TNot(TRel(rel2,t21,t22)) ->
-                      contradict_rel (rel1,t11,t12) (rel2,t21,t22)
-                    | _ -> false)
-                clause
-            then clause
-            else term::clause
-         | TNot(TRel(rel1,t11,t12)) ->
-            if 
-              List.exists
-                (fun term -> 
-                  match term with
-                    | TNot(TRel(rel2,t21,t22))
-                        when contradict_rel (rel1,t11,t12) (rel2, t21,t22) ->
-                      raise Exit
-                    | TNot(TRel(rel2,t21,t22)) ->
-                      rel_are_equals (rel1,t11,t12) (rel2,t21,t22)
-                    | TRel(rel2,t21,t22)
-                        when (rel_are_equals (rel1,t11,t12) (rel2,t21,t22)) -> 
-                      raise Exit
-                    | TRel(rel2,t21,t22) ->
-                      contradict_rel (rel1,t11,t12) (rel2,t21,t22)
-                    | _ -> false)
-                clause
-            then clause
-            else term::clause
-         | _ -> term :: clause)
-      [] clause
-  with Exit -> [TFalse]
-
 let rec termsAreEqual term1 term2 =
   match term1,term2 with
     | TTrue,TTrue
@@ -275,9 +231,34 @@ let rec termsAreEqual term1 term2 =
     | TRel(rel1,t11,t12), TNot(TRel(rel2,t21,t22)) ->
       contradict_rel (rel1,t11,t12) (rel2,t21,t22)
     | TNot(a),TNot(b) -> termsAreEqual a b
-    | TRel(rel1,t11,t12), TRel(rel2,t21,t22) -> 
+    | TRel(rel1,t11,t12), TRel(rel2,t21,t22) ->
       rel_are_equals (rel1,t11,t12) (rel2,t21,t22)
     | _  -> false
+
+let negative_term term =
+  match term with
+    | TNot(c) -> c
+    | TCall _ | TReturn _ | TRel _ -> TNot term
+    | TTrue -> TFalse
+    | TFalse -> TTrue
+    | TAnd (_,_) | TOr (_,_) -> Aorai_option.fatal "not a term of DNF clause"
+
+(** Simplify redundant relations. *)
+let simplify clause =
+  try
+    List.rev
+      (List.fold_left
+         (fun clause term ->
+           match term with
+             | TTrue | TNot(TFalse) -> clause
+             | TFalse | TNot(TTrue) -> raise Exit
+             | _ ->
+                 if List.exists (termsAreEqual (negative_term term)) clause
+                 then raise Exit;
+                 if List.exists (termsAreEqual term) clause then clause
+                 else term :: clause)
+         [] clause)
+  with Exit -> [TFalse]
 
 (** true iff clause1  <: clause2*)
 let clausesAreSubSetEq clause1 clause2 = 
@@ -295,37 +276,28 @@ let removeClause lclauses cl =
   List.filter (fun c -> not (clausesAreSubSetEq cl c)) lclauses
 
 (* Obvious version. *)
-let negativeClause clause = 
-  List.map
-    (fun term -> 
-      match term with 
-        | TNot(c) -> c
-        | TCall _ | TReturn _ | TRel _ -> TNot term
-        | TTrue -> TFalse
-        | TFalse -> TTrue
-        | TAnd (_,_)
-        | TOr (_,_) -> Aorai_option.fatal "not a DNF clause"
-    ) clause
+let negativeClause clause = List.map negative_term clause
 
 let simplifyClauses clauses =
   try
-    List.fold_left 
-      (fun acc c -> 
-       (* If 2 clauses are C and not C then their disjunction implies true *)
+    List.rev
+      (List.fold_left
+      (fun acc c ->
+        (* If 2 clauses are C and not C then their disjunction implies true *)
         if List.exists (clausesAreEqual (negativeClause c)) acc then
           raise Exit
-       (* If an observed clause c2 is included inside the current clause 
+        (* If an observed clause c2 is included inside the current clause 
           then the current is not added *)
-       else if (List.exists (fun c2 -> clausesAreSubSetEq c2 c) acc) then
-         acc
-       (* If the current clause is included inside an observed clause 
-          c2 then the current is add and c2 is removed *)
-       else if (List.exists (fun c2 -> clausesAreSubSetEq c c2) acc) then
-         c::(removeClause acc c)
-       (* If no simplification then c is add to the list *)
-       else c::acc
+        else if (List.exists (fun c2 -> clausesAreSubSetEq c2 c) acc) then
+          acc
+        (* If the current clause is included inside an observed clause 
+          c2 then the current is added and c2 is removed *)
+        else if (List.exists (fun c2 -> clausesAreSubSetEq c c2) acc) then
+          c::(removeClause acc c)
+               (* If no simplification then c is add to the list *)
+        else c::acc
       )
-      [] clauses
+      [] clauses)
   with Exit -> [[]]
 
 let tor t1 t2 =
@@ -340,24 +312,43 @@ let tand t1 t2 =
     | TFalse,_ | _,TFalse -> TFalse
     | _,_ -> TAnd(t1,t2)
 
-let tnot t =
+let has_result t =
+  let module M = struct exception Has_result end in
+  let vis = object
+      inherit Visitor.frama_c_inplace
+      method! vterm_lhost = function
+        | TResult _ -> raise M.Has_result
+        | _ -> Cil.DoChildren
+    end
+  in
+  try ignore (Visitor.visitFramacTerm vis t); false
+  with M.Has_result -> true
+
+let rec tnot t =
   match t with
-      TTrue -> TFalse
+    | TTrue -> TFalse
     | TFalse -> TTrue
     | TNot t -> t
+    (* If relation uses \result, keep information about which function
+       is returning close to it. *)
+    | TAnd ((TReturn _ as t1), (TRel (_,op1,op2) as t2))
+        when has_result op1 || has_result op2 ->
+        TOr (tnot t1, TAnd (t1, tnot t2))
+    | TAnd (t1,t2) -> TOr(tnot t1, tnot t2)
+    | TOr (t1,t2) -> TAnd(tnot t1, tnot t2)
     | TRel(rel,t1,t2) -> TRel(opposite_rel rel, t1, t2)
-    | _ -> TNot t
+    | TCall _ | TReturn _ -> TNot t
 
-let tands l = List.fold_left tand TTrue l
+let tands l = List.fold_right tand l TTrue
 
-let tors l = List.fold_left tor TFalse l
+let tors l = List.fold_right tor l TFalse
 
 (** Given a DNF condition, it returns a condition in Promelaast.condition form. 
     WARNING : empty lists not supported
 *)
 let dnfToCond d = tors (List.map tands d)
 
-let simplClause dnf clause =
+let simplClause clause dnf =
   match clause with
     | [] | [TTrue] | [TNot TFalse]-> [[]]
     | [TFalse] | [TNot TTrue] -> dnf
@@ -375,15 +366,18 @@ let simplifyCond condition =
   Aorai_option.debug "initial dnf: %a" pretty_dnf res1;
   (* Step 2 : Positive Call/Ret are used to simplify negative ones *)
   let res = 
-    List.fold_left 
-      (fun lclauses clause -> simplClause lclauses (positiveCallOrRet clause))
-      [] res1
+    List.rev
+      (List.fold_left
+         (fun lclauses clause ->
+           simplClause (positiveCallOrRet clause) lclauses)
+         [] res1)
   in
   Aorai_option.debug "after step 2: %a" pretty_dnf res;
   (* Step 3 : simplification between exprs inside a clause *)
-  let res = 
-    List.fold_left 
-      (fun lclauses clause -> simplClause lclauses (simplify clause)) [] res
+  let res =
+    List.rev
+      (List.fold_left
+         (fun lclauses clause -> simplClause (simplify clause) lclauses) [] res)
   in
   Aorai_option.debug "after step 3: %a" pretty_dnf res;
   

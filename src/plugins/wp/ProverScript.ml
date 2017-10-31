@@ -276,8 +276,30 @@ let spawn
 (* --- Save Session                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
+let proofs = Hashtbl.create 32
+let has_proof wpo =
+  let wid = wpo.Wpo.po_gid in
+  try Hashtbl.find proofs wid
+  with Not_found ->
+    if ProofSession.exists wpo then
+      let ok = 
+        try
+          let script = ProofScript.decode (ProofSession.load wpo) in
+          ProofScript.status script = 0
+        with _ -> false in
+      (Hashtbl.add proofs wid ok ; ok)
+    else false
+
 let save wpo =
   let script = ProofEngine.script (ProofEngine.proof ~main:wpo) in
+  Hashtbl.remove proofs wpo.Wpo.po_gid ;
   ProofSession.save wpo (ProofScript.encode script)
+
+let get wpo =
+  match ProofEngine.get wpo with
+  | `None -> `None
+  | `Proof -> `Proof
+  | `Saved -> `Saved
+  | `Script -> if has_proof wpo then `Script else `Proof
 
 (* -------------------------------------------------------------------------- *)

@@ -202,7 +202,7 @@ let impact_statement restrict s =
       List.iter (Highlighted_stmt.add kf) stmts'
     ) impact;
   let impact = List.concat !stmts in
-  if Slicing.get () then Register.slice impact;
+  if Slicing.get () then ignore (Register.slice impact);
   Enabled.set true;
   impact
 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/inconsistent_decl.c (with preprocessing)
 [kernel] Parsing tests/syntax/inconsistent_decl_2.i (no preprocessing)
 [kernel] user error: Incompatible declaration for f:

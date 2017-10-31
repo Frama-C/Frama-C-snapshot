@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/unop.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -7,17 +6,17 @@
   v ∈ [--..--]
 [value] computing for function main1 <- main.
         Called from tests/value/unop.c:22.
-[value] Called Frama_C_show_each_1([-2147483648. .. 2147483648.])
-[value] Called Frama_C_show_each_1_then([-2147483648. .. -3.])
-[value] Called Frama_C_show_each_1_else([-2.99999976158 .. 2147483648.])
+tests/value/unop.c:2:[value] Frama_C_show_each_1: [-2147483648. .. 2147483648.]
+tests/value/unop.c:4:[value] Frama_C_show_each_1_then: [-2147483648. .. -3.]
+tests/value/unop.c:6:[value] Frama_C_show_each_1_else: [-2.99999976158 .. 2147483648.]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/unop.c:23.
-[value] Called Frama_C_show_each_2([-2147483648..2147483647])
+tests/value/unop.c:11:[value] Frama_C_show_each_2: [-2147483648..2147483647]
 tests/value/unop.c:12:[value] warning: signed overflow. assert -i ≤ 2147483647;
-[value] Called Frama_C_show_each_2_then([-2147483647..-3])
-[value] Called Frama_C_show_each_2_else([-2..2147483647])
+tests/value/unop.c:13:[value] Frama_C_show_each_2_then: [-2147483647..-3]
+tests/value/unop.c:15:[value] Frama_C_show_each_2_else: [-2..2147483647]
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

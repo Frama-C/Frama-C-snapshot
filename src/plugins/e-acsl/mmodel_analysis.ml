@@ -658,7 +658,11 @@ if there are memory-related annotations.@]"
     Env.consolidated_mem vi
   end
 
-let must_model_vi ?kf ?stmt vi =
+let must_model_vi bhv ?kf ?stmt vi =
+  let vi = match bhv with
+    | None -> vi
+    | Some bhv -> Cil.get_original_varinfo bhv vi
+  in
   let _kf = match kf, stmt with
     | None, None | Some _, _ -> kf
     | None, Some stmt -> Some (Kernel_function.find_englobing_kf stmt)
@@ -666,8 +670,7 @@ let must_model_vi ?kf ?stmt vi =
   (* [JS 2013/05/07] that is unsound to take the env from the given stmt in
      presence of aliasing with an address (see tests address.i).
      TODO: could be optimized though *)
-  let res =  consolidated_must_model_vi vi in
-  res
+  consolidated_must_model_vi vi
 (*  match stmt, kf with
   | None, _ -> consolidated_must_model_vi vi
   | Some _, None ->
@@ -687,37 +690,42 @@ consolidated_must_model_vi vi
       (* [kf] is dead code *)
       false
  *)
-let rec must_model_lval ?kf ?stmt = function
-  | Var vi, _ -> must_model_vi ?kf ?stmt vi
-  | Mem e, _ -> must_model_exp ?kf ?stmt e
 
-and must_model_exp ?kf ?stmt e = match e.enode with
-  | Lval lv | AddrOf lv | StartOf lv -> must_model_lval ?kf ?stmt lv
-  | BinOp((PlusPI | IndexPI | MinusPI), e1, _, _) -> must_model_exp ?kf ?stmt e1
+let rec must_model_lval bhv ?kf ?stmt = function
+  | Var vi, _ -> must_model_vi bhv ?kf ?stmt vi
+  | Mem e, _ -> must_model_exp bhv ?kf ?stmt e
+
+and must_model_exp bhv ?kf ?stmt e = match e.enode with
+  | Lval lv | AddrOf lv | StartOf lv ->
+    must_model_lval bhv ?kf ?stmt lv
+  | BinOp((PlusPI | IndexPI | MinusPI), e1, _, _) ->
+    must_model_exp bhv ?kf ?stmt e1
   | BinOp(MinusPP, e1, e2, _) ->
-    must_model_exp ?kf ?stmt e1 || must_model_exp ?kf ?stmt e2
-  | Info(e, _) | CastE(_, e) -> must_model_exp ?kf ?stmt e
-  | BinOp((PlusA | MinusA | Mult | Div | Mod |Shiftlt | Shiftrt
-              | Lt | Gt | Le | Ge | Eq | Ne | BAnd | BXor | BOr | LAnd | LOr),
-          _, _, _)
+    must_model_exp bhv ?kf ?stmt e1 || must_model_exp bhv ?kf ?stmt e2
+  | Info(e, _) | CastE(_, e) -> must_model_exp bhv ?kf ?stmt e
+  | BinOp((PlusA | MinusA | Mult | Div | Mod |Shiftlt | Shiftrt | Lt | Gt | Le
+            | Ge | Eq | Ne | BAnd | BXor | BOr | LAnd | LOr), _, _, _)
   | Const _ -> (* possible in case of static address *) false
-  | UnOp _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
-  | AlignOfE _ ->
+  | UnOp _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ ->
     Options.fatal "[pre_analysis] unexpected expression %a" Exp.pretty e
 
-let must_model_vi ?kf ?stmt vi =
-  not (Cil.isFunctionType vi.vtype || (vi.vghost && vi.vstorage = Extern))
+(* ************************************************************************** *)
+(** {Public API} {{{ *)
+(* ************************************************************************** *)
+
+let must_model_vi ?bhv ?kf ?stmt vi =
+  not (vi.vghost && vi.vstorage = Extern)
   &&
     (Options.Full_mmodel.get ()
-     || Error.generic_handle (must_model_vi ?kf ?stmt) false vi)
+     || Error.generic_handle (must_model_vi bhv ?kf ?stmt) false vi)
 
-let must_model_lval ?kf ?stmt lv =
+let must_model_lval ?bhv ?kf ?stmt lv =
   Options.Full_mmodel.get ()
-  || Error.generic_handle (must_model_lval ?kf ?stmt) false lv
+  || Error.generic_handle (must_model_lval bhv ?kf ?stmt) false lv
 
-let old_must_model_vi bhv ?kf ?stmt vi =
+let must_model_exp ?bhv ?kf ?stmt exp =
   Options.Full_mmodel.get ()
-  || must_model_vi ?kf ?stmt (Cil.get_original_varinfo bhv vi)
+  || Error.generic_handle (must_model_exp bhv ?kf ?stmt) false exp
 
 let use_model () = not (Env.is_empty ()) || Options.Full_mmodel.get () ||
   Env.has_heap_allocations ()

@@ -224,9 +224,12 @@ let is_hex s =
 
 let single_precision_of_string s = 
   if is_hex s
-  then 
-    let f = sys_single_precision_of_string s in 
-    { f_lower = f ; f_nearest = f ; f_upper = f }
+  then
+    try
+      let f = sys_single_precision_of_string s in
+      { f_lower = f ; f_nearest = f ; f_upper = f }
+    with Failure _ ->
+      Kernel.fatal "could not parse single-precision float string: %s" s
   else (* decimal *)
     parse_float ~man_size:23 ~min_exp:(-126) ~max_exp:127 s
 

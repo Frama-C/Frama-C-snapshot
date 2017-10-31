@@ -273,9 +273,9 @@ let register_cases l inds =
    Then: ( A \in calls[B] ).
 *)
 
-let add_call calls (l_a,l_b) =
-  let a = Clabels.c_label l_a in
-  let b = Clabels.c_label l_b in
+let add_call calls l_a l_b =
+  let a = Clabels.of_logic l_a in
+  let b = Clabels.of_logic l_b in
   let s =
     try LabelSet.add a (LabelMap.find b calls)
     with Not_found -> LabelSet.singleton a
@@ -315,7 +315,7 @@ class visitor =
       match inductive with
       | Some case ->
           if Logic_info.equal l case.ind_logic then
-            case.ind_call <- List.fold_left add_call case.ind_call labels
+            case.ind_call <- List.fold_left2 add_call case.ind_call l.l_labels labels
       | None ->
           match caller with
           | None -> ()

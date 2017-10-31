@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -15,7 +14,7 @@ Assume {
   (* Pre-condition *)
   Have: valid_rw(Malloc_0, one_0, 1).
 }
-Prove: global(L_two_71) != one_0.
+Prove: global(L_two_22) != one_0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

@@ -1,5 +1,9 @@
 /* run.config_equalities
-   STDOPT: +"-value-msg-key d-eqs"
+   STDOPT: +"-value-msg-key d-eqs -print -kernel-msg-key printer:bitfields"
+*/
+
+/* run.config*
+   STDOPT: +"-print -kernel-msg-key printer:bitfields"
 */
 
 struct t1 { unsigned int a:2; int b:4; int c:22;int d:32;} h;
@@ -103,7 +107,7 @@ void logic() {
 }
 
 void main_old (){
-  struct t1 v,w;
+  struct t1 v;
 
   union U1 l_161;
   l_161.f0 = (int)-1L;
@@ -146,9 +150,21 @@ void eq_bitfields() {
   }
 }
 
+struct char_short {
+  unsigned char c: 1;
+  unsigned short s: 2;
+};
+
+void char_short () {
+  struct char_short S = { 1, 2};
+  int x = S.c + 0;
+  int y = S.s + 0;
+}
+
 void main() {
   main_old();
   imprecise_bts_1671();
   logic();
   eq_bitfields();
+  char_short();
 }

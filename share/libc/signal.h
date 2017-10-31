@@ -36,6 +36,8 @@ __BEGIN_DECLS
 typedef volatile int sig_atomic_t;
 typedef void (*__fc_sighandler_t) (int);
 
+#define sighandler_t __fc_sighandler_t
+
 /* for BSD 4.4 */
 #ifdef __USE_MISC
 typedef __fc_sighandler_t sig_t;

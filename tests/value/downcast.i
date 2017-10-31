@@ -41,11 +41,15 @@ void main3_reduction() {
   unsigned char d = y;
 }
 
+/* The cvalue abstraction does not represent how an address is represented in a
+   C type. Thus alarms should always be emitted on a downcast of pointer values,
+   as we don't known if they fit in the destination type. */
 void main4_pointer() {
   int x;
   long long int p = (long long int)(&x);
-  unsigned int q = p; // downcast, but no alarm
-  signed int r = p; // alarm on upper range
+  p += 100;
+  unsigned int q = p;
+  signed int r = p;
 }
 
 // Perform a computation that overflows on signed integers without alarm. The assertions can be proven with enough slevel
@@ -81,6 +85,12 @@ void main6_val_warn_converted_signed() {
   if (v) {
     unsigned int e = -64000; // No warning on unsigned casts
     short b = (short)e; // Warning, as -64000 does not fit in short
+  }
+  if (v) {
+    int *p = &v;
+    int x = p; // No warning as an address fits in an integer.
+    short y = p; // Warnings, as an address may not fit in short.
+    unsigned short z = p; // No warninng on unsigned casts.
   }
 }
 

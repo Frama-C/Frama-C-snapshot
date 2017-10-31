@@ -55,6 +55,8 @@ and sequence (** List of steps *)
 
 type sequent = sequence * F.pred
 
+val pretty : (Format.formatter -> sequent -> unit) ref
+
 val step :
   ?descr:string ->
   ?stmt:stmt ->
@@ -203,6 +205,7 @@ class type simplifier =
 
 val clean : sequent -> sequent
 val filter : sequent -> sequent
+val parasite : sequent -> sequent
 val letify : ?solvers:simplifier list -> ?intros:int -> sequent -> sequent
 val pruning : ?solvers:simplifier list -> sequent -> sequent
 

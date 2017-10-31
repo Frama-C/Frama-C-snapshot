@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** Functions manipulating filepaths.
-    In these functions, references to the present working directory refer
+    In these functions, references to the current working directory refer
     to the result given by function Sys.getcwd. *)
 
 (** Returns an absolute path leading to the given file.
@@ -33,26 +33,26 @@
       unlike [realpath];
     - non-existing directories in [realpath] may lead to ENOTDIR errors,
       but [normalize] may accept them.
-    @modify Aluminium-20160501 optional base. *)
-val normalize: ?base:string -> string -> string
+    @modify Aluminium-20160501 optional base_name. *)
+val normalize: ?base_name:string -> string -> string
 
-(** [relativize base file] returns a (strict) relative path of [file]
-    w.r.t. [base], if [base] is a prefix of [file]; otherwise,
-    returns [file] unchanged.
-    The default base is the present working directory.
+(** [relativize base_name file_name] returns a (strict) relative path name of
+    [file_name] w.r.t. [base_name], if [base_name] is a prefix of [file];
+    otherwise, returns [file_name] unchanged.
+    The default base name is the current working directory name.
     @since Aluminium-20160501 *)
-val relativize: ?base:string -> string -> string
+val relativize: ?base_name:string -> string -> string
 
 (** returns true if the file is strictly relative to [base]
-    (that is, it is prefixed by [base]), or to the present working directory
+    (that is, it is prefixed by [base_name]), or to the current working directory
     if no base is specified.
     @since Aluminium-20160501 *)
-val is_relative: ?base:string -> string -> bool
+val is_relative: ?base_name:string -> string -> bool
 
 (** Pretty-print a path according to these rules:
     - relative filenames are kept, except for leading './', which are stripped;
     - absolute filenames are relativized if their prefix is included in the
-      present working directory; also, symbolic names are resolved,
+      current working directory; also, symbolic names are resolved,
       i.e. the result may be prefixed by known aliases (e.g. FRAMAC_SHARE).
       See {!add_symbolic_dir} for more details.
     Therefore, the result of this function may not designate a valid name

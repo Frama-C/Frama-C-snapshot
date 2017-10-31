@@ -77,7 +77,7 @@ module type S = sig
   val use_assigns : t_env -> stmt option -> WpPropId.prop_id option ->
     WpPropId.assigns_desc -> t_prop -> t_prop
 
-  val label  : t_env -> Clabels.c_label -> t_prop -> t_prop
+  val label  : t_env -> stmt option -> Clabels.c_label -> t_prop -> t_prop
   val assign : t_env -> stmt -> lval -> exp -> t_prop -> t_prop
   val return : t_env -> stmt -> exp option -> t_prop -> t_prop
   val test : t_env -> stmt -> exp -> t_prop -> t_prop -> t_prop
@@ -115,7 +115,7 @@ module type S = sig
     pre:     WpPropId.pred_info list ->
     post:    WpPropId.pred_info list ->
     pexit:   WpPropId.pred_info list ->
-    assigns: identified_term assigns ->
+    assigns: assigns ->
     p_post: t_prop ->
     p_exit: t_prop ->
     t_prop

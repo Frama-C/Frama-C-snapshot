@@ -87,6 +87,7 @@ struct
   let pp_attributes fmt x = (printer ())#attributes fmt x
   let pp_instr fmt x = (printer ())#instr fmt x
   let pp_label fmt x = (printer ())#label fmt x
+  let pp_logic_builtin_label fmt x = (printer ())#logic_builtin_label fmt x
   let pp_logic_label fmt x = (printer ())#logic_label fmt x
   let pp_stmt fmt x = (printer ())#stmt fmt x
   let pp_block fmt x = (printer ())#block fmt x

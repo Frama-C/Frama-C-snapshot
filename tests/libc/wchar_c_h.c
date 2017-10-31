@@ -5,6 +5,12 @@
 
 #include <wchar.h>
 
+// check that the following types/macros are defined, as required by C11 §7.29.1
+// (note that the variables themselves are not used)
+wchar_t wc = WCHAR_MIN | WCHAR_MAX;
+wint_t wi = WEOF | WINT_MIN | WINT_MAX;
+struct tm t;
+
 #ifdef TEST_IMPLEMENTATION
 #include "wchar.c"
 #endif

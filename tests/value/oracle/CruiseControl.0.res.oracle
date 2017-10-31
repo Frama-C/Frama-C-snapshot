@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/CruiseControl.c (with preprocessing)
 tests/value/CruiseControl.c:577:[kernel] warning: Floating-point constant 8.113 is not represented exactly. Will use 0x1.039db22d0e560p3. See documentation for option -warn-decimal-float
 [kernel] Parsing tests/value/CruiseControl_const.c (with preprocessing)

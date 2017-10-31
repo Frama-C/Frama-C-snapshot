@@ -114,10 +114,6 @@ type keepers = {
 (* rapid transfer of control when we find a malformed pragma *)
 exception Bad_pragma
 
-let ccureddeepcopystring = "ccureddeepcopy"
-(* Save this length so we don't recompute it each time. *)
-let ccureddeepcopystring_length = String.length ccureddeepcopystring
-
 (* CIL and CCured define several pragmas which prevent removal of
  * various global varinfos.  Here we scan for those pragmas and build
  * up collections of the corresponding varinfos' names.
@@ -190,47 +186,7 @@ let categorizePragmas file =
 	    Kernel.fatal ~current:true
 	      "Bad alias attribute at %a"
 	      Cil_printer.pp_location (CurrentLoc.get ())
-      end
-
-      (*** Begin CCured-specific checks:  ***)
-      (* these pragmas indirectly require that we keep the function named in
-	  -- the first arguments of boxmodelof and ccuredwrapperof, and
-	  -- the third argument of ccureddeepcopy*. *)
-      | GPragma (Attr("ccuredwrapper" as directive, attribute :: _), 
-                 (location,_)) ->
-	  begin
-	    match attribute with
-	    | AStr name ->
-		H.add keepers.defines name ()
-	    | _ ->
-		badPragma location directive
-	  end
-      | GPragma (Attr("ccuredvararg", _funcname :: (ASizeOf t) :: _), _location) ->
-	  begin
-	    match t with
-	    | TComp(c,_,_) when c.cstruct -> (* struct *)
-		H.add keepers.structs c.cname ()
-	    | TComp(c,_,_) -> (* union *)
-		H.add keepers.unions c.cname ()
-	    | TNamed(ti,_) ->
-		H.add keepers.typedefs ti.tname ()
-	    | TEnum(ei, _) ->
-		H.add keepers.enums ei.ename ()
-	    | _ ->
-		()
-	  end
-      | GPragma (Attr(directive, _ :: _ :: attribute :: _), (location,_))
-           when String.length directive > ccureddeepcopystring_length
-	       && (Str.first_chars directive ccureddeepcopystring_length)
-	           = ccureddeepcopystring ->
-	  begin
-	    match attribute with
-	    | AStr name ->
-		H.add keepers.defines name ()
-	    | _ ->
-		badPragma location directive
-	  end
-      (** end CCured-specific stuff **)
+        end
       |	_ ->
 	  ()
   in
@@ -624,8 +580,9 @@ class markUsedLabels is_removable (labelMap: (string, unit) H.t) =
   (* Mark it as used *)
   H.replace labelMap ln ()
 in
-let keep_label_logic =
-  function LogicLabel _ -> () | StmtLabel dest -> keep_label dest
+let keep_label_logic = function
+  | FormalLabel _ | BuiltinLabel _ -> ()
+  | StmtLabel dest -> keep_label dest
 in
 object
   inherit nopCilVisitor
@@ -640,7 +597,7 @@ object
       match t with
       | Tat (_,lab) -> keep_label_logic lab
       | Tapp(_,labs,_) ->
-          let labs = snd (List.split labs) in List.iter keep_label_logic labs
+          List.iter keep_label_logic labs
       | _ -> ()
     end;
     DoChildren
@@ -650,7 +607,7 @@ object
       match t with
       | Pat (_,lab) -> keep_label_logic lab
       | Papp(_,labs,_) ->
-          let labs = snd (List.split labs) in List.iter keep_label_logic labs
+          List.iter keep_label_logic labs
       | _ -> ()
     end;
     DoChildren
@@ -716,7 +673,6 @@ let uninteresting =
   let pattern = "\\(" ^ (String.concat "\\|" names) ^ "\\)" ^ alpha ^ "$" in
   Str.regexp pattern
 
-
 let label_removable = function
     Label (_,_,user) -> not user
   | Case _ | Default _ -> false
@@ -757,19 +713,21 @@ let removeUnmarked isRoot file =
             (Cil.removeFormalsDecl v; isRoot global)
        (* keep FC_BUILTIN, as some plug-ins might want to use them later
           for semi-legitimate reasons. *)
-            
-       (* retained functions may wish to discard some unused locals *)
       | GFun (func, _) ->
+           (* if some generated temp variables are useless, remove them.
+              Keep variables that were already present in the code.
+           *)
 	   let filterLocal local =
-	     if not local.vreferenced then
+	     if local.vtemp && not local.vreferenced then
 	       begin
 	         (* along the way, record the interesting locals that were removed *)
 	         let name = local.vname in
 	         (Kernel.debug ~dkey "removing local: %s\n" name);
 	         if not (Str.string_match uninteresting name 0) then
-		   removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
-	       end;
-	     local.vreferenced
+	          removedLocals :=
+                    (func.svar.vname ^ "::" ^ name) :: !removedLocals;
+                 false
+	       end else true
 	   in
 	   func.slocals <- List.filter filterLocal func.slocals;
            let remove_blocals = object

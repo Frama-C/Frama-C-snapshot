@@ -22,14 +22,29 @@
 
 open Cil_types
 
+(** Generates RTE for a single function. Uses the status of the various
+      RTE options do decide which kinds of annotations must be generated.
+*)
 val annotate_kf: kernel_function -> unit
-val compute: unit -> unit
+
+(** Generates preconditions RTE for a given function. *)
 val do_precond: kernel_function -> unit
+
+(** Generates all RTEs for a given function. *)
 val do_all_rte: kernel_function -> unit
+
+(** Generates all RTEs except preconditions for a given function. *)
 val do_rte: kernel_function -> unit
+
 val rte_annotations: stmt -> code_annotation list
 val do_stmt_annotations: kernel_function -> stmt -> code_annotation list
 val do_exp_annotations: kernel_function -> stmt -> exp -> code_annotation list
+
+(** Main entry point of the plug-in, used by [-rte] option: computes
+    RTE on the whole AST. Which kind of RTE is generated depends on the
+    options given on the command line.
+*)
+val compute: unit -> unit
 
 (*
 Local Variables:

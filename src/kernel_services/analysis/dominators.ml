@@ -31,7 +31,7 @@ module Dom_tree = State_builder.Hashtbl
   (Cil_datatype.Stmt.Hashtbl)
   (Datatype.Option(Cil_datatype.Stmt))
   (struct
-    let name = "dominators.dom_tree"
+    let name = "Dominators.dom_tree"
     let dependencies = [ Ast.self ]
     let size = 197
    end)

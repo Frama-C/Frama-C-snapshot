@@ -44,6 +44,25 @@ let _pretty_node fmt = function
       Format.fprintf fmt "%s" vi.vname
   | _ -> ()
 
+(* Fetches the internal (hidden) GtkButton of the column header.
+   Experimentally, to first force gtk to create a header button for the column,
+   you should:
+   - add first the column to the table;
+   - explicitely set the widget of the header (and this widget should not be a
+   button itself).
+   Otherwise, this function will return None. *)
+let get_column_header_button (col: GTree.view_column) =
+  let rec get_button = function
+    | None -> None
+    | Some w ->
+      if w#misc#get_type = "GtkButton"
+      then
+        let but_props = GtkButtonProps.Button.cast w#as_widget in
+        Some (new GButton.button but_props)
+      else get_button w#misc#parent
+  in
+  get_button col#widget
+
 class type t =  object
   method model : GTree.model
   method flat_mode: bool
@@ -60,6 +79,11 @@ class type t =  object
     string -> Cil_types.global option
   method add_select_function :
     (was_activated:bool -> activating:bool -> filetree_node -> unit) -> unit
+  method append_text_column:
+    title:string -> tooltip:string ->
+    visible:(unit -> bool) -> text:(global -> string) ->
+    ?sort:(global -> global -> int) ->
+    ([`Visibility | `Contents] -> unit)
   method append_pixbuf_column:
     title:string -> (global list -> GTree.cell_properties_pixbuf list) ->
     (unit -> bool) -> ([`Visibility | `Contents] -> unit)
@@ -219,6 +243,17 @@ module MYTREE = struct
 
   type t = MFile of storage*t list | MGlobal of storage
 
+  (* Sort order of the rows. *)
+  type sort_order =
+    | Ascending   (* Ascending alphabetical order on names. *)
+    | Descending  (* Descending alphabetical order on names. *)
+    | Custom of (global -> global -> int)  (* Custom order on globals. *)
+
+  let inverse_sort = function
+    | Ascending -> Descending
+    | Descending -> Ascending
+    | Custom sort -> Custom (fun g h -> sort h g)
+
   let storage_type = function
     | MFile (s, _) -> File (s.name, Array.to_list s.globals)
     | MGlobal { globals = [| g |] } -> Global g
@@ -252,10 +287,11 @@ module MYTREE = struct
     | _ -> false
 
   let comes_from_share filename =
-    Filepath.is_relative ~base:Config.datadir filename
+    Filepath.is_relative ~base_name:Config.datadir filename
 
   let is_stdlib_global g =
-    Cil.hasAttribute "fc_stdlib" (Cil_datatype.Global.attr g)
+    Cil.hasAttribute "fc_stdlib" (Cil_datatype.Global.attr g) ||
+    Cil.hasAttribute "fc_stdlib_generated" (Cil_datatype.Global.attr g)
 
   let is_function t = match t with
     | MFile _ -> false
@@ -283,8 +319,8 @@ module MYTREE = struct
     | Dmodel_annot (mf, _) -> Some (global_name mf.mi_name)
     | Dcustom_annot _ -> Some "custom clause"
 
-
-  let make_list_globals hide globs =
+  let make_list_globals hide sort_order globs =
+    (* Association list binding names to globals. *)
     let l = List.fold_left
         (* Correct the function sons_info above if a [File] constructor can
            appear in [sons] *)
@@ -295,27 +331,33 @@ module MYTREE = struct
                (* Only display the last declaration/definition *)
                if hide glob || (not (Ast.is_def_or_last_decl glob))
                then acc
-               else MGlobal(default_storage (global_name vi.vname) [|glob|]) :: acc
+               else ((global_name vi.vname), glob) :: acc
 
            | GAnnot (ga, _) ->
                if hide glob
                then acc
                else (match ga_name ga with
                    | None -> acc
-                   | Some s -> MGlobal(default_storage s [|glob|]) :: acc)
+                   | Some s -> (s, glob) :: acc)
            | _ -> acc)
         []
         globs
     in
-    let name g = (get_storage g).name in
     let sort =
-      List.sort (fun g1 g2 -> Extlib.compare_ignore_case (name g1) (name g2))
+      match sort_order with
+      | Ascending ->  fun (s1, _) (s2, _) -> Extlib.compare_ignore_case s1 s2
+      | Descending -> fun (s1, _) (s2, _) -> Extlib.compare_ignore_case s2 s1
+      | Custom sort ->
+        fun (name1, g1) (name2, g2) ->
+          let c = sort g1 g2 in
+          if c = 0 then Extlib.compare_ignore_case name1 name2 else c
     in
-    sort l
+    let sorted = List.sort sort l in
+    List.map (fun (name, g) -> MGlobal (default_storage name [|g|])) sorted
 
-  let make_file hide (display_name, globs) =
+  let make_file hide sort_order (display_name, globs) =
     let storage = default_storage display_name (Array.of_list globs) in
-    let sons = make_list_globals hide globs in
+    let sons = make_list_globals hide sort_order globs in
     storage, sons
 
 end
@@ -413,7 +455,7 @@ module State = struct
 
 
   (** Make and fill the custom model with default values. *)
-  let compute hide_filters =
+  let compute hide_filters sort_order =
     let hide g = List.exists (fun filter -> filter g) hide_filters in
     let model = MODEL.custom_tree () in
     let cache = default_cache () in
@@ -421,9 +463,8 @@ module State = struct
     let files = cil_files () in
     begin 
       if flat_mode () then
-        let files =
-          MYTREE.make_list_globals hide (List.concat (List.map snd files))
-        in
+        let list = List.concat (List.map snd files) in
+        let files = MYTREE.make_list_globals hide sort_order list in
         model#set_tree (fill_cache cache) files
       else
         let sorted_files = (List.sort (fun (s1, _) (s2, _) ->
@@ -433,7 +474,7 @@ module State = struct
         in
         let files = List.fold_left
             (fun acc v ->
-               let name, globals = MYTREE.make_file hide v in
+               let name, globals = MYTREE.make_file hide sort_order v in
                if not ((hide_stdlib ()) 
                        && (MYTREE.comes_from_share name.MYTREE.name))
                then 
@@ -455,7 +496,6 @@ let make (tree_view:GTree.view) =
 
   (* Menu for configuring the filetree *)
   let menu = GMenu.menu () in
-  let button_menu = GButton.button ~relief:`HALF  ~label:"Source file" () in
 
   (* Buttons to show/hide variables and/or functions *)
   let key_hide_variables = "filetree_hide_variables" in
@@ -481,6 +521,7 @@ let make (tree_view:GTree.view) =
     | _ -> if MYTREE.is_stdlib_global g then hide_stdlib () else false
 
   in
+  let initial_sort_order = MYTREE.Ascending in
   let mhide_variables = MenusHide.menu_item menu
       ~label:"Hide variables" ~key:key_hide_variables in
   let mhide_functions = MenusHide.menu_item menu
@@ -496,7 +537,9 @@ let make (tree_view:GTree.view) =
     MenusHide.menu_item menu ~label:"Flat mode" ~key:key_flat_mode in
 
   (* Initial filetree nodes to display *)
-  let init_model, init_path_cache = State.compute [initial_filter] in
+  let init_model, init_path_cache =
+    State.compute [initial_filter] initial_sort_order
+  in
 
   let set_row model ?strikethrough ?text (path,raw_row) =
     let row = raw_row.MODEL.finfo in
@@ -536,13 +579,85 @@ let make (tree_view:GTree.view) =
     (* Forward reference to the first column. Always set *)
     val mutable source_column = None
 
+    (* Sort order for the rows in the filetree. Alphabetical order on names by
+       default, can be changed for custom order by text columns. *)
+    val mutable sort_order = initial_sort_order
+
+    (* The direction of the current sorting, and the column id according to
+       which the tree is sorted. Used to maintain consistent sort indicators. *)
+    val mutable sort_kind = `ASCENDING, -1
+
+    (* Properly sets the sort indicator of [column], according to the current
+       [sort_kind]. *)
+    method private set_sort_indicator column =
+      let order, id = sort_kind in
+      if id = column#get_oid
+      then (column#set_sort_indicator true; column#set_sort_order order)
+      else column#set_sort_indicator false
+
+    (* Changes the sort order to [sort] when left-clicking on the header of
+       [column]. *)
+    method private change_sort column sort =
+      match sort_kind with
+      | `ASCENDING, id when id = column#get_oid ->
+        sort_kind <- `DESCENDING, column#get_oid;
+        sort_order <- MYTREE.inverse_sort sort
+      | _ ->
+        sort_kind <- `ASCENDING, column#get_oid;
+        sort_order <- sort
 
     method refresh_columns () =
       List.iter (fun f -> f `Visibility) columns_visibility
 
+    method append_text_column ~title ~tooltip ~visible ~text ?sort =
+      let renderer = GTree.cell_renderer_text [`XALIGN 0.5] in
+      let column = GTree.view_column ~renderer:(renderer,[]) () in
+      ignore (tree_view#append_column column);
+      let label = GMisc.label ~text:title () in
+      (GData.tooltips ())#set_tip ~text:tooltip label#coerce;
+      column#set_widget (Some label#coerce);
+      column#set_alignment 0.5;
+      column#set_reorderable true;
+      if fixed_height then (column#set_sizing `FIXED;
+                            column#set_resizable false;
+                            column#set_fixed_width 100)
+      else column#set_resizable true;
+      let texts globals =
+        List.fold_left (fun acc global -> `TEXT (text global) :: acc) [] globals
+      in
+      let f model row =
+        if visible () then
+          let path = model#get_path row in
+          self#set_sort_indicator column;
+          match model_custom#custom_get_iter path with
+          | Some {MODEL.finfo=v} ->
+            let globals = Array.to_list MYTREE.((get_storage v).globals) in
+            renderer#set_properties (texts globals)
+          | None -> ()
+      in
+      column#set_cell_data_func renderer f;
+      let sort = match sort with
+        | None -> fun g h -> String.compare (text g) (text h)
+        | Some sort -> sort
+      in
+      let callback () =
+        self#change_sort column (MYTREE.Custom sort);
+        self#reset ()
+      in
+      column#set_clickable true;
+      ignore (column#connect#clicked ~callback);
+      let refresh = function
+        | `Contents -> self#reset ()
+        | `Visibility -> column#set_visible (visible ())
+      in
+      refresh `Visibility;
+      columns_visibility <- refresh :: columns_visibility;
+      refresh
+
     method append_pixbuf_column
         ~title (f:(global list -> GTree.cell_properties_pixbuf list)) visible =
       let column = GTree.view_column ~title () in
+      column#set_reorderable true;
       if fixed_height then (column#set_sizing `FIXED;
                             column#set_resizable false;
                             column#set_fixed_width 100)
@@ -761,7 +876,7 @@ let make (tree_view:GTree.view) =
        are currently expanded (not only the currently selected) *)
     method private reset_internal () =
       (* We force a full recomputation using our filters for globals *)
-      let mc, cache = State.compute hide_globals_filters in
+      let mc, cache = State.compute hide_globals_filters sort_order in
       tree_view#set_model (Some (mc:>GTree.model));
       model_custom <- mc;
       path_cache <- cache;
@@ -800,7 +915,14 @@ let make (tree_view:GTree.view) =
     initializer
       (* Source column *)
       let source_renderer = GTree.cell_renderer_text [`YALIGN 0.0] in
+      let column = GTree.view_column
+          ~title:"Source file"
+          ~renderer:((source_renderer:>GTree.cell_renderer),[]) ()
+      in
+      let _ = tree_view#append_column column in
+      source_column <- Some column;
       let m_source_renderer renderer (lmodel:GTree.model) iter =
+        self#set_sort_indicator column;
         let (path:Gtk.tree_path) = lmodel#get_path iter in
         match self#model#custom_get_iter path with
         | Some p ->
@@ -822,25 +944,39 @@ let make (tree_view:GTree.view) =
 
         | None -> ()
       in
-      let column = GTree.view_column
-          ~title:"Source file"
-          ~renderer:((source_renderer:>GTree.cell_renderer),[]) ()
-      in
-      if fixed_height then column#set_sizing `FIXED;
-      source_column <- Some column;
       column#set_cell_data_func
         source_renderer (m_source_renderer source_renderer);
+      if fixed_height then column#set_sizing `FIXED;
       if fixed_height then ( column#set_resizable false;
                              column#set_fixed_width 100)
       else column#set_resizable true;
       column#set_clickable true;
-      column#set_widget (Some button_menu#coerce);
+      let title = GMisc.label ~text:"Source file"  () in
+      column#set_widget (Some title#coerce);
 
-      ignore (column#connect#clicked ~callback:
-                (fun () -> menu#popup
-                    ~button:0
-                    ~time:(GtkMain.Main.get_current_event_time ());
-                ));
+      (* Filter menu when right-clicking on the column header. *)
+      let pop_menu () =
+        menu#popup ~button:3 ~time:(GtkMain.Main.get_current_event_time ());
+      in
+      let () = match get_column_header_button column with
+        | None ->
+          (* Should not happen, but who knowns? *)
+          ignore (column#connect#clicked pop_menu)
+        | Some button ->
+          (* Connect the menu to a right click. *)
+          let callback evt =
+            if GdkEvent.Button.button evt = 3
+            then (pop_menu (); true)
+            else false
+          in
+          ignore (button#event#connect#button_release ~callback)
+      in
+
+      (* Changes the sort order when left-clicking on the column header. *)
+      let callback () = self#change_sort column MYTREE.Ascending; self#reset () in
+      ignore (column#connect#clicked callback);
+      (* Sets the sort_kind to the initial sort. *)
+      sort_kind <- `ASCENDING, column#get_oid;
 
       ignore (MenusHide.mi_set_callback
                 mhide_functions key_hide_functions self#reset_internal);
@@ -856,7 +992,6 @@ let make (tree_view:GTree.view) =
                 mflat_mode key_flat_mode self#reset_internal);
       menu#add (GMenu.separator_item () :> GMenu.menu_item);
 
-      let _ = tree_view#append_column column in
       tree_view#set_model (Some (init_model:>GTree.model));
       self#enable_select_functions ();
       if fixed_height then tree_view#set_fixed_height_mode true;

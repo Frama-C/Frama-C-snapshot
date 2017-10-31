@@ -1,28 +1,32 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/stmt.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
+[wp] [CFG] Goal f_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
 [wp] [CFG] Goal g_stmt_assign : Valid (Unreachable)
 [wp] [CFG] Goal g_stmt_post : Valid (Unreachable)
-[wp] [CFG] Goal g_stmt_return : Valid (Unreachable)
 [wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_post : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
 [wp] warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/stmt.c, line 6) in 'f':
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 10) in 'f':
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/stmt.c, line 7) in 'f':
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 11) in 'f':
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_plugin/stmt.c, line 12):
+Goal Assertion (file tests/wp_plugin/stmt.c, line 16):
 Prove: true.
 
 ------------------------------------------------------------
@@ -30,12 +34,12 @@ Prove: true.
   Function f with behavior default_for_stmt_2
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/stmt.c, line 13) at block:
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 17) at block:
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assigns (file tests/wp_plugin/stmt.c, line 17) at block:
+Goal Assigns (file tests/wp_plugin/stmt.c, line 21) at block:
 Prove: true.
 
 ------------------------------------------------------------
@@ -43,12 +47,96 @@ Prove: true.
   Function g
 ------------------------------------------------------------
 
-Goal Post-condition (file tests/wp_plugin/stmt.c, line 23) in 'g':
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 27) in 'g':
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Assertion (file tests/wp_plugin/stmt.c, line 28):
+Goal Assertion (file tests/wp_plugin/stmt.c, line 32):
 Prove: true.
 
 ------------------------------------------------------------
+------------------------------------------------------------
+  Function h
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/stmt.c, line 40) in 'h':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (generated):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (generated):
+Prove: true.
+
+------------------------------------------------------------
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Exit-condition (file tests/wp_plugin/stmt.c, line 15) at block
+            by Unreachable Annotations.
+[ Partial ] Return-condition (file tests/wp_plugin/stmt.c, line 16) at block
+            By Frama-C kernel, with pending:
+             - Assertion (file tests/wp_plugin/stmt.c, line 16)
+[    -    ] Default behavior at block
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Exit-condition (file tests/wp_plugin/stmt.c, line 31) at block
+            by Unreachable Annotations.
+[  Valid  ] Return-condition (file tests/wp_plugin/stmt.c, line 32) at block
+            by Unreachable Annotations.
+[  Valid  ] Post-condition (file tests/wp_plugin/stmt.c, line 33) at block
+            by Unreachable Annotations.
+[  Valid  ] Assigns (file tests/wp_plugin/stmt.c, line 36) at block
+            by Unreachable Annotations.
+[  Valid  ] Default behavior at block
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Exit-condition (file tests/wp_plugin/stmt.c, line 43) at block
+            by Unreachable Annotations.
+[  Valid  ] Post-condition (file tests/wp_plugin/stmt.c, line 44) at block
+            by Unreachable Annotations.
+[ Partial ] Return-condition for 'POS' (file tests/wp_plugin/stmt.c, line 48) at block
+            By Frama-C kernel, with pending:
+             - Assertion (generated)
+             - Assertion (generated)
+[ Partial ] Return-condition for 'NEG' (file tests/wp_plugin/stmt.c, line 51) at block
+            By Frama-C kernel, with pending:
+             - Assertion (generated)
+             - Assertion (generated)
+[  Valid  ] Assigns (file tests/wp_plugin/stmt.c, line 53) at block
+            by Unreachable Annotations.
+[ Partial ] Behavior 'NEG' at block
+            By Frama-C kernel, with pending:
+             - Assertion (generated)
+             - Assertion (generated)
+[ Partial ] Behavior 'POS' at block
+            By Frama-C kernel, with pending:
+             - Assertion (generated)
+             - Assertion (generated)
+[  Valid  ] Default behavior at block
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+    10 Completely validated
+     5 Locally validated
+     1 To be validated
+    16 Total
+--------------------------------------------------------------------------------

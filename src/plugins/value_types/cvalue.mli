@@ -97,8 +97,8 @@ module V : sig
 
 (** [cast ~size ~signed v] applies to the abstract value [v] the conversion 
     to the integer type described by [size] and [signed]. The results
-    are [new_value, ok]. The boolean [ok], when true, indicates that no
-    imprecision was introduced.
+    are [new_value, ok]. The boolean [ok], when true, indicates that the cast
+    was the identity.
     Offsets of bases other than Null are not clipped. If they were clipped,
     they should be clipped at the validity of the base. The C standard does
     not say that [p+(1ULL<<32+1)] is the same as [p+1], it says that 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/select_calls.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing an incomplete application starting at f
@@ -91,5 +90,4 @@ void f(void)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_0_select_calls.i (no preprocessing)

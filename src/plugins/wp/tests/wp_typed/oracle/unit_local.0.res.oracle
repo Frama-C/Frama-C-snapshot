@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/unit_local.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -26,6 +25,6 @@ Prove: true.
 Goal Assigns nothing in 'foo' (2/2):
 Effect at line 19
 Assume { (* Heap *) Have: linked(Malloc_0). }
-Prove: !valid_rd(Malloc_0, global(L_a_70), 1).
+Prove: !valid_rd(Malloc_0, global(L_a_21), 1).
 
 ------------------------------------------------------------

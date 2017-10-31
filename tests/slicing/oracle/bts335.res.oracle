@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/bts335.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -79,5 +78,4 @@ void main(int c)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_0_bts335.i (no preprocessing)

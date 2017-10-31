@@ -77,6 +77,13 @@ module Gmp_only =
       let help = "always use GMP integers instead of C integral types"
      end)
 
+module Temporal_validity =
+  False
+    (struct
+      let option_name = "-e-acsl-temporal-validity"
+      let help = "enable temporal analysis in valid annotations"
+     end)
+
 module Full_mmodel =
   False
     (struct

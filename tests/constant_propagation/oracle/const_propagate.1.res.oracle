@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/constant_propagation/const_propagate.c (with preprocessing)
 [scf] beginning constant propagation
 [value] Analyzing a complete application starting at init

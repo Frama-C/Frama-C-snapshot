@@ -147,7 +147,7 @@ let clobbered_set_from_ret state ret =
       else acc
   in
   try V.fold_topset_ok aux ret Base.SetLattice.bottom
-  with V.Error_Top -> Base.SetLattice.top
+  with Abstract_interp.Error_Top -> Base.SetLattice.top
 
 
 (* -------------------------------------------------------------------------- *)
@@ -186,9 +186,7 @@ let warning_gen stmt ~kind ~text =
   let s = Logic_const.tstring ~loc text in
   (* We need a label here, to indicate that [\warning] "accesses" the memory
      (in its own way). *)
-  let np = Logic_const.unamed ~loc
-      (Papp (pred, [LogicLabel (None, "L"), Logic_const.here_label], [s]))
-  in
+  let np = Logic_const.(unamed ~loc (Papp (pred, [here_label], [s]))) in
   let np = { np with pred_name = [kind] } in
   let ca = Logic_const.new_code_annotation (AAssert([], np)) in
   ca

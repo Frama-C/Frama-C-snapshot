@@ -43,15 +43,19 @@ let () =
     ~comment:"Generate RTE annotations corresponding to -rte-precond in the \
   given function.";
   journal_register true
-    ~comment:"Generate RTE annotations corresponding to -rte in the \
+    ~comment:"Generate all RTE annotations in the \
   given function."
     "do_all_rte" Kernel_function.ty Db.RteGen.do_all_rte Visit.do_all_rte;
-  journal_register false 
+  journal_register false
+    ~comment:"Generate all RTE annotations except pre-conditions \
+    in the given function."
     "do_rte" Kernel_function.ty Db.RteGen.do_rte Visit.do_rte;
   nojournal_register Db.RteGen.get_precond_status Generator.precond_status;
   nojournal_register
     Db.RteGen.get_signedOv_status Generator.signed_overflow_status;
   nojournal_register Db.RteGen.get_divMod_status Generator.div_mod_status;
+  nojournal_register
+    Db.RteGen.get_initialized_status Generator.initialized_status;
   nojournal_register
     Db.RteGen.get_signed_downCast_status Generator.signed_downcast_status;
   nojournal_register Db.RteGen.get_memAccess_status Generator.mem_access_status;
@@ -61,7 +65,9 @@ let () =
     Db.RteGen.get_unsignedOv_status Generator.unsigned_overflow_status;
   nojournal_register
     Db.RteGen.get_unsignedDownCast_status Generator.unsigned_downcast_status;
-  nojournal_register Db.RteGen.get_all_status Generator.all_status
+  nojournal_register Db.RteGen.get_all_status Generator.all_status;
+  nojournal_register Db.RteGen.get_float_to_int_status Generator.float_to_int;
+  nojournal_register Db.RteGen.get_finite_float_status Generator.finite_float
 
 (* dynamic registration *)
 

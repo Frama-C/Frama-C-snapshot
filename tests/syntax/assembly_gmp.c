@@ -116,7 +116,7 @@ mp_limb_t
 mpn_mod_1_1p (mp_srcptr ap, mp_size_t n, mp_limb_t b, const mp_limb_t bmodb[4])
 {
   int cnt;
-  mp_limb_t bi, B1modb;
+  mp_limb_t bi;
   mp_limb_t r0, r1;
   mp_limb_t r;
 

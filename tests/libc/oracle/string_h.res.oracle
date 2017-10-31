@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/libc/string_h.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -6,49 +5,81 @@
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 [value] computing for function test_strcmp <- main.
-        Called from tests/libc/string_h.c:27.
+        Called from tests/libc/string_h.c:55.
 [value] computing for function strcmp <- test_strcmp <- main.
         Called from tests/libc/string_h.c:5.
 [value] using specification for function strcmp
 share/libc/string.h:104:[value] function strcmp: precondition 'valid_string_s1' got status valid.
 share/libc/string.h:105:[value] function strcmp: precondition 'valid_string_s2' got status valid.
-tests/libc/string_h.c:5:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:107:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] Done for function strcmp
 tests/libc/string_h.c:6:[value] warning: assertion got status unknown.
 [value] Recording results for test_strcmp
 [value] Done for function test_strcmp
 [value] computing for function test_strcat <- main.
-        Called from tests/libc/string_h.c:28.
+        Called from tests/libc/string_h.c:56.
 [value] computing for function strcat <- test_strcat <- main.
         Called from tests/libc/string_h.c:13.
 [value] using specification for function strcat
-share/libc/string.h:262:[value] function strcat: precondition 'valid_string_src' got status valid.
-share/libc/string.h:263:[value] function strcat: precondition 'valid_string_dst' got status valid.
-share/libc/string.h:264:[value] function strcat: precondition 'room_string' got status valid.
+share/libc/string.h:264:[value] function strcat: precondition 'valid_string_src' got status valid.
+share/libc/string.h:265:[value] function strcat: precondition 'valid_string_dst' got status valid.
+share/libc/string.h:266:[value] function strcat: precondition 'room_string' got status valid.
 [value] Done for function strcat
 [value] Recording results for test_strcat
 [value] Done for function test_strcat
 [value] computing for function test_strstr <- main.
-        Called from tests/libc/string_h.c:29.
+        Called from tests/libc/string_h.c:57.
 [value] computing for function strstr <- test_strstr <- main.
         Called from tests/libc/string_h.c:21.
 [value] using specification for function strstr
 share/libc/string.h:177:[value] function strstr: precondition 'valid_string_haystack' got status valid.
 share/libc/string.h:178:[value] function strstr: precondition 'valid_string_needle' got status valid.
-tests/libc/string_h.c:21:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+share/libc/string.h:183:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] Done for function strstr
 tests/libc/string_h.c:22:[value] warning: assertion got status unknown.
 [value] Recording results for test_strstr
 [value] Done for function test_strstr
+[value] computing for function test_strncat <- main.
+        Called from tests/libc/string_h.c:58.
+[value] Semantic level unrolling superposing up to 100 states
+tests/libc/string_h.c:31:[value] entering loop for the first time
+[value] computing for function strncat <- test_strncat <- main.
+        Called from tests/libc/string_h.c:33.
+[value] using specification for function strncat
+share/libc/string.h:276:[value] function strncat: precondition 'valid_string_src' got status valid.
+share/libc/string.h:277:[value] function strncat: precondition 'valid_string_dst' got status valid.
+share/libc/string.h:283:[value] function strncat, behavior complete: precondition 'room_string' got status valid.
+[value] Done for function strncat
+[value] Recording results for test_strncat
+[value] Done for function test_strncat
+[value] computing for function crashes_gcc <- main.
+        Called from tests/libc/string_h.c:59.
+tests/libc/string_h.c:47:[value] entering loop for the first time
+[value] computing for function strcpy <- crashes_gcc <- main.
+        Called from tests/libc/string_h.c:50.
+[value] using specification for function strcpy
+share/libc/string.h:221:[value] function strcpy: precondition 'valid_string_src' got status valid.
+share/libc/string.h:222:[value] function strcpy: precondition 'room_string' got status valid.
+share/libc/string.h:224:[value] warning: function strcpy: precondition 'separated_strings' got status invalid.
+[value] Done for function strcpy
+[value] Recording results for crashes_gcc
+[value] Done for function crashes_gcc
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function crashes_gcc:
+  NON TERMINATING FUNCTION
 [value:final-states] Values at end of function test_strcat:
   string[0] ∈ [--..--]
         [1..5] ∈ [--..--] or UNINITIALIZED
         [6..9] ∈ UNINITIALIZED
 [value:final-states] Values at end of function test_strcmp:
   res ∈ {0}
+[value:final-states] Values at end of function test_strncat:
+  data[0] ∈ [--..--]
+      [1..99] ∈ [--..--] or UNINITIALIZED
+  source[0..98] ∈ {90}
+        [99] ∈ {0}
 [value:final-states] Values at end of function test_strstr:
   s ∈ {{ "aba" ; "bab" }}
   needle ∈ {{ "a" ; "b" }}

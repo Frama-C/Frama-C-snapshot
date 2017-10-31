@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/malloc.c (with preprocessing)
 [rte] annotating function main
 tests/rte/malloc.c:13:[kernel] warning: No code nor implicit assigns clause for function my_malloc, generating default assigns from the prototype

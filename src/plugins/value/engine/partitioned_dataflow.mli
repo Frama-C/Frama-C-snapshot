@@ -34,9 +34,12 @@ module Computer
     (* Transfer functions for statement on the abstract domain. *)
     (Transfer : Transfer_stmt.S with type state = Domain.t
                                  and type value = Domain.value)
+    (* Initialization of local variables. *)
+    (Init: Initialization.S with type state := Domain.state)
     (* Transfer functions for the logic on the abstract domain. *)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
+    (Spec: sig val treat_statement_assigns: assigns -> Domain.t -> Domain.t end)
   : sig
 
     val compute:

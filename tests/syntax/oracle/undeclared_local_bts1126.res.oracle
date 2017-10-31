@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/undeclared_local_bts1126.c (with preprocessing)
 tests/syntax/undeclared_local_bts1126.c:35:[kernel] warning: Calling undeclared function _gnutls_epoch_get. Old style K&R code?
 tests/syntax/undeclared_local_bts1126.c:37:[kernel] warning: Calling undeclared function gnutls_assert_val. Old style K&R code?

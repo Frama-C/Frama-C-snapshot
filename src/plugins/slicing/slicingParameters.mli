@@ -51,8 +51,6 @@ module ProjectName: Parameter_sig.String
 (** @since Carbon-20110201 *)
 module ExportedProjectPostfix: Parameter_sig.String
 
-module Print: Parameter_sig.Bool
-
 val is_on: unit -> bool
 val set_off: unit -> unit
 val clear: unit -> unit

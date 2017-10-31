@@ -168,7 +168,7 @@ let disjoint_behaviors spec bhv_names =
   in 
   do_list Logic_const.ptrue bhv_assumes 
 
-let merge_assigns_internal (get:'b -> 'c assigns) (origin:'b -> string list)
+let merge_assigns_internal (get:'b -> assigns) (origin:'b -> string list)
     (acc:(('a*(bool * string list))*int) option) (bhvs: 'b list) =
   let cmp_assigns acc b = 
     let a' = get b in
@@ -435,22 +435,29 @@ let pointed_type ty =
 (* ************************************************************************** *)
 
 let can_be_cea_function name =
-  (String.length name >= 6 &&
-    name.[0] = 'F' && name.[1] = 'r' && name.[2] = 'a' &&
-       name.[3] = 'm' && name.[4] = 'a' && name.[5] = '_')
+  Extlib.string_prefix "Frama_" name
 
 let is_cea_function name =
   Extlib.string_prefix "Frama_C_show_each" name
 
-let is_cea_dump_function name = (name = "Frama_C_dump_each")
+let is_cea_domain_function name =
+  Extlib.string_prefix "Frama_C_domain_show_each" name
+
+let is_cea_dump_function name =
+  Extlib.string_prefix "Frama_C_dump_each" name
 
 let is_cea_dump_file_function name =
   Extlib.string_prefix "Frama_C_dump_each_file" name
+
+let is_cea_builtin name =
+  Extlib.string_prefix "Frama_C_builtin" name
 
 let is_frama_c_builtin n =
   can_be_cea_function n &&
   (is_cea_dump_function n ||
    is_cea_function n ||
+   is_cea_builtin n ||
+   is_cea_domain_function n ||
    is_cea_dump_file_function n)
 
 let () = Cil.add_special_builtin_family is_frama_c_builtin

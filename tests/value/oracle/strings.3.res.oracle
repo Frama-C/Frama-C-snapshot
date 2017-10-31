@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/strings.i (no preprocessing)
 [value] Analyzing a complete application starting at main8
 [value] Computing initial state
@@ -41,7 +40,7 @@
 [value] computing for function assigns <- main8.
         Called from tests/value/strings.i:127.
 [value] using specification for function assigns
-tests/value/strings.i:121:[value] warning: no \from part for clause 'assigns *(p + (0 .. s - 1));' of function assigns
+tests/value/strings.i:121:[value] warning: no \from part for clause 'assigns *(p + (0 .. s - 1));'
 [value] Done for function assigns
 [value] computing for function strcmp <- main8.
         Called from tests/value/strings.i:128.

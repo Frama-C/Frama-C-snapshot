@@ -43,9 +43,7 @@ class virtual do_it_ = object(self)
           let state =
             Db.Value.get_state (Kstmt (Extlib.the self#current_stmt))
           in
-          let r = 
-	    !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state e 
-	  in
+          let r = !Db.Value.eval_expr state e in
           let loc = loc_bytes_to_loc_bits r in
           let size = Bit_utils.sizeof_lval lv in
           self#join
@@ -80,7 +78,7 @@ let externalize _return fundec x =
 module Externals =
   Kernel_function.Make_Table(Locations.Zone)
     (struct
-       let name = "External derefs"
+       let name = "Inout.Derefs.Externals"
        let dependencies = [ Analysis.Memo.self ]
        let size = 17
      end)

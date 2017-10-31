@@ -24,6 +24,8 @@ open Eval
 
 let counter = ref 0
 
+let product_category = Value_parameters.register_category "domain_product"
+
 module Make
     (Value: Abstract_value.S)
     (Left:  Abstract_domain.Internal with type value = Value.t)
@@ -49,23 +51,22 @@ module Make
       (struct let module_name = name end)
   type state = t
 
-  let pretty fmt (left, right) =
-    Format.fprintf fmt
-      "@[<v>(@[%a@]@ ,@  @[%a@])@]" Left.pretty left Right.pretty right
-
   let structure = Abstract_domain.Node (Left.structure, Right.structure)
+
+  let log_category = product_category
 
   let top = Left.top, Right.top
   let is_included (left1, right1) (left2, right2) =
     Left.is_included left1 left2 && Right.is_included right1 right2
   let join (left1, right1) (left2, right2) =
     Left.join left1 left2, Right.join right1 right2
-  let join_and_is_included (left1, right1) (left2, right2) =
-    let left, b1 = Left.join_and_is_included left1 left2
-    and right, b2 = Right.join_and_is_included right1 right2 in
-    (left, right), b1 && b2
   let widen kf stmt (left1, right1) (left2, right2) =
     Left.widen kf stmt left1 left2, Right.widen kf stmt right1 right2
+
+  let narrow (left1, right1) (left2, right2) =
+    Left.narrow left1 left2 >>- fun left ->
+    Right.narrow right1 right2 >>-: fun right ->
+    (left, right)
 
 
   let merge (eval1, alarms1) (eval2, alarms2) =
@@ -112,14 +113,6 @@ module Make
       (Left.reduce_further left expr value)
       (Right.reduce_further right expr value)
 
-  let merge_init left right =
-    match left, right with
-    | Default, Default -> Default
-    | Continue left, Continue right -> Continue (left, right)
-    | Default, Continue right       -> Continue (Left.top, right)
-    | Continue left, Default        -> Continue (left, Right.top)
-    | _, _ -> assert false (* TODO! *)
-
   (* TODO: this function does a cartesian product, which is pretty terrible. *)
   let merge_results _kf left_list right_list =
     List.fold_left
@@ -135,11 +128,6 @@ module Make
                                              and type origin = origin
                                              and type loc = location)
   = struct
-
-    type state = t
-    type value = Value.t
-    type location = Left.location
-    type valuation = Valuation.t
 
     module type Lift = sig
       type o
@@ -216,8 +204,7 @@ module Make
       let left_action = Left_Transfer.start_call stmt call valuation left
       and right_action = Right_Transfer.start_call stmt call valuation right in
       match left_action, right_action with
-      | Compute (left_init, b), Compute (right_init, b') ->
-        Compute (merge_init left_init right_init, b && b')
+      | Compute left, Compute right -> Compute (left, right)
       | Result (left_result, c1), Result (right_result, _c2) ->
         let result =
           left_result >>- fun left_result ->
@@ -240,48 +227,91 @@ module Make
         in
         Result (result, c2)
 
+    let show_expr =
+      let (|-) f g = fun fmt exp -> f fmt exp; g fmt exp in
+      let show_expr_one_side category name show_expr = fun fmt exp ->
+        if Value_parameters.is_debug_key_enabled category
+        then Format.fprintf fmt "@,@]@[<v># %s: @[<hov>%a@]" name show_expr exp
+      in
+      let right_log = Right.log_category
+      and left_log = Left.log_category in
+      match left_log = product_category,
+            right_log = product_category with
+      | true, true ->
+        (fun valuation (left, right) ->
+           Left_Transfer.show_expr valuation left |-
+           Right_Transfer.show_expr valuation right)
+      | true, false ->
+        (fun valuation (left, right) ->
+           Left_Transfer.show_expr valuation left |-
+           show_expr_one_side right_log Right.name
+             (Right_Transfer.show_expr valuation right))
+      | false, true ->
+        (fun valuation (left, right) ->
+           show_expr_one_side left_log Left.name
+             (Left_Transfer.show_expr valuation left) |-
+           Right_Transfer.show_expr valuation right)
+      | false, false ->
+        (fun valuation (left, right) ->
+           show_expr_one_side left_log Left.name
+             (Left_Transfer.show_expr valuation left) |-
+           show_expr_one_side right_log Right.name
+             (Right_Transfer.show_expr valuation right))
   end
 
-
-  (* TODO *)
-  let compute_using_specification kinstr call spec (left, right) =
-    Left.compute_using_specification kinstr call spec left >>- fun left ->
-    Right.compute_using_specification kinstr call spec right >>-: fun right ->
-    merge_results call.kf left right
-
-
-  type eval_env = Left.eval_env * Right.eval_env
-
-  let env_current_state (left, right) =
-    Left.env_current_state left >>- fun left_env ->
-    Right.env_current_state right >>-: fun right_env ->
-    left_env, right_env
-
-  let env_annot ~pre ~here () =
-    Left.env_annot ~pre:(fst pre) ~here:(fst here) (),
-    Right.env_annot ~pre:(snd pre) ~here:(snd here) ()
-
-  let env_pre_f ~pre () =
-    Left.env_pre_f ~pre:(fst pre) (), Right.env_pre_f ~pre:(snd pre) ()
-
-  let env_post_f ~pre ~post ~result () =
-    Left.env_post_f ~pre:(fst pre) ~post:(fst post) ~result (),
-    Right.env_post_f ~pre:(snd pre) ~post:(snd post) ~result ()
-
-  let eval_predicate (left, right) pred =
-    let status =
-      Alarmset.Status.inter
-        (Left.eval_predicate left pred) (Right.eval_predicate right pred)
+  let pretty =
+    let print_one_side fmt category name dump state =
+      if Value_parameters.is_debug_key_enabled category
+      then Format.fprintf fmt "# %s:@ @[<hv>%a@]@ " name dump state
     in
-    match status with
+    let right_log = Right.log_category
+    and left_log = Left.log_category in
+    match left_log = product_category,
+          right_log = product_category with
+    | true, true ->
+      (fun fmt (left, right) ->
+         Left.pretty fmt left;
+         Right.pretty fmt right)
+    | true, false ->
+      (fun fmt (left, right) ->
+         Left.pretty fmt left;
+         print_one_side fmt right_log Right.name Right.pretty right)
+    | false, true ->
+      (fun fmt (left, right) ->
+         print_one_side fmt left_log Left.name Left.pretty left;
+         Right.pretty fmt right)
+    | false, false ->
+      (fun fmt (left, right) ->
+         print_one_side fmt left_log Left.name Left.pretty left;
+         print_one_side fmt right_log Right.name Right.pretty right)
+
+
+  let logic_assign assign location ~pre:(left_pre, right_pre) (left, right) =
+    Left.logic_assign assign location ~pre:left_pre left,
+    Right.logic_assign assign location ~pre:right_pre right
+
+  let lift_logic_env f logic_env =
+    Abstract_domain.{ states = (fun label -> f (logic_env.states label));
+                      result = logic_env.result; }
+
+  let split_logic_env logic_env =
+    lift_logic_env fst logic_env, lift_logic_env snd logic_env
+
+  let evaluate_predicate logic_environment (left, right) pred =
+    let left_env, right_env = split_logic_env logic_environment in
+    let left_status = Left.evaluate_predicate left_env left pred
+    and right_status = Right.evaluate_predicate right_env right pred in
+    match Alarmset.Status.inter left_status right_status with
     | `Inconsistent ->
       Value_parameters.abort ~current:true ~once:true
         "Inconsistent status of alarms: unsound states."
     | `Value status -> status
 
-  let reduce_by_predicate (left, right) positive pred =
-    Left.reduce_by_predicate left positive pred,
-    Right.reduce_by_predicate right positive pred
+  let reduce_by_predicate logic_environment (left, right) pred positive =
+    let left_env, right_env = split_logic_env logic_environment in
+    Left.reduce_by_predicate left_env left pred positive >>- fun left ->
+    Right.reduce_by_predicate right_env right pred positive >>-: fun right ->
+    left, right
 
   let enter_scope kf vars (left, right) =
     Left.enter_scope kf vars left, Right.enter_scope kf vars right
@@ -296,18 +326,14 @@ module Make
     Left.leave_loop stmt left, Right.leave_loop stmt right
 
   let empty () = Left.empty (), Right.empty ()
-  let initialize_var (left, right) lval loc value =
-    Left.initialize_var left lval loc value,
-    Right.initialize_var right lval loc value
-  let initialize_var_using_type (left, right) varinfo =
-    Left.initialize_var_using_type left varinfo,
-    Right.initialize_var_using_type right varinfo
-  let global_state () =
-    match Left.global_state (), Right.global_state () with
-    | None, None -> None
-    | None, Some s -> Some (s >>-: fun s -> Left.top, s)
-    | Some s, None -> Some (s >>-: fun s -> s, Right.top)
-    | Some l, Some r -> Some (l >>- fun l -> r >>-: fun r -> l, r)
+  let introduce_globals vars (left, right) =
+    Left.introduce_globals vars left, Right.introduce_globals vars right
+  let initialize_variable lval loc ~initialized init_value (left, right) =
+    Left.initialize_variable lval loc ~initialized init_value left,
+    Right.initialize_variable lval loc ~initialized init_value right
+  let initialize_variable_using_type kind varinfo (left, right) =
+    Left.initialize_variable_using_type kind varinfo left,
+    Right.initialize_variable_using_type kind varinfo right
 
 
   let filter_by_bases bases (left, right) =
@@ -319,7 +345,7 @@ module Make
       ~current_input:(snd current_input) ~previous_output:(snd previous_output)
 
 
-  let merge_callstack_tbl left_tbl right_tbl =
+  let merge_tbl left_tbl right_tbl =
     let open Value_types in
     let tbl = Callstack.Hashtbl.create 7 in
     let merge callstack left =
@@ -330,9 +356,27 @@ module Make
         Not_found -> ()
     in
     Callstack.Hashtbl.iter merge left_tbl;
-    Some tbl
+    if Callstack.Hashtbl.length tbl > 0 then `Value tbl else `Bottom
+
+  let lift_tbl f tbl =
+    let open Value_types in
+    let new_tbl = Callstack.Hashtbl.create 7 in
+    let lift cs t = Callstack.Hashtbl.replace new_tbl cs (f t) in
+    Callstack.Hashtbl.iter lift tbl;
+    `Value new_tbl
+
+  let merge_callstack_tbl left right =
+    match left, right with
+    | `Top, `Top -> `Top
+    | `Value left, `Value right -> merge_tbl left right
+    | `Top, `Value right -> lift_tbl (fun t -> Left.top, t) right
+    | `Value left, `Top -> lift_tbl (fun t -> t, Right.top) left
+    | `Bottom, _ | _, `Bottom -> `Bottom
 
   module Store = struct
+    let register_global_state state =
+      Left.Store.register_global_state (state >>-: fst);
+      Right.Store.register_global_state (state >>-: snd)
     let register_initial_state callstack (left, right) =
       Left.Store.register_initial_state callstack left;
       Right.Store.register_initial_state callstack right
@@ -343,6 +387,10 @@ module Make
       Left.Store.register_state_after_stmt callstack stmt left;
       Right.Store.register_state_after_stmt callstack stmt right
 
+    let get_global_state () =
+      Left.Store.get_global_state () >>- fun left ->
+      Right.Store.get_global_state () >>-: fun right ->
+      left, right
     let get_initial_state kf =
       Left.Store.get_initial_state kf >>- fun left ->
       Right.Store.get_initial_state kf >>-: fun right ->
@@ -350,9 +398,7 @@ module Make
     let get_initial_state_by_callstack kf =
       let left_tbl = Left.Store.get_initial_state_by_callstack kf
       and right_tbl = Right.Store.get_initial_state_by_callstack kf in
-      match left_tbl, right_tbl with
-      | Some left, Some right -> merge_callstack_tbl left right
-      | _, _ -> None
+      merge_callstack_tbl left_tbl right_tbl
 
     let get_stmt_state stmt =
       Left.Store.get_stmt_state stmt >>- fun left ->
@@ -361,9 +407,7 @@ module Make
     let get_stmt_state_by_callstack ~after stmt =
       let left_tbl = Left.Store.get_stmt_state_by_callstack ~after stmt
       and right_tbl = Right.Store.get_stmt_state_by_callstack ~after stmt in
-      match left_tbl, right_tbl with
-      | Some left, Some right -> merge_callstack_tbl left right
-      | _, _ -> None
+      merge_callstack_tbl left_tbl right_tbl
 
   end
 

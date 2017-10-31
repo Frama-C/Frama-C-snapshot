@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/call_multi.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -7,22 +6,22 @@
   G ∈ {0}
 [value] computing for function uppol2 <- main.
         Called from tests/value/call_multi.i:29.
-[value] Called Frama_C_show_each_GOT({128})
+tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
         Called from tests/value/call_multi.i:30.
-[value] Called Frama_C_show_each_GOT({128})
+tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
         Called from tests/value/call_multi.i:31.
-[value] Called Frama_C_show_each_GOT({-128})
+tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {-128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
         Called from tests/value/call_multi.i:32.
-[value] Called Frama_C_show_each_GOT({128})
+tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] Recording results for main

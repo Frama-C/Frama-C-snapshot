@@ -10,5 +10,5 @@ void g(char*s);
 void f() {
   int x = 0;
   //@ assert P(x);
-  g(x);
+  g((char*)x);
 } 

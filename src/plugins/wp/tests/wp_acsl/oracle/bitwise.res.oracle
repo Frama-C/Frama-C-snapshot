@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -9,10 +8,7 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 5) in 'band':
-Let x = land(a, land(b, c)).
-Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x).
-}
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -79,8 +75,7 @@ Prove: land(65535, a) != 21845.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 55) in 'bnot':
-Let x = lnot(a). Assume { Type: is_sint32(a) /\ is_sint32(x). }
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -88,10 +83,7 @@ Prove: to_sint32(x) = x.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 28) in 'bor':
-Let x = lor(a, lor(b, c)).
-Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x).
-}
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -128,9 +120,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 42) in 'bxor':
-Let x = lxor(a, b).
-Assume { Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(x). }
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -164,9 +154,7 @@ Prove: lnot(x) = b.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 58) in 'lshift':
-Let x = lsl(a, n).
-Assume { Type: is_sint32(a) /\ is_sint32(n) /\ is_sint32(x). }
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -195,9 +183,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_acsl/bitwise.i, line 69) in 'rshift':
-Let x = lsr(a, n).
-Assume { Type: is_sint32(a) /\ is_sint32(n) /\ is_sint32(x). }
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

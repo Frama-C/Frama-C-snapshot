@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/array_conversion.c (with preprocessing)
 tests/spec/array_conversion.c:5:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 tests/spec/array_conversion.c:21:[kernel] warning: In ACSL, there is no implicit conversion between a C array and a pointer. Either introduce an explicit cast or take the address of the first element of X. Ignoring global annotation

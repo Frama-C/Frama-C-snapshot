@@ -51,73 +51,87 @@ let callsite_matches csf stmt =
   | None -> true
   | Some lrcs -> List.exists (callsite_matches_callstack stmt) lrcs
 
-let is_reachable_stmt csf stmt =
-  match csf with
-  | None -> Db.Value.is_reachable_stmt stmt
-  | Some _ as csf ->
+let focus = ref None
+let focused_callstacks () = !focus
+let focus_on_callstacks cs = focus := cs
+
+let has_matching_callstack ~after csf stmt =
+  let module Results = (val Analysis.current_analyzer ()) in
+  match Results.get_stmt_state_by_callstack ~after stmt with
+  | `Top -> true
+  | `Bottom -> false
+  | `Value h ->
     try
-      let h = Db.Value.Table_By_Callstack.find stmt in
       Value_types.Callstack.Hashtbl.iter
-        (fun cs' state ->
+        (fun cs' _state ->
            let rcs' = from_callstack cs' in
-           if callstack_matches csf rcs' && Db.Value.is_reachable state
-           then raise Exit
+           if callstack_matches csf rcs' then raise Exit
         ) h;
       false
     with
-    | Not_found -> false
     | Exit -> true
 
-exception Terminates
+let is_reachable_stmt csf stmt =
+  has_matching_callstack ~after:false csf stmt
 
 (* Called only when the statement is reachable *)
 let is_non_terminating_instr csf stmt =
-  match csf with
-  | None -> Value_results.is_non_terminating_instr stmt
-  | Some _ as csf ->
+  match stmt.skind with
+  | Instr _ -> not (has_matching_callstack ~after:true csf stmt)
+  | _ -> false
+
+
+(* The two functions below depends on the abstractions used in the Eva analysis,
+   but must be registered only once through the Dynamic module. We thus use
+   references to the function, that are changed by the Make functor. *)
+let lval_to_zone_callstacks_ref = ref (fun _ _ _ -> Locations.Zone.top)
+let tlval_to_zone_callstacks_ref = ref (fun _ _ _ -> Locations.Zone.top)
+
+exception Top
+
+let register_to_zone_functions (module Eval: Gui_eval.S) =
+  (* This function evaluates [v] using [ev] at [stmt] (in the pre-state), but
+     only for the callstacks matching [csf]. *)
+  let eval_filter csf stmt ev v =
+    match Eval.Analysis.get_stmt_state_by_callstack ~after:false stmt with
+    | `Value h ->
+      Value_types.Callstack.Hashtbl.fold
+        (fun cs state acc ->
+           let rcs' = from_callstack cs in
+           if callstack_matches csf rcs' then
+             let env = ev.Eval.env state cs in
+             let r, _ = ev.Eval.eval_and_warn env v in
+             ev.Eval.join acc r
+           else acc
+        ) h ev.Eval.bottom
+    | `Bottom -> ev.Eval.bottom
+    | `Top -> raise Top
+  in
+  let lval_to_zone_callstacks csf stmt lv =
+    try eval_filter csf stmt Eval.lval_zone_ev lv
+    with Top -> Locations.Zone.top
+  and tlval_to_zone_callstacks csf stmt tlv =
     try
-      let h = Db.Value.AfterTable_By_Callstack.find stmt in
-      Value_types.Callstack.Hashtbl.iter
-        (fun cs' state ->
-           if Cvalue.Model.is_reachable state &&
-              callstack_matches csf (from_callstack cs')
-           then raise Terminates
-        ) h;
-      true
-    with
-    | Not_found -> true
-    | Terminates -> false
+      let kf = Kernel_function.find_englobing_kf stmt in
+      let ev = Eval.tlval_zone_ev (Gui_types.GL_Stmt (kf, stmt)) in
+      eval_filter csf stmt ev tlv
+    with Top -> Locations.Zone.top
+  in
+  lval_to_zone_callstacks_ref := lval_to_zone_callstacks;
+  tlval_to_zone_callstacks_ref := tlval_to_zone_callstacks
 
-(* This function evaluates [v] using [ev] at [stmt] (in the pre-state), but
-   only for the callstacks matching [csf]. *)
-let eval_filter csf stmt ev v =
-  try
-    let h = Db.Value.Table_By_Callstack.find stmt in
-    Value_types.Callstack.Hashtbl.fold
-      (fun cs state acc ->
-         let rcs' = from_callstack cs in
-         if callstack_matches csf rcs' then
-           let env = ev.Gui_eval.env state cs in
-           let r, _ = ev.Gui_eval.eval_and_warn env v in
-           ev.Gui_eval.join acc r
-         else acc
-      ) h ev.Gui_eval.bottom
-  with
-  | Not_found -> ev.Gui_eval.bottom
-
-let lval_to_zone_callstacks csf stmt lv =
-  eval_filter csf stmt Gui_eval.lval_zone_ev lv
-
-let tlval_to_zone_callstacks csf stmt tlv =
-  let kf = Kernel_function.find_englobing_kf stmt in
-  let ev = Gui_eval.tlval_zone_ev (Gui_types.GL_Stmt (kf, stmt)) in
-  eval_filter csf stmt ev tlv
-
-let set_callstacks_filter  =
-  let lcs = ref None in
+(* Register evaluation functions that depend on the currently focused
+   callstacks. *)
+let () =
   let open Cil_datatype in
-  let lval_to_zone_gui stmt lv = lval_to_zone_callstacks !lcs stmt lv in
-  let tlval_to_zone_gui stmt tlv = tlval_to_zone_callstacks !lcs stmt tlv in
+  let lval_to_zone_gui stmt lv =
+    let filter = focused_callstacks () in
+    !lval_to_zone_callstacks_ref filter stmt lv
+  in
+  let tlval_to_zone_gui stmt tlv =
+    let filter = focused_callstacks () in
+    !tlval_to_zone_callstacks_ref filter stmt tlv
+  in
   let _eval_lv =
     Dynamic.register
       ~comment:"Evaluation of a l-value on the callstacks focused in the GUI"
@@ -132,4 +146,4 @@ let set_callstacks_filter  =
       (Datatype.func2 Stmt.ty Term.ty Locations.Zone.ty)
       ~journalize:false tlval_to_zone_gui
   in
-  (fun l -> lcs := l)
+  ()

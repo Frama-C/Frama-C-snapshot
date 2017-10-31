@@ -30,24 +30,30 @@ end
 
 module Make (Domain: InputDomain) = struct
 
-  let name = Domain.name ^ "_Store"
+  let name = Domain.name ^ ".Store"
+
+  (* This module stores the resulting states of an Eva analysis. They depends on
+     the set of parameters with which the analysis has been run, and must be
+     cleared each time one of this parameter is changed. Thus, the tables of
+     this module have as dependencies Db.Value.self, the internal state of Eva
+     (all parameters of Eva are added as codependencies of this state).  *)
+  let dependencies = [ Db.Value.self ]
+  let size = 16
 
   module Storage =
     State_builder.Ref (Datatype.Bool)
       (struct
-        let dependencies = [Db.Value.self]
+        let dependencies = dependencies
         let name = name ^ ".Storage"
         let default () = false
       end)
 
-  (* Do NOT add dependencies to Kernel parameters here, but at the top of
-     Value/Value_parameters *)
-  let dependencies =
-    [ Ast.self;
-      Alarms.self;
-      Annotations.code_annot_state ]
-
-  let size = 1789
+  module Global_State =
+    State_builder.Option_ref (Domain)
+      (struct
+        let dependencies = dependencies
+        let name = name ^ ".Global_State"
+      end)
 
   module States_by_callstack =
     Value_types.Callstack.Hashtbl.Make (Domain)
@@ -55,52 +61,34 @@ module Make (Domain: InputDomain) = struct
   module Table_By_Callstack =
     Cil_state_builder.Stmt_hashtbl(States_by_callstack)
       (struct
-        let name = Domain.name ^ " results by callstack"
+        let name = name ^ ".Table_By_Callstack"
         let size = size
         let dependencies = dependencies
       end)
   module Table =
     Cil_state_builder.Stmt_hashtbl (Domain)
       (struct
-        let name = Domain.name ^ " results"
+        let name = name ^ ".Table"
         let size = size
         let dependencies = [ Table_By_Callstack.self ]
       end)
-  (* Clear Value's various caches each time [Db.Value.is_computed] is updated,
-     including when it is set, reset, or during project change. Some operations
-     of Value depend on -ilevel, -plevel, etc, so clearing those caches when
-     Value ends ensures that those options will have an effect between two runs
-     of Value. *)
-  let () = Table_By_Callstack.add_hook_on_update
-      (fun _ ->
-         Cvalue.V_Offsetmap.clear_caches ();
-         Cvalue.Model.clear_caches ();
-         Locations.Location_Bytes.clear_caches ();
-         Locations.Zone.clear_caches ();
-         Function_Froms.Memory.clear_caches ();
-      )
 
   module AfterTable_By_Callstack =
     Cil_state_builder.Stmt_hashtbl (States_by_callstack)
       (struct
-        let name = Domain.name ^ " results after states by callstack"
+        let name = name ^ ".AfterTable_By_Callstack"
         let size = size
         let dependencies = dependencies
       end)
-
-
-  let self = Table_By_Callstack.self
-  let only_self = [ self ]
-
 
   module Called_Functions_By_Callstack =
     State_builder.Hashtbl
       (Kernel_function.Hashtbl)
       (States_by_callstack)
       (struct
-        let name = name ^ ".called_functions_by_callstack"
+        let name = name ^ ".Called_Functions_By_Callstack"
         let size = 11
-        let dependencies = only_self
+        let dependencies = dependencies
       end)
 
   module Called_Functions_Memo =
@@ -108,7 +96,7 @@ module Make (Domain: InputDomain) = struct
       (Kernel_function.Hashtbl)
       (Domain)
       (struct
-        let name = name ^ ".called_functions_memo"
+        let name = name ^ ".Called_Functions_Memo"
         let size = 11
         let dependencies = [ Called_Functions_By_Callstack.self ]
       end)
@@ -133,12 +121,16 @@ module Make (Domain: InputDomain) = struct
       Callstack.Hashtbl.add r callstack v;
       add stmt r
 
-  let register_initial_state callstack state =
-    let storage = match callstack with
-      | [_, Cil_types.Kglobal] -> let s = Domain.storage () in Storage.set s; s
-      | _ -> Storage.get ()
-    in
+  let register_global_state state =
+    let storage = Domain.storage () in
+    Storage.set storage;
     if storage then
+      match state with
+      | `Bottom -> ()
+      | `Value state -> Global_State.set state
+
+  let register_initial_state callstack state =
+    if Storage.get () then
       let open Value_types in
       let kf = match callstack with (kf, _) :: _ -> kf | _ -> assert false in
       let by_callstack =
@@ -153,6 +145,13 @@ module Make (Domain: InputDomain) = struct
         Callstack.Hashtbl.replace by_callstack callstack (Domain.join old state)
       with Not_found ->
         Callstack.Hashtbl.add by_callstack callstack state
+
+  let get_global_state () =
+    if not (Storage.get ())
+    then `Value Domain.top
+    else match Global_State.get_option () with
+      | None -> `Bottom
+      | Some state -> `Value state
 
   let get_initial_state kf =
     if not (Storage.get ())
@@ -172,8 +171,11 @@ module Make (Domain: InputDomain) = struct
       with Not_found -> `Bottom
 
   let get_initial_state_by_callstack kf =
-    try Some (Called_Functions_By_Callstack.find kf)
-    with Not_found -> None
+    if not (Storage.get ())
+    then `Top
+    else
+      try `Value (Called_Functions_By_Callstack.find kf)
+      with Not_found -> `Bottom
 
   let get_stmt_state s =
     if not (Storage.get ())
@@ -194,11 +196,13 @@ module Make (Domain: InputDomain) = struct
         state
 
   let get_stmt_state_by_callstack ~after stmt =
-    try
-      Some (if after then AfterTable_By_Callstack.find stmt
-            else Table_By_Callstack.find stmt)
-    with Not_found -> None
-
+    if not (Storage.get ())
+    then `Top
+    else
+      try `Value (if after
+                  then AfterTable_By_Callstack.find stmt
+                  else Table_By_Callstack.find stmt)
+      with Not_found -> `Bottom
 
   let register_state_before_stmt callstack stmt state =
     if Storage.get ()

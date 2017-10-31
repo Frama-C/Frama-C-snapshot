@@ -46,10 +46,10 @@ int z;
 void g3(int , ...);
 
 int aux3(int x, ...) {
-  int x = 3;
+  int t = 3;
   //@ impact pragma stmt;
-  g1(x);
-  g1(x);
+  g1(t);
+  g1(t);
   return y;
 }
 

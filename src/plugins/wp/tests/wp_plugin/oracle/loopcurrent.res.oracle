@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/loopcurrent.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/loopcurrent.i:12:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/loopcurrent.i, line 9):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/loopcurrent.i, line 9):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/loopcurrent.i, line 10):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/loopcurrent.i, line 10):
+Prove: true.
+
+------------------------------------------------------------

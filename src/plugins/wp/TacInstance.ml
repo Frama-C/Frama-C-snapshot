@@ -110,7 +110,6 @@ let rec bind_forall ranges bindings property =
   | [] ->
       bind_ranges [ "Instance" , property ] ranges
 
-
 let instance_goal ?(title="Witness") bindings property sequent =
   [ title, (fst sequent , bind_exists bindings property) ]
 
@@ -123,7 +122,6 @@ let instance_have ?(title="Instance") ?at bindings property sequent =
     | _ -> Conditions.(step (Either [sequence clauses]))
   in [ title , Conditions.insert ?at step sequent ]
 
-
 let bind ~side bindings property : Tactical.process =
   match side with
   | None ->
@@ -134,7 +132,7 @@ let bind ~side bindings property : Tactical.process =
 
 let filter x e =
   try F.Tau.equal (F.tau_of_var x) (F.typeof e)
-  with Not_found -> false
+  with Not_found -> true (* allowed to not restrict usage *)
 
 let fieldname k x =
   Pretty_utils.sfprintf "%s (%a)" (descr k) F.Tau.pretty (F.tau_of_var x)

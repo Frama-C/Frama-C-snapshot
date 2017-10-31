@@ -25,27 +25,18 @@
    plug-in. Refactoring required. *)
 (* ************************************************************************* *)
 
-type alarm_behavior = 
-    { a_log: bool;
-      a_call: unit -> unit;}
+type alarm_behavior = unit -> unit
 
-let a_ignore = {a_log=false; a_call=Extlib.nop}
+let a_ignore = Extlib.nop
 
-type warn_mode = {imprecision_tracing:alarm_behavior;
-                  defined_logic: alarm_behavior;
+type warn_mode = {defined_logic: alarm_behavior;
                   unspecified: alarm_behavior;
                   others: alarm_behavior;}
 
-let warn_all_mode =
-  let alog = {a_log=true; a_call=Extlib.nop} in
-  { imprecision_tracing = alog;
-    defined_logic = alog;
-    unspecified = alog; 
-    others = alog; }
-
 let warn_none_mode =
-  { imprecision_tracing = a_ignore; defined_logic = a_ignore;
-    unspecified = a_ignore; others=a_ignore; }
+  { defined_logic = a_ignore; unspecified = a_ignore; others = a_ignore; }
+
+
 
 
 (*

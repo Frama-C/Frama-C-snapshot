@@ -158,7 +158,7 @@ let parse_session env e =
     | "file" ->
         begin
           let file = List.assoc "name" e.attributes in
-          let path = Filepath.normalize ~base:env.session file in
+          let path = Filepath.normalize ~base_name:env.session file in
           let file = Filepath.relativize path in
           List.iter (parse_file env file) e.elements
         end

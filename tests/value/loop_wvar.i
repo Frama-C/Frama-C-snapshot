@@ -9,7 +9,7 @@
 void main(void)
 { int n = 13;
   int i,j;
-// ceci était une annotation, mais on ne fait pas moins bien sans
+// ceci Ã©tait une annotation, mais on ne fait pas moins bien sans
 // maintenant:
 // loop pragma WIDEN_VARIABLES i;
   /*@ loop widen_hints i, 12, 13; */

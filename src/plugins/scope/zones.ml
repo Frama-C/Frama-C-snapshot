@@ -27,6 +27,8 @@ let debug2 fmt = R.debug ~level:2 fmt
 open Cil_datatype
 open Cil_types
 
+type t_zones = Locations.Zone.t Stmt.Hashtbl.t
+
 module Data = struct
   type t = Locations.Zone.t
   let bottom = Locations.Zone.bottom
@@ -143,7 +145,7 @@ let process_one_call data stmt lvaloption froms =
 
 let process_call data_after stmt lvaloption funcexp args _loc =
   let funcexp_dpds, called_functions =
-    !Db.Value.expr_to_kernel_function ~with_alarms:CilE.warn_none_mode
+    !Db.Value.expr_to_kernel_function
       (Kstmt stmt) ~deps:(Some Data.bottom) funcexp
   in
   let used, data =
@@ -334,26 +336,21 @@ let pretty fmt stmt_zones =
 
        (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
-let () =
-  Db.register (* kernel_function -> stmt -> lval -> StmtHptset.t * t_zones *)
-    Db.Journalization_not_required (* TODO *)
-    (*
-    (Db.Journalize("Scope.build_zones",
-                   Datatype.func Kernel_type.kernel_function
+let build_zones =
+  (* TODO: Journal.register *)
+  (* (Datatype.func Kernel_type.kernel_function
                      (Datatype.func Kernel_type.stmt
                         (Datatype.func Kernel_type.lval
                            (Datatype.couple Kernel_type.stmt_set zones_ty)))))
                            *)
-    Db.Scope.build_zones compute;
+  compute
 
-  Db.register (* t_zones ->  Cil_types.stmt -> Locations.Zone.t *)
-    Db.Journalization_not_required (* TODO *)
-    (*(Db.Journalize("Scope.get_zones",
-                   Datatype.func zones_ty (Datatype.func Kernel_type.stmt data_ty)))*)
-  Db.Scope.get_zones get;
+let get_zones =
+  (* TODO: Journal.register *)
+    (*(Datatype.func zones_ty (Datatype.func Kernel_type.stmt data_ty)))*)
+  get
 
-  Db.register (* (Format.formatter -> t_zones -> unit) *)
-    Db.Journalization_not_required (* TODO *)
-    (*(Db.Journalize("Scope.pretty_zones",
-                   Datatype.func Datatype.formatter (Datatype.func zones_ty Datatype.unit)))*)
-  Db.Scope.pretty_zones pretty;
+let pretty_zones =
+  (* TODO: Journal.register *)
+  (*( Datatype.func Datatype.formatter (Datatype.func zones_ty Datatype.unit)))*)
+  pretty

@@ -106,7 +106,7 @@ val bounds: c_int -> Integer.t * Integer.t (** domain, bounds included *)
 
 val sub_c_int: c_int -> c_int -> bool
 
-val sub_c_float : c_float -> c_float -> bool
+val equal_float : c_float -> c_float -> bool
 
 val sizeof_defined : c_object -> bool
 val sizeof_object : c_object -> int
@@ -118,8 +118,8 @@ val is_comp : c_object -> compinfo -> bool
 val is_array : c_object -> elt:c_object -> bool
 val get_array : c_object -> ( c_object * int option ) option
 val get_array_size : c_object -> int option
+val get_array_dim : c_object -> int
 val array_size : arrayinfo -> int option
-val array_dim : arrayinfo -> c_object * int
 val array_dimensions : arrayinfo -> c_object * int option list
 (** Returns the list of dimensions the array consists of.
     None-dimension means undefined one. *)
@@ -137,7 +137,6 @@ val pp_object : Format.formatter -> c_object -> unit
 val basename : c_object -> string
 val compare : c_object -> c_object -> int
 val equal : c_object -> c_object -> bool
-val merge : c_object -> c_object -> c_object
 val hash : c_object -> int
 val pretty : Format.formatter -> c_object -> unit
 

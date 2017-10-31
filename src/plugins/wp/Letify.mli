@@ -28,9 +28,23 @@ open Lang.F
 
 module Ground :
 sig
+  
   type subst = pred -> pred
   val singleton : pred -> subst
   val compute : pred array -> subst array * subst
+
+  type env
+  val pretty : Format.formatter -> env -> unit
+  val top : unit -> env
+  val copy : env -> env
+
+  val e_apply : env -> term -> term
+  val p_apply : env -> pred -> pred
+
+  val forward : env -> pred -> pred
+  val backward : env -> pred -> pred
+  val branch : env -> pred -> pred * env * env
+  
 end
 
 module Sigma :

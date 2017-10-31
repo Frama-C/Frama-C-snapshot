@@ -61,13 +61,13 @@ let import_varinfo (vi : varinfo) ~importing_value =
     end else
     if importing_value then begin
       (* Variable may be an escaping local value *)
-      Value_parameters.warning "variable `%a (id %d)' is not global, \
+      Value_parameters.warning "variable `%a' is not global, \
                                 possibly an escaping value; ignoring"
-        Printer.pp_varinfo vi vi.vid;
+        Printer.pp_varinfo vi;
       raise Possibly_escaping_value
     end else
-      Value_parameters.abort "global not found: `%a' (id %d)"
-        Printer.pp_varinfo vi vi.vid
+      Value_parameters.abort "global not found: `%a'"
+        Printer.pp_varinfo vi
 
 let import_validity = function
   | Base.Empty | Base.Known _ | Base.Unknown _ | Base.Invalid as v -> v
@@ -98,12 +98,12 @@ let import_base (base : Base.t) ~importing_value =
       in
       let e = Cil.new_exp Cil_datatype.Location.unknown c in
       Base.of_string_exp e
-    | Base.Allocated (vi, validity) ->
-      Value_parameters.feedback ~dkey "recreating allocated base for malloc: `%a'"
+    | Base.Allocated (vi, deallocation, validity) ->
+      Value_parameters.feedback ~dkey "recreating allocated base for alloc: `%a'"
         Printer.pp_varinfo vi;
       let new_vi = Value_util.create_new_var vi.vname vi.vtype in
       let validity = import_validity validity in
-      let new_base = Base.register_allocated_var new_vi validity in
+      let new_base = Base.register_allocated_var new_vi deallocation validity in
       Builtins_malloc.register_malloced_base new_base;
       new_base
   in
@@ -131,7 +131,7 @@ let import_ival (ival : Ival.t) =
   | Ival.Float _ ->
     let mn, mx = Ival.min_and_max_float ival in
     Ival.inject_float_interval (Fval.F.to_float mn) (Fval.F.to_float mx)
-  | Ival.Top (mn,mx,m,u) -> Ival.inject_top mn mx m u
+  | Ival.Top (mn,mx,m,u) -> Ival.inject_interval mn mx m u
 
 let import_map (m : Cvalue.V.M.t) =
   let add base ival m =
@@ -254,7 +254,8 @@ let load_and_merge_function_state state : Model.t =
   in
   let map_with_globals = match merged_globals_state with
     | Model.Map m -> m
-    | _ -> assert false
+    | _ -> Value_parameters.fatal "invalid saved state: %a"
+             Model.pretty saved_state
   in
   let merged_globals_and_locals =
     Model.fold (fun new_base offsm acc ->
@@ -268,7 +269,14 @@ let save_globals_state () : unit =
   let ret_stmt = Kernel_function.find_return kf in
   try
     let ret_state = Db.Value.get_stmt_state ret_stmt in
-    save_globals_to_file kf ret_state filename
+    match ret_state with
+    | Model.Top ->
+      Value_parameters.abort "cannot save state at return statement of %a \
+                              (too imprecise)" Kernel_function.pretty kf
+    | Model.Bottom ->
+      Value_parameters.abort "cannot save state at return statement of %a \
+                              (bottom)" Kernel_function.pretty kf
+    | Model.Map _ -> save_globals_to_file kf ret_state filename
   with Not_found ->
     if Value_parameters.LoadFunctionState.is_set () then
       let (load_kf, _) = Value_parameters.get_LoadFunctionState () in

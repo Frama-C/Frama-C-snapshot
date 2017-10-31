@@ -86,9 +86,6 @@ let opt1 f m =
     None -> None
   | Some m -> Some (f m)
 
-exception Error_Top
-exception Error_Bottom
-
 module O = FCSet.Make(Integer)
 
 type pre_set = 
@@ -232,10 +229,6 @@ let fail min max r modu =
 
 let is_safe_modulo r modu =
   (Int.ge r Int.zero ) && (Int.ge modu Int.one) && (Int.lt r modu)
-
-let check_modulo min max r modu =
-  if not (is_safe_modulo r modu)
-  then fail min max r modu
 
 let is_safe_bound bound r modu = match bound with
   | None -> true
@@ -459,9 +452,13 @@ let inject_top min max rem modu =
   make ~min ~max ~rem ~modu
 
 let inject_interval ~min ~max ~rem:r ~modu =
-  check_modulo min max r modu;
-  let min = Extlib.opt_map (fun min -> Int.round_up_to_r ~min ~r ~modu) min
-  and max = Extlib.opt_map (fun max -> Int.round_down_to_r ~max ~r ~modu) max in
+  assert (is_safe_modulo r modu);
+  let fix_bound fix bound = match bound with
+    | None -> None
+    | Some b -> Some (if Int.equal b (Int.pos_rem r modu) then b else fix b)
+  in
+  let min = fix_bound (fun min -> Int.round_up_to_r ~min ~r ~modu) min
+  and max = fix_bound (fun max -> Int.round_down_to_r ~max ~r ~modu) max in
   make ~min ~max ~rem:r ~modu
 
 
@@ -478,13 +475,11 @@ let subdiv_int v =
       let hi = Array.sub arr m lenhi in
       share_array lo m,
       share_array hi lenhi
-  | Top (Some lo, Some hi, r, modu) ->
+  | Top (Some lo, Some hi, rem, modu) ->
       let mean = Int.native_div (Int.add lo hi) Int.two in
       let succmean = Int.succ mean in
-      let hilo = Integer.round_down_to_r ~max:mean ~r ~modu in
-      let lohi = Integer.round_up_to_r ~min:succmean ~r ~modu in
-      inject_top (Some lo) (Some hilo) r modu,
-      inject_top (Some lohi) (Some hi) r modu
+      inject_interval ~min:(Some lo) ~max:(Some mean) ~rem ~modu,
+      inject_interval ~min:(Some succmean) ~max:(Some hi) ~rem ~modu
   | Top _ -> raise Can_not_subdiv
 
 let inject_range min max = inject_top min max Int.zero Int.one
@@ -1155,20 +1150,6 @@ let fold_enum f v acc =
   | Float _ -> raise Error_Top
   | Set _ | Top _ -> fold_int (fun x acc -> f (inject_singleton x) acc) v acc
 
-let fold_split ~split f v acc =
-  match v with
-  | Float (fl) when Fval.is_singleton fl ->
-      f v acc
-  | Float (fl) ->
-      Fval.fold_split
-        split
-        (fun fl acc -> f (inject_float fl) acc)
-        fl
-        acc
-  | Top(_,_,_,_) | Set _ ->
-      fold_int (fun x acc -> f (inject_singleton x) acc) v acc
-
-
 (** [min_is_lower mn1 mn2] is true iff mn1 is a lower min than mn2 *)
 let min_is_lower mn1 mn2 =
   match mn1, mn2 with
@@ -1219,26 +1200,23 @@ let array_subset a1 a2 =
 let is_included t1 t2 =
   (t1 == t2) ||
   match t1,t2 with
+  | Set [||], _ -> true
   | Top(mn1,mx1,r1,m1), Top(mn2,mx2,r2,m2) ->
       (min_is_lower mn2 mn1) &&
       (max_is_greater mx2 mx1) &&
       rem_is_included r1 m1 r2 m2
   | Top _, Set _ -> false (* Top _ represents more elements
                              than can be represented by Set _ *)
-  | Set [||], Top _ -> true
   | Set s, Top(min, max, r, modu) ->
     (* Inclusion of bounds is needed for the entire inclusion *)
     min_le_elt min s.(0) && max_ge_elt max s.(Array.length s-1)
     && (Int.equal Int.one modu || (*Top side contains all integers, we're done*)
           array_for_all (fun x -> Int.equal (Int.pos_rem x modu) r) s)
   | Set s1, Set s2 -> array_subset s1 s2
-  | Float(f1), Float(f2) ->
-      Fval.is_included f1 f2
+  | Float f1, Float f2 -> Fval.is_included f1 f2
   | Float _, _ -> equal t2 top
-  | _, Float (f) -> is_zero t1 && (Fval.contains_zero f)
-
-let join_and_is_included a b =
-    let ab = join a b in (ab, equal a b)
+  | Set _, Float f -> is_zero t1 && Fval.contains_zero f
+  | Top _, Float _ -> false
 
 let partially_overlaps ~size t1 t2 =
   match t1, t2 with
@@ -2299,6 +2277,29 @@ let diff_if_one value rem =
 let diff value rem =
   log_imprecision "Ival.diff";
   diff_if_one value rem
+
+(* This function is an iterator, but it needs [diff_if_one] just above. *)
+let fold_int_bounds f v acc =
+  match v with
+  | Float _ -> f v acc
+  | Set _ | Top _ ->
+    if cardinal_zero_or_one v then f v acc
+    else
+      (* apply [f] to [b] and reduce [v] if [b] is finite,
+         or return [v] and [acc] unchanged *)
+      let on_bound b v acc = match b with
+        | None -> v, acc
+        | Some b ->
+          let b = inject_singleton b in
+          diff_if_one v b, f b acc
+      in
+      let min, max = min_and_max v in
+      (* [v] has cardinal at least 2, so [min] and [max] are distinct *)
+      let v, acc = on_bound min v acc in
+      let v, acc = on_bound max v acc in
+      (* but if the cardinal was 2, then this [v] may be bottom *)
+      if equal v bottom then acc else f v acc
+
 
 let backward_comp_int_left op l r =
   let open Comp in

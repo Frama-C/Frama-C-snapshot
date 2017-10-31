@@ -20,7 +20,8 @@
 #                                                                        #
 ##########################################################################
 
-BINDIR=$(dirname $0)
+MYDIR=$(dirname $0)
+BINDIR=$(cd $MYDIR && pwd) #more portable realpath
 ROOTDIR=$BINDIR/..
 
 export FRAMAC_PLUGIN_GUI="$ROOTDIR/lib/plugins/gui"

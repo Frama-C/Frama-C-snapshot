@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/log-file.i (no preprocessing)
 [kernel:foo-category] result with dkey
 [kernel] result

@@ -51,15 +51,11 @@ module PLoc = struct
 
   let size loc = Precise_locs.loc_size loc
 
-  let offset_cardinal_zero_or_one offset =
-    try
-      let ival = match offset with
-        | Precise off -> Precise_locs.imprecise_offset off
-        | Imprecise v -> Cvalue.V.project_ival v
-      in
-      Ival.cardinal_zero_or_one ival
-    with
-      Cvalue.V.Not_based_on_null -> false
+  let make loc =
+    let ploc_bits = Precise_locs.inject_location_bits loc.Locations.loc in
+    Precise_locs.make_precise_loc ploc_bits ~size:loc.Locations.size
+
+  let top = make (Locations.make_loc Locations.Location_Bits.top Int_Base.Top)
 
 
   exception AlwaysOverlap of Alarms.alarm
@@ -94,14 +90,10 @@ module PLoc = struct
     with AlwaysOverlap alarm -> `Bottom, Alarmset.singleton alarm
 
   let partially_overlap loc1 loc2 =
-    let big_enough size =
-      try Integer.gt size (Integer.of_int (Cil.bitsSizeOf Cil.intType))
-      with Cil.SizeOfError _ -> true
-    in
     let loc1 = Precise_locs.imprecise_location loc1
     and loc2 = Precise_locs.imprecise_location loc2 in
     match loc1.Locations.size with
-    | Int_Base.Value size when big_enough size ->
+    | Int_Base.Value size ->
       Locations.(Location_Bits.partially_overlaps size loc1.loc loc2.loc)
     | _ -> false
 
@@ -209,10 +201,7 @@ module PLoc = struct
       let loc_pr = join_loc value loc_bits in
       make_precise_loc loc_pr typ_offset
 
-  let eval_varinfo varinfo =
-    let loc = Locations.loc_of_varinfo varinfo in
-    let loc_bits = Precise_locs.inject_location_bits loc.Locations.loc in
-    Precise_locs.make_precise_loc loc_bits ~size:loc.Locations.size
+  let eval_varinfo varinfo = make (Locations.loc_of_varinfo varinfo)
 
   let is_valid ~for_writing loc =
     Locations.is_valid ~for_writing (Precise_locs.imprecise_location loc)

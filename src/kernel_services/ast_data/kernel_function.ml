@@ -73,7 +73,7 @@ module Kf =
   State_builder.Option_ref
     (Datatype.Int.Hashtbl.Make(Datatype.Triple(Kf)(Stmt)(Datatype.List(Block))))
     (struct
-       let name = "KF"
+       let name = "Kernel_function.Kf"
        let dependencies = [ Ast.self ]
      end)
 
@@ -312,7 +312,7 @@ module CallSites = Cil_datatype.Kf.Hashtbl
 module KfCallers =
   State_builder.Option_ref(CallSites.Make(Datatype.List(CallSite)))
     (struct
-      let name = "Kf.CallSites"
+      let name = "Kernel_function.KfCallers"
       let dependencies = [ Ast.self ]
      end)
 

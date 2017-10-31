@@ -1,11 +1,10 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/polarity.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 tests/wp_plugin/polarity.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
-              (\initialized(\at(p,Pre)))
+              (\initialized(\at(p,wp:pre)))
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_f_assert : Unknown (Stronger)
 [wp] Proved goals:    0 / 1

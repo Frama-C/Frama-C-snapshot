@@ -138,14 +138,7 @@ let find_code_annot_nodes pdg stmt annot =
                   try (Sets.find_label_node pdg !stmt l)::acc
                   with Not_found -> acc
                 in List.fold_left add acc (!stmt).labels
-            | LogicLabel (Some stmt, str) -> 
-                let add acc l = match l with 
-                  | Label (sl, _, _) when sl = str ->
-                      (try (Sets.find_label_node pdg stmt l)::acc
-                       with Not_found -> acc)
-                  | _ -> acc
-                in List.fold_left add acc stmt.labels
-            | LogicLabel (None, _) -> acc
+            | FormalLabel _ | BuiltinLabel _ -> acc
         in
         let ctrl_dpds = Logic_label.Set.fold add_label_nodes labels ctrl_dpds in
         if Pdg_parameters.debug_atleast 2 then begin

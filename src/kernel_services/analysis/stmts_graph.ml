@@ -210,7 +210,7 @@ module StmtsGraphTbl=
        (struct
          include Datatype.Serializable_undefined
          type t = SG.t
-         let name = "Stmts_Graph.SG.t"
+         let name = "Stmts_Graph.StmtsGraphTbl"
          let reprs = [ SG.create () ]
          let mem_project = Datatype.never_any_project
         end))
@@ -257,7 +257,7 @@ module StmtStmts =
   Cil_state_builder.Stmt_hashtbl
     (Stmt.Set)
     (struct
-      let name = "StmtStmts"
+      let name = "Stmts_graph.StmtStmts"
       let size = 142
       let dependencies = [ Ast.self ]
      end)
@@ -322,7 +322,7 @@ module WaysOutDatatype =
 module StmtWaysOut =
   Cil_state_builder.Stmt_hashtbl (WaysOutDatatype)
     (struct
-      let name = "StmtWaysOut"
+      let name = "Stmts_graphs.StmtWaysOut"
       let size = 142
       let dependencies = [ StmtStmts.self ]
      end)
@@ -404,7 +404,7 @@ module StmtWaysIn =
   Cil_state_builder.Stmt_hashtbl
     (Datatype.List (EdgeDatatype))
     (struct
-      let name = "StmtWaysIn"
+      let name = "Stmts_graphs.StmtWaysIn"
       let size = 142
       let dependencies = [ StmtStmts.self ]
      end)

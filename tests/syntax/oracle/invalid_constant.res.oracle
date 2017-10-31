@@ -1,7 +1,4 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/invalid_constant.i (no preprocessing)
-[kernel] syntax error at tests/syntax/invalid_constant.i:2:
-         1     /* Invalid octal constant */
-         2     int = 0123456789;
-               ^^^^^^^^^^^^^^^^^
+tests/syntax/invalid_constant.i:2:[kernel] failure: Invalid digit 8 in integer constant '0123456789' in base 8.
+[kernel] user error: stopping on file "tests/syntax/invalid_constant.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

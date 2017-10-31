@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/reading_null.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
@@ -20,10 +19,10 @@
   S_0_T[0..1] ∈ [--..--]
   S_1_T[0..1] ∈ [--..--]
 tests/value/reading_null.i:24:[value] entering loop for the first time
-[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0})
-[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1})
-[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1; 2})
-[value] Called Frama_C_show_each_F([-2147483648..2147483647], [0..9])
+tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0}
+tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0; 1}
+tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], {0; 1; 2}
+tests/value/reading_null.i:25:[value] Frama_C_show_each_F: [-2147483648..2147483647], [0..9]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

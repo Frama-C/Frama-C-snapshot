@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/bts1201.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state

@@ -549,25 +549,27 @@ class pane (proverpane : GuiConfig.provers) =
           ~pool provers
 
     method private fork proof fork =
-      begin
-        let provers = VCS.[ BatchMode, AltErgo ] in
-        let pool = Task.pool () in
-        ProofEngine.iter (self#schedule pool provers) fork ;
-        let server = ProverTask.server () in
-        state <- Forking(proof,fork,pool) ;
-        Task.launch server ;
-      end
+      Wutil.later
+        begin fun () ->
+          let provers = VCS.[ BatchMode, AltErgo ] in
+          let pool = Task.pool () in
+          ProofEngine.iter (self#schedule pool provers) fork ;
+          let server = ProverTask.server () in
+          state <- Forking(proof,fork,pool) ;
+          Task.launch server ;
+        end
 
     method private apply tactic selection process =
       match state with
       | Empty | Forking _ | Composer _ | Browser _ -> ()
       | Proof proof ->
-          begin
-            let title = tactic#title in
-            let tactic = ProofScript.jtactic ~title tactic selection in
-            let anchor = ProofEngine.anchor proof () in
-            self#fork proof (ProofEngine.fork proof ~anchor tactic process)
-          end
+          Wutil.later
+            begin fun () ->
+              let title = tactic#title in
+              let tactic = ProofScript.jtactic ~title tactic selection in
+              let anchor = ProofEngine.anchor proof () in
+              self#fork proof (ProofEngine.fork proof ~anchor tactic process)
+            end
 
     method private search proof = function
       | None -> text#printf "No tactic found.@\n"
@@ -577,7 +579,8 @@ class pane (proverpane : GuiConfig.provers) =
       match state with
       | Empty | Forking _ | Composer _ | Browser _ -> ()
       | Proof proof ->
-          begin
+          Wutil.later
+          begin fun () ->
             let anchor = ProofEngine.anchor proof () in
             let pool = new Strategy.pool in
             Model.with_model

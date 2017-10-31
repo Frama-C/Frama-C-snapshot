@@ -14,14 +14,14 @@ let main _ =
   let _kf_f = Globals.Functions.find_def_by_name "f" in
   let _kf_g = Globals.Functions.find_def_by_name "g" in
 
-  let _top_mark = !Db.Slicing.Mark.make ~addr:true ~ctrl:true ~data:true in
+  let _top_mark = Slicing.Api.Mark.make ~addr:true ~ctrl:true ~data:true in
 
   let add_select_fun_calls to_call =
-    let selections = Db.Slicing.Select.empty_selects in
+    let selections = Slicing.Api.Select.empty_selects in
     let selections =
-      !Db.Slicing.Select.select_func_calls_into selections ~spare:false to_call
+      Slicing.Api.Select.select_func_calls_into selections ~spare:false to_call
     in
-    !Db.Slicing.Request.add_persistent_selection selections
+    Slicing.Api.Request.add_persistent_selection selections
   in
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
   (* Project1 :
@@ -30,20 +30,20 @@ let main _ =
    * Then create manually a second slice for [k] :
    * the call to [send_bis] is visible as wished. *)
 
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   (*let pdg_k = !Db.Pdg.get kf_k;;*)
   let calls = !Db.Pdg.find_call_stmts ~caller:kf_k(*pdg_k*) kf_send_bis in
   let sb_call = match calls with c::[] -> c | _ -> assert false in
-  let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
-  let select = !S.Select.select_stmt_internal kf_k sb_call mark in
-  !S.Request.add_selection_internal select ;
-  !S.Request.apply_all_internal ();
+  let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
+  let select = Slicing.Api.Select.select_stmt_internal kf_k sb_call mark in
+  Slicing.Api.Request.add_selection_internal select ;
+  Slicing.Api.Request.apply_all_internal ();
   Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project1 - result1 :@\n@]") ;
   extract_and_print ();
 
-  let _ff2_k = !S.Slice.create kf_k in
+  let _ff2_k = Slicing.Api.Slice.create kf_k in
   Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project1 - result2 :@\n@]") ;
-  !S.Project.pretty fmt;
+  Slicing.Api.Project.pretty fmt;
   extract_and_print ();
 
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -51,17 +51,17 @@ let main _ =
    * same than project1, except that we use [select_min_call_internal].
    * But as [send_bis] is an undefined function, this makes no difference.
    *)
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   (*let pdg_k = !Db.Pdg.get kf_k;;*)
   let calls = !Db.Pdg.find_call_stmts (*pdg_k*)~caller:kf_k kf_send_bis in
   let sb_call = match calls with c::[] -> c | _ -> assert false in
-  let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
-  let select = !S.Select.select_min_call_internal kf_k sb_call mark in
-  !S.Request.add_selection_internal select ;
+  let mark = Slicing.Api.Mark.make ~data:true ~addr:false ~ctrl:false in
+  let select = Slicing.Api.Select.select_min_call_internal kf_k sb_call mark in
+  Slicing.Api.Request.add_selection_internal select ;
   print_requests ();
-  !S.Request.apply_all_internal ();
+  Slicing.Api.Request.apply_all_internal ();
   Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project3 - result :@\n@]") ;
-  !S.Project.pretty fmt;
+  Slicing.Api.Project.pretty fmt;
   extract_and_print ();
 
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -71,14 +71,14 @@ let main _ =
    * [f_1] is also called in [g_1] because it calls [k_1].
    *)
 
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   add_select_fun_calls kf_k;
   print_requests ();
-  !S.Request.apply_next_internal ();
+  Slicing.Api.Request.apply_next_internal ();
   print_requests ();
-  !S.Request.apply_all_internal ();
+  Slicing.Api.Request.apply_all_internal ();
   Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project3 - result :@\n@]") ;
-  !S.Project.pretty fmt;
+  Slicing.Api.Project.pretty fmt;
   extract_and_print ()
 
 
@@ -95,19 +95,19 @@ let project = mk_project();;
 
 add_select_fun_calls project kf_send;;
 print_requests project;;
-!S.Request.apply_next_internal project;;
+Slicing.Api.Request.apply_next_internal project;;
 print_requests project;;
-!S.Request.apply_all_internal project;;
+Slicing.Api.Request.apply_all_internal project;;
 
 Format.printf "@[CAS 1 - step 1+2 - result :@\n@]";;
 extract_and_print project;;
 
 add_select_fun_calls project kf_send_bis;;
 print_requests project;;
-!S.Request.apply_all_internal project;;
+Slicing.Api.Request.apply_all_internal project;;
 
 Format.printf "@[CAS 1 - step 3+4 - result :@\n@]";;
-!S.Project.pretty fmt project;;
+Slicing.Api.Project.pretty fmt project;;
 extract_and_print project;;
 *)
 
@@ -124,7 +124,7 @@ add_select_fun_calls project kf_send_bis;;
 print_requests project;;
 
 Format.printf "@[Project 5 - result :@\n@]";;
-!S.Project.pretty fmt project;;
+Slicing.Api.Project.pretty fmt project;;
 extract_and_print project;;
 *)
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

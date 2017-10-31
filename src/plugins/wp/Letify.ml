@@ -62,48 +62,91 @@ struct
   let merge a b =
     Tmap.union (fun _ u v -> if F.compare u v <= 0 then u else v) a b
 
+  let clause env h =
+    begin
+      env.domain <- Tmap.add h F.e_true env.domain ;
+      env.domain <- Tmap.add (e_not h) F.e_false env.domain ;
+    end
+
+  let frank = function
+    | ACSL _ -> 0
+    | CTOR _ -> 3
+    | Model { m_category = Function } -> 0
+    | Model { m_category = Injection } -> 1
+    | Model { m_category = Operator _ } -> 2
+    | Model { m_category = Constructor } -> 3
+  
+  let reduce env a b =
+    match F.repr a , F.repr b with
+    | Fun(f,_) , Fun(g,_) when Wp_parameters.Reduce.get () ->
+        let cmp = frank f - frank g in
+        if cmp < 0 then env.domain <- Tmap.add a b env.domain ;
+        if cmp > 0 then env.domain <- Tmap.add b a env.domain ;
+    | _ -> ()
+  
   let rec walk env h =
     match F.repr h with
     | True | False -> ()
     | And ps -> List.iter (walk env) ps
     | Eq(a,b) ->
+        clause env h ;
         if is_ground env b then
           env.domain <- Tmap.add a b env.domain
         else
         if is_ground env a then
           env.domain <- Tmap.add b a env.domain
-    | Not p ->
-        env.domain <- Tmap.add h F.e_true env.domain ;
-        env.domain <- Tmap.add p F.e_false env.domain
+        else
+          reduce env a b
+    | Fun(f,[x]) ->
+        begin
+          clause env h ;
+          try
+            let iota = Cint.is_cint f in
+            let conv = Cint.convert iota x in
+            env.domain <- Tmap.add conv x env.domain ;
+          with Not_found -> ()
+        end
     | _ ->
-        env.domain <- Tmap.add h F.e_true env.domain ;
-        env.domain <- Tmap.add (e_not h) F.e_false env.domain
+        clause env h
 
-  let find mu e = try Tmap.find e mu with Not_found -> e
+  let lookup mu e = Tmap.find e mu
   let subst mu =
     let sigma = F.sigma () in
-    F.p_subst ~sigma (find mu)
+    F.p_subst ~sigma (lookup mu)
+
+  let e_apply env =
+    let sigma = F.sigma () in
+    F.e_subst ~sigma (lookup env.domain)
+      
+  let p_apply env =
+    let sigma = F.sigma () in
+    F.p_subst ~sigma (lookup env.domain)
 
   [@@@ warning "-32"]
   let pp_sigma fmt s =
     begin
       Format.fprintf fmt "@[<hov 2>[" ;
       Tmap.iter
-        (fun a b -> Format.fprintf fmt "@ %a -> %a" F.pp_term a F.pp_term b)
+        (fun a b -> Format.fprintf fmt "@ %a -> %a ;" F.pp_term a F.pp_term b)
         s ;
       Format.fprintf fmt "]@]" ;
     end
   [@@@ warning "+32"]
 
+  let pretty fmt env = pp_sigma fmt env.domain
+  
   let assume env p =
-    let p = F.p_subst (find env.domain) p in
+    let p = F.p_subst (lookup env.domain) p in
     walk env (F.e_prop p) ; p
+
+  let top () = { ground = Tmap.empty ; domain = Tmap.empty } 
+  let copy env = { domain = env.domain ; ground = env.ground }
 
   let compute seq =
     let n = Array.length seq in
     let lhs = Array.make n Tmap.empty in
     let rhs = Array.make n Tmap.empty in
-    let env = { ground = Tmap.empty ; domain = Tmap.empty } in
+    let env = top () in
     for i = 0 to n-2 do
       seq.(i) <- assume env seq.(i) ;
       lhs.(succ i) <- env.domain ;
@@ -129,6 +172,24 @@ struct
     ignore (assume env p) ;
     subst env.domain
 
+  let branch env p =
+    let p = p_apply env p in
+    let wa = copy env in
+    let wb = copy env in
+    ignore (assume wa p) ;
+    ignore (assume wb (F.p_not p)) ;
+    p , wa , wb
+
+  let forward env p =
+    match F.p_expr p with
+    | And ps -> F.p_all (assume env) ps
+    | _ -> assume env p
+
+  let backward env p =
+    match F.p_expr p with
+    | And ps -> F.p_all (assume env) (List.rev ps)
+    | _ -> assume env p
+  
 end
 
 (* -------------------------------------------------------------------------- *)
@@ -442,12 +503,7 @@ struct
   let rec defs w p =
     match F.repr p with
     | And ps -> List.iter (defs w) ps
-    | Eq(a,b) ->
-        begin
-          match F.QED.congruence_eq a b with
-          | None -> defs_eq w a b
-          | Some eqs -> List.iter (fun (a,b) -> defs_eq w a b) eqs
-        end
+    | Eq(a,b) -> defs_eq w a b
     | Not p ->
         begin
           match F.repr p with

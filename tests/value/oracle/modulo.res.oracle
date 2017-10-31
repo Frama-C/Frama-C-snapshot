@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/modulo.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -31,27 +30,27 @@
 tests/value/modulo.i:34:[value] warning: function pgcd1: precondition got status unknown.
 tests/value/modulo.i:37:[value] loop invariant got status valid.
 tests/value/modulo.i:38:[value] loop invariant got status valid.
-[value] Called Frama_C_show_each_1([1..10], [1..10], [0..9])
-[value] Called Frama_C_show_each_1({0}, [1..10], {0})
-[value] Called Frama_C_show_each_1([-10..-1], [1..10], [-9..0])
-[value] Called Frama_C_show_each_1([1..10], [-10..-1], [0..9])
-[value] Called Frama_C_show_each_1({0}, [-10..-1], {0})
-[value] Called Frama_C_show_each_1([-10..-1], [-10..-1], [-9..0])
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [1..10], [0..9]
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: {0}, [1..10], {0}
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: [-10..-1], [1..10], [-9..0]
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [-10..-1], [0..9]
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: {0}, [-10..-1], {0}
+tests/value/modulo.i:41:[value] Frama_C_show_each_1: [-10..-1], [-10..-1], [-9..0]
 [value] Recording results for pgcd1
 [value] Done for function pgcd1
 [value] computing for function pgcd2 <- main.
         Called from tests/value/modulo.i:152.
 tests/value/modulo.i:47:[value] warning: function pgcd2: precondition got status unknown.
 tests/value/modulo.i:50:[value] loop invariant got status valid.
-[value] Called Frama_C_show_each_2([-10..10], [1..10], [-9..9])
-[value] Called Frama_C_show_each_2([-10..10], [-10..-1], [-9..9])
+tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..10], [1..10], [-9..9]
+tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..10], [-10..-1], [-9..9]
 [value] Recording results for pgcd2
 [value] Done for function pgcd2
 [value] computing for function pgcd3 <- main.
         Called from tests/value/modulo.i:153.
 tests/value/modulo.i:59:[value] warning: function pgcd3: precondition got status unknown.
 tests/value/modulo.i:63:[value] warning: division by zero. assert b_0 ≢ 0;
-[value] Called Frama_C_show_each_3([-10..10], [-10..10], [-9..9])
+tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-10..10], [-10..10], [-9..9]
 [value] Recording results for pgcd3
 [value] Done for function pgcd3
 [value] computing for function main2 <- main.

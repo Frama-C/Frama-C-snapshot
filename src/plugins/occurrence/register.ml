@@ -109,16 +109,16 @@ class occurrence = object (self)
   method! vlval lv =
     let ki = self#current_kinstr in
     if Db.Value.is_accessible ki then begin
-      let z = !Db.Value.lval_to_zone ki ~with_alarms:CilE.warn_none_mode lv in
+      let z = !Db.Value.lval_to_zone ki lv in
       try
         Locations.Zone.fold_topset_ok
           (fun b _ () ->
             match b with
-              | Base.Var (vi, _) | Base.Allocated (vi, _) ->
+              | Base.Var (vi, _) | Base.Allocated (vi, _, _) ->
                   Occurrences.add vi self#current_kf ki lv
               | _ -> ()
           ) z ()
-      with Locations.Zone.Error_Top ->
+      with Abstract_interp.Error_Top ->
         error ~current:true "Found completely imprecise value (%a). Ignoring@."
           Printer.pp_lval lv
     end;

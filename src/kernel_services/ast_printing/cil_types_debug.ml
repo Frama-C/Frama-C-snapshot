@@ -75,28 +75,31 @@ let pp_int = Format.pp_print_int
 let pp_char = Format.pp_print_char
 let pp_float = Format.pp_print_float
 
+let pp_if_list_not_empty prefix suffix pp_l fmt l =
+  if l <> [] then Format.fprintf fmt "%s%a%s" prefix pp_l l suffix
+  else ()
 
 let pp_variant pp_term = pp_pair pp_term (pp_option pp_string)
 
-let pp_allocation pp_locs fmt = function
+let rec pp_allocation fmt = function
   | FreeAlloc(locs_list1,locs_list2) ->
     Format.fprintf fmt "FreeAlloc(%a,%a)"
-      (pp_list pp_locs) locs_list1 (pp_list pp_locs) locs_list2
+      (pp_list pp_identified_term) locs_list1 (pp_list pp_identified_term) locs_list2
   | FreeAllocAny -> Format.fprintf fmt "FreeAllocAny"
 
-let pp_deps pp_locs fmt = function
-  | From(locs_list) -> Format.fprintf fmt "From(%a)" (pp_list pp_locs) locs_list
+and pp_deps fmt = function
+  | From(locs_list) -> Format.fprintf fmt "From(%a)" (pp_list pp_identified_term) locs_list
   | FromAny -> Format.fprintf fmt "FromAny"
 
-let pp_from pp_locs = pp_pair pp_locs (pp_deps pp_locs)
+and pp_from fmt = pp_pair pp_identified_term pp_deps fmt
 
-let pp_assigns pp_locs fmt = function
+and pp_assigns pp_locs fmt = function
   | WritesAny -> Format.fprintf fmt "WritesAny"
   | Writes(from_list) ->
     Format.fprintf fmt "Writes(%a)" (pp_list pp_locs) from_list
 
 
-let rec pp_file fmt file = Format.fprintf fmt "{fileName=%a;globals=%a;globinit=%a;globinitcalled=%a}"
+and pp_file fmt file = Format.fprintf fmt "{fileName=%a;globals=%a;globinit=%a;globinitcalled=%a}"
     pp_string file.fileName (pp_list pp_global) file.globals (pp_option pp_fundec) file.globinit pp_bool file.globinitcalled
 
 and pp_global fmt = function
@@ -587,6 +590,11 @@ and pp_location fmt (pos_start,pos_end) =
   let p = if print_locations then Format.fprintf else Format.ifprintf in
   p fmt "(%a,%a)" pp_lexing_position pos_start pp_lexing_position pos_end
 
+and pp_if_loc_known prefix suffix fmt loc =
+  if print_locations && loc <> Cil_datatype.Location.unknown
+  then Format.fprintf fmt "%s%a%s" prefix pp_location loc suffix
+  else ()
+
 and pp_logic_constant fmt = function
   | Integer(integer,string_option) ->
     Format.fprintf fmt "Integer(%a,%a)"  pp_integer integer  (pp_option pp_string) string_option
@@ -619,13 +627,27 @@ and pp_identified_term fmt identified_term =
 
 and pp_logic_label fmt = function
   | StmtLabel(stmt_ref) -> Format.fprintf fmt "StmtLabel(%a)"  (pp_ref pp_stmt) stmt_ref
-  | LogicLabel(stmt_option,string) ->
-    Format.fprintf fmt "LogicLabel(%a,%a)"  (pp_option pp_stmt) stmt_option  pp_string string
+  | FormalLabel s -> Format.fprintf fmt "FormalLabel %s" s
+  | BuiltinLabel l -> Format.fprintf fmt "BuiltinLabel %a" pp_logic_builtin_label l
+
+and pp_logic_builtin_label fmt l =
+  let s = match l with
+    | Here -> "Here"
+    | Old -> "Old"
+    | Pre -> "Pre"
+    | Post -> "Post"
+    | LoopEntry -> "LoopEntry"
+    | LoopCurrent -> "LoopCurrent"
+    | Init -> "Init"
+  in
+  pp_string fmt s
 
 and pp_term fmt term =
-  Format.fprintf fmt "{term_node=%a;term_loc=%a;term_type=%a;term_name=%a}"
-    pp_term_node term.term_node pp_location term.term_loc
-    pp_logic_type term.term_type (pp_list pp_string) term.term_name
+  Format.fprintf fmt "{term_node=%a;%aterm_type=%a%a}"
+    pp_term_node term.term_node
+    (pp_if_loc_known "term_loc=" ";") term.term_loc
+    pp_logic_type term.term_type
+    (pp_if_list_not_empty ";term_name=" "" (pp_list pp_string)) term.term_name
 
 and pp_term_node fmt = function
   | TConst(logic_constant) -> Format.fprintf fmt "TConst(%a)"  pp_logic_constant logic_constant
@@ -641,10 +663,10 @@ and pp_term_node fmt = function
   | TCastE(typ,term) -> Format.fprintf fmt "TCastE(%a,%a)"  pp_typ typ  pp_term term
   | TAddrOf(term_lval) -> Format.fprintf fmt "TAddrOf(%a)"  pp_term_lval  term_lval
   | TStartOf(term_lval) -> Format.fprintf fmt "TStartOf(%a)"  pp_term_lval term_lval
-  | Tapp(logic_info,logic_label_logic_label_pair_list,term_list) ->
+  | Tapp(logic_info,logic_label_list,term_list) ->
     Format.fprintf fmt "Tapp(%a,%a,%a)"
       pp_logic_info logic_info
-      (pp_list (pp_pair pp_logic_label pp_logic_label)) logic_label_logic_label_pair_list
+      (pp_list pp_logic_label) logic_label_list
       (pp_list pp_term) term_list
   | Tlambda(quantifiers,term) -> Format.fprintf fmt "Tlambda(%a,%a)"  pp_quantifiers quantifiers  pp_term term
   | TDataCons(logic_ctor_info,term_list) ->
@@ -704,7 +726,13 @@ and pp_term_offset fmt = function
   | TIndex(term,term_offset) ->
     Format.fprintf fmt "TIndex(%a,%a)"  pp_term term  pp_term_offset term_offset
 
-and pp_logic_info fmt _logic_info = Format.fprintf fmt "pp_logic_info_TODO" (*{
+and pp_logic_info fmt logic_info =
+  Format.fprintf fmt "{l_var_info=%a;%al_tparams=%a;logic_type=%a;TODO}"
+    pp_logic_var logic_info.l_var_info
+    (pp_if_list_not_empty "l_labels=" ";" (pp_list pp_logic_label)) logic_info.l_labels
+    (pp_list pp_string) logic_info.l_tparams
+    (pp_option pp_logic_type) logic_info.l_type
+(*{
   mutable l_var_info : logic_var;
   mutable l_labels : logic_label_list;
   mutable l_tparams : string_list;
@@ -781,10 +809,10 @@ and pp_relation fmt = function
 and pp_predicate_node fmt = function
   | Pfalse -> Format.fprintf fmt "Pfalse"
   | Ptrue -> Format.fprintf fmt "Ptrue"
-  | Papp(logic_info,logic_label_logic_label_pair_list,term_list) ->
+  | Papp(logic_info,logic_label_list,term_list) ->
     Format.fprintf fmt "Papp(%a,%a,%a)"
       pp_logic_info logic_info
-      (pp_list (pp_pair pp_logic_label pp_logic_label)) logic_label_logic_label_pair_list
+      (pp_list pp_logic_label) logic_label_list
       (pp_list pp_term) term_list
   | Pseparated(term_list) ->
     Format.fprintf fmt "Pseparated(%a)"  (pp_list pp_term) term_list
@@ -832,16 +860,14 @@ and pp_predicate_node fmt = function
   | Psubtype(term1,term2) ->
  Format.fprintf fmt "Psubtype(%a,%a)"  pp_term term1  pp_term term2
 
-and pp_identified_predicate fmt _identified_predicate = Format.fprintf fmt "pp_identified_predicate_TODO" (*{
-  ip_id: int;
-  ip_content: predicate;
-}*)
+and pp_identified_predicate fmt identified_predicate =
+  Format.fprintf fmt "{ip_id=%d;ip_content=%a}"
+    identified_predicate.ip_id pp_predicate identified_predicate.ip_content
 
-and pp_predicate fmt _predicate = Format.fprintf fmt "pp_predicate_TODO" (*{
-  pred_name : string_list;
-  pred_loc : location;
-  pred_content : predicate_node;
-}*)
+and pp_predicate fmt predicate = Format.fprintf fmt "{%a%apred_content=%a}"
+    (pp_if_list_not_empty "pred_name=" ";" (pp_list pp_string)) predicate.pred_name
+    (pp_if_loc_known "pred_loc=" ";") predicate.pred_loc
+    pp_predicate_node predicate.pred_content
 
 and pp_spec fmt _spec = Format.fprintf fmt "pp_spec_TODO" (*{
   mutable spec_behavior : behavior_list;
@@ -863,8 +889,8 @@ and pp_behavior fmt _behavior = Format.fprintf fmt "pp_behavior_TODO" (*{
   mutable b_requires : identified_predicate_list;
   mutable b_assumes : identified_predicate_list;
   mutable b_post_cond : (termination_kind * identified_predicate)_list;
-  mutable b_assigns : identified_term assigns;
-  mutable b_allocation : identified_term allocation;
+  mutable b_assigns : assigns;
+  mutable b_allocation : allocation;
   mutable b_extended : acsl_extension_list
 }*)
 
@@ -905,10 +931,10 @@ and pp_code_annotation_node fmt = function
     Format.fprintf fmt "AVariant(%a)" (pp_variant pp_term) term_variant
   | AAssigns(string_list,assigns) ->
     Format.fprintf fmt "AAssigns(%a,%a)"  (pp_list pp_string) string_list
-      (pp_assigns (pp_from pp_identified_term)) assigns
+      (pp_assigns pp_from) assigns
   | AAllocation(string_list,allocation) ->
     Format.fprintf fmt "AAllocation(%a,%a)"  (pp_list pp_string) string_list
-      (pp_allocation pp_identified_term) allocation
+      pp_allocation allocation
   | APragma(pragma) ->
     Format.fprintf fmt "APragma(%a)" (pp_pragma pp_term) pragma
   | AExtended(string_list,acsl_extension) ->

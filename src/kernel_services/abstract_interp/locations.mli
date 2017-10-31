@@ -56,8 +56,7 @@ module Location_Bytes : sig
       such as [join], [narrow], etc. *)
   include Lattice_type.AI_Lattice_with_cardinal_one
     with type t := t
-    and type widen_hint := widen_hint
-  include Lattice_type.With_Error_Top
+     and type widen_hint := widen_hint
 
   include Datatype.S_with_collections with type t := t
 
@@ -140,6 +139,9 @@ module Location_Bytes : sig
     projection:(Base.t -> Ival.t) ->
     joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
   (** Cached version of [fold_i], for advanced users *)
+
+  val for_all: (Base.t -> Ival.t -> bool) -> t -> bool
+  val exists: (Base.t -> Ival.t -> bool) -> t -> bool
 
   val filter_base : (Base.t -> bool) -> t -> t
 
@@ -247,10 +249,6 @@ module Zone : sig
   val is_bottom: t -> bool
   val inject : Base.t -> Int_Intervals.t -> t
 
-  exception Error_Top
-
-  val map_i : (Base.t -> Int_Intervals.t -> t) -> t -> t
-
   val find_lonely_key : t -> Base.t * Int_Intervals.t
   val find_or_bottom : Base.t -> map_t -> Int_Intervals.t
   val find: Base.t -> t -> Int_Intervals.t
@@ -357,7 +355,6 @@ val valid_cardinal_zero_or_one : for_writing:bool -> location -> bool
 (** Is the valid part of the location bottom or a singleton? *)
 
 val filter_base: (Base.t -> bool) -> location -> location
-val filter_loc : location -> Zone.t -> location
 
 val pretty : Format.formatter -> location -> unit
 val pretty_english : prefix:bool -> Format.formatter -> location -> unit

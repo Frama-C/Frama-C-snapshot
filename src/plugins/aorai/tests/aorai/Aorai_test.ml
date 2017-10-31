@@ -37,31 +37,7 @@ module ProveAuxSpec =
                   of auxiliary automata functions match"
     end)
 
-let tmpfile = ref (Filename.temp_file "aorai_test" ".i")
-
-let tmpfile_set = ref false
-
 let ok = ref false
-
-let () =
-  Extlib.safe_at_exit (fun () -> 
-      if Debug.get () >= 1 || not !ok then
-        result "Keeping temp file %s" !tmpfile
-      else
-        try Sys.remove !tmpfile with Sys_error _ -> ())
-
-let set_tmpfile _ l =
-  if not !tmpfile_set then
-    begin
-      let name = List.hd l in
-      let name = Filename.basename name in
-      let name = Filename.chop_extension name in
-      tmpfile := (Filename.get_temp_dir_name()) ^ "/aorai_" ^ name ^ 
-                   (string_of_int (TestNumber.get())) ^ ".i";
-      tmpfile_set := true
-    end
-
-let () = Kernel.Files.add_set_hook set_tmpfile
 
 let is_suffix suf str =
   let lsuf = StdString.length suf in
@@ -89,7 +65,20 @@ let extend () =
           wp_compute_kf (Some kf) [] []
       in
       run f;
-      let chan = open_out !tmpfile in
+      let tmpfile =
+        Filename.get_temp_dir_name () ^ "/aorai_" ^
+        (Filename.chop_extension
+           (Filename.basename (List.hd (Kernel.Files.get())))) ^ "_" ^
+        (string_of_int (TestNumber.get ())) ^ ".i"
+      in
+      let () =
+        Extlib.safe_at_exit
+          (fun () ->
+             if Debug.get () >= 1 || not !ok then
+               result "Keeping temp file %s" tmpfile
+             else Extlib.safe_remove tmpfile)
+      in
+      let chan = open_out tmpfile in
       let fmt = Format.formatter_of_out_channel chan in
       File.pretty_ast ~prj:(Project.from_unique_name "aorai") ~fmt ();
       close_out chan;
@@ -98,7 +87,7 @@ let extend () =
       in
       Project.copy ~selection my_project;
       Project.set_current my_project;
-      Files.append_after [ !tmpfile ];
+      Files.append_after [ tmpfile ];
       Constfold.off ();
       Ast.compute();
       if ProveAuxSpec.get () then begin

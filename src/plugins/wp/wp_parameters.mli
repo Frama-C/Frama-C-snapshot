@@ -44,7 +44,7 @@ val job : unit -> job
 
 (** {2 Model Selection} *)
 
-val has_dkey : string -> bool
+val has_dkey : Log.category -> bool
 
 module Model : Parameter_sig.String_list
 module ByValue : Parameter_sig.String_set
@@ -53,7 +53,9 @@ module InHeap : Parameter_sig.String_set
 module InCtxt : Parameter_sig.String_set
 module ExternArrays: Parameter_sig.Bool
 module ExtEqual : Parameter_sig.Bool
+module Overflows : Parameter_sig.Bool
 module Literals : Parameter_sig.Bool
+module Volatile : Parameter_sig.Bool
 
 (** {2 Computation Strategies} *)
 
@@ -68,13 +70,17 @@ module Core: Parameter_sig.Bool
 module Prune: Parameter_sig.Bool
 module Clean: Parameter_sig.Bool
 module Filter: Parameter_sig.Bool
+module Parasite: Parameter_sig.Bool
+module Prenex: Parameter_sig.Bool
 module Bits: Parameter_sig.Bool
 module Ground: Parameter_sig.Bool
+module Reduce: Parameter_sig.Bool
 module QedChecks : Parameter_sig.String_set
 module Split: Parameter_sig.Bool
 module SplitDepth: Parameter_sig.Int
 module DynCall : Parameter_sig.Bool
 module SimplifyIsCint : Parameter_sig.Bool
+module SimplifyLandMask : Parameter_sig.Bool
 module SimplifyForall : Parameter_sig.Bool
 module SimplifyType : Parameter_sig.Bool
 module CalleePreCond : Parameter_sig.Bool
@@ -88,6 +94,8 @@ module Drivers: Parameter_sig.String_list
 module Script: Parameter_sig.String
 module UpdateScript: Parameter_sig.Bool
 module Timeout: Parameter_sig.Int
+module TimeExtra: Parameter_sig.Int
+module TimeMargin: Parameter_sig.Int
 module CoqTimeout: Parameter_sig.Int
 module CoqCompiler : Parameter_sig.String
 module CoqIde : Parameter_sig.String
@@ -130,6 +138,6 @@ val make_output_dir: string -> unit
 
 (** {2 Debugging Categories} *)
 val has_print_generated: unit -> bool
-val print_generated: string -> unit
+val print_generated: ?header:string -> string -> unit
 (** print the given file if the debugging category
     "print-generated" is set *)

@@ -60,18 +60,6 @@ let () = Builtins.register_builtin "Frama_C_assert" frama_C_assert
 (* --- Multi-names builtins, not registered in the table                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-let dump_state initial_state _ =
-  let l = fst (Cil.CurrentLoc.get ()) in
-  Value_parameters.result
-    "DUMPING STATE of file %s line %d@\n%a\n=END OF DUMP=="
-    (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-    Cvalue.Model.pretty initial_state;
-       { Value_types.c_values = [None, initial_state];
-	 c_clobbered = Base.SetLattice.bottom;
-         c_from = None;
-         c_cacheable = Value_types.NoCache;
-       }
-
 module DumpFileCounters =
   State_builder.Hashtbl (Datatype.String.Hashtbl)(Datatype.Int)
     (struct let size = 3
@@ -112,29 +100,3 @@ let dump_state_file name initial_state args =
     c_cacheable = Value_types.NoCache;
   }
 
-
-(* Builtin for Frama_C_show_each family of functions *)
-let dump_args name initial_state actuals =
-  (* Print one argument *)
-  let pp_one fmt (actual, v, offsm) =
-    (* YYY: catch pointers to arrays, and print the contents of the array *)
-    Format.fprintf fmt "@[";
-    let card = Cvalue.V_Offsetmap.fold_on_values (fun _ n -> n+1) offsm 0 in
-    if card > 1 (*|| true (* TODO: uninit & co *)*) then begin
-      let typ = Cil.typeOf actual in
-      Cvalue.V_Offsetmap.pretty_generic ~typ () fmt offsm;
-      Eval_op.pretty_stitched_offsetmap fmt typ offsm
-    end else if card = 0 then (* the value as a Cvalue.V is misleading *)
-      Format.fprintf fmt "%s" (Unicode.emptyset_string ())
-    else
-      Cvalue.V.pretty fmt v;
-    Format.fprintf fmt "@]";
-  in
-  let pp = Pretty_utils.pp_list ~pre:"@[<hv>" ~sep:",@ " ~suf:"@]" pp_one in
-  Value_parameters.result "Called %s(%a)%t" name pp actuals
-    Value_util.pp_callstack;
-     { Value_types.c_values = [ None, initial_state] ;
-       c_clobbered = Base.SetLattice.bottom;
-       c_from = None;
-       c_cacheable = Value_types.Cacheable;
-     }

@@ -121,8 +121,7 @@ let register_modified_zones lmap stmt =
                 register lmap zone
             in
             let _, kfs =
-              !Db.Value.expr_to_kernel_function
-                ~with_alarms:CilE.warn_none_mode ~deps:None (Kstmt stmt) funcexp
+              !Db.Value.expr_to_kernel_function ~deps:None (Kstmt stmt) funcexp
             in
             let out =
               Kernel_function.Hptset.fold aux_out kfs Locations.Zone.bottom
@@ -241,11 +240,11 @@ module BackwardScope (X : sig val modified : stmt -> bool end ) = struct
     | _ -> state
 
   include State
-    
+
 end
 
 let backward_data_scope modif_stmts s kf =
-  let modified s = StmtSetLattice.mem s modif_stmts in 
+  let modified s = StmtSetLattice.mem s modif_stmts in
   let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
   let module Arg = struct
       include BackwardScope(struct let modified = modified end)
@@ -496,8 +495,8 @@ let check_stmt_annots (ca, stmt_ca) stmt acc =
             R.debug "annot at stmt %d could be removed: %a"
               stmt.sid Printer.pp_code_annotation annot;
           acc
-        else 
-	  acc
+        else
+          acc
     | _ -> acc
   in
   Annotations.fold_code_annot check stmt acc
@@ -587,7 +586,7 @@ class check_annot_visitor = object(self)
         let _scope, proven' =
           get_prop_scope_at_stmt ~warn:false kf stmt ~proven annot
         in
-	proven <- proven'
+        proven <- proven'
       | _ -> ()
     end;
     Cil.SkipChildren
@@ -653,45 +652,48 @@ let rm_asserts () =
     CA_Map.iter aux to_be_removed
   end
 
-(** Register external functions into Db. *)
-let () =
-  Db.register (* kernel_function -> stmt -> lval ->
-       Cil_datatype.Stmt.Set.t * 
-       (Cil_datatype.Stmt.Set.t * 
-        Cil_datatype.Stmt.Set.t) *)
-    (Db.Journalize
-       ("Scope.get_data_scope_at_stmt",
-        Datatype.func3
+let get_data_scope_at_stmt =
+  Journal.register
+    "Scope.Datascope.get_data_scope_at_stmt"
+    (Datatype.func3
           Kernel_function.ty
           Cil_datatype.Stmt.ty
           Cil_datatype.Lval.ty
-          (Datatype.pair 
-             Cil_datatype.Stmt.Hptset.ty 
-             (Datatype.pair Cil_datatype.Stmt.Hptset.ty 
-                            Cil_datatype.Stmt.Hptset.ty))))
-  Db.Scope.get_data_scope_at_stmt get_data_scope_at_stmt;
+          (Datatype.pair
+             Cil_datatype.Stmt.Hptset.ty
+             (Datatype.pair Cil_datatype.Stmt.Hptset.ty
+                            Cil_datatype.Stmt.Hptset.ty)))
+    get_data_scope_at_stmt
 
-   Db.register (* (kernel_function -> stmt -> code_annotation ->
-       Cil_datatype.Stmt.Hptset.t * code_annotation list *)
-      Db.Journalization_not_required (* TODO *)
-     (* (Db.Journalize("Scope.get_prop_scope_at_stmt",
-                    Datatype.func Kernel_type.kernel_function
-                     (Datatype.func Kernel_type.stmt
-                        (Datatype.func code_annotation_type
-                           (Datatype.couple  Kernel_type.stmt_set
-                              (Datatype.list code_annotation_type)))))) *)
-     Db.Scope.get_prop_scope_at_stmt  get_prop_scope_at_stmt;
+let get_prop_scope_at_stmt =
+  Journal.register
+    "Scope.Datascope.get_prop_scope_at_stmt"
+    (Datatype.func3
+       Kernel_function.ty
+       Cil_datatype.Stmt.ty
+       Cil_datatype.Code_annotation.ty
+       (Datatype.pair
+          (Cil_datatype.Stmt.Hptset.ty)
+          (Datatype.list Cil_datatype.Code_annotation.ty)))
+    get_prop_scope_at_stmt
 
-   Db.register (* unit -> code_annotation list *)
-      Db.Journalization_not_required (* TODO *)
-     (* (Db.Journalize("Scope.check_asserts",
-                    Datatype.func Datatype.unit  (Datatype.list code_annotation_type))) *)
-     Db.Scope.check_asserts check_asserts;
+let check_asserts =
+  Journal.register
+    "Scope.Datascope.check_asserts"
+    (Datatype.func Datatype.unit (Datatype.list Cil_datatype.Code_annotation.ty))
+    check_asserts
 
+let rm_asserts =
+  Journal.register
+    "Scope.Datascope.rm_asserts"
+    (Datatype.func Datatype.unit Datatype.unit)
+    rm_asserts
+
+let () =
   Db.register
     (Db.Journalize
-       ("Scope.rm_asserts", Datatype.func Datatype.unit Datatype.unit))
-    Db.Scope.rm_asserts rm_asserts
+       ("Value.rm_asserts", Datatype.func Datatype.unit Datatype.unit))
+    Db.Value.rm_asserts rm_asserts
 
 (*
 Local Variables:

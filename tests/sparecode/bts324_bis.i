@@ -38,7 +38,7 @@ void main (int c) {
   if (is_ok)
     while (1) {
       loop_body () ;
-      // note: sparecode conserve les pragmas de slicing et par conséquent ce
+      // note: sparecode conserve les pragmas de slicing et par consÃ©quent ce
       // qui calcule "s0", l'option -sparecode-no-annot ni change rien
       //@ impact pragma expr s0;
       //@ slice pragma expr s1;

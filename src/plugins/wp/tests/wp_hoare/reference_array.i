@@ -80,9 +80,9 @@ void calls_on_array_dim_1 (void)
  */
 void calls_on_array_dim_2_to_1 (void)
 {
-  load_5(&(tt[0]));
-  reset_5(&(tt[0]));
-  add_5(&(tt[0]));
+  load_5(tt[0]);
+  reset_5(tt[0]);
+  add_5(tt[0]);
 }
 
 

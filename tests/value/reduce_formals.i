@@ -16,7 +16,7 @@ void main3 (void) {
   long x = 3;
   long * p = &x;
   //@ assert sizeof(long) == sizeof(int);
-  f_main3 (p, x); // go through the casts on p and x
+  f_main3 ((int *)p, x); // go through the casts on p and x
   Frama_C_show_each(x);
 }
 

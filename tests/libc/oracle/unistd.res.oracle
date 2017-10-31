@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/libc/unistd.c (with preprocessing)
 tests/libc/unistd.c:6:[kernel] warning: Calling undeclared function usleep. Old style K&R code?
 [value] Analyzing a complete application starting at main
@@ -7,6 +6,7 @@ tests/libc/unistd.c:6:[kernel] warning: Calling undeclared function usleep. Old 
 [value:initial-state] Values of globals at initialization
   __fc_time ∈ [--..--]
   __fc_tz ∈ [--..--]
+  __fc_fds_state ∈ [--..--]
   optarg ∈ {{ NULL ; &S_optarg[0] }}
   optind ∈ [--..--]
   opterr ∈ [--..--]

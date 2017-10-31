@@ -369,7 +369,10 @@ let reduce_offset_by_validity ~for_writing ~bitfield base offset size =
     | _, Int_Base.Top -> offset
     | (Base.Known (minv, maxv) | Base.Unknown (minv,_,maxv)),
       Int_Base.Value size ->
-      let maxv = Int.succ (Int.sub maxv size) in
+      (* The maximum offset is maxv - (size - 1), except if size = 0,
+         in which case the maximum offset is exactly maxv. *)
+      let pred_size = Int.max Int.zero (Int.pred size) in
+      let maxv = Int.sub maxv pred_size in
       let range =
         if bitfield
         then Ival.inject_range (Some minv) (Some maxv)
@@ -377,7 +380,8 @@ let reduce_offset_by_validity ~for_writing ~bitfield base offset size =
       in
       reduce_offset_by_range range offset
     | Base.Variable variable_v, Int_Base.Value size ->
-      let maxv = Int.succ (Int.sub variable_v.Base.max_alloc size) in
+      let pred_size = Int.max Int.zero (Int.pred size) in
+      let maxv = Int.sub variable_v.Base.max_alloc pred_size in
       let range =
         if bitfield
         then Ival.inject_range (Some Int.zero) (Some maxv)

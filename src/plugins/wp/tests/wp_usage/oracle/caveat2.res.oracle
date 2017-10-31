@@ -1,65 +1,46 @@
 # frama-c -wp -wp-model 'Typed (Caveat)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/caveat2.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 tests/wp_usage/caveat2.i:22:[wp] warning: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:25:[wp] warning: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:14:[wp] warning: Undefined array-size (sint32[])
 ------------------------------------------------------------
   Function job
 ------------------------------------------------------------
 
 Goal Post-condition 'N' in 'job':
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'A' in 'job':
-tests/wp_usage/caveat2.i:14: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
+Let a = global(G_b_24).
 Assume {
   Type: is_sint32(i_1) /\ is_sint32(n).
   (* Goal *)
   When: (0 <= i) /\ (i < n).
   (* Pre-condition *)
   Have: (0 <= n) /\ (n <= 3).
-  Warning[Typed Model]: Undefined array-size (sint32[])
-  (Hide sub-term definition).
   (* Invariant *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) -> (v[i_2] = w_1))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i_1) ->
+      (Mint_0[shift_sint32(a, i_2)] = v[i_2]))).
   (* Invariant *)
   Have: (0 <= i_1) /\ (i_1 <= n).
   (* Else *)
   Have: n <= i_1.
 }
-Prove: v[i] = w.
+Prove: Mint_0[shift_sint32(a, i)] = v[i].
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat2.i, line 21):
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:25: warning from Typed Model:
- - Warning: Havoc l-value (unknown r-value)
-   Reason: Undefined array-size (sint32[])
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Pre-condition *)
   Have: (0 <= n) /\ (n <= 3).
-  Warning[Typed Model]: Undefined array-size (sint32[])
-  (Hide sub-term definition).
   (* Invariant *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) -> (v[i_1] = w))).
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 < i) ->
+      (Mint_0[shift_sint32(global(G_b_24), i_1)] = v[i_1]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
@@ -76,48 +57,33 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_usage/caveat2.i, line 22):
 tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
  - Warning: No allocation size for variable 'b'
    Reason: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:25: warning from Typed Model:
- - Warning: Havoc l-value (unknown r-value)
-   Reason: Undefined array-size (sint32[])
+Let a = global(G_b_24).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Goal *)
   When: (0 <= i_1) /\ (i_1 <= i).
   (* Pre-condition *)
   Have: (0 <= n) /\ (n <= 3).
-  Warning[Typed Model]: Undefined array-size (sint32[])
-  (Hide sub-term definition).
   (* Invariant *)
-  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) -> (v[i_2] = w_1))).
+  Have: forall i_2 : Z. ((0 <= i_2) -> ((i_2 < i) ->
+      (Mint_0[shift_sint32(a, i_2)] = v[i_2]))).
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
 }
-Prove: v[i <- v_1][i_1] = w.
+Prove: v[i <- Mint_0[shift_sint32(a, i)]][i_1] = Mint_0[shift_sint32(a, i_1)].
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant (file tests/wp_usage/caveat2.i, line 22):
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Loop assigns (file tests/wp_usage/caveat2.i, line 23):
-tests/wp_usage/caveat2.i:22: warning from Typed Model:
- - Warning: Hide sub-term definition
-   Reason: Undefined array-size (sint32[])
-tests/wp_usage/caveat2.i:25: warning from Typed Model:
- - Warning: Havoc l-value (unknown r-value)
-   Reason: Undefined array-size (sint32[])
 Prove: true.
 
 ------------------------------------------------------------

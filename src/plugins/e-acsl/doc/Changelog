@@ -15,6 +15,21 @@
 #   E-ACSL: the Whole E-ACSL plug-in
 ###############################################################################
 
+-* E-ACSL       [2017/10/25] Fix bug #2303 about unnamed formals in
+	        annotated functions.
+-  E-ACSL       [2017/06/10] Add --free-valid-address option to e-acsl.gcc.sh
+-  E-ACSL       [2017/05/29] Add --fail-with-code option to e-acsl.gcc.sh
+-  E-ACSL       [2017/05/19] Add --temporal option to e-acsl.gcc.sh
+-  E-ACSL       [2017/05/19] New detection of temporal errors in E-ACSL
+	        through -e-acsl-temporal-validity (disabled by default)
+-  E-ACSL       [2017/03/26] Add --weak-validity option to e-acsl.gcc.sh
+-  E-ACSL       [2017/03/26] Add --rt-verbose option to e-acsl.gcc.sh
+-  E-ACSL       [2017/03/26] Add --keep-going option to e-acsl.gcc.sh allowing
+	        a program to continue execution after an assertion failure
+-  E-ACSL       [2017/03/26] Add --stack-size and --heap-size options to
+	        e-acsl-gcc.sh allowing to change the default sizes of the
+	        respective shadow spaces
+
 #################################
 Plugin E-ACSL Phosphorus-20170515
 #################################
@@ -24,7 +39,7 @@ Plugin E-ACSL Phosphorus-20170515
 -* E-ACSL       [2017/03/28] Fix backtrace when the failed instrumented programs
 	        do not require memory model.
 -! E-ACSL       [2017/03/19] Remove --print|-p option from e-acsl-gcc.sh
--! E-ACSL       [2017/03/16] Add --check option to e-acsl-gcc.sh which allows
+-  E-ACSL       [2017/03/16] Add --check option to e-acsl-gcc.sh which allows
 	        to check the integrity of the generated AST before
 	        instrumentation.
 -! E-ACSL       [2017/03/03] Remove precond rte option from e-acsl-gss.sh.

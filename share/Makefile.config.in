@@ -151,23 +151,6 @@ ENABLE_SPARECODE                  ?=@ENABLE_SPARECODE@
 ENABLE_USERS	                  ?=@ENABLE_USERS@
 ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@
 
-DYNAMIC_CALLGRAPH                 ?=@DYNAMIC_CALLGRAPH@
-DYNAMIC_CONSTANT_PROPAGATION      ?=@DYNAMIC_SEMANTIC_CONSTANT_FOLDING@
-DYNAMIC_FROM_ANALYSIS             ?=@DYNAMIC_FROM_ANALYSIS@
-#DYNAMIC_GUI: never dynamic
-DYNAMIC_IMPACT	                  ?=@DYNAMIC_IMPACT@
-DYNAMIC_INOUT                     ?=@DYNAMIC_INOUT@
-DYNAMIC_METRICS                   ?=@DYNAMIC_METRICS@
-DYNAMIC_OCCURRENCE                ?=@DYNAMIC_OCCURRENCE@
-DYNAMIC_PDG                       ?=@DYNAMIC_PDG@
-DYNAMIC_POSTDOMINATORS            ?=@DYNAMIC_POSTDOMINATORS@
-DYNAMIC_RTEGEN                    ?=@DYNAMIC_RTEGEN@
-DYNAMIC_SCOPE                     ?=@DYNAMIC_SCOPE@
-DYNAMIC_SLICING                   ?=@DYNAMIC_SLICING@
-DYNAMIC_SPARECODE                 ?=@DYNAMIC_SPARECODE@
-DYNAMIC_USERS                     ?=@DYNAMIC_USERS@
-DYNAMIC_VALUE_ANALYSIS            ?=@DYNAMIC_VALUE_ANALYSIS@
-
 #bytes is part of the stdlib, but is used as a transitional package.
 LIBRARY_NAMES := findlib ocamlgraph num unix str dynlink bytes zarith
 

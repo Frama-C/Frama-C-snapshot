@@ -293,7 +293,7 @@ let update_condition vi1 vi2 cond =
 
 let pebble_set_at li lab =
   assert (li.l_profile = []);
-  let labels = List.map (fun x -> (x,lab)) li.l_labels in
+  let labels = List.map (fun _ -> lab) li.l_labels in
   Logic_const.term (Tapp (li,labels,[])) (Extlib.the li.l_type)
 
 let memo_multi_state st =
@@ -304,7 +304,7 @@ let memo_multi_state st =
       let set = Cil_const.make_logic_info (get_fresh (st.name ^ "_pebble")) in
       let typ = Logic_const.make_set_type (Ctype Cil.intType) in
       set.l_var_info.lv_type <- typ;
-      set.l_labels <- [ LogicLabel(None,"L")];
+      set.l_labels <- [FormalLabel "L"];
       set.l_type <- Some typ;
       set.l_body <-
         LBreads
@@ -873,7 +873,7 @@ let type_cond needs_pebble env tr cond =
         let env, e2, c2 = type_expr env ~tr ?current e2 in
         let call_cond = if pos then tand c1 c2 else tor (tnot c1) (tnot c2) in
         let rel = TRel(Logic_typing.type_rel rel,e1,e2) in
-        let cond = if pos then tand rel call_cond else tor rel call_cond in
+        let cond = if pos then tand call_cond rel else tor call_cond rel in
         env, cond
       | PTrue -> env, TTrue
       | PFalse -> env, TFalse

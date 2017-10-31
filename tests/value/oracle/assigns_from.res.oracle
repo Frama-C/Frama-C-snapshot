@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/assigns_from.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -13,7 +12,7 @@
   p_t ∈ {{ &t[0] }}
   t17[0..9] ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/value/assigns_from.i:203.
+        Called from tests/value/assigns_from.i:224.
 [value] computing for function f <- main1 <- main.
         Called from tests/value/assigns_from.i:30.
 [value] Recording results for f
@@ -35,7 +34,7 @@ tests/value/assigns_from.i:23:[value] function main1, behavior wrong: \from ... 
 tests/value/assigns_from.i:24:[value] warning: function main1, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main1
 [value] computing for function main15 <- main.
-        Called from tests/value/assigns_from.i:204.
+        Called from tests/value/assigns_from.i:225.
 [value] Recording results for main15
 [from] Computing for function main15
 [from] Done for function main15
@@ -45,7 +44,7 @@ tests/value/assigns_from.i:37:[value] function main15: \from ... part in assign 
 tests/value/assigns_from.i:37:[value] function main15: \from ... part in assign clause got status valid.
 [value] Done for function main15
 [value] computing for function main2 <- main.
-        Called from tests/value/assigns_from.i:205.
+        Called from tests/value/assigns_from.i:226.
 [value] Recording results for main2
 [from] Computing for function main2
 [from] Done for function main2
@@ -61,11 +60,11 @@ tests/value/assigns_from.i:60:[value] function main2, behavior wrongfrom: assign
 tests/value/assigns_from.i:60:[value] warning: function main2, behavior wrongfrom: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main2
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/value/assigns_from.i:206.
+        Called from tests/value/assigns_from.i:227.
 [value] using specification for function Frama_C_interval
 [value] Done for function Frama_C_interval
 [value] computing for function main3 <- main.
-        Called from tests/value/assigns_from.i:207.
+        Called from tests/value/assigns_from.i:228.
 [value] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
@@ -73,14 +72,14 @@ tests/value/assigns_from.i:67:[value] function main3: assigns got status valid.
 tests/value/assigns_from.i:67:[value] function main3: \from ... part in assign clause got status valid.
 [value] Done for function main3
 [value] computing for function main3 <- main.
-        Called from tests/value/assigns_from.i:208.
+        Called from tests/value/assigns_from.i:229.
 [value] Recording results for main3
 [from] Computing for function main3
 [from] Done for function main3
 tests/value/assigns_from.i:67:[value] warning: function main3: assigns got status unknown.
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/assigns_from.i:209.
+        Called from tests/value/assigns_from.i:230.
 [value] Recording results for main4
 [from] Computing for function main4
 [from] Done for function main4
@@ -90,7 +89,7 @@ tests/value/assigns_from.i:82:[value] function main4, behavior wrong: assigns go
 tests/value/assigns_from.i:82:[value] warning: function main4, behavior wrong: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/assigns_from.i:210.
+        Called from tests/value/assigns_from.i:231.
 [value] Recording results for main5
 [from] Computing for function main5
 [from] Done for function main5
@@ -100,27 +99,27 @@ tests/value/assigns_from.i:95:[value] function main5, behavior true: assigns got
 tests/value/assigns_from.i:95:[value] function main5, behavior true: \from ... part in assign clause got status valid.
 [value] Done for function main5
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/value/assigns_from.i:211.
+        Called from tests/value/assigns_from.i:232.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/value/assigns_from.i:212.
+        Called from tests/value/assigns_from.i:233.
 [value] Done for function Frama_C_interval
 [value] computing for function main6_right <- main.
-        Called from tests/value/assigns_from.i:213.
+        Called from tests/value/assigns_from.i:234.
 [value] Recording results for main6_right
 [from] Computing for function main6_right
 [from] Done for function main6_right
 tests/value/assigns_from.i:111:[value] function main6_right: assigns got status valid.
 [value] Done for function main6_right
 [value] computing for function main6_wrong <- main.
-        Called from tests/value/assigns_from.i:214.
+        Called from tests/value/assigns_from.i:235.
 [value] Recording results for main6_wrong
 [from] Computing for function main6_wrong
 [from] Done for function main6_wrong
 tests/value/assigns_from.i:102:[value] warning: function main6_wrong: assigns got status unknown.
 [value] Done for function main6_wrong
 [value] computing for function main7 <- main.
-        Called from tests/value/assigns_from.i:215.
+        Called from tests/value/assigns_from.i:236.
 [value] Recording results for main7
 [from] Computing for function main7
 [from] Done for function main7
@@ -128,7 +127,7 @@ tests/value/assigns_from.i:119:[value] function main7, behavior right: assigns g
 tests/value/assigns_from.i:122:[value] warning: function main7, behavior wrong: assigns got status unknown.
 [value] Done for function main7
 [value] computing for function main8 <- main.
-        Called from tests/value/assigns_from.i:218.
+        Called from tests/value/assigns_from.i:239.
 [value] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
@@ -136,14 +135,14 @@ tests/value/assigns_from.i:130:[value] function main8: assigns got status valid.
 tests/value/assigns_from.i:130:[value] function main8: \from ... part in assign clause got status valid.
 [value] Done for function main8
 [value] computing for function main8 <- main.
-        Called from tests/value/assigns_from.i:220.
+        Called from tests/value/assigns_from.i:241.
 [value] Recording results for main8
 [from] Computing for function main8
 [from] Done for function main8
 tests/value/assigns_from.i:130:[value] warning: function main8: assigns got status unknown.
 [value] Done for function main8
 [value] computing for function main9 <- main.
-        Called from tests/value/assigns_from.i:222.
+        Called from tests/value/assigns_from.i:243.
 [value] Recording results for main9
 [from] Computing for function main9
 [from] Done for function main9
@@ -151,7 +150,7 @@ tests/value/assigns_from.i:141:[kernel] warning: using size of 'void'
 tests/value/assigns_from.i:135:[value] function main9: assigns got status valid.
 [value] Done for function main9
 [value] computing for function main10 <- main.
-        Called from tests/value/assigns_from.i:223.
+        Called from tests/value/assigns_from.i:244.
 tests/value/assigns_from.i:152:[value] entering loop for the first time
 [value] computing for function c <- main10 <- main.
         Called from tests/value/assigns_from.i:152.
@@ -176,7 +175,7 @@ tests/value/assigns_from.i:154:[value] warning: assertion got status unknown.
 [from] Done for function main10
 [value] Done for function main10
 [value] computing for function main11 <- main.
-        Called from tests/value/assigns_from.i:224.
+        Called from tests/value/assigns_from.i:245.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
@@ -184,7 +183,7 @@ tests/value/assigns_from.i:157:[value] function main11: assigns got status valid
 tests/value/assigns_from.i:157:[value] function main11: \from ... part in assign clause got status valid.
 [value] Done for function main11
 [value] computing for function main11 <- main.
-        Called from tests/value/assigns_from.i:225.
+        Called from tests/value/assigns_from.i:246.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
@@ -192,16 +191,16 @@ tests/value/assigns_from.i:157:[value] warning: function main11: assigns got sta
 tests/value/assigns_from.i:157:[value] warning: function main11: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main11
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/value/assigns_from.i:226.
+        Called from tests/value/assigns_from.i:247.
 [value] Done for function Frama_C_interval
 [value] computing for function main11 <- main.
-        Called from tests/value/assigns_from.i:226.
+        Called from tests/value/assigns_from.i:247.
 [value] Recording results for main11
 [from] Computing for function main11
 [from] Done for function main11
 [value] Done for function main11
 [value] computing for function main12 <- main.
-        Called from tests/value/assigns_from.i:227.
+        Called from tests/value/assigns_from.i:248.
 [value] Recording results for main12
 [from] Computing for function main12
 [from] Done for function main12
@@ -209,7 +208,7 @@ tests/value/assigns_from.i:169:[value] function main12, behavior ok: assigns got
 tests/value/assigns_from.i:167:[value] function main12, behavior ok: \from ... part in assign clause got status valid.
 [value] Done for function main12
 [value] computing for function main13 <- main.
-        Called from tests/value/assigns_from.i:228.
+        Called from tests/value/assigns_from.i:249.
 [value] Recording results for main13
 [from] Computing for function main13
 [from] Done for function main13
@@ -219,7 +218,7 @@ tests/value/assigns_from.i:179:[value] function main13, behavior bad: assigns go
 tests/value/assigns_from.i:177:[value] warning: function main13, behavior bad: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main13
 [value] computing for function main14 <- main.
-        Called from tests/value/assigns_from.i:229.
+        Called from tests/value/assigns_from.i:250.
 tests/value/assigns_from.i:183:[value] entering loop for the first time
 [value] Recording results for main14
 [from] Computing for function main14
@@ -228,7 +227,7 @@ tests/value/assigns_from.i:181:[value] function main14: assigns got status valid
 tests/value/assigns_from.i:181:[value] warning: function main14: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main14
 [value] computing for function main16 <- main.
-        Called from tests/value/assigns_from.i:230.
+        Called from tests/value/assigns_from.i:251.
 tests/value/assigns_from.i:188:[value] entering loop for the first time
 [value] Recording results for main16
 [from] Computing for function main16
@@ -237,7 +236,7 @@ tests/value/assigns_from.i:186:[value] function main16: assigns got status valid
 tests/value/assigns_from.i:186:[value] warning: function main16: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
 [value] Done for function main16
 [value] computing for function main17 <- main.
-        Called from tests/value/assigns_from.i:231.
+        Called from tests/value/assigns_from.i:252.
 tests/value/assigns_from.i:195:[value] entering loop for the first time
 [value] Recording results for main17
 [from] Computing for function main17
@@ -245,6 +244,16 @@ tests/value/assigns_from.i:195:[value] entering loop for the first time
 tests/value/assigns_from.i:193:[value] function main17: assigns got status valid.
 tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
 [value] Done for function main17
+[value] computing for function main18 <- main.
+        Called from tests/value/assigns_from.i:253.
+[value] computing for function f18 <- main18 <- main.
+        Called from tests/value/assigns_from.i:215.
+[value] using specification for function f18
+[value] Done for function f18
+[value] Recording results for main18
+[from] Computing for function main18
+[from] Done for function main18
+[value] Done for function main18
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
@@ -308,6 +317,21 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
      [9][bits 0 to 7] ∈ [0..9]
      [9][bits 8 to 31] ∈ {0}
   j ∈ [10..2147483647]
+[value:final-states] Values at end of function main18:
+  base_a ∈ {17}
+  a_0.addr ∈
+     {{ garbled mix of &{base_a; base_b}
+      (origin: Misaligned {tests/value/assigns_from.i:215}) }}
+     .i ∈
+     {{ garbled mix of &{base_a; base_b}
+      (origin: Misaligned {tests/value/assigns_from.i:215}) }} or UNINITIALIZED
+  base_b ∈ {11}
+  b.addr ∈
+   {{ garbled mix of &{base_a; base_b}
+    (origin: Misaligned {tests/value/assigns_from.i:215}) }}
+   .i ∈
+   {{ garbled mix of &{base_a; base_b}
+    (origin: Misaligned {tests/value/assigns_from.i:215}) }} or UNINITIALIZED
 [value:final-states] Values at end of function main2:
   a[0..2] ∈ {0}
    [3] ∈ {2}
@@ -416,6 +440,10 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
 [from] Done for function main16
 [from] Computing for function main17
 [from] Done for function main17
+[from] Computing for function main18
+[from] Computing for function f18 <-main18
+[from] Done for function f18
+[from] Done for function main18
 [from] Computing for function main2
 [from] Done for function main2
 [from] Computing for function main3
@@ -446,6 +474,9 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
   \result FROM \nothing
 [from] Function f:
   k FROM u
+[from] Function f18:
+  a_0 FROM a_0; b (and SELF)
+  b FROM a_0; b (and SELF)
 [from] Function main1:
   u FROM v
   k FROM \nothing
@@ -468,6 +499,8 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
       [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
       [8][bits 0 to 7]; [9][bits 0 to 7]}
      FROM p; i (and SELF)
+[from] Function main18:
+  NO EFFECTS
 [from] Function main2:
   a[3..5] FROM \nothing
 [from] Function main3:
@@ -504,63 +537,68 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
   k FROM u
 [from] call to c at tests/value/assigns_from.i:152 (by main10):
   \result FROM \nothing
-[from] call to main1 at tests/value/assigns_from.i:203 (by main):
+[from] call to f18 at tests/value/assigns_from.i:215 (by main18):
+  a_0 FROM a_0; b (and SELF)
+  b FROM a_0; b (and SELF)
+[from] call to main1 at tests/value/assigns_from.i:224 (by main):
   u FROM v
   k FROM \nothing
-[from] call to main15 at tests/value/assigns_from.i:204 (by main):
+[from] call to main15 at tests/value/assigns_from.i:225 (by main):
   a[3..5] FROM \nothing
-[from] call to main2 at tests/value/assigns_from.i:205 (by main):
+[from] call to main2 at tests/value/assigns_from.i:226 (by main):
   a[3..5] FROM \nothing
-[from] call to Frama_C_interval at tests/value/assigns_from.i:206 (by main):
+[from] call to Frama_C_interval at tests/value/assigns_from.i:227 (by main):
   \result FROM a; b
-[from] call to main3 at tests/value/assigns_from.i:207 (by main):
+[from] call to main3 at tests/value/assigns_from.i:228 (by main):
   a[6] FROM i
-[from] call to main3 at tests/value/assigns_from.i:208 (by main):
+[from] call to main3 at tests/value/assigns_from.i:229 (by main):
   a[0..9] FROM i (and SELF)
-[from] call to main4 at tests/value/assigns_from.i:209 (by main):
+[from] call to main4 at tests/value/assigns_from.i:230 (by main):
   a[2] FROM \nothing
-[from] call to main5 at tests/value/assigns_from.i:210 (by main):
+[from] call to main5 at tests/value/assigns_from.i:231 (by main):
   a[2] FROM a[4]
-[from] call to Frama_C_interval at tests/value/assigns_from.i:211 (by main):
+[from] call to Frama_C_interval at tests/value/assigns_from.i:232 (by main):
   \result FROM a; b
-[from] call to Frama_C_interval at tests/value/assigns_from.i:212 (by main):
+[from] call to Frama_C_interval at tests/value/assigns_from.i:233 (by main):
   \result FROM a; b
-[from] call to main6_right at tests/value/assigns_from.i:213 (by main):
+[from] call to main6_right at tests/value/assigns_from.i:234 (by main):
   a[3..5] FROM \nothing
-[from] call to main6_wrong at tests/value/assigns_from.i:214 (by main):
+[from] call to main6_wrong at tests/value/assigns_from.i:235 (by main):
   a[2..6] FROM \nothing
-[from] call to main7 at tests/value/assigns_from.i:215 (by main):
+[from] call to main7 at tests/value/assigns_from.i:236 (by main):
   a{[2]; [7..8]} FROM \nothing
-[from] call to main8 at tests/value/assigns_from.i:218 (by main):
+[from] call to main8 at tests/value/assigns_from.i:239 (by main):
   c_0 FROM p
-[from] call to main8 at tests/value/assigns_from.i:220 (by main):
+[from] call to main8 at tests/value/assigns_from.i:241 (by main):
   c_0 FROM p (and SELF)
   d FROM p (and SELF)
-[from] call to main9 at tests/value/assigns_from.i:222 (by main):
+[from] call to main9 at tests/value/assigns_from.i:243 (by main):
   NO EFFECTS
-[from] call to main10 at tests/value/assigns_from.i:223 (by main):
+[from] call to main10 at tests/value/assigns_from.i:244 (by main):
   NO EFFECTS
-[from] call to main11 at tests/value/assigns_from.i:224 (by main):
+[from] call to main11 at tests/value/assigns_from.i:245 (by main):
   a[2] FROM \nothing
-[from] call to main11 at tests/value/assigns_from.i:225 (by main):
+[from] call to main11 at tests/value/assigns_from.i:246 (by main):
   a[2] FROM \nothing
-[from] call to main11 at tests/value/assigns_from.i:226 (by main):
+[from] call to main11 at tests/value/assigns_from.i:247 (by main):
   a[2] FROM \nothing
-[from] call to Frama_C_interval at tests/value/assigns_from.i:226 (by main):
+[from] call to Frama_C_interval at tests/value/assigns_from.i:247 (by main):
   \result FROM a; b
-[from] call to main12 at tests/value/assigns_from.i:227 (by main):
+[from] call to main12 at tests/value/assigns_from.i:248 (by main):
   \result FROM \nothing
-[from] call to main13 at tests/value/assigns_from.i:228 (by main):
+[from] call to main13 at tests/value/assigns_from.i:249 (by main):
   \result FROM p_t
-[from] call to main14 at tests/value/assigns_from.i:229 (by main):
+[from] call to main14 at tests/value/assigns_from.i:250 (by main):
   t[2..38] FROM \nothing (and SELF)
-[from] call to main16 at tests/value/assigns_from.i:230 (by main):
+[from] call to main16 at tests/value/assigns_from.i:251 (by main):
   t[1..19] FROM \nothing (and SELF)
-[from] call to main17 at tests/value/assigns_from.i:231 (by main):
+[from] call to main17 at tests/value/assigns_from.i:252 (by main):
   t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
       [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
       [8][bits 0 to 7]; [9][bits 0 to 7]}
      FROM p; i (and SELF)
+[from] call to main18 at tests/value/assigns_from.i:253 (by main):
+  NO EFFECTS
 [from] entry point:
   u FROM v
   k FROM \nothing
@@ -614,6 +652,10 @@ tests/value/assigns_from.i:193:[value] warning: function main17: \from ... part 
               [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
               [8][bits 0 to 7]; [9][bits 0 to 7]}; j
 [inout] Inputs for function main17:
+          \nothing
+[inout] Out (internal) for function main18:
+          base_a; a_0; base_b; b
+[inout] Inputs for function main18:
           \nothing
 [inout] Out (internal) for function main2:
           a[3..5]

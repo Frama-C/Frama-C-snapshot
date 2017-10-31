@@ -32,6 +32,7 @@ let debug_logic_coercions = Kernel.register_category "printer:logic-coercions"
 let debug_builtins = Kernel.register_category "printer:builtins"
 let debug_sid = Kernel.register_category "printer:sid"
 let debug_unspecified = Kernel.register_category "printer:unspecified"
+let debug_bitfields = Kernel.register_category "printer:bitfields"
 
 module Behavior_extensions = struct
 
@@ -80,8 +81,7 @@ let print_as_source source =
    || not (Str.string_match (Str.regexp "^-?[0-9]+$") source 0))
 
 let print_global g =
-  (* This function decides whether to hide Frama-C's own builtins (in
-     fc_builtin_for_normalization). *)
+  (* This function decides whether to hide functions in Frama-C's libc. *)
   let attrs = Cil_datatype.Global.attr g in
   let printable =
     not (Cil.hasAttribute "fc_stdlib" attrs) || Kernel.PrintLibc.get()
@@ -288,6 +288,8 @@ module Precedence = struct
 
   (* Create an expression of the same shape, and use {!getParenthLevel} *)
   let getParenthLevelAttrParam = function
+    | ACons ("__fc_assign", [_;_]) -> upperLevel
+    | ACons ("__fc_float", [_]) -> 0
     | AInt _ | AStr _ | ACons _ -> 0
     | ASizeOf _ | ASizeOfE _ -> 20
     | AAlignOf _ | AAlignOfE _ -> 20
@@ -607,6 +609,7 @@ class cil_printer () = object (self)
     let non_decay = parent_non_decay in
     parent_non_decay <- false;
     let level = Precedence.getParenthLevel e in
+    (* fprintf fmt "/* eid:%d */" e.eid; *)
     match (Cil.stripInfo e).enode with
     | Info _ -> assert false
     | Const(c) -> self#constant fmt c
@@ -1004,9 +1007,14 @@ class cil_printer () = object (self)
     self#pop_stmt (self#annotated_stmt next fmt s)
 
   method stmt_labels fmt (s:stmt) =
+    let suf =
+      match s.skind with
+      | Instr (Local_init _) -> format_of_string ";@]@ "
+      | _ -> format_of_string "@]@ "
+    in
     if s.labels <> [] then
       Pretty_utils.pp_list
-        ~pre:"@[<hov>" ~sep:"@ " ~suf:"@]@ " self#label fmt s.labels
+        ~pre:"@[<hov>" ~sep:"@ " ~suf self#label fmt s.labels
 
   method label fmt = function
     | Label (s, _, b) when b || not verbose -> fprintf fmt "@[%s:@]" s
@@ -1893,7 +1901,9 @@ class cil_printer () = object (self)
          fprintf fmt "%a "
 	   (Pretty_utils.pp_list ~sep:" " self#attrparam) args;
          true
-       | s, _ when s = Cil.bitfield_attribute_name && not state.print_cil_as_is ->
+       | s, _ when s = Cil.bitfield_attribute_name &&
+                   not state.print_cil_as_is &&
+                   not (Kernel.is_debug_key_enabled debug_bitfields) ->
          false
        | _ -> (* This is the default case *)
          (* Add underscores to the name *)
@@ -1931,6 +1941,11 @@ class cil_printer () = object (self)
     | AInt n -> fprintf fmt "%a" Datatype.Integer.pretty n
     | AStr s -> fprintf fmt "\"%s\"" (Escape.escape_string s)
     | ACons(s, []) -> fprintf fmt "%s" s
+    | ACons("__fc_assign", [a1; a2]) ->
+      fprintf fmt "%a=%a"
+        (self#attribute_prec level) a1
+        (self#attribute_prec level) a2
+    | ACons("__fc_float", [AStr s]) -> pp_print_string fmt s
     | ACons(s,al) ->
       fprintf fmt "%s(%a)"
 	s
@@ -2232,7 +2247,7 @@ class cil_printer () = object (self)
     | Tapp (f, labels, tl) -> 
       fprintf fmt "%a%a%a"
 	self#logic_info f
-	self#labels (List.map snd labels)
+	self#labels labels
 	(Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]" ~sep:",@ " self#term) tl
     | Tif (cond,th,el) ->
       fprintf fmt "@[<2>%a?@;%a:@;%a@]"
@@ -2445,7 +2460,7 @@ class cil_printer () = object (self)
     | Papp (p,labels,l) -> 
       fprintf fmt "@[%a%a%a@]"
 	self#logic_info p
-	self#labels (List.map snd labels)
+	self#labels labels
 	(Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]" ~sep:",@ " self#term) l
     | Prel (rel,l,r) ->
       fprintf fmt "@[%a@ %a@ %a@]" term l self#relation rel term r
@@ -2864,21 +2879,33 @@ class cil_printer () = object (self)
     Pretty_utils.pp_list ~pre:"<@[" ~suf:"@]>" ~sep:",@ "
       pp_print_string fmt tvars
 
-  method logic_label fmt lab =
-    let s =
-      match lab with
-      | LogicLabel (_, s) -> s
-      | StmtLabel sref ->
-	let rec pickLabel = function
-	  | [] -> None
-	  | Label (l, _, _) :: _ -> Some l
-	  | _ :: rest -> pickLabel rest
-	in
-	match pickLabel !sref.labels with
-	| Some l -> l
-	| None -> "__invalid_label"
-    in 
+  method logic_builtin_label fmt l =
+    let s = match l with
+      | Here -> "Here"
+      | Old -> "Old"
+      | Pre -> "Pre"
+      | Post -> "Post"
+      | LoopEntry -> "LoopEntry"
+      | LoopCurrent -> "LoopCurrent"
+      | Init -> "Init"
+    in
     pp_print_string fmt s
+
+  method logic_label fmt lab =
+    match lab with
+    | BuiltinLabel l -> self#logic_builtin_label fmt l
+    | FormalLabel s -> pp_print_string fmt s
+    | StmtLabel sref ->
+      let rec pickLabel = function
+	| [] -> None
+	| Label (l, _, _) :: _ -> Some l
+	| _ :: rest -> pickLabel rest
+      in
+      let s = match pickLabel !sref.labels with
+        | Some l -> l
+        | None -> "__invalid_label"
+      in
+      pp_print_string fmt s
 
   method private labels fmt labels =
     match labels with 

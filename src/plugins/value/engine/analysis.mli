@@ -26,9 +26,19 @@ open Eval
 module type Results = sig
   type state
   type value
+  type location
 
   val get_stmt_state : stmt -> state or_bottom
+  val get_kinstr_state: kinstr -> state or_bottom
+  val get_stmt_state_by_callstack:
+    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
+  val get_initial_state_by_callstack:
+    kernel_function -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
+
   val eval_expr : state -> exp -> value evaluated
+  val copy_lvalue: state -> lval -> value flagged_value evaluated
+  val eval_lval_to_loc: state -> lval -> location evaluated
+  val eval_function_exp: state -> exp -> kernel_function list evaluated
 end
 
 
@@ -39,6 +49,7 @@ module Make (Abstract: Abstractions.S) : sig
 
   include Results with type state := Abstract.Dom.state
                    and type value := Abstract.Val.t
+                   and type location := Abstract.Loc.location
 end
 
 
@@ -46,14 +57,16 @@ module type S = sig
   include Abstractions.S
   include Results with type state := Dom.state
                    and type value := Val.t
+                   and type location := Loc.location
 end
 
-val current : (module S) ref
+val current_analyzer : unit -> (module S)
 (** The abstractions used in the latest analysis, and its results. *)
 
-val compute : Abstractions.config -> lib_entry:bool -> kernel_function -> unit
-(** Perform a full analysis, starting from the given kernel_function and with
-    the abstractions specified by the configuration. *)
+val register_hook: ((module S) -> unit) -> unit
+(** Registers a hook that will be called each time the [current] analyzer
+    is changed. This happens when a new analysis is run with different
+    abstractions than before, or when the current project is changed. *)
 
 val force_compute : unit -> unit
 (** Perform a full analysis, starting from the [main] function. *)

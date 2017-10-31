@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/inserted_casts.c (with preprocessing)
 [test] Inserting cast for expression a + 3 of type int to type unsigned int
 [test] Inserting cast for expression a of type int to type unsigned int

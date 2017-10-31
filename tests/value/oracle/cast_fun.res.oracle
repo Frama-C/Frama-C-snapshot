@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/cast_fun.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -27,10 +26,7 @@ tests/value/cast_fun.i:78:[value] warning: pointer to function with incompatible
         Called from tests/value/cast_fun.i:83.
 [value] using specification for function f6
 [value] Done for function f6
-[value] computing for function f7 <- main.
-        Called from tests/value/cast_fun.i:88.
-[value] using specification for function f7
-[value] Done for function f7
+tests/value/cast_fun.i:88:[value] warning: pointer to function with incompatible type. assert \valid_function(p2);
 tests/value/cast_fun.i:93:[value] warning: pointer to function with incompatible type. assert \valid_function(p2);
 [value] computing for function f9 <- main.
         Called from tests/value/cast_fun.i:98.
@@ -55,6 +51,7 @@ tests/value/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 
 [value] done for function main
 tests/value/cast_fun.i:73:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/cast_fun.i:78:[value] assertion 'Value,function_pointer' got final status invalid.
+tests/value/cast_fun.i:88:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/cast_fun.i:93:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/cast_fun.i:103:[value] assertion 'Value,function_pointer' got final status invalid.
 tests/value/cast_fun.i:108:[value] assertion 'Value,function_pointer' got final status invalid.
@@ -64,7 +61,7 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   p1 ∈ {{ &f1 ; (int (*)(int ))&f2 ; &f3 }} or UNINITIALIZED
-  p2 ∈ {{ &f6 ; (void (*)(struct s1 ))&f7 }} or UNINITIALIZED
+  p2 ∈ {{ &f6 }} or UNINITIALIZED
   p3 ∈ {{ &f9 }} or UNINITIALIZED
   p4 ∈ {{ &f10 }} or UNINITIALIZED
   x ∈ [--..--] or UNINITIALIZED
@@ -78,8 +75,6 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
 [from] Done for function f3
 [from] Computing for function f6 <-main
 [from] Done for function f6
-[from] Computing for function f7 <-main
-[from] Done for function f7
 [from] Computing for function f9 <-main
 [from] Done for function f9
 [from] Computing for function f10 <-main
@@ -97,8 +92,6 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
   \result FROM ANYTHING(origin:Unknown)
 [from] Function f6:
   NO EFFECTS
-[from] Function f7:
-  NO EFFECTS
 [from] Function f9:
   NO EFFECTS
 [from] Function main:
@@ -112,8 +105,6 @@ tests/value/cast_fun.i:128:[value] assertion 'Value,function_pointer' got final 
 [from] call to f3 at tests/value/cast_fun.i:68 (by main):
   \result FROM ANYTHING(origin:Unknown)
 [from] call to f6 at tests/value/cast_fun.i:83 (by main):
-  NO EFFECTS
-[from] call to f7 at tests/value/cast_fun.i:88 (by main):
   NO EFFECTS
 [from] call to f9 at tests/value/cast_fun.i:98 (by main):
   NO EFFECTS

@@ -1,9 +1,7 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_boucle_rechercheTableau.c (with preprocessing)
 tests/aorai/test_boucle_rechercheTableau.c:17:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 tests/aorai/test_boucle_rechercheTableau.c:7:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [aorai] Welcome to the Aorai plugin
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_boucle_rechercheTableau0.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

@@ -8,5 +8,5 @@ double atof(const char *nptr);
 void f(char *nptr);
  
 /*@ assigns *(nptr+(..)); */
-void f(const char *nptr);
+void f(char *nptr);
 

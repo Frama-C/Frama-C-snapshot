@@ -45,11 +45,13 @@ class virtual do_it_ = object(self)
   method join new_ =
     outs <- Zone.join new_ outs;
 
-  method private do_assign lv =
+  (* For local initializations, counts the written variable as an output of the
+     function, even if it is const; thus, [for_writing] is false in this case. *)
+  method private do_assign ~for_writing lv =
     let state = Db.Value.get_state self#current_kinstr in
     let _deps, bits_loc, _exact =
       !Db.Value.lval_to_zone_with_deps_state state
-	~deps:None ~for_writing:true lv
+	~deps:None ~for_writing lv
     in
     self#join bits_loc
 
@@ -59,10 +61,10 @@ class virtual do_it_ = object(self)
       (* noassert needed for Eval.memoize. Not really satisfactory *)
     begin
       match i with
-      | Set (lv,_,_) -> self#do_assign lv
+      | Set (lv,_,_) -> self#do_assign ~for_writing:true lv
       | Call (lv_opt,exp,_,_) ->
           (match lv_opt with None -> ()
-             | Some lv -> self#do_assign lv);
+             | Some lv -> self#do_assign ~for_writing:true lv);
           let state = Db.Value.get_state self#current_kinstr in
           if Cvalue.Model.is_top state then
             self#join Zone.top
@@ -79,7 +81,7 @@ class virtual do_it_ = object(self)
               ) callees
       | Local_init (v, AssignInit i, _) ->
         let rec aux lv = function
-          | SingleInit _ -> self#do_assign lv
+          | SingleInit _ -> self#do_assign ~for_writing:false lv
           | CompoundInit (ct, initl) ->
             let implicit = true in
             let doinit o i _ () = aux (Cil.addOffsetLval o lv) i in
@@ -93,7 +95,7 @@ class virtual do_it_ = object(self)
             Operational_inputs.get_external_aux ?stmt:self#current_stmt
               (Globals.Functions.get f)
           in
-          self#do_assign (Cil.var v);
+          self#do_assign ~for_writing:false (Cil.var v);
           (* might be redundant with z in case f takes address of
              v as first argument, but this shouldn't hurt. *)
           self#join z
@@ -134,7 +136,7 @@ let externalize kf x =
 module Externals =
   Kernel_function.Make_Table(Locations.Zone)
     (struct
-       let name = "External outs"
+       let name = "Inout.Outputs.Externals"
        let dependencies = [ Analysis.Memo.self ]
        let size = 17
      end)

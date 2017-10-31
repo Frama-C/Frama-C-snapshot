@@ -29,45 +29,36 @@
     Compatible with pervasives comparison and structural equality.
 *)
 
-type c_label =
-  | Here
-  | Init
-  | Pre
-  | Post
-  | Exit
-  | At of string list * Cil_types.stmt (** Label name, stmt-id. *)
-  | LabelParam of string (** Logic label name in user-defined
-                             function or predicate *)
-
+type c_label
+  
+val is_here : c_label -> bool
 val equal : c_label -> c_label -> bool
 
 module T : sig type t = c_label val compare : t -> t -> int end
 module LabelMap : FCMap.S with type key = c_label
 module LabelSet : FCSet.S with type elt = c_label
 
-(** @return a label that represent the first point of a loop body. *)
-val loop_head_label : Cil_types.stmt -> Cil_types.logic_label
+val pre : c_label
+val here : c_label
+val init : c_label
+val post : c_label
+val formal : string -> c_label
 
-(** create a virtual label to a statement (it can have no label) *)
-val mk_logic_label : Cil_types.stmt -> Cil_types.logic_label
+val stmt : Cil_types.stmt -> c_label
+val loop_entry : Cil_types.stmt -> c_label
+val loop_current : Cil_types.stmt -> c_label
 
-val mk_stmt_label : Cil_types.stmt -> c_label
-val mk_loop_label : Cil_types.stmt -> c_label
-
-val c_label : Cil_types.logic_label -> c_label
-(**
-    Assumes the logic label only comes from normalized labels.
-
-    This is the case inside [Wp] module, where all ACSL formula comes
-    from [WpAnnot], which in turns always preprocess the labels
-    through [NormAtLabels].
-*)
+val to_logic : c_label -> Cil_types.logic_label
+val of_logic : Cil_types.logic_label -> c_label
+(** Assumes the logic label only comes from normalized or non-ambiguous 
+    labels. Ambiguous labels are: Old, LoopEntry and LoopCurrent, since
+    they points to different program points dependending on the context. *)
 
 val pretty : Format.formatter -> c_label -> unit
 
 open Cil_types
 
-val lookup_name : c_label -> string
-val lookup : (logic_label * logic_label) list -> string -> c_label
+val name : logic_label -> string
+val lookup : (logic_label * logic_label) list -> string -> logic_label
 (** [lookup bindings lparam] retrieves the actual label
     for the label in [bindings] for label parameter [lparam]. *)

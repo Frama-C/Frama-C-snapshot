@@ -1,8 +1,6 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_switch3_et_recursion.c (with preprocessing)
 [aorai] Welcome to the Aorai plugin
 tests/aorai/test_switch3_et_recursion.c:26:[aorai] warning: Call to countOne does not follow automaton's specification. This path is assumed to be dead
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_switch3_et_recursion0.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

@@ -1,5 +1,5 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/fun_ptr.i (no preprocessing)
+tests/value/fun_ptr.i:56:[kernel] warning: expected 'short *' but got argument of type 'int *': & x
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed

@@ -12,7 +12,7 @@ void aux(int *p, int cond) {
   if(cond)
     r1 = *p;
   else
-    r2 = *p; // Ne devrait pas être sélectionné
+    r2 = *p; // Ne devrait pas Ãªtre sÃ©lectionnÃ©
 }
 
 void g1() {

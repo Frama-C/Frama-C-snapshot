@@ -1,0 +1,15 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue-364.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Alt-Ergo] Goal typed_main_assert_ZERO : Valid
+[wp] [Alt-Ergo] Goal typed_main_assert_OVER : Valid
+[wp] Proved goals:    2 / 2
+     Qed:             0 
+     Alt-Ergo:        2
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main                -       2 (23)     2       100%
+----------------------------------------------------------

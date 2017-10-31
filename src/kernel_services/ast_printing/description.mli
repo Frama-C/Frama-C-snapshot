@@ -34,7 +34,7 @@ val pp_kinstr : bool -> Format.formatter -> kinstr -> unit
 val pp_idpred : bool -> Format.formatter -> identified_predicate -> unit
 (** prints the "'<labels>'" or the "(<location>)" of the predicate *)
 
-val pp_region : bool -> Format.formatter -> identified_term from list -> unit
+val pp_region : bool -> Format.formatter -> from list -> unit
 (** prints message "nothing" or the "'<names>'" or the "(<location>)" of the
     relation *) 
 

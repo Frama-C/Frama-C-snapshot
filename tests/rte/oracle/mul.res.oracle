@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/mul.c (with preprocessing)
 [rte] annotating function main
 tests/rte/mul.c:22:[rte] warning: guaranteed RTE: assert signed_overflow: 0xffff * 0xffff ≤ 2147483647;

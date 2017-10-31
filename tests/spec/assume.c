@@ -4,10 +4,10 @@ void f(int x);
 void f(int x) {
   int * p,*q;
 
-//@ for b1,b2: behavior default: assumes \valid(p); // je ne veux pas vérifier cette assert
+//@ for b1,b2: behavior default: assumes \valid(p); // je ne veux pas vÃ©rifier cette assert
 
  q = p ;
 
-//@ assert \valid(q); // je veux vérifier cette assert
+//@ assert \valid(q); // je veux vÃ©rifier cette assert
 
 }

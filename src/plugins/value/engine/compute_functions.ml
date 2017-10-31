@@ -82,9 +82,7 @@ let pre_analysis () =
      degeneration states *)
   Value_util.DegenerationPoints.clear ();
   Cvalue.V.clear_garbled_mix ();
-  Stop_at_nth.clear ();
   Value_util.clear_call_stack ();
-  Separate.prologue ();
   Db.Value.mark_as_computed ()
 
 let post_analysis_cleanup ~aborted =
@@ -101,7 +99,6 @@ let post_analysis_cleanup ~aborted =
   end
 
 let post_analysis () =
-  Separate.epilogue ();
   (* Garbled mix must be dumped here -- at least before the call to
      mark_green_and_red -- because fresh ones are created when re-evaluating
      all the alarms, and we get an unpleasant "ghost effect". *)
@@ -118,7 +115,7 @@ let post_analysis () =
   Eval_annots.mark_rte ();
   post_analysis_cleanup ~aborted:false;
   (* Remove redundant alarms *)
-  if Value_parameters.RmAssert.get() then !Db.Scope.rm_asserts ()
+  if Value_parameters.RmAssert.get () then !Db.Value.rm_asserts ()
 
 (* Register a signal handler for SIGUSR1, that will be used to abort Value *)
 let () =
@@ -141,10 +138,6 @@ module Make
                         and type loc = Abstract.Loc.location
                         and type state = Abstract.Dom.t)
 = struct
-  module Init =
-    Initialization.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom) (Eva)
-
-  let initial_state = Init.initial_state
 
   module Domain = struct
     include Abstract.Dom
@@ -156,21 +149,23 @@ module Make
       | _ ->  leave_scope kf vars state
   end
   module PowersetDomain = Powerset.Make (Domain)
-  module Domain_Transfer = struct
-    include Domain.Transfer (Eva.Valuation)
-    let leave_scope = Domain.leave_scope
-    module Store = Domain.Store
-    include (Domain : Datatype.S with type t = state)
-  end
-  module Transfer =
-    Transfer_stmt.Make
-      (Abstract.Val) (Abstract.Loc) (Domain_Transfer) (Init) (Eva)
 
-  module Logic =
-    Transfer_logic.Make (Domain) (PowersetDomain)
+  module Transfer =
+    Transfer_stmt.Make (Abstract.Val) (Abstract.Loc) (Domain) (Eva)
+
+  module Logic = Transfer_logic.Make (Domain) (PowersetDomain)
+
+  module Spec =
+    Transfer_specification.Make
+      (Abstract.Val) (Abstract.Loc) (Domain) (PowersetDomain) (Logic)
+
+  module Init = Initialization.Make (Abstract.Dom) (Eva) (Transfer)
 
   module Computer =
-    Partitioned_dataflow.Computer (Domain) (PowersetDomain) (Transfer) (Logic)
+    Partitioned_dataflow.Computer
+      (Domain) (PowersetDomain) (Transfer) (Init) (Logic) (Spec)
+
+  let initial_state = Init.initial_state
 
   let get_cvalue =
     match Domain.get Cvalue_domain.key with
@@ -210,7 +205,7 @@ module Make
       | `Spec spec ->
         Db.Value.Call_Type_Value_Callbacks.apply
           (`Spec spec, cvalue_state, call_stack);
-        Domain.compute_using_specification call_kinstr call spec state,
+        Spec.compute_using_specification call_kinstr call spec state,
         Value_types.Cacheable
       | `Def _fundec ->
         Db.Value.Call_Type_Value_Callbacks.apply (`Def, cvalue_state, call_stack);
@@ -253,7 +248,7 @@ module Make
         if Eval_annots.has_requires spec then begin
           let ab = Logic.create init_state call.kf in
           ignore (Logic.check_fct_preconditions
-                    call.kf ab call_kinstr init_state);
+                    call_kinstr call.kf ab init_state);
         end;
         if Value_parameters.ValShowProgress.get () then begin
           Value_parameters.feedback ~current:true
@@ -277,8 +272,8 @@ module Make
     Db.Value.Call_Value_Callbacks.apply (cvalue_state, [kf, Kglobal])
 
   let compute kf init_state =
-  try
-    Value_results.mark_kf_as_called kf;
+    try
+      Value_results.mark_kf_as_called kf;
       Value_util.push_call_stack kf Kglobal;
       store_initial_state kf init_state;
       let call =
@@ -288,14 +283,14 @@ module Make
       Value_util.pop_call_stack ();
       Value_parameters.feedback "done for function %a" Kernel_function.pretty kf;
       post_analysis ()
-  with
-  | Db.Value.Aborted ->
+    with
+    | Db.Value.Aborted ->
       post_analysis_cleanup ~aborted:true;
-    (* Signal that a degeneration occurred *)
-    if Value_util.DegenerationPoints.length () > 0 then
-      Value_parameters.error
-        "Degeneration occurred:@\nresults are not correct for lines of code \
-         that can be reached from the degeneration point.@."
+      (* Signal that a degeneration occurred *)
+      if Value_util.DegenerationPoints.length () > 0 then
+        Value_parameters.error
+          "Degeneration occurred:@\nresults are not correct for lines of code \
+           that can be reached from the degeneration point.@."
 
 
   let compute_from_entry_point kf ~lib_entry =
@@ -303,7 +298,13 @@ module Make
     Value_parameters.feedback "Analyzing a%scomplete application starting at %a"
       (if lib_entry then "n in" else " ")
       Kernel_function.pretty kf;
-    match Init.initial_state_with_formals ~lib_entry kf with
+    let initial_state =
+      try Init.initial_state_with_formals ~lib_entry kf
+      with Db.Value.Aborted ->
+        post_analysis_cleanup ~aborted:true;
+        Value_parameters.abort "Degeneration occurred during initialization, aborting."
+    in
+    match initial_state with
     | `Bottom ->
       Value_parameters.result "Value analysis not started because globals \
                                initialization is not computable.";
@@ -313,6 +314,7 @@ module Make
 
   let compute_from_init_state kf init_state =
     pre_analysis ();
+    Domain.Store.register_global_state (`Value init_state);
     compute kf init_state
 end
 

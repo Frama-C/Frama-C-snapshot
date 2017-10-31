@@ -95,8 +95,8 @@ void g3() {
   if (b3) x3 = 1;
   r3 = x3 + 1;
 
-  f(b6, &t1, 4);
-  f(b6, &t2, 250); // above plevel. Works because the location is contiguous
+  f(b6, t1, 4);
+  f(b6, t2, 250); // above plevel. Works because the location is contiguous
 }
 
 void g4() {
@@ -148,6 +148,11 @@ void g6() {
   //@ assert !\initialized(&i6);
 }
 
+void g7() {
+  unsigned char key[128];
+  Frama_C_make_unknown((char*)key, 64);
+  //@ assert !\initialized(&key[0..127]);
+}
 
 int main () {
   g1();
@@ -156,5 +161,6 @@ int main () {
   if (rand) g4();
   g5();
   g6();
+  g7();
   return 0;
 }

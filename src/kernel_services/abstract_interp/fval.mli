@@ -129,9 +129,6 @@ val div : rounding_mode -> t -> t -> bool * t
 val is_a_zero : t -> bool
 (** [is_a_zero f] returns true iff f ⊆ [-0.0,+0.0] *)
 
-val fold_split : int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
-(** no splitting occurs if the integer argument is less than 2 *)
-
 val contains_zero : t -> bool
 val compare : t -> t -> int
 
@@ -164,7 +161,7 @@ val project_float: t -> F.t
 
 val minus_one_one : t
 
-val subdiv_float_interval : size:int -> t -> t * t
+val subdiv_float_interval : size:float_kind option -> t -> t * t
 
 val neg : t -> t
 

@@ -145,9 +145,9 @@ let replacement_visitor replace_pre fa_terms ret_opt = object
 
   method! vlogic_label = function
   | StmtLabel _ -> Cil.DoChildren
-  | LogicLabel _ as l when Logic_label.equal l Logic_const.pre_label ->
+  | BuiltinLabel _ as l when Logic_label.equal l Logic_const.pre_label ->
     Cil.ChangeDoChildrenPost(replace_pre, fun x->x)
-  | LogicLabel _ -> Cil.DoChildren
+  | BuiltinLabel _ | FormalLabel _ -> Cil.DoChildren
 
 end
 
@@ -197,6 +197,7 @@ module KfPrecondBehaviors =
     (struct let module_name = "Rte.KfBehaviors" end)
 
 type to_annotate = {
+  initialized: bool;
   mem_access: bool;
   div_mod: bool;
   shift: bool;
@@ -205,11 +206,13 @@ type to_annotate = {
   signed_downcast: bool;
   unsigned_downcast: bool;
   float_to_int: bool;
+  finite_float: bool;
   pointer_call: bool;
   precond: bool;
 }
 
 let annotate_nothing = {
+  initialized = false;
   mem_access = false;
   div_mod = false;
   shift = false;
@@ -218,11 +221,13 @@ let annotate_nothing = {
   signed_downcast = false;
   unsigned_downcast = false;
   float_to_int = false;
+  finite_float = false;
   pointer_call = false;
   precond = false;
 }
 
 let annotate_all = {
+  initialized = true;
   mem_access = true;
   div_mod = true;
   shift = true;
@@ -231,6 +236,7 @@ let annotate_all = {
   signed_downcast = true;
   unsigned_downcast = true;
   float_to_int = true;
+  finite_float = true;
   pointer_call = true;
   precond = true;
 }
@@ -238,6 +244,7 @@ let annotate_all = {
 (** Which annotations should be added, deduced from the options of RTE and
     the kernel itself. *)
 let annotate_from_options () = {
+  initialized = Options.DoInitialized.get ();
   mem_access = Options.DoMemAccess.get ();
   div_mod = Options.DoDivMod.get ();
   shift = Options.DoShift.get ();
@@ -246,6 +253,7 @@ let annotate_from_options () = {
   signed_downcast = Kernel.SignedDowncast.get ();
   unsigned_downcast = Kernel.UnsignedDowncast.get ();
   float_to_int = Options.DoFloatToInt.get ();
+  finite_float = Kernel.FiniteFloat.get ();
   pointer_call = Options.DoPointerCall.get ();
   precond = Options.DoCalledPrecond.get ();
 }
@@ -263,6 +271,9 @@ class annot_visitor kf to_annot on_alarm = object (self)
 
   method private mark_to_skip exp = skip_set <- Exp.Set.add exp skip_set
   method private must_skip exp = Exp.Set.mem exp skip_set
+
+  method private do_initialized () =
+    to_annot.initialized && not (Generator.Initialized.is_computed kf)
 
   method private do_mem_access () =
     to_annot.mem_access && not (Generator.Mem_access.is_computed kf)
@@ -288,6 +299,9 @@ class annot_visitor kf to_annot on_alarm = object (self)
 
   method private do_float_to_int () =
     to_annot.float_to_int && not (Generator.Float_to_int.is_computed kf)
+
+  method private do_finite_float () =
+    to_annot.finite_float && not (Generator.Finite_float.is_computed kf)
 
   method private do_pointer_call () =
     to_annot.pointer_call && not (Generator.Pointer_call.is_computed kf)
@@ -329,7 +343,7 @@ class annot_visitor kf to_annot on_alarm = object (self)
       let p' = Logic_const.pred_of_id_pred p in
       try
 	let p_unnamed =
-	  Logic_const.unamed
+	  Logic_const.unamed ~loc:p'.pred_loc
 	    (treat_pred
                replace_pre
 	       p'.pred_content
@@ -435,18 +449,18 @@ class annot_visitor kf to_annot on_alarm = object (self)
               let rec change_at_result acc = function
                 | [] -> Writes (List.rev acc)
                 | (a,from) :: tl ->
-		  let new_a = match a.it_content.term_node with
-		    | Tat ({term_node=(TLval(TResult _,_) as trm)}, 
-                           LogicLabel (_, "Post")) -> 
-		      let ttype = Ctype ret_type
-		      (* cf. bug #559 *)
-		      (* Logic_utils.typ_to_logic_type
-			 ret_type *)
-		      in
-		      Logic_const.new_identified_term 
+                  let new_a = match a.it_content.term_node with
+                    | Tat ({term_node=(TLval(TResult _,_) as trm)},
+                           BuiltinLabel Post) ->
+                      let ttype = Ctype ret_type
+                      (* cf. bug #559 *)
+                      (* Logic_utils.typ_to_logic_type
+                         ret_type *)
+                      in
+                      Logic_const.new_identified_term
                         (Logic_const.term trm ttype)
-		    | _ -> a
-		  in
+                    | _ -> a
+                  in
                   change_at_result ((new_a,from) :: acc) tl
 	      in
               change_at_result [] assigns
@@ -709,107 +723,138 @@ class annot_visitor kf to_annot on_alarm = object (self)
   method! vexpr exp =
     Options.debug "considering exp %a\n" Printer.pp_exp exp;
     match exp.enode with
-    | BinOp((Div | Mod) as op, lexp, rexp, ty) ->
-      (match Cil.unrollType ty with 
-      | TInt(kind,_) -> 
-	(* add assertion "divisor not zero" *)
-	if self#do_div_mod () then
-	  self#generate_assertion Rte.divmod_assertion rexp;
-	if self#do_signed_overflow () && op = Div && Cil.isSigned kind then 
-	  (* treat the special case of signed division overflow
-	     (no signed modulo overflow) *)
-	  self#generate_assertion Rte.signed_div_assertion (exp, lexp, rexp);
-	Cil.DoChildren
-      | _ -> Cil.DoChildren)
-
-    | BinOp((Shiftlt | Shiftrt) as op, lexp, rexp,ttype ) ->
-      (match Cil.unrollType ttype with 
-      | TInt(kind,_) -> 
-	if self#do_shift () then begin
-	  let t = Cil.unrollType (Cil.typeOf exp) in
-	  let size = Cil.bitsSizeOf t in
-	    (* Not really a problem of overflow, but almost a similar to self#do_div_mod *)
-            self#generate_assertion Rte.shift_alarm (rexp, Some size);
-	end;
-	if self#do_signed_overflow () && Cil.isSigned kind then
-	  self#generate_assertion
-	    Rte.signed_shift_assertion (exp, op, lexp, rexp);
-	Cil.DoChildren
-      | _ -> Cil.DoChildren)
-
-    | BinOp((PlusA |MinusA | Mult) as op, lexp, rexp, ttype) ->
-      (* may be skipped if the enclosing expression is a downcast to a signed
-	 type *)
-      (match Cil.unrollType ttype with 
-      | TInt(kind,_) when Cil.isSigned kind -> 
-    	if self#do_signed_overflow () && not (self#must_skip exp) then
-	  self#generate_assertion Rte.mult_sub_add_assertion
-	    (true, exp, op, lexp, rexp);
-	Cil.DoChildren
-      | TInt(kind,_) when not (Cil.isSigned kind) -> 
-	if self#do_unsigned_overflow () then
-	  self#generate_assertion  Rte.mult_sub_add_assertion
-	    (false, exp, op, lexp, rexp);
-	Cil.DoChildren
-      | _ -> Cil.DoChildren)
-
-    | UnOp(Neg, exp, ty) ->
-      (* Note: if unary minus on unsigned integer is to be understood as
-	 "subtracting the promoted value from the largest value
-	 of the promoted type and adding one",
-	 the result is always representable: so no overflow *)
-      (match Cil.unrollType ty with 
-      | TInt(kind,_) when Cil.isSigned kind -> 
-	if self#do_signed_overflow () then
-	  self#generate_assertion Rte.uminus_assertion exp;
-      | _ -> ());
-      Cil.DoChildren
-
-    | Lval lval ->
-      (* left values are checked for valid access *)
-      Cil.DoChildrenPost
-        (fun new_e ->
-          (* Use Cil.DoChildrenPost so that inner expression and lvals are
-	     checked first. The order of resulting assertions will be better. *)
-          if self#do_mem_access () then begin
-	    Options.debug
-	      "exp %a is an lval: validity of potential mem access checked" 
-	      Printer.pp_exp exp;
-	    self#generate_assertion 
-	      (Rte.lval_assertion ~read_only:Alarms.For_reading) lval
-	  end;
-          new_e)
-
-    | CastE (ty, e) ->
-      (match Cil.unrollType ty, Cil.unrollType (Cil.typeOf e) with 
-      | TInt(kind,_), TInt (_, _) ->
-        if Cil.isSigned kind then begin
-          if self#do_signed_downcast () then begin
-            self#generate_assertion Rte.signed_downcast_assertion (ty, e);
-            self#mark_to_skip e;
-          end
-        end
-        else if self#do_unsigned_downcast () then
-          self#generate_assertion Rte.unsigned_downcast_assertion (ty, e)
-
-      | TInt _, TFloat _ ->
-        if self#do_float_to_int () then
-          self#generate_assertion Rte.float_to_int_assertion (ty, e)
-
-      | _ -> ());
-      Cil.DoChildren
-
-    | StartOf _
-    | AddrOf _
-    | Info _
-    | UnOp _
-    | Const _
-    | BinOp _ -> Cil.DoChildren
     | SizeOf _
     | SizeOfE _
     | SizeOfStr _
     | AlignOf _
     | AlignOfE _ -> Cil.SkipChildren
+    | _ ->
+      let generate () =
+        match exp.enode with
+        | BinOp((Div | Mod) as op, lexp, rexp, ty) ->
+          (match Cil.unrollType ty with 
+           | TInt(kind,_) -> 
+             (* add assertion "divisor not zero" *)
+             if self#do_div_mod () then
+               self#generate_assertion Rte.divmod_assertion rexp;
+             if self#do_signed_overflow () && op = Div && Cil.isSigned kind then 
+               (* treat the special case of signed division overflow
+                  (no signed modulo overflow) *)
+               self#generate_assertion Rte.signed_div_assertion (exp, lexp, rexp)
+           | TFloat(fkind,_) when self#do_finite_float () ->
+             self#generate_assertion Rte.finite_float_assertion (fkind,exp);
+           | _ -> ())
+
+        | BinOp((Shiftlt | Shiftrt) as op, lexp, rexp,ttype ) ->
+          (match Cil.unrollType ttype with 
+           | TInt(kind,_) -> 
+             if self#do_shift () then begin
+               let t = Cil.unrollType (Cil.typeOf exp) in
+               let size = Cil.bitsSizeOf t in
+               (* Not really a problem of overflow, but almost a similar to self#do_div_mod *)
+               self#generate_assertion Rte.shift_width_assertion (rexp, Some size);
+             end;
+             let signed = Cil.isSigned kind in
+             if self#do_signed_overflow () && signed
+             || self#do_unsigned_overflow () && not signed
+             then
+               self#generate_assertion
+                 (Rte.shift_overflow_assertion ~signed) (exp, op, lexp, rexp)
+           | _ -> ())
+
+        | BinOp((PlusA |MinusA | Mult) as op, lexp, rexp, ttype) ->
+          (* may be skipped if the enclosing expression is a downcast to a signed
+             type *)
+          (match Cil.unrollType ttype with 
+           | TInt(kind,_) when Cil.isSigned kind -> 
+             if self#do_signed_overflow () && not (self#must_skip exp) then
+               self#generate_assertion
+                 (Rte.mult_sub_add_assertion ~signed:true)
+                 (exp, op, lexp, rexp)
+           | TInt(kind,_) when not (Cil.isSigned kind) -> 
+             if self#do_unsigned_overflow () then
+               self#generate_assertion
+                 (Rte.mult_sub_add_assertion ~signed:false)
+                 (exp, op, lexp, rexp)
+           | TFloat(fkind,_) when self#do_finite_float () ->
+             self#generate_assertion Rte.finite_float_assertion (fkind,exp)
+           | _ -> ())
+
+        | UnOp(Neg, exp, ty) ->
+          (* Note: if unary minus on unsigned integer is to be understood as
+             "subtracting the promoted value from the largest value
+             of the promoted type and adding one",
+             the result is always representable: so no overflow *)
+          (match Cil.unrollType ty with 
+           | TInt(kind,_) when Cil.isSigned kind -> 
+             if self#do_signed_overflow () then
+               self#generate_assertion Rte.uminus_assertion exp;
+           | TFloat(fkind,_) when self#do_finite_float () ->
+             self#generate_assertion Rte.finite_float_assertion (fkind,exp)
+           | _ -> ())
+
+        | Lval lval ->
+          (* left values are checked for valid access *)
+          if self#do_mem_access () then begin
+            Options.debug
+              "exp %a is an lval: validity of potential mem access checked" 
+              Printer.pp_exp exp;
+            self#generate_assertion 
+              (Rte.lval_assertion ~read_only:Alarms.For_reading) lval
+          end;
+          if self#do_initialized () then begin
+            Options.debug
+              "exp %a is an lval: initialization of potential mem access checked"
+              Printer.pp_exp exp;
+            self#generate_assertion
+              Rte.lval_initialized_assertion lval
+          end
+
+        | CastE (ty, e) ->
+          (match Cil.unrollType ty, Cil.unrollType (Cil.typeOf e) with
+           (* to , from *)
+           | TInt(kind,_), TInt (_, _) ->
+             if Cil.isSigned kind then begin
+               if self#do_signed_downcast () then begin
+                 self#generate_assertion Rte.signed_downcast_assertion (ty, e);
+                 self#mark_to_skip e;
+               end
+             end
+             else if self#do_unsigned_downcast () then
+               self#generate_assertion Rte.unsigned_downcast_assertion (ty, e)
+
+           | TInt _, TFloat _ ->
+             if self#do_float_to_int () then
+               self#generate_assertion Rte.float_to_int_assertion (ty, e)
+
+           | TFloat (to_fkind,_), TFloat (from_fkind,_) when
+               self#do_finite_float () && Cil.frank to_fkind < Cil.frank from_fkind ->
+             self#generate_assertion Rte.finite_float_assertion (to_fkind,exp)
+           | _ -> ());
+        | Const (CReal(f,fkind,_)) when self#do_finite_float () ->
+          begin match Pervasives.classify_float f with
+          | FP_normal
+          | FP_subnormal
+          | FP_zero -> ()
+          | FP_infinite
+          | FP_nan ->
+            self#generate_assertion Rte.finite_float_assertion (fkind,exp)
+          end
+        | StartOf _
+        | AddrOf _
+        | Info _
+        | UnOp _
+        | Const _
+        | BinOp _ -> ()
+        | SizeOf _
+        | SizeOfE _
+        | SizeOfStr _
+        | AlignOf _
+        | AlignOfE _ -> assert false
+      in
+      (* Use Cil.DoChildrenPost so that inner expression and lvals are
+         checked first. The order of resulting assertions will be better. *)
+      Cil.DoChildrenPost (fun new_e -> generate (); new_e)
 
 end
 
@@ -866,7 +911,8 @@ let annotate_kf_aux to_annot kf =
     in
     (* Strict version of ||, because [comp] has side-effects *)
     let (|||) a b = a || b in
-    if comp Generator.mem_access_status to_annot.mem_access |||
+    if comp Generator.initialized_status to_annot.initialized |||
+       comp Generator.mem_access_status to_annot.mem_access |||
        comp Generator.pointer_call_status to_annot.pointer_call |||
        comp Generator.div_mod_status to_annot.div_mod |||
        comp Generator.shift_status to_annot.shift |||

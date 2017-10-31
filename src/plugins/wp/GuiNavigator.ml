@@ -34,7 +34,7 @@ open GuiSource
 (* -------------------------------------------------------------------------- *)
 
 type scope = [ `All | `Module | `Select ]
-type filter = [ `ToComplete | `ToProve | `Scripts | `All ]
+type filter = [ `ToProve | `Scripts | `All ]
 type card = [ `List | `Goal ]
 type focus =
   [ `All
@@ -105,8 +105,8 @@ class behavior
           ~default:`Module scope ;
         Cfg.config_values ~key:"wp.navigator.filter"
           ~values:[`All,"all" ; `Scripts,"scripts" ;
-                   `ToComplete,"tocomplete" ; `ToProve,"toprove"]
-          ~default:`ToComplete filter ;
+                   `ToProve,"toprove"]
+          ~default:`ToProve filter ;
         filter#on_event self#reload ;
       end
 
@@ -133,8 +133,7 @@ class behavior
             match filter#get with
             | `All -> true
             | `Scripts -> has_proof g
-            | `ToProve -> to_prove g
-            | `ToComplete -> to_prove g && has_proof g
+            | `ToProve -> to_prove g && (Wpo.is_unknown g || has_proof g)
           in if ok then list#add g
         in
         begin
@@ -248,7 +247,7 @@ class behavior
             schedule (ProverWhy3ide.prove ~callback ~iter)
         | VCS.Tactical ->
             begin
-              match mode , ProofEngine.get w with
+              match mode , ProverScript.get w with
               | (None | Some VCS.BatchMode) , `Script ->
                   schedule (ProverScript.prove ~callback ~success w)
               | _ ->
@@ -428,7 +427,6 @@ let make (main : main_window_extension_points) =
     ] () in
     let filter = new Widget.menu ~default:`ToProve ~options:[
       `ToProve , "Not Proved (yet)" ;
-      `ToComplete , "Pending Proofs" ;
       `Scripts , "All Scripts" ;
       `All , "All Goals" ;
     ] () in 
@@ -460,9 +458,8 @@ let make (main : main_window_extension_points) =
       filter#set_render (function
           | `All -> "All Results"
           | `Scripts -> "All Scripts"
-          | `ToProve -> "Not Proved"
-          | `ToComplete -> "Pending Proofs") ;
-      filter#set_items [ `ToProve ; `ToComplete ; `Scripts ; `All ] ;
+          | `ToProve -> "Not Proved") ;
+      filter#set_items [ `ToProve ; `Scripts ; `All ] ;
     end ;
 
     (* -------------------------------------------------------------------------- *)

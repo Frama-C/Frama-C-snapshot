@@ -1327,13 +1327,13 @@ let insert_global_in_ast annot =
       | GEnumTag _ | GEnumTagDecl _ as g) :: l ->
       insert_after deps (g :: acc) l
     | g :: l ->
-      let c_vars, logic_vars as deps =
-        remove_declared_global c_vars logic_vars g
-      in
       if Cil_datatype.Varinfo.Set.is_empty c_vars &&
          Cil_datatype.Logic_info.Set.is_empty logic_vars
-      then List.rev acc @ g :: glob :: l
-      else insert_after deps (g :: acc) l
+      then List.rev acc @ glob :: g :: l
+      else begin
+          let deps = remove_declared_global c_vars logic_vars g in
+          insert_after deps (g :: acc) l
+        end
   in
   let globs = insert_after deps [] file.globals in
   file.globals <- globs

@@ -610,7 +610,8 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     method private check_logic_label lab =
       match lab with
       | StmtLabel _ -> ()
-      | LogicLabel _ ->
+      | FormalLabel _
+      | BuiltinLabel _ ->
         let is_declared =
           List.exists
             (fun x -> Cil_datatype.Logic_label.equal x lab) logic_labels
@@ -648,18 +649,7 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
           pred_or_func Printer.pp_logic_var li.l_var_info
           lab_declared lab_provided;
       List.iter
-        (fun (_,lab) -> self#check_logic_label lab) labs;
-      (* NdV: I'm not sure why the list of labels instantiations contains pairs
-         with the declared label as first component, but as long as the AST
-         stays that way, it cannot hurt to check for consistency here. *)
-      List.iter2
-        (fun lab (lab',_) ->
-           if not (Cil_datatype.Logic_label.equal lab lab') then
-             check_abort
-               "%s %a has a label declared as %a, which is instantiated as %a"
-               pred_or_func Printer.pp_logic_var li.l_var_info
-               Printer.pp_logic_label lab Printer.pp_logic_label lab')
-        li.l_labels labs
+        (fun lab -> self#check_logic_label lab) labs
 
     method! vterm t =
       match t.term_node with
@@ -713,6 +703,17 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         Cil.DoChildren
       | Tat(_,l) | Tbase_addr(l,_) | Toffset(l,_) | Tblock_length(l,_) ->
         self#check_logic_label l; Cil.DoChildren
+      | TBinOp (bop, lterm, _) ->
+        begin
+          match bop, Logic_utils.isLogicPointerType lterm.term_type with
+          | (PlusA | MinusA), true ->
+            check_abort "PlusA/MinusA operator with pointer argument @[(%a)@]"
+              Printer.pp_logic_type lterm.term_type
+          | (PlusPI | MinusPI), false ->
+            check_abort "PlusPI/MinusPI with non-pointer argument @[(%a)@]"
+              Printer.pp_logic_type lterm.term_type
+          | _ -> Cil.DoChildren
+        end
       | _ -> Cil.DoChildren
 
     method! vinitoffs = self#voffs
@@ -870,6 +871,36 @@ class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
         let old_labels = logic_labels in
         logic_labels <- labels @ logic_labels;
         Cil.DoChildrenPost (fun g -> logic_labels <- old_labels; g)
+      | Dtype (t,_) ->
+        let t' =
+          try Logic_env.find_logic_type t.lt_name
+          with Not_found ->
+            check_abort "logic type %s is not present in the environment"
+              t.lt_name
+        in
+        if t != t' then
+          check_abort
+            "Definition of logic type %s is not shared between \
+             AST and environment" t.lt_name;
+        let treat_cons c =
+          let c' =
+            try Logic_env.find_logic_ctor c.ctor_name
+            with Not_found ->
+              check_abort
+                "logic constructor %s is not present in the environment"
+                c.ctor_name
+          in
+          if c != c' then
+            check_abort
+              "Definition of logic constructor %s is not shared between \
+               AST and environment"
+              c.ctor_name
+        in
+        (match t.lt_def with
+         | Some (LTsum l) -> List.iter treat_cons l
+         | Some (LTsyn _) -> ()
+         | None -> ());
+        Cil.DoChildren
       | _ -> Cil.DoChildren
 
     method! vlogic_label = function

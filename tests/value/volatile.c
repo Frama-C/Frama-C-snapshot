@@ -94,6 +94,10 @@ int * volatile main2() {
   if (t[a[v]-1] != a[v]-1) Frama_C_show_each_a_minus(a[v]-1);       \
   if (t[a[v]] != v) Frama_C_show_each_av(v)
 
+// Assertion that can be true only if v is properly seen as volatile
+#define do_not_reduce_volatile_logic(v) \
+  assert NORED: (v) == 1 && (v) == 2
+
 /* Tests the non-reduction of volatile expressions (expression containing the
    dereference of a volatile location) during the backward propagation of
    an evaluation. */
@@ -112,10 +116,12 @@ void main3 () {
   /* Volatile variable */
   volatile int v = 42;
   do_not_reduce_volatile(v);
+  //@ do_not_reduce_volatile_logic(v);
 
   /* Pointer to volatile variable */
   volatile int *v_ptr = &v;
   do_not_reduce_volatile(*v_ptr);
+  //@ do_not_reduce_volatile_logic(*v_ptr);
 
   /* Volatile structure. */
   volatile struct vol {
@@ -123,10 +129,12 @@ void main3 () {
   } svol;
   svol.f[0] = 42;
   do_not_reduce_volatile(svol.f[0]);
+  //@ do_not_reduce_volatile_logic(svol.f[0]);
 
   /* Pointer to volatile structure. */
   volatile struct vol *svol_ptr = &svol;
   do_not_reduce_volatile(svol_ptr->f[0]);
+  //@ do_not_reduce_volatile_logic(svol_ptr->f[0]);
 
   /* Non volatile structure with a volatile field. */
   struct deepvol {
@@ -134,15 +142,17 @@ void main3 () {
   } sdeepvol;
   sdeepvol.g[0] = 42;
   do_not_reduce_volatile(sdeepvol.g[0]);
+  //@ do_not_reduce_volatile_logic(sdeepvol.g[0]);
 
   /* Array of volatile structs. */
   volatile struct vol volt[1] = {svol};
   do_not_reduce_volatile(volt[0].f[0]);
+  //@ do_not_reduce_volatile_logic(volt[0].f[0]);
 
   /* Array of structs with a volatile field. */
   struct deepvol deepvolt[1] = {sdeepvol};
   do_not_reduce_volatile(deepvolt[0].g[0]);
-
+  //@ do_not_reduce_volatile_logic(deepvolt[0].g[0]);
 }
 
 

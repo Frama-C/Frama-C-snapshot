@@ -95,7 +95,7 @@ let make_escaping ~exact ~escaping ~on_escaping ~within state =
   in
   try (* Iterate on all the bases that might contain a variable to clean *)
     Base.SetLattice.fold aux' within (aux' Base.null state)
-  with Base.SetLattice.Error_Top ->
+  with Abstract_interp.Error_Top ->
     (* [bases] is too imprecise. Iterate on the entire memory state instead,
        which is much slower *)
     match state with

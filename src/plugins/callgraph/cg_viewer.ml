@@ -26,7 +26,7 @@ let ($) f x = f x
 
 type service_id = int
 
-module View = DGraphContainer.Make(Services.Graphviz_attributes)
+module Service_view = DGraphContainer.Make(Services.Graphviz_attributes)
 
 class ['v, 'e, 'c] services_view view = object (self)
 
@@ -122,7 +122,7 @@ let services_view model =
     | Service_graph.Inter_services | Service_graph.Both -> false
     | Service_graph.Inter_functions -> true
   in
-  let view = View.GView.view ~aa:true ~delay_node ~delay_edge model in
+  let view = Service_view.GView.view ~aa:true ~delay_node ~delay_edge model in
   view#set_zoom_padding 0.025;
   (* not very nice *)
   ignore (new services_view view);
@@ -130,30 +130,125 @@ let services_view model =
   ignore $ view#set_center_scroll_region true;
   view
 
-let make_graph_view ~packing () = 
-  let _, view = 
-    View.from_graph_with_commands
+let make_service_view ~packing () =
+  let _, view =
+    Service_view.from_graph_with_commands
       ~packing
       ?root:(Services.entry_point ())
       ~mk_global_view:services_view
-      (Services.get ())
-  in view
+      (Services.Subgraph.get ())
+  in
+  view
+
+module Cg_view = DGraphContainer.Make(Cg.Graphviz_attributes)
+
+let make_cg_view ?root ~packing (): Cg_view.view_container =
+  let _, view =
+    Cg_view.from_graph_with_commands ~packing ?root (Cg.Subgraph.get ())
+  in
+  view
+
+(* note: root is only used when services are not computed *)
+let make_graph_view ?root services ~packing () =
+  if services then
+    (make_service_view ~packing () :> <adapt_zoom: unit -> unit>)
+  else
+    (make_cg_view ?root ~packing () :> <adapt_zoom: unit -> unit >)
+
+let has_entry_point () =
+  try ignore (Globals.entry_point ()); true
+  with Globals.No_such_entry_point _ -> false
+
+let can_show_service_graph () =
+   has_entry_point () && Options.Service_roots.is_empty ()
+
+let get_current_function () =
+  match History.get_current () with
+  | Some (History.Global (Cil_types.GFunDecl (_, vi, _)))
+  | Some (History.Global (Cil_types.GFun ({Cil_types.svar = vi}, _))) ->
+    let kf =
+      try Globals.Functions.get vi
+      with Not_found -> Options.fatal "no kf for %a" Printer.pp_varinfo vi
+    in
+    if Kernel_function.is_definition kf then Some kf else None
+  | Some (History.Localizable l) -> Pretty_source.kf_of_localizable l
+  | _ -> None
+
+let warn_degrade reason =
+  GToolbox.message_box ~title:"Warning"
+    ("Services cannot be displayed due to " ^ reason ^
+     ".\n\
+      View degraded to non-service graph.\n\
+      (use -cg-no-services to avoid this warning)")
+
+exception Found_vertex of bool
 
 let main (window: Design.main_window_extension_points) =
   ignore
     ((window#menu_manager ())#add_plugin
-       [ Menu_manager.menubar "Show callgraph"
-           (Menu_manager.Unit_callback (fun () -> 
-	     Service_graph.frama_c_display true;
-	     Gtk_helper.graph_window
-               ~parent:window#main_window ~title:"Callgraph"
-	       make_graph_view))
+       [ Menu_manager.menubar "Show entire callgraph"
+           (Menu_manager.Unit_callback (fun () ->
+                (* note: if there is no entry point, or if the set of service
+                   roots is not empty, we must 'degrade' the view and show a
+                   non-service graph *)
+                let services, warn =
+                  if Options.Services.get () then
+                    let degrade = not (can_show_service_graph ()) in
+                    not degrade, degrade
+                  else false, false
+                in
+                try
+                  (* display the callgraph through its dot output *)
+                  Service_graph.frama_c_display true;
+                  Gtk_helper.graph_window
+                    ~parent:window#main_window ~title:"Callgraph"
+                    (make_graph_view services);
+                  if warn then
+                    warn_degrade
+                      (if not (has_entry_point ()) then "absence of entry point"
+                       else "set of service roots being non-empty")
+                with ex ->
+                  GToolbox.message_box ~title:"Error"
+                    ("Error loading callgraph: " ^ (Printexc.to_string ex))
+              ));
+         Menu_manager.menubar "Show callgraph from current function"
+           ~sensitive:(fun () -> get_current_function () <> None)
+           (Menu_manager.Unit_callback (fun () ->
+                match get_current_function () with
+                | None ->
+                  GToolbox.message_box ~title:"Error" "Error: no current function"
+                | Some kf ->
+                  try
+                    (* save old value, to restore it later *)
+                    let old_roots = Options.Roots.get () in
+                    Options.Roots.set (Kernel_function.Set.singleton kf);
+                    let services, warn =
+                      if Options.Services.get () && can_show_service_graph ()
+                      then begin
+                        ignore (Services.Subgraph.get ()); (* compute subgraph *)
+                        let is_root = Services.is_root kf in
+                        is_root, not is_root
+                      end
+                      else false, false
+                    in
+                    Service_graph.frama_c_display true;
+                    Gtk_helper.graph_window
+                      ~parent:window#main_window ~title:"Callgraph"
+                      (make_graph_view ~root:kf services);
+                    (* restore old value *)
+                    Options.Roots.set old_roots;
+                    if warn then
+                      warn_degrade "node not being a service root"
+                  with ex ->
+                    GToolbox.message_box ~title:"Error"
+                      ("Error loading callgraph: " ^ (Printexc.to_string ex))
+              ))
        ])
 
 let () = Design.register_extension main
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

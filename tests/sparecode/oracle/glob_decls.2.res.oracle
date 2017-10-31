@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/sparecode/glob_decls.i (no preprocessing)
 [sparecode] remove unused global declarations from project 'default'
 [sparecode] removed unused global declarations in new project 'default (without unused globals)'

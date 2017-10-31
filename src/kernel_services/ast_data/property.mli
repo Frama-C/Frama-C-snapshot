@@ -52,7 +52,7 @@ type behavior_or_loop = (* private *)
 type identified_code_annotation = kernel_function * stmt * code_annotation
 
 type identified_assigns =
-    kernel_function * kinstr * behavior_or_loop * identified_term from list
+    kernel_function * kinstr * behavior_or_loop * from list
 
 type identified_allocation =
     kernel_function * kinstr * behavior_or_loop * (identified_term list * identified_term list)
@@ -61,10 +61,10 @@ type identified_from =
     kernel_function
     * kinstr
     * behavior_or_loop
-    * (identified_term from (* identified_term list *) )
+    * from
 
 type identified_decrease =
-    kernel_function * kinstr * code_annotation option * term variant
+    kernel_function * kinstr * code_annotation option * variant
 (** code_annotation is None for decreases and [Some { AVariant }] for
     loop variant. *)
 
@@ -196,7 +196,7 @@ val ip_ensures_of_behavior:
     @since Oxygen-20120901 *)
 val ip_of_allocation:
   kernel_function -> kinstr -> behavior_or_loop
-  -> identified_term allocation -> identified_property option
+  -> allocation -> identified_property option
 
 (** [ip_allocation_of_behavior kf ki active bhv] builds IPAllocation for
     behavior [bhv], in the spec in function [kf], at statement [ki], under
@@ -212,7 +212,7 @@ val ip_allocation_of_behavior:
     @since Carbon-20110201 *)
 val ip_of_assigns:
   kernel_function -> kinstr ->
-  behavior_or_loop -> identified_term assigns -> identified_property option
+  behavior_or_loop -> assigns -> identified_property option
 
 (** [ip_assigns_of_behavior kf ki active bhv]
     builds IPAssigns for a contract (if not WritesAny).
@@ -229,7 +229,7 @@ val ip_assigns_of_behavior:
     @modify Aluminium-20160501 returns an option. *)
 val ip_of_from:
   kernel_function -> kinstr ->
-  behavior_or_loop -> identified_term from -> identified_property option
+  behavior_or_loop -> from -> identified_property option
 
 (** [ip_from_of_behavior kf ki active bhv]
     builds IPFrom for a behavior (if not ReadsAny).
@@ -329,7 +329,7 @@ val ip_terminates_of_spec:
 (** Builds IPDecrease
     @since Carbon-20110201 *)
 val ip_of_decreases:
-  kernel_function -> kinstr -> term variant -> identified_property
+  kernel_function -> kinstr -> variant -> identified_property
 
 (** Builds IPDecrease of a given spec.
     @since Carbon-20110201 *)

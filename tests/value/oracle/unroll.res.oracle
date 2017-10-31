@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/unroll.i (no preprocessing)
 tests/value/unroll.i:49:[kernel] warning: ignoring unrolling directive (not an understood constant expression)
 tests/value/unroll.i:54:[kernel] warning: ignoring invalid unrolling directive

@@ -94,7 +94,7 @@ val iter: (alarm -> status -> unit) -> t -> unit
 
 (** Emits the alarms according to the given warn mode, at the given
     instruction. *)
-val emit: CilE.warn_mode -> Cil_types.kinstr -> t -> unit
+val emit: Cil_types.kinstr -> t -> unit
 
 (** Calls the functions registered in the [warn_mode] according to the
     set of alarms. *)

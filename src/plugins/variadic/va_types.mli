@@ -55,13 +55,12 @@ and aggregator_type = EndedByNull
 and format_fun = {
   f_kind : Format_types.format_kind;
   f_buffer  : buffer;
-  f_additional_args : int list;
   f_format_pos : int;
-} 
+}
 
 and buffer =
 | StdIO (** Standard input/output (stdin/stdout/stderr) *)
-| Arg of int (* Position of the buffer argument *)
+| Arg of int * int option (* Position of the buffer and size arguments *)
 | Stream of int (* Position of the stream argument *)
 | File of int  (* Position of the file argument *)
 | Syslog (* Output to some system log *)

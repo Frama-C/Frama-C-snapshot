@@ -17,9 +17,9 @@ let main _ =
 
   (* add a request to select f result (output 0) in the project *)
   let select_f_out0 () =
-    let ff_f = !S.Slice.create kf_f in
+    let ff_f = Slicing.Api.Slice.create kf_f in
     let select = select_retres kf_f in
-    !S.Request.add_slice_selection_internal ff_f select;
+    Slicing.Api.Request.add_slice_selection_internal ff_f select;
     print_requests ();
     ff_f
   in
@@ -29,36 +29,36 @@ let main _ =
   (* DEBUT DU TEST *)
   (*=========================================================================*)
   (* mode DontSliceCalls *)
-  !Db.Slicing.set_modes ~calls:0 () ;
+  Slicing.Api.set_modes ~calls:0 () ;
 
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   let _ff_f = select_f_out0 () in
-  !S.Request.apply_all_internal (); print_project ();
+  Slicing.Api.Request.apply_all_internal (); print_project ();
   extract_and_print ();
 
   (*=========================================================================*)
   (* mode PropagateMarksOnly *)
-  !Db.Slicing.set_modes ~calls:1 () ;
+  Slicing.Api.set_modes ~calls:1 () ;
 
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
   let _ff_f = select_f_out0 () in
-  !S.Request.apply_all_internal (); print_project ();
+  Slicing.Api.Request.apply_all_internal (); print_project ();
   extract_and_print ();
 
   (*=========================================================================*)
   (* mode MinimizeNbCalls *)
-  !Db.Slicing.set_modes ~calls:2 () ;
+  Slicing.Api.set_modes ~calls:2 () ;
 
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
 
   (* slice 'f' to compute its result (output 0) and propagate to 'g' *)
   let ff_f = select_f_out0 () in
-  !S.Request.apply_all_internal (); print_project ();
+  Slicing.Api.Request.apply_all_internal (); print_project ();
 
   (* call 'f' slice in 'main' *)
-  let ff_main = !S.Slice.create kf_main in
-  !S.Request.add_call_slice ~caller:ff_main ~to_call:ff_f;
-  !S.Request.apply_all_internal ();
+  let ff_main = Slicing.Api.Slice.create kf_main in
+  Slicing.Api.Request.add_call_slice ~caller:ff_main ~to_call:ff_f;
+  Slicing.Api.Request.apply_all_internal ();
   print_project ();
 
   extract_and_print ();
@@ -67,7 +67,7 @@ let main _ =
   (* test remove_slice and select_stmt_computation *)
 
   (* we remove ff_main : ff_f should not be called anymore *)
-  !S.Slice.remove ff_main;
+  Slicing.Api.Slice.remove ff_main;
   print_project ();
 
   (* try to change ff_f to check that ff_main is not in its called_by anymore *)
@@ -77,30 +77,30 @@ let main _ =
   print_stmt kf_f;
   let ki = get_stmt 10(*34*) in (* d++ *)
   let select = select_data_before_stmt "a" ki kf_f in
-  !S.Request.add_slice_selection_internal ff_f select;
+  Slicing.Api.Request.add_slice_selection_internal ff_f select;
   print_requests ();
-  !S.Request.apply_all_internal (); print_project ();
+  Slicing.Api.Request.apply_all_internal (); print_project ();
 
   (*=========================================================================*)
   (* Test 'extract' when there are 2 slices for the same function *)
-  !Db.Slicing.set_modes ~calls:2 () ;
-  !S.Project.reset_slice ();
+  Slicing.Api.set_modes ~calls:2 () ;
+  Slicing.Api.Project.reset_slicing ();
 
-  let ff_f_1 = !S.Slice.create kf_f in
+  let ff_f_1 = Slicing.Api.Slice.create kf_f in
   let select = select_retres kf_f in
-  !S.Request.add_slice_selection_internal ff_f_1 select;
+  Slicing.Api.Request.add_slice_selection_internal ff_f_1 select;
 
-  let ff_f_2 = !S.Slice.create kf_f in
+  let ff_f_2 = Slicing.Api.Slice.create kf_f in
   let select = select_data "Z" kf_f in
-  !S.Request.add_slice_selection_internal ff_f_2 select;
+  Slicing.Api.Request.add_slice_selection_internal ff_f_2 select;
 
-  !S.Request.apply_all_internal ();
+  Slicing.Api.Request.apply_all_internal ();
   print_ff ff_f_2;
 
   extract_and_print ();
   (*=========================================================================*)
   (* mode PreciseSlices *)
-  !Db.Slicing.set_modes ~calls:3 () ;
+  Slicing.Api.set_modes ~calls:3 () ;
 
   test_select_retres ~do_prop_to_callers:true "f";
 

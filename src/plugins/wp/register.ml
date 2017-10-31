@@ -258,7 +258,7 @@ let add_time s t =
     end
 
 let do_list_scheduled iter_on_goals =
-  if not (Wp_parameters.has_dkey "no-goals-info") then
+  if not (Wp_parameters.has_dkey VCS.dkey_no_goals_info) then
     begin
       clear_scheduled () ;
       iter_on_goals
@@ -273,10 +273,12 @@ let do_list_scheduled iter_on_goals =
       else Wp_parameters.feedback "%d goal scheduled" n ;
     end
 
+let dkey_prover = Wp_parameters.register_category "prover"
+
 let do_wpo_start goal =
   begin
     incr exercised ;
-    if Wp_parameters.has_dkey "prover" then
+    if Wp_parameters.has_dkey dkey_prover then
       Wp_parameters.feedback "[Qed] Goal %s preprocessing" (Wpo.get_gid goal) ;
   end
 
@@ -390,7 +392,7 @@ let do_report_prover_stats pp_prover fmt (p,s) =
     begin
       if s.n_time > 0 &&
          s.u_time > Rformat.epsilon &&
-         not (Wp_parameters.has_dkey "no-time-info")
+         not (Wp_parameters.has_dkey VCS.dkey_no_time_info)
       then
         let mean = s.a_time /. float s.n_time in
         let epsilon = 0.05 *. mean in
@@ -410,7 +412,7 @@ let do_report_prover_stats pp_prover fmt (p,s) =
               Rformat.pp_time s.u_time
     end ;
     if s.steps > 0  &&
-       not (Wp_parameters.has_dkey "no-step-info") then
+       not (Wp_parameters.has_dkey VCS.dkey_no_step_info) then
       Format.fprintf fmt " (%d)" s.steps ;
     if s.interrupted > 0 then
       Format.fprintf fmt " (interrupted: %d)" s.interrupted ;
@@ -422,7 +424,7 @@ let do_report_prover_stats pp_prover fmt (p,s) =
   end
 
 let do_report_scheduled () =
-  if not (Wp_parameters.has_dkey "no-goals-info") then
+  if not (Wp_parameters.has_dkey VCS.dkey_no_goals_info) then
     if Wp_parameters.Generate.get () then
       let plural = if !exercised > 1 then "s" else "" in
       Wp_parameters.result "%d goal%s generated" !exercised plural
@@ -623,22 +625,26 @@ let deprecated_wp_clear () =
 (* ---  Command-line Entry Points                                       --- *)
 (* ------------------------------------------------------------------------ *)
 
+let dkey_logicusage = Wp_parameters.register_category "logicusage"
+let dkey_refusage = Wp_parameters.register_category "refusage"
+let dkey_builtins = Wp_parameters.register_category "builtins"
+
 let cmdline_run () =
   let wp_main fct =
     Wp_parameters.feedback ~ontty:`Feedback "Running WP plugin...";
     Ast.compute ();
     Dyncall.compute ();
-    if Wp_parameters.has_dkey "logicusage" then
+    if Wp_parameters.has_dkey dkey_logicusage then
       begin
         LogicUsage.compute ();
         LogicUsage.dump ();
       end ;
-    if Wp_parameters.has_dkey "refusage" then
+    if Wp_parameters.has_dkey dkey_refusage then
       begin
         RefUsage.compute ();
         RefUsage.dump ();
       end ;
-    if Wp_parameters.has_dkey "builtins" then
+    if Wp_parameters.has_dkey dkey_builtins then
       begin
         LogicBuiltins.dump ();
       end ;
@@ -768,13 +774,17 @@ let pp_wp_parameters fmt =
       Format.pp_print_string fmt " -warn-signed-downcast" ;
     if Kernel.UnsignedDowncast.get () then
       Format.pp_print_string fmt " -warn-unsigned-downcast" ;
+    if not (Wp_parameters.Volatile.get ()) then
+      Format.pp_print_string fmt " -wp-no-volatile" ;
     Format.pp_print_string fmt " [...]" ;
     Format.pp_print_newline fmt () ;
   end
 
+let dkey_shell = Wp_parameters.register_category "shell"
+
 let () = Cmdline.run_after_setting_files
     (fun _ ->
-       if Wp_parameters.has_dkey "shell" then
+       if Wp_parameters.has_dkey dkey_shell then
          Log.print_on_output pp_wp_parameters)
 
 let do_prover_detect () =
@@ -831,13 +841,15 @@ let rec try_sequence jobs () = match jobs with
   | head :: tail ->
       Extlib.try_finally ~finally:(try_sequence tail) head ()
 
+let dkey_raised = Wp_parameters.register_category "raised"
+
 let sequence jobs () =
-  if Wp_parameters.has_dkey "raised"
+  if Wp_parameters.has_dkey dkey_raised
   then List.iter (fun f -> f ()) jobs
   else try_sequence jobs ()
 
 let tracelog () =
-  if Datatype.String.Set.is_empty (Wp_parameters.Debug_category.get ()) then
+  if Wp_parameters.Debug_category.is_empty () then
     Wp_parameters.debug
       "Logging keys: %s." (Wp_parameters.Debug_category.As_string.get ())
 

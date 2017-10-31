@@ -123,6 +123,16 @@ let refresh_vars old_var new_var =
     method! vvrbl vi =
       try ChangeTo (snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc))
       with Not_found -> SkipChildren
+
+    method! vexpr e =
+      (* Since we are not using a refresh or copy visitor, we must refresh
+         eids ourselves *)
+      let do_post e' =
+        if e'.enode != e.enode then
+          Cil.new_exp ~loc:e.eloc e'.enode
+        else e
+      in
+      DoChildrenPost do_post
   end
   in
   fun b -> ignore (Visitor.visitFramacBlock visit b)
@@ -193,8 +203,7 @@ let copy_annotations kf assoc labelled_stmt_tbl (break_continue_must_change, stm
                let new_stmt = Cil_datatype.Stmt.Map.find !stmt labelled_stmt_tbl
 	       in ChangeTo (StmtLabel (ref new_stmt))
 	     with Not_found -> SkipChildren) ;
-	| LogicLabel (None, _str) -> SkipChildren
-	| LogicLabel (Some _stmt, str) -> ChangeTo (LogicLabel (None, str))
+	| BuiltinLabel _ | FormalLabel _ -> SkipChildren
     end
     in visitCilCodeAnnotation (visitor:>cilVisitor) (Logic_const.refresh_code_annotation a) 
   in
@@ -255,8 +264,8 @@ let update_loop_current kf loop_current block =
     initializer self#set_current_kf kf
     method! vlogic_label =
       function
-	| LogicLabel(_,"LoopCurrent") -> ChangeTo (StmtLabel (ref loop_current))
-	| _ -> DoChildren
+      | BuiltinLabel LoopCurrent -> ChangeTo (StmtLabel (ref loop_current))
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> DoChildren
     method! vstmt_aux s =
       match s.skind with
 	| Loop _ -> SkipChildren (* loop init and current are not the same here. *)
@@ -270,8 +279,8 @@ let update_loop_entry kf loop_entry stmt =
     initializer self#set_current_kf kf
     method! vlogic_label =
       function
-	| LogicLabel(_,"LoopEntry") -> ChangeTo (StmtLabel (ref loop_entry))
-	| _ -> DoChildren
+      | BuiltinLabel LoopEntry -> ChangeTo (StmtLabel (ref loop_entry))
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> DoChildren
     method! vstmt_aux s =
       match s.skind with
 	| Loop _ -> SkipChildren (* loop init and current are not the same here. *)
@@ -279,9 +288,24 @@ let update_loop_entry kf loop_entry stmt =
   end in
   ignore (Visitor.visitFramacStmt vis stmt)
 
-(* Deep copy of a block taking care of local gotos and labels into C code and 
-   annotations. *)
-let copy_block kf break_continue_must_change bl =
+
+(* Action to be performed when copying switch labels (Case and Default):
+   - Copy: if we are copying the entire switch statement, then copy the labels
+     as they are.
+   - Move: if we had not copied the switch statement, then avoid duplicating
+     the switch labels. For the first copy, move the label into the copied
+     statement (the first copy in the AST order is done by the last iteration).
+   - Ignore: For the other copies, ignore the switch label. *)
+type switch_label_action = Ignore | Copy | Move
+
+let is_case_stmt s = List.exists Cil.is_case_label s.labels
+
+(* Deep copy of a block taking care of local gotos and labels into C code and
+   annotations. Also returns the statements with a switch label that have been
+   created to replace original switch cases. They must be set in the englobing
+   switch (outside the copy).  *)
+let copy_block kf switch_label_action break_continue_must_change bl =
+  let new_switch_cases = ref [] in
   let assoc = ref [] in
   let fundec = 
     try Kernel_function.get_definition kf
@@ -290,8 +314,8 @@ let copy_block kf break_continue_must_change bl =
   and labelled_stmt_tbl = Cil_datatype.Stmt.Map.empty
   and calls_tbl = Cil_datatype.Stmt.Map.empty
   in
-  let rec copy_stmt
-      break_continue_must_change labelled_stmt_tbl calls_tbl stmt =
+  let rec copy_stmt switch_label_action break_continue_must_change
+      labelled_stmt_tbl calls_tbl stmt =
     let result =
       { labels = []; 
         sid = Sid.next (); 
@@ -300,25 +324,38 @@ let copy_block kf break_continue_must_change bl =
         skind = stmt.skind; 
         ghost = stmt.ghost}
     in
-    let new_labels,labelled_stmt_tbl =
+    let labelled_stmt_tbl =
       if stmt.labels = [] then
-        [], labelled_stmt_tbl
+        labelled_stmt_tbl
       else
         let new_tbl = Cil_datatype.Stmt.Map.add stmt result labelled_stmt_tbl
         and new_labels =
           List.fold_left
-            (fun lbls -> function
+            (fun new_lbls -> function
              | Label (s, loc, gen) ->
                (if gen
                 then fresh_label ~label_name:s ()
                 else fresh_label ~label_name:s ~loc ()
-               ) :: lbls
-
-             | Case _ | Default _ as lbl -> lbl :: lbls
+               ) :: new_lbls
+             | Case _ | Default _ as lbl ->
+               if switch_label_action = Ignore
+               then new_lbls
+               else lbl :: new_lbls
             )
           []
           stmt.labels
-      in new_labels, new_tbl
+        in
+        let () =
+          if switch_label_action = Move && is_case_stmt stmt then
+            (* Removes the switch label from the original statement. *)
+            let old_labels =
+              List.filter (fun l -> not (Cil.is_case_label l)) stmt.labels
+            in
+            stmt.labels <- old_labels;
+            new_switch_cases := result :: !new_switch_cases;
+        in
+        result.labels <- new_labels;
+        new_tbl
     in
     let new_calls_tbl = match stmt.skind with
       | Instr(Call _ | Local_init(_,ConsInit _,_)) ->
@@ -326,10 +363,9 @@ let copy_block kf break_continue_must_change bl =
       | _ -> calls_tbl
     in
     let new_stmkind,new_labelled_stmt_tbl, new_calls_tbl =
-      copy_stmtkind
+      copy_stmtkind switch_label_action
         break_continue_must_change labelled_stmt_tbl new_calls_tbl stmt.skind
     in
-    if stmt.labels <> [] then result.labels <- new_labels;
     result.skind <- new_stmkind;
     if Annotations.has_code_annot stmt then 
       begin
@@ -340,8 +376,14 @@ let copy_block kf break_continue_must_change bl =
       end;
     result, new_labelled_stmt_tbl, new_calls_tbl
 
-    and copy_stmtkind
-      break_continue_must_change labelled_stmt_tbl calls_tbl stkind =
+  and copy_stmtkind
+      switch_label_action break_continue_must_change
+      labelled_stmt_tbl calls_tbl stkind =
+    let copy_block
+        ?(switch_label_action = switch_label_action)
+        ?(break_continue_must_change = break_continue_must_change) =
+      copy_block ~switch_label_action ~break_continue_must_change
+    in
       match stkind with
       | (Instr _ | Return _ | Throw _) as keep -> 
         keep,labelled_stmt_tbl,calls_tbl
@@ -349,17 +391,18 @@ let copy_block kf break_continue_must_change bl =
       | If (exp,bl1,bl2,loc) ->
         CurrentLoc.set loc;
         let new_block1,labelled_stmt_tbl,calls_tbl =
-          copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl1
+          copy_block labelled_stmt_tbl calls_tbl bl1
         in
         let new_block2,labelled_stmt_tbl,calls_tbl =
-          copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl2
+          copy_block labelled_stmt_tbl calls_tbl bl2
         in
         If(exp,new_block1,new_block2,loc),labelled_stmt_tbl,calls_tbl
       | Loop (a,bl,loc,_,_) ->
         CurrentLoc.set loc;
         let new_block,labelled_stmt_tbl,calls_tbl =
           copy_block
-            (None, None) (* from now on break and continue can be kept *)
+            (* from now on break and continue can be kept *)
+            ~break_continue_must_change:(None, None)
             labelled_stmt_tbl
             calls_tbl
             bl
@@ -367,7 +410,7 @@ let copy_block kf break_continue_must_change bl =
         Loop (a,new_block,loc,None,None),labelled_stmt_tbl,calls_tbl
       | Block bl ->
         let new_block,labelled_stmt_tbl,calls_tbl =
-          copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl
+          copy_block labelled_stmt_tbl calls_tbl bl
         in
         Block (new_block),labelled_stmt_tbl,calls_tbl
       | UnspecifiedSequence seq ->
@@ -379,8 +422,8 @@ let copy_block kf break_continue_must_change bl =
             List.fold_left
               (fun (seq,labelled_stmt_tbl,calls_tbl) (stmt,modified,writes,reads,calls) ->
                  let stmt,labelled_stmt_tbl,calls_tbl =
-                   copy_stmt
-                     break_continue_must_change labelled_stmt_tbl calls_tbl stmt
+                   copy_stmt switch_label_action break_continue_must_change
+                     labelled_stmt_tbl calls_tbl stmt
                  in
                  (stmt,modified,writes,reads,change_calls calls calls_tbl)::seq,
                  labelled_stmt_tbl,calls_tbl)
@@ -404,7 +447,11 @@ let copy_block kf break_continue_must_change bl =
       | Switch (e,block,stmts,loc) ->
           (* from now on break only can be kept *)
         let new_block,new_labelled_stmt_tbl,calls_tbl =
-          copy_block (None, (snd break_continue_must_change)) labelled_stmt_tbl calls_tbl block
+          copy_block
+            (* Copy the switch labels, as the englobing switch is in the copy. *)
+            ~switch_label_action:Copy
+            ~break_continue_must_change:(None, (snd break_continue_must_change))
+            labelled_stmt_tbl calls_tbl block
         in
         let stmts' =
           List.map
@@ -412,15 +459,11 @@ let copy_block kf break_continue_must_change bl =
         in
         Switch(e,new_block,stmts',loc),new_labelled_stmt_tbl,calls_tbl
       | TryCatch(t,c,loc) ->
-        let t', labs, calls =
-          copy_block break_continue_must_change labelled_stmt_tbl calls_tbl t
-        in
+        let t', labs, calls = copy_block labelled_stmt_tbl calls_tbl t in
         let treat_one_extra_binding mv mv' (bindings, labs, calls) (v,b) =
           let v' = copy_var () v in
           assoc := (v,v')::!assoc;
-          let b', labs', calls' =
-            copy_block break_continue_must_change labs calls b
-          in
+          let b', labs', calls' = copy_block labs calls b in
           refresh_vars [mv; v] [mv'; v'] b';
           (v',b')::bindings, labs', calls'
         in
@@ -437,9 +480,7 @@ let copy_block kf break_continue_must_change bl =
                 in
                 Catch_exn(v', List.rev l'), [v], [v'], labs', calls'
           in
-          let (b', labs', calls') =
-            copy_block break_continue_must_change labs' calls' b
-          in
+          let (b', labs', calls') = copy_block labs' calls' b in
           refresh_vars vorig vnew b';
           (v', b')::catches, labs', calls'
         in
@@ -449,12 +490,15 @@ let copy_block kf break_continue_must_change bl =
         TryCatch(t',List.rev c',loc), labs', calls'
       | TryFinally _ | TryExcept _ -> assert false
 
-    and copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl =
+  and copy_block
+      ~switch_label_action ~break_continue_must_change
+      labelled_stmt_tbl calls_tbl bl =
       let new_stmts,labelled_stmt_tbl,calls_tbl =
         List.fold_left
           (fun (block_l,labelled_stmt_tbl,calls_tbl) v ->
             let new_block,labelled_stmt_tbl,calls_tbl =
-              copy_stmt break_continue_must_change labelled_stmt_tbl calls_tbl v
+              copy_stmt switch_label_action break_continue_must_change
+                labelled_stmt_tbl calls_tbl v
             in
             new_block::block_l, labelled_stmt_tbl,calls_tbl)
   	  ([],labelled_stmt_tbl,calls_tbl) 
@@ -472,10 +516,11 @@ let copy_block kf break_continue_must_change bl =
   in
   let new_block, labelled_stmt_tbl, _calls_tbl = 
     (* [calls_tbl] is internal. No need to fix references afterwards here. *)
-    copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl
+    copy_block ~switch_label_action ~break_continue_must_change
+      labelled_stmt_tbl calls_tbl bl
   in
   List.iter (copy_annotations kf !assoc labelled_stmt_tbl) !annotated_stmts ;
-  update_gotos labelled_stmt_tbl new_block
+  update_gotos labelled_stmt_tbl new_block, !new_switch_cases
 
 let ast_has_changed = ref false
 
@@ -485,7 +530,11 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
     initializer ast_has_changed := false;
   (* We sometimes need to move labels between statements. This table
      maps the old statement to the new one *)
-  val moved_labels = Cil_datatype.Stmt.Hashtbl.create 17
+    val moved_labels = Cil_datatype.Stmt.Hashtbl.create 17
+    (* The statements with a switch label that have been created in the copy.
+       They must be added in the englobing switch, and the original statements
+       must be removed (their switch labels have been removed by [copy_block]. *)
+    val mutable cases = [] ;
   val mutable gotos = [] ;
   val mutable has_unrolled_loop = false ;
 
@@ -497,7 +546,7 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
     assert (gotos = []) ;
     assert (not has_unrolled_loop) ;
     let post_goto_updater =
-      (fun id -> 
+      (fun id ->
 	 if has_unrolled_loop then begin
 	   List.iter
              (fun s -> match s.skind with Goto(sref,_loc) ->
@@ -526,17 +575,29 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
       let update s =
 	if has_unrolled_loop then
           (match s.skind with
-             | Switch (e', b', lbls', loc') ->
+       | Switch (e', b', lbls', loc') ->
 		 let labels_moved = ref false in 
 		 let update_label s =
 		   try 
 		     let s = Cil_datatype.Stmt.Hashtbl.find moved_labels s
 		     in labels_moved := true ; s 
 		   with Not_found -> s
-		 in let moved_lbls = List.map update_label lbls' in
-		   if !labels_moved then
-		     s.skind <- Switch (e', b', moved_lbls, loc');
-             | _ -> ());
+                 in let moved_lbls = List.map update_label lbls' in
+                 let new_lbls =
+                   if cases = []
+                   then moved_lbls
+                   else
+                     (* Removes the statements that have no more switch labels. *)
+                     let lbls = List.filter is_case_stmt moved_lbls in
+                     (* Adds the new statement with switch labels. *)
+                     cases @ lbls
+                 in
+                 if !labels_moved || cases <> [] then begin
+                   s.skind <- Switch (e', b', new_lbls, loc');
+                   (* Resets the statement to be added to the englobing switch. *)
+                   cases <- [];
+                 end
+       | _ -> ());
         s
       in
       ChangeDoChildrenPost (s, update)
@@ -577,14 +638,17 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
       in
       let current_continue = ref (mk_continue ()) in
       let new_stmts = ref [sloop] in
-      for _i=0 to number-1 do
+      for i=0 to number-1 do
         new_stmts:=!current_continue::!new_stmts;
-        let new_block =
-           copy_block
+        let switch_label_action = if i = number-1 then Move else Ignore in
+        let new_block, new_switch_cases =
+          copy_block
 	    (Extlib.the self#current_kf)
+            switch_label_action
             ((Some break_lbl_stmt),(Some !current_continue))
             block
         in
+        cases <- new_switch_cases @ cases;
         current_continue := mk_continue ();
 	update_loop_current (Extlib.the self#current_kf) !current_continue new_block;
         (match new_block.blocals with
@@ -606,7 +670,8 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
         snew.labels <- sloop.labels;
         sloop.labels <- [];
         snew;
-      in new_stmt
+      in
+      new_stmt
     | _ -> assert false
     in 
     let g sloop new_stmts = (* Adds "loop invariant \false;" to the remaining 

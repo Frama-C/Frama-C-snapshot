@@ -1,6 +1,6 @@
 opam-version: "1.2"
-name: "frama-c-base"
-version: "20170501"
+name: "frama-c"
+version: "20171101-beta"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Michele Alberti"
@@ -37,7 +37,7 @@ authors: [
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
 dev-repo: "https://github.com/Frama-C/Frama-C-snapshot.git"
-doc: ["http://frama-c.com/download/user-manual-Phosphorus-20170501.pdf"]
+doc: ["http://frama-c.com/download/user-manual-Sulfur-20171101.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"
@@ -79,12 +79,12 @@ remove: [
                                    !conf-gnomecanvas:installed }
 ]
   [make "uninstall"]
-  ["rm" "-rf" frama-c-base:doc]
+  ["rm" "-rf" doc]
 ]
 
 build-doc: [
    [make "-C" "doc" "download"]
-   [make "-C" "doc" "FRAMAC_DOCDIR=%{frama-c-base:doc}%" "install"]
+   [make "-C" "doc" "install"]
 ]
 
 build-test: [
@@ -92,23 +92,26 @@ build-test: [
 ]
 
 depends: [
-  "ocamlgraph" { >= "1.8.5" & < "1.9~" }
+  "ocamlgraph" { >= "1.8.8" & < "1.9~" }
   "ocamlfind"
   "zarith"
   "conf-autoconf"
+  "lablgtk" { >= "2.18.2" } #for ocaml >= 4.02.1
+  "conf-gtksourceview"
+  "conf-gnomecanvas"
+  "alt-ergo"
 ]
 
 depopts: [
-  "lablgtk"
-  "conf-gtksourceview"
-  "conf-gnomecanvas"
   "coq" { build }
   "why3" { build }
+  "altgr-ergo" { build }
 ]
 
 messages: [
    "Why3 can be used by the WP plug-in for running additional automatic solvers" { !why3:installed }
    "Coq can be used with the WP plug-in for proving interactively proof obligations" { !coq:installed }
+   "Alt-Ergo Graphical Interface can be used by the WP plug-in" { !altgr-ergo:installed }
 ]
 
 conflicts: [
@@ -117,6 +120,8 @@ conflicts: [
   "lablgtk" { < "2.18.2" } #for ocaml >= 4.02.1
   "frama-c-e-acsl" #avoid mixing old releases of E-ACSL, it is already
                    #distributed with this version of Frama-C
+  "frama-c-base"   #avoid mixing old releases of Frama-C, now that only the
+                   #'frama-c' package exists
 ]
 
 available: [ ocaml-version >= "4.02.3" ]

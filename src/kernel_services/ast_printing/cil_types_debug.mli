@@ -64,16 +64,14 @@ val pp_float : Format.formatter -> float -> unit
 val pp_variant :
   'a Pretty_utils.formatter -> ('a * string option) Pretty_utils.formatter
 val pp_allocation :
-  'a Pretty_utils.formatter ->
-  Format.formatter -> 'a Cil_types.allocation -> unit
+  Format.formatter -> Cil_types.allocation -> unit
 val pp_deps :
-  'a Pretty_utils.formatter -> Format.formatter -> 'a Cil_types.deps -> unit
+  Format.formatter -> Cil_types.deps -> unit
 val pp_from :
-  'a Pretty_utils.formatter ->
-  ('a * 'a Cil_types.deps) Pretty_utils.formatter
+  (Cil_types.identified_term * Cil_types.deps) Pretty_utils.formatter
 val pp_assigns :
-  'a Cil_types.from Pretty_utils.formatter ->
-  Format.formatter -> 'a Cil_types.assigns -> unit
+  Cil_types.from Pretty_utils.formatter ->
+  Format.formatter -> Cil_types.assigns -> unit
 val pp_file : Format.formatter -> Cil_types.file -> unit
 val pp_global : Format.formatter -> Cil_types.global -> unit
 val pp_typ : Cil_types.typ Pretty_utils.formatter
@@ -118,6 +116,8 @@ val pp_logic_real : Format.formatter -> Cil_types.logic_real -> unit
 val pp_logic_type : Cil_types.logic_type Pretty_utils.formatter
 val pp_identified_term : Cil_types.identified_term Pretty_utils.formatter
 val pp_logic_label : Cil_types.logic_label Pretty_utils.formatter
+val pp_logic_builtin_label :
+  Cil_types.logic_builtin_label Pretty_utils.formatter
 val pp_term : Cil_types.term Pretty_utils.formatter
 val pp_term_node : Format.formatter -> Cil_types.term_node -> unit
 val pp_term_lval : Format.formatter -> Cil_types.term_lval -> unit
@@ -136,7 +136,7 @@ val pp_logic_ctor_info : Cil_types.logic_ctor_info Pretty_utils.formatter
 val pp_quantifiers : Format.formatter -> Cil_types.quantifiers -> unit
 val pp_relation : Format.formatter -> Cil_types.relation -> unit
 val pp_predicate_node : Format.formatter -> Cil_types.predicate_node -> unit
-val pp_identified_predicate : Format.formatter -> 'a -> unit
+val pp_identified_predicate : Format.formatter -> Cil_types.identified_predicate -> unit
 val pp_predicate : Cil_types.predicate Pretty_utils.formatter
 val pp_spec : Format.formatter -> Cil_types.spec -> unit
 val pp_acsl_extension : Format.formatter -> Cil_types.acsl_extension -> unit
@@ -147,16 +147,16 @@ val pp_termination_kind :
   Format.formatter -> Cil_types.termination_kind -> unit
 val pp_loop_pragma :
   Cil_types.term Pretty_utils.formatter ->
-  Format.formatter -> Cil_types.term Cil_types.loop_pragma -> unit
+  Format.formatter -> Cil_types.loop_pragma -> unit
 val pp_slice_pragma :
   Cil_types.term Pretty_utils.formatter ->
-  Format.formatter -> Cil_types.term Cil_types.slice_pragma -> unit
+  Format.formatter -> Cil_types.slice_pragma -> unit
 val pp_impact_pragma :
   Cil_types.term Pretty_utils.formatter ->
-  Format.formatter -> Cil_types.term Cil_types.impact_pragma -> unit
+  Format.formatter -> Cil_types.impact_pragma -> unit
 val pp_pragma :
   Cil_types.term Pretty_utils.formatter ->
-  Format.formatter -> Cil_types.term Cil_types.pragma -> unit
+  Format.formatter -> Cil_types.pragma -> unit
 val pp_code_annotation_node :
   Format.formatter -> Cil_types.code_annotation_node -> unit
 val pp_funspec : Format.formatter -> Cil_types.funspec -> unit

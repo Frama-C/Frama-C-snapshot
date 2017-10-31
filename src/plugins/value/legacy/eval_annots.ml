@@ -29,55 +29,6 @@ open Eval_terms
 let emit_status ppt status =
   Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
 
-module ActiveBehaviors = struct
-
-  let is_active_aux pre_state b =
-    let assumes =
-      (Logic_const.pands
-         (List.map Logic_const.pred_of_id_pred b.b_assumes))
-    in
-    eval_predicate (env_pre_f ~pre:pre_state ()) assumes
-
-  type t = {
-    init_state: Cvalue.Model.t;
-    funspec: funspec;
-    is_active: funbehavior -> predicate_status
-  }
-
-  module HashBehaviors = Hashtbl.Make(
-    struct
-      type t = funbehavior
-      let equal b1 b2 = b1.b_name = b2.b_name
-      let hash b = Hashtbl.hash b.b_name
-    end)
-
-  let create_from_spec init_state funspec =
-    let h = HashBehaviors.create 3 in
-    { is_active =
-        (fun b ->
-           try HashBehaviors.find h b
-           with Not_found ->
-             let active = is_active_aux init_state b in
-             HashBehaviors.add h b active;
-             active
-        );
-      init_state = init_state;
-      funspec = funspec;
-    }
-
-  let create init_state kf =
-    let funspec = Annotations.funspec kf in
-    create_from_spec init_state funspec
-
-  let active ba = ba.is_active
-
-  let is_active ba b = active ba b != False
-
-  let active_behaviors ab =
-    List.filter (is_active ab) ab.funspec.spec_behavior
-
-end
-
 let has_requires spec =
   let behav_has_requires b = b.b_requires <> [] in
   List.exists behav_has_requires spec.spec_behavior
@@ -167,6 +118,8 @@ let mark_rte () =
   let _, signed_downcast, _ = !Db.RteGen.get_signed_downCast_status () in
   let _, unsigned_downcast, _ = !Db.RteGen.get_unsignedDownCast_status () in
   let _, pointer_call, _ = !Db.RteGen.get_pointerCall_status () in
+  let _, float_to_int, _ = !Db.RteGen.get_float_to_int_status () in
+  let _, finite_float, _ = !Db.RteGen.get_finite_float_status () in
   let b_signed_ovf = Kernel.SignedOverflow.get () in
   let b_unsigned_ovf = Kernel.UnsignedOverflow.get () in
   let b_signed_downcast = Kernel.SignedDowncast.get () in
@@ -180,7 +133,9 @@ let mark_rte () =
         if b_signed_ovf then signed_ovf kf true;
         if b_unsigned_ovf then unsigned_ovf kf true;
         if b_signed_downcast then signed_downcast kf true;
-        if b_unsigned_downcast then unsigned_downcast kf true
+        if b_unsigned_downcast then unsigned_downcast kf true;
+        float_to_int kf true;
+        finite_float kf true;
       )
     )
 
@@ -314,14 +269,6 @@ let mark_invalid_initializers () =
       | _ -> ()
     in
     Annotations.iter_code_annot do_code_annot first_stmt
-
-
-let () =
-  Db.Value.valid_behaviors :=
-    (fun kf state ->
-      let ab = ActiveBehaviors.create state kf in
-      ActiveBehaviors.active_behaviors ab
-    );
 
 (*
 Local Variables:

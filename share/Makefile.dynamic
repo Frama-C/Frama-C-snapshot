@@ -33,10 +33,6 @@ ifndef MAKECONFIG_DIR
 MAKECONFIG_DIR	:=$(FRAMAC_SHARE)
 endif
 
-ifndef PLUGIN_DYNAMIC
-PLUGIN_DYNAMIC	:=yes
-endif
-
 #Do not generate documentation for this.
 PLUGIN_UNDOC:=$(PLUGIN_UNDOC)
 
@@ -195,60 +191,23 @@ TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_TOP_CMX) $(TARGET_TOP_CMXS)
 
 byte:: $(TARGETS_BYTE)
 opt:: $(TARGETS_OPT)
-ifeq ($(OCAMLBEST),byte)
-gui:: $(TARGETS_GUI_BYTE)
-else
-gui:: $(TARGETS_GUI)
-endif
+gui-byte:: $(TARGETS_GUI_BYTE)
+gui-opt:: $(TARGETS_GUI)
 
 # do not define additional targets if you come from the Frama-C Makefile
 ifneq ($(FRAMAC_INTERNAL),yes)
-
-##################
-# Static Linking #
-##################
-
-include $(MAKECONFIG_DIR)/Makefile.kernel
-
-$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_TOP_CMO)
-	$(PRINT_LINKING) $@
-	$(OCAMLC) $(PLUGIN_LINK_BFLAGS) $(DYN_BLINKFLAGS) \
-	  -o $@ $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
-	  $(patsubst %boot.cmo,\
-	    $(PLUGIN_EXTRA_BYTE) $(TARGET_TOP_CMO) %boot.cmo,\
-	    $(DYN_ALL_BATCH_CMO))
-
-$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_TOP_CMX)
-	$(PRINT_LINKING) $@
-	$(OCAMLOPT) $(PLUGIN_LINK_OFLAGS) $(DYN_OLINKFLAGS) \
-	  -o $@ $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
-	  $(patsubst %boot.cmx,\
-	    $(PLUGIN_EXTRA_OPT) $(TARGET_TOP_CMX) %boot.cmx,\
-            $(DYN_ALL_BATCH_CMX))
-
-static.byte:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)
-static.opt:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE)
-static:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE) \
-	 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
 
 ###################
 # Clean & Install #
 ###################
 
-.PHONY: tests all install uninstall clean depend $(PLUGIN_NAME)_CLEAN_DYNAMIC
-
-clean:: $(PLUGIN_NAME)_CLEAN_DYNAMIC
-
-$(PLUGIN_NAME)_CLEAN_DYNAMIC:
-	$(RM) $($(patsubst %_CLEAN_DYNAMIC,%_DIR,$@))/tests/ptests_config
-	$(RM) frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)) \
-              frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)).byte
+.PHONY: tests all install uninstall clean depend
 
 dist-clean distclean: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
 
-STATIC=
+all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui plugins_ptests_config
 
-all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC) plugins_ptests_config
+gui: gui-$(OCAMLBEST)
 
 ifneq ($(PLUGIN_ENABLE),no)
 

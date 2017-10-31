@@ -70,7 +70,7 @@ module To_Use = struct
     let zone_substitution x =
       try
         zone_substitution x
-      with Zone.Error_Top -> Zone.top
+      with Abstract_interp.Error_Top -> Zone.top
     in
     let map_zone = Function_Froms.Deps.map zone_substitution in
     let subst = Function_Froms.DepsOrUnassigned.subst map_zone  in

@@ -164,7 +164,7 @@ int main() {
   top_set(&T, 3);
   top_set(&tabT[1],2);
   top_set(ptabT[1],4);
-  top_set((void*) (c.next), 5);
+  top_set((top*) (c.next), 5);
 
 
   top_next(T);
@@ -175,9 +175,9 @@ int main() {
   pptop = (void*) ptabT;
 
   tabtop_set(pptop,2,15);
-  tabtop_set((void*) ptabT, 1, 20);
+  tabtop_set((top**) ptabT, 1, 20);
 
-  tabtop_set((void*) pc->next, 1, 10);
+  tabtop_set((top**) pc->next, 1, 10);
 
   return z;
 }

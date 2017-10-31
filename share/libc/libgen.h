@@ -20,3 +20,15 @@
 /*                                                                        */
 /**************************************************************************/
 
+#ifndef __FC_LIBGEN
+#define __FC_LIBGEN
+#include "features.h"
+__PUSH_FC_STDLIB
+__BEGIN_DECLS
+
+extern char *basename(char *path);
+extern char *dirname(char *path);
+
+__END_DECLS
+__POP_FC_STDLIB
+#endif

@@ -22,23 +22,38 @@
 
 open Eval
 
-module MakeInternal
+let log_key = Value_parameters.register_category "unit-domain"
+
+module Static = struct
+  module D = struct
+    include Datatype.Unit
+    type state = t
+
+    let name = "Unit domain"
+    let structure = Abstract_domain.Void
+    let log_category = log_key
+
+    let top = ()
+    let is_included _ _ = true
+    let join _ _ = ()
+    let widen _ _ _ _ = ()
+    let narrow _ _ = `Value ()
+
+    let storage () = false
+  end
+
+  include D
+  module Store = Domain_store.Make (D)
+end
+
+module Make
     (Value: Abstract_value.S)
     (Loc: Abstract_location.S)
 = struct
 
-  include Datatype.Unit
-  type state = t
+  include Static
   type value = Value.t
   type location = Loc.location
-
-  let structure = Abstract_domain.Void
-
-  let top = ()
-  let is_included _ _ = true
-  let join _ _ = ()
-  let join_and_is_included _ _ = (), true
-  let widen _ _ _ _ = ()
 
   type origin = unit
 
@@ -48,36 +63,23 @@ module MakeInternal
   let backward_location _ _ _ loc value = `Value (loc, value)
   let reduce_further _ _ _  = []
 
-  let call_result = `Value [ () ]
-
   module Transfer
       (Valuation: Abstract_domain.Valuation with type value = value
                                              and type loc = location)
   = struct
 
-    type state = t
-    type value = Value.t
-    type location = Loc.location
-    type valuation = Valuation.t
-
     let update _ _ = ()
     let assign _ _ _ _ _ _ = `Value ()
     let assume _ _ _ _ _ = `Value ()
-    let start_call _ _ _ _ = Compute (Continue (), true)
+    let start_call _ _ _ _ = Compute ()
     let finalize_call _ _ ~pre:_ ~post:_ = `Value ()
-    let approximate_call _ _ _ = call_result
-
+    let approximate_call _ _ _ = `Value [ () ]
+    let show_expr _ _ _ _ = ()
   end
 
-  type eval_env = unit
-  let env_current_state _ = `Value ()
-  let env_annot ~pre:_ ~here:_ () = ()
-  let env_pre_f ~pre:_ () = ()
-  let env_post_f ~pre:_ ~post:_ ~result:_ () = ()
-  let eval_predicate _ _ = Alarmset.Unknown
-  let reduce_by_predicate _ _ _ = ()
-
-  let compute_using_specification _ _ _ _ = call_result
+  let logic_assign _ _ ~pre:_ _ = ()
+  let evaluate_predicate _ _ _ = Alarmset.Unknown
+  let reduce_by_predicate _ _ _ _ = `Value ()
 
   let enter_scope _ _ _ = ()
   let leave_scope _ _ _ = ()
@@ -87,23 +89,13 @@ module MakeInternal
   let leave_loop _ _ = ()
 
   let empty () = ()
-  let initialize_var _ _ _ _ = ()
-  let initialize_var_using_type _ _  = ()
-  let global_state () = None
+  let introduce_globals _ () = ()
+  let initialize_variable _ _ ~initialized:_ _ _ = ()
+  let initialize_variable_using_type _ _ _  = ()
 
   let filter_by_bases _ _ = ()
   let reuse ~current_input:_ ~previous_output:_ = ()
-
-  let storage () = false
-
 end
-
-module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.S)
-= Domain_builder.Complete (MakeInternal (Value) (Loc))
-
-
 
 
 (*

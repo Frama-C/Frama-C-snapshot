@@ -30,6 +30,9 @@ open Lang.F
 
 val of_real : c_int -> unop
 val convert : c_int -> unop (** Independent from model *)
+val integer_of_real : unop
+val to_integer : unop
+val of_integer : c_int -> unop
 
 val to_cint : lfun -> c_int (** Raises [Not_found] if not. *)
 val is_cint : lfun -> c_int (** Raises [Not_found] if not. *)
@@ -75,5 +78,7 @@ val f_bit  : lfun
 val is_cint_simplifier: Conditions.simplifier
 (** Remove the [is_cint] in formulas that are
     redundant with other conditions. *)
+
+val mask_simplifier: Conditions.simplifier
 
 val is_positive_or_null: term -> bool

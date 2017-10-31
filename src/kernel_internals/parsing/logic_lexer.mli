@@ -40,4 +40,9 @@ type 'a parse = Lexing.position * string -> Lexing.position * 'a
 val lexpr : Logic_ptree.lexpr parse
 val annot : Logic_ptree.annot parse
 val spec : Logic_ptree.spec parse
-val ext_spec : Logic_ptree.ext_spec parse
+
+val ext_spec : Lexing.lexbuf -> Logic_ptree.ext_spec
+(** ACSL extension for parsing external spec file.
+    Here, the tokens "/*" and "*/" are accepted by the lexer
+    as unnested C comments into the external ACSL specifications.
+    @modified Sulfur-20171101 to accept /* */ as C comments. *)

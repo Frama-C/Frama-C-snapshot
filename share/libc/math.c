@@ -24,38 +24,45 @@
 
 #include "math.h"
 
-/*@ assigns \result \from x; */
-extern double Frama_C_exp(double x);
-/*@ assigns \result \from x; */
-double exp(double x){
-  return Frama_C_exp(x);
-}
-
-/*@ assigns \result \from x; */
-extern double Frama_C_cos(double x);
-/*@ assigns \result \from x; */
-double cos(double x){
-  return Frama_C_cos(x);
-}
-
-/*@ assigns \result \from x; */
-extern double Frama_C_sin(double x);
-/*@ assigns \result \from x; */
-double sin(double x){
-  return Frama_C_sin(x);
-}
-
-/*@ assigns \result \from x; */
-extern double Frama_C_sqrt(double x);
-/*@ assigns \result \from x; */
-double sqrt(double x)
-{
-  return Frama_C_sqrt(x);
-}
-
 double fabs(double x){
   if(x==0.0) return 0.0;
   if (x>0.0) return x;
   return -x;
 }
 
+float fabsf(float x)
+{
+  if (x == 0.0f) {
+    return 0.0f;
+  } else if (x > 0.0f) {
+    return x;
+  } else {
+    return -x;
+  }
+}
+
+int __finitef(float f)
+{
+  union { float f ; unsigned short w[2] ; } u ;
+  unsigned short usExp ;
+
+  u.f = f ;            /* Initilize for word access */
+  usExp = (u.w[1] & 0x7F80) ;   /* Isolate the exponent */
+  usExp >>= 7 ;                 /* Right align */
+
+  /* A floating point value is invalid, if the exponent is 0xff */
+  return !(usExp == 0xff) ;
+}
+
+int __finite(double d)
+{
+  union { double d ; unsigned short w[4] ; } u ;
+  unsigned short usExp ;
+
+  u.d = d ;            /* Initilize for word access */
+  usExp = (u.w[3] & 0x7F80) ;   /* Isolate the exponent */
+  usExp >>= 7 ;                 /* Right align */
+
+  /* A floating point value is invalid, if the exponent is 0xff */
+  return !(usExp == 0xff) ;
+}

@@ -61,7 +61,8 @@ type logs = [ `OUT | `ERR | `BOTH ]
 
 class virtual command : string ->
   object
-
+    method command : string list
+    method pretty : Format.formatter -> unit
     method set_command : string -> unit
     method add : string list -> unit
     method add_int : name:string -> value:int -> unit

@@ -247,11 +247,11 @@ struct
   (* --- Branching                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let branch_vc ~stmt cond vc1 vc2 =
+  let branch_vc ~stmt ~warn cond vc1 vc2 =
     let hyps , goal =
       if F.eqp vc1.goal vc2.goal then
         begin
-          Conditions.branch ~stmt cond vc1.hyps vc2.hyps ,
+          Conditions.branch ~stmt ~warn cond vc1.hyps vc2.hyps ,
           vc1.goal
         end
       else
@@ -260,7 +260,7 @@ struct
         let q = F.p_equal k F.e_false in
         let h1 = Conditions.assume p vc1.hyps in
         let h2 = Conditions.assume q vc2.hyps in
-        (Conditions.branch ~stmt cond h1 h2 , F.p_if p vc1.goal vc2.goal)
+        (Conditions.branch ~stmt ~warn cond h1 h2 , F.p_if p vc1.goal vc2.goal)
     in
     {
       hyps = hyps ;
@@ -357,7 +357,7 @@ struct
 
   let has_init wenv =
     let frame = wenv.frame in
-    let init = L.mem_at_frame frame Clabels.Init in
+    let init = L.mem_at_frame frame Clabels.init in
     let domain = Sigma.domain init in
     not (M.Heap.Set.is_empty domain)
 
@@ -423,7 +423,7 @@ struct
   (* ------------------------------------------------------------------------ *)
 
   let cc_effect env pid (ainfo:WpPropId.assigns_desc) : effect option =
-    let from = Clabels.c_label ainfo.WpPropId.a_label in
+    let from = ainfo.WpPropId.a_label in
     let sigma = L.mem_frame from in
     let region =
       L.assigns
@@ -627,38 +627,29 @@ struct
     | Gposteffect p -> not (Eset.exists (fun e -> P.equal p e.e_pid) es)
     | _ -> true
 
-  let state_vcs label sigma vcs =
+  let state_vcs stmt sigma vcs =
     try
-      let open Clabels in
-      let descr,stmt = 
-        match label with
-        | Here -> raise Not_found
-        | LabelParam _ -> raise Not_found
-        | Init -> Some "Init" , None
-        | Pre -> Some "Pre" , None
-        | Post -> Some "Post" , None
-        | Exit -> Some "Exit" , None
-        | At (lbl::_ , stmt) -> Some lbl , Some stmt
-        | At ([] , stmt) -> None , Some stmt
-      in
+      let descr : string option = match stmt with
+        | None | Some { labels=[] } -> None
+        | Some { labels = lbl::_ } ->
+            Some (Pretty_utils.to_string Printer.pp_label lbl) in
       let state = Mstate.state state sigma in
       gmap (state_vc ?descr ?stmt state) vcs
     with Not_found -> vcs
         
-  let label wenv labl wp =
-    match labl , wp.sigma with
-    | Clabels.Here , _ | _ , None -> wp
-    | _ -> in_wenv wenv wp
-             (fun env wp ->
-                let s_here = L.sigma env in
-                let s_labl = L.mem_frame labl in
-                let pa = Sigma.join s_here s_labl in
-                let stop,effects = Eset.partition (is_stopeffect labl) wp.effects in
-                let vcs = Gmap.filter (not_posteffect stop) wp.vcs in
-                let vcs = gmap (passify_vc pa) vcs in
-                let vcs = check_nothing stop vcs in
-                let vcs = state_vcs labl s_here vcs in
-                { sigma = Some s_here ; vcs=vcs ; effects=effects })
+  let label wenv stmt label wp =
+    if Clabels.is_here label then wp else
+      in_wenv wenv wp
+        (fun env wp ->
+           let s_here = L.sigma env in
+           let s_labl = L.mem_frame label in
+           let pa = Sigma.join s_here s_labl in
+           let stop,effects = Eset.partition (is_stopeffect label) wp.effects in
+           let vcs = Gmap.filter (not_posteffect stop) wp.vcs in
+           let vcs = gmap (passify_vc pa) vcs in
+           let vcs = check_nothing stop vcs in
+           let vcs = state_vcs stmt s_here vcs in
+           { sigma = Some s_here ; vcs=vcs ; effects=effects })
 
   (* -------------------------------------------------------------------------- *)
   (* --- WP RULE : assignation                                              --- *)
@@ -675,10 +666,16 @@ struct
     let seq = { pre=s1 ; post=s2 } in
     obj , domain , seq , loc
 
-  let cc_stored seq loc obj expr =
-    match expr.enode with
-    | Lval lv -> M.copied seq obj loc (C.lval seq.pre lv)
-    | _ -> M.stored seq obj loc (C.val_of_exp seq.pre expr)
+  let cc_stored lv seq loc obj expr =
+    if Cil.isVolatileLval lv &&
+       Cvalues.volatile ~warn:"unsafe write-access to volatile l-value" ()
+    then None
+    else Some
+        begin
+          match expr.enode with
+          | Lval lv -> M.copied seq obj loc (C.lval seq.pre lv)
+          | _ -> M.stored seq obj loc (C.val_of_exp seq.pre expr)
+        end
 
   let assign wenv stmt lv expr wp = in_wenv wenv wp
       begin fun env wp ->
@@ -696,15 +693,16 @@ struct
             let region = [obj,[Sloc loc]] in
             let outcome = Warning.catch
                 ~severe:false ~effect:"Havoc l-value (unknown r-value)"
-                (cc_stored seq loc obj) expr in
+                (cc_stored lv seq loc obj) expr in
             match outcome with
-            | Warning.Failed r_warn ->
-                (* R-Value is unknown *)
+            | Warning.Failed r_warn
+            | Warning.Result(r_warn,None) ->
+                (* R-Value is unknown or L-Value is volatile *)
                 let warn = Warning.Set.union l_warn r_warn in
                 let vcs = do_assigns ~source:FromCode
                     ~stmt ~warn seq region wp.effects wp.vcs in
                 { sigma = Some seq.pre ; vcs=vcs ; effects = wp.effects }
-            | Warning.Result(r_warn,stored) ->
+            | Warning.Result(r_warn,Some stored) ->
                 (* R-Value and effects has been translated *)
                 let warn = Warning.Set.union l_warn r_warn in
                 let ft = M.Heap.Set.fold_sorted
@@ -758,10 +756,11 @@ struct
          let sigma,pa1,pa2 = sigma_union wp1.sigma wp2.sigma in
          let warn,cond =
            match Warning.catch ~source:"Condition"
-                   ~severe:false ~effect:"Skip condition value" (C.cond sigma) exp
+                   ~severe:false ~effect:"Skip condition value"
+                   (C.cond sigma) exp
            with
            | Warning.Result(warn,cond) -> warn,cond
-           | Warning.Failed(warn) -> warn , random ()
+           | Warning.Failed(warn) -> warn,random()
          in
          let effects = Eset.union wp1.effects wp2.effects in
          let vcs =
@@ -779,9 +778,9 @@ struct
              let vcs1 = gmap (passify_vc pa1) wp1.vcs in
              let vcs2 = gmap (passify_vc pa2) wp2.vcs in
              gbranch
-               ~left:(assume_vc ~descr:"Then" ~stmt [cond])
-               ~right:(assume_vc ~descr:"Else" ~stmt [p_not cond])
-               ~both:(branch_vc ~stmt cond)
+               ~left:(assume_vc ~descr:"Then" ~stmt ~warn [cond])
+               ~right:(assume_vc ~descr:"Else" ~stmt ~warn [p_not cond])
+               ~both:(branch_vc ~stmt ~warn cond)
                vcs1 vcs2
          in
          { sigma = Some sigma ; vcs=vcs ; effects=effects }) ()
@@ -902,7 +901,7 @@ struct
          let obj = Ctypes.object_of v.vtype in
          let loc = M.cvar v in
          let value = M.load (L.sigma env) obj loc in
-         let init = M.load (L.mem_at env Clabels.Init) obj loc in
+         let init = M.load (L.mem_at env Clabels.init) obj loc in
          let hyp = F.p_equal (C.cval value) (C.cval init) in
          let filter = true in
          let init = true in
@@ -985,7 +984,7 @@ struct
                  wp.vcs pre
              in { wp with vcs = vcs }
          | Warning.Result(warn,vs) ->
-             let init = L.mem_at env Clabels.Init in
+             let init = L.mem_at env Clabels.init in
              let call = L.call kf vs in
              let call_e = L.call_env sigma in
              let call_f = L.call_pre init call sigma in
@@ -1035,7 +1034,7 @@ struct
         let dummy = Sigma.create () in
         let vs = List.map (C.exp dummy) es in
         let env = L.move env0 dummy in
-        let init = L.mem_at env0 Clabels.Init in
+        let init = L.mem_at env0 Clabels.init in
         let frame = L.call_pre init (L.call kf vs) dummy in
         Some (A.domain (L.in_frame frame (L.assigns_from env) froms))
 
@@ -1044,7 +1043,7 @@ struct
     | Some domain -> { pre = Sigma.havoc s domain ; post = s }
 
   let cc_callenv env0 lvr kf es assigns wpost wexit =
-    let init = L.mem_at env0 Clabels.Init in
+    let init = L.mem_at env0 Clabels.init in
     let dom_call = cc_call_domain env0 kf es assigns in
     let dom_vret = cc_result_domain lvr in
     (* Sequences to be considered *)
@@ -1238,7 +1237,7 @@ struct
 
   let build_prop_of_from wenv preconds wp = in_wenv wenv wp
       (fun env wp ->
-         let sigma = L.mem_frame Pre in
+         let sigma = L.mem_frame Clabels.pre in
          let env_pre = L.move env sigma in
          let hs = List.map
              (fun (_,p) -> L.pred `Negative env_pre p)

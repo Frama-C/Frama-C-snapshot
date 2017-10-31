@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/absorb.c (with preprocessing)
 tests/float/absorb.c:15:[kernel] warning: Floating-point constant 1e-286 is not represented exactly. Will use 0x1.e74404f3daadbp-951. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
@@ -54,6 +53,6 @@ tests/float/absorb.c:18:[value] warning: non-finite float value.
   den FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b
+          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
 [inout] Inputs for function main:
           Frama_C_entropy_source; x; y; min_f

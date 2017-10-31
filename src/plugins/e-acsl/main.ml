@@ -149,6 +149,7 @@ let generate_code =
       apply_on_e_acsl_ast
         (fun () ->
           Options.feedback "beginning translation.";
+          Temporal.enable (Options.Temporal_validity.get ());
           let prepared_prj = Prepare_ast.prepare () in
           let res =
             Project.on prepared_prj

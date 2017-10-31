@@ -16,7 +16,7 @@ void leaf_fun_charp(char* x);
   @*/
 void main(int c, char **v)
 {
-  if (c&1) leaf_fun_int(v[1]);
+  if (c&1) leaf_fun_int((int)v[1]);
   if (c&2) leaf_fun_charp(v[1]);
   int lcount= 0;
   res= 1111;

@@ -75,7 +75,8 @@ struct
           c.cfields
     | C_array a ->
         (*TODO[LC] make zero-initializers model-dependent.
-          	    For instance, a[N][M] becomes a[N*M] in MemTyped, but not in MemVar *)
+          	   For instance, a[N][M] becomes a[N*M] in MemTyped, 
+                   but not in MemVar *)
         let x = Lang.freshvar ~basename:"k" Logic.Int in
         let k = e_var x in
         let obj = Ctypes.object_of a.arr_element in
@@ -223,10 +224,10 @@ struct
 
     | C_float fr , C_float fe ->
         let v = cval ve in
-        Val( if Ctypes.sub_c_float fe fr then v else Cfloat.convert fr v )
+        Val( if Ctypes.equal_float fe fr then v else Cfloat.float_of_real fr (Cfloat.real_of_float fe v) )
 
-    | C_int ir , C_float _ -> Val(Cint.of_real ir (cval ve))
-    | C_float fr , C_int _ -> Val(Cfloat.float_of_int fr (cval ve))
+    | C_int ir , C_float fr -> Val(Cint.of_real ir (Cfloat.real_of_float fr (cval ve)))
+    | C_float fr , C_int _ -> Val(Cfloat.float_of_real fr (Cfloat.real_of_int (cval ve)))
 
     | C_pointer tr , C_pointer te ->
         let obj_r = Ctypes.object_of tr in
@@ -250,6 +251,15 @@ struct
           Printer.pp_typ te Printer.pp_typ tr
 
   (* -------------------------------------------------------------------------- *)
+  (* --- Undefined Exp                                                      --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let exp_undefined e =
+    let ty = Cil.typeOf e in
+    let x = Lang.freshvar ~basename:"w" (Lang.tau_of_ctype ty) in
+    Val (e_var x)
+
+  (* -------------------------------------------------------------------------- *)
   (* --- Exp-Node                                                           --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -261,12 +271,16 @@ struct
     | Const c -> Val (Cvalues.constant c)
 
     | Lval lv ->
-        let loc = lval env lv in
-        let typ = Cil.typeOfLval lv in
-        let obj = Ctypes.object_of typ in
-        let data = M.load env obj loc in
-        Lang.assume (Cvalues.is_object obj data) ;
-        data
+        if Cil.isVolatileLval lv &&
+           Cvalues.volatile ~warn:"unsafe read-access to volatile l-value" ()
+        then exp_undefined e
+        else
+          let loc = lval env lv in
+          let typ = Cil.typeOfLval lv in
+          let obj = Ctypes.object_of typ in
+          let data = M.load env obj loc in
+          Lang.assume (Cvalues.is_object obj data) ;
+          data
 
     | AddrOf lv | StartOf lv -> Loc (lval env lv)
 
@@ -290,14 +304,9 @@ struct
   (* --- Exp with Error                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let exp_handler e =
-    let ty = Cil.typeOf e in
-    let x = Lang.freshvar ~basename:"w" (Lang.tau_of_ctype ty) in
-    Val (e_var x)
-
   let exp_protected env e =
     Warning.handle
-      ~handler:exp_handler
+      ~handler:exp_undefined
       ~severe:false
       ~effect:"Hide sub-term definition"
       (exp_node env) e
@@ -324,13 +333,16 @@ struct
         then M.loc_eq (cloc v1) (cloc v2)
         else p_equal (cval v1) (cval v2)
 
-  let compare env vop lop e1 e2 =
-    let t1 = Cil.typeOf e1 in
-    let t2 = Cil.typeOf e2 in
-    if Cil.isPointerType t1 && Cil.isPointerType t2 then
-      lop (loc_of_exp env e1) (loc_of_exp env e2)
-    else
-      vop (val_of_exp env e1) (val_of_exp env e2)
+  let compare env vop lop fop e1 e2 =
+    let t1 = Ctypes.object_of (Cil.typeOf e1) in
+    let t2 = Ctypes.object_of (Cil.typeOf e2) in
+    if not (Ctypes.equal t1 t2) then
+      Warning.error "Comparison with different types (%a) and (%a)"
+        Ctypes.pretty t1 Ctypes.pretty t2 ;
+    match t1 with
+    | C_pointer _ -> lop (loc_of_exp env e1) (loc_of_exp env e2)
+    | C_float f -> (fop f) (val_of_exp env e1) (val_of_exp env e2)
+    | _ -> vop (val_of_exp env e1) (val_of_exp env e2)
 
   let cond_node env e =
     match e.enode with
@@ -338,12 +350,12 @@ struct
     | UnOp(  LNot, e,_)     -> p_not (!s_cond env e)
     | BinOp( LAnd, e1,e2,_) -> p_and (!s_cond env e1) (!s_cond env e2)
     | BinOp( LOr,  e1,e2,_) -> p_or (!s_cond env e1) (!s_cond env e2)
-    | BinOp( Eq,   e1,e2,_) -> compare env p_equal M.loc_eq e1 e2
-    | BinOp( Ne,   e1,e2,_) -> compare env p_neq M.loc_neq e1 e2
-    | BinOp( Lt,   e1,e2,_) -> compare env p_lt  M.loc_lt  e1 e2
-    | BinOp( Gt,   e1,e2,_) -> compare env p_lt  M.loc_lt  e2 e1
-    | BinOp( Le,   e1,e2,_) -> compare env p_leq M.loc_leq e1 e2
-    | BinOp( Ge,   e1,e2,_) -> compare env p_leq M.loc_leq e2 e1
+    | BinOp( Eq,   e1,e2,_) -> compare env p_equal M.loc_eq Cfloat.feq e1 e2
+    | BinOp( Ne,   e1,e2,_) -> compare env p_neq M.loc_neq Cfloat.fneq e1 e2
+    | BinOp( Lt,   e1,e2,_) -> compare env p_lt  M.loc_lt  Cfloat.flt e1 e2
+    | BinOp( Gt,   e1,e2,_) -> compare env p_lt  M.loc_lt  Cfloat.flt e2 e1
+    | BinOp( Le,   e1,e2,_) -> compare env p_leq M.loc_leq Cfloat.fle e1 e2
+    | BinOp( Ge,   e1,e2,_) -> compare env p_leq M.loc_leq Cfloat.fle e2 e1
 
     | _ ->
         begin

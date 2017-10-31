@@ -55,7 +55,6 @@ int call_in_loop (int c) {
 
 int main (void) {
   int a = 0, b = 1, c = 3;
-  int i;
   a = call (a+b, b+c);
   return a;
 }

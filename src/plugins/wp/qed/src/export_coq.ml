@@ -333,6 +333,18 @@ struct
           fprintf fmt "@ %a.@]@\n" self#pp_tau t ;
         end
 
+      method declare_inductive fmt f ts t l =
+        begin
+          fprintf fmt "@[<hov 4>Inductive %s :" (link_name (self#link f)) ;
+          List.iter (fun t -> fprintf fmt "@ %a ->" self#pp_tau t) ts ;
+          fprintf fmt "@ %a :=" self#pp_tau t ;
+          List.iter
+                  (fun (lemma,xs,(_:trigger list list),p) ->
+                     fprintf fmt "@ | @[<hov 2>%s: %a@]" lemma self#pp_prop (T.e_forall xs p)
+                  ) l ;
+          fprintf fmt ".@]@\n"
+        end
+
       method declare_definition fmt f xs t e =
         self#global
           begin fun () ->

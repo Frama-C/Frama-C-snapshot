@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/enum2.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -8,7 +7,7 @@
   must_be_zero ∈ {0}
 [value] computing for function enum1_sgn1_inf_sgn0 <- main.
         Called from tests/value/enum2.c:33.
-[value] Called Frama_C_show_each_enum1_sgn1_inf_sgn0({0})
+tests/value/enum2.c:27:[value] Frama_C_show_each_enum1_sgn1_inf_sgn0: {0}
 [value] Recording results for enum1_sgn1_inf_sgn0
 [value] Done for function enum1_sgn1_inf_sgn0
 [value] computing for function enum1_sgn1_positif <- main.
@@ -17,10 +16,10 @@
         Called from tests/value/enum2.c:21.
 [value] Recording results for f
 [value] Done for function f
-[value] Called Frama_C_show_each_enum1_sgn1_positif({1})
+tests/value/enum2.c:22:[value] Frama_C_show_each_enum1_sgn1_positif: {1}
 [value] Recording results for enum1_sgn1_positif
 [value] Done for function enum1_sgn1_positif
-[value] Called Frama_C_show_each_sizeof_enum1({8})
+tests/value/enum2.c:35:[value] Frama_C_show_each_sizeof_enum1: {8}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

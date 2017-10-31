@@ -15,3 +15,12 @@ int case2(int arg) {
   }
   return 0;
 }
+
+int case3(int arg) {
+  int vla[arg];
+  /* The return under the if is transformed into a goto to a unique return
+     statement. The destructor for vla is inserted before this unique return
+     statement. The goto must be changed to target this destructor. */
+  if (arg >= 10) return 1;
+  return 0;
+}

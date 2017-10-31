@@ -22,12 +22,12 @@
 
 #ifndef __FC_NETINET_IN_H__
 #define __FC_NETINET_IN_H__
-
 #include "../features.h"
+__PUSH_FC_STDLIB
+__BEGIN_DECLS
+
 #include "inttypes.h"
 #include "sys/socket.h"
-
-__BEGIN_DECLS
 
 typedef uint16_t in_port_t;
 typedef uint32_t in_addr_t;
@@ -56,9 +56,11 @@ struct sockaddr_in6 {
 
 #define INADDR_ANY 0
 #define INADDR_BROADCAST 0XFFFFFFFFUL
+#define INET_ADDRSTRLEN 16
 
 #define IN6ADDR_ANY 0
 #define IN6ADDR_BROADCAST 0XFFFFFFFFFFFFFFFFULL
+#define INET6_ADDRSTRLEN 46
 
 const struct in6_addr in6addr_any={{0}};
 const struct in6_addr in6addr_loopback=
@@ -316,5 +318,5 @@ struct in_pktinfo
 #define IPV6_RTHDR_TYPE_0	0	/* IPv6 Routing header type 0.  */
 
 __END_DECLS
-
+__POP_FC_STDLIB
 #endif

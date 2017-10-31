@@ -22,6 +22,8 @@
 
 (* -------------------------------------------------------------------------- *)
 (* --- ACSL Translation                                                   --- *)
+(* --- LogicSemantics and LogicCompiler are mutually recursive (cycle     --- *)
+(* --- closed by "boostrap*" function                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
 open Cil_types
@@ -438,7 +440,7 @@ struct
 
   let rec cvsort_of_type t =
     match Logic_utils.unroll_type t with
-    | Ltype({lt_name="set"},[t]) -> cvsort_of_type t
+    | Ltype({lt_name="set"},[t]) -> (cvsort_of_type t)
     | Ltype _ as b when Logic_const.is_boolean_type b -> L_bool
     | Linteger -> L_integer
     | Lreal -> L_real
@@ -455,6 +457,29 @@ struct
     | _ -> Warning.error "cast from (%a) not implemented yet"
              Printer.pp_logic_type t
 
+  (** cast to a logic type *)
+  let term_logic_cast env typ t =
+    match cvsort_of_type typ , cvsort_of_type t.term_type with
+    | L_integer, L_real ->
+        L.map Cint.integer_of_real (C.logic env t)
+    | L_real, L_integer ->
+        L.map Cfloat.real_of_int (C.logic env t)
+    | L_cfloat f, L_real ->
+        L.map (Cfloat.float_of_real f) (C.logic env t)
+    | L_real, L_cfloat f ->
+        L.map (Cfloat.real_of_float f) (C.logic env t)
+    | L_cint i, L_real ->
+        L.map (Cint.of_real i) (C.logic env t)
+    | L_real, L_cint _ ->
+        L.map (fun x -> Cfloat.real_of_int (Cint.to_integer x)) (C.logic env t)
+    | L_integer, L_cint _ ->
+        L.map Cint.to_integer (C.logic env t)
+    | L_cint i, L_integer ->
+        L.map (Cint.of_integer i) (C.logic env t)
+    | _ ->
+        C.logic env t
+
+  (** cast to a C type *)
   let term_cast env typ t =
     match Ctypes.object_of typ , cvsort_of_type t.term_type with
     | C_int i , L_cint i0 ->
@@ -467,8 +492,11 @@ struct
         L.map_l2t (M.int_of_loc i) (C.logic env t)
     | C_int i , (L_cfloat _ | L_real) ->
         L.map (Cint.of_real i) (C.logic env t)
-    | C_float f , (L_cfloat _ | L_real) ->
-        L.map (Cfloat.convert f) (C.logic env t)
+    | C_float f , L_real ->
+        L.map (Cfloat.float_of_real f) (C.logic env t)
+    | C_float ft,  L_cfloat ff ->
+        let map v = if Ctypes.equal_float ff ft then v else Cfloat.float_of_real ft (Cfloat.real_of_float ff v) in
+        L.map map (C.logic env t)
     | C_float f , (L_cint _ | L_integer) ->
         L.map (Cfloat.float_of_int f) (C.logic env t)
     | C_pointer ty , L_pointer t0 ->
@@ -484,8 +512,9 @@ struct
     | C_int _ , L_bool ->
         L.map Cvalues.bool_val (C.logic env t)
     | _ ->
-        Warning.error "Cast from (%a) to (%a) not implemented yet"
+        Warning.error "@[Cast from (%a) to (%a) not implemented yet@]"
           Printer.pp_logic_type t.term_type Printer.pp_typ typ
+
 
   (* -------------------------------------------------------------------------- *)
   (* --- Environment Binding                                                --- *)
@@ -507,16 +536,27 @@ struct
     acc [] env [] qs
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Term Nodes                                                         --- *)
+  (* --- Undefined Term                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec term_node (env:env) t =
+  let term_undefined t =
+    let x = Lang.freshvar ~basename:"w" (Lang.tau_of_ltype t.term_type) in
+    Cvalues.plain t.term_type (e_var x)
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Term Nodes                                                         --- *)
+  (* -------------------------------------------------------------------------- *)
+  let term_node (env:env) t =
     match t.term_node with
     | TConst c -> Vexp (Cvalues.logic_constant c)
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
         Vexp (Cvalues.constant_term t)
 
-    | TLval lval -> term_lval env lval
+    | TLval lval ->
+        if Cil.isVolatileTermLval lval &&
+           Cvalues.volatile ~warn:"unsafe volatile access to (term) l-value" ()
+        then term_undefined t
+        else term_lval env lval
     | TAddrOf lval | TStartOf lval -> addr_lval env lval
 
     | TUnOp(Neg,t) when not (Logic_typing.is_integral_type t.term_type) ->
@@ -558,7 +598,7 @@ struct
         Vexp (e_if c a b)
 
     | Tat( t , label ) ->
-        let clabel = Clabels.c_label label in
+        let clabel = Clabels.of_logic label in
         C.logic (C.env_at env clabel) t
 
     | Tbase_addr (label,t) ->
@@ -571,7 +611,7 @@ struct
 
     | Tblock_length (label,t) ->
         let obj = object_of (Logic_typing.ctype_of_pointed t.term_type) in
-        let sigma = C.mem_at env (c_label label) in
+        let sigma = C.mem_at env (of_logic label) in
         L.map_l2t (M.block_length sigma obj) (C.logic env t)
 
     | Tnull ->
@@ -620,7 +660,7 @@ struct
 
     | Ttypeof _ | Ttype _ ->
         Warning.error "Type tag not implemented yet"
-    | TLogic_coerce(_,t) -> term_node env t
+    | TLogic_coerce(typ,t) -> term_logic_cast env typ t
 
   (* -------------------------------------------------------------------------- *)
   (* --- Separated                                                          --- *)
@@ -656,7 +696,7 @@ struct
 
   let valid env acs label t =
     let te = Logic_typing.ctype_of_pointed t.term_type in
-    let sigma = C.mem_at env (Clabels.c_label label) in
+    let sigma = C.mem_at env (Clabels.of_logic label) in
     let addrs = C.logic env t in
     L.valid sigma acs (Ctypes.object_of te) (L.sloc addrs)
 
@@ -728,7 +768,7 @@ struct
         p_exists xs (p_conj (p :: hs))
 
     | Pat(p,label) ->
-        let clabel = Clabels.c_label label in
+        let clabel = Clabels.of_logic label in
         C.pred polarity (C.env_at env clabel) p
 
     | Pvalid(label,t) -> valid env RW label t
@@ -780,7 +820,7 @@ struct
         end
 
     | Tat(t,label) ->
-        C.region (C.env_at env (Clabels.c_label label)) t
+        C.region (C.env_at env (Clabels.of_logic label)) t
 
     | Tlet( { l_var_info=v ; l_body=LBterm a } , b ) ->
         let va = C.logic env a in
@@ -808,13 +848,9 @@ struct
   (* --- Protection                                                         --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let term_handler t =
-    let x = Lang.freshvar ~basename:"w" (Lang.tau_of_ltype t.term_type) in
-    Cvalues.plain t.term_type (e_var x)
-
   let term_protected env t =
     Warning.handle
-      ~handler:term_handler
+      ~handler:term_undefined
       ~severe:false
       ~effect:"Hide sub-term definition"
       (term_node env) t

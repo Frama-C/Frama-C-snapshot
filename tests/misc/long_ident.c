@@ -14,7 +14,8 @@ enum { OK = 1,
 /*@ ensures \valid(p);
  */
 void main (int LV, int * p) {
-int LV = 0;
- e = OK ; // <-- obfuscation error [bts#403]
- f(p);
+  { int LV = 0;
+    e = OK ; // <-- obfuscation error [bts#403]
+    f(p);
+  }
 }

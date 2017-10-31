@@ -64,22 +64,15 @@ let are_comparable_string pointer1 pointer2 =
    when their offset is 0. For object pointers, the offset is checked
    against the validity of each base, taking past-one into account. *)
 let possible_pointer ~one_past location =
-  try
-    let location = Locations.loc_bytes_to_loc_bits location in
-    let is_possible_offset base offs =
-      if Base.is_function base then
-        if Ival.is_zero offs then () else raise Base.Not_valid_offset
-      else
-        let size = if one_past then Integer.zero else Integer.one in
-        Base.is_valid_offset ~for_writing:false size base offs
-    in
-    match location with
-    | Locations.Location_Bits.Top _ -> false
-    | Locations.Location_Bits.Map m ->
-      Locations.Location_Bits.M.iter is_possible_offset m;
-      true
-  with
-  | Int_Base.Error_Top | Base.Not_valid_offset -> false
+  let location = Locations.loc_bytes_to_loc_bits location in
+  let is_possible_offset base offs =
+    if Base.is_function base then
+      Ival.is_zero offs
+    else
+      let size = if one_past then Integer.zero else Integer.one in
+      Base.is_valid_offset ~for_writing:false size base offs
+  in
+  Locations.Location_Bits.for_all is_possible_offset location
 
 (* Are [ev1] and [ev2] safely comparable, or does their comparison involves
    invalid pointers, or is undefined (typically pointers in different bases). *)
@@ -186,59 +179,68 @@ let overflow_alarms ~signed ~min:mn ~max:mx expr =
   let alarms = signed Alarms.Lower_bound mn Alarmset.none in
   signed Alarms.Upper_bound mx alarms
 
-let handle_overflow ~warn_unsigned expr typ interpreted_e =
-  match Cil.unrollType typ with
-  | TInt (kind, _) ->
-    let signed = Cil.isSigned kind in
-    let size = Cil.bitsSizeOfInt kind in
-    let mn, mx =
-      if signed then
-        let b = Integer.two_power_of_int (size-1) in
-        Integer.neg b, Integer.pred b
-      else
-        Integer.zero, Integer.pred (Integer.two_power_of_int size)
+let truncate_integer expr range value =
+  let signed = range.Eval_typ.i_signed in
+  let size = range.Eval_typ.i_bits in
+  let mn, mx =
+    if signed then
+      let b = Integer.two_power_of_int (size-1) in
+      Integer.neg b, Integer.pred b
+    else
+      Integer.zero, Integer.pred (Integer.two_power_of_int size)
+  in
+  let warn_under, warn_over =
+    try
+      let i = V.project_ival value in
+      let imn, imx = Ival.min_and_max i in
+      let u = match imn with
+        | Some bound when Integer.ge bound mn -> None
+        | _ -> Some mn
+      and o = match imx with
+        | Some bound when Integer.le bound mx -> None
+        | _ -> Some mx
+      in
+      u, o
+    with V.Not_based_on_null ->
+      (* Catch bottom case here: there is no overflow in this case. *)
+      if V.is_bottom value then None, None else Some mn, Some mx
+  in
+  match warn_under, warn_over with
+  | None, None -> value, Alarmset.none
+  | _ ->
+    let all_values =
+      Cvalue.V.inject_ival (Ival.inject_range (Some mn) (Some mx))
     in
-    let warn_under, warn_over =
-      try
-        let i = V.project_ival interpreted_e in
-        let imn, imx = Ival.min_and_max i in
-        let u = match imn with
-          | Some bound when Integer.ge bound mn -> None
-          | _ -> Some mn
-        and o = match imx with
-          | Some bound when Integer.le bound mx -> None
-          | _ -> Some mx
-        in
-        u, o
-      with V.Not_based_on_null ->
-        (* Catch bottom case here: there is no overflow in this case. *)
-        if V.is_bottom interpreted_e then None, None else Some mn, Some mx
-    in
-    begin match warn_under, warn_over with
-      | None, None -> interpreted_e, Alarmset.none
-      | _ ->
-        if (signed && Kernel.SignedOverflow.get ()) ||
-           (not signed && warn_unsigned && Kernel.UnsignedOverflow.get())
-        then
-          let all_values =
-            Cvalue.V.inject_ival (Ival.inject_range (Some mn) (Some mx))
-          in
-          let alarms =
-            overflow_alarms ~signed ~min:warn_under ~max:warn_over expr
-          in
-          (* Take care of pointers addresses that may have crept in,
-             as they may alias with the NULL base *)
-          if V.is_arithmetic interpreted_e
-          then V.narrow all_values interpreted_e, alarms
-          else interpreted_e, alarms
-        else begin
-          if signed then
-            Value_util.warning_once_current
-              "2's complement assumed for overflow";
-          interpreted_e, Alarmset.none
-        end
-    end
-  | _ -> interpreted_e, Alarmset.none
+    let alarms = overflow_alarms ~signed ~min:warn_under ~max:warn_over expr in
+    (* Take care of pointers addresses that may have crept in,
+       as they may alias with the NULL base *)
+    if V.is_arithmetic value
+    then V.narrow all_values value, alarms
+    else value, alarms
+
+let rewrap_integer range value =
+  let size = Integer.of_int range.Eval_typ.i_bits in
+  let v, identity = V.cast ~signed:range.Eval_typ.i_signed ~size value in
+  if range.Eval_typ.i_signed && not identity then
+    Value_util.warning_once_current
+      "2's complement assumed for overflow";
+  v
+
+let unsafe_cast_float fkind v =
+  match Value_util.float_kind fkind with
+  | Fval.Float32 ->
+    let rounding_mode = Value_util.get_rounding_mode () in
+    Cvalue.V.cast_float ~rounding_mode v
+  | Fval.Float64 -> Cvalue.V.cast_double v
+
+let cast_float expr fkind v =
+  let addresses, overflow, r = unsafe_cast_float fkind v in
+  let alarms =
+    if overflow || addresses
+    then Alarmset.singleton (Alarms.Is_nan_or_infinite (expr, fkind))
+    else Alarmset.none
+  in
+  r, alarms
 
 
 (* --------------------------------------------------------------------------
@@ -296,7 +298,7 @@ let forward_minus_pp ~context ~typ ev1 ev2 =
       if Integer.is_one size
       then minus_offs
       else Ival.scale_div ~pos:true size minus_offs
-    with Int_Base.Error_Top -> Ival.top
+    with Abstract_interp.Error_Top -> Ival.top
   in
   if not (Value_parameters.WarnPointerSubstraction.get ()) then
     (* Generate garbled mix if the two pointers disagree on their base *)
@@ -320,7 +322,7 @@ let forward_minus_pp ~context ~typ ev1 ev2 =
 
 (* Evaluation of some operations on Cvalue.V. [typ] is the type of [ev1].
    The function must behave as if it was acting on unbounded integers *)
-let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
+let forward_binop_int ~context ~logic ~typ ev1 op ev2 =
   let e1 = context.left_operand and e2 = context.right_operand in
   match op with
   | PlusPI
@@ -335,11 +337,17 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
   | Div     -> V.div ev1 ev2, division_alarms e2 ev2
   | Mult    -> return (V.mul ev1 ev2)
   | Shiftrt ->
-    let ev2, alarms = reduce_shift_rhs typ e2 ev2 in
-    V.shift_right ev1 ev2, alarms
+    if logic
+    then V.shift_right ev1 ev2, Alarmset.none
+    else
+      let ev2, alarms = reduce_shift_rhs typ e2 ev2 in
+      V.shift_right ev1 ev2, alarms
   | Shiftlt ->
-    let ev1, ev2, alarms = reduce_shift_left typ e1 ev1 e2 ev2 in
-    V.shift_left ev1 ev2, alarms
+    if logic
+    then V.shift_left ev1 ev2, Alarmset.none
+    else
+      let ev1, ev2, alarms = reduce_shift_left typ e1 ev1 e2 ev2 in
+      V.shift_left ev1 ev2, alarms
   | BXor    -> return (V.bitwise_xor ev1 ev2)
   | BOr     -> return (V.bitwise_or ev1 ev2)
   | BAnd    ->
@@ -359,7 +367,7 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
   | Eq | Ne | Ge | Le | Gt | Lt ->
     let op = Value_util.conv_comp op in
     let ok, reason = are_comparable_reason op ev1 ev2 in
-    if reason <> `Ok then
+    if reason <> `Ok && not logic then
       Value_parameters.result
         ~current:true ~once:true
         ~dkey:Value_parameters.dkey_pointer_comparison
@@ -376,6 +384,7 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
     let signed = Bit_utils.is_signed_int_enum_pointer (Cil.unrollType typ) in
     let r = V.inject_comp_result (V.forward_comp_int ~signed op ev1 ev2) in
     if not ok && Value_parameters.UndefinedPointerComparisonPropagateAll.get ()
+       && not logic
     then begin
       Value_parameters.result
         ~current:true ~once:true
@@ -385,18 +394,6 @@ let forward_binop_unbounded_integer ~context ~typ ev1 op ev2 =
       V.zero_or_one, alarms
     end
     else r, alarms
-
-let forward_binop_int ~context ~typ ev1 op ev2 =
-  let res, alarms = forward_binop_unbounded_integer ~context ~typ ev1 op ev2 in
-  match op with
-  | Shiftlt | Mult | MinusPP | MinusPI | IndexPI | PlusPI
-  | PlusA | Div | Mod | MinusA ->
-    let warn_unsigned = op <> Shiftlt in
-    let res, alarms' =
-      handle_overflow ~warn_unsigned context.binary_result context.result_typ res
-    in
-    res, Alarmset.union alarms alarms'
-  | _ -> res, alarms
 
 let forward_binop_float round ev1 op ev2 =
   let conv v =
@@ -466,16 +463,9 @@ let forward_uneg ~context:{operand} v t =
       return (V.inject_ival (Ival.neg_int v))
     with V.Not_based_on_null -> return (V.topify_arith_origin v)
 
-let forward_unop ~check_overflow ~context typ op value =
+let forward_unop ~context typ op value =
   match op with
-  | Neg ->
-    let r, alarms = forward_uneg ~context value typ in
-    if check_overflow
-    then
-      let warn_unsigned = true in
-      let r, alarms' = handle_overflow ~warn_unsigned context.result typ r in
-      r, Alarmset.union alarms alarms'
-    else r, alarms
+  | Neg -> forward_uneg ~context value typ
   | BNot -> begin
       match Cil.unrollType typ with
       | TInt (ik, _) | TEnum ({ekind=ik}, _) ->
@@ -532,21 +522,36 @@ let forward_unop ~check_overflow ~context typ op value =
 
 type integer_range = Eval_typ.integer_range = { i_bits: int; i_signed: bool }
 
+(* If these options are enabled, no integer or pointer value can wrap during the
+   analysis. Therefore, the concretization of the abstract value {{ &x }} is
+   exactly &x. Otherwise, the integer representation of this address could have
+   been wrapped around in an integer type (by integer overflow or a downcast),
+   and we don't known how it is now represented in its C type. For instance, an
+   address can be negative in a signed type, and thus cannot be safely converted
+   even into the (unsigned) pointer type. *)
+let no_wrapping () =
+  Kernel.SignedDowncast.get () && Kernel.UnsignedDowncast.get ()
+  && Kernel.SignedOverflow.get () && Kernel.UnsignedOverflow.get ()
+
+(* Depends on machdep *)
+let ptr_range () = Eval_typ.ik_range Cil.theMachine.Cil.upointKind
+
 (* Check whether [v] of fits within the range [range]. Returns two [ok]
    booleans, one for each bound. *)
 let value_inclusion v range =
   let i, p = V.split Base.null v in
-  (* Check pure pointer part: emit an alarm if it is non-empty, and a pointer
-     would not fit within the destination type. Garbled mix also have an
-     integer part, which is checked later with the integer part. *)
+  (* Check whether the pointer part fits within [dst]. *)
   let ok_ptr_min, ok_ptr_max =
     if V.is_bottom p
     then true, true
-    else
-      let r_ptr = Eval_typ.ik_range Cil.theMachine.Cil.upointKind in
-      Eval_typ.range_inclusion r_ptr range
+    (* If no wrapping is possible and the value [p] is a nearly valid pointer,
+       then [p] fits within the pointer type [upointKind]. In this case, do not
+       emit alarms if this type is included in the destination type. *)
+    else if no_wrapping () && possible_pointer ~one_past:true p
+    then Eval_typ.range_inclusion (ptr_range ()) range
+    else false, false
   in
-  (* Check whether the integer part fits within [dst] *)
+  (* Check whether the integer part fits within [dst]. *)
   let ok_min, ok_max =
     if Ival.is_bottom i then
       true, true
@@ -619,12 +624,13 @@ let signed_ikind = function
   | ILong | IULong          -> ILong
   | ILongLong | IULongLong  -> ILongLong
 
-let signed_counterpart typ =
+let rec signed_counterpart typ =
   match Cil.unrollType typ with
   | TInt (ik, attrs) -> TInt (signed_ikind ik, attrs)
   | TEnum ({ekind = ik} as info, attrs) ->
     let info = { info with ekind = signed_ikind ik} in
     TEnum (info, attrs)
+  | TPtr _ -> signed_counterpart Cil.(theMachine.upointType)
   | _ -> assert false
 
 module MemoDowncastConvertedAlarm =
@@ -684,13 +690,6 @@ let reinterpret_int range v =
   let size = Integer.of_int range.i_bits in
   fst (V.cast ~signed:range.i_signed ~size v)
 
-let reinterpret_float fkind v =
-  match Value_util.float_kind fkind with
-  | Fval.Float32 ->
-    let rounding_mode = Value_util.get_rounding_mode () in
-    Cvalue.V.cast_float ~rounding_mode v
-  | Fval.Float64 -> Cvalue.V.cast_double v
-
 let cast_int exp ~src ~dst v =
   let effects, v =
     if
@@ -700,7 +699,13 @@ let cast_int exp ~src ~dst v =
     else cast_effects ~src ~dst v exp, v
   in
   match effects with
-  | Identity -> v, Alarmset.none
+  | Identity ->
+    let v =
+      if V.is_topint v
+      then reinterpret_int dst v
+      else reinterpret_int dst v
+    in
+    v, Alarmset.none
   | DowncastWrap ->
     let size = Integer.of_int dst.i_bits in
     let v', _ = V.cast ~signed:dst.i_signed ~size v in
@@ -711,19 +716,10 @@ let cast_int exp ~src ~dst v =
     let v_irange = V.inject_ival irange in
     (V.join v_irange pointer_part), alarms
 
-let cast_float exp fkind v =
-  let addresses, overflow, r = reinterpret_float fkind v in
-  let alarms =
-    if overflow || addresses
-    then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
-    else Alarmset.none
-  in
-  r, alarms
-
 let unsafe_reinterpret typ v =
   match Eval_typ.classify_as_scalar typ with
   | TSInt ik | TSPtr ik  -> reinterpret_int ik v
-  | TSFloat fk -> let _, _, v = reinterpret_float fk v in v
+  | TSFloat fk -> let _, _, v = unsafe_cast_float fk v in v
   | TSNotScalar -> v
 
 (* TODO: reinterpret should never raise an alarm. Infinite/NaN should
@@ -769,9 +765,9 @@ let do_promotion ~rounding_mode ~src_typ ~dst_typ exp v =
   match Eval_typ.classify_as_scalar dst_typ,
         Eval_typ.classify_as_scalar src_typ
   with
-  | TSFloat _, (TSInt _ | TSPtr _) -> (* Cannot overflow with 32 bits float *)
+  | TSFloat fkind, (TSInt _ | TSPtr _) -> (* Cannot overflow with 32 bits float *)
     let v, _ok = Cvalue.V.cast_int_to_float rounding_mode v in
-    return v
+    cast_float exp fkind v
 
   | (TSInt dst | TSPtr dst), TSFloat fk ->
     float_to_int_alarms dst fk exp v
@@ -821,7 +817,8 @@ let eval_float_constant exp f fkind fstring =
       then Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind))
       else Alarmset.none
     in
-    `Value v, alarms
+    let v, alarms' = cast_float exp fkind v in
+    `Value v, Alarmset.union alarms alarms'
   with Fval.Non_finite ->
     let alarms = Alarmset.singleton (Alarms.Is_nan_or_infinite (exp, fkind)) in
     `Bottom, alarms

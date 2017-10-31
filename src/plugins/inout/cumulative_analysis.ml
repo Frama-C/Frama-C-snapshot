@@ -85,7 +85,7 @@ struct
   module Memo =
     Kernel_function.Make_Table(X.T)
       (struct
-         let name = "Memo " ^ X.analysis_name
+         let name = "Inout.Cumulative_analysis.Memo(" ^ X.analysis_name ^ ")"
          let dependencies = [ Db.Value.self ]
          let size = 97
        end)

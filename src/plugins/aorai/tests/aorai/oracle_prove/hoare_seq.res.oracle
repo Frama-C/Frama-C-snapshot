@@ -1,7 +1,5 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/hoare_seq.i (no preprocessing)
 [aorai] Welcome to the Aorai plugin
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_hoare_seq0.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

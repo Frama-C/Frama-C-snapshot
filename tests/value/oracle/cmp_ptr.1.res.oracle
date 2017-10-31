@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/cmp_ptr.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -38,6 +37,8 @@ tests/value/cmp_ptr.i:21:[value:pointer-comparison] invalid pointer comparison: 
 tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0; 1} because of UPCPA
 tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
                                                                                        [-8589934588..16],0%4 }} because of UPCPA
+tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
 tests/value/cmp_ptr.i:21:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&T[5]));
 tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
                                                                                        [20..8589934592],0%4 }} because of UPCPA

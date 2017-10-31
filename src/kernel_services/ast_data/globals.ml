@@ -137,7 +137,7 @@ module Functions = struct
     Cil_state_builder.Varinfo_hashtbl
       (Cil_datatype.Kf)
       (struct
-         let name = "Functions"
+         let name = "Globals.Functions"
          let dependencies = [ Ast.self ]
          let size = 17
        end)
@@ -162,7 +162,7 @@ module Functions = struct
     module State = State_builder.Ref
       (Datatype.String.Map.Make(VarinfoAlphaOrderSet.Elts))
       (struct
-         let name = "FunctionsOrder"
+         let name = "Globals.FunctionsOrder.Iterator"
          let dependencies = [ State.self ]
          let default () = Datatype.String.Map.empty
        end)
@@ -426,14 +426,12 @@ end
 
 module FileIndex = struct
 
-  let name = "FileIndex"
-
   module S =
     State_builder.Hashtbl
       (Datatype.String.Hashtbl)
       (Datatype.Pair(Datatype.String)(Datatype.List(Global)))
       (struct
-         let name = name
+         let name = "Globals.FileIndex"
          let dependencies = [ Ast.self ]
          let size = 7
        end)
@@ -450,7 +448,7 @@ module FileIndex = struct
              (S.memo
                 ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) f))
     in
-    State_builder.apply_once "FileIndex.compute" [ S.self ] compute
+    State_builder.apply_once "Globals.FileIndex.compute" [ S.self ] compute
 
   let remove_global_annotations a =
     let f = (fst (Global_annotation.loc a)).Lexing.pos_fname in
@@ -719,7 +717,7 @@ module Comments_global_cache =
     (Cil_datatype.Global.Hashtbl)
     (Datatype.List(Datatype.String))
     (struct
-      let name = "Comments_global_cache"
+      let name = "Globals.Comments_global_cache"
       let dependencies =
         [ Cabshelper.Comments.self; FileIndex.self ]
       let size = 17
@@ -730,7 +728,7 @@ module Comments_stmt_cache =
     (Cil_datatype.Stmt.Hashtbl)
     (Datatype.List(Datatype.String))
     (struct
-      let name = "Comments_stmt_cache"
+      let name = "Globals.Comments_stmt_cache"
       let dependencies = [ Cabshelper.Comments.self; FileIndex.self ]
       let size = 17
      end)

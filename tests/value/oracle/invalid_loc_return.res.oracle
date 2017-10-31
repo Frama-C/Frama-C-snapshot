@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/invalid_loc_return.i (no preprocessing)
 [value] Analyzing a complete application starting at main1
 [value] Computing initial state
@@ -12,7 +11,6 @@
 [value] Recording results for foo
 [value] Done for function foo
 tests/value/invalid_loc_return.i:17:[value] warning: accessing uninitialized left-value. assert \initialized(&p);
-tests/value/invalid_loc_return.i:17:[value] warning: returned value may be uninitialized: assert \initialized(\returned_value)
 [value] Recording results for main
 [value] Done for function main
 [value] Recording results for main1

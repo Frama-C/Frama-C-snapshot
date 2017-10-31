@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/assign.c (with preprocessing)
 [rte] annotating function rte
 tests/rte/assign.c:37:[kernel] warning: Neither code nor specification for function fnd4, generating default assigns from the prototype

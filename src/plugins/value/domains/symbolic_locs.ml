@@ -56,6 +56,20 @@ module K2V = struct
     let decide _ v1 v2 = Some (V.widen wh v1 v2) in
     M.inter ~cache ~symmetric ~idempotent ~decide
 
+  let _narrow =
+    let module E = struct exception Bottom end in
+    let cache_name = cache_prefix ^ ".narrow" in
+    let cache = Hptmap_sig.PersistentCache cache_name in
+    let symmetric = true in
+    let idempotent = true in
+    let decide _ v1 v2 =
+      let v = V.narrow v1 v2 in
+      if V.is_bottom v then raise E.Bottom else v
+    in
+    fun a b ->
+      try `Value (M.join ~cache ~symmetric ~idempotent ~decide a b)
+      with E.Bottom -> `Bottom
+
   let is_included =
     let cache_name = cache_prefix ^ ".is_included" in
     let decide_fst _b _v1 = true (* v2 is top *) in
@@ -252,7 +266,7 @@ module Memory = struct
       let bases = Base.Set.union (key_deps k) (v_deps v) in
       let syntactic_deps = Base.Set.fold add_dep bases state.syntactic_deps in
       { values; zones; deps; syntactic_deps }
-    with Zone.Error_Top (* unknown dependencies *) -> state
+    with Abstract_interp.Error_Top (* unknown dependencies *) -> state
 
   (* rebuild the state from scratch, especially [deps] and [syntactic_deps].
      For debugging purposes. *)
@@ -314,13 +328,13 @@ module Memory = struct
         syntactic_deps = B2K.union m1.syntactic_deps m2.syntactic_deps;
       }
 
-  let join_and_is_included m1 m2 =
-    let m = join m1 m2 in
-    let incl = K2V.M.equal m.values m2.values && K2Z.equal m.zones m2.zones in
-    (m, incl)
-
   let widen _kf _wh m1 m2 =
-    { m2 with values = K2V.widen m1.values m2.values }
+    if K2V.equal m1.values m2.values && K2Z.equal m1.zones m2.zones
+    then m1
+    else { m2 with values = K2V.widen m1.values m2.values }
+
+  (* TODO *)
+  let narrow m1 _m2 = `Value m1
 
   (* ------------------------------------------------------------------------ *)
   (* --- High-level functions                                             --- *)
@@ -341,7 +355,7 @@ module Memory = struct
     try
       (* Check all the keys overwritten *)
       Zone.fold_bases aux_base z acc
-    with Zone.Error_Top -> top
+    with Abstract_interp.Error_Top -> top
 
   (* remove the keys that depend on the variables in [l] *)
   let remove_variables l state =
@@ -409,7 +423,9 @@ module Internal : Domain_builder.InputDomain
              include Abstract_domain.Lattice with type state := state
            end)
 
+  let name = "Symbolic locations domain"
   let structure = Abstract_domain.Void
+  let log_category = dkey
 
   let empty _ = Memory.empty_map
 
@@ -422,18 +438,6 @@ module Internal : Domain_builder.InputDomain
   let incr_loop_counter _ state = state
   let leave_loop _ state = state
 
-  (* Call in which we do not use the body. Return Top, except for builtins
-     and functions that do not significantly alter the memory. *)
-  let approximate_call kf state =
-    let post_state =
-      let name = Kernel_function.get_name kf in
-      if Ast_info.is_frama_c_builtin name ||
-         (name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile kf)
-      then state
-      else top
-    in
-    `Value [post_state]
-
   type origin = unit
 
   module Transfer (Valuation: Abstract_domain.Valuation
@@ -441,15 +445,11 @@ module Internal : Domain_builder.InputDomain
                     and type origin = origin
                     and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
-      with type state = state
-       and type value = V.t
-       and type location = Precise_locs.precise_location
-       and type valuation = Valuation.t
+      with type state := state
+       and type value := V.t
+       and type location := Precise_locs.precise_location
+       and type valuation := Valuation.t
   = struct
-    type value = V.t
-    type state = Memory.t
-    type location = Precise_locs.precise_location
-    type valuation = Valuation.t
 
     (* build a [get_locs] function from a valuation *)
     let get_locs valuation =
@@ -529,30 +529,24 @@ module Internal : Domain_builder.InputDomain
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
-      Compute (Continue state, true)
+      Compute state
 
-    let dump_current_state state =
-      let l = fst (Cil.CurrentLoc.get ()) in
-      Value_parameters.result ~dkey "DUMPING SYMBLOCS STATE \
-                                     of file %s line %d@.%a"
-        (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-        pretty state
+    let finalize_call _stmt _call ~pre:_ ~post = `Value post
 
-    let finalize_call _stmt call ~pre:_ ~post =
-      let kf = call.kf in
-      let name = Kernel_function.get_name kf in
-      if Ast_info.is_cea_dump_function name &&
-         Value_parameters.is_debug_key_enabled dkey
-      then dump_current_state post;
-      `Value post
-
+    (* Call in which we do not use the body. Return Top, except for builtins
+       and functions that do not significantly alter the memory. *)
     let approximate_call _stmt call state =
-      approximate_call call.kf state
+      let post_state =
+        let name = Kernel_function.get_name call.kf in
+        if Ast_info.is_frama_c_builtin name ||
+           name <> "free" && Eval_typ.kf_assigns_only_result_or_volatile call.kf
+        then state
+        else top
+      in
+      `Value [post_state]
 
+    let show_expr _valuation _state _fmt _expr = ()
   end
-
-  let compute_using_specification _ki call _spec state =
-    approximate_call call.kf state
 
   let top_query = `Value (V.top, ()), Alarmset.all
 
@@ -586,18 +580,17 @@ module Internal : Domain_builder.InputDomain
     state (* TODO *)
 
   (* Initial state. Initializers are singletons, so we store nothing. *)
-  let global_state () = None
-  let initialize_var_using_type state _ = state
-  let initialize_var state _ _ _ = state
+  let introduce_globals _ state = state
+  let initialize_variable_using_type _ _ state = state
+  let initialize_variable _ _ ~initialized:_ _ state = state
 
   (* Logic *)
-  type eval_env = state
-  let env_current_state state = `Value state
-  let env_annot ~pre:_ ~here () = here
-  let env_pre_f ~pre () = pre
-  let env_post_f ~pre:_ ~post ~result:_ () = post
-  let eval_predicate _ _ = Alarmset.Unknown
-  let reduce_by_predicate state _ _ = state
+  let logic_assign _assigns location ~pre:_ state =
+    let loc = Precise_locs.imprecise_location location in
+    Memory.kill loc state
+
+  let evaluate_predicate _ _ _ = Alarmset.Unknown
+  let reduce_by_predicate _ state _ _ = `Value state
 
   let storage = Value_parameters.SymbolicLocsStorage.get
 

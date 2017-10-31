@@ -458,6 +458,13 @@ extern double fma(double x, double y, double z);
 extern float fmaf(float x, float y, float z);
 extern long double fmal(long double x, long double y, long double z);
 
+int __finitef(float f);
+
+int __finite(double d);
+
+#  define isfinite(x) \
+     (sizeof (x) == sizeof (float) ? __finitef (x) : __finite (x))
+
 __END_DECLS
 
 __POP_FC_STDLIB

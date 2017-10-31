@@ -86,7 +86,7 @@ module type RemoveInfo = sig
   val fun_frees_visible : fct -> identified_term -> bool
   val fun_allocates_visible : fct -> identified_term -> bool
 
-  val fun_assign_visible : fct -> identified_term from -> bool
+  val fun_assign_visible : fct -> from -> bool
     (** true if the assigned value (first component of the from) is visible
         @raise EraseAssigns to indicate that the corresponding assigns clause
         should be erased entirely (i.e. assigns everything. If it were to

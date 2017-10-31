@@ -24,6 +24,8 @@
  * \file   e_acsl_debug.h
  * \brief  Debug-level functions and macros
 ***************************************************************************/
+#ifndef E_ACSL_DEBUG_H
+#define E_ACSL_DEBUG_H
 
 static void vabort(char *fmt, ...);
 
@@ -40,6 +42,16 @@ static void vabort(char *fmt, ...);
  * Enabled in the presence of the E_ACSL_DEBUG macro */
 #ifdef E_ACSL_DEBUG
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "e_acsl_printf.h"
+#include "e_acsl_string.h"
+#include "e_acsl_trace.h"
+#include "e_acsl_assert.h"
+
+#define E_ACSL_DEBUG_DESC "debug"
+
 /* Default location of the E_ACSL log file */
 #ifndef E_ACSL_DEBUG_LOG
 #  define E_ACSL_DEBUG_LOG -
@@ -52,12 +64,18 @@ static const char *dlog_name = TOSTRING(E_ACSL_DEBUG_LOG);
 static int dlog_fd = -1;
 
 /*! \brief Output a message to a log file */
-#define DLOG(...) dprintf(dlog_fd, __VA_ARGS__)
+#define DLOG(...) rtl_dprintf(dlog_fd, __VA_ARGS__)
 
-/*! \brief Debug-time assertion based on assert (see e_acsl.print.h) */
-#define DASSERT(_e) assert(_e)
+#ifdef E_ACSL_DEBUG_VERBOSE
+# define DVLOG(...) rtl_dprintf(dlog_fd, __VA_ARGS__)
+#else
+# define DVLOG(...)
+#endif
 
-/*! \brief Debug-time assertion based on vassert (see e_acsl.print.h) */
+/*! \brief Debug-time assertion based on assert (see e_acsl_assert.h) */
+#define DASSERT(_e) vassert(_e,"",NULL)
+
+/*! \brief Debug-time assertion based on vassert (see e_acsl_assert.h) */
 #define DVASSERT(_expr, _fmt, ...) vassert(_expr, _fmt, __VA_ARGS__)
 
 /*! \brief Initialize debug report file:
@@ -73,34 +91,25 @@ static void initialize_report_file(int *argc, char ***argv) {
   }
   if (dlog_fd == -1)
     vabort("Cannot open file descriptor for %s\n", dlog_name);
-  else {
-    DLOG("<<< E-ACSL instrumented run >>>\n");
-    DLOG("<<< Program arguments: ");
-    if (argc && argv) {
-      int i;
-      for (i = 0; i < *argc; i++)
-        DLOG("%s ", (*argv)[i]);
-      DLOG(">>>\n");
-    } else {
-      DLOG("unknown >>>\n");
-    }
-  }
 }
 
 static int debug_stop_number = 0;
 int getchar(void);
 
 #define DSTOP { \
-  printf(" << ***** " "Debug Stop %d in '%s' at %s:%d" " ***** >> ", \
+  DLOG(" << ***** " "Debug Stop %d in '%s' at %s:%d" " ***** >> ", \
     ++debug_stop_number, __func__, __FILE__, __LINE__); \
   getchar(); \
 }
 
 #else
+#  define E_ACSL_DEBUG_DESC "production"
 #  define DSTOP
 #  define initialize_report_file(...)
 #  define DLOG(...)
+#  define DVLOG(...)
 #  define DASSERT(_e)
 #  define DVASSERT(_expr, _fmt, ...)
+#endif
 #endif
 // }}}

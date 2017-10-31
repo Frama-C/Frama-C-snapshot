@@ -320,9 +320,11 @@ struct
           let new_z = Zone.join old.additional_deps new_.additional_deps in
           m, new_z, false
       in
-      let map, included' =
-        Function_Froms.Memory.join_and_is_included
-          new_.deps_table old.deps_table
+      let map =
+        Function_Froms.Memory.join new_.deps_table old.deps_table
+      in
+      let included' =
+        Function_Froms.Memory.is_included new_.deps_table old.deps_table
       in
       { deps_table = map;
         additional_deps_table = additional_map;
@@ -333,12 +335,14 @@ struct
     let is_included old new_ = snd (join_and_is_included old new_)
 
     (** Handle an assignment [lv = ...], the dependencies of the right-hand
-        side being stored in [deps_right]. *)
-    let transfer_assign stmt lv deps_right state =
+        side being stored in [deps_right]. [init] is true for a local
+        initialization, in which case the left location is not reduced to its
+        valid part for a writing, in order to keep the const local variables. *)
+    let transfer_assign stmt ~init lv deps_right state =
       (* The assigned location is [loc], whose address is computed from
          [deps]. *)
       let deps, loc, exact =
-        lval_to_precise_loc_with_deps stmt ~for_writing:true lv
+        lval_to_precise_loc_with_deps stmt ~for_writing:(not init) lv
       in
       let deps_of_deps = Function_Froms.Memory.find state.deps_table deps in
       let all_indirect = Zone.join state.additional_deps deps_of_deps in
@@ -373,7 +377,7 @@ struct
       let states_with_formals = ref [] in
       let do_on kf =
         let called_vinfo = Kernel_function.get_vi kf in
-        if Ast_info.is_cea_function called_vinfo.vname then
+        if Ast_info.is_frama_c_builtin called_vinfo.vname then
           state
         else
           let froms_call = To_Use.get_from_call kf stmt in
@@ -421,7 +425,7 @@ struct
             | Some lv ->
               let return_from = froms_call.Function_Froms.deps_return in
               let deps_ret = subst_before_call return_from in
-              transfer_assign stmt lv deps_ret state
+              transfer_assign stmt ~init:false lv deps_ret state
       in
       let f f acc =
         let p = do_on f in
@@ -454,7 +458,7 @@ struct
       match i with
         | Set (lv, exp, _) ->
               let comp_vars = find stmt state.deps_table exp in
-              transfer_assign stmt lv comp_vars state
+              transfer_assign stmt ~init:false lv comp_vars state
         | Local_init(v, AssignInit i, _) ->
           let implicit = true in
           let rec aux lv i acc =
@@ -462,7 +466,7 @@ struct
             match i with
             | SingleInit e ->
               let comp_vars = find stmt acc.deps_table e in
-              transfer_assign stmt lv comp_vars acc
+              transfer_assign stmt ~init:true lv comp_vars acc
             | CompoundInit (ct, initl) ->
               Cil.foldLeftCompound ~implicit ~doinit ~ct ~initl ~acc
           in
@@ -477,9 +481,7 @@ struct
 
     let transfer_guard s e d =
       let value_state = To_Use.get_value_state s in
-      let interpreted_e =
-        !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode value_state e
-      in
+      let interpreted_e = !Db.Value.eval_expr value_state e in
       let t1 = unrollType (typeOf e) in
       let do_then, do_else =
         if isIntegralType t1 || isPointerType t1

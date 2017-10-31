@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/static.i (no preprocessing)
 tests/value/static.i:21:[kernel] Dropping side-effect in sizeof. Nothing to worry, this is by the book.
 [value] Analyzing a complete application starting at main

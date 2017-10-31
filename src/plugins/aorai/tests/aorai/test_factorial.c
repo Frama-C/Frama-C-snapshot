@@ -61,7 +61,7 @@ int factorial(int value) {
   @ ensures \result == 0 || \result == 1;
  */
 int main(int argc, char** argv) {
-    int value, err;
+    int value;
 
     if ((argc != 2)                         || /* bad argument number */
 	((value = decode_int(argv[1])) < 0) || /* decoding error      */

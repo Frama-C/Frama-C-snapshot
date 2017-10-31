@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/libc/termios.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -8,7 +7,7 @@
 [value] computing for function __va_open_void <- main.
         Called from tests/libc/termios.c:10.
 [value] using specification for function __va_open_void
-share/libc/fcntl.h:141:[value] function __va_open_void: precondition 'valid_flag' got status valid.
+share/libc/fcntl.h:132:[value] function __va_open_void: precondition 'valid_flag' got status valid.
 [value] Done for function __va_open_void
 [value] computing for function tcgetattr <- main.
         Called from tests/libc/termios.c:11.

@@ -59,6 +59,14 @@ struct
 
 end
 
+module Initialized =
+  Make
+    (struct
+       let name = "initialized"
+       let parameter = Options.DoInitialized.parameter
+       let additional_parameters = [ Kernel.SafeArrays.parameter ]
+     end)
+
 module Mem_access =
   Make
     (struct
@@ -131,6 +139,16 @@ module Float_to_int =
        let additional_parameters = []
      end)
 
+
+module Finite_float =
+  Make
+    (struct
+       let name = "finite_float"
+       let parameter = Kernel.FiniteFloat.parameter
+       let additional_parameters = []
+     end)
+
+
 module Called_precond =
   Make
     (struct
@@ -162,14 +180,18 @@ let div_mod_status = Div_mod.triple
 let shift_status = Shift.triple
 let signed_overflow_status = Signed_overflow.triple
 let signed_downcast_status = Signed_downcast.triple
+let initialized_status = Initialized.triple
 let mem_access_status = Mem_access.triple
 let pointer_call_status = Pointer_call.triple
 let float_to_int_status = Float_to_int.triple
 let unsigned_overflow_status = Unsigned_overflow.triple
 let unsigned_downcast_status = Unsigned_downcast.triple
+let float_to_int = Float_to_int.triple
+let finite_float = Finite_float.triple
 
 let all_status =
   [ precond_status;
+    initialized_status;
     mem_access_status;
     pointer_call_status;
     div_mod_status;

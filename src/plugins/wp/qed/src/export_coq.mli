@@ -46,6 +46,7 @@ sig
       method declare_axiom : formatter -> string -> var list -> trigger list list -> term -> unit
       method declare_fixpoint : prefix:string -> formatter -> Fun.t -> var list -> tau -> term -> unit
       method declare_signature : formatter -> Fun.t -> tau list -> tau -> unit
+      method declare_inductive : formatter -> Fun.t -> tau list -> tau -> (string * var list * trigger list list * term) list -> unit
       method declare_definition : formatter -> Fun.t -> var list -> tau -> term -> unit
     end
 

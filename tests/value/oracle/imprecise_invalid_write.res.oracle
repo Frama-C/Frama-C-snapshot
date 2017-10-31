@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/imprecise_invalid_write.i (no preprocessing)
 tests/value/imprecise_invalid_write.i:5:[kernel] warning: Body of function main1 falls-through. Adding a return statement
 tests/value/imprecise_invalid_write.i:10:[kernel] warning: Body of function main2 falls-through. Adding a return statement

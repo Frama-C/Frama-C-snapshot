@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
+open Clabels
 
 (* -------------------------------------------------------------------------- *)
 (** This file provide all the functions to build a strategy that can then
@@ -95,7 +96,7 @@ val add_prop_stmt_pre : t_annots -> annot_kind ->
  * Add [\old (assumes) => post] if [assumes] is given. *)
 val add_prop_stmt_post :t_annots -> annot_kind ->
   kernel_function -> stmt -> funbehavior -> termination_kind ->
-  logic_label option -> assumes:predicate option -> identified_predicate
+  c_label option -> assumes:predicate option -> identified_predicate
   -> t_annots
 
 (** Add all the [b_requires]. Add [b_assumes => b_requires] if [with_assumes] *)
@@ -120,7 +121,7 @@ val add_prop_assert : t_annots -> annot_kind ->
   kernel_function -> stmt -> code_annotation -> predicate -> t_annots
 
 val add_prop_loop_inv : t_annots -> annot_kind ->
-  stmt -> WpPropId.prop_id -> predicate -> t_annots
+  stmt -> established:bool -> WpPropId.prop_id -> predicate -> t_annots
 
 (** {3 Adding assigns properties} *)
 
@@ -134,7 +135,7 @@ val add_assigns_any : t_annots -> annot_kind ->
 
 (** shortcut to add a stmt spec assigns property as an hypothesis. *)
 val add_stmt_spec_assigns_hyp : t_annots -> kernel_function -> stmt ->
-  logic_label option -> funspec -> t_annots
+  c_label option -> funspec -> t_annots
 
 (** short cut to add a dynamic call *)
 val add_call_assigns_any : t_annots -> stmt -> t_annots
@@ -142,17 +143,17 @@ val add_call_assigns_any : t_annots -> stmt -> t_annots
 (** shortcut to add a call assigns property as an hypothesis. *)
 val add_call_assigns_hyp : t_annots -> kernel_function -> stmt ->
   called_kf:kernel_function ->
-  logic_label option -> funspec option -> t_annots
+  c_label option -> funspec option -> t_annots
 
 (** shortcut to add a loop assigns property as an hypothesis. *)
 val add_loop_assigns_hyp : t_annots -> kernel_function -> stmt ->
-  (code_annotation * identified_term from list) option -> t_annots
+  (code_annotation * from list) option -> t_annots
 
 val add_fct_bhv_assigns_hyp : t_annots -> kernel_function -> termination_kind ->
   funbehavior -> t_annots
 
 val assigns_upper_bound :
-  funspec -> (funbehavior * identified_term from list) option
+  funspec -> (funbehavior * from list) option
 
 (** {3 Getting information from annotations} *)
 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/empty_struct2.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -6,19 +5,19 @@
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 tests/value/empty_struct2.c:41:[value] assertion got status valid.
-[value] Called Frama_C_show_each_global_empty(∅)
-[value] Called Frama_C_show_each_e1(∅)
+tests/value/empty_struct2.c:43:[value] Frama_C_show_each_global_empty: ∅
+tests/value/empty_struct2.c:44:[value] Frama_C_show_each_e1: ∅
 tests/value/empty_struct2.c:45:[value] Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
 tests/value/empty_struct2.c:50:[value] Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{8}))
-[value] Called Frama_C_show_each_c2(.a ∈ {42}
-                                    .b ∈ {77})
-[value] Called Frama_C_show_each_c2_e(∅)
+tests/value/empty_struct2.c:51:[value] Frama_C_show_each_c2: .a ∈ {42}
+                              .b ∈ {77}
+tests/value/empty_struct2.c:52:[value] Frama_C_show_each_c2_e: ∅
 [value] computing for function f <- main.
         Called from tests/value/empty_struct2.c:53.
 [value] Recording results for f
 [value] Done for function f
-[value] Called Frama_C_show_each_res(.a ∈ {87}
-                                     .b ∈ {39})
+tests/value/empty_struct2.c:55:[value] Frama_C_show_each_res: .a ∈ {87}
+                               .b ∈ {39}
 tests/value/empty_struct2.c:59:[value] assertion got status valid.
 [value] computing for function ret_empty <- main.
         Called from tests/value/empty_struct2.c:61.

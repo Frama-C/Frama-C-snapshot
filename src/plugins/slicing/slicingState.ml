@@ -30,7 +30,6 @@ module P =
 
 let self = P.self
 let () =
-  Db.Slicing.self := self;
   Cmdline.run_after_extended_stage
     (fun () ->
       State_dependency_graph.add_codependencies
@@ -49,7 +48,7 @@ let may_map ~dft f = match P.get_option () with
   | None -> dft
   | Some _ -> f ()
 
-let reset () =
+let reset_slicing () =
   !Db.Value.compute () ;
   let initialized = match P.get_option () with | None -> false | Some _ -> true in
   if not initialized then
@@ -63,11 +62,3 @@ let reset () =
     SlicingParameters.feedback ~level:2 "done (initializing slicing)."
   else
     SlicingParameters.feedback ~level:2 "done (reinitializing slicing)."
-
-let () =
-  Db.register
-    (Db.Journalize
-       ("Slicing.Project.reset_slice",
-        Datatype.func Datatype.unit Datatype.unit))
-    Db.Slicing.Project.reset_slice
-    reset

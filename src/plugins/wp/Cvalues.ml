@@ -211,6 +211,17 @@ let ldomain ltype =
   | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> None
 
 (* -------------------------------------------------------------------------- *)
+(* --- Volatile                                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+let volatile ?warn () =
+  Wp_parameters.Volatile.get () ||
+  ( Extlib.may
+      (fun w -> Warning.emit ~severe:false
+          ~effect:"ignore volatile attribute" "%s" w)
+      warn ; false )
+
+(* -------------------------------------------------------------------------- *)
 (* --- ACSL Equality                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/array_typedef.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -25,7 +24,7 @@ tests/spec/array_typedef.c:29:[value] assertion got status valid.
 [value] computing for function send_addr <- send_msg <- main.
         Called from tests/spec/array_typedef.c:15.
 [value] using specification for function send_addr
-tests/spec/array_typedef.c:12:[value] warning: no \from part for clause 'assigns \empty;' of function send_addr
+tests/spec/array_typedef.c:12:[value] warning: no \from part for clause 'assigns \empty;'
 [value] Done for function send_addr
 [value] Recording results for send_msg
 [value] Done for function send_msg

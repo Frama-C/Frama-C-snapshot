@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/logic_ptr_cast.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -9,7 +8,7 @@
 tests/value/logic_ptr_cast.i:8:[value] Assigning imprecise value to p.
         The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}
 tests/value/logic_ptr_cast.i:9:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each({{ &t + {0; 1; 2; 3; 4; 5; 6; 7} }})
+tests/value/logic_ptr_cast.i:14:[value] Frama_C_show_each: {{ &t + {0; 1; 2; 3; 4; 5; 6; 7} }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

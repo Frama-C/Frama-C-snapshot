@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+exception Error_Top
+exception Error_Bottom
 exception Not_less_than
 exception Can_not_subdiv
 
@@ -63,195 +65,155 @@ module Comp = struct
 
 end
 
-module Make_Lattice_Set(V:Lattice_Value): Lattice_Set with type O.elt = V.t =
-struct
-  exception Error_Top
 
-  module O = struct
-    include Datatype.Set
-      (FCSet.Make(V))
-      (V)
-      (struct let module_name = "Make_lattice_set" end)
-  end
+module Make_Generic_Lattice_Set
+    (V: Datatype.S)
+    (Set: Lattice_type.Set with type elt = V.t)
+= struct
 
-  type t = Set of O.t | Top
+  type t = Set of Set.t | Top
   type set = t
-  type widen_hint = O.t
+  type widen_hint = Set.t
 
-  let bottom = Set O.empty
+  let bottom = Set Set.empty
   let top = Top
 
-  let hash c = match c with
+  let hash = function
     | Top -> 12373
     | Set s ->
-        let f v acc =
-          67 * acc + (V.hash v)
-        in
-        O.fold f s 17
+      let f v acc = 67 * acc + (V.hash v) in
+      Set.fold f s 17
 
-  let compare =
-    if O.compare == Datatype.undefined then (
-      Kernel.debug "%s lattice_set, missing comparison function"
-        V.name;
-      Datatype.undefined
-    ) else
-      fun e1 e2 ->
-        if e1 == e2 then 0
-        else
-          match e1,e2 with
-            | Top,_ -> 1
-            | _, Top -> -1
-            | Set e1,Set e2 -> O.compare e1 e2
+  let equal e1 e2 =
+    e1 == e2 ||
+    match e1, e2 with
+    | Top, Top -> true
+    | Set e1, Set e2 -> Set.equal e1 e2
+    | Top, Set _ | Set _, Top -> false
 
-  let equal v1 v2 =
-    if v1 == v2 then true
-    else
-      match v1, v2 with
-        | Top, Top -> true
-        | Set e1, Set e2 -> O.equal e1 e2
-        | Top, Set _ | Set _, Top -> false
+  let compare e1 e2 =
+    if e1 == e2 then 0
+    else match e1, e2 with
+      | Top, _ -> 1
+      | _, Top -> -1
+      | Set e1, Set e2 -> Set.compare e1 e2
 
-  let widen _wh _t1 t2 = (* [wh] isn't used *)
-    t2
+  let widen _wh _t1 t2 = t2
+
+  (** This is exact *)
+  let join e1 e2 =
+    if e1 == e2 then e1
+    else match e1, e2 with
+      | Top, _ | _, Top -> Top
+      | Set s1 , Set s2 -> Set (Set.union s1 s2)
+
+  (** This is exact *)
+  let link = join
 
   (** This is exact *)
   let meet v1 v2 =
     if v1 == v2 then v1
-    else
-      match v1,v2 with
+    else match v1,v2 with
       | Top, v | v, Top -> v
-      | Set s1 , Set s2 -> Set (O.inter s1 s2)
+      | Set s1 , Set s2 -> Set (Set.inter s1 s2)
 
   (** This is exact *)
   let narrow = meet
 
-  (** This is exact *)
-  let join v1 v2 =
-    if v1 == v2 then v1
-    else
-      match v1,v2 with
-      | Top, _ | _, Top -> Top
-      | Set s1 , Set s2 ->
-          let u = O.union s1 s2 in
-          Set u
+  let is_included e1 e2 =
+    (e1 == e2) ||
+    match e1,e2 with
+    | _, Top -> true
+    | Top, _ -> false
+    | Set s1, Set s2 -> Set.subset s1 s2
 
-  (** This is exact *)
-  let link = join
+  let intersects e1 e2 =
+    match e1, e2 with
+    | _, Top | Top, _ -> true
+    | Set s1 , Set s2 -> Set.exists (fun e -> Set.mem e s2) s1
 
   let cardinal_less_than s n =
     match s with
     | Top -> raise Not_less_than
     | Set s ->
-        let c = O.cardinal s in
-        if  c > n
-        then raise Not_less_than;
-        c
+      let c = Set.cardinal s in
+      if c > n then raise Not_less_than;
+      c
 
   let cardinal_zero_or_one s =
     try ignore (cardinal_less_than s 1) ; true
     with Not_less_than -> false
 
   let inject s = Set s
-  let inject_singleton e = inject (O.singleton e)
-  let empty = inject O.empty
+  let inject_singleton e = inject (Set.singleton e)
+  let empty = inject Set.empty
+
+  let project = function
+    | Top -> raise Error_Top
+    | Set s -> s
 
   let filter f = function
     | Top -> Top
-    | Set s -> Set (O.filter f s)
+    | Set s -> Set (Set.filter f s)
 
-  let transform f = fun t1 t2 ->
-    match t1,t2 with
+  let transform f e1 e2 =
+    match e1, e2 with
     | Top, _ | _, Top -> Top
-    | Set v1, Set v2 -> Set (f v1 v2)
+    | Set s1 , Set s2 -> Set (f s1 s2)
 
-  let map_set f s =
-    O.fold
-      (fun v -> O.add (f v))
-      s
-      O.empty
+  let map_set f s = Set.fold (fun v -> Set.add (f v)) s Set.empty
 
-  let apply2 f s1 s2 =
-    let distribute_on_elements f s1 s2 =
-      O.fold
-        (fun v -> O.union (map_set (f v) s2))
-        s1
-        O.empty
-    in
-    transform (distribute_on_elements f) s1 s2
-
-  let apply1 f s = match s with
-    | Top -> top
-    | Set s -> Set(map_set f s)
-
-  let pretty fmt t =
-    match t with
-    | Top -> Format.fprintf fmt "TopSet"
-    | Set s ->
-      if O.is_empty s then Format.fprintf fmt "BottomSet"
-      else
-        Pretty_utils.pp_iter
-          ~pre:"{"
-          ~suf:"}"
-          ~sep:";@ "
-          O.iter
-          (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
-           fmt s
-
-  let is_included t1 t2 =
-    (t1 == t2) ||
-      match t1,t2 with
-      | _,Top -> true
-      | Top,_ -> false
-      | Set s1,Set s2 -> O.subset s1 s2
-
-  let join_and_is_included t1 t2 =
-    let t12 = join t1 t2 in
-    (t12, equal t12 t2)
-
-  let intersects t1 t2 =
-    let b = match t1,t2 with
-      | _,Top | Top,_ -> true
-      | Set s1,Set s2 ->
-          O.exists (fun e -> O.mem e s2) s1
-    in
-    (* Format.printf
-       "[Lattice_Set]%a intersects %a: %b @\n"
-       pretty t1 pretty t2 b;*)
-    b
-
-  let fold f elt init = match elt with
+  let fold f e init = match e with
     | Top -> raise Error_Top
-    | Set v -> O.fold f v init
+    | Set s -> Set.fold f s init
 
-
-  let iter f elt = match elt with
+  let iter f = function
     | Top -> raise Error_Top
-    | Set v -> O.iter f v
+    | Set s -> Set.iter f s
 
   let exists f = function
     | Top -> true
-    | Set s -> O.exists f s
+    | Set s -> Set.exists f s
 
   let for_all f = function
     | Top -> false
-    | Set s -> O.for_all f s
+    | Set s -> Set.for_all f s
 
-  let project o = match o with
-    | Top -> raise Error_Top
-    | Set v -> v
-
-  let mem v s = match s with
+  let mem v = function
     | Top -> true
-    | Set s -> O.mem v s
+    | Set s -> Set.mem v s
+
+  let apply2 f s1 s2 =
+    let distribute_on_elements f s1 s2 =
+      Set.fold (fun v -> Set.union (map_set (f v) s2)) s1 Set.empty
+    in
+    transform (distribute_on_elements f) s1 s2
+
+  let apply1 f = function
+    | Top -> top
+    | Set s -> Set (map_set f s)
+
+  let pretty fmt = function
+    | Top -> Format.fprintf fmt "TopSet"
+    | Set s ->
+      if Set.is_empty s then Format.fprintf fmt "BottomSet"
+      else
+        Pretty_utils.pp_iter
+          ~pre:"@[<hov 1>{"
+          ~suf:"}@]"
+          ~sep:";@ "
+          Set.iter
+          (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
+          fmt s
 
   include
     (Datatype.Make
-      (struct
+       (struct
          type t = set
          let name = V.name ^ " lattice_set"
          let structural_descr =
-	   Structural_descr.t_sum [| [| O.packed_descr |] |]
-         let reprs = Top :: List.map (fun o -> Set o) O.reprs
+           Structural_descr.t_sum [| [| Set.packed_descr |] |]
+         let reprs = Top :: List.map (fun o -> Set o) Set.reprs
          let equal = equal
          let compare = compare
          let hash = hash
@@ -262,199 +224,33 @@ struct
          let varname = Datatype.undefined
          let mem_project = Datatype.never_any_project
        end) :
-      Datatype.S with type t := t)
-
+       Datatype.S with type t := t)
 end
 
-module Make_Hashconsed_Lattice_Set(V: Hptmap.Id_Datatype)(O: Hptset.S with type elt = V.t)
-  : Lattice_Hashconsed_Set with module O = O =
-struct
-
-  exception Error_Top
-
-  module O = O
-
-  type t = Set of O.t | Top
-  type set = t
-  type widen_hint = O.t
-
-  let bottom = Set O.empty
-  let top = Top
-
-  let hash c = match c with
-    | Top -> 12373
-    | Set s ->
-        let f v acc =
-          67 * acc + (V.id v)
-        in
-        O.fold f s 17
-
-  let equal e1 e2 =
-    if e1==e2 then true
-    else
-      match e1,e2 with
-      | Top,_ | _, Top -> false
-      | Set e1,Set e2 -> O.equal e1 e2
-
-  let compare =
-    if O.compare == Datatype.undefined then (
-      Kernel.debug "%s hashconsed_lattice_set, missing comparison function"
-        V.name;
-      Datatype.undefined
-    ) else
-      fun e1 e2 ->
-        if e1 == e2 then 0
-        else
-          match e1,e2 with
-            | Top,_ -> 1
-            | _, Top -> -1
-            | Set e1,Set e2 -> O.compare e1 e2
+module Make_Lattice_Set
+    (V: Datatype.S)
+    (Set: Lattice_type.Set with type elt = V.t)
+  : Lattice_type.Lattice_Set with module O = Set
+= struct
+  module O = Set
+  include Make_Generic_Lattice_Set (V) (Set)
+end
 
 
-  let widen _wh _t1 t2 = (* [wh] isn't used *)
-    t2
+module Make_Hashconsed_Lattice_Set
+    (V: Hptmap.Id_Datatype)
+    (Set: Hptset.S with type elt = V.t)
+  : Lattice_type.Lattice_Set with module O = Set
+= struct
 
-  (** This is exact *)
-  let meet v1 v2 =
-    if v1 == v2 then v1 else
-      match v1,v2 with
-      | Top, v | v, Top -> v
-      | Set s1 , Set s2 -> Set (O.inter s1 s2)
+  module O = Set
 
-  (** This is exact *)
-  let narrow = meet
-
-  (** This is exact *)
-  let join v1 v2 =
-    if v1 == v2 then v1 else
-      match v1,v2 with
-      | Top, _ | _, Top -> Top
-      | Set s1 , Set s2 ->
-          let u = O.union s1 s2 in
-          Set u
-
-  (** This is exact *)
-  let link = join
-
-  let cardinal_less_than s n =
-    match s with
-      Top -> raise Not_less_than
-    | Set s ->
-        let c = O.cardinal s in
-        if  c > n
-        then raise Not_less_than;
-        c
-
-  let cardinal_zero_or_one s =
-    try
-      ignore (cardinal_less_than s 1) ; true
-    with Not_less_than -> false
-
-  let inject s = Set s
-  let inject_singleton e = inject (O.singleton e)
-  let empty = inject O.empty
-
-  let transform f = fun t1 t2 ->
-    match t1,t2 with
-      | Top, _ | _, Top -> Top
-      | Set v1, Set v2 -> Set (f v1 v2)
-
-  let filter f = function
-    | Top -> Top
-    | Set o as s ->
-      let o' = O.filter f o in
-      if o == o' then s else Set o'
-
-  let map_set f s =
-    O.fold
-      (fun v -> O.add (f v))
-      s
-      O.empty
-
-  let apply2 f s1 s2 =
-    let distribute_on_elements f s1 s2 =
-      O.fold
-        (fun v -> O.union (map_set (f v) s2))
-        s1
-        O.empty
-    in
-    transform (distribute_on_elements f) s1 s2
-
-  let apply1 f s = match s with
-    | Top -> top
-    | Set s -> Set(map_set f s)
-
-  let pretty fmt t = match t with
-    | Top -> Format.fprintf fmt "TopSet"
-    | Set s ->
-      if O.is_empty s then Format.fprintf fmt "BottomSet"
-      else
-        Pretty_utils.pp_iter
-          ~pre:"@[<hov 1>{"
-          ~suf:"}@]"
-          ~sep:";@ "
-          O.iter
-          (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
-           fmt s
-
-  let is_included t1 t2 =
-    (t1 == t2) ||
-      match t1,t2 with
-      | _,Top -> true
-      | Top,_ -> false
-      | Set s1,Set s2 -> O.subset s1 s2
-
-  let join_and_is_included t1 t2 =
-    let t = join t1 t2 in
-    (t, t == t2)
-
-  let intersects t1 t2 =
-    match t1,t2 with
-      | _,Top | Top,_ -> true
-      | Set s1,Set s2 -> O.intersects s1 s2
-
-  let fold f elt init = match elt with
-    | Top -> raise Error_Top
-    | Set v -> O.fold f v init
-
-  let iter f elt = match elt with
-    | Top -> raise Error_Top
-    | Set v -> O.iter f v
-
-  let exists f = function
-    | Top -> true
-    | Set s -> O.exists f s
-
-  let for_all f = function
-    | Top -> false
-    | Set s -> O.for_all f s
-
-  let project o = match o with
-    | Top -> raise Error_Top
-    | Set v -> v
-
-  let mem v s = match s with
-    | Top -> true
-    | Set s -> O.mem v s
-
-  include (Datatype.Make
-      (struct
-        type t = set
-        let name = V.name ^ " hashconsed_lattice_set"
-        let structural_descr = Structural_descr.t_sum [| [| O.packed_descr |] |]
-        let reprs = Top :: List.map (fun o -> Set o) O.reprs
-        let equal = equal
-        let compare = compare
-        let hash = hash
-        let rehash = Datatype.identity
-        let copy = Datatype.undefined
-        let internal_pretty_code = Datatype.undefined
-        let pretty = pretty
-        let varname = Datatype.undefined
-        let mem_project = Datatype.never_any_project
-       end) :
-      Datatype.S with type t := t)
+  include Make_Generic_Lattice_Set (V) (Set)
   let () = Type.set_ml_name ty None
+
+  let intersects e1 e2 = match e1, e2 with
+    | _, Top | Top, _ -> true
+    | Set s1 , Set s2 -> Set.intersects s1 s2
 
 end
 
@@ -468,8 +264,6 @@ module Make_Lattice_Base (V:Lattice_Value):(Lattice_Base with type l = V.t) = st
   let bottom = Bottom
   let top = Top
 
-  exception Error_Top
-  exception Error_Bottom
   let project v = match v with
     | Top  -> raise Error_Top
     | Bottom -> raise Error_Bottom
@@ -542,7 +336,7 @@ module Make_Lattice_Base (V:Lattice_Value):(Lattice_Base with type l = V.t) = st
     match t with
       | Top -> Format.fprintf fmt "Top"
       | Bottom ->  Format.fprintf fmt "Bottom"
-      | Value v -> Format.fprintf fmt "<%a>" V.pretty v
+      | Value v -> Format.fprintf fmt "{%a}" V.pretty v
 
   let is_included t1 t2 =
     let b = (t1 == t2) ||
@@ -552,10 +346,6 @@ module Make_Lattice_Base (V:Lattice_Value):(Lattice_Base with type l = V.t) = st
        "[Lattice]%a is included in %a: %b @\n"
        pretty t1 pretty t2 b;*)
     b
-
-  let join_and_is_included t1 t2 =
-    let t = join t1 t2 in
-    (t, equal t t2);;
 
   let intersects t1 t2 = not (equal (meet t1 t2) Bottom)
 
@@ -673,7 +463,6 @@ module Bool = struct
     | Top, Top -> Top
   let link = join
   let meet = narrow
-  let join_and_is_included b1 b2 = join b1 b2, is_included b1 b2
   type widen_hint = unit
   let widen () = join
   let cardinal_zero_or_one b = not (equal b top)
@@ -730,8 +519,6 @@ module Bool = struct
                let mem_project = Datatype.never_any_project
              end) :
              Datatype.S with type t := t)
-
-  exception Error_Top (* for With_Error_Top *)
 end
 
 
@@ -868,9 +655,6 @@ struct
     | Product (l1,ll1), Product (l2,ll2) ->
         (L1.is_included l1 l2) && (L2.is_included ll1 ll2)
 
-  let join_and_is_included x1 x2 =
-    let x12 = join x1 x2 in (x12, equal x12 x2)
-
   include (Datatype.Make
       (struct
         type t = product (*= Product of t1*t2 | Bottom*)
@@ -969,13 +753,6 @@ struct
     match x1,x2 with
     |  (l1,ll1),  (l2,ll2) ->
         (L1.is_included l1 l2) && (L2.is_included ll1 ll2)
-
-  let join_and_is_included (l1,ll1) (l2,ll2) =
-    let (l,b) = L1.join_and_is_included l1 l2 in
-    if b then
-      let (ll,bb) = L2.join_and_is_included ll1 ll2 in
-      ((l,ll),bb)
-    else ((l, L2.join ll1 ll2), false);;
 
   include
     (Datatype.Make
@@ -1151,9 +928,6 @@ struct
     (* Format.printf
       "[Lattice_Sum]%a is included in %a: %b @\n" pretty u pretty v b;*)
     b
-
-  let join_and_is_included a b =
-    let ab = join a b in (ab, equal a b)
 
 
   include Datatype.Make

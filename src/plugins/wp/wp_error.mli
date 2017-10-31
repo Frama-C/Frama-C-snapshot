@@ -40,7 +40,7 @@ val not_yet_implemented : ?model:string -> ('a,Format.formatter,unit,'b) format4
 val pp_logic_label : Format.formatter -> logic_label -> unit
 
 val pp_assigns :
-  Format.formatter -> Cil_types.identified_term Cil_types.assigns -> unit
+  Format.formatter -> Cil_types.assigns -> unit
 
 val pp_string_list : ?sep:Pretty_utils.sformat -> empty:string ->
   Format.formatter -> string list -> unit

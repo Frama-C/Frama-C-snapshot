@@ -619,8 +619,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='FULL_GMP
-OCAMLVERSION
+ac_subst_vars='OCAMLVERSION
 MAY_RUN_TESTS
 OPTIMIZED_RTL
 LTLIBOBJS
@@ -638,7 +637,6 @@ LDFLAGS
 CFLAGS
 CC
 UNAME
-DYNAMIC_E_ACSL
 ENABLE_E_ACSL
 ENABLE_GUI
 FRAMAC_VERSION
@@ -661,7 +659,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -685,8 +682,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_e_acsl
-with_e_acsl_static
-enable_full_gmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -735,7 +730,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -988,15 +982,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1134,7 +1119,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1287,7 +1272,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1316,12 +1300,6 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-e_acsl         support for E-ACSL plug-in (default: yes)
-  --enable-full-gmp       "Disable runtime assertions in the RTL"
-
-Optional Packages:
-  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
-  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-e_acsl-static    link e_acsl statically (default: no)
 
 Some influential environment variables:
   CC          C compiler command
@@ -2351,7 +2329,6 @@ compute_dependency () {
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Makefile.in" >&5
 $as_echo_n "checking for Makefile.in... " >&6; }
 if ${ac_cv_file_Makefile_in+:} false; then :
@@ -2391,21 +2368,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "e_acsl is not available" "$LINENO" 5
 fi
@@ -2419,35 +2381,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_E_ACSL=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-e_acsl-static was given.
-if test "${with_e_acsl_static+set}" = set; then :
-  withval=$with_e_acsl_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_E_ACSL=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} e_acsl"
-     DYNAMIC_E_ACSL=yes
-   else
-     DYNAMIC_E_ACSL=no
-   fi
-
-
 
 echo "e_acsl... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -2523,7 +2461,7 @@ fi
 
 HOST_OS=$($UNAME -s)
 case $HOST_OS in
-Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
+Darwin | Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
 # BSDs haven't really be tested, but it should at least compile fine
 ;;
 *)
@@ -5069,20 +5007,9 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
-# GMP
-#####
-# Check whether --enable-full-gmp was given.
-if test "${enable_full_gmp+set}" = set; then :
-  enableval=$enable_full_gmp; FULL_GMP="yes"
-else
-  FULL_GMP="no"
-fi
-
-
 #######################
 # Generating Makefile #
 #######################
-
 
 
 
@@ -6295,19 +6222,5 @@ fi
 
 
 
-
-# Configure libgmp
-if test "$FULL_GMP" = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Configure libgmp" >&5
-$as_echo "$as_me: Configure libgmp" >&6;}
-  (cd .//contrib/libgmp && ./configure)
-fi
-
-# Configure libjemalloc
-{ $as_echo "$as_me:${as_lineno-$LINENO}: Configure libjemalloc" >&5
-$as_echo "$as_me: Configure libjemalloc" >&6;}
-(cd .//contrib/libjemalloc && ./autogen.sh \
-  --with-jemalloc-prefix="__e_acsl_native_" \
-  --with-private-namespace="__e_acsl_hidden_")
 
 fi

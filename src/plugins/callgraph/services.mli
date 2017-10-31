@@ -22,8 +22,6 @@
 
 include Callgraph_api.Services
 
-val entry_point: unit -> G.V.t option
-
 module Graphviz_attributes: Graph.Graphviz.GraphWithDotAttrs
   with type t = G.t
   and type V.t = Kernel_function.t Service_graph.vertex
@@ -31,6 +29,6 @@ module Graphviz_attributes: Graph.Graphviz.GraphWithDotAttrs
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

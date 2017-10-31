@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/postcondition.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -17,7 +16,7 @@
 [value] computing for function get_index <- main.
         Called from tests/value/postcondition.i:84.
 tests/value/postcondition.i:11:[value] function get_index: precondition got status valid.
-[value] Called Frama_C_show_each_cmd({1})
+tests/value/postcondition.i:17:[value] Frama_C_show_each_cmd: {1}
 tests/value/postcondition.i:18:[value] entering loop for the first time
 [value] computing for function u <- get_index <- main.
         Called from tests/value/postcondition.i:20.
@@ -51,7 +50,7 @@ tests/value/postcondition.i:26:[value] warning: function bound: postcondition go
 [value] computing for function get_index <- main.
         Called from tests/value/postcondition.i:87.
 tests/value/postcondition.i:11:[value] warning: function get_index: precondition got status unknown.
-[value] Called Frama_C_show_each_cmd({4})
+tests/value/postcondition.i:17:[value] Frama_C_show_each_cmd: {4}
 [value] computing for function u <- get_index <- main.
         Called from tests/value/postcondition.i:20.
 [value] Done for function u

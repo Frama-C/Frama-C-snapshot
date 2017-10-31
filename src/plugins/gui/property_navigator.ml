@@ -551,7 +551,12 @@ let make_panel (main_ui:main_window_extension_points) =
        if not currently_selected then
          begin match model#custom_get_iter path with
            | Some {MODEL.finfo={ip = ip;}} ->
-               ignore (main_ui#scroll (Pretty_source.PIP ip))
+             ignore (main_ui#scroll (Pretty_source.PIP ip));
+             (* Note: the code below generates double scrolling:
+                the previous call to main_ui#scroll causes the original source
+                viewer to scroll to the beginning of the function, and then
+                the code below re-scrolls it to the exact statement. *)
+             main_ui#view_original (Property.location ip)
            | None -> ()
          end;
        true);

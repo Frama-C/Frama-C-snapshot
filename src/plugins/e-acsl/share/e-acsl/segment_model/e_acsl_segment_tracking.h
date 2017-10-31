@@ -224,38 +224,49 @@ static const uint64_t static_readonly_masks [] = {
       "Heap base address %a is unaligned", _addr)
 
 #define DVALIDATE_MEMORY_INIT \
-  DVASSERT(mem_layout.initialized != 0, "Un-initialized shadow layout", NULL)
+  DVASSERT(mem_layout.is_initialized != 0, "Un-initialized shadow layout", NULL)
 
 /* Debug function making sure that the order of program segments is as expected
  * and that the program and the shadow segments used do not overlap. */
-static void validate_memory_layout() {
+static void validate_shadow_layout() {
   /* Check that the struct holding memory layout is marked as initialized. */
   DVALIDATE_MEMORY_INIT;
-  /* Make sure the order of program segments is as expected, i.e.,
-   * top to bottom: stack -> tls -> heap -> global */
 
-  #define NO_MEM_SEGMENTS 11
-  uintptr_t segments[NO_MEM_SEGMENTS][2] = {
-     {mem_layout.stack.start, mem_layout.stack.end},
-     {mem_layout.stack.prim_start, mem_layout.stack.prim_end},
-     {mem_layout.stack.sec_start, mem_layout.stack.sec_end},
-     {mem_layout.tls.start, mem_layout.tls.end},
-     {mem_layout.tls.prim_start, mem_layout.tls.prim_end},
-     {mem_layout.tls.sec_start, mem_layout.tls.sec_end},
-     {mem_layout.global.start, mem_layout.global.end},
-     {mem_layout.global.prim_start, mem_layout.global.prim_end},
-     {mem_layout.global.sec_start, mem_layout.global.sec_end},
-     {mem_layout.heap.start, mem_layout.heap.end},
-     {mem_layout.heap.prim_start, mem_layout.heap.prim_end}
-  };
+  /* Each segment has 3 partitions:
+	 - application memory
+     - primary/secondary shadows */
+  int num_partitions = sizeof(mem_partitions)/sizeof(memory_partition*);
+  int num_seg_in_part = 3;
+#ifdef E_ACSL_TEMPORAL
+  num_seg_in_part = 5;
+#endif
+  int num_segments = num_partitions*num_seg_in_part;
+  uintptr_t segments[num_segments][2];
+
+  size_t i;
+  for (i = 0; i < num_partitions; i++) {
+    memory_partition *p = mem_partitions[i];
+    segments[num_seg_in_part*i][0] = p->application.start;
+    segments[num_seg_in_part*i][1] = p->application.end;
+    segments[num_seg_in_part*i+1][0] = p->primary.start;
+    segments[num_seg_in_part*i+1][1] = p->primary.end;
+    segments[num_seg_in_part*i+2][0] = p->secondary.start;
+    segments[num_seg_in_part*i+2][1] = p->secondary.end;
+#ifdef E_ACSL_TEMPORAL
+    segments[num_seg_in_part*i+3][0] = p->temporal_primary.start;
+    segments[num_seg_in_part*i+3][1] = p->temporal_primary.end;
+    segments[num_seg_in_part*i+4][0] = p->temporal_secondary.start;
+    segments[num_seg_in_part*i+4][1] = p->temporal_secondary.end;
+#endif
+  }
 
   /* Make sure all segments (shadow or otherwise) are disjoint */
-  size_t i, j;
-  for (int i = 0; i < NO_MEM_SEGMENTS; i++) {
+  size_t j;
+  for (int i = 0; i < num_segments; i++) {
     uintptr_t *src = segments[i];
     DVASSERT(src[0] < src[1],
       "Segment start is greater than segment end %lu < %lu\n", src[0], src[1]);
-    for (int j = 0; j < NO_MEM_SEGMENTS; j++) {
+    for (j = 0; j < num_segments; j++) {
       if (i != j) {
         uintptr_t *dest = segments[j];
         DVASSERT(src[1] < dest[0] || src[0] > dest[1],
@@ -264,18 +275,11 @@ static void validate_memory_layout() {
       }
     }
   }
-
-  DVASSERT(mem_layout.stack.end > mem_layout.tls.end,
-      "Unexpected location of stack (above tls)", NULL);
-  DVASSERT(mem_layout.tls.end > mem_layout.heap.end,
-      "Unexpected location of tls (above heap)", NULL);
-  DVASSERT(mem_layout.heap.end > mem_layout.global.end,
-      "Unexpected location of heap (above global)", NULL);
 }
 
 /* Assert that memory layout has been initialized and all segments appear
  * in the expected order */
-# define DVALIDATE_SHADOW_LAYOUT validate_memory_layout()
+# define DVALIDATE_SHADOW_LAYOUT validate_shadow_layout()
 
 /* Assert that boundaries of a block [_addr, _addr+_size] are within a segment
  * given by `_s`. `_s` is either HEAP, STACK, TLS, GLOBAL or STATIC. */
@@ -303,8 +307,8 @@ static void validate_memory_layout() {
  * heap memory block */
 #define DVALIDATE_FREEABLE(_addr) \
   DVASSERT(IS_ON_HEAP(_addr), "Expected heap location: %a\n", _addr); \
-  DVASSERT(_addr == base_addr(_addr), \
-      "Expected base address, i.e., %a, not %a\n", base_addr(_addr), _addr);
+  DVASSERT(_addr == _base_addr(_addr), \
+      "Expected base address, i.e., %a, not %a\n", _base_addr(_addr), _addr);
 
 /* Assert that a memory block [_addr, _addr + _size] is allocated on a
  * program's heap */
@@ -353,6 +357,25 @@ static void validate_memory_layout() {
   } \
 }
 
+/* Assert that neither of `_len - 1` addresses immediately preceding `_addr`
+ * are base addresses of some other block and that `_len` addresses past
+ * `_addr` are free */
+#define DVALIDATE_STATIC_SUFFICIENTLY_ALIGNED(_addr, _len) { \
+  int _i; \
+  for (_i = 0; _i < _len; _i++) { \
+    uintptr_t _prev = _addr - _i; \
+    if (static_allocated_one(_prev)) { \
+      vassert(_base_addr(_prev) != _prev, \
+        "Potential backward overlap of: \n  previous block [%a]\n" \
+        "  with allocated block [%a]\n", _prev, _addr); \
+    } \
+    uintptr_t _next = _addr + _i; \
+    vassert(!static_allocated_one(_next), \
+      "Potential forward overlap of:\n  following block location [%a]\n" \
+      "  with allocated block [%a]\n", _next, _addr); \
+  } \
+}
+
 /* Assert that a memory block [_addr, _addr + _size] is nullified */
 # define DVALIDATE_NULLIFIED(_addr, _size) \
   DVASSERT(zeroed_out((void *)_addr, _size), \
@@ -366,15 +389,11 @@ static void validate_memory_layout() {
 
 /* Assert that memory block [_addr, _addr + _size] is allocated
  * and can be written to */
-# define DVALIDATE_RW_ACCESS(_addr, _size) { \
-  DVALIDATE_ALLOCATED((uintptr_t)_addr, _size, (uintptr_t)_addr); \
+# define DVALIDATE_WRITEABLE(_addr, _size, _base) { \
+  DVALIDATE_ALLOCATED((uintptr_t)_addr, _size, (uintptr_t)_base); \
   DVASSERT(!readonly((void*)_addr), \
-    "Unexpected readonly address: %lu\n", _addr) \
+    "Unexpected readonly address: %lu\n", _addr); \
 }
-
-/* Assert that memory block [_addr, _addr + _size] is allocated */
-# define DVALIDATE_RO_ACCESS(_addr, _size) \
-  DVALIDATE_ALLOCATED((uintptr_t)_addr, _size, (uintptr_t)_addr)
 
 #else
 /*! \cond exclude from doxygen */
@@ -394,21 +413,21 @@ static void validate_memory_layout() {
 #  define DVALIDATE_FREEABLE
 #  define DVALIDATE_STATIC_FREE
 #  define DVALIDATE_HEAP_FREE
-#  define DVALIDATE_RO_ACCESS
-#  define DVALIDATE_RW_ACCESS
-#	 define DVALIDATE_ALLOCATED
+#  define DVALIDATE_ALLOCATED
+#  define DVALIDATE_WRITEABLE
+#  define DVALIDATE_STATIC_SUFFICIENTLY_ALIGNED
 /*! \endcond */
 #endif
 /* }}} */
 
 /* E-ACSL predicates {{{ */
 /* See definitions for documentation */
+static void *shadow_copy(const void *ptr, size_t size, int init);
 static uintptr_t heap_info(uintptr_t addr, char type);
 static uintptr_t static_info(uintptr_t addr, char type);
 static int heap_allocated(uintptr_t addr, size_t size, uintptr_t base_ptr);
 static int static_allocated(uintptr_t addr, long size, uintptr_t base_ptr);
 static int allocated(uintptr_t addr, long size, uintptr_t base_ptr);
-static int freeable(void *ptr);
 
 /*! \brief Quick test to check if a static location belongs to allocation.
  * This macro really belongs where static_allocated is defined, but
@@ -458,11 +477,9 @@ static uintptr_t predicate(uintptr_t addr, char p) {
 }
 
 /*! \brief Return the byte length of the memory block containing `_addr` */
-#define block_length(_addr) predicate((uintptr_t)_addr, 'L')
+#define _block_length(_addr) predicate((uintptr_t)_addr, 'L')
 /*! \brief Return the base address of the memory block containing `_addr` */
-#define base_addr(_addr) predicate((uintptr_t)_addr, 'B')
-/*! \brief Return the byte offset of `_addr` within its block */
-#define offset(_addr) predicate((uintptr_t)_addr, 'O')
+#define _base_addr(_addr) predicate((uintptr_t)_addr, 'B')
 /* }}} */
 
 /* Static allocation {{{ */
@@ -498,6 +515,16 @@ static const uint64_t short_shadow_masks[] = {
  * \param size - size of the stack memory block. */
 static void shadow_alloca(void *ptr, size_t size) {
   DVALIDATE_IS_ON_STATIC(ptr, size);
+#ifdef E_ACSL_TEMPORAL
+  /* Make sure that during temporal analysis there is
+   * sufficient space to store an origin timestamp.
+   * NOTE: This does not apply to globals, because all the globals
+   * have the timestamp of `1`. */
+  if (!IS_ON_GLOBAL(ptr)) {
+    DVALIDATE_STATIC_SUFFICIENTLY_ALIGNED((uintptr_t)ptr, 4);
+  }
+#endif
+
   unsigned char *prim_shadow = (unsigned char*)PRIMARY_SHADOW(ptr);
   uint64_t *prim_shadow_alt = (uint64_t *)PRIMARY_SHADOW(ptr);
   unsigned int *sec_shadow = (unsigned int*)SECONDARY_SHADOW(ptr);
@@ -535,6 +562,16 @@ static void shadow_alloca(void *ptr, size_t size) {
       prim_shadow[i] = (code << 2);
     }
   }
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+  /* Store a temporal origin timestamp in the first 4 bytes of a temporal
+   * shadow. This, however applies only to TLS of stack blocks. Global blocks
+   * are never deallocated, an origin time stamp of any global block is given
+   * via `GLOBAL_TEMPORAL_TIMESTAMP` */
+  if (!IS_ON_GLOBAL(ptr)) {
+    uint32_t* temporal_shadow = (uint32_t*)TEMPORAL_PRIMARY_STATIC_SHADOW(ptr);
+    *temporal_shadow = NEW_TEMPORAL_TIMESTAMP();
+  }
+#endif /*}}} E_ACSL_TEMPORAL*/
 }
 /* }}} */
 
@@ -542,12 +579,16 @@ static void shadow_alloca(void *ptr, size_t size) {
 
 /*! \brief Nullifies shadow regions of a memory block given by its address.
  * \param ptr - base memory address of the stack memory block. */
-static void shadow_freea(void *ptr) {
+void shadow_freea(void *ptr) {
   DVALIDATE_STATIC_LOCATION(ptr);
-  DASSERT(ptr == (void*)base_addr(ptr));
-  size_t size = block_length(ptr);
+  DASSERT(ptr == (void*)_base_addr(ptr));
+  size_t size = _block_length(ptr);
   memset((void*)PRIMARY_SHADOW(ptr), 0, size);
   memset((void*)SECONDARY_SHADOW(ptr), 0, size);
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+  memset((void*)TEMPORAL_PRIMARY_STATIC_SHADOW(ptr), 0, size);
+  memset((void*)TEMPORAL_SECONDARY_STATIC_SHADOW(ptr), 0, size);
+#endif  /*}}} E_ACSL_TEMPORAL*/
 }
 /* }}} */
 
@@ -577,13 +618,13 @@ static int static_allocated(uintptr_t addr, long size, uintptr_t base_ptr) {
       length = short_lengths[code];
     }
 
+#ifndef E_ACSL_WEAK_VALIDITY
     if (addr != base_ptr) {
-      uintptr_t base_addr = addr - offset;
-      return BELONGS(base_ptr, base_addr, length)
+      return BELONGS(base_ptr, addr - offset, length)
         && offset + size <= length;
-    } else {
-      return offset + size <= length;
     }
+#endif
+    return offset + size <= length;
   }
   return 0;
 }
@@ -673,6 +714,39 @@ static uintptr_t static_info(uintptr_t addr, char type) {
   }
   return 0;
 }
+
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+/*! Return either an origin (if `origin` is non-zero) or referent timestamp
+ *  associated with a static address `addr` */
+static uint32_t static_temporal_info(uintptr_t addr, int origin) {
+  /* NOTE: No checking for allocated blocks, since an invalid
+   timestamp is zero and ununsed memory is nullified then an invalid
+   timestamp is also returned for allocated memory */
+  if (origin) {
+    int allocated = static_allocated_one(addr);
+    if (allocated && !IS_ON_GLOBAL(addr)) {
+      uintptr_t base = static_info(addr, 'B');
+      return *((uint32_t*)TEMPORAL_PRIMARY_STATIC_SHADOW(base));
+    } else if (allocated && IS_ON_GLOBAL(addr)) {
+      return GLOBAL_TEMPORAL_TIMESTAMP;
+    } else {
+      return INVALID_TEMPORAL_TIMESTAMP;
+    }
+  } else {
+    return *((uint32_t*)TEMPORAL_SECONDARY_STATIC_SHADOW(addr));
+  }
+}
+
+#define static_origin_timestamp(_ptr) static_temporal_info((uintptr_t)(_ptr),1)
+#define static_referent_timestamp(_ptr) static_temporal_info((uintptr_t)(_ptr),0)
+
+/*! Store a referent time stamp associated with a static pointer.
+ *  Origin timestamps are generated via `shadow_alloca` */
+static void static_store_temporal_referent(uintptr_t addr, uint32_t ref) {
+  DVALIDATE_STATIC_ACCESS(addr, PTR_SZ);
+  *((uint32_t*)TEMPORAL_SECONDARY_STATIC_SHADOW(addr)) = ref;
+}
+#endif/*}}} E_ACSL_TEMPORAL*/
 /* }}} */
 
 /* Static initialization {{{ */
@@ -681,10 +755,10 @@ static uintptr_t static_info(uintptr_t addr, char type) {
  * whole block should be marked as initialized.  */
 static void initialize_static_region(uintptr_t addr, long size) {
   DVALIDATE_STATIC_ACCESS(addr, size);
-  DVASSERT(!(addr - base_addr(addr) + size > block_length(addr)),
+  DVASSERT(!(addr - _base_addr(addr) + size > _block_length(addr)),
     "Attempt to initialize %lu bytes past block boundaries\n"
     "starting at %a with block length %lu at base address %a\n",
-    size, addr, block_length(addr), base_addr(addr));
+    size, addr, _block_length(addr), _base_addr(addr));
 
   /* Below code marks `size` bytes following `addr` in the stack shadow as
    * initialized. That is, least significant bits of all 9 bytes following
@@ -728,10 +802,10 @@ static void mark_readonly_region (uintptr_t addr, long size) {
    * TEXT), this function required ptr carry a global address. */
   DASSERT(IS_ON_GLOBAL(addr));
   DASSERT(static_allocated_one(addr));
-  DVASSERT(!(addr - base_addr(addr) + size > block_length(addr)),
+  DVASSERT(!(addr - _base_addr(addr) + size > _block_length(addr)),
     "Attempt to mark read-only %lu bytes past block boundaries\n"
     "starting at %a with block length %lu at base address %a\n",
-    size, addr, block_length(addr), base_addr(addr));
+    size, addr, _block_length(addr), _base_addr(addr));
 
   /* See comments in ::initialize_static_region for details */
   uint64_t *shadow = (uint64_t*)PRIMARY_GLOBAL_SHADOW(addr);
@@ -744,26 +818,7 @@ static void mark_readonly_region (uintptr_t addr, long size) {
 }
 /* }}} */
 
-/* Track program arguments (ARGC/ARGV) {{{ */
-static void argv_alloca(int argc,  char ** argv) {
-  /* Track a top-level container (i.e., `*argv`) */
-  shadow_alloca(argv, (argc + 1)*sizeof(char*));
-  initialize_static_region((uintptr_t)argv, (argc + 1)*sizeof(char*));
-  /* Track argument strings */
-  while (*argv) {
-    size_t arglen = strlen(*argv) + 1;
-    shadow_alloca(*argv, arglen);
-    initialize_static_region((uintptr_t)*argv, arglen);
-    argv++;
-  }
-}
-/* }}} */
-
 /* Heap allocation {{{ (malloc/calloc) */
-
-/*! \brief Amount of heap memory allocated by the program.
- * Variable visible externally. */
-static size_t heap_allocation_size = 0;
 
 /*! \brief Create a heap shadow for an allocated memory block starting at `ptr`
  * and of length `size`. Optionally mark it as initialized if `init`
@@ -775,11 +830,25 @@ static size_t heap_allocation_size = 0;
  * does not exceed 64 bytes. */
 static void set_heap_segment(void *ptr, size_t size, size_t alloc_size,
     size_t init, const char *function) {
+
+  /* Make sure that heap memspace has not been moved. This is likely if
+     a really large chunk has been requested to be allocated. */
+  vassert(mem_spaces.heap_mspace_least ==
+    (uintptr_t)mspace_least_addr(mem_spaces.heap_mspace),
+    "Exceeded heap allocation limit of %luMB -- heap memory space moved. \n",
+    E_ACSL_HEAP_SIZE);
+
+  /* Similar check, make sure that allocated space does not exceed given
+     allocation limit for mspace */
+  uintptr_t max_addr = (uintptr_t)ptr + alloc_size;
+  vassert(mem_spaces.heap_end > max_addr,
+    "Exceeded heap allocation limit of %luMB\n", E_ACSL_HEAP_SIZE);
+
   DVALIDATE_MEMORY_INIT;
   /* Ensure the shadowed block in on the tracked heap portion */
   DVALIDATE_IS_ON_HEAP(((uintptr_t)ptr) - HEAP_SEGMENT, size);
   DVALIDATE_ALIGNMENT(ptr); /* Make sure alignment is right */
-  heap_allocation_size += size; /* Adjust tracked allocation size */
+  update_heap_allocation(size); /* Adjust tracked allocation size */
 
   /* Get aligned size of the block, i.e., an actual size of the
    * allocated block */
@@ -793,6 +862,11 @@ static void set_heap_segment(void *ptr, size_t size, size_t alloc_size,
   uintptr_t *segment = (uintptr_t*)(shadow);
   segment[1] = size;
 
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+  /* 4 bytes following a block's length store an origin timestamp */
+  segment[2] = NEW_TEMPORAL_TIMESTAMP();
+#endif /*}}} E_ACSL_TEMPORAL*/
+
   int i;
   /* Write the offsets per segment */
   for (i = 0; i < segments; i++) {
@@ -802,7 +876,7 @@ static void set_heap_segment(void *ptr, size_t size, size_t alloc_size,
 
   /* If init is a non-zero value then mark all allocated bytes as initialized */
   if (init) {
-    memset(HEAP_INIT_SHADOW(ptr), (unsigned int)ONE, alloc_size/8);
+    memset((void*)HEAP_INIT_SHADOW(ptr), (unsigned int)ONE, alloc_size/8);
   }
 }
 
@@ -818,21 +892,22 @@ static void set_heap_segment(void *ptr, size_t size, size_t alloc_size,
  *    implementation-defined: either a null pointer is returned, or the
  *    behaviour is as if the size were some non-zero value, except that the
  *    returned pointer shall not be used to access an object." */
-static void* shadow_malloc(size_t size) {
+void* malloc(size_t size) {
   size_t alloc_size = ALLOC_SIZE(size);
 
   /* Return NULL if the size is too large to be aligned */
-  char* res = alloc_size ?
-    (char*)native_aligned_alloc(HEAP_SEGMENT, alloc_size) : NULL;
+  char* res = alloc_size ? (char*)public_malloc(alloc_size) : NULL;
 
-  if (res)
+  if (res) {
+    /* Make sure there is sufficient room in shadow */
     set_heap_segment(res, size, alloc_size, 0, "malloc");
+  }
 
   return res;
 }
 
 /*! \brief  Replacement for `calloc` that enables memory tracking */
-static void* shadow_calloc(size_t nmemb, size_t size) {
+void* calloc(size_t nmemb, size_t size) {
   /* Since both `nmemb` and `size` are both of size `size_t` the multiplication
    * of the arguments (which gives the actual allocation size) might lead to an
    * integer overflow. The below code checks for an overflow and sets the
@@ -843,14 +918,27 @@ static void* shadow_calloc(size_t nmemb, size_t size) {
 
   /* Since aligned size is required by the model do the allocation through
    * `malloc` and nullify the memory space by hand */
-  char* res = size ? (char*)native_malloc(alloc_size) : NULL;
+  char* res =
+    size ? (char*)public_malloc(alloc_size) : NULL;
 
   if (res) {
+    /* Make sure there is sufficient room in shadow */
     memset(res, 0, size);
     set_heap_segment(res, size, alloc_size, 1, "calloc");
   }
-
   return res;
+}
+
+/** \brief Return shadowed copy of a memory chunk on a program's heap using.
+ * If `init` parameter is set to a non-zero value the memory occupied by the
+ * resulting block is set to be initialized and uninitialized otherwise. */
+static void *shadow_copy(const void *ptr, size_t size, int init) {
+  char *ret = (init) ?	calloc(1, size) : malloc(size);
+  vassert(ret != NULL, "Shadow copy failed\n", NULL);
+  /* Shadow copy is internal, therefore heap status should not be updated.
+     Since it is set via `set_heap_segment`, it needs to be reverted back. */
+  update_heap_allocation(-size);
+  return memcpy(ret, ptr, size);
 }
 /* }}} */
 
@@ -858,10 +946,16 @@ static void* shadow_calloc(size_t nmemb, size_t size) {
 
 /*! \brief Remove a memory block with base address given by `ptr` from tracking.
  * This function effectively nullifies block shadow tracking an application
- * block and optionally nullifies an init shadow associated with the block.
+ * block.
  *
  * NOTE: ::unset_heap_segment assumes that `ptr` is a base address of an
- * allocated heap memory block, i.e., `freeable(ptr)` evaluates to true. */
+ * allocated heap memory block, i.e., `freeable(ptr)` evaluates to true.
+ *
+ * \param ptr - base address of the memory block to be removed from tracking
+ * \param init - if evaluated to a non-zero value then initialization shadow
+ *  of the memory block with base address `ptr` is nullified as well.
+ * \param function - name of the de-allocation function (e.g., `free` or `cfree`)
+*/
 static void unset_heap_segment(void *ptr, int init, const char *function) {
   DVALIDATE_MEMORY_INIT;
   DVALIDATE_FREEABLE(((uintptr_t)ptr));
@@ -875,18 +969,31 @@ static void unset_heap_segment(void *ptr, int init, const char *function) {
   memset(base_shadow, ZERO, alloc_size);
   /* Adjust tracked allocation size */
   heap_allocation_size -= length;
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+  /* Nullify temporal shadow */
+  uintptr_t *t_base_shadow = (uintptr_t*)TEMPORAL_HEAP_SHADOW(ptr);
+  memset(t_base_shadow, ZERO, alloc_size);
+#endif /*}}} E_ACSL_TEMPORAL*/
   /* Nullify init shadow */
   if (init) {
-    memset(HEAP_INIT_SHADOW(ptr), 0, alloc_size/8);
+    memset((void*)HEAP_INIT_SHADOW(ptr), 0, alloc_size/8);
   }
 }
 
 /*! \brief Replacement for `free` with memory tracking  */
-static void shadow_free(void *ptr) {
+void free(void *ptr) {
+  if (ptr == NULL) {
+/* Fail if instructed to treat NULL input to free as invalid. */
+#ifdef E_ACSL_FREE_VALID_ADDRESS
+    vabort("NULL pointer in free\n");
+#endif
+    return;
+  }
+
   if (ptr != NULL) { /* NULL is a valid behaviour */
     if (freeable(ptr)) {
       unset_heap_segment(ptr, 1, "free");
-      native_free(ptr);
+      public_free(ptr);
     } else {
       vabort("Not a start of block (%a) in free\n", ptr);
     }
@@ -895,25 +1002,25 @@ static void shadow_free(void *ptr) {
 /* }}} */
 
 /* Heap reallocation (realloc) {{{ */
-static void* shadow_realloc(void *ptr, size_t size) {
+void* realloc(void *ptr, size_t size) {
   char *res = NULL; /* Resulting pointer */
   /* If the pointer is NULL then realloc is equivalent to malloc(size) */
   if (ptr == NULL)
-    return shadow_malloc(size);
+    return malloc(size);
   /* If the pointer is not NULL and the size is zero then realloc is
    * equivalent to free(ptr) */
   else if (ptr != NULL && size == 0) {
-    shadow_free(ptr);
+    free(ptr);
   } else {
     if (freeable(ptr)) { /* ... and can be used as an input to `free` */
       size_t alloc_size = ALLOC_SIZE(size);
-      res = native_realloc(ptr, alloc_size);
+      res = public_realloc(ptr, alloc_size);
       DVALIDATE_ALIGNMENT(res);
 
       /* realloc succeeds, otherwise nothing needs to be done */
       if (res != NULL) {
         size_t alloc_size = ALLOC_SIZE(size);
-        size_t old_size = block_length(ptr);
+        size_t old_size = _block_length(ptr);
         size_t old_alloc_size = ALLOC_SIZE(old_size);
 
         /* Nullify old representation */
@@ -956,7 +1063,7 @@ static void* shadow_realloc(void *ptr, size_t size) {
 
 /* Heap aligned allocation (aligned_alloc) {{{ */
 /*! \brief Replacement for `aligned_alloc` with memory tracking */
-static void *shadow_aligned_alloc(size_t alignment, size_t size) {
+void *aligned_alloc(size_t alignment, size_t size) {
   /* Check if:
    *  - size and alignment are greater than zero
    *  - alignment is a power of 2
@@ -964,9 +1071,11 @@ static void *shadow_aligned_alloc(size_t alignment, size_t size) {
   if (!size || !alignment || !powof2(alignment) || (size%alignment))
     return NULL;
 
-  char *res = native_aligned_alloc(alignment, size);
-  if (res)
+  char *res = public_aligned_alloc(alignment, size);
+
+  if (res) {
     set_heap_segment(res, size, ALLOC_SIZE(size), 0, "aligned_alloc");
+  }
 
   return (void*)res;
 }
@@ -974,7 +1083,7 @@ static void *shadow_aligned_alloc(size_t alignment, size_t size) {
 
 /* Heap aligned allocation (posix_memalign) {{{ */
 /*! \brief Replacement for `posix_memalign` with memory tracking */
-static int shadow_posix_memalign(void **memptr, size_t alignment, size_t size) {
+int posix_memalign(void **memptr, size_t alignment, size_t size) {
  /* Check if:
    *  - size and alignment are greater than zero
    *  - alignment is a power of 2 and a multiple of sizeof(void*) */
@@ -985,7 +1094,7 @@ static int shadow_posix_memalign(void **memptr, size_t alignment, size_t size) {
   vassert(allocated((uintptr_t)memptr, sizeof(void*), (uintptr_t)memptr),
       "\\invalid memptr in  posix_memalign", NULL);
 
-  int res = native_posix_memalign(memptr, alignment, size);
+  int res = public_posix_memalign(memptr, alignment, size);
   if (!res) {
     set_heap_segment(*memptr, size, ALLOC_SIZE(size), 0, "posix_memalign");
   }
@@ -1024,9 +1133,17 @@ static int heap_allocated(uintptr_t addr, size_t size, uintptr_t base_ptr) {
      *  after base address)
      * offset is the difference between the address and base address (shadow[0])
      * Then an address belongs to heap allocation if
-     *  offset + size <= length */
+     *  offset + size <= length
+     *
+     * Additionally, if strong validity is enforced
+     * (i.e., E_ACSL_WEAK_VALIDITY macro undefined) make sure that both
+     * `addr` and `base_ptr` belong to the same block. */
+#ifndef E_ACSL_WEAK_VALIDITY
     return base_shadow[0] == shadow[0] &&
       (addr - shadow[0]) + size <= first_segment[1];
+#else
+    return (addr - shadow[0]) + size <= first_segment[1];
+#endif
   }
   return 0;
 }
@@ -1035,9 +1152,9 @@ static int heap_allocated(uintptr_t addr, size_t size, uintptr_t base_ptr) {
  * heap-allocated memory block that `addr` belongs to.
  *
  * As some of the other functions, \b \\freeable can be expressed using
- * ::IS_ON_HEAP, ::heap_allocated and ::base_addr. Here direct
+ * ::IS_ON_HEAP, ::heap_allocated and ::_base_addr. Here direct
  * implementation is preferred for performance reasons. */
-static int freeable(void *ptr) { /* + */
+int freeable(void *ptr) { /* + */
   uintptr_t addr = (uintptr_t)ptr;
   /* Address is not on the program's heap, so cannot be freed */
   if (!IS_ON_HEAP(addr))
@@ -1107,20 +1224,45 @@ static int heap_initialized(uintptr_t addr, long len) {
       return 0;
   }
   if (len > 0)
-    return checkbits(len,shadow);
+    return checkbits(len, shadow);
   return 1;
 }
 
 /* }}} */
 
+/* Heap temporal querying {{{*/
+#ifdef E_ACSL_TEMPORAL
+static uint32_t heap_temporal_info(uintptr_t addr, int origin) {
+  /* NOTE: No checking for allocated blocks, since an invalid
+     timestamp is zero and unused memory is nullified then an invalid
+     timestamp is also returned for allocated memory */
+  if (origin) {
+    uintptr_t *aligned_shadow = (uintptr_t*)ALIGNED_HEAP_SHADOW(addr);
+    uintptr_t *base_shadow = (uintptr_t*)HEAP_SHADOW(*aligned_shadow);
+    return (uint32_t)base_shadow[2];
+  } else {
+    return *((uint32_t*)TEMPORAL_HEAP_SHADOW(addr));
+  }
+}
+
+#define heap_origin_timestamp(_ptr)   heap_temporal_info((uintptr_t)(_ptr),1)
+#define heap_referent_timestamp(_ptr) heap_temporal_info((uintptr_t)(_ptr),0)
+
+static void heap_store_temporal_referent(uintptr_t addr, uint32_t ref) {
+  DVALIDATE_HEAP_ACCESS(addr, PTR_SZ);
+  uint32_t *temporal_shadow = (uint32_t*)TEMPORAL_HEAP_SHADOW(addr);
+  *temporal_shadow = ref;
+}
+#endif/*}}} E_ACSL_TEMPORAL*/
+
 /* Heap initialization {{{ */
 /*! \brief Mark n bytes on the heap starting from address addr as initialized */
 static void initialize_heap_region(uintptr_t addr, long len) {
   DVALIDATE_HEAP_ACCESS(addr, len);
-  DVASSERT(!(addr - base_addr(addr) + len > block_length(addr)),
+  DVASSERT(!(addr - _base_addr(addr) + len > _block_length(addr)),
     "Attempt to initialize %lu bytes past block boundaries\n"
     "starting at %a with block length %lu at base address %a\n",
-    len, addr, block_length(addr), base_addr(addr));
+    len, addr, _block_length(addr), _base_addr(addr));
 
   /* Address within init shadow tracking initialization  */
   unsigned char *shadow = (unsigned char*)(HEAP_INIT_SHADOW(addr));
@@ -1163,29 +1305,17 @@ static int allocated(uintptr_t addr, long size, uintptr_t base) {
 }
 /* }}} */
 
-/* Any initialization {{{ */
-/*! \brief Initialize a chunk of memory given by its start address (`addr`)
- * and byte length (`n`). */
-static void initialize(void *ptr, size_t n) {
-  TRY_SEGMENT(
-    (uintptr_t)ptr,
-    initialize_heap_region((uintptr_t)ptr, n),
-    initialize_static_region((uintptr_t)ptr, n)
-  )
-}
-/* }}} */
-
 /* Internal state print (debug mode) {{{ */
 #ifdef E_ACSL_DEBUG
 /* ! \brief Print human-readable representation of a byte in a primary
  * shadow */
 static void printbyte(unsigned char c, char buf[]) {
   if (c >> 2 < LONG_BLOCK_INDEX_START) {
-    sprintf(buf, "PRIMARY: I{%u} RO{%u} OF{%2u} => %u[%u]",
+    rtl_sprintf(buf, "PRIMARY: I{%u} RO{%u} OF{%2u} => %u[%u]",
       checkbit(INIT_BIT,c), checkbit(READONLY_BIT,c), c >> 2,
       short_lengths[c >> 2], short_offsets[c >> 2]);
   } else {
-    sprintf(buf, "SECONDARY:  I{%u} RO{%u} OF{%u} => %4u",
+    rtl_sprintf(buf, "SECONDARY:  I{%u} RO{%u} OF{%u} => %4u",
       checkbit(INIT_BIT,c), checkbit(READONLY_BIT,c),
       (c >> 2), (c >> 2) - LONG_BLOCK_INDEX_START);
   }
@@ -1207,7 +1337,7 @@ static void print_static_shadows(uintptr_t addr, size_t size) {
     if (IS_LONG_BLOCK(size) && (i%LONG_BLOCK) == 0) {
       j += 2;
       if (i < LONG_BLOCK_BOUNDARY(size)) {
-        sprintf(sec_buf, " %a  SZ{%u} OF{%u}",
+        rtl_sprintf(sec_buf, " %a  SZ{%u} OF{%u}",
           &sec_shadow[j], sec_shadow[j-2], sec_shadow[j-1]);
       }
       if (i) {
@@ -1216,6 +1346,13 @@ static void print_static_shadows(uintptr_t addr, size_t size) {
     }
     DLOG("| [%2d] %a | %s || %s\n", i, &prim_shadow[i], prim_buf, sec_buf);
   }
+#ifdef E_ACSL_TEMPORAL /* {{{ */
+  uint32_t* origin_shadow = (uint32_t*)TEMPORAL_PRIMARY_STATIC_SHADOW(addr);
+  uint32_t* ref_shadow = (uint32_t*)TEMPORAL_SECONDARY_STATIC_SHADOW(addr);
+  DLOG(" | > Blk ID: %u\n", i, *origin_shadow);
+  for (i = 0; i < size; i+=PTR_SZ)
+    DLOG(" | >   Ref ID[%u]: %u\n", i/8, *(ref_shadow + 1));
+#endif /*}}} E_ACSL_TEMPORAL*/
 }
 
 /*! \brief Print human-readable representation of a heap shadow region for a
@@ -1241,6 +1378,10 @@ static void print_heap_shadows(uintptr_t addr) {
   if (zeroed_out(block_shadow, alloc_size))
     DLOG(" | << Nullified >>  \n");
 
+#ifdef E_ACSL_TEMPORAL /*{{{*/
+  DLOG(" | Origin TS:       %u\n", (uint32_t)segment[2]);
+#endif	/*}}}*/
+
   size_t i;
   for (i = 0; i < segments; i++) {
     segment = (uintptr_t*)(block_shadow + i*HEAP_SEGMENT);
@@ -1263,21 +1404,33 @@ static void print_shadows(uintptr_t addr, size_t size) {
     print_heap_shadows(addr);
 }
 
-static void print_memory_segment(struct memory_segment *seg, const char *name) {
-  DLOG(" --- %s ------------------------------------------\n", name);
-  DLOG("Segment:   %lu MB [%a, %a]\n", MB_SZ(seg->size), seg->start, seg->end);
-  DLOG("Primary:   %lu MB [%a, %a] {Offset: %lu}\n",
-    MB_SZ(seg->prim_size), seg->prim_start, seg->prim_end, seg->prim_offset);
-  DLOG("Secondary: %lu MB [%a, %a] {Offset: %lu}\n",
-    MB_SZ(seg->sec_size), seg->sec_start, seg->sec_end, seg->sec_offset);
+static void print_memory_segment(struct memory_segment *p, char *lab, int off) {
+  DLOG("   %s: %lu MB [%lu, %lu]", lab, MB_SZ(p->size), p->start, p->end);
+  if (off)
+    DLOG("{ Offset: %ld }", p->shadow_offset);
+  DLOG("\n");
 }
 
-static void print_memory_layout() {
-  print_memory_segment(&mem_layout.heap, "Heap");
-  print_memory_segment(&mem_layout.stack, "Stack");
-  print_memory_segment(&mem_layout.global, "Global");
-  print_memory_segment(&mem_layout.tls, "TLS");
-  DLOG("-----------------------------------------------------\n");
+static void print_memory_partition(struct memory_partition *p) {
+  print_memory_segment(&p->application, "Application", 0);
+  print_memory_segment(&p->primary, "Primary    ", 1);
+  print_memory_segment(&p->secondary, "Secondary  ", 1);
+#ifdef E_ACSL_TEMPORAL
+  print_memory_segment(&p->temporal_primary, "Temporal Primary    ", 1);
+  print_memory_segment(&p->temporal_secondary, "Temporal Secondary  ", 1);
+#endif
+}
+
+static void print_shadow_layout() {
+  DLOG(">>> HEAP ---------------------\n");
+  print_memory_partition(&mem_layout.heap);
+  DLOG(">>> STACK --------------------\n");
+  print_memory_partition(&mem_layout.stack);
+  DLOG(">>> GLOBAL -------------------\n");
+  print_memory_partition(&mem_layout.global);
+  DLOG(">>> TLS ----------------------\n");
+  print_memory_partition(&mem_layout.tls);
+  DLOG(">>> --------------------------\n");
 }
 
 /*! \brief Output the shadow segment the address belongs to */
@@ -1303,7 +1456,7 @@ static const char* which_segment(uintptr_t addr) {
 /*! \brief Print program layout. This function outputs start/end addresses of
  * various program segments, their shadow counterparts and sizes of shadow
  * regions used. */
-#define DEBUG_PRINT_LAYOUT print_memory_layout()
+#define DEBUG_PRINT_LAYOUT print_shadow_layout()
 void ___e_acsl_debug_print_layout() { DEBUG_PRINT_LAYOUT; }
 
 /*! \brief Print the shadow segment address addr belongs to */

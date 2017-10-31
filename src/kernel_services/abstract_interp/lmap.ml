@@ -52,8 +52,6 @@ struct
 
   type widen_hint_base = V.generic_widen_hint
 
-  exception Error_Top
-
   open Default_offsetmap
 
   (* to be used only when we are sure that the base is not Invalid, for
@@ -517,7 +515,7 @@ struct
       in
       try
         Location_Bits.fold_topset_ok treat_src src_loc `Bottom
-      with Location_Bits.Error_Top -> top_offsetmap size
+      with Error_Top -> top_offsetmap size
 
   end
 

@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/repeat.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -15,8 +14,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 61):
-Let a = L_sequence(calls_2).
-Let a_1 = L_sequence(calls_1).
+Let a = L_sequence(calls_1).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Pre-condition *)
@@ -24,15 +22,15 @@ Assume {
   (* Pre-condition *)
   Have: L_sequence(calls_0) = nil.
   (* Invariant *)
-  Have: ([ 1, 2 ] *^ i) = a_1.
+  Have: ([ 1, 2 ] *^ i) = a.
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ 1 ].
+  Have: L_sequence(calls_2) = a ^ [ 1 ].
   (* Call 'g' *)
-  Have: L_sequence(calls_3) = a ^ [ 2 ].
+  Have: L_sequence(calls_3) = a ^ [ 1, 2 ].
 }
 Prove: (-1) <= i.
 
@@ -45,9 +43,8 @@ Prove: true.
 
 Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 62):
 Let a = L_sequence(calls_0).
-Let a_1 = L_sequence(calls_3).
-Let a_2 = L_sequence(calls_2).
-Let a_3 = [ 1, 2 ].
+Let a_1 = a ^ [ 1, 2 ].
+Let a_2 = [ 1, 2 ].
 Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
@@ -56,17 +53,17 @@ Assume {
   (* Pre-condition *)
   Have: L_sequence(calls_1) = nil.
   (* Invariant *)
-  Have: (a_3 *^ i) = a_2.
+  Have: (a_2 *^ i) = a.
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Call 'f' *)
-  Have: a_1 = a_2 ^ [ 1 ].
+  Have: L_sequence(calls_2) = a ^ [ 1 ].
   (* Call 'g' *)
-  Have: a = a_1 ^ [ 2 ].
+  Have: L_sequence(calls_3) = a_1.
 }
-Prove: (a_3 *^ x) = a.
+Prove: (a_2 *^ x) = a_1.
 
 ------------------------------------------------------------
 
@@ -119,33 +116,32 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/repeat.c, line 73) in 'shifted':
-Let a = L_sequence(calls_0).
-Let a_1 = L_sequence(calls_3).
-Let a_2 = [ 1, 2 ].
+Let a = [ 1, 2 ].
+Let a_1 = (a *^ i).
+Let a_2 = a_1 ^ [ 1, 2 ].
 Assume {
   Type: is_sint32(i) /\ is_sint32(n).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
-  Have: L_sequence(calls_1) = nil.
+  Have: L_sequence(calls_0) = nil.
   (* Call 'f' *)
-  Have: L_sequence(calls_2) = [ 1 ].
+  Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)
-  Have: a_1 = (a_2 *^ i) ^ [ 1 ].
+  Have: L_sequence(calls_2) = a_1 ^ [ 1 ].
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Else *)
   Have: n <= i.
   (* Call 'g' *)
-  Have: a = a_1 ^ [ 2 ].
+  Have: L_sequence(calls_3) = a_2.
 }
-Prove: (a_2 *^ 1 + i) = a.
+Prove: (a *^ 1 + i) = a_2.
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 81):
-Let a = L_sequence(calls_3).
-Let a_1 = L_sequence(calls_2).
+Let a = ([ 1, 2 ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(1 + i).
   (* Pre-condition *)
@@ -155,15 +151,15 @@ Assume {
   (* Call 'f' *)
   Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)
-  Have: a_1 = ([ 1, 2 ] *^ i) ^ [ 1 ].
+  Have: L_sequence(calls_2) = a ^ [ 1 ].
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: a = a_1 ^ [ 2 ].
+  Have: L_sequence(calls_3) = a ^ [ 1, 2 ].
   (* Call 'f' *)
-  Have: L_sequence(calls_4) = a ^ [ 1 ].
+  Have: L_sequence(calls_4) = a ^ [ 1, 2, 1 ].
 }
 Prove: (-1) <= i.
 
@@ -175,31 +171,30 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_plugin/repeat.c, line 82):
-Let a = L_sequence(calls_0).
-Let a_1 = L_sequence(calls_4).
-Let a_2 = L_sequence(calls_3).
-Let a_3 = [ 1, 2 ].
+Let a = [ 1, 2 ].
+Let a_1 = (a *^ i).
+Let a_2 = a_1 ^ [ 1, 2 ].
 Let x = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x).
   (* Pre-condition *)
   Have: 0 <= n.
   (* Pre-condition *)
-  Have: L_sequence(calls_1) = nil.
+  Have: L_sequence(calls_0) = nil.
   (* Call 'f' *)
-  Have: L_sequence(calls_2) = [ 1 ].
+  Have: L_sequence(calls_1) = [ 1 ].
   (* Invariant *)
-  Have: a_2 = (a_3 *^ i) ^ [ 1 ].
+  Have: L_sequence(calls_2) = a_1 ^ [ 1 ].
   (* Invariant *)
   Have: (0 <= i) /\ (i <= n).
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: a_1 = a_2 ^ [ 2 ].
+  Have: L_sequence(calls_3) = a_2.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ 1 ].
+  Have: L_sequence(calls_4) = a_1 ^ [ 1, 2, 1 ].
 }
-Prove: a = (a_3 *^ x) ^ [ 1 ].
+Prove: (a *^ x) = a_2.
 
 ------------------------------------------------------------
 

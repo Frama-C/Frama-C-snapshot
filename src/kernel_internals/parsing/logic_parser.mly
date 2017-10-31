@@ -1050,11 +1050,11 @@ contract:
 | requires terminates ne_decreases TERMINATES
       { clause_order 4 "terminates" "decreases" }
 | requires terminates decreases ne_simple_clauses REQUIRES
-      { clause_order 5 "requires" "post-condition or assigns" }
+      { clause_order 5 "requires" "post-condition, assigns or allocates" }
 | requires terminates decreases ne_simple_clauses TERMINATES
-      { clause_order 5 "terminates" "post-condition or assigns" }
+      { clause_order 5 "terminates" "post-condition, assigns or allocates" }
 | requires terminates decreases ne_simple_clauses DECREASES
-      { clause_order 5 "decreases" "post-condition or assigns" }
+      { clause_order 5 "decreases" "post-condition, assigns or allocates" }
 | requires terminates decreases simple_clauses ne_behaviors TERMINATES
       { clause_order 6 "terminates" "behavior" }
 | requires terminates decreases simple_clauses ne_behaviors DECREASES

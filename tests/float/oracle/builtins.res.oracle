@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/builtins.c (with preprocessing)
 tests/float/builtins.c:55:[kernel] warning: Floating-point constant 2.72 is not represented exactly. Will use 0x1.5c28f5c28f5c3p1. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main

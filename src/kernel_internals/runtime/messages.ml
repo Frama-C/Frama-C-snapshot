@@ -43,7 +43,7 @@ module Messages =
   State_builder.List_ref
     (DatatypeMessages)
     (struct
-       let name = "message_table"
+       let name = "Messages.message_table"
        let dependencies = [ Ast.self ]
      end)
 let () = Ast.add_monotonic_state Messages.self
@@ -92,7 +92,7 @@ module OnceTable =
     (struct
       let size = 37
       let dependencies = [ Ast.self ]
-      let name = "Message.OnceTable"
+      let name = "Messages.OnceTable"
      end)
 
 let check_not_yet evt =

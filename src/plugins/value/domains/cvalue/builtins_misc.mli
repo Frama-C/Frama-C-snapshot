@@ -25,7 +25,4 @@
 
 (** Builtins with multiple names; the lookup is done using a distinctive
     prefix *)
-(* TODO: move the lookup mechanism into find_builtin *)
-val dump_state: Db.Value.builtin_sig
-val dump_args: string -> Db.Value.builtin_sig
 val dump_state_file: string -> Db.Value.builtin_sig

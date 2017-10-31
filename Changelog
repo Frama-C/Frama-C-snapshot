@@ -17,10 +17,136 @@
 Open Source Release <next-release>
 ##################################
 
+###################################
+Open Source Release Sulfur-20171101
+###################################
+
+-* Eva        [2017/10/27] Fix bug in the handling of non-explicitly volatile
+              fields inside volatile structs or unions
+-  RTE        [2017/10/27] add option -rte-initialized to generate assertions
+              over read accesses to potentially uninitialized locations.
+-* RTE        [2017/10/16] Fix bounds of alarms emitted when downcasting to
+              bitfields (issue #?2314)
+o  Makefile   [2017/10/13] add gui-byte target to only build bytecode GUI
+o  Kernel     [2017/10/11] sizeof() and alignof() applied to a function can now
+              be rejected when the compiler does not support this construct,
+              depending on the fields sizeof_fun and alignof_fun of the machdep
+-* Kernel     [2017/10/11] More thorough checks on l-values with function type.
+              Non-sensical expressions are now rejected at parsing type.
+-  Eva        [2017/10/10] Uses assigns clauses to over-approximate the effects
+              of assembly statements. Warns if no assigns clause is provided.
+-* Eva        [2017/10/10] Fixes a performance issue in offsetmaps, that occured
+              when reading or copying values smaller than cells in large arrays.
+-  Eva        [2017/10/10] The backward propagation tries to reduce integer
+              values by considering separately the bounds of their intervals.
+-* Eva        [2017/10/10] Fixes an optimization issue where the reduction by a
+              loop invariant just after widenings could impede the convergence.
+-* Eva        [2017/10/10] Fixes a soundness bug where a loop invariant could be
+              wrongly proved correct in some marginal cases.
++  Slicing    [2017/10/05] File slicing_types/*.ml moved into slicing subdir.
+-  Gui        [2017/09/13] In the filetree, the filter menu appears on a right
+              click on the header, while a left click sorts the tree.
+-  Metrics    [2017/09/13] In the Gui, shows the percentage and the number of
+              dead statements (when computed) for each function of the filetree.
+-! Callgraph  [2017/09/01] Option -cg-init-roots replaced by -cg-service-roots
+              (almost equivalent); new options -cg-function-pointers (ignore
+              function pointers; unsound) and -cg-roots (compute subgraphs).
+o! Eva        [2017/09/01] In abstract domains, compute_using_specification is
+              replaced by logic_assign, that interprets one \assigns clause.
+              Complete specification are now interpreted through successive
+              calls to evaluate_predicate, reduce_by_predicate and logic_assign.
+-  Eva        [2017/09/01] Various precision improvements in the interpretation
+              of the behaviors of a specification.
 -* Kernel     [2017/08/31] Fixes configure script on bytecode only architecture.
               Initial version of the patch by Debian. Fixes #2325
--* Kernel     [2017/05/08] Fix various typos in source code and user messages.
+-* Kernel     [2017/08/31] Fix various typos in source code and user messages.
               Patch by Debian. Fixes #2323
+-! Sparecode  [2017/08/31] Rename option -rm-unused-globals to
+              -sparecode-rm-unused-globals.
+o! ACSL       [2017/08/24] Refactor handling of logic labels in AST
+-! Eva        [2017/08/03] Fix soundness (resp. precision) bug on big-endian
+              (resp. little-endian) architectures. This bug triggered on
+              low-level code, typically when using bitfields
+-* Kernel     [2017/08/03] Strip bitfield attribute when performing integral
+              promotions on bitfields of size short or char. Fixes incorrect
+              attributes on the resulting expression.
+-! ACSL       [2017/08/03] Explicitely disallow /* and */ in ACSL annotations.
+              Allows to re-use logic parser for parsing annotations in external
+              files that can use /* ... */ as comments. As a consequence,
+              expressions like y/*p are thus rejected, but this was already the
+              case when -pp-annot is activated (default for .c files) and can
+              be fixed easily in y / *p (as it is pretty-printed)
+-* Kernel     [2017/07/29] Fix unmarshalling of save files that contain more
+              than 4Gb of uncompressed data. Patch from TIS-interpreter.
+-* Eva        [2017/07/27] Fix performance issue with the equality domain.
+-! Kernel     [2017/08/28] Fix invalid eids on code generated through loop
+              unrolling
+-! Slicing    [2017/08/28] Fix invalid eids on code generated through option
+              -slicing-level >= 2
+-! Eva        [2017/07/28] Fixed memory leak with option
+              -val-subdivide-non-linear
+o! Slicing    [2017/08/01] Removing Db API for Slicing plug-in. Calls to
+              !Db.Slicing should be replaced by calls to Slicing.Api.
+-o! Slicing   [2017/07/27] Removing deprecated '-slice-option' and related
+              !Db.Slicing.Projet.print_exported_project. Minor changes into
+	      !Db.Slicing.Projet.extract.
+o! Scope      [2017/07/27] Removing Db API for Scope plug-in. Calls to
+              !Db.Scope should be replaced by calls to Scope.
+o! Report     [2017/07/24] Removing Db API for Report plug-in. Calls to
+              !Db.Report.print should be replaced by calls to
+              Report.Register.print.
+-  RTE        [2017/07/17] Emits overflow alarms on unsigned left shift when
+              -warn-unsigned-overflow is enabled.
+-  Eva        [2017/07/17] Emits overflow alarms on unsigned left shift when
+              -warn-unsigned-overflow is enabled.
+-  Kernel     [2017/07/10] Composite types are now required to have equal tags
+              as per the C standard; no more support for isomorphic structs.
+-  Eva        [2017/07/01] In the GUI, the "Values" panel displays the values
+              computed by using the properties inferred by all enabled domains.
+-! Eva        [2017/06/30] Better handling of function alloca(), via builtin
+              Frama_C_alloca.
+-* Eva        [2017/06/28] The cvalue states saved after each statement are now
+              properly deleted when an Eva parameter is changed in the GUI.
+o  Eva        [2017/06/26] New functor in domains/simple_memory.ml to build a
+              complete domain from a value abstraction. The abstract states link
+              each scalar variable of a program to an abstract value.
+-  Eva        [2017/06/26] New sign domain for demonstration purposes only.
+-* Kernel     [2017/06/09] Parser now handle mixed concatenation of
+              string and wstring. Fixes #@1467
+-  Eva        [2017/06/07] The subdivision of the evaluation of non-linear
+              expressions (through the -val-subdivide-non-linear option) also
+              applies to the new evaluations requested by the equality domain.
+-* Eva        [2017/06/14] Fix a crash when downcasting pointer values with
+              the option -val-warn-signed-converted-downcast enabled.
+-* Eva        [2017/06/14] Fix missing alarms when downcasting pointer values.
+-o Eva        [2017/05/24] The argument ~with_alarms for functions of Db.Value
+              is now optional, and will be removed in a later version.
+*  Eva        [2017/05/24] Fix soundness bug in string builtins where some
+              invalid offsets did not generate alarms.
+-  Eva        [2017/05/22] Removes all effects of the special functions
+              Frama_C_[dump|show]_each on the analyses: no alarms are emitted
+              and the states are never reduced on these calls.
+-  Eva        [2017/05/22] Frama_C_dump_each prints the state of each available
+              domain whose log category is enabled.
+-  Eva        [2017/05/22] New directive Frama_C_domain_show_each prints the
+              internal properties about the arguments inferred by each available
+              domain whose log category is enabled.
+o! Eva        [2017/05/22] Abstract domains have to provide a log category and
+              a function show_expr that prints the internal properties inferred
+              about an expression.
+-  RTE        [2017/05/12] add -warn-not-finite-float for checking
+              that infinite and NaN floats are not produced.
+-! Kernel     [2017/05/17] qualifiers are dropped from the return type of
+              functions, as they make no real sense
+-* Kernel     [2017/04/27] stop removing const attribute on local variables.
+              Fixes #@301
+o! Kernel     [2017/04/27] Remove needless repetition of declared logic labels
+              in Tapp and Papp nodes. Fixes #@274
+o! Kernel     [2017/04/27] Completely separate types between Cil_types and
+              Logic_ptree, removing needless polymorphism
+-  Kernel     [2017/05/18] Added option -print-return to inline gotos to return
+-  Eva        [2017/04/06] More precise evaluation of \initialized and
+              \dangling predicates.
 
 #######################################
 Open Source Release Phosphorus-20170501
@@ -100,6 +226,7 @@ o! Gui        [2017/03/10] Signature change for constructor
 -* Kernel     [2016/11/17] Fixed some issues with #pragma pack() behavior,
               in both GCC and MSVC machdeps. Also fixed some related issues
               with __aligned__ and __packed__ attributes (including bts #2249).
+-o Kernel     [2016/11/17] Utility API for checking volatile attribute in Cil.
 -  Metrics    [2016/11/17] Programmatic API for some functions via Metrics.mli.
 -  Kernel     [2016/11/07] New option -no-autoload-plugins (equivalent to old
               -no-dynlink); mostly for internal use.

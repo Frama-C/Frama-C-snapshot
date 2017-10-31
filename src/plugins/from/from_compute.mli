@@ -50,7 +50,7 @@ end
 val compute_using_prototype_for_state :
   Db.Value.state ->
   Kernel_function.t ->
-  identified_term assigns ->
+  assigns ->
   Function_Froms.froms
 
 

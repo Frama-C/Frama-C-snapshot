@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/recursion.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
@@ -43,11 +42,11 @@ tests/value/recursion.i:44:[value] user error: recursive call during value analy
 [value] Done for function h
 [value] Recording results for h
 [value] Done for function h
-[value] Called Frama_C_show_each({{  }}, {{  }})
+tests/value/recursion.i:71:[value] Frama_C_show_each: Bottom, Bottom
 [value] computing for function escaping_formal <- main.
         Called from tests/value/recursion.i:72.
 tests/value/recursion.i:52:[value] function escaping_formal: precondition got status valid.
-[value] Called Frama_C_show_each({{ &i }}, {10}, {0}, {10})
+tests/value/recursion.i:58:[value] Frama_C_show_each: {{ &i }}, {10}, {0}, {10}
 tests/value/recursion.i:59:[value] user error: recursive call during value analysis
                     of escaping_formal (escaping_formal <- escaping_formal :: tests/value/recursion.i:72 <-
                                                            main).
@@ -57,13 +56,13 @@ tests/value/recursion.i:59:[value] user error: function 'escaping_formal' (invol
         Called from tests/value/recursion.i:59.
 [value] using specification for function escaping_formal
 [value] Done for function escaping_formal
-[value] Called Frama_C_show_each({{ &i }}, {10}, {0}, {10})
+tests/value/recursion.i:62:[value] Frama_C_show_each: {{ &i }}, {10}, {0}, {10}
 tests/value/recursion.i:54:[value] function escaping_formal: postcondition got status valid.
 [value] Recording results for escaping_formal
 [value] Done for function escaping_formal
 [value] computing for function f <- main.
         Called from tests/value/recursion.i:73.
-[value] Called Frama_C_show_each({2}, {0})
+tests/value/recursion.i:28:[value] Frama_C_show_each: {2}, {0}
 tests/value/recursion.i:30:[value] user error: recursive call during value analysis
                     of f (f <- f :: tests/value/recursion.i:73 <- main). Assuming the call has
                     no effect. The analysis will be unsound.]
@@ -71,10 +70,10 @@ tests/value/recursion.i:30:[value] user error: recursive call during value analy
         Called from tests/value/recursion.i:30.
 [value] using specification for function f
 [value] Done for function f
-[value] Called Frama_C_show_each({2}, {0})
+tests/value/recursion.i:31:[value] Frama_C_show_each: {2}, {0}
 [value] Recording results for f
 [value] Done for function f
-[value] Called Frama_C_show_each({2})
+tests/value/recursion.i:74:[value] Frama_C_show_each: {2}
 tests/value/recursion.i:75:[value] warning: signed overflow. assert r.f1 + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main

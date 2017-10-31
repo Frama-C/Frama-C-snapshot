@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/nonlin.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -10,13 +9,18 @@
 [value] computing for function subdivide_integer <- main.
         Called from tests/value/nonlin.c:48.
 tests/value/nonlin.c:31:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
+tests/value/nonlin.c:31:[value:nonlin] subdividing on z
 tests/value/nonlin.c:32:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
+tests/value/nonlin.c:32:[value:nonlin] subdividing on z
 tests/value/nonlin.c:32:[value] warning: signed overflow.
                  assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
-tests/value/nonlin.c:39:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
 tests/value/nonlin.c:39:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
+tests/value/nonlin.c:39:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
+tests/value/nonlin.c:39:[value:nonlin] subdividing on i2
+tests/value/nonlin.c:39:[value:nonlin] subdividing on i1
 tests/value/nonlin.c:43:[value] warning: assertion got status unknown.
 tests/value/nonlin.c:44:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx'
+tests/value/nonlin.c:44:[value:nonlin] subdividing on idx
 [value] Recording results for subdivide_integer
 [value] Done for function subdivide_integer
 [value] computing for function subdivide_pointer <- main.
@@ -27,8 +31,9 @@ tests/value/nonlin.c:44:[value:nonlin] non-linear '(int)idx * (int)idx', lv 'idx
 share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/value/nonlin.c:20:[value:nonlin] non-linear '(p + i) - i', lv 'i'
+tests/value/nonlin.c:20:[value:nonlin] subdividing on i
 tests/value/nonlin.c:20:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
-tests/value/nonlin.c:24:[value:nonlin] non-linear '(p + i) - i', lv 'i'
+tests/value/nonlin.c:24:[value:nonlin] subdividing on i
 tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read((p + i) - i);
 [value] Recording results for subdivide_pointer
 [value] Done for function subdivide_pointer

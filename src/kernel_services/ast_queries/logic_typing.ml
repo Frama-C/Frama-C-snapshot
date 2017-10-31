@@ -378,10 +378,9 @@ let set_current_logic_label lab env =
   let env =
     { env with current_logic_label = Some lab }
   in match lab with
-      LogicLabel (_,"Post") -> enter_post_state env Normal
-    | LogicLabel (_,("Pre" | "Old")) | StmtLabel _ -> exit_post_state env
-    | LogicLabel (_,"Here") -> env
-    | LogicLabel _ -> exit_post_state env
+      BuiltinLabel Post -> enter_post_state env Normal
+    | BuiltinLabel Here -> env
+    | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> exit_post_state env
 
 let default_label = ref None
 
@@ -492,7 +491,7 @@ type typing_context = {
     typing_context ->
     accept_formal:bool ->
     Lenv.t ->
-    Logic_ptree.lexpr Cil_types.assigns -> identified_term Cil_types.assigns;
+    Logic_ptree.assigns -> Cil_types.assigns;
   error: 'a 'b. location -> ('a,formatter,unit,'b) format4 -> 'a
 }
 
@@ -1770,7 +1769,7 @@ struct
     with Not_found ->
       C.error loc "\\old undefined in this context"
 
-  let default_inferred_label = LogicLabel (None, "L")
+  let default_inferred_label = FormalLabel "L"
 
   let find_current_label loc env =
     match env.Lenv.current_logic_label with
@@ -1794,11 +1793,11 @@ struct
 
   let labels_assoc loc id env fun_labels effective_labels =
     match fun_labels, effective_labels with
-        [lf], [] -> [lf, find_current_label loc env]
+        [_], [] -> [find_current_label loc env]
       | _ ->
 	  try
 	    List.map2
-	      (fun l1 l2 -> (l1,l2))
+	      (fun _ l2 -> l2)
 	      fun_labels effective_labels
 	  with Invalid_argument _ ->
 	    C.error loc "wrong number of labels for %s" id
@@ -2076,12 +2075,12 @@ let add_label info lab =
       method! vterm_node t =
         match t with
         | Tapp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-          ChangeDoChildrenPost(Tapp(info,[lab, curr_lab], args),Extlib.id)
+          ChangeDoChildrenPost(Tapp(info,[curr_lab], args),Extlib.id)
         | _ -> DoChildren
       method! vpredicate_node p =
         match p with
         | Papp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-          ChangeDoChildrenPost (Papp(info, [lab,curr_lab], args),Extlib.id)
+          ChangeDoChildrenPost (Papp(info, [curr_lab], args),Extlib.id)
         | _ -> DoChildren
 
       method private treat_ind_case (n,labs,t,p as ind) =
@@ -2198,35 +2197,10 @@ let add_label info lab =
     aux t
 
   let boolean_term_to_predicate t =
-    let loc = t.term_loc in
-    let conversion zero = prel ~loc (Cil_types.Rneq, t, zero) in
-    let arith_conversion () = conversion (Cil.lzero ~loc ()) in
-    let ptr_conversion () = conversion (Logic_const.term ~loc Tnull t.term_type)
-    in
-    match unroll_type t.term_type with
-      | Ctype (TInt _) -> arith_conversion ()
-      | Ctype (TFloat _) -> conversion 
-	  (Logic_const.treal_zero ~loc ~ltyp:t.term_type ())
-      | Ctype (TPtr _) -> ptr_conversion ()
-      | Ctype (TArray _) -> ptr_conversion ()
-      (* Could be transformed to \true: an array is never \null *)
-      | Ctype (TFun _) -> ptr_conversion ()
-        (* decay as pointer *)
-      | Linteger -> arith_conversion ()
-      | Lreal -> conversion (Logic_const.treal_zero ~loc ())
-      | Ltype ({lt_name = name},[]) when name = Utf8_logic.boolean ->
-	  let ctrue = C.find_logic_ctor "\\true" in
-	  prel ~loc
-	    (Cil_types.Req,t,
-             { term_node = TDataCons(ctrue,[]);
-               term_loc = loc;
-               term_type = Ltype(ctrue.ctor_type,[]);
-               term_name = [];
-             })
-      | Ltype _ | Lvar _ | Larrow _
-      | Ctype (TVoid _ | TNamed _ | TComp _ | TEnum _ | TBuiltin_va_list _)
-        ->
-	C.error loc "expecting a predicate and not a term"
+    if Logic_utils.is_zero_comparable t then
+      Logic_utils.scalar_term_to_predicate t
+    else
+      C.error t.term_loc "expecting a term that can be coerced to a boolean"
 
   let rec normalize_update_term ctxt env loc t v = function
       (* Transform terms like {x \with .c[idx] = v}
@@ -2502,9 +2476,9 @@ let add_label info lab =
                       match f.l_labels with
                           [] ->
                             TLval (TVar(f.l_var_info),TNoOffset), typ
-                        | [l] ->
+                        | [_] ->
                             let curr = find_current_label loc env in
-                            Tapp(f,[l,curr],[]), typ
+                            Tapp(f,[curr],[]), typ
                         | _ ->
                             C.error loc
                               "%s labels must be explicitly instantiated" x
@@ -3274,7 +3248,7 @@ let add_label info lab =
 		 | None ->
 		   let labels = match info.l_labels with
 		       [] -> []
-		     | [l] -> [l,find_current_label loc env]
+		     | [_] -> [find_current_label loc env]
 		     | _ ->
 		       C.error loc
 			 "%s labels must be explicitly instantiated" x
@@ -3343,7 +3317,7 @@ let add_label info lab =
     in
     let tl = Logic_const.new_identified_term tl in
     match d with
-        FromAny -> (tl,FromAny)
+        FromAny -> (tl,Cil_types.FromAny)
       | From f ->
         let tf =
           List.map (term_lval_assignable ctxt ~accept_formal:true env) f
@@ -3356,11 +3330,11 @@ let add_label info lab =
             Logic_const.new_identified_term td)
             tf
         in
-        (tl, From tf)
+        (tl, Cil_types.From tf)
 
   let type_assign ctxt ~accept_formal env a =
     match a with
-        WritesAny -> WritesAny
+        WritesAny -> Cil_types.WritesAny
       | Writes l ->
         let res = List.map (type_from ctxt ~accept_formal env) l in
         (* we drop assigns \result; and assigns \exit_status; without from
@@ -3371,10 +3345,10 @@ let add_label info lab =
             (fun (l,f) ->
               not (Logic_const.is_result l.it_content
                    || Logic_const.is_exit_status l.it_content)
-              || f <> FromAny)
+              || f <> Cil_types.FromAny)
             res
         in
-        Writes res
+        Cil_types.Writes res
 
   let base_ctxt env =
     make_typing_context
@@ -3417,11 +3391,11 @@ let add_label info lab =
       t
     in
     match p with
-    | Unroll_specs l -> Unroll_specs (List.map (term env) l)
-    | Widen_variables l -> Widen_variables (List.map (term_accept accept_var) l)
+    | Unroll_specs l -> Cil_types.Unroll_specs (List.map (term env) l)
+    | Widen_variables l -> Cil_types.Widen_variables (List.map (term_accept accept_var) l)
     | Widen_hints l ->
       let accept t = accept_int t || accept_var t in
-      Widen_hints (List.map (term_accept accept) l)
+      Cil_types.Widen_hints (List.map (term_accept accept) l)
 
   let type_annot loc ti =
     let env = append_here_label (append_init_label (Lenv.empty())) in
@@ -3560,10 +3534,10 @@ let add_label info lab =
          in
          let b_allocation=
            match bfa with
-           | FreeAllocAny -> FreeAllocAny
+           | FreeAllocAny -> Cil_types.FreeAllocAny
            | FreeAlloc(f,a) ->
-             FreeAlloc((List.map (id_term env) f),
-                       List.map (id_term (post_state_env Normal)) a)
+             Cil_types.FreeAlloc((List.map (id_term env) f),
+                                 List.map (id_term (post_state_env Normal)) a)
          in
          let b_extended = List.map (type_extended ~typing_context ~loc) bext in
          { Cil_types.b_name; b_assumes; b_requires; b_post_cond;
@@ -3630,12 +3604,13 @@ let add_label info lab =
     in type_spec old_behaviors vi.vdecl false log_return_typ env s
 
   let slice_pragma env = function
-      SPexpr t -> SPexpr (term env t)
-    | (SPctrl | SPstmt) as sp -> sp
+      SPexpr t -> Cil_types.SPexpr (term env t)
+    | SPctrl -> Cil_types.SPctrl
+    | SPstmt -> Cil_types.SPstmt
 
   let impact_pragma env = function
-      IPexpr t -> IPexpr (term env t)
-    | IPstmt as ip -> ip
+      IPexpr t -> Cil_types.IPexpr (term env t)
+    | IPstmt -> Cil_types.IPstmt
 
   let code_annot_env () =
     let env = append_here_label (append_pre_label (append_init_label 
@@ -3652,11 +3627,11 @@ let add_label info lab =
           check_behavior_names loc current_behaviors behav;
           Cil_types.AAssert (behav,predicate (code_annot_env()) p)
       | APragma (Impact_pragma sp) ->
-	  Cil_types.APragma (Impact_pragma (impact_pragma (code_annot_env()) sp))
+	  Cil_types.APragma (Cil_types.Impact_pragma (impact_pragma (code_annot_env()) sp))
       | APragma (Slice_pragma sp) ->
-	  Cil_types.APragma (Slice_pragma (slice_pragma (code_annot_env()) sp))
+	  Cil_types.APragma (Cil_types.Slice_pragma (slice_pragma (code_annot_env()) sp))
       | APragma (Loop_pragma lp) ->
-	  Cil_types.APragma (Loop_pragma (loop_pragma (code_annot_env()) lp))
+	  Cil_types.APragma (Cil_types.Loop_pragma (loop_pragma (code_annot_env()) lp))
       | AStmtSpec (behav,s) ->
           (* function behaviors and statement behaviors are not at the
              same level. Do not mix them in a complete or disjoint clause
@@ -3681,9 +3656,9 @@ let add_label info lab =
           check_behavior_names loc current_behaviors behav;
 	  Cil_types.AAllocation(behav,
 	        (match fa with
-		   | FreeAllocAny -> FreeAllocAny
+		   | FreeAllocAny -> Cil_types.FreeAllocAny
 		   | FreeAlloc(f,a) ->
-		       FreeAlloc((List.map (id_term (loop_annot_env())) f),
+		       Cil_types.FreeAlloc((List.map (id_term (loop_annot_env())) f),
 				 List.map (id_term (loop_annot_env())) a)));
       | AAssigns (behav,a) ->
         let env = loop_annot_env () in
@@ -3763,9 +3738,9 @@ let add_label info lab =
         (fun l (labs,e) ->
 	   try
 	     let _ = Lenv.find_logic_label l e in
-	     C.error loc "multiply defined label `%s'" l
+	     C.error loc "multiple defined label `%s'" l
 	   with Not_found ->
-	     let lab = LogicLabel (None, l) in
+	     let lab = FormalLabel l in
 	     (lab::labs,Lenv.add_logic_label l lab e))
         labels ([],env)
     in

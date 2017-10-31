@@ -1,0 +1,25 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/prenex.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 12 goals scheduled
+[wp] [Alt-Ergo] Goal typed_diag_post : Valid
+[wp] [Alt-Ergo] Goal typed_diag_loop_inv_I_preserved : Valid
+[wp] [Qed] Goal typed_diag_loop_inv_I_established : Valid
+[wp] [Alt-Ergo] Goal typed_diag_loop_inv_PI_preserved : Valid
+[wp] [Qed] Goal typed_diag_loop_inv_PI_established : Valid
+[wp] [Alt-Ergo] Goal typed_diag_loop_inv_J_preserved : Valid
+[wp] [Qed] Goal typed_diag_loop_inv_J_established : Valid
+[wp] [Alt-Ergo] Goal typed_diag_loop_inv_PJ_preserved : Valid
+[wp] [Qed] Goal typed_diag_loop_inv_PJ_established : Valid
+[wp] [Qed] Goal typed_diag_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_diag_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_diag_loop_assign_2 : Valid
+[wp] Proved goals:   12 / 12
+     Qed:             7 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+diag                 7      5 (65)    12       100%
+----------------------------------------------------------

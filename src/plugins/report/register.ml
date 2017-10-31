@@ -24,10 +24,10 @@
 (* --- Plug-in Implementation                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-let print () = 
+let print () =
   Report_parameters.feedback "Computing properties status..." ;
   Log.print_on_output (fun fmt -> Scan.iter (Dump.create fmt))
-    
+
 let print =
   Dynamic.register
     ~plugin:"Report"
@@ -40,7 +40,7 @@ let print, _ =
   State_builder.apply_once
     "Report.print_once"
     [ Report_parameters.Enabled.self; (* reprint if we explicitly ask for *)
-      Report_parameters.PrintProperties.self; 
+      Report_parameters.PrintProperties.self;
       Report_parameters.Specialized.self;
       Property_status.self ]
     print
@@ -48,7 +48,6 @@ let print, _ =
 let main () = if Report_parameters.Enabled.get () then print ()
 
 let () =
-  Db.Report.print := print;
   Db.Main.extend main;
 
 (*

@@ -1,10 +1,10 @@
 /* run.config*
    STDOPT: +"-deterministic -slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3 -val-split-return-function f2:0,f3:-2:-4,f4:4,f5:-2,NON_EXISTING:4 -permissive -then -load-module report -report"
-   STDOPT: +"-deterministic -val @VALUECONFIG@ -journal-disable -out -input -deps -slevel 6 -val-split-return auto -val-split-return-function f7:0:3 -then -load-module report -report"
+   STDOPT: +"-deterministic -val -journal-disable -out -input -deps -slevel 6 -val-split-return auto -val-split-return-function f7:0:3 -then -load-module report -report"
    COMMENT: below command must fail, as -permissive is not set
-   STDOPT: +"-deterministic -val @VALUECONFIG@ -slevel-function NON_EXISTING:4"
-   STDOPT: +"-deterministic -val @VALUECONFIG@ -journal-disable -out -input -deps -slevel 6 -val-split-return full"
-   STDOPT: +"-deterministic -val @VALUECONFIG@ -journal-disable -out -input -deps -slevel 6 -val-split-return full -val-split-return-function f7:0:3 -val-split-return-function f2:full -then -val-split-return-function f2:auto"
+   STDOPT: +"-deterministic -val -slevel-function NON_EXISTING:4"
+   STDOPT: +"-deterministic -val -journal-disable -out -input -deps -slevel 6 -val-split-return full"
+   STDOPT: +"-deterministic -val -journal-disable -out -input -deps -slevel 6 -val-split-return full -val-split-return-function f7:0:3 -val-split-return-function f2:full -then -val-split-return-function f2:auto"
  */
 
 /*@ assigns \result \from \nothing;

@@ -111,42 +111,102 @@ let join_gui_offsetmap_res r1 r2 = match r1, r2 with
   | GO_Offsetmap o1, GO_Offsetmap o2 ->
     GO_Offsetmap (Cvalue.V_Offsetmap.join o1 o2)
 
-type gui_res =
+type 'a gui_res =
   | GR_Empty
-  | GR_Offsm of gui_offsetmap_res * typ option
-  | GR_Value of Cvalue.V.t * typ option
+  | GR_Offsm of gui_offsetmap_res * Cil_types.typ option
+  | GR_Value of 'a Eval.flagged_value * Cil_types.typ option
   | GR_Status of Eval_terms.predicate_status
   | GR_Zone of Locations.Zone.t
 
-let pretty_gui_res fmt = function
-  | GR_Empty -> ()
-  | GR_Offsm (offsm, typ) -> pretty_gui_offsetmap_res ?typ fmt offsm
-  | GR_Value (v, typ) -> Cvalue.V.pretty_typ typ fmt v
-  | GR_Status s -> Eval_terms.pretty_predicate_status fmt s
-  | GR_Zone z -> Locations.Zone.pretty fmt z
+type 'a gui_after =
+  | GA_After of 'a gui_res
+  | GA_Bottom
+  | GA_NA
+  | GA_Unchanged
 
-let equal_gui_res r1 r2 = match r1, r2 with
-  | GR_Empty, GR_Empty -> true
-  | GR_Offsm (o1, typ1), GR_Offsm (o2, typ2) ->
-    equal_gui_offsetmap_res o1 o2 &&
-    Extlib.opt_equal Cil_datatype.Typ.equal typ1 typ2
-  | GR_Value (v1, typ1), GR_Value (v2, typ2) ->
-    Cvalue.V.equal v1 v2 && Extlib.opt_equal Cil_datatype.Typ.equal typ1 typ2
-  | GR_Status s1, GR_Status s2 -> Extlib.compare_basic s1 s2 = 0
-  | GR_Zone z1, GR_Zone z2 -> Locations.Zone.equal z1 z2
-  | (GR_Empty | GR_Offsm _ | GR_Value _  | GR_Status _ | GR_Zone _), _ -> false
+module type S = sig
+  type value
 
-type gui_after = GA_After of gui_res | GA_NA | GA_Unchanged
+  val pretty_gui_res : Format.formatter -> value gui_res -> unit
+  val equal_gui_res : value gui_res -> value gui_res -> bool
+  val vars_in_gui_res : value gui_res -> Cil_types.varinfo list
 
-let pretty_gui_after fmt = function
-  | GA_After r -> Format.fprintf fmt "%a" pretty_gui_res r
-  | GA_NA -> Format.fprintf fmt "n/a"
-  | GA_Unchanged -> Format.fprintf fmt "unchanged"
+  val pretty_gui_after : Format.formatter -> value gui_after -> unit
+  val equal_gui_after : value gui_after -> value gui_after -> bool
+end
 
-let equal_gui_after a1 a2 = match a1, a2 with
-  | GA_NA, GA_NA | GA_Unchanged, GA_Unchanged -> true
-  | GA_After r1, GA_After r2 -> equal_gui_res r1 r2
-  | (GA_After _ | GA_NA | GA_Unchanged), _ -> false
+module Make (V: Abstractions.Value) = struct
+
+  let pretty_gui_res fmt = function
+    | GR_Empty -> ()
+    | GR_Offsm (offsm, typ) -> pretty_gui_offsetmap_res ?typ fmt offsm
+    | GR_Value (v, typ) -> Eval.Flagged_Value.pretty (V.pretty_typ typ) fmt v
+    | GR_Status s -> Eval_terms.pretty_predicate_status fmt s
+    | GR_Zone z -> Locations.Zone.pretty fmt z
+
+  let equal_gui_res r1 r2 = match r1, r2 with
+    | GR_Empty, GR_Empty -> true
+    | GR_Offsm (o1, typ1), GR_Offsm (o2, typ2) ->
+      equal_gui_offsetmap_res o1 o2 &&
+      Extlib.opt_equal Cil_datatype.Typ.equal typ1 typ2
+    | GR_Value (v1, typ1), GR_Value (v2, typ2) ->
+      Eval.Flagged_Value.equal V.equal v1 v2 &&
+      Extlib.opt_equal Cil_datatype.Typ.equal typ1 typ2
+    | GR_Status s1, GR_Status s2 -> Extlib.compare_basic s1 s2 = 0
+    | GR_Zone z1, GR_Zone z2 -> Locations.Zone.equal z1 z2
+    | (GR_Empty | GR_Offsm _ | GR_Value _  | GR_Status _ | GR_Zone _), _ -> false
+
+  let pretty_gui_after fmt = function
+    | GA_After r -> Format.fprintf fmt "%a" pretty_gui_res r
+    | GA_Bottom -> Format.fprintf fmt "BOTTOM"
+    | GA_NA -> Format.fprintf fmt "n/a"
+    | GA_Unchanged -> Format.fprintf fmt "unchanged"
+
+  let equal_gui_after a1 a2 = match a1, a2 with
+    | GA_NA, GA_NA | GA_Unchanged, GA_Unchanged | GA_Bottom, GA_Bottom -> true
+    | GA_After r1, GA_After r2 -> equal_gui_res r1 r2
+    | (GA_After _ | GA_NA | GA_Unchanged | GA_Bottom), _ -> false
+
+  let get_cvalue = V.get Main_values.cvalue_key
+  let from_cvalue v = V.set Main_values.cvalue_key v V.top
+
+  let var_of_base base acc =
+  try
+    let vi = Base.to_varinfo base in
+    (* if it is a function, do not add it *)
+    if Cil.isFunctionType vi.vtype then acc else vi :: acc
+  with Base.Not_a_C_variable -> acc
+
+  (* [vars_in_gui_res r] returns a list of non-function C variables
+     present in [r]. *)
+  let vars_in_gui_res r =
+    let rev_vars = match r with
+      | GR_Offsm (m_res, _) ->
+        begin
+          match m_res with
+          | GO_Offsetmap m ->
+            Cvalue.V_Offsetmap.fold_on_values (fun vu acc ->
+                Cvalue.V.fold_bases var_of_base
+                  (Cvalue.V_Or_Uninitialized.get_v vu) acc
+              ) m []
+          | _ -> []
+        end
+      | GR_Value (value, _) ->
+        begin
+          match value.Eval.v with
+          | `Bottom -> []
+          | `Value v ->
+            match get_cvalue with
+            | None -> []
+            | Some get -> Cvalue.V.fold_bases var_of_base (get v) []
+        end
+      | GR_Zone z -> Locations.Zone.fold_bases var_of_base z []
+      | GR_Status _ | GR_Empty -> []
+    in
+    (* inverse the list to preserve the order of the offsetmap *)
+    List.rev rev_vars
+
+end
 
 type gui_loc =
   | GL_Stmt of kernel_function * stmt
@@ -205,29 +265,6 @@ let pretty_callstack_short fmt cs =
       (fun fmt (kf, _) -> Kernel_function.pretty fmt kf) fmt q
   | _ -> assert false
 
-let var_of_base base acc =
-  try (Base.to_varinfo base) :: acc
-  with Base.Not_a_C_variable -> acc
-
-(* [vars_in_gui_res r] returns a list of C variables present in [r]. *)
-let vars_in_gui_res r =
-  let rev_vars = match r with
-    | GR_Offsm (m_res, _) ->
-      begin
-        match m_res with
-        | GO_Offsetmap m ->
-          Cvalue.V_Offsetmap.fold_on_values (fun vu acc ->
-              Cvalue.V.fold_bases var_of_base
-                (Cvalue.V_Or_Uninitialized.get_v vu) acc
-            ) m []
-        | _ -> []
-      end
-    | GR_Value (v, _) -> Cvalue.V.fold_bases var_of_base v []
-    | GR_Zone z -> Locations.Zone.fold_bases var_of_base z []
-    | GR_Status _ | GR_Empty -> []
-  in
-  (* inverse the list to preserve the order of the offsetmap *)
-  List.rev rev_vars
 
 (*
 Local Variables:

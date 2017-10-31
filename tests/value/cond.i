@@ -5,7 +5,7 @@ int f() {
   return G?0:(-51);
 }
 
-int i,t[]={ 1, 2, 3, 4, 5, 6, 7, 8 },(*p)[8],z, R;
+int i,t[]={ 1, 2, 3, 4, 5, 6, 7, 8 },(*p)[8],z, R, U[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0 };
 
 int main(int argc, char**argv)
 {
@@ -44,6 +44,14 @@ int main(int argc, char**argv)
   if (v!=10)
     Frama_C_show_each_6(v);
   Frama_C_show_each_7(v);
+
+  unsigned w = unknf();
+  if (U[w] != 0) {// The alarm guarantees that 0 <= w <= 12, and then backward
+                  // propagation tries the values 0 and 12 separately
+                  // (because 0-terminated arrays are frequent in embedded code)
+    Frama_C_show_each_w(w);
+    //@ assert w != 0 && w != 12;
+  }
 
   return inRet;
 

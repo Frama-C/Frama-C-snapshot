@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/conv.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -9,51 +8,42 @@
   v ∈ [--..--]
 [value] computing for function main1 <- main.
         Called from tests/float/conv.i:105.
-[value] Called Frama_C_show_each({0})
-[value] Called Frama_C_show_each({1.40129846432e-45})
-[value] Called Frama_C_show_each([1.40129846432e-43 .. 2.40330263757e+12])
+tests/float/conv.i:15:[value] Frama_C_show_each: {0}
+tests/float/conv.i:18:[value] Frama_C_show_each: {1.40129846432e-45}
+tests/float/conv.i:22:[value] Frama_C_show_each: [1.40129846432e-43 .. 2.40330263757e+12]
 tests/float/conv.i:24:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each({3.40282346639e+38})
+tests/float/conv.i:28:[value] Frama_C_show_each: {3.40282346639e+38}
 tests/float/conv.i:29:[value] assertion got status valid.
 tests/float/conv.i:32:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] Called Frama_C_show_each([-3.40282346639e+38 .. 3.40282346639e+38])
-[value] Called Frama_C_show_each({-3.40282346639e+38})
+tests/float/conv.i:33:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
+tests/float/conv.i:37:[value] Frama_C_show_each: {-3.40282346639e+38}
 tests/float/conv.i:38:[value] assertion got status valid.
 tests/float/conv.i:41:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] Called Frama_C_show_each([-3.40282346639e+38 .. 3.40282346639e+38])
-[value] Called Frama_C_show_each([0. .. 1.40129846432e-45])
+tests/float/conv.i:42:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
+tests/float/conv.i:45:[value] Frama_C_show_each: [0. .. 1.40129846432e-45]
 tests/float/conv.i:48:[value] warning: assertion got status unknown.
-tests/float/conv.i:49:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] Called Frama_C_show_each([-3.40282346639e+38 .. 3.40282346639e+38])
-tests/float/conv.i:52:[value] warning: non-finite float value. assert \is_finite(*((float *)(&i)));
-[value] Called Frama_C_show_each([-3.40282346639e+38 .. 3.40282346639e+38])
-tests/float/conv.i:55:[value] warning: non-finite float value. assert \is_finite(*((float *)(&ui)));
-[value] Called Frama_C_show_each([-3.40282346639e+38 .. 3.40282346639e+38])
+tests/float/conv.i:49:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
+tests/float/conv.i:52:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
+tests/float/conv.i:55:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.40282346639e+38]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/float/conv.i:106.
-[value] Called Frama_C_show_each({0})
-[value] Called Frama_C_show_each({4.94065645841e-324})
-[value] Called Frama_C_show_each([4.94065645841e-322 .. 9.22442153475e+159])
-[value] Called Frama_C_show_each({1.79769313486e+308})
+tests/float/conv.i:63:[value] Frama_C_show_each: {0}
+tests/float/conv.i:66:[value] Frama_C_show_each: {4.94065645841e-324}
+tests/float/conv.i:69:[value] Frama_C_show_each: [4.94065645841e-322 .. 9.22442153475e+159]
+tests/float/conv.i:73:[value] Frama_C_show_each: {1.79769313486e+308}
 tests/float/conv.i:74:[value] assertion got status valid.
-tests/float/conv.i:77:[value] warning: non-finite double value. assert \is_finite(*((double *)(&i)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
-tests/float/conv.i:80:[value] warning: non-finite double value. assert \is_finite(*((double *)(&i)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
-[value] Called Frama_C_show_each({-1.79769313486e+308})
+tests/float/conv.i:77:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+tests/float/conv.i:80:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+tests/float/conv.i:84:[value] Frama_C_show_each: {-1.79769313486e+308}
 tests/float/conv.i:85:[value] assertion got status valid.
-tests/float/conv.i:88:[value] warning: non-finite double value. assert \is_finite(*((double *)(&i)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
-[value] Called Frama_C_show_each([0. .. 4.94065645841e-324])
+tests/float/conv.i:88:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+tests/float/conv.i:91:[value] Frama_C_show_each: [0. .. 4.94065645841e-324]
 tests/float/conv.i:94:[value] warning: assertion got status unknown.
-tests/float/conv.i:95:[value] warning: non-finite double value. assert \is_finite(*((double *)(&i)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
-tests/float/conv.i:98:[value] warning: non-finite double value. assert \is_finite(*((double *)(&i)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
-tests/float/conv.i:101:[value] warning: non-finite double value. assert \is_finite(*((double *)(&ui)));
-[value] Called Frama_C_show_each([-1.79769313486e+308 .. 1.79769313486e+308])
+tests/float/conv.i:95:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+tests/float/conv.i:98:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
+tests/float/conv.i:101:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.79769313486e+308]
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

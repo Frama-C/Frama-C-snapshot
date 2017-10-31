@@ -10,7 +10,8 @@ void f(void)
   char * d = "abcdef" ;
   //@ assert AB: \separated(a,b);
   //@ assert B_valid: \valid_read(b+(0..2));
-  //@ assert B_out: !\valid_read(b+3);
+  //@ assert B_end: \valid_read(b+3) && b[3] == '\0';
+  //@ assert B_out: !\valid_read(b+4);
   //@ assert B_rw: !\valid(b+1);
   //@ assert VAL: \forall integer i; 0 <= i <= 2 ==> b[i] == d[3+i] ;
   /* The ending '0' is ok ! */

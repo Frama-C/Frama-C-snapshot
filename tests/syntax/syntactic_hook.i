@@ -4,10 +4,6 @@
 
 int f(void);
 
-int h(const int*);
-
-int h(int *x) { return *x; } // warns different decls.
-
 int k(int *);
 
 int k(int * x) { return (*x)++; }
@@ -28,4 +24,4 @@ int main () {
   return x;
 }
 
-int f(int); //warns conflicting decls
+int f(int); //error: conflicting decls

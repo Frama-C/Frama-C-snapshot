@@ -45,12 +45,8 @@ val pp_callstack : Format.formatter -> unit
 
 (* TODO: Document the rest of this file. *)
 val get_rounding_mode : unit -> Fval.rounding_mode
-val stop_if_stop_at_first_alarm_mode : unit -> unit
 val emitter : Emitter.t
-val warn_all_mode : CilE.warn_mode
-val warn_all_quiet_mode : unit -> CilE.warn_mode
 val get_slevel : Kernel_function.t -> Value_parameters.SlevelFunction.value
-val warn_indeterminate: Kernel_function.t -> bool
 val pretty_actuals :
   Format.formatter -> (Cil_types.exp * Cvalue.V.t * 'b) list -> unit
 val pretty_current_cfunction_name : Format.formatter -> unit
@@ -87,11 +83,17 @@ val postconditions_mention_result: Cil_types.funspec -> bool
 val conv_comp: binop -> Abstract_interp.Comp.t
 val conv_relation: relation -> Abstract_interp.Comp.t
 
-val zero: exp -> exp
-(** Return a zero constant compatible with the type of the argument *)
+val normalize_as_cond: exp -> bool -> exp
+(** [normalize_as_cond e positive] returns the expression corresponding to
+    [e != 0] when [positive] is true, and [e == 0] otherwise. The
+    resulting expression will always have a comparison operation at its
+    root. *)
 
 val is_value_zero: exp -> bool
-(** Return [true] iff the argument has been created by {!zero} *)
+(** Return [true] iff the argument has been created by {!normalize_as_cond} *)
+
+val lval_to_exp: lval -> exp
+(** This function is memoized to avoid creating too many expressions *)
 
 val dump_garbled_mix: unit -> unit
 (** print information on the garbled mix created during evaluation *)
@@ -109,8 +111,6 @@ val indirect_zone_of_lval:
 (** Given a function computing the location of lvalues, computes the memory zone
     on which the offset and the pointer expression (if any) of an lvalue depend.
 *)
-
-
 
 (*
 Local Variables:

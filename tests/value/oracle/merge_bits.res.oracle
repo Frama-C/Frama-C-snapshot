@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/merge_bits.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -13,28 +12,37 @@
    [8] ∈ {5}
    [9] ∈ {0}
    [10..12] ∈ {1}
-[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
-                                   [bits 8 to 31] ∈ {0}
-                                   This amounts to: {1})
-[value] Called Frama_C_show_each_F([bits 0 to 23] ∈ {0}
-                                   [bits 24 to 31] ∈ {1}
-                                   This amounts to: {16777216})
-[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
-                                   [bits 8 to 15] ∈ {2}
-                                   [bits 16 to 23] ∈ {3}
-                                   [bits 24 to 31] ∈ {4}
-                                   This amounts to: {67305985})
-[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {0}
-                                   [bits 8 to 31]# ∈ {1} repeated %8 
-                                   This amounts to: {16843008})
-[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
-                                   [bits 8 to 15] ∈ {0}
-                                   [bits 16 to 31]# ∈
-                                   {-1879048176}%32, bits 0 to 15 
-                                   This amounts to: {1048577})
+  nondet ∈ [--..--]
+[value] computing for function join_offsetmap <- main.
+        Called from tests/value/merge_bits.i:35.
+[value] Recording results for join_offsetmap
+[value] Done for function join_offsetmap
+[value] computing for function merge_bits <- main.
+        Called from tests/value/merge_bits.i:36.
+tests/value/merge_bits.i:24:[value] Frama_C_show_each_F: {1}
+tests/value/merge_bits.i:25:[value] Frama_C_show_each_F: {16777216}
+tests/value/merge_bits.i:26:[value] Frama_C_show_each_F: {67305985}
+tests/value/merge_bits.i:27:[value] Frama_C_show_each_F: {16843008}
+tests/value/merge_bits.i:29:[value] Frama_C_show_each_F: {1048577}
+[value] Recording results for merge_bits
+[value] Done for function merge_bits
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function join_offsetmap:
+  u{.i[bits 0 to 15]; .s[0]} ∈ {65534}
+   {.i[bits 16 to 31]; .s[1]} ∈ {65535}
+  r ∈ {-2}
+[value:final-states] Values at end of function merge_bits:
+  T[0] ∈ {1}
+   [1] ∈ {0}
+   [bits 16 to 47] ∈ {-1879048176}
+   [6] ∈ {3}
+   [7] ∈ {4}
+   [8] ∈ {5}
+   [9] ∈ {0}
+   [10..12] ∈ {1}
+  __retres ∈ {0}
 [value:final-states] Values at end of function main:
   T[0] ∈ {1}
    [1] ∈ {0}
@@ -45,15 +53,32 @@
    [9] ∈ {0}
    [10..12] ∈ {1}
   __retres ∈ {0}
+[from] Computing for function join_offsetmap
+[from] Done for function join_offsetmap
+[from] Computing for function merge_bits
+[from] Done for function merge_bits
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
+[from] Function join_offsetmap:
+  NO EFFECTS
+[from] Function merge_bits:
+  T[2..5] FROM \nothing
+  \result FROM \nothing
 [from] Function main:
   T[2..5] FROM \nothing
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function join_offsetmap:
+          u; r
+[inout] Inputs for function join_offsetmap:
+          nondet
+[inout] Out (internal) for function merge_bits:
+          T[2..5]; __retres
+[inout] Inputs for function merge_bits:
+          T{[0..7]; [9..12]}
 [inout] Out (internal) for function main:
           T[2..5]; __retres
 [inout] Inputs for function main:
-          T{[0..7]; [9..12]}
+          T{[0..7]; [9..12]}; nondet

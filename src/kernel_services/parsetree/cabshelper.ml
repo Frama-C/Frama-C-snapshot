@@ -223,7 +223,7 @@ let pop_attr_test () = ignore (Stack.pop state_stack)
 let is_attr_test () = Stack.top state_stack = Test
 
 let mk_behavior ?(name=Cil.default_behavior_name) ?(assumes=[]) ?(requires=[])
-    ?(post_cond=[]) ?(assigns=Cil_types.WritesAny) ?(allocation=Cil_types.FreeAllocAny)  ?(extended=[]) ()
+    ?(post_cond=[]) ?(assigns=Logic_ptree.WritesAny) ?(allocation=Logic_ptree.FreeAllocAny)  ?(extended=[]) ()
   =
   { Logic_ptree.b_name = name;
     b_assumes = assumes; (* must be always empty for default_behavior_name *)

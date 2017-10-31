@@ -28,7 +28,7 @@ __BEGIN_DECLS
 
 typedef unsigned long nl_catd;
 typedef unsigned long nl_item;
-#define NL_SETD 0
+#define NL_SETD 1
 #define NL_CAT_LOCALE 1
 extern int       catclose(nl_catd);
 extern char     *catgets(nl_catd, int, int, const char *);

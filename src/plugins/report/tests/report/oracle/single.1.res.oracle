@@ -1,4 +1,3 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/report/single.i (no preprocessing)
 [kernel] SETTING STATUS TO dont_know
 [report] Computing properties status...

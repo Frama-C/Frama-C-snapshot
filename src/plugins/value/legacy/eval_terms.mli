@@ -55,6 +55,8 @@ type labels_states = Cvalue.Model.t Cil_datatype.Logic_label.Map.t
     the environment to evaluate an annotation *)
 type eval_env
 
+val make_env: Model.t Abstract_domain.logic_environment -> Model.t -> eval_env
+
 val env_pre_f : pre:Model.t -> unit -> eval_env
 val env_annot :
   ?c_labels:labels_states -> pre:Model.t -> here:Model.t -> unit -> eval_env
@@ -71,11 +73,16 @@ val env_current_state: eval_env -> Model.t
 (** Dependencies needed to evaluate a term or a predicate *)
 type logic_deps = Zone.t Cil_datatype.Logic_label.Map.t
 
-
+(** Three modes to handle the alarms when evaluating a logical term. *)
+type alarm_mode =
+  | Ignore             (* Ignores all alarms. *)
+  | Fail               (* Raises a LogicEvalError when an alarm is encountered. *)
+  | Track of bool ref  (* Tracks the possibility of an alarm in the boolean: the
+                          boolean is set to true if an alarm is encountered. *)
 
 (** Return a pair of (under-approximating, over-approximating) zones. *)
 val eval_tlval_as_zone_under_over:
-  with_alarms:CilE.warn_mode ->
+  alarm_mode:alarm_mode ->
   for_writing:bool -> eval_env -> term -> Zone.t * Zone.t
 
 (* ML: Should not be exported. *)
@@ -86,16 +93,17 @@ type 'a eval_result = {
   ldeps: logic_deps;
 }
 
+
 val eval_term :
-  with_alarms:CilE.warn_mode ->
+  alarm_mode:alarm_mode ->
   eval_env -> term -> V.t eval_result
 
 val eval_tlval_as_location :
-  with_alarms:CilE.warn_mode ->
+  alarm_mode:alarm_mode ->
   eval_env -> term -> location
 
 val eval_tlval_as_zone :
-  with_alarms:CilE.warn_mode ->
+  alarm_mode:alarm_mode ->
   for_writing:bool -> eval_env -> term -> Zone.t
 
 val eval_predicate :

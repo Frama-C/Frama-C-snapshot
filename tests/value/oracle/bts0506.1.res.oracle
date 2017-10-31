@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/bts0506.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -52,6 +51,8 @@ tests/value/bts0506.i:27:[kernel] warning: Neither code nor specification for fu
 [value] computing for function f4 <- main2 <- main.
         Called from tests/value/bts0506.i:28.
 [value] Done for function f4
+tests/value/bts0506.i:28:[value] warning: non-finite float value. assert \is_finite(tmp_9);
+                                         (tmp_9 from f4())
 [value] computing for function f5 <- main2 <- main.
         Called from tests/value/bts0506.i:30.
 tests/value/bts0506.i:30:[kernel] warning: Neither code nor specification for function f5, generating default assigns from the prototype
@@ -101,7 +102,7 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
   r8 ∈ [--..--]
   r8bis ∈ [--..--]
   r9 ∈ [--..--]
-  r10 ∈ [--..--]
+  r10 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   r11 ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
   r12 ∈ [--..--]
   r13 ∈ {{ NULL + [--..--] ; &alloced_return_f6 + [0..2147483644],0%4 }}
@@ -160,7 +161,7 @@ tests/value/bts0506.i:37:[kernel] warning: Neither code nor specification for fu
           \nothing
 [inout] Out (internal) for function main2:
           r1; r2; tmp_0; r3; r4; tmp_2; r5; r6; r7; tmp_5; r8; r8bis; tmp_7; 
-          r9; r10; r11; tmp_10; r12; r13; r14; r15; r16; r17
+          r9; r10; tmp_9; r11; tmp_10; r12; r13; r14; r15; r16; r17
 [inout] Inputs for function main2:
           \nothing
 [inout] Out (internal) for function main:
@@ -202,6 +203,7 @@ void main2(void)
   int tmp_2;
   long tmp_5;
   unsigned int tmp_7;
+  float tmp_9;
   double tmp_10;
   long r1 = f1();
   tmp_0 = f1();
@@ -217,7 +219,9 @@ void main2(void)
   tmp_7 = f3();
   int r8bis = (int)tmp_7;
   float r9 = f4();
-  double r10 = f4();
+  tmp_9 = f4();
+  /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_9); */
+  double r10 = (double)tmp_9;
   tmp_10 = f5();
   /*@ assert Value: is_nan_or_infinite: \is_finite(tmp_10); */
   /*@ assert Value: is_nan_or_infinite: \is_finite((float)tmp_10); */

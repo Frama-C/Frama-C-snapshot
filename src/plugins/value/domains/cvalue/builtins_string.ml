@@ -69,7 +69,7 @@ end
 
 module VU = Cvalue.V_Or_Uninitialized
 
-(* Init_status describes if a given byte is:
+(* Init_status describes if a given char is:
    - always initialized or maybe uninitialized;
    - always non-escaping or maybe escaping;
    - always determinate or maybe indeterminate (out of bounds). *)
@@ -124,7 +124,7 @@ module Init_status = struct
 end
 module IS = Init_status
 
-(* [FS] (for "found status") resumes, for each byte, whether the searched
+(* [FS] (for "found status") resumes, for each char, whether the searched
    character is present (always/maybe/never/invalid access).
    Used both for the searched character and the stop character
    (esp. in strchr). *)
@@ -137,9 +137,9 @@ module FS = struct
     | Bool.Bottom -> Format.fprintf fmt "Invalid"
 end
 
-(* [byte_status] resumes the initialization and found/not found status
-   for each byte in the simplified Bytecharmap. *)
-module Byte_status = struct
+(* [char_status] resumes the initialization and found/not found status
+   for each char in the simplified Charcharmap. *)
+module Char_status = struct
   type t = { search_st: FS.t; stop_st: FS.t; init_st: IS.t }
   let bottom = { search_st = FS.bottom; stop_st = FS.bottom; init_st = IS.bottom }
   let top = { search_st = FS.top; stop_st = FS.top; init_st = IS.top }
@@ -153,9 +153,6 @@ module Byte_status = struct
     init_st = IS.join bs1.init_st bs2.init_st;
   }
   let is_included bs1 bs2 = equal (join bs1 bs2) bs2
-  let join_and_is_included bs1 bs2 =
-    let j = join bs1 bs2 in
-    j, equal j bs2
   let narrow bs1 bs2 = {
     search_st = FS.narrow bs1.search_st bs2.search_st;
     stop_st = FS.narrow bs1.stop_st bs2.stop_st;
@@ -167,38 +164,37 @@ module Byte_status = struct
     Format.fprintf fmt "{search_st:%a,stop_st:%a,init_st:%a}"
       FS.pretty bs.search_st FS.pretty bs.stop_st IS.pretty bs.init_st
 end
-module BS = Byte_status
+module BS = Char_status
 
-(* Datatype used to construct [Bytecharmap]. *)
+(* Datatype used to construct [Charcharmap]. *)
 module Str_datatype = struct
   (* Definitions for datatype *)
-  type t = Byte_status.t
-  let hash = Byte_status.hash
+  type t = Char_status.t
+  let hash = Char_status.hash
   let name = "Builtins_string.Str_datatype"
   let rehash = Datatype.identity
   let structural_descr = Structural_descr.t_abstract
-  let reprs = [Byte_status.bottom]
-  let equal t1 t2 = Byte_status.equal t1 t2
+  let reprs = [Char_status.bottom]
+  let equal t1 t2 = Char_status.equal t1 t2
   let compare t1 t2 = compare t1 t2
   let copy = Datatype.identity
   let internal_pretty_code = Datatype.undefined
-  let pretty = Byte_status.pretty
+  let pretty = Char_status.pretty
   let varname t = "str_" ^ (Pretty_utils.sfprintf "%a" pretty t)
   let mem_project _ _ = false
 end
 module Str_lattice = struct
   module M = Datatype.Make(Str_datatype)
   include M
-  module BS = Byte_status
+  module BS = Char_status
   let join = BS.join
   let is_included = BS.is_included
-  let join_and_is_included = BS.join_and_is_included
   let bottom = BS.bottom
   let top = BS.top
   let narrow = BS.narrow
 end
 module SL = Str_lattice
-module Bytecharmap = Offsetmap.Make_bitwise(Str_lattice)
+module Charcharmap = Offsetmap.Make_bitwise(Str_lattice)
 
 (* Boolean-like flag to indicate if the built-in is imprecise for the given
    arguments. A future version may remove this restriction. *)
@@ -206,18 +202,20 @@ type imprecise_builtin =
   | Imprecise
   | Not_imprecise
 
-(* converts bits to bytes, emitting a warning in case of inexact division. *)
-let bytes_of_bits ?inexact i =
-  if I.(i % eight <> zero) &&
+let cwidth_to_bytes cwidth = Int.(div cwidth eight)
+
+(* converts bits to chars, emitting a warning in case of inexact division. *)
+let chars_of_bits ~cwidth ?inexact i =
+  if I.(i % cwidth <> zero) &&
   match inexact with | Some b -> not b | None -> true then
     (* message for debugging purposes mostly, should not happen *)
-    Value_parameters.warning "bytes_of_bits: inexact division (%a / 8)"
-      Int.pretty i;
-  I.(i / eight)
-let bits_of_bytes i = I.(i * eight)
-let is_byte_aligned i = I.(i % eight = zero)
+    Value_parameters.warning "chars_of_bits: inexact division (%a / %a)"
+      Int.pretty i Int.pretty cwidth;
+  I.(i / cwidth)
+let bits_of_chars ~cwidth i = I.(i * cwidth)
+let is_char_aligned ~cwidth i = I.(i % cwidth = zero)
 
-(* Given a value from a bytecharmap, returns its found_status.
+(* Given a value from a charcharmap, returns its found_status.
    Special case for '\0' (more efficient, used by strlen/strnlen). *)
 let found_status_of_v_zero ival =
   assert(not (Ival.is_bottom ival));
@@ -226,7 +224,7 @@ let found_status_of_v_zero ival =
     else FS.Top
   else FS.False
 
-(* Given a value from a bytecharmap, returns its byte_status.
+(* Given a value from a charcharmap, returns its char_status.
    Searches for the character(s) in [chr] (memchr). *)
 (* requires [not (Ival.is_bottom ival) *)
 let found_status_of_v_char chr ival =
@@ -271,37 +269,38 @@ let char_zero_bs_of_vu chr vu : BS.t =
   in
   { BS.search_st; stop_st; init_st }
 
-(* [add_byte_status validity offsets bs bcm] binds byte status [bs] to
+(* [add_char_status validity offsets bs bcm] binds char status [bs] to
    offsets [offsets] in [bcm]. *)
-let add_byte_status ~validity offsets bs bcm =
+let add_char_status ~validity offsets bs bcm =
   let size = Int_Base.one in
   let exact = true in
-  match Bytecharmap.add_binding_ival ~validity ~exact offsets ~size bs bcm with
+  match Charcharmap.add_binding_ival ~validity ~exact offsets ~size bs bcm with
   | `Bottom -> assert false
   | `Value m -> m
 
 (* [process_range_whole] efficiently processes one entire range of the offsetmap
    (between [range_start] and [range_end]), but requires its values to be
-   byte_aligned. Also handles isotropic values. *)
-let process_range_whole bs_of_vu_f offsetmap offsm_validity base_size_bytes range_start range_end vu size_bits acc =
-  let bcm_validity (*validity/8*) = Base.validity_from_size base_size_bytes in
+   char_aligned. Also handles isotropic values. *)
+let process_range_whole ~cwidth bs_of_vu_f offsetmap offsm_validity base_size_chars range_start range_end vu size_bits acc =
+  let bcm_validity (*validity/cwidth*) = Base.validity_from_size base_size_chars in
   if I.(size_bits = one) then (* isotropic value *)
     let bs = bs_of_vu_f vu in
     let offsets =
-      Ival.scale_div ~pos:true I.eight
+      Ival.scale_div ~pos:true cwidth
         (Ival.inject_range (Some range_start) (Some range_end))
     in
-    add_byte_status ~validity:bcm_validity offsets bs acc
+    add_char_status ~validity:bcm_validity offsets bs acc
   else begin
     let acc = ref acc in
-    let nb_bytes_val = I.(size_bits / eight) in
+    let nb_chars_val = I.(size_bits / cwidth) in
     (* in this range of [nb_repeat+1] values, each composed of
-       [nb_bytes_val] bytes, write the first byte for each repetition
-       in the range, then the second byte, then the third, etc.
+       [nb_chars_val] chars, write the first char for each repetition
+       in the range, then the second char, then the third, etc.
 
        Example: the offsetmap below has three ranges, and we are
-       processing the second one (each underscore is a byte, values
-       are separated by vertical bars):
+       processing the second one (each underscore is a char, values
+       are separated by vertical bars; cwidth is assumed to be 8, i.e.
+       non-wide characters):
 
                    abc? abc? abc?
        |________| |____|____|____| |____|____|
@@ -309,83 +308,83 @@ let process_range_whole bs_of_vu_f offsetmap offsm_validity base_size_bytes rang
                   first_bit      last_bit
 
        This range has size 8 * 12 = 96 bits, composed of three
-       repetitions of the bytes "abc?" (where "?" is unknown).
+       repetitions of the chars "abc?" (where "?" is unknown).
        The result we want in the end is the following, where
        'F' (for False) is "Non" and 'U' (for Unknown) is "Maybe":
 
                    FFFU FFFU FFFU
        |________| |____|____|____| |____|____|
                    ^         ^
-       for i=0:  start_byte  stop_byte
+       for i=0:  start_char  stop_char
 
                     ^         ^
-       for i=1:  start_byte  stop_byte
+       for i=1:  start_char  stop_char
 
-       Each value occupies a single bit of the resulting bytecharmap.
-       In this example, [size_bits] equals 32, [nb_bytes_val] equals 4,
+       Each value occupies a single bit of the resulting charcharmap.
+       In this example, [size_bits] equals 32, [nb_chars_val] equals 4,
        [range_end] equals [159] (64+95), [range_start] equals
        [64] (159-95), [nb_repeat] equals 2 (truncated division;
-       it may be 0 if there are no repetitions), [start_byte] equals
-       8, and [stop_byte] equals 16.
+       it may be 0 if there are no repetitions), [start_char] equals
+       8, and [stop_char] equals 16.
 
        If nb_repeat is too high (above plevel), the result is
        automatically approximated. *)
-    for i = 0 to (Int.to_int nb_bytes_val) - 1 do
+    for i = 0 to (Int.to_int nb_chars_val) - 1 do
       let bs =
-        let cur_start_bits = I.(range_start + (of_int i * eight)) in
+        let cur_start_bits = I.(range_start + (of_int i * cwidth)) in
         let offsets = Ival.inject_singleton cur_start_bits in
         let _, vu =
-          Cvalue.V_Offsetmap.find ~validity:offsm_validity ~offsets ~size:Int.eight offsetmap
+          Cvalue.V_Offsetmap.find ~validity:offsm_validity ~offsets ~size:cwidth offsetmap
         in
         bs_of_vu_f vu
       in
-      let start_byte = I.(of_int i + range_start / eight) in
+      let start_char = I.(of_int i + range_start / cwidth) in
       (* nb_repeat is intentionally truncating the division below
          (may be 0). *)
       let nb_repeat = I.((range_end - range_start) / size_bits) in
-      let stop_byte = I.(start_byte + nb_repeat * nb_bytes_val) in
+      let stop_char = I.(start_char + nb_repeat * nb_chars_val) in
       let offsets =
-        Ival.inject_top (Some start_byte) (Some stop_byte)
-          (Int.rem start_byte nb_bytes_val) nb_bytes_val
+        Ival.inject_interval (Some start_char) (Some stop_char)
+          (Int.rem start_char nb_chars_val) nb_chars_val
       in
       (* in some cases (notably when the range does not start at remainder 0)
          offsets may include values beyond the size of the offsetmap,
-         so they are filtered to avoid [add_byte_status] from trying to
+         so they are filtered to avoid [add_char_status] from trying to
          retrieve them and obtaining `Bottom. If the filtered offset is empty,
-         then [add_byte_status] is not called. *)
+         then [add_char_status] is not called. *)
       let filtered_offsets = Ival.backward_comp_int_left Comp.Lt offsets
-          (Ival.inject_singleton base_size_bytes)
+          (Ival.inject_singleton base_size_chars)
       in
       if not (Ival.is_bottom filtered_offsets) then
-        acc := add_byte_status ~validity:bcm_validity filtered_offsets bs !acc
+        acc := add_char_status ~validity:bcm_validity filtered_offsets bs !acc
     done;
     !acc
   end
 
-(* [process_range_bytewise] splits a given offsetmap range into each byte,
-   and then iterates byte-per-byte. Less efficient than [process_range_whole],
-   but necessary when the values are not byte-aligned (e.g. due to bitfields). *)
-let process_range_bytewise bs_of_vu_f offsetmap offsm_validity base_size_bytes range_start range_end acc =
-  let bcm_validity (*validity/8*) = Base.validity_from_size base_size_bytes in
+(* [process_range_charwise] splits a given offsetmap range into each char,
+   and then iterates char-per-char. Less efficient than [process_range_whole],
+   but necessary when the values are not char-aligned (e.g. due to bitfields). *)
+let process_range_charwise ~cwidth bs_of_vu_f offsetmap offsm_validity base_size_chars range_start range_end acc =
+  let bcm_validity (*validity/cwidth*) = Base.validity_from_size base_size_chars in
   let acc = ref acc in
-  for i = Int.to_int (bytes_of_bits ~inexact:true range_start) to
-      Int.to_int (bytes_of_bits ~inexact:true range_end)
+  for i = Int.to_int (chars_of_bits ~cwidth ~inexact:true range_start) to
+      Int.to_int (chars_of_bits ~cwidth ~inexact:true range_end)
   do
     let bs =
-      let cur_start_bits = I.(of_int i * eight) in
+      let cur_start_bits = I.(of_int i * cwidth) in
       let offsets = Ival.inject_singleton cur_start_bits in
       let _, vu =
-        Cvalue.V_Offsetmap.find ~validity:offsm_validity ~offsets ~size:Int.eight offsetmap
+        Cvalue.V_Offsetmap.find ~validity:offsm_validity ~offsets ~size:cwidth offsetmap
       in
       bs_of_vu_f vu
     in
     let offsets = Ival.inject_singleton (I.of_int i) in
-    acc := add_byte_status ~validity:bcm_validity offsets bs !acc
+    acc := add_char_status ~validity:bcm_validity offsets bs !acc
   done;
   !acc
 
-(* Computes a [Bytecharmap.t] from a given base and its offsetmap.
-   The resulting map associates, to each byte offset in the base,
+(* Computes a [Charcharmap.t] from a given base and its offsetmap.
+   The resulting map associates, to each char offset in the base,
    a status maybe/must/not indicating whether the searched character
    can be found at that position.
    [first_offset_bits] and [last_offset_bits] are an optimization:
@@ -393,25 +392,25 @@ let process_range_bytewise bs_of_vu_f offsetmap offsm_validity base_size_bytes r
    only between these bits. [last_offset_bits] must not be greater
    than the end of the base ([base_end_bits]).
    [base_end_bits] is used to compute the base length. *)
-let make_bytecharmap bs_of_vu_f base m first_offset_bits last_offset_bits base_end_bits =
+let make_charcharmap ~cwidth bs_of_vu_f base m first_offset_bits last_offset_bits base_end_bits =
   assert Int.(le last_offset_bits base_end_bits);
   (* [validity] is the validity of the base (original offsetmap), while
-     [validitybyte] is the validity of the new offsetmap that will be created *)
+     [validitychar] is the validity of the new offsetmap that will be created *)
   let validity = Base.validity base in
-  let base_size_bytes = bytes_of_bits I.(succ base_end_bits) in
-  let bot = Bytecharmap.create ~size:base_size_bytes SL.bottom (* TODO *) in
+  let base_size_chars = chars_of_bits ~cwidth I.(succ base_end_bits) in
+  let bot = Charcharmap.create ~size:base_size_chars SL.bottom (* TODO *) in
   Cvalue.V_Offsetmap.fold_between ~entire:false
     (first_offset_bits, last_offset_bits)
     (fun (range_start, range_end) (vu, size_bits, rel) acc ->
-       if is_byte_aligned range_start && is_byte_aligned I.(succ range_end) &&
-          ((is_byte_aligned (Obj.magic (*TODO*) rel) && is_byte_aligned size_bits
+       if is_char_aligned ~cwidth range_start && is_char_aligned ~cwidth I.(succ range_end) &&
+          ((is_char_aligned ~cwidth (Obj.magic (*TODO*) rel) && is_char_aligned ~cwidth size_bits
             || I.(size_bits = one) )) then
          (* linear in [size_bits] in some cases, or in [plevel] at most *)
-         process_range_whole bs_of_vu_f m validity base_size_bytes
+         process_range_whole ~cwidth bs_of_vu_f m validity base_size_chars
            range_start range_end vu size_bits acc
        else
          (* code with bitfields; linear in the size of the range *)
-         process_range_bytewise bs_of_vu_f m validity base_size_bytes
+         process_range_charwise ~cwidth bs_of_vu_f m validity base_size_chars
            range_start range_end acc
     ) m bot
 
@@ -634,14 +633,14 @@ module Search_single_offset = struct
      - [Bottom_val] indicates that no possible solution has been found and the
        search must stop. The only case where this does not lead to an error is
        when a limited search (strnlen/memchr) has run out of "fuel" (and should
-       return the number of searched bytes). *)
+       return the number of searched chars). *)
   exception Must_stop of (Int.t * Int.t) option (*bounds*)
                          * FS.t (*Found_status of searched character*)
                          * bool (*maybe_found_stop*)
                          * IS.t (*init status*)
   exception Maybe_no_fuel of (Int.t * Int.t) option (*bounds*)
                              * bool (*maybe_found_stop*)
-                             * Int.t (*rightmost contiguous valid byte*)
+                             * Int.t (*rightmost contiguous valid char*)
                              * IS.t
                              * bool (*maybe_had_fuel*)
   exception Bottom_val of (Int.t * Int.t) option
@@ -651,10 +650,10 @@ module Search_single_offset = struct
 
   (* Initializes the fuel counters, converting unbounded fuel to a sufficiently
      large (finite) value. *)
-  let init_fuel_from_n_len n_len max_byte_to_look =
+  let init_fuel_from_n_len n_len max_char_to_look =
     (* infinite_fuel is a value sufficiently high that should never reach zero
        before the iteration ends *)
-    let infinite_fuel = Int.succ max_byte_to_look in
+    let infinite_fuel = Int.succ max_char_to_look in
     match n_len with
     | None -> None
     | Some n ->
@@ -676,8 +675,8 @@ module Search_single_offset = struct
          else Some (new_min, new_max)
       ) fuel
 
-  (* [range_start] and [range_end] are in bytes *)
-  let process_search_in_byte range_start range_end bs acc =
+  (* [range_start] and [range_end] are in chars *)
+  let process_search_in_char range_start range_end bs acc =
     match bs.BS.search_st with
     | FS.Bottom ->
       (* this Invalid can only be due to initialization/danglingness;
@@ -695,9 +694,9 @@ module Search_single_offset = struct
         | _ ->
           (* unbounded or excess min fuel => sure error *)
           fpf "reached end of base with excess fuel \
-               (fuel_left = %a, offset was <N/A>, max_byte_to_look <N/A>): \
+               (fuel_left = %a, offset was <N/A>, max_char_to_look <N/A>): \
                Bottom_val, acc: %a" pp_opt_int_pair acc.fuel_left
-            (*Int.pretty offset Int.pretty max_byte_to_look*) pp_acc_t acc;
+            (*Int.pretty offset Int.pretty max_char_to_look*) pp_acc_t acc;
           let maybe_found_stop = false in
           raise (Bottom_val (acc.kars_pos, maybe_found_stop,
                              acc.is, range_start))
@@ -769,16 +768,16 @@ module Search_single_offset = struct
 
   (* fuel = None => unbounded fuel (strlen, or strnlen with unbounded argument)
      fuel = (Some n_min, Some n_max) =>
-     can look only up to [n_max] bytes (does not include offset),
-     and must look at least [n_min] bytes *)
+     can look only up to [n_max] chars (does not include offset),
+     and must look at least [n_min] chars *)
   (* Performs a left-to-right search starting at a fixed offset.
      Takes into account a possibly variable and possibly unbounded amount of
      fuel (search distance). *)
-  let search bytecharmap offset n_len max_byte_to_look : str_res_t =
-    fpf "search (single offset): offset: %a, n_len: %a, max_byte_to_look: %a"
+  let search charcharmap offset n_len max_char_to_look : str_res_t =
+    fpf "search (single offset): offset: %a, n_len: %a, max_char_to_look: %a"
       Int.pretty offset (Pretty_utils.pp_opt Ival.pretty) n_len
-      Int.pretty max_byte_to_look;
-    let fuel = init_fuel_from_n_len n_len max_byte_to_look in
+      Int.pretty max_char_to_look;
+    let fuel = init_fuel_from_n_len n_len max_char_to_look in
     fpf "search (single offset): init_fuel = %a" pp_opt_int_pair fuel;
     let init_acc = { kars_pos = None; maybe_found_stop = false;
                      fuel_left = fuel; is = IS.bottom; }
@@ -787,30 +786,32 @@ module Search_single_offset = struct
        (instead of relative ones) during the fold, and only at the end
        they are converted into relative bounds. *)
     try
+      if Int.(lt offset zero) then
+        raise (Bottom_val (None, false, IS.bottom, offset));
       let acc =
-        Bytecharmap.fold_itv ~direction:`LTR ~entire:false
+        Charcharmap.fold_itv ~direction:`LTR ~entire:false
           (fun (range_start, range_end) bs acc ->
              fpf "  fold_itv in search (single offset): range_offsets: \
                   %a - %a, acc = %a, bs: %a" Int.pretty range_start
                Int.pretty range_end pp_acc_t acc Str_datatype.pretty bs;
-             process_search_in_byte range_start range_end bs acc
-          ) (offset, max_byte_to_look) bytecharmap init_acc
+             process_search_in_char range_start range_end bs acc
+          ) (offset, max_char_to_look) charcharmap init_acc
       in
       match acc.fuel_left with
       | Some (min_f, max_f) when I.(min_f = zero) ->
         (* min fuel has been consumed *)
         fpf "reached end of base, but no excess fuel acc: %a" pp_acc_t acc;
-        raise (Maybe_no_fuel (acc.kars_pos, acc.maybe_found_stop, max_byte_to_look,
+        raise (Maybe_no_fuel (acc.kars_pos, acc.maybe_found_stop, max_char_to_look,
                               acc.is, I.(max_f > zero)))
       | _ ->
         (* unbounded or excess fuel, but reached end of base => invalid access *)
         fpf "reached end of base with excess fuel \
-             (fuel_left = %a, offset was %a, max_byte_to_look %a): \
+             (fuel_left = %a, offset was %a, max_char_to_look %a): \
              Bottom_val, acc: %a"
           pp_opt_int_pair acc.fuel_left Int.pretty offset
-          Int.pretty max_byte_to_look pp_acc_t acc;
+          Int.pretty max_char_to_look pp_acc_t acc;
         raise (Bottom_val (acc.kars_pos, acc.maybe_found_stop,
-                           acc.is, I.succ max_byte_to_look))
+                           acc.is, I.succ max_char_to_look))
     with
     | Must_stop (kars_pos, char_fs, maybe_found_stop, is) ->
       (* certainly found the searched or stopping character, will stop searching *)
@@ -826,7 +827,7 @@ module Search_single_offset = struct
       Maybe_ok (res_ival, ival_of_opt_int_pair kars_pos, char_fs,
                 maybe_found_stop, Non_exhausted, is)
     | Maybe_no_fuel (kars_pos, maybe_found_stop, rcvb, is, maybe_had_fuel) ->
-      fpf "Maybe_no_fuel, kars_pos: %a, rightmost contiguous valid byte: %a, \
+      fpf "Maybe_no_fuel, kars_pos: %a, rightmost contiguous valid char: %a, \
            maybe_had_fuel: %b" pp_opt_int_pair kars_pos Int.pretty rcvb
         maybe_had_fuel;
       begin
@@ -890,25 +891,25 @@ module Search_single_offset = struct
                 IS.ensure_an_error (IS.join is1 is2))
     | Never_ok (is1), Never_ok (is2) -> Never_ok (IS.join is1 is2)
 
-  (* Wrapper for [search] which prepares the [max_byte_to_look]
+  (* Wrapper for [search] which prepares the [max_char_to_look]
      parameter and joins the result with the accumulator [acc].
-     Needed by strnlen, since [last_byte_to_look] may be imprecise due to the
+     Needed by strnlen, since [last_char_to_look] may be imprecise due to the
      fact that max(n_len) may be unbounded. *)
-  let search_and_acc bytecharmap offset ?n_len last_byte_to_look acc =
-    let actual_last_byte = match n_len with
-      | None -> (* no change *) last_byte_to_look
+  let search_and_acc charcharmap offset ?n_len last_char_to_look acc =
+    let actual_last_char = match n_len with
+      | None -> (* no change *) last_char_to_look
       | Some ival ->
         begin
           match Ival.max_int ival with
-          | None -> (* no change *) last_byte_to_look
-          | Some max_n -> I.(min last_byte_to_look (pred (offset + max_n)))
+          | None -> (* no change *) last_char_to_look
+          | Some max_n -> I.(min last_char_to_look (pred (offset + max_n)))
         end
     in
-    fpf "search_and_acc (offset: %a), n_len: {%a}, last_byte_to_look: %a, \
-         adjusted last_byte_to_look: %a" Int.pretty offset
-      (Pretty_utils.pp_opt Ival.pretty) n_len Int.pretty last_byte_to_look
-      Int.pretty actual_last_byte;
-    let res = search bytecharmap offset n_len actual_last_byte in
+    fpf "search_and_acc (offset: %a), n_len: {%a}, last_char_to_look: %a, \
+         adjusted last_char_to_look: %a" Int.pretty offset
+      (Pretty_utils.pp_opt Ival.pretty) n_len Int.pretty last_char_to_look
+      Int.pretty actual_last_char;
+    let res = search charcharmap offset n_len actual_last_char in
     let res' = join_acc acc res in
     fpf "search_and_acc will return: %a" pp_str_res_t res';
     res'
@@ -922,7 +923,7 @@ module Search_ranges = struct
   (* Accumulator for the iterator of [search].
      Information about previous/best bounds is necessary due to the possibility
      of "holes" between ranges. For instance, consider the following
-     bytecharmap, where T/F/U stands for True/False/Unknown (Must/None/Maybe):
+     charcharmap, where T/F/U stands for True/False/Unknown (Must/None/Maybe):
 
       F U F T U F T
      |_|_|_|_|_|_|_|
@@ -940,7 +941,7 @@ module Search_ranges = struct
      be incremented), and also (2) what is the length of the *current* sequence
      of unbroken None/Maybe. Without both these numbers, we cannot know if
      the current value for [max] should increase (because we are adding yet
-     another byte range to it) or should stay the same (if we have started a
+     another char range to it) or should stay the same (if we have started a
      new sequence which is not yet larger than the largest one previously
      found).
 
@@ -980,10 +981,10 @@ module Search_ranges = struct
       is = IS.join acc.is is; prev_es; best_es }
 
   (* initializes the accumulator used by the search by ranges *)
-  let search_init bytecharmap ?n_len last_byte_to_look offset_end : range_acc_t =
+  let search_init charcharmap ?n_len last_char_to_look offset_end : range_acc_t =
     match
       let res =
-        Search_single_offset.search bytecharmap offset_end n_len last_byte_to_look
+        Search_single_offset.search charcharmap offset_end n_len last_char_to_look
       in
       fpf "search (single offset) returned: %a" pp_str_res_t res;
       res
@@ -1015,7 +1016,7 @@ module Search_ranges = struct
           make_acc None None None None maybe_found_stop is es es
       end
 
-  (* Performs right-to-left traversal of the Bytecharmap representing the string,
+  (* Performs right-to-left traversal of the Charcharmap representing the string,
      accumulating resulting bounds and error messages along the way. *)
   let search_rtl range_start range_end bs ?n_len acc =
     let range_len = Int.length range_start range_end in
@@ -1135,38 +1136,38 @@ module Search_ranges = struct
     | Exit ->
       min_bounds, max_bounds
 
-  let search_ptr_imprecise bytecharmap base offset_ival n_len last_byte_to_look =
-    (* [max_valid_offset_bytes] is the maximum possibly valid offset for
+  let search_ptr_imprecise ~cwidth charcharmap base offset_ival n_len last_char_to_look =
+    (* [max_valid_offset_chars] is the maximum possibly valid offset for
        the base, which is a better upper bound than MAX_INT. *)
-    let max_valid_offset_bytes =
+    let max_valid_offset_chars =
       match Base.valid_range (Base.validity base) with
       | Base.Invalid_range -> (* should not happen... *) Int.zero
       | Base.Valid_range opt_itv -> match opt_itv with
-        | None -> Bit_utils.max_byte_address ()
+        | None -> Int.(div (Bit_utils.max_byte_address ()) (cwidth_to_bytes cwidth))
         | Some (_, mx_bits) ->
-          Int.(div mx_bits eight) (* possible rounding towards zero *)
+          Int.(div mx_bits cwidth) (* possible rounding towards zero *)
     in
     (* TODO: extra precision can be obtained by splitting cases *)
     match Ival.max_int offset_ival with
     | None ->
       let max_res = match n_len with
-        | None -> max_valid_offset_bytes
-        | Some len -> Extlib.opt_conv max_valid_offset_bytes (Ival.max_int len)
+        | None -> max_valid_offset_chars
+        | Some len -> Extlib.opt_conv max_valid_offset_chars (Ival.max_int len)
       in
       let abs_offs = Ival.inject_range (Some I.zero) (Some max_res) in
       Maybe_ok (abs_offs, abs_offs, FS.top, true,
-                Maybe_exhausted max_valid_offset_bytes, IS.top)
+                Maybe_exhausted max_valid_offset_chars, IS.top)
     | Some max_offset_ival ->
       (* pre-computed safe upper bound in case it will be used *)
       let max_unexplored_offset = I.pred max_offset_ival in
       (* cannot use the maximum length of [n_len] as upper bound,
          because it is a relative offset *)
-      let max_res = Int.min max_unexplored_offset max_valid_offset_bytes in
+      let max_res = Int.min max_unexplored_offset max_valid_offset_chars in
       let init =
         Maybe_ok (Ival.bottom, Ival.bottom, FS.False, false, Non_exhausted, IS.bottom)
       in
       match Search_single_offset.search_and_acc
-              bytecharmap max_offset_ival ?n_len last_byte_to_look init
+              charcharmap max_offset_ival ?n_len last_char_to_look init
       with
       | Never_ok _ as res ->
         if I.(max_offset_ival > zero) then
@@ -1185,25 +1186,23 @@ module Search_ranges = struct
           res
       | Maybe_ok (_bounds, abs_offs, _char_fs, _maybe_found_stop, _es, _is) ->
         assert (not (Ival.is_bottom abs_offs));
-        let max_res = Extlib.opt_conv max_valid_offset_bytes (Ival.max_int abs_offs) in
+        let max_res = Extlib.opt_conv max_valid_offset_chars (Ival.max_int abs_offs) in
         let approx_abs_offs = Ival.inject_range (Some I.zero) (Some max_res) in
         Maybe_ok (approx_abs_offs, approx_abs_offs, FS.top, true, Maybe_exhausted max_res, IS.top)
 
-  (* [search bytecharmap offset_ival offset_start offset_end n_len last_byte_to_look]
-     searches for a character in [bytecharmap], for all offsets in [offset_ival]
+  (* [search charcharmap offset_ival offset_start offset_end n_len last_char_to_look]
+     searches for a character in [charcharmap], for all offsets in [offset_ival]
      and up to all lengths in [n_len].
-     [offset_start], [offset_end] and [last_byte_to_look] are optimizations to
+     [offset_start], [offset_end] and [last_char_to_look] are optimizations to
      avoid searching the entire offsetmap. *)
-  (* last_byte_to_look is [base_len+1] for strlen,
+  (* last_char_to_look is [base_len+1] for strlen,
      or [max_offset + max_n] for strnlen.
-     For strnlen, max_byte_to_look may be adjusted by Search_single.search_and_acc
+     For strnlen, max_char_to_look may be adjusted by Search_single.search_and_acc
      to a more precise value. *)
-  (* [base] is only used to obtain the maximum validity, when the result is
-     imprecise *)
-  let search bytecharmap ~ret_rel_offs base offset_ival offset_start offset_end ?n_len last_byte_to_look =
+  let search ~cwidth charcharmap ~ret_rel_offs base offset_ival offset_start offset_end ?n_len last_char_to_look =
     fpf "@[by_offset_ival: offset_ival: %a, offset_start: %a, offset_end: %a, \
-         last_byte_to_look: %a@]" Ival.pretty offset_ival Int.pretty offset_start
-      Int.pretty offset_end Int.pretty last_byte_to_look;
+         last_char_to_look: %a@]" Ival.pretty offset_ival Int.pretty offset_start
+      Int.pretty offset_end Int.pretty last_char_to_look;
     let res =
       match offset_ival with
       | Ival.Set a ->
@@ -1212,9 +1211,9 @@ module Search_ranges = struct
           Maybe_ok (Ival.bottom, Ival.bottom, FS.False, false, Non_exhausted, IS.bottom)
         in
         Array.fold_left (fun acc offset ->
-            (* for each given offset, adjust [last_byte_to_look] if strnlen *)
+            (* for each given offset, adjust [last_char_to_look] if strnlen *)
             let res = Search_single_offset.search_and_acc
-              bytecharmap offset ?n_len last_byte_to_look acc
+              charcharmap offset ?n_len last_char_to_look acc
             in
             fpf "search with small set, cur offset: %a, res: %a "
               Int.pretty offset pp_str_res_t res;
@@ -1223,32 +1222,47 @@ module Search_ranges = struct
       | _ -> (* less precise but more efficient version *)
         (* str functions returning pointers are currently imprecise for ranges *)
         if not ret_rel_offs then
-          search_ptr_imprecise bytecharmap base offset_ival n_len last_byte_to_look, Imprecise
+          search_ptr_imprecise ~cwidth charcharmap base offset_ival n_len last_char_to_look, Imprecise
         else begin
           fpf "by_offset_ival: not a small set!";
           let init_acc =
-            search_init bytecharmap ?n_len last_byte_to_look offset_end
+            search_init charcharmap ?n_len last_char_to_look offset_end
           in
           fpf "search_init returned init_acc = %a" pp_acc init_acc;
-          let res_acc =
-            Bytecharmap.fold_itv ~direction:`RTL ~entire:false
-              (fun (range_start, range_end) bs acc ->
-                 search_rtl range_start range_end bs ?n_len acc
-              ) (offset_start, (I.pred offset_end)) bytecharmap init_acc
+          let validity_alarm, valid_itv =
+            Tr_offset.trim_by_validity
+              Ival.(mul (inject_singleton cwidth) offset_ival)
+              cwidth (*sizeof(char)*) (Base.validity base)
           in
-          fpf "res_acc = %a" pp_acc res_acc;
-          match res_acc.best_min, res_acc.best_max with
-          | Some _, Some _ ->
-            (* for strnlen, adjust bounds according to the [n] argument *)
-            let (adj_min, adj_max) =
-              adjust_bounds res_acc.best_min res_acc.best_max n_len
+          fpf "trim_by_validity (%a, %a) returned = %b, %a"
+            Int.pretty offset_start Int.pretty offset_end
+            validity_alarm Tr_offset.pretty valid_itv;
+          match valid_itv with
+          | Tr_offset.Invalid ->  (* no valid interval *)
+            let is = { init_acc.is with IS.maybe_indet = true } in
+            Never_ok is, Not_imprecise
+          | _ ->
+            let res_acc =
+              Charcharmap.fold_itv ~direction:`RTL ~entire:false
+                (fun (range_start, range_end) bs acc ->
+                   search_rtl range_start range_end bs ?n_len acc
+                ) (offset_start, (I.pred offset_end)) charcharmap init_acc
             in
-            Maybe_ok (Ival.inject_range adj_min adj_max,
-                      (*abs_offs not used by caller*)Ival.top,
-                      (*fs not used by caller*)FS.Top, res_acc.maybe_not_found,
-                      res_acc.best_es, res_acc.is), Not_imprecise
-          | _, _ ->
-            Never_ok (res_acc.is), Not_imprecise
+            fpf "res_acc = %a" pp_acc res_acc;
+            match res_acc.best_min, res_acc.best_max with
+            | Some _, Some _ ->
+              (* for strnlen, adjust bounds according to the [n] argument *)
+              let (adj_min, adj_max) =
+                adjust_bounds res_acc.best_min res_acc.best_max n_len
+              in
+              let maybe_indet = res_acc.is.IS.maybe_indet || validity_alarm in
+              Maybe_ok (Ival.inject_range adj_min adj_max,
+                        (*abs_offs not used by caller*)Ival.top,
+                        (*fs not used by caller*)FS.Top, res_acc.maybe_not_found,
+                        res_acc.best_es, { res_acc.is with IS.maybe_indet }),
+              Not_imprecise
+            | _, _ ->
+              Never_ok (res_acc.is), Not_imprecise
         end
     in
     res
@@ -1259,7 +1273,7 @@ exception Top_res of Problem.t
 
 (* [compute_maybe_invalid] is an optional triple:
    - [None]: that a definitive error has been found, so don't bother;
-   - [Some (base_max_sure_byte, base_end_byte, abs_offs)]:
+   - [Some (base_max_sure_char, base_end_char, abs_offs)]:
      compute if there may have been an access to offsets past the
      validity of their bases. *)
 let compute_problems imprecise is compute_maybe_invalid =
@@ -1286,21 +1300,21 @@ let compute_problems imprecise is compute_maybe_invalid =
   let acc_probs =
     match compute_maybe_invalid with
     | None -> (* do not compute *) acc_probs
-    | Some (base_max_sure_byte, base_end_byte, abs_offs) ->
-      if Int.lt base_max_sure_byte base_end_byte &&
+    | Some (base_max_sure_char, base_end_char, abs_offs) ->
+      if Int.lt base_max_sure_char base_end_char &&
          not (Ival.is_bottom abs_offs) then
         match Ival.max_int abs_offs with
         | None -> (* unbounded max: other warnings have already been
                      emitted, so omit this one *) acc_probs
-        | Some max_byte_to_look ->
-          if Int.(gt max_byte_to_look base_max_sure_byte) then
+        | Some max_char_to_look ->
+          if Int.(gt max_char_to_look base_max_sure_char) then
             Problems.add Problem.Maybe_invalid acc_probs else acc_probs
       else acc_probs
   in
   acc_probs
 
 (* Searches base [base+offset_arg], for up to [n_len] characters. *)
-let search_by_base bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
+let search_by_base ~cwidth bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
   Ival.t * Ival.t * FS.t * bool * exhausted_status * Problems.t =
   fpf "base: %a (validity: %a)" Base.pretty base Base.pretty_validity
     (Base.validity base);
@@ -1319,13 +1333,13 @@ let search_by_base bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
       | Base.Variable var_valid -> var_valid.Base.min_alloc, var_valid.Base.max_alloc
       | Base.Invalid -> assert false
     in
-    let base_end_byte = bytes_of_bits ~inexact:true base_end_bit (*truncated*) in
-    (* base_max_sure_byte is only used to generate an alarm in case a possibly
+    let base_end_char = chars_of_bits ~cwidth ~inexact:true base_end_bit (*truncated*) in
+    (* base_max_sure_char is only used to generate an alarm in case a possibly
        invalid location may be accessed during search *)
-    let base_max_sure_byte = bytes_of_bits ~inexact:true base_max_sure_bit in
+    let base_max_sure_char = chars_of_bits ~cwidth ~inexact:true base_max_sure_bit in
     let offset_start = Extlib.opt_conv Int.zero (Ival.min_int offset_arg) in
-    let offset_start_bit = bits_of_bytes offset_start in
-    let offset_end = Extlib.opt_conv base_end_byte (Ival.max_int offset_arg) in
+    let offset_start_bit = bits_of_chars ~cwidth offset_start in
+    let offset_end = Extlib.opt_conv base_end_char (Ival.max_int offset_arg) in
     let max_bit_to_look =
       match n_len with
       | None -> base_end_bit
@@ -1333,40 +1347,40 @@ let search_by_base bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
         begin
           match Ival.max_int n with
           | Some max_n ->
-            (* compute the last byte that is possibly examined; if [max_n] is 0,
-               the last looked byte is -1 (no byte is examined) *)
+            (* compute the last char that is possibly examined; if [max_n] is 0,
+               the last looked char is -1 (no char is examined) *)
             if I.(max_n = zero) then I.minus_one
             else
-              (* look at bytes between [offset_end] and [offset_end+max_n-1] *)
-              let max_byte_to_look = I.(pred (offset_end + max_n)) in
-              fpf "max_byte_to_look (before max end_base): \
-                   %a (offset_end: %a, max_n: %a)" Int.pretty max_byte_to_look
+              (* look at chars between [offset_end] and [offset_end+max_n-1] *)
+              let max_char_to_look = I.(pred (offset_end + max_n)) in
+              fpf "max_char_to_look (before max end_base): \
+                   %a (offset_end: %a, max_n: %a)" Int.pretty max_char_to_look
                 Int.pretty offset_end Int.pretty max_n;
-              let max_byte_to_look = Int.min max_byte_to_look base_end_byte in
-              fpf "max_byte_to_look (after max end_base): %a"
-                Int.pretty max_byte_to_look;
-              (* for each byte, bits 0 to 7 are examined *)
-              I.(bits_of_bytes max_byte_to_look + (of_int 7))
+              let max_char_to_look = Int.min max_char_to_look base_end_char in
+              fpf "max_char_to_look (after max end_base): %a"
+                Int.pretty max_char_to_look;
+              (* for each char, bits 0 to (cwidth-1) are examined *)
+              I.(bits_of_chars ~cwidth max_char_to_look + (pred cwidth))
           | None -> (* fallback to base size *) base_end_bit
         end
     in
     fpf "max_bit_to_look: %a" Int.pretty max_bit_to_look;
-    let max_byte_to_look = bytes_of_bits ~inexact:true max_bit_to_look in
-    (* adjust max_byte_to_look for strlen() if needed
+    let max_char_to_look = chars_of_bits ~cwidth ~inexact:true max_bit_to_look in
+    (* adjust max_char_to_look for strlen() if needed
        (may look past the end of the base) *)
-    let max_byte_to_look =
-      if n_len = None then I.succ max_byte_to_look else max_byte_to_look
+    let max_char_to_look =
+      if n_len = None then I.succ max_char_to_look else max_char_to_look
     in
-    fpf "max_byte_to_look (adjusted): %a" Int.pretty max_byte_to_look;
+    fpf "max_char_to_look (adjusted): %a" Int.pretty max_char_to_look;
     (* convert to str*-specific optimized bitwise offsetmap *)
-    let bytecharmap =
-      make_bytecharmap bs_of_vu_f base offsetmap offset_start_bit
+    let charcharmap =
+      make_charcharmap ~cwidth bs_of_vu_f base offsetmap offset_start_bit
         max_bit_to_look base_end_bit
     in
-    fpf "bytecharmap: %a" Bytecharmap.pretty bytecharmap;
+    fpf "charcharmap: %a" Charcharmap.pretty charcharmap;
     let res, imprecise =
-      Search_ranges.search bytecharmap ~ret_rel_offs base offset_arg
-        offset_start offset_end ?n_len max_byte_to_look
+      Search_ranges.search ~cwidth charcharmap ~ret_rel_offs base offset_arg
+        offset_start offset_end ?n_len max_char_to_look
     in
     fpf "by_offset_ival returned: %a" pp_str_res_t res;
     match res with
@@ -1382,7 +1396,7 @@ let search_by_base bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
       else
         let problems =
           compute_problems imprecise is
-            (Some (base_max_sure_byte, base_end_byte, abs_offs))
+            (Some (base_max_sure_char, base_end_char, abs_offs))
         in
         (bounds, abs_offs, char_fs, maybe_found_stop, es, problems)
 
@@ -1393,12 +1407,12 @@ let search_by_base bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state :
    Otherwise, it is called once with a non-singleton interval.
    [acc_res] and [acc_probs] contain the accumulated result
    and list of warnings. *)
-let search_by_base_wrapper bs_of_vu_f ~ret_rel_offs state base offs ?n_ival ~include_exh () :
+let search_by_base_wrapper ~cwidth bs_of_vu_f ~ret_rel_offs state base offs ?n_ival ~include_exh () :
   Base_res.t =
   fpf "fold base(%a, offset %a)"
     Base.pretty base Ival.pretty offs;
   let (vals, abs_offs, char_fs, maybe_not_found, es, problems) =
-    search_by_base ~ret_rel_offs bs_of_vu_f base offs state ?n_len:n_ival
+    search_by_base ~cwidth ~ret_rel_offs bs_of_vu_f base offs state ?n_len:n_ival
   in
   let vals' = if include_exh && ret_rel_offs then
       match es with
@@ -1446,7 +1460,7 @@ let search_by_base_wrapper bs_of_vu_f ~ret_rel_offs state base offs ?n_ival ~inc
    [name] is the built-in name (used for error messages),
    [n_ival] is used for built-ins having a length argument.
    May raise [Top_res]. *)
-let search_char_n bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh str : bm_res_t =
+let search_char_n ~cwidth bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh str : bm_res_t =
   try
     let str_map =
       match str with
@@ -1456,29 +1470,33 @@ let search_char_n bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh str : bm_r
       | Location_Bytes.Map m -> m
     in
     let offs_map = basemap_of_locmap str_map in
-    let search_f = search_by_base_wrapper bs_of_vu_f state in
+    let search_f = search_by_base_wrapper ~cwidth bs_of_vu_f state in
     let bm_res =
       match n with
       | None ->
         BaseMap.mapi
-          (fun base offs -> search_f ~ret_rel_offs base offs ~include_exh:false ()) offs_map
+          (fun base offs ->
+             let norm_offs = Ival.(scale_div ~pos:false (cwidth_to_bytes cwidth) offs) in
+             search_f ~ret_rel_offs base norm_offs ~include_exh:false ()) offs_map
       | Some n' ->
         let n_ival_all = Cvalue.V.project_ival n' in
         match n_ival_all with
         | Ival.Set n_vals ->
           (* small set: compute a precise result for each value and join then *)
           BaseMap.mapi (fun base offs ->
+              let norm_offs = Ival.(scale_div ~pos:false (cwidth_to_bytes cwidth) offs) in
               Array.fold_left (fun acc_br cur_n ->
                   let cur_n = Ival.inject_singleton cur_n in
                   let base_res =
-                    search_f ~ret_rel_offs base offs ~n_ival:cur_n ~include_exh ()
+                    search_f ~ret_rel_offs base norm_offs ~n_ival:cur_n ~include_exh ()
                   in
                   Base_res.join acc_br base_res
                 ) Base_res.bottom n_vals
             ) offs_map
         | Ival.Top _ ->
           BaseMap.mapi (fun base offs ->
-              search_f ~ret_rel_offs base offs ~n_ival:n_ival_all ~include_exh ()
+              let norm_offs = Ival.(scale_div ~pos:false (cwidth_to_bytes cwidth) offs) in
+              search_f ~ret_rel_offs base norm_offs ~n_ival:n_ival_all ~include_exh ()
             ) offs_map
         | Ival.Float _ -> (*should not happen*)
           Value_parameters.error
@@ -1490,7 +1508,7 @@ let search_char_n bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh str : bm_r
   | Cvalue.V.Not_based_on_null (* from project_ival on argument [n] *) ->
     raise (Top_res (Problem.Misc
                       ("assert(no address in second argument of " ^ name ^ ")")))
-  | Ival.Error_Top ->
+  | Abstract_interp.Error_Top ->
     raise (Top_res (Problem.Misc "Ival.Error_Top"))
 
 (* Computes an offset from a list of pairs (base, offset).
@@ -1621,26 +1639,14 @@ type str_builtin_sig =
    (according to [has_char] and [has_n]), calls [search_char_n],
    computes the result and the alarms, and produces the output
    (according to [is_ret_pointer]). Does not emit the produced alarms. *)
-let search_char_n_wrapper name nb_args str_builtin_type ~has_n ~is_ret_pointer state args =
+let search_char_n_wrapper ~cwidth name nb_args str_builtin_type ~has_n ~is_ret_pointer state args =
   (* prepare auxiliary function *)
   let eval_op_wrapper =
     if is_ret_pointer then Eval_op.wrap_ptr else Eval_op.wrap_size_t
   in
   try
     let (et_str, str) = List.nth args 0 in
-    let has_char, bs_of_vu_f =
-      match str_builtin_type with
-      | Search_zero_stop_zero ->
-        false, zero_zero_bs_of_vu
-      | Search_char_stop_char ->
-        let (_exp_chr, chr) = List.nth args 1 in
-        let chr_ival = Cvalue.V.project_ival chr in
-        true, char_char_bs_of_vu chr_ival
-      | Search_char_stop_zero ->
-        let (_exp_chr, chr) = List.nth args 1 in
-        let chr_ival = Cvalue.V.project_ival chr in
-        true, char_zero_bs_of_vu chr_ival
-    in
+    let has_char = str_builtin_type <> Search_zero_stop_zero in
     let n =
       if has_n then
         let n_index = if has_char then 2 else 1 in
@@ -1654,7 +1660,17 @@ let search_char_n_wrapper name nb_args str_builtin_type ~has_n ~is_ret_pointer s
     in
     let value, problems =
       try
-        let bm = search_char_n bs_of_vu_f ~ret_rel_offs:(not is_ret_pointer) name state ?n
+        let bs_of_vu_f =
+          match str_builtin_type with
+          | Search_zero_stop_zero -> zero_zero_bs_of_vu
+          | Search_char_stop_char ->
+            let (_, chr) = List.nth args 1 in
+            char_char_bs_of_vu (Cvalue.V.project_ival chr)
+          | Search_char_stop_zero ->
+            let (_, chr) = List.nth args 1 in
+            char_zero_bs_of_vu (Cvalue.V.project_ival chr)
+        in
+        let bm = search_char_n ~cwidth bs_of_vu_f ~ret_rel_offs:(not is_ret_pointer) name state ?n
             ~include_exh:(not is_ret_pointer) str
         in
         let problems = BaseMap.fold (fun _base base_res acc ->
@@ -1662,6 +1678,10 @@ let search_char_n_wrapper name nb_args str_builtin_type ~has_n ~is_ret_pointer s
         in
         res_of_base_res_f bm, problems
       with
+      | Cvalue.V.Not_based_on_null (* project_ival on chr *) ->
+        Cvalue.V.top_int, Problems.singleton
+          (Problem.Misc
+             ("assert(no address in second argument of " ^ name ^ ")"))
       | Top_res prob ->
         Cvalue.V.top_int, Problems.singleton prob
     in
@@ -1710,7 +1730,7 @@ let args_of_actuals = List.map (fun (e,v,_) -> (Exp e, v))
 
 (* Export the builtin as an OCaml function, and also registers it as a
    Value builtin, of name [name]. *)
-let export_and_register c_name nb_args str_builtin_type ~has_n ~is_ret_pointer =
+let export_and_register c_name nb_args str_builtin_type ~has_n ~is_ret_pointer ~cwidth =
   let name = "Frama_C_" ^ c_name in
   let print_call actuals =
     (*reset_callstack_base ();*)
@@ -1721,7 +1741,7 @@ let export_and_register c_name nb_args str_builtin_type ~has_n ~is_ret_pointer =
       name Printer.pp_location (Cil_const.CurrentLoc.get());
   in
   let f =
-    search_char_n_wrapper name nb_args str_builtin_type ~has_n ~is_ret_pointer
+    search_char_n_wrapper ~cwidth name nb_args str_builtin_type ~has_n ~is_ret_pointer
   in
   let f_builtin state actuals =
     let actuals = args_of_actuals actuals in
@@ -1738,21 +1758,33 @@ let export_and_register c_name nb_args str_builtin_type ~has_n ~is_ret_pointer =
 
 let frama_c_strlen_wrapper  =
   export_and_register "strlen" 1
-    Search_zero_stop_zero ~has_n:false ~is_ret_pointer:false
+    Search_zero_stop_zero ~has_n:false ~is_ret_pointer:false ~cwidth:I.eight
 
 let frama_c_strnlen_wrapper =
   export_and_register "strnlen" 2
-    Search_zero_stop_zero ~has_n:true ~is_ret_pointer:false
+    Search_zero_stop_zero ~has_n:true ~is_ret_pointer:false ~cwidth:I.eight
 
 let frama_c_rawmemchr_wrapper =
   export_and_register "rawmemchr" 2
-    Search_char_stop_char ~has_n:false ~is_ret_pointer:true
+    Search_char_stop_char ~has_n:false ~is_ret_pointer:true ~cwidth:I.eight
 
 let frama_c_memchr_wrapper =
   export_and_register "memchr" 3
-    Search_char_stop_char ~has_n:true ~is_ret_pointer:true
+    Search_char_stop_char ~has_n:true ~is_ret_pointer:true ~cwidth:I.eight
 
 let frama_c_strchr_wrapper =
   export_and_register "strchr" 2
-    Search_char_stop_zero ~has_n:false ~is_ret_pointer:true
+    Search_char_stop_zero ~has_n:false ~is_ret_pointer:true ~cwidth:I.eight
 
+(* because wchar_t depends on the machdep, wchar.h builtins are defined
+   differently from those in string.h. *)
+let frama_c_wcslen_wrapper () =
+  let cwidth = I.of_int (Cil.bitsSizeOf Cil.theMachine.Cil.wcharType) in
+  export_and_register "wcslen" 1
+    Search_zero_stop_zero ~has_n:false ~is_ret_pointer:false ~cwidth
+
+let () = Db.Main.extend
+    (fun () ->
+       let _ = frama_c_wcslen_wrapper () in
+       ()
+    )

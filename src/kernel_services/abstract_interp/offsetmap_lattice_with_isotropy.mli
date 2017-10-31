@@ -50,7 +50,7 @@ val extract_bits :
 val little_endian_merge_bits :
   topify:Origin.kind ->
   conflate_bottom:bool ->
-  value:t -> offset:Integer.t -> t -> t
+  length:Integer.t -> value:t -> offset:Integer.t -> t -> t
 
 val big_endian_merge_bits :
   topify:Origin.kind ->

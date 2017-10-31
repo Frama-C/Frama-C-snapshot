@@ -177,13 +177,6 @@ val setFunctionTypeMakeFormals: fundec -> typ -> unit
  * {!Cil.makeTempVar}. *)
 val setMaxId: fundec -> unit
 
-(** Strip const attribute from the type. This is useful for
-    any type used as the type of a local variable which may be assigned.
-    Note that the type attributes are mutated in place.
-    @since Nitrogen-20111001 
-*)
-val stripConstLocalType : Cil_types.typ -> Cil_types.typ
-
 val selfFormalsDecl: State.t
   (** state of the table associating formals to each prototype. *)
 
@@ -321,15 +314,15 @@ val makeZeroInit: loc:location -> typ -> init
  * This is a good way to use it to scan even nested initializers :
 {v
   let rec myInit (lv: lval) (i: init) (acc: 'a) : 'a =
-      match i with
-        SingleInit e -> ... do something with lv and e and acc ...
+    match i with
+      | SingleInit e -> (* ... do something with [lv] and [e] and [acc] ... *)
       | CompoundInit (ct, initl) ->
          foldLeftCompound ~implicit:false
-             ~doinit:(fun off' i' t' acc ->
-                        myInit (addOffsetLval lv off') i' acc)
-             ~ct:ct
-             ~initl:initl
-             ~acc:acc
+           ~doinit:(fun off' i' _typ acc' ->
+                      myInit (addOffsetLval off' lv) i' acc')
+           ~ct
+           ~initl
+           ~acc
 v}
 *)
 val foldLeftCompound:
@@ -647,10 +640,6 @@ val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
     Make sure you know what you are doing if you set [insert=false].
     [temp] is passed to {!Cil.makeVarinfo}.
     The variable is attached to the toplevel block if [scope] is not specified.
-
-    @since Nitrogen-20111001 This function will strip const attributes
-    of its type in place in order for local variable to be assignable at
-    least once.
 *)
 val makeLocalVar:
   fundec -> ?scope:block -> ?temp:bool -> ?insert:bool
@@ -1168,6 +1157,11 @@ val typeRemoveAttributes: string list -> typ -> typ
 *)
 val typeRemoveAllAttributes: typ -> typ
 
+(** Same as [typeRemoveAttributes], but recursively removes the given
+    attributes from inner types as well.
+*)
+val typeRemoveAttributesDeep: string list -> typ -> typ
+
 val typeHasAttribute: string -> typ -> bool
 (** Does the type have the given attribute. Does
     not recurse through pointer types, nor inside function prototypes.
@@ -1230,6 +1224,26 @@ val expToAttrParam: exp -> attrparam
 exception NotAnAttrParam of exp
 
 (* ************************************************************************* *)
+(** {2 Volatile Attribute} *)
+(* ************************************************************************* *)
+
+val isVolatileType : typ -> bool
+(** Check for ["volatile"] qualifier from the type of an l-value (do not follow pointer)
+    @since Sulfur-20171101 *)
+
+val isVolatileLogicType : logic_type -> bool
+(** Check for ["volatile"] qualifier from a logic type
+    @since Sulfur-20171101 *)
+
+val isVolatileLval : lval -> bool
+(** Check if the l-value has a volatile part
+    @since Sulfur-20171101 *)
+
+val isVolatileTermLval : term_lval -> bool
+(** Check if the l-value has a volatile part
+    @since Sulfur-20171101 *)
+
+(* ************************************************************************* *)
 (** {2 The visitor} *)
 (* ************************************************************************* *)
 
@@ -1268,8 +1282,8 @@ val mk_behavior :
   ?assumes:identified_predicate list ->
   ?requires:identified_predicate list ->
   ?post_cond:(termination_kind * identified_predicate) list ->
-  ?assigns:identified_term Cil_types.assigns ->
-  ?allocation:identified_term  Cil_types.allocation ->
+  ?assigns:Cil_types.assigns ->
+  ?allocation:Cil_types.allocation ->
   ?extended:acsl_extension list ->
   unit ->
   Cil_types.behavior
@@ -1433,6 +1447,42 @@ val set_orig_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
 val set_orig_kernel_function: 
   visitor_behavior -> kernel_function -> kernel_function -> unit
 val set_orig_fundec: visitor_behavior -> fundec -> fundec -> unit
+
+val unset_varinfo: visitor_behavior -> varinfo -> unit
+  (** remove the entry associated to the given varinfo in the current
+      state of the visitor. Use with care (i.e. make sure that you will never
+      visit again this varinfo in the same visiting context).
+      @plugin development guide
+  *)
+val unset_compinfo: visitor_behavior -> compinfo -> unit
+val unset_enuminfo: visitor_behavior -> enuminfo -> unit
+val unset_enumitem: visitor_behavior -> enumitem -> unit
+val unset_typeinfo: visitor_behavior -> typeinfo -> unit
+val unset_stmt: visitor_behavior -> stmt -> unit
+val unset_logic_info: visitor_behavior -> logic_info -> unit
+val unset_logic_type_info: visitor_behavior -> logic_type_info -> unit
+val unset_fieldinfo: visitor_behavior -> fieldinfo -> unit
+val unset_model_info: visitor_behavior -> model_info -> unit
+val unset_logic_var: visitor_behavior -> logic_var -> unit
+val unset_kernel_function: visitor_behavior -> kernel_function -> unit
+val unset_fundec: visitor_behavior -> fundec -> unit
+
+val unset_orig_varinfo: visitor_behavior -> varinfo -> unit
+  (** remove the entry associated with the given new varinfo in the current
+      state of the visitor. Use with care
+  *)
+val unset_orig_compinfo: visitor_behavior -> compinfo -> unit
+val unset_orig_enuminfo: visitor_behavior -> enuminfo -> unit
+val unset_orig_enumitem: visitor_behavior -> enumitem -> unit
+val unset_orig_typeinfo: visitor_behavior -> typeinfo -> unit
+val unset_orig_stmt: visitor_behavior -> stmt -> unit
+val unset_orig_logic_info: visitor_behavior -> logic_info -> unit
+val unset_orig_logic_type_info: visitor_behavior -> logic_type_info -> unit
+val unset_orig_fieldinfo: visitor_behavior -> fieldinfo -> unit
+val unset_orig_model_info: visitor_behavior -> model_info -> unit
+val unset_orig_logic_var: visitor_behavior -> logic_var -> unit
+val unset_orig_kernel_function: visitor_behavior -> kernel_function -> unit
+val unset_orig_fundec: visitor_behavior -> fundec -> unit
 
 val memo_varinfo: visitor_behavior -> varinfo -> varinfo
   (** finds a binding in new project for the given varinfo, creating one
@@ -1711,8 +1761,7 @@ class type cilVisitor = object
   method vpredicate: predicate -> predicate visitAction
   method vbehavior: funbehavior -> funbehavior visitAction
   method vspec: funspec -> funspec visitAction
-  method vassigns:
-    identified_term assigns -> identified_term assigns visitAction
+  method vassigns: assigns -> assigns visitAction
 
   method vfrees:
     identified_term list -> identified_term list visitAction
@@ -1722,16 +1771,15 @@ class type cilVisitor = object
     identified_term list -> identified_term list visitAction
   (**	@since Oxygen-20120901 *)
 
-  method vallocation:
-    identified_term allocation -> identified_term allocation visitAction
+  method vallocation: allocation -> allocation visitAction
   (**	@since Oxygen-20120901 *)
 
-  method vloop_pragma: term loop_pragma -> term loop_pragma visitAction
-  method vslice_pragma: term slice_pragma -> term slice_pragma visitAction
-  method vimpact_pragma: term impact_pragma -> term impact_pragma visitAction
+  method vloop_pragma: loop_pragma -> loop_pragma visitAction
+  method vslice_pragma: slice_pragma -> slice_pragma visitAction
+  method vimpact_pragma: impact_pragma -> impact_pragma visitAction
 
-  method vdeps: identified_term deps -> identified_term deps visitAction
-  method vfrom: identified_term from -> identified_term from visitAction
+  method vdeps: deps -> deps visitAction
+  method vfrom: from -> from visitAction
   method vcode_annot: code_annotation -> code_annotation visitAction
   method vannotation: global_annotation -> global_annotation visitAction
 
@@ -1914,14 +1962,11 @@ val visitCilAnnotation: cilVisitor -> global_annotation -> global_annotation
 
 val visitCilCodeAnnotation: cilVisitor -> code_annotation -> code_annotation
 
-val visitCilDeps:
-  cilVisitor -> identified_term deps -> identified_term deps
+val visitCilDeps: cilVisitor -> deps -> deps
 
-val visitCilFrom:
-  cilVisitor -> identified_term from -> identified_term from
+val visitCilFrom: cilVisitor -> from -> from
 
-val visitCilAssigns:
-  cilVisitor -> identified_term assigns -> identified_term assigns
+val visitCilAssigns: cilVisitor -> assigns -> assigns
 
 (** @since Oxygen-20120901
  *)
@@ -1935,8 +1980,7 @@ val visitCilAllocates:
 
 (** @since Oxygen-20120901
  *)
-val visitCilAllocation:
-  cilVisitor -> identified_term allocation -> identified_term allocation
+val visitCilAllocation: cilVisitor -> allocation -> allocation
 
 val visitCilFunspec: cilVisitor -> funspec -> funspec
 
@@ -2094,6 +2138,10 @@ val bitsSizeOfInt: ikind -> int
 (** Returns the signedness of the given integer kind depending
    on the current machdep. *)
 val isSigned: ikind -> bool
+
+(** Returns the size of the given type, in bits. If this is the type of
+    an lvalue which is a bitfield, the size of the bitfield is returned. *)
+val bitsSizeOfBitfield: typ -> int
 
 (** Returns a unique number representing the integer
    conversion rank. *)

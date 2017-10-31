@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Caveat)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/caveat.i (no preprocessing)
 tests/wp_usage/caveat.i:41:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
@@ -70,7 +69,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'observer':
-Let a = global(G_a_90).
+Let a = global(G_a_41).
 Let x = Mint_0[shiftfield_F1_S_f(a)].
 Let x_1 = Mint_0[shiftfield_F1_S_g(a)].
 Let x_2 = 1 + x.

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/pdg/multiple_calls.c (with preprocessing)
 [value] Analyzing a complete application starting at appel_ptr_fct_bis
 [value] Computing initial state

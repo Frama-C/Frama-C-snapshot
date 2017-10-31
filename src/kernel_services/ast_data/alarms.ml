@@ -62,9 +62,11 @@ type alarm =
   | Is_nan_or_infinite of exp * fkind
   | Valid_string of exp
   | Function_pointer of exp
+  | Uninitialized_union of lval list
+
 (* If you add one constructor to this type, make sure to add a dummy value
    in the 'reprs' value below, and increase 'nb_alarms' *)
-let nb_alarm_constructors = 16
+let nb_alarm_constructors = 17
 
 module D =
   Datatype.Make_with_collections
@@ -93,6 +95,7 @@ module D =
           Is_nan_or_infinite (e, FFloat);
           Valid_string e;
           Function_pointer e;
+          Uninitialized_union [ lv ] 
         ]
 
       let nb = function
@@ -112,6 +115,7 @@ module D =
         | Valid_string _ -> 13
         | Dangling _ -> 14
         | Function_pointer _ -> 15
+        | Uninitialized_union _ -> 16
 
       let () = (* Lightweight checks *)
         for i = 0 to nb_alarm_constructors - 1 do
@@ -158,26 +162,38 @@ module D =
             n
         | Not_separated(lv11, lv12), Not_separated(lv21, lv22)
         | Overlap(lv11, lv12), Overlap(lv21, lv22)
-            ->
+          ->
           let n = Lval.compare lv11 lv21 in
           if n = 0 then Lval.compare lv12 lv22 else n
         | Uninitialized lv1, Uninitialized lv2 -> Lval.compare lv1 lv2
-        | Dangling lv1, Dangling lv2 -> Lval.compare lv1 lv2
-        | Differing_blocks (e11, e12), Differing_blocks (e21, e22) ->
-          let n = Exp.compare e11 e21 in
-          if n = 0 then Exp.compare e12 e22 else n
-        | Function_pointer e1, Function_pointer e2
-        | Valid_string(e1), Valid_string(e2) ->
-          Exp.compare e1 e2
-        | _, (Division_by_zero _ | Memory_access _ | Logic_memory_access _  |
-              Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
-              Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
-              Dangling _ | Is_nan_or_infinite _ | Float_to_int _ |
-              Differing_blocks _ | Valid_string _ | Function_pointer _)
-          ->
-          let n = nb a1 - nb a2 in
-          assert (n <> 0);
-          n
+        | Uninitialized_union llv1, Uninitialized_union llv2 ->
+          let len1 = List.length llv1 in
+          let len2 = List.length llv2 in
+          begin
+            match compare len1 len2 with
+            | 0 -> List.fold_left2 (fun acc lv1 lv2 ->
+                if acc <> 0 then acc
+                else Lval.compare lv1 lv2
+              ) 0 llv1 llv2
+            | _ -> assert false
+          end              
+          | Dangling lv1, Dangling lv2 -> Lval.compare lv1 lv2
+          | Differing_blocks (e11, e12), Differing_blocks (e21, e22) ->
+            let n = Exp.compare e11 e21 in
+            if n = 0 then Exp.compare e12 e22 else n
+          | Function_pointer e1, Function_pointer e2
+          | Valid_string(e1), Valid_string(e2) ->
+            Exp.compare e1 e2
+          | _, (Division_by_zero _ | Memory_access _ | Logic_memory_access _  |
+                Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
+                Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
+                Dangling _ | Is_nan_or_infinite _ | Float_to_int _ |
+                Differing_blocks _ | Valid_string _ | Function_pointer _ |
+                Uninitialized_union _ )
+            ->
+            let n = nb a1 - nb a2 in
+            assert (n <> 0);
+            n
 
       let equal = Datatype.from_compare
 
@@ -211,6 +227,8 @@ module D =
         | Dangling lv -> Hashtbl.hash (nb a, Lval.hash lv)
         | Valid_string(e) -> Hashtbl.hash (nb a, Exp.hash e)
         | Function_pointer e -> Hashtbl.hash (nb a, Exp.hash e)
+        | Uninitialized_union llv ->
+          Hashtbl.hash (nb a, List.map Lval.hash llv)
 
       let structural_descr = Structural_descr.t_abstract
       let rehash = Datatype.identity
@@ -276,6 +294,10 @@ module D =
           Format.fprintf fmt "Valid_string(@[%a@])" Exp.pretty e
         | Function_pointer e ->
           Format.fprintf fmt "Function_pointer(@[%a@])" Exp.pretty e
+        | Uninitialized_union llv ->
+          Format.fprintf fmt "Uninitialized_union(@[[%a]@])" 
+            (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "; ") Lval.pretty) 
+            llv
 
       let internal_pretty_code = Datatype.undefined
       let copy = Datatype.undefined
@@ -383,6 +405,7 @@ let get_name = function
   | Float_to_int _ -> "float_to_int"
   | Valid_string _ -> "valid_string"
   | Function_pointer _ -> "function_pointer"
+  | Uninitialized_union _ -> "initialisation_of_union"
 
 let get_short_name = function
   | Overflow _ -> "overflow"
@@ -405,6 +428,8 @@ let get_description = function
   | Float_to_int _ -> "Overflow in float to int conversion"
   | Valid_string _ -> "Invalid string argument"
   | Function_pointer _ -> "Pointer to a function with non-compatible type"
+  | Uninitialized_union _ -> "Uninitialized memory read of union"
+
 
 (* Given a "topmost" location and another one supposed to be more precise,
    returns the best (hopefully not unknown) one. *)
@@ -588,6 +613,19 @@ let create_predicate ?(loc=Location.unknown) alarm =
     let loc = e.eloc in
     let t = Logic_utils.expr_to_term ~cast:true e in
     Logic_const.(pvalid_function ~loc t)
+
+  | Uninitialized_union llv ->
+    (* \initialized(lv_1) || ... || \initialized(lv_n) *)
+    let make_lval_predicate lv =
+      let e = Cil.mkAddrOrStartOf ~loc lv in
+      let t = Logic_utils.expr_to_term ~cast:false e in
+      Logic_const.pinitialized ~loc (Logic_const.here_label, t)
+    in
+    List.fold_left (fun acc lv ->
+        Logic_const.por ~loc (acc, make_lval_predicate lv)
+      ) 
+      (make_lval_predicate (List.hd llv))
+      (List.tl llv)
 
   in
   let p = aux alarm in

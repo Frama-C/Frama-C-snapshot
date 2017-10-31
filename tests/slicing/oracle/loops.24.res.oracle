@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing an incomplete application starting at alarm
 [value] Computing initial state
@@ -46,5 +45,4 @@ void alarm(void)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_24_loops.i (no preprocessing)

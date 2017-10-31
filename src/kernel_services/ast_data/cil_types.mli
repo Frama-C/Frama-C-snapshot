@@ -296,10 +296,22 @@ and attributes = attribute list
 and attrparam =
   | AInt of Integer.t                  (** An integer constant *)
   | AStr of string                       (** A string constant *)
-  | ACons of string * attrparam list 
+  | ACons of string * attrparam list
   (** Constructed attributes. These are printed [foo(a1,a2,...,an)]. The list
       of parameters can be empty and in that case the parentheses are not
-      printed. *)
+      printed.
+
+      There are some Frama-C builtins that are used to account for OSX's
+      peculiarities:
+      - __fc_assign takes two arguments and emulate [a1=a2] syntax
+      - __fc_float takes one string argument and indicates a floating point
+        constant, that will be printed as such.
+      See https://clang.llvm.org/docs/AttributeReference.html#availability
+      for more information. Proper attributes node might be added if really
+      needed, i.e. if some plug-in wants to interpret the availability
+      attribute.
+  *)
+
   | ASizeOf of typ                       (** A way to talk about types *)
   | ASizeOfE of attrparam
   | AAlignOf of typ
@@ -1313,8 +1325,18 @@ and identified_term = {
 (** logic label referring to a particular program point. *)
 and logic_label =
   | StmtLabel of stmt ref (** label of a C statement. *)
-  | LogicLabel of (stmt option * string) (* [JS 2011/05/13] why a tuple here? *)
-(** builtin logic label ({t Here, Pre}, ...) *)
+  | FormalLabel of string (** label of global annotation. *)
+  | BuiltinLabel of logic_builtin_label
+
+(** builtin logic labels defined in ACSL. *)
+and logic_builtin_label =
+  | Here
+  | Old
+  | Pre
+  | Post
+  | LoopEntry
+  | LoopCurrent
+  | Init
 
 (* ************************************************************************* *)
 (** {2 Terms} *)
@@ -1352,7 +1374,7 @@ and term_node =
   | TStartOf of term_lval (** beginning of an array. *)
 
   (* additional constructs *)
-  | Tapp of logic_info * (logic_label * logic_label) list * term list
+  | Tapp of logic_info * logic_label list * term list
       (** application of a logic function. *)
   | Tlambda of quantifiers * term (** lambda abstraction. *)
   | TDataCons of logic_ctor_info * term list
@@ -1522,7 +1544,7 @@ and relation =
 and predicate_node =
   | Pfalse (** always-false predicate. *)
   | Ptrue (** always-true predicate. *)
-  | Papp of logic_info * (logic_label * logic_label) list * term list
+  | Papp of logic_info * logic_label list * term list
       (** application of a predicate. *)
   | Pseparated of term list
   | Prel of relation * term * term (** comparison of two terms. *)
@@ -1567,28 +1589,27 @@ and predicate = {
   pred_content : predicate_node;(** content *)
 }
 
-(*  Polymorphic types shared with parsed trees (Logic_ptree) *)
-(** variant of a loop or a recursive function. Type shared with Logic_ptree. *)
-and 'term variant = 'term * string option
+(** variant of a loop or a recursive function. *)
+and variant = term * string option
 
 (** allocates and frees. 
     @since Oxygen-20120901  *)
-and 'locs allocation =
-  | FreeAlloc of 'locs list * 'locs list (** tsets. Empty list means \nothing. *)
+and allocation =
+  | FreeAlloc of identified_term list * identified_term list (** tsets. Empty list means \nothing. *)
   | FreeAllocAny (** Nothing specified. Semantics depends on where it 
 		     is written. *)
 
-(** dependencies of an assigned location. Shared with Logic_ptree. *)
-and 'locs deps =
-  | From of 'locs list (** tsets. Empty list means \nothing. *)
+(** dependencies of an assigned location. *)
+and deps =
+  | From of identified_term list (** tsets. Empty list means \nothing. *)
   | FromAny (** Nothing specified. Any location can be involved. *)
 
-and 'locs from = ('locs * 'locs deps)
+and from = identified_term * deps
 
-(** zone assigned with its dependencies. Type shared with Logic_ptree. *)
-and 'locs assigns = 
+(** zone assigned with its dependencies. *)
+and assigns =
   | WritesAny (** Nothing specified. Anything can be written. *)
-  | Writes of 'locs from list
+  | Writes of from list
     (** list of locations that can be written. Empty list means \nothing. *)
 
 (** Function or statement contract. This type shares the name of its
@@ -1597,7 +1618,7 @@ and spec = {
   mutable spec_behavior : behavior list;
   (** behaviors *)
 
-  mutable spec_variant : term variant option;
+  mutable spec_variant : variant option;
   (** variant for recursive functions. *)
 
   mutable spec_terminates: identified_predicate option;
@@ -1644,8 +1665,8 @@ and behavior = {
   mutable b_assumes : identified_predicate list; (** assume clauses. *)
   mutable b_post_cond : (termination_kind * identified_predicate) list
       (** post-condition. *);
-  mutable b_assigns : identified_term assigns; (** assignments. *)
-  mutable b_allocation : identified_term allocation; (** frees, allocates. *)
+  mutable b_assigns : assigns; (** assignments. *)
+  mutable b_allocation : allocation; (** frees, allocates. *)
   mutable b_extended : acsl_extension list
     (** extensions
         @plugin development guide *)
@@ -1654,29 +1675,28 @@ and behavior = {
 (** kind of termination a post-condition applies to. See ACSL manual. *)
 and termination_kind = Normal | Exits | Breaks | Continues | Returns
 
-(** Pragmas for the value analysis plugin of Frama-C.
-    Type shared with Logic_ptree.*)
-and 'term loop_pragma =
-  | Unroll_specs of 'term list
-  | Widen_hints of 'term list
-  | Widen_variables of 'term list
+(** Pragmas for the value analysis plugin of Frama-C. *)
+and loop_pragma =
+  | Unroll_specs of term list
+  | Widen_hints of term list
+  | Widen_variables of term list
 
-(** Pragmas for the slicing plugin of Frama-C. Type shared with Logic_ptree.*)
-and 'term slice_pragma =
-  | SPexpr of 'term
+(** Pragmas for the slicing plugin of Frama-C. *)
+and slice_pragma =
+  | SPexpr of term
   | SPctrl
   | SPstmt
 
-(** Pragmas for the impact plugin of Frama-C. Type shared with Logic_ptree.*)
-and 'term impact_pragma =
-  | IPexpr of 'term
+(** Pragmas for the impact plugin of Frama-C. *)
+and impact_pragma =
+  | IPexpr of term
   | IPstmt
 
-(** The various kinds of pragmas. Type shared with Logic_ptree. *)
-and 'term pragma =
-  | Loop_pragma of 'term loop_pragma
-  | Slice_pragma of 'term slice_pragma
-  | Impact_pragma of 'term impact_pragma
+(** The various kinds of pragmas. *)
+and pragma =
+  | Loop_pragma of loop_pragma
+  | Slice_pragma of slice_pragma
+  | Impact_pragma of impact_pragma
 
 (** all annotations that can be found in the code.
     This type shares the name of its constructors with
@@ -1695,21 +1715,21 @@ and code_annotation_node =
       this invariant applies.  The boolean flag is true for normal loop
       invariants and false for invariant-as-assertions. *)
                                          
-  | AVariant of term variant
+  | AVariant of variant
   (** loop variant. Note that there can be at most one variant associated to a
       given statement *)
 
-  | AAssigns of string list * identified_term assigns
+  | AAssigns of string list * assigns
   (** loop assigns.  (see [b_assigns] in the behaviors for other assigns).  At
       most one clause associated to a given (statement, behavior) couple.  *)
 
-  | AAllocation of string list * identified_term allocation
+  | AAllocation of string list * allocation
   (** loop allocation clause.  (see [b_allocation] in the behaviors for other
       allocation clauses).
       At most one clause associated to a given (statement, behavior) couple.
       @since Oxygen-20120901 when [b_allocation] has been added.  *)
 
-  | APragma of term pragma (** pragma. *)
+  | APragma of pragma (** pragma. *)
   | AExtended of string list * acsl_extension
     (** extension in a loop annotation.
         @since Silicon-20161101 *)
@@ -1801,7 +1821,7 @@ type mach = {
   sizeof_double: int;     (* Size of "double" *)
   sizeof_longdouble: int; (* Size of "long double" *)
   sizeof_void: int;       (* Size of "void" *)
-  sizeof_fun: int;        (* Size of function *)
+  sizeof_fun: int;        (* Size of function. Negative if unsupported. *)
   size_t: string;         (* Type of "sizeof(T)" *)
   wchar_t: string;        (* Type of "wchar_t" *)
   ptrdiff_t: string;      (* Type of "ptrdiff_t" *)
@@ -1814,7 +1834,7 @@ type mach = {
   alignof_double: int;    (* Alignment of "double" *)
   alignof_longdouble: int;  (* Alignment of "long double" *)
   alignof_str: int;       (* Alignment of strings *)
-  alignof_fun: int;       (* Alignment of function *)
+  alignof_fun: int;       (* Alignment of function. Negative if unsupported. *)
   char_is_unsigned: bool; (* Whether "char" is unsigned *)
   underscore_name: bool;  (* If assembly names have leading underscore *)
   const_string_literals: bool; (* Whether string literals have const chars *)

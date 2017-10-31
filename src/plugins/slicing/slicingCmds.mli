@@ -29,111 +29,115 @@ open Cil_types
    are slightly modified in Register, then registered in Db. This module and
    Register should be fused. *)
 
+type set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
+
+val get_select_kf : SlicingTypes.sl_select -> kernel_function
+
 val topologic_propagation : unit -> unit
 
 val select_pdg_nodes :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   PdgTypes.Node.t list ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt :
-  Db.Slicing.Select.set ->
+  set ->
   spare:bool ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_calls_to :
-  Db.Slicing.Select.set ->
+  set ->
   spare:bool ->
   Kernel_function.t ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_calls_into :
-  Db.Slicing.Select.set ->
+  set ->
   spare:bool ->
   Kernel_function.t ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_zone :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   Locations.Zone.t ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_return :
-  Db.Slicing.Select.set ->
+  set ->
   spare:bool ->
   Kernel_function.t ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_ctrl :
-  Db.Slicing.Select.set ->
+  set ->
   spare:bool ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_zone :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   Locations.Zone.t ->
   before:bool ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_lval :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   Datatype.String.Set.t ->
   before:bool ->
   stmt ->
   eval:stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_lval_rw :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   rd:Datatype.String.Set.t ->
   wr:Datatype.String.Set.t ->
   stmt ->
   eval:stmt ->
   Kernel_function.t ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_pred :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   predicate ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_term :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   term ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_annot :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   spare:bool ->
   code_annotation ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_stmt_annots :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   spare:bool ->
   threat:bool ->
   user_assert:bool ->
@@ -142,11 +146,11 @@ val select_stmt_annots :
   loop_var:bool ->
   stmt ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_annots :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   spare:bool ->
   threat:bool ->
   user_assert:bool ->
@@ -154,25 +158,27 @@ val select_func_annots :
   loop_inv:bool ->
   loop_var:bool ->
   kernel_function ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_lval :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   Datatype.String.Set.t ->
   Kernel_function.t ->
-  Db.Slicing.Select.set
+  set
 
 val select_func_lval_rw :
-  Db.Slicing.Select.set ->
-  Db.Slicing.Mark.t ->
+  set ->
+  SlicingTypes.sl_mark ->
   rd:Datatype.String.Set.t ->
   wr:Datatype.String.Set.t ->
-  eval:stmt -> Kernel_function.t -> Db.Slicing.Select.set
+  eval:stmt -> Kernel_function.t -> set
 
-val add_selection : Db.Slicing.Select.set -> unit
+val add_selection : set -> unit
 val add_persistent_selection :
-  Db.Slicing.Select.set -> unit
+  set -> unit
 val add_persistent_cmdline : unit -> unit
 
 val apply_all : propagate_to_callers:bool -> unit
+val apply_all_actions : unit -> unit
+val apply_next_action : unit -> unit

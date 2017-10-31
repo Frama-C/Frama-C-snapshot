@@ -20,14 +20,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Evaluation of functions using their specification *)
-
-(** Evaluate [kf] in state [with_formals], first by reducing by the
-    preconditions, then by evaluating the assigns, then by reducing
-    by the post-conditions. *)
-val compute_using_specification:
-  Cvalue.V.t Eval.call ->
-  Cil_types.funspec ->
-  call_kinstr:Cil_types.kinstr ->
-  with_formals:Cvalue.Model.t ->
-  Value_types.call_result Eval.or_bottom
+(** No function exported. Registers Db.Value.verify_assigns_from. *)

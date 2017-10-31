@@ -29,6 +29,8 @@ module Stmt_hashtbl = Hashtbl(Stmt.Hashtbl)
 module Varinfo_hashtbl = Hashtbl(Varinfo.Hashtbl)
 module Exp_hashtbl = Hashtbl(Exp.Hashtbl)
 module Kernel_function_hashtbl = Hashtbl(Kf.Hashtbl)
+module Lval_hashtbl = Hashtbl(Lval.Hashtbl)
+
 (*
 module Code_annotation_hashtbl =
   State_builder.Hashtbl(Cil_datatype.Code_Annotation)

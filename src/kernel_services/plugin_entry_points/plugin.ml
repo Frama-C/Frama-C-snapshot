@@ -601,7 +601,7 @@ struct
           && D.String.Set.mem "help" after then
           (* level 0 just in case user ask to display all categories
              in an otherwise quiet run *)
-	  Cmdline.at_normal_exit
+          Cmdline.run_after_exiting_stage
 	    (fun () ->
 	      L.feedback ~level:0
 		"@[<v 2>Available message categories are:%a@]"
@@ -611,7 +611,9 @@ struct
 		      let s = (s:Log.category:>string) in
 		      if s <> empty_string then Format.fprintf fmt "@;%s" s)
 		    set)
-                (L.get_all_categories ()));
+                (L.get_all_categories ());
+       raise Cmdline.Exit
+     );
         let add_category c s = D.String.Set.add (c:Log.category:>string) s in
         let subcategory_closure s =
           D.String.Set.fold

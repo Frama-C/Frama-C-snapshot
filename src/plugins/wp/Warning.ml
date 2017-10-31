@@ -113,11 +113,10 @@ let flush old =
   Context.pop collector old ; c.warnings
 
 let add w =
-  Wp_parameters.warning ~source:w.loc "%s" w.reason ~once:true ;
   let c = Context.get collector in
   c.warnings <- Set.add w c.warnings
 
-let emit ?(severe=false) ?source ~effect message =
+let kprintf phi ?(log=true) ?(severe=false) ?source ~effect message =
   let source = match source with Some s -> s | None -> default () in
   let buffer = Buffer.create 80 in
   Format.kfprintf
@@ -125,7 +124,9 @@ let emit ?(severe=false) ?source ~effect message =
        Format.pp_print_flush fmt () ;
        let text = Buffer.contents buffer in
        let loc = Cil_const.CurrentLoc.get () in
-       add {
+       if log then
+         Wp_parameters.warning ~source:(fst loc) "%s" text ~once:true ;
+       phi {
          loc = fst loc ;
          severe = severe ;
          source = source ;
@@ -134,6 +135,12 @@ let emit ?(severe=false) ?source ~effect message =
        })
     (Format.formatter_of_buffer buffer)
     message
+
+let create ?log ?severe ?source ~effect msg =
+  kprintf (fun w -> w) ?log ?severe ?source ~effect msg
+
+let emit ?severe ?source ~effect msg =
+  kprintf add ~log:true ?severe ?source ~effect msg
 
 let handle ?(severe=false) ~effect ~handler cc x =
   try cc x

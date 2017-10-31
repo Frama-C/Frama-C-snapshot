@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/merge_bts0948.i (no preprocessing)
 [kernel] Parsing tests/syntax/merge_bts0948_1.i (no preprocessing)
 [kernel] Parsing tests/syntax/merge_bts0948_2.i (no preprocessing)

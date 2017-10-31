@@ -60,10 +60,13 @@ let sdkey_final_states = "final-states"
 let sdkey_alarm = "alarm"
 let sdkey_garbled_mix = "garbled-mix" (* not activated by default *)
 let sdkey_pointer_comparison = "pointer-comparison"
+let sdkey_cvalue_domain = "d-cvalue"
 
 
 let () =
-  Plugin.default_msg_keys [sdkey_initial_state; sdkey_final_states; sdkey_alarm]
+  Plugin.default_msg_keys
+    [sdkey_initial_state; sdkey_final_states; sdkey_alarm; sdkey_cvalue_domain]
+
 include Plugin.Register
     (struct
        let name = "value analysis"
@@ -94,34 +97,108 @@ let malloc = add_group "Dynamic allocation"
 (* --- Eva domains                                                        --- *)
 (* -------------------------------------------------------------------------- *)
 
-let () = Parameter_customize.set_group domains
-module CvalueDomain =
-  Bool
+(* Set of parameters defining the abstractions used in an Eva analysis. *)
+let parameters_abstractions = ref Typed_parameter.Set.empty
+
+(* This functor must be used to create parameters for new domains of Eva. *)
+module Domain_Parameter
+    (X:sig include Parameter_sig.Input val default: bool end)
+= struct
+  Parameter_customize.set_group domains;
+  module Parameter = Bool (X);;
+  add_precision_dep Parameter.parameter;
+  parameters_abstractions :=
+    Typed_parameter.Set.add Parameter.parameter !parameters_abstractions;
+  include Parameter
+end
+
+module CvalueDomain = Domain_Parameter
     (struct
       let option_name = "-eva-cvalue-domain"
       let help = "Use the default domain of eva."
       let default = true
     end)
-let () = add_precision_dep CvalueDomain.parameter
 
-let () = Parameter_customize.set_group domains
-module EqualityDomain =
-  Bool
+module EqualityDomain = Domain_Parameter
     (struct
       let option_name = "-eva-equality-domain"
       let help = "Use the equality domain of eva. Experimental."
       let default = false
     end)
-let () = add_precision_dep EqualityDomain.parameter
 
-let () = Parameter_customize.set_group domains
-module GaugesDomain =
-  False
+module GaugesDomain = Domain_Parameter
     (struct
       let option_name = "-eva-gauges-domain"
       let help = "Use the gauges domain of Eva. Experimental."
+      let default = false
     end)
-let () = add_precision_dep GaugesDomain.parameter
+
+module SymbolicLocsDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-symbolic-locations-domain"
+      let help = "Use dedicated domain for symbolic equalities. Experimental."
+      let default = false
+    end)
+
+let apron_help = "Experimental binding of the numerical domains provided \
+                  by the APRON library: http://apron.cri.ensmp.fr/library \n"
+
+module ApronOctagon = Domain_Parameter
+    (struct
+      let option_name = "-eva-apron-oct"
+      let help = apron_help ^ "Use the octagon domain of apron."
+      let default = false
+    end)
+
+module ApronBox = Domain_Parameter
+    (struct
+      let option_name = "-eva-apron-box"
+      let help = apron_help ^ "Use the box domain of apron."
+      let default = false
+    end)
+
+module PolkaLoose = Domain_Parameter
+    (struct
+      let option_name = "-eva-polka-loose"
+      let help = apron_help ^ "Use the loose polyhedra domain of apron."
+      let default = false
+    end)
+
+module PolkaStrict = Domain_Parameter
+    (struct
+      let option_name = "-eva-polka-strict"
+      let help = apron_help ^ "Use the strict polyhedra domain of apron."
+      let default = false
+    end)
+
+module PolkaEqualities = Domain_Parameter
+    (struct
+      let option_name = "-eva-polka-equalities"
+      let help = apron_help ^ "Use the linear equalities domain of apron."
+      let default = false
+    end)
+
+module InoutDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-inout-domain"
+      let help = "Compute inputs and outputs within Eva. Experimental."
+      let default = false
+    end)
+
+module SignDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-sign-domain"
+      let help = "Use the sign domain of Eva. For demonstration purposes only."
+      let default = false
+    end)
+
+module BitwiseOffsmDomain = Domain_Parameter
+    (struct
+      let option_name = "-eva-bitwise-domain"
+      let help = "Use the bitwise abstractions of eva."
+      let default = false
+    end)
+
 
 let () = Parameter_customize.set_group domains
 module EqualityStorage =
@@ -135,15 +212,6 @@ module EqualityStorage =
 let () = add_precision_dep EqualityStorage.parameter
 
 let () = Parameter_customize.set_group domains
-module SymbolicLocsDomain =
-  False
-    (struct
-      let option_name = "-eva-symbolic-locations-domain"
-      let help = "Use dedicated domain for symbolic equalities. Experimental."
-    end)
-let () = add_precision_dep SymbolicLocsDomain.parameter
-
-let () = Parameter_customize.set_group domains
 module SymbolicLocsStorage =
   Bool
     (struct
@@ -154,58 +222,15 @@ module SymbolicLocsStorage =
     end)
 let () = add_precision_dep SymbolicLocsStorage.parameter
 
-let apron_help = "Experimental binding of the numerical domains provided \
-                  by the APRON library: http://apron.cri.ensmp.fr/library \n"
-
 let () = Parameter_customize.set_group domains
-module ApronOctagon =
+module GaugesStorage =
   Bool
     (struct
-      let option_name = "-eva-apron-oct"
-      let help = apron_help ^ "Use the octagon domain of apron."
-      let default = false
+      let option_name = "-eva-gauges-storage"
+      let help = "Stores the states of the gauges domain during the analysis."
+      let default = true
     end)
-let () = add_precision_dep ApronOctagon.parameter
-
-let () = Parameter_customize.set_group domains
-module ApronBox =
-  Bool
-    (struct
-      let option_name = "-eva-apron-box"
-      let help = apron_help ^ "Use the box domain of apron."
-      let default = false
-    end)
-let () = add_precision_dep ApronBox.parameter
-
-let () = Parameter_customize.set_group domains
-module PolkaLoose =
-  Bool
-    (struct
-      let option_name = "-eva-polka-loose"
-      let help = apron_help ^ "Use the loose polyhedra domain of apron."
-      let default = false
-    end)
-let () = add_precision_dep PolkaLoose.parameter
-
-let () = Parameter_customize.set_group domains
-module PolkaStrict =
-  Bool
-    (struct
-      let option_name = "-eva-polka-strict"
-      let help = apron_help ^ "Use the strict polyhedra domain of apron."
-      let default = false
-    end)
-let () = add_precision_dep PolkaStrict.parameter
-
-let () = Parameter_customize.set_group domains
-module PolkaEqualities =
-  Bool
-    (struct
-      let option_name = "-eva-polka-equalities"
-      let help = apron_help ^ "Use the linear equalities domain of apron."
-      let default = false
-    end)
-let () = add_precision_dep PolkaEqualities.parameter
+let () = add_precision_dep GaugesStorage.parameter
 
 let () = Parameter_customize.set_group domains
 module ApronStorage =
@@ -214,19 +239,9 @@ module ApronStorage =
       let option_name = "-eva-apron-storage"
       let help = "Stores the states of the apron domains during the \
                  analysis."
-      let default = false
+      let default = true
     end)
 let () = add_precision_dep ApronStorage.parameter
-
-let () = Parameter_customize.set_group domains
-module BitwiseOffsmDomain =
-  Bool
-    (struct
-      let option_name = "-eva-bitwise-domain"
-      let help = "Use the bitwise abstractions of eva."
-      let default = false
-    end)
-let () = add_precision_dep BitwiseOffsmDomain.parameter
 
 let () = Parameter_customize.set_group domains
 module BitwiseOffsmStorage =
@@ -458,6 +473,17 @@ module ReduceOnLogicAlarms =
     end)
 let () = add_correctness_dep ReduceOnLogicAlarms.parameter
 
+let () = Parameter_customize.set_group alarms
+module InitializedLocals =
+  False
+    (struct
+      let option_name = "-val-initialized-locals"
+      let help = "Local variables enter in scope fully initialized. \
+                  Only useful for the analysis of programs buggy w.r.t. \
+                  initialization."
+    end)
+let () = add_correctness_dep InitializedLocals.parameter
+
 (* ------------------------------------------------------------------------- *)
 (* --- Initial context                                                   --- *)
 (* ------------------------------------------------------------------------- *)
@@ -557,7 +583,7 @@ module ILevel =
      end)
 let () = add_precision_dep ILevel.parameter
 let () = ILevel.add_update_hook (fun _ i -> Ival.set_small_cardinal i)
-let () = ILevel.set_range 4 64
+let () = ILevel.set_range 4 128
 
 let () = Parameter_customize.set_group precision_tuning
 module SemanticUnrollingLevel =
@@ -650,7 +676,11 @@ module SplitGlobalStrategy = State_builder.Ref (Split_strategy)
      end)
 let () =
   SplitReturn.add_set_hook
-    (fun _ x -> SplitGlobalStrategy.set (Split_strategy.of_string x))
+    (fun _ x -> SplitGlobalStrategy.set
+        (try Split_strategy.of_string x
+         with Split_strategy.ParseFailure s ->
+           abort "@[@[incorrect argument for option %s@ (%s).@]"
+             SplitReturn.name s))
 let () = add_precision_dep SplitReturn.parameter
 
 let () = Parameter_customize.is_invisible ()
@@ -801,40 +831,6 @@ less than n values. (defaults to 200)"
 let () = add_precision_dep ArrayPrecisionLevel.parameter
 let () = ArrayPrecisionLevel.add_update_hook
   (fun _ v -> Offsetmap.set_plevel v)
-
-let () = Parameter_customize.set_group precision_tuning
-module SeparateStmtStart =
-  String_set
-    (struct
-       let option_name = "-separate-stmts"
-       let arg_name = "n1,..,nk"
-       let help = ""
-     end)
-let () = add_correctness_dep SeparateStmtStart.parameter
-
-let () = Parameter_customize.set_group precision_tuning
-module SeparateStmtWord =
-  Int
-    (struct
-       let option_name = "-separate-n"
-       let default = 0
-       let arg_name = "n"
-       let help = ""
-     end)
-let () = SeparateStmtWord.set_range ~min:0 ~max:1073741823
-let () = add_correctness_dep SeparateStmtWord.parameter
-
-let () = Parameter_customize.set_group precision_tuning
-module SeparateStmtOf =
-  Int
-    (struct
-       let option_name = "-separate-of"
-       let default = 0
-       let arg_name = "n"
-       let help = ""
-     end)
-let () = SeparateStmtOf.set_range ~min:0 ~max:1073741823
-let () = add_correctness_dep SeparateStmtOf.parameter
 
 (* Options SaveFunctionState and LoadFunctionState are related
    and mutually dependent for sanity checking.
@@ -989,6 +985,7 @@ module ShowSlevel =
        let arg_name = "n"
        let help = "Period for showing consumption of the alloted slevel during analysis"
      end)
+let () = ShowSlevel.set_range ~min:1 ~max:max_int
 
 let () = Parameter_customize.set_group messages
 module PrintCallstacks =
@@ -1053,9 +1050,9 @@ let () = Parameter_customize.set_group interpreter
 module StopAtNthAlarm =
   Int(struct
          let option_name = "-val-stop-at-nth-alarm"
-	 let default = max_int
-	 let arg_name = "n"
-         let help = ""
+         let default = max_int
+         let arg_name = "n"
+         let help = "Aborts the analysis when the nth alarm is emitted."
        end)
 
 (* -------------------------------------------------------------------------- *)
@@ -1167,6 +1164,7 @@ let dkey_final_states = register_category sdkey_final_states
 let dkey_alarm = register_category sdkey_alarm
 let dkey_garbled_mix = register_category sdkey_garbled_mix
 let dkey_pointer_comparison = register_category sdkey_pointer_comparison
+let dkey_cvalue_domain = register_category sdkey_cvalue_domain
 
 
 (* -------------------------------------------------------------------------- *)
@@ -1177,6 +1175,8 @@ let parameters_correctness =
   Typed_parameter.Set.elements !parameters_correctness
 let parameters_tuning =
   Typed_parameter.Set.elements !parameters_tuning
+let parameters_abstractions =
+  Typed_parameter.Set.elements !parameters_abstractions
 
 
 

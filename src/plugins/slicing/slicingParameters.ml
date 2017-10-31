@@ -195,21 +195,6 @@ the name of the exported project (defaults to \" export\")"
            let default = " export"
          end)
 
-module Print = struct
-  let new_command = "<normal slicing command> -then-on 'Slicing export' -print"
-  include False(struct
-    let option_name = "-slice-print"
-    let help = "deprecated. Use instead " ^ new_command
-  end)
-  (* Just a small hack to inform the end-user that he is using a deprecated
-     option without changing the old behavior (incompatible with -ocode for
-     instance). *)
-  let get () = 
-    let b = get () in
-    if b then deprecated "-slice-print" ~now:new_command (fun () -> ())	();
-    b
-end
-
 module Force =
   True(struct
        let option_name = "-slice-force"
@@ -241,8 +226,7 @@ let () =
       Mode.Callers.self;
       Mode.Calls.self;
       Mode.SliceUndef.self;
-      Mode.KeepAnnotations.self;
-      Print.self ]
+      Mode.KeepAnnotations.self ]
 
 let is_on () =
   (Force.get () || OptionModified.get ())

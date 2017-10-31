@@ -195,8 +195,10 @@ struct
 
   let apply phi g = g.sequent <- phi g.sequent
 
-  let default_simplifiers =
-    [Wp_parameters.SimplifyIsCint.get, Cint.is_cint_simplifier]
+  let default_simplifiers = [
+    Wp_parameters.SimplifyIsCint.get, Cint.is_cint_simplifier ;
+    Wp_parameters.SimplifyLandMask.get, Cint.mask_simplifier ;
+  ]
 
   let preprocess g =
     if Wp_parameters.Let.get () then
@@ -208,7 +210,9 @@ struct
         if Wp_parameters.Prune.get ()
         then apply (Conditions.pruning ~solvers) g ;
         if Wp_parameters.Filter.get ()
-        then apply Conditions.filter g
+        then apply Conditions.filter g ;
+        if Wp_parameters.Parasite.get ()
+        then apply Conditions.parasite g
       end
     else
       begin
@@ -685,7 +689,7 @@ let add g =
         Gmap.iter
           (fun _ ws -> WPOset.iter (fun _ -> incr added) ws)
           system.wpo_idx ;
-        if not (Wp_parameters.has_dkey "no-goals-info") then
+        if not (Wp_parameters.has_dkey VCS.dkey_no_goals_info) then
           Wp_parameters.feedback ~ontty:`Feedback "Computing [%d goals...]" !added ;
         added := 0 ;
       end ;
@@ -793,8 +797,8 @@ let get_results g =
 
 let is_trivial g =
   match g.po_formula with
-  | GoalLemma vc -> Model.with_model g.po_model VC_Lemma.is_trivial vc
-  | GoalAnnot vc -> Model.with_model g.po_model VC_Annot.is_trivial vc
+  | GoalLemma vc -> VC_Lemma.is_trivial vc
+  | GoalAnnot vc -> VC_Annot.is_trivial vc
   | GoalCheck _ -> false
 
 let resolve g =
@@ -815,6 +819,10 @@ let compute g =
       None , Model.with_model g.po_model Conditions.lemma goal
 
 let is_proved g = List.exists (fun (_,r) -> VCS.is_valid r) (get_results g)
+
+let is_unknown g = List.exists 
+    (fun (_,r) -> VCS.is_verdict r && not (VCS.is_valid r))
+    ( get_results g)
 
 let get_result =
   Dynamic.register ~plugin:"Wp" "Wpo.get_result" ~journalize:false

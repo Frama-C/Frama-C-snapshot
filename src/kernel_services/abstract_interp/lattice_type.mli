@@ -28,7 +28,6 @@ module type Join_Semi_Lattice = sig
 
   val join: t -> t -> t (** over-approximation of union *)
   val is_included: t -> t -> bool (**is first argument included in the second?*)
-  val join_and_is_included: t -> t -> (t * bool) (**Do both ops simultaneously*)
 end
 
 module type Bounded_Join_Semi_Lattice = sig
@@ -44,19 +43,6 @@ end
 module type With_Top_Opt = sig
   type t
   val top_opt: t option (** optional largest element *)
-end
-
-module type With_Error_Top = sig
-  exception Error_Top
-end
-
-module type With_Error_Bottom = sig
-  exception Error_Bottom
-end
-
-module type With_Errors = sig
-  include With_Error_Top
-  include With_Error_Bottom
 end
 
 module type With_Narrow = sig
@@ -170,7 +156,6 @@ module type Full_AI_Lattice_with_cardinality = sig
   include With_Diff with type t := t
   include With_Diff_One with type t := t
   include With_Enumeration with type t := t
-  include With_Error_Top
 end
 
 
@@ -214,20 +199,22 @@ end
 module type Lattice_Base = sig
   type l
   type t = private Top | Bottom | Value of l
-  exception Error_Top
-  exception Error_Bottom
   include AI_Lattice_with_cardinal_one with type t := t
   val project : t -> l
   val inject: l -> t
   val transform: (l -> l -> l) -> t -> t -> t
 end
 
+module type Set = sig
+  include FCSet.S_Basic_Compare
+  include Datatype.S with type t := t
+end
+
 (** Signatures for a lattice over a set
     (see {!Abstract_interp.Make_Lattice_Set} or
     {!Abstract_interp.Make_Hashconsed_Lattice_Set}). *)
-module type Lattice_Set_Generic = sig
-  module O: sig type t type elt end
-  exception Error_Top
+module type Lattice_Set = sig
+  module O: Set
   type t = private Set of O.t | Top
   include AI_Lattice_with_cardinal_one
   with type t := t
@@ -244,20 +231,6 @@ module type Lattice_Set_Generic = sig
   val filter: (O.elt -> bool) -> t -> t
   val project : t -> O.t
   val mem : O.elt -> t -> bool
-end
-
-
-module type Lattice_Set = sig
-  module O: Datatype.Set
-  include Lattice_Set_Generic with module O := O
-end
-
-module type Lattice_Hashconsed_Set = sig
-  module O: sig
-    include FCSet.S_Basic_Compare
-    include Datatype.S with type t := t
-  end
-  include Lattice_Set_Generic with module O := O
 end
 
 (*

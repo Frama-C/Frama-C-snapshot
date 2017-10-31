@@ -97,7 +97,29 @@ let adjust_assigns_clause loc var code_annot =
     | AStmtSpec (_,s) -> List.iter adjust_clause s.spec_behavior
     | _ -> ()
 
-let oneret (f: fundec) : unit =
+type returns_clause =
+  Cil_types.stmt * Cil_types.behavior * Cil_types.identified_predicate
+
+type goto_annot =
+  Cil_types.stmt * Cil_types.code_annotation
+
+type callback = returns_clause -> goto_annot list -> unit
+
+let collect_returns (ca : Cil_types.code_annotation) =
+  match ca.annot_content with
+  | AStmtSpec(_bhvs,spec) ->
+    List.fold_left
+      (fun acc bhv ->
+         List.fold_left
+           (fun acc (kind,predicate) ->
+              match kind with
+              | Returns -> (bhv,predicate) :: acc
+              | _ -> acc
+           ) acc bhv.b_post_cond
+      ) [] spec.spec_behavior
+  | _ -> []
+
+let oneret ?(callback: callback option) (f: fundec) : unit =
   let fname = f.svar.vname in
   (* Get the return type *)
   let retTyp =
@@ -197,15 +219,19 @@ let oneret (f: fundec) : unit =
      TODO: split that into behaviors and generates for foo,bar: assert instead
      of plain assert.
    *)
-  let returns_clause_stack = Stack.create () in
-  let stmt_contract_stack = Stack.create () in
-  let rec popn n =
-    if n > 0 then begin
-      assert (not (Stack.is_empty returns_clause_stack));
-      ignore (Stack.pop returns_clause_stack);
-      ignore (Stack.pop stmt_contract_stack);
-      popn (n-1)
-    end
+  let returns_stack :
+    (Cil_types.predicate * Cil_types.stmt * Cil_types.code_annotation) Stack.t
+    = Stack.create () in
+  let popn n =
+    try for _ = 1 to n do ignore (Stack.pop returns_stack) done
+    with Stack.Empty -> assert false
+  in
+  let to_callback = Hashtbl.create 8 in
+  let do_callback cb = Hashtbl.iter (fun _ (ca,gs) -> cb ca gs) to_callback in
+  let register_goto (ca : returns_clause) (gc : goto_annot) =
+    let (_,_, { ip_id }) = ca in
+    let gs = try snd (Hashtbl.find to_callback ip_id) with Not_found -> [] in
+    Hashtbl.replace to_callback ip_id (ca,gc::gs)
   in
   (* Now scan all the statements. Know if you are the main body of the
    * function and be prepared to add new statements at the end.
@@ -254,14 +280,16 @@ let oneret (f: fundec) : unit =
           | None -> Instr (Skip loc)
       end;
       let returns_assert = ref ptrue in
-      Stack.iter (fun p -> returns_assert := pand ~loc (p, !returns_assert))
-        returns_clause_stack;
+      Stack.iter
+        (fun (p,_,_) -> returns_assert := pand ~loc (p, !returns_assert))
+        returns_stack;
       (match retval with
-        | Some _ ->
-            Stack.iter
-              (adjust_assigns_clause loc (Cil.cvar_to_lvar (getRetVar())))
-              stmt_contract_stack;
-        | None -> () (* There's no \result: no need to adjust it *)
+       | Some _ ->
+         let lvar = Cil.cvar_to_lvar (getRetVar()) in
+         Stack.iter
+           (fun (_,_,ca) -> adjust_assigns_clause loc lvar ca.annot_content)
+           returns_stack
+       | None -> () (* There's no \result: no need to adjust it *)
       );
       (* See if this is the last statement in function, and we don't
          have a statement contract above us. In that last case, it is best
@@ -289,6 +317,14 @@ let oneret (f: fundec) : unit =
           | p ->
             let a = Logic_const.new_code_annotation (AAssert ([],p)) in
             let sta = mkStmt (Instr (Code_annot (a,loc))) in
+            if callback<>None then
+              ( let gclause = sta , a in
+                Stack.iter
+                  (fun (_,str,ca) ->
+                     List.iter
+                       (fun (bhv,ret) -> register_goto (str,bhv,ret) gclause)
+                       (collect_returns ca)
+                  ) returns_stack ) ;
             [ s; sta; sg ]
         in
         let s = mkStmt (Block (mkBlock b_stmts)) in
@@ -353,8 +389,7 @@ let oneret (f: fundec) : unit =
       :: rests ->
       let returns = assert_of_returns ca in
       let returns = Logic_utils.translate_old_label s returns in
-      Stack.push returns returns_clause_stack;
-      Stack.push ca.annot_content stmt_contract_stack;
+      Stack.push (returns,s,ca) returns_stack;
       scanStmts (s::acc) mainbody (popstack + 1) rests
     | { skind = Instr (Code_annot _) } as s :: rests ->
       scanStmts (s::acc) mainbody popstack rests
@@ -379,7 +414,8 @@ let oneret (f: fundec) : unit =
     ignore (visitCilBlock dummyVisitor f.sbody) ; *)(* sets CurrentLoc *)
   (*CEA so, [scanBlock] will set [lastloc] when necessary
     lastloc := !currentLoc ;  *) (* last location in the function *)
-  f.sbody <- scanBlock true f.sbody
+  f.sbody <- scanBlock true f.sbody ;
+  Extlib.may do_callback callback
 
 (*
   Local Variables:

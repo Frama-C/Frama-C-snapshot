@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/injector.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -116,13 +115,13 @@ Prove: false.
 
 Goal Post-condition for 'ko_1' 'qed_ko' in 'f':
 Assume {
-  Type: is_sint32(v_1) /\ is_sint32(v).
+  Type: is_sint32(b) /\ is_sint32(v).
   (* Pre-condition for 'ko_1' *)
   Have: out_0[0] = 33.
   (* Pre-condition for 'ko_1' *)
   Have: out_0[1] = 33.
 }
-Prove: v = v_1.
+Prove: v = b.
 
 ------------------------------------------------------------
 

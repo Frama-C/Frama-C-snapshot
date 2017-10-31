@@ -40,7 +40,9 @@ __BEGIN_DECLS
 
 typedef unsigned int clock_t;
 #include "__fc_define_time_t.h"
-#define CLOCKS_PER_SEC ((time_t)16000)
+// From POSIX.1-2008: "The value of CLOCKS_PER_SEC shall be 1 million on
+// XSI-conformant systems. [...]"
+#define CLOCKS_PER_SEC ((time_t)1000000)
 
 struct tm {
   int tm_sec; // seconds after the minute [0, 60]
@@ -118,7 +120,33 @@ extern size_t strftime(char * restrict s,
 		const struct tm * restrict timeptr);
 
 /* POSIX */
-extern int nanosleep(const struct timespec *, struct timespec *);
+extern char *asctime_r(const struct tm *restrict, char *restrict);
+//Note: uncomment functions below when the necessary types will be defined:
+// clockid_t, locale_t, timer_t
+//extern int clock_getres(clockid_t, struct timespec *);
+//extern int clock_gettime(clockid_t, struct timespec *);
+//extern int clock_nanosleep(clockid_t, int, const struct timespec *,
+//                           struct timespec *);
+//extern int clock_settime(clockid_t, const struct timespec *);
+extern char *ctime_r(const time_t *timep, char *buf);
+extern struct tm *getdate(const char *string);
+extern struct tm *gmtime_r(const time_t *restrict timer,
+                           struct tm *restrict result);
+extern struct tm *localtime_r(const time_t *restrict timep,
+                              struct tm *restrict result);
+extern int nanosleep(const struct timespec *req, struct timespec *rem);
+//extern size_t strftime_l(char *restrict, size_t, const char *restrict,
+//                         const struct tm *restrict, locale_t);
+extern char *strptime(const char *restrict s, const char *restrict format,
+                      struct tm *restrict tm);
+//extern int timer_create(clockid_t, struct sigevent *restrict,
+//                        timer_t *restrict);
+//extern int timer_delete(timer_t);
+//extern int timer_getoverrun(timer_t);
+//extern int timer_gettime(timer_t, struct itimerspec *);
+//extern int timer_settime(timer_t, int, const struct itimerspec *restrict,
+//                         struct itimerspec *restrict);
+extern void tzset(void);
 
 extern int daylight;
 extern long timezone;

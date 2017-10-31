@@ -32,7 +32,7 @@ m4_define([FRAMAC_SHARE],
 m4_ifndef([FRAMAC_M4_MACROS],[m4_include(FRAMAC_SHARE/configure.ac)])
 
 check_plugin(security_slicing,PLUGIN_RELATIVE_PATH(plugin_file),
-	     [support for Security_slicing plug-in],yes,yes)
+	     [support for Security_slicing plug-in],yes)
 
 plugin_require(security_slicing,slicing)
 plugin_require(security_slicing,value_analysis)

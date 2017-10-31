@@ -28,6 +28,7 @@ open Pretty_source
 open Gtk_helper
 
 let dkey = Gui_parameters.register_category "design"
+let dkey_scroll = Gui_parameters.register_category "scroll"
 
 let use_external_viewer = false
 
@@ -364,6 +365,10 @@ let to_do_on_select
     selected
   =
   let view_original ?loc stmt =
+    Gui_parameters.debug ~dkey:dkey_scroll
+      "view_original: %a, stmt id %d"
+      (Pretty_utils.pp_opt ~none:"None" Printer.pp_location) loc
+      stmt.sid;
     match loc with
       | None -> main_ui#view_original_stmt stmt
       | Some loc -> main_ui#view_original loc; loc
@@ -528,9 +533,18 @@ let to_do_on_select
           let typ = typeOf e in
           match constFoldToInt e with
           | Some i ->
+              begin match e.enode with
+              | Const (CEnum {eihost}) ->
+                let typ_enum = TEnum (eihost, []) in
+                main_ui#pretty_information
+                  "This is a C enumeration constant, \
+                   defined in %a with a value of %a.@."
+                  Gui_printers.pp_typ typ_enum Abstract_interp.Int.pretty i
+              | _ ->
               main_ui#pretty_information
                 "This is a constant C expression of type %a, equal to %a.@."
-                Gui_printers.pp_typ typ Datatype.Integer.pretty i
+                Gui_printers.pp_typ typ Abstract_interp.Int.pretty i
+              end
           | None ->
               main_ui#pretty_information "This is a pure C expression of type %a.@."
                 Gui_printers.pp_typ typ
@@ -567,6 +581,7 @@ let to_do_on_select
     match go_to_definition selected main_ui with
     | None -> () (* no menu to show *)
     | Some (vi, callback) ->
+      if vi.vsource then
         ignore (menu_factory#add_item
                   ("Go to definition of " ^
                    (Pretty_utils.escape_underscores
@@ -695,6 +710,19 @@ struct
     | F.Invalid_under_hyp -> "invalid_under_hyp"
     | F.Inconsistent -> "inconsistent"
 
+  let long_category = function
+    | F.Never_tried -> "Never tried: no status is available for this property"
+    | F.Considered_valid -> "Considered valid: this is a hypothesis that shall be verified outside Frama-C"
+    | F.Valid -> "Surely valid: verified (including all of its dependencies)"
+    | F.Invalid -> "Surely invalid: refuted (and all of its dependencies have been verified)"
+    | F.Invalid_but_dead -> "Invalid but dead: refuted, but unreachable"
+    | F.Valid_but_dead -> "Valid but dead: verified, but unreachable"
+    | F.Unknown_but_dead -> "Unknown but dead: unknown status, and unreachable"
+    | F.Unknown -> "Unknown: a verification has been attempted, but without conclusion"
+    | F.Valid_under_hyp -> "Valid under hypotheses: verified (but has dependencies with Unknown status)"
+    | F.Invalid_under_hyp -> "Invalid under hypotheses: refuted (but has dependencies with Unknown status)"
+    | F.Inconsistent -> "Inconsistent: got both true and false statuses (possibly cyclic dependencies, or an incorrect axiomatization)"
+
   let declare_markers (source:GSourceView2.source_view) =
     List.iter
       (fun v ->
@@ -713,12 +741,16 @@ struct
         F.Invalid_under_hyp;
         F.Inconsistent ]
 
+  (* tooltip marks are recreated whenever the buffer changes *)
+  let tooltip_marks : (int, string) Hashtbl.t = Hashtbl.create 8
+
   let mark (source:GSourceView2.source_buffer) ~offset validity =
     begin
       let iter = source#get_iter_at_char offset in
       let category = category validity in
       source#remove_source_marks iter iter () ;
       ignore (source#create_source_mark ~category iter) ;
+      Hashtbl.replace tooltip_marks iter#line (long_category validity);
     end
 
 end
@@ -875,6 +907,28 @@ class main_window () : main_window_extension_points =
     begin
       source_viewer#set_show_line_numbers false ;
       source_viewer#set_show_line_marks true ;
+      let _ =
+        source_viewer#event#connect#motion_notify ~callback:
+          (fun ev ->
+             let x = GdkEvent.Motion.x ev in
+             if x < 20.0 (* roughly the width of the left bar *) then begin
+               let y = GdkEvent.Motion.y ev in
+               let (xbuf, ybuf) = source_viewer#window_to_buffer_coords
+                   ~tag:`WIDGET ~x:(int_of_float x) ~y:(int_of_float y)
+               in
+               let iterpos = source_viewer#get_iter_at_location xbuf ybuf in
+               let line = iterpos#line in
+               if Hashtbl.mem Feedback.tooltip_marks line then begin
+                 let text = Hashtbl.find Feedback.tooltip_marks line in
+                 source_viewer#misc#set_has_tooltip true;
+                 source_viewer#misc#set_tooltip_text text;
+               end else begin
+                 source_viewer#misc#set_has_tooltip false;
+               end
+             end else
+               source_viewer#misc#set_has_tooltip false;
+             ; false)
+      in
       Feedback.declare_markers source_viewer ;
     end
   in
@@ -1061,6 +1115,8 @@ class main_window () : main_window_extension_points =
          scroll to [loc]. Otherwise, open a relevant buffer by finding a
          varinfo or a global for [loc], then scroll to [loc]. *)
     method scroll loc =
+      Gui_parameters.debug ~dkey:dkey_scroll
+        "main_ui: scroll: localizable %a" Pretty_source.Localizable.pretty loc;
       (* Used to avoid having two different history events, one created
          by [select_global], the other by [scroll] *)
       let history = History.on_current_history () in
@@ -1109,6 +1165,8 @@ class main_window () : main_window_extension_points =
       ignore (self#view_original_stmt stmt)
 
     method view_original loc =
+      Gui_parameters.debug ~dkey:dkey_scroll
+        "main_ui: view_original: location %a" Location.pretty loc;
       if not (Location.equal loc Location.unknown) then
         Source_manager.load_file
           self#original_source_viewer
@@ -1306,7 +1364,7 @@ class main_window () : main_window_extension_points =
             let text =
               if use_dialog then
                 Extlib.opt_conv ""
-                  (GToolbox.input_string
+                  (Gtk_helper.input_string
                      ~title:"Find" ~ok:"Find" ~cancel:"Cancel"
                      "Find global:" ~text:last_find_text)
               else last_find_text
@@ -1349,7 +1407,7 @@ class main_window () : main_window_extension_points =
           let text =
             if use_dialog then
               Extlib.opt_conv ""
-                (GToolbox.input_string
+                (Gtk_helper.input_string
                    ~title:"Find" ~ok:"Find" ~cancel:"Cancel"
                    ("Find text (" ^ where_to_find ^ "):") ~text:last_find_text)
             else last_find_text
@@ -1450,6 +1508,10 @@ class main_window () : main_window_extension_points =
           Extlib.may
             (fun pos ->
                Extlib.may self#scroll (Pretty_source.loc_to_localizable pos);
+               (* Note: the code below generates double scrolling:
+                  the previous call to self#scroll causes the original source
+                  viewer to scroll to the beginning of the function, and then
+                  the code below re-scrolls it to the exact location. *)
                self#view_original (pos,pos))
             e.Log.evt_source
         in

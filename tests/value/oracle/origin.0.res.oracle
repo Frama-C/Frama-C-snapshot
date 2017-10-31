@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/origin.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -117,11 +116,8 @@ tests/value/origin.i:49:[value] warning: out of bounds write. assert \valid(pm1)
         Called from tests/value/origin.i:103.
 tests/value/origin.i:54:[value] Assigning imprecise value to qm2.
         The imprecision originates from Misaligned {tests/value/origin.i:54}
-tests/value/origin.i:55:[value] Reading left-value qm2.
-        It contains a garbled mix of {a; b} because of Misaligned
-        {tests/value/origin.i:54}.
-[value] Called Frama_C_show_each({{ garbled mix of &{a; b}
-                                 (origin: Misaligned {tests/value/origin.i:54}) }})
+tests/value/origin.i:55:[value] Frama_C_show_each:
+        {{ garbled mix of &{a; b} (origin: Misaligned {tests/value/origin.i:54}) }}
 tests/value/origin.i:56:[value] warning: out of bounds write. assert \valid(qm2);
 [value] Recording results for origin_misalign_2
 [value] Done for function origin_misalign_2

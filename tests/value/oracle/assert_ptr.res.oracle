@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/assert_ptr.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -10,9 +9,9 @@
   a ∈ {0}
   r ∈ {0}
 tests/value/assert_ptr.i:8:[value] assertion got status valid.
-[value] Called Frama_C_show_each_ptr({{ NULL ; &a }})
+tests/value/assert_ptr.i:9:[value] Frama_C_show_each_ptr: {{ NULL ; &a }}
 tests/value/assert_ptr.i:12:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each_q({{ &a }})
+tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

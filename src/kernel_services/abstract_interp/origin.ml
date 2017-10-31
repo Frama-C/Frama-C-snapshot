@@ -26,39 +26,32 @@ type kind =
   | K_Merge
   | K_Arith
 
-module LocationSetLattice = struct
-  include Abstract_interp.Make_Lattice_Set(Cil_datatype.Location)
-  let currentloc_singleton () = inject_singleton (Cil.CurrentLoc.get ())
+module LocationLattice = struct
+  include Abstract_interp.Make_Lattice_Base (Cil_datatype.Location)
 
-  (* Do not let garbled mix locations grow. We stop at cardinal one. *)
-  let join o1 o2 = match o1, o2 with
-    | Top, _ | _, Top -> top
-    | Set s1, Set s2 ->
-       (* use the fact that [s1] and [s2] are never empty. *)
-       if O.equal s1 s2 then o1 else top
-
+  let current_loc () = inject (Cil.CurrentLoc.get ())
 end
 
 type origin =
-  | Misalign_read of LocationSetLattice.t
-  | Leaf of LocationSetLattice.t
-  | Merge of LocationSetLattice.t
-  | Arith of LocationSetLattice.t
+  | Misalign_read of LocationLattice.t
+  | Leaf of LocationLattice.t
+  | Merge of LocationLattice.t
+  | Arith of LocationLattice.t
   | Well
   | Unknown
 
 
 let current = function
-  | K_Misalign_read -> Misalign_read (LocationSetLattice.currentloc_singleton())
-  | K_Leaf -> Leaf (LocationSetLattice.currentloc_singleton())
-  | K_Merge -> Merge (LocationSetLattice.currentloc_singleton())
-  | K_Arith -> Arith (LocationSetLattice.currentloc_singleton())
+  | K_Misalign_read -> Misalign_read (LocationLattice.current_loc ())
+  | K_Leaf -> Leaf (LocationLattice.current_loc ())
+  | K_Merge -> Merge (LocationLattice.current_loc ())
+  | K_Arith -> Arith (LocationLattice.current_loc ())
 
 let equal o1 o2 = match o1, o2 with
   | Well, Well | Unknown, Unknown -> true
   | Leaf o1, Leaf o2 | Arith o1, Arith o2 | Merge o1, Merge o2
   | Misalign_read o1, Misalign_read o2  ->
-    LocationSetLattice.equal o1 o2
+    LocationLattice.equal o1 o2
   | Misalign_read _, _ -> false
   | _, Misalign_read _ -> false
   |  Leaf _, _ -> false
@@ -74,7 +67,7 @@ let compare o1 o2 = match o1, o2 with
   | Leaf s1, Leaf s2
   | Merge s1, Merge s2
   | Arith s1, Arith s2 ->
-      LocationSetLattice.compare s1 s2
+      LocationLattice.compare s1 s2
 
   | Well, Well | Unknown, Unknown -> 0
 
@@ -97,9 +90,9 @@ let is_top x = equal top x
 
 
 let pretty_source fmt = function
-  | LocationSetLattice.Top -> () (* Hide unhelpful 'TopSet' *)
-  | LocationSetLattice.Set _ as s ->
-    Format.fprintf fmt "@ %a" LocationSetLattice.pretty s
+  | LocationLattice.Top -> () (* Hide unhelpful 'TopSet' *)
+  | LocationLattice.Value _ | LocationLattice.Bottom as s ->
+    Format.fprintf fmt "@ %a" LocationLattice.pretty s
 
 let pretty fmt o = match o with
   | Unknown ->
@@ -121,13 +114,13 @@ let pretty_as_reason fmt org =
 
 let hash o = match o with
   | Misalign_read o ->
-    2001 +  (LocationSetLattice.hash o)
+    2001 +  (LocationLattice.hash o)
   | Leaf o ->
-    2501 + (LocationSetLattice.hash o)
+    2501 + (LocationLattice.hash o)
   | Merge o ->
-    3001 + (LocationSetLattice.hash o)
+    3001 + (LocationLattice.hash o)
   | Arith o ->
-    3557 + (LocationSetLattice.hash o)
+    3557 + (LocationLattice.hash o)
   | Well -> 17
   | Unknown -> 97
 
@@ -148,7 +141,7 @@ include Datatype.Make
       let mem_project = Datatype.never_any_project
      end)
 
-let bottom = Arith(LocationSetLattice.bottom)
+let bottom = Arith(LocationLattice.bottom)
 
 let join o1 o2 =
   let result =
@@ -159,21 +152,23 @@ let join o1 o2 =
       | Unknown,_ | _, Unknown -> Unknown
       | Well,_ | _ , Well   -> Well
       | Misalign_read o1, Misalign_read o2 ->
-          Misalign_read(LocationSetLattice.join o1 o2)
+          Misalign_read(LocationLattice.join o1 o2)
       | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
       | Leaf o1, Leaf o2 ->
-          Leaf(LocationSetLattice.join o1 o2)
+          Leaf(LocationLattice.join o1 o2)
       | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
       | Merge o1, Merge o2 ->
-          Merge(LocationSetLattice.join o1 o2)
+          Merge(LocationLattice.join o1 o2)
       | (Merge _ as m), _ | _, (Merge _ as m) -> m
       | Arith o1, Arith o2 ->
-          Arith(LocationSetLattice.join o1 o2)
+          Arith(LocationLattice.join o1 o2)
             (* | (Arith _ as m), _ | _, (Arith _ as m) -> m *)
   in
   (*  Format.printf "Origin.join %a %a -> %a@." pretty o1 pretty o2 pretty result;
   *)
   result
+
+let link = join
 
 let meet o1 o2 =
   if o1 == o2
@@ -181,23 +176,34 @@ let meet o1 o2 =
   else
     match o1, o2 with
       | Arith o1, Arith o2 ->
-          Arith(LocationSetLattice.meet o1 o2)
+          Arith(LocationLattice.meet o1 o2)
       | (Arith _ as m), _ | _, (Arith _ as m) -> m
       | Merge o1, Merge o2 ->
-          Merge(LocationSetLattice.meet o1 o2)
+          Merge(LocationLattice.meet o1 o2)
       | (Merge _ as m), _ | _, (Merge _ as m) -> m
       | Leaf o1, Leaf o2 ->
-          Leaf(LocationSetLattice.meet o1 o2)
+          Leaf(LocationLattice.meet o1 o2)
       | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
       | Misalign_read o1, Misalign_read o2 ->
-          Misalign_read(LocationSetLattice.meet o1 o2)
+          Misalign_read(LocationLattice.meet o1 o2)
       | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
       | Well, Well -> Well
       | Well,m | m, Well -> m
       | Unknown, Unknown -> Unknown
 
-let narrow x _y = x (* TODO *)
-
+let narrow o1 o2 =
+  if o1 == o2
+  then o1
+  else
+    match o1, o2 with
+      | Arith o1, Arith o2 -> Arith (LocationLattice.narrow o1 o2)
+      | Merge o1, Merge o2 -> Merge (LocationLattice.narrow o1 o2)
+      | Leaf o1, Leaf o2 -> Leaf (LocationLattice.narrow o1 o2)
+      | Misalign_read o1, Misalign_read o2 ->
+          Misalign_read (LocationLattice.narrow o1 o2)
+      | Well, Well -> Well
+      | Unknown, m | m, Unknown -> m
+      | _, _ -> Unknown
 
 let is_included o1 o2 =
   (equal o1 (meet o1 o2))

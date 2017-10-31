@@ -66,6 +66,8 @@ let smooth_expression lst =
       let end_loc = snd (Extlib.last lst).expr_loc in
       { expr_loc = (beg_loc,end_loc); expr_node = COMMA (lst) }
 
+let merge_string (c1,(b1,_)) (c2,(_,e2)) = c1 @ c2, (b1,e2)
+
 (* To be called only inside a grammar rule. *)
 let make_expr e =
   { expr_loc = symbol_start_pos (), symbol_end_pos ();
@@ -201,12 +203,13 @@ let int64_to_char value =
     Char.chr (Int64.to_int value)
 
 (* takes a not-nul-terminated list, and converts it to a string. *)
-let rec intlist_to_string (str: int64 list):string =
-  match str with
-    [] -> ""  (* add nul-termination *)
-  | value::rest ->
-      let this_char = int64_to_char value in
-      (String.make 1 this_char) ^ (intlist_to_string rest)
+let intlist_to_string (str: int64 list):string =
+  let buffer = Buffer.create (List.length str) in
+  let add_char c =
+    Buffer.add_char buffer (int64_to_char c)
+  in
+  List.iter add_char str ;
+  Buffer.contents buffer
 
 let fst3 (result, _, _) = result
 let trd3 (_, _, result) = result
@@ -395,7 +398,7 @@ let in_block l =
 %type <Cabs.expression list> paren_comma_expression
 %type <Cabs.expression list> arguments
 %type <Cabs.expression list> bracket_comma_expression
-%type <int64 list Queue.t * cabsloc> string_list
+%type <int64 list * cabsloc> string_list
 %type <int64 list * cabsloc> wstring_list
 
 %type <Cabs.initwhat * Cabs.init_expression> initializer_single
@@ -513,7 +516,8 @@ maybecomma:
 
 primary_expression:                     /*(* 6.5.1. *)*/
 |		IDENT { make_expr (VARIABLE $1) }
-|        	constant { make_expr (CONSTANT (fst $1)) }
+|        	constant {
+  let (v,expr_loc) = $1 in { expr_loc; expr_node = CONSTANT v } }
 |		paren_comma_expression
 		        { make_expr (PAREN (smooth_expression $1)) }
 |		LPAREN block RPAREN { make_expr (GNU_BODY (fst3 $2)) }
@@ -733,40 +737,23 @@ constant:
 string_constant:
 /* Now that we know this constant isn't part of a wstring, convert it
    back to a string for easy viewing. */
-    string_list                         {
-     let queue, location = $1 in
-     let buffer = Buffer.create (Queue.length queue) in
-     Queue.iter
-       (List.iter
-	  (fun value ->
-	    let char = int64_to_char value in
-	    Buffer.add_char buffer char))
-       queue;
-     Buffer.contents buffer, location
-   }
+    string_list                         { intlist_to_string (fst $1), snd $1 }
 ;
 one_string_constant:
 /* Don't concat multiple strings.  For asm templates. */
-    CST_STRING                          {intlist_to_string (fst $1) }
+    CST_STRING                          { intlist_to_string (fst $1) }
 ;
 string_list:
-    one_string                          {
-      let queue = Queue.create () in
-      Queue.add (fst $1) queue;
-      queue, snd $1
-    }
-|   string_list one_string              {
-      Queue.add (fst $2) (fst $1);
-      $1
-    }
+    one_string                          { fst $1, snd $1 }
+|   string_list one_string              { merge_string $1 $2 }
 ;
 
 wstring_list:
     CST_WSTRING                         { $1 }
-|   wstring_list one_string             { (fst $1) @ (fst $2), snd $1 }
-|   wstring_list CST_WSTRING            { (fst $1) @ (fst $2), snd $1 }
-/* Only the first string in the list needs an L, so L"a" "b" is the same
- * as L"ab" or L"a" L"b". */
+|   wstring_list one_string             { merge_string $1 $2 }
+|   wstring_list CST_WSTRING            { merge_string $1 $2 }
+|   string_list  CST_WSTRING            { merge_string $1 $2 }
+/* If a wstring is present anywhere in the list, the whole is a wstring */
 
 one_string:
     CST_STRING				{$1}
@@ -1518,6 +1505,7 @@ var_attr:
 
 basic_attr:
 |   CST_INT { make_expr (CONSTANT(CONST_INT (fst $1))) }
+|   CST_FLOAT { make_expr (CONSTANT(CONST_FLOAT(fst $1))) }
 |   var_attr { $1 }
 ;
 basic_attr_list_ne:
@@ -1660,17 +1648,22 @@ conditional_attr:
 |   logical_or_attr QUEST attr_test conditional_attr COLON2 conditional_attr
     { make_expr (QUESTION($1, $4, $6)) }
 
+assign_attr:
+    conditional_attr                     { $1 }
+|   conditional_attr EQ conditional_attr { make_expr (BINARY(ASSIGN,$1,$3)) }
+
 /* hack to avoid shift reduce conflict in attribute parsing. */
 attr_test:
 | /* empty */ { Cabshelper.push_attr_test () }
 
-attr: conditional_attr                    { $1 }
+attr: assign_attr                       { $1 }
 ;
 
 attr_list_ne:
 |  attr                                  { [$1] }
 |  attr COMMA attr_list_ne               { $1 :: $3 }
 ;
+
 attr_list:
   /* empty */                            { [] }
 | attr_list_ne                           { $1 }

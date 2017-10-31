@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Raw)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/unit_local.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -13,6 +12,6 @@
      Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-foo                 -       2 (23)     2       100%
+foo                 -       2 (21)     2       100%
 bar                 -       1 (20)     1       100%
 ----------------------------------------------------------

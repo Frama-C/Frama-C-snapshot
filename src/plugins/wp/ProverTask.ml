@@ -26,6 +26,9 @@
 
 open Task
 
+let dkey_prover = Wp_parameters.register_category "prover"
+
+
 (* -------------------------------------------------------------------------- *)
 (* --- Export Printer                                                     --- *)
 (* -------------------------------------------------------------------------- *)
@@ -193,6 +196,10 @@ class command name =
     val stdout = Buffer.create 256
     val stderr = Buffer.create 256
 
+    method command = cmd :: param
+    method pretty fmt =
+      Format.pp_print_string fmt cmd ; pp_args fmt param
+    
     method set_command name = cmd <- name
     method add args = param <- param @ args
 
@@ -232,7 +239,7 @@ class command name =
       Task.command ~timeout ~time ~stdout ~stderr cmd args
       >>?
       begin fun st -> (* finally *)
-        if Wp_parameters.has_dkey "prover" then
+        if Wp_parameters.has_dkey dkey_prover then
           Log.print_on_output
             begin fun fmt ->
               Format.fprintf fmt "@[<hov 2>RUN '%s%a'@]@." cmd pp_args param ;

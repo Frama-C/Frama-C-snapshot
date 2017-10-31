@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/remove_status_hyps.i (no preprocessing)
 [rsh] initial statuses
 [rsh] assert P1: \true;: unknown (hyps: )

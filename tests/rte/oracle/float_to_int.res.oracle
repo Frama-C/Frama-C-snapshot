@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/float_to_int.c (with preprocessing)
 tests/rte/float_to_int.c:13:[kernel] warning: Floating-point constant 1.5e255 is not represented exactly. Will use 0x1.99309cc247f15p847. See documentation for option -warn-decimal-float
 [rte] annotating function main

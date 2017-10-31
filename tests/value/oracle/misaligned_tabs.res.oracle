@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/misaligned_tabs.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -19,24 +18,24 @@
     {.i3; .i4} ∈ {4369}
 [value] computing for function misaligned_struct <- main.
         Called from tests/value/misaligned_tabs.i:58.
-[value] Called Frama_C_show_each_1({1})
-[value] Called Frama_C_show_each_2({1})
-[value] Called Frama_C_show_each_3({1})
-[value] Called Frama_C_show_each_4({1})
-[value] Called Frama_C_show_each_5({1})
-[value] Called Frama_C_show_each_6({1})
-[value] Called Frama_C_show_each_7({1})
-[value] Called Frama_C_show_each_8({1})
-[value] Called Frama_C_show_each_9({1})
-[value] Called Frama_C_show_each_a({1})
-[value] Called Frama_C_show_each_b({1})
-[value] Called Frama_C_show_each_c({1})
-[value] Called Frama_C_show_each_d({1})
-[value] Called Frama_C_show_each_e({1})
-[value] Called Frama_C_show_each_f({1})
+tests/value/misaligned_tabs.i:10:[value] Frama_C_show_each_1: {1}
+tests/value/misaligned_tabs.i:13:[value] Frama_C_show_each_2: {1}
+tests/value/misaligned_tabs.i:14:[value] Frama_C_show_each_3: {1}
+tests/value/misaligned_tabs.i:15:[value] Frama_C_show_each_4: {1}
+tests/value/misaligned_tabs.i:19:[value] Frama_C_show_each_5: {1}
+tests/value/misaligned_tabs.i:20:[value] Frama_C_show_each_6: {1}
+tests/value/misaligned_tabs.i:21:[value] Frama_C_show_each_7: {1}
+tests/value/misaligned_tabs.i:22:[value] Frama_C_show_each_8: {1}
+tests/value/misaligned_tabs.i:41:[value] Frama_C_show_each_9: {1}
+tests/value/misaligned_tabs.i:42:[value] Frama_C_show_each_a: {1}
+tests/value/misaligned_tabs.i:43:[value] Frama_C_show_each_b: {1}
+tests/value/misaligned_tabs.i:44:[value] Frama_C_show_each_c: {1}
+tests/value/misaligned_tabs.i:45:[value] Frama_C_show_each_d: {1}
+tests/value/misaligned_tabs.i:46:[value] Frama_C_show_each_e: {1}
+tests/value/misaligned_tabs.i:47:[value] Frama_C_show_each_f: {1}
 [value] Recording results for misaligned_struct
 [value] Done for function misaligned_struct
-[value] Called Frama_C_show_each_g({1})
+tests/value/misaligned_tabs.i:64:[value] Frama_C_show_each_g: {1}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

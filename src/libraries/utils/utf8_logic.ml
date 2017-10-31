@@ -69,6 +69,8 @@ let neg = from_unichar 0x00AC
 let x_or =  from_unichar 0x22BB
 let inset = from_unichar 0x2208
 let emptyset = from_unichar 0x2205
+let top = from_unichar 0x22A4
+let bottom = from_unichar 0x22A5
 
 let boolean = from_unichar 0x1D539
 let integer = from_unichar 0x2124

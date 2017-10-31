@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_store/struct.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -44,7 +43,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'P,qed_ok' in 'main':
-Let a = global(G_v_75).
+Let a = global(G_v_26).
 Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).
@@ -57,14 +56,14 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F2_St_b(a)] = 2.
   (* Heap *)
-  Have: region(G_v_75) <= 0.
+  Have: region(G_v_26) <= 0.
 }
 Prove: EqS2_St(a_1, w).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Q,qed_ok' in 'main':
-Let a = global(G_v_75).
+Let a = global(G_v_26).
 Let a_1 = Load_S2_St(a, Mint_0).
 Assume {
   Type: IsS2_St(w) /\ IsS2_St(a_1).
@@ -77,7 +76,7 @@ Assume {
   (* Initializer *)
   Init: Mint_0[shiftfield_F2_St_b(a)] = 2.
   (* Heap *)
-  Have: region(G_v_75) <= 0.
+  Have: region(G_v_26) <= 0.
 }
 Prove: EqS2_St(a_1, w).
 

@@ -16,30 +16,30 @@ let f_slice_names =
     f_slice_names
 
 let main _ =
-  !S.Project.reset_slice ();
+  Slicing.Api.Project.reset_slicing ();
 
   let kf_main = Globals.Functions.find_def_by_name "main" in
   let kf_f = Globals.Functions.find_def_by_name "f" in
 
-  !S.Project.change_slicing_level kf_f 2;
+  Slicing.Api.Project.change_slicing_level kf_f 2;
 
-  let ff_main = !S.Slice.create kf_main in
+  let ff_main = Slicing.Api.Slice.create kf_main in
   let select = select_retres kf_main in
-  !S.Request.add_slice_selection_internal ff_main select;
-  !S.Request.apply_all_internal ();
+  Slicing.Api.Request.add_slice_selection_internal ff_main select;
+  Slicing.Api.Request.apply_all_internal ();
 
   extract_and_print ();
 
   Format.printf "Let's split 'f':@.";
 
-  let ff_f = match !S.Slice.get_all kf_f with
+  let ff_f = match Slicing.Api.Slice.get_all kf_f with
     | f :: [] -> f | _ -> assert false
   in
 
-  ignore (!S.Request.split_slice ff_f);
-  !S.Request.apply_all_internal ();
+  ignore (Slicing.Api.Request.split_slice ff_f);
+  Slicing.Api.Request.apply_all_internal ();
 
-  let proj2 = !S.Project.extract "slicing_result" ~f_slice_names () in
+  let proj2 = Slicing.Api.Project.extract ~f_slice_names "slicing_result" in
   Project.set_current proj2;
   Format.printf "After Slicing :@." ; File.pretty_ast ();
 

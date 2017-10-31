@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/slice_pragma_stmt.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at double_effect5
@@ -41,5 +40,4 @@ void double_effect5(int c2)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_13_slice_pragma_stmt.i (no preprocessing)

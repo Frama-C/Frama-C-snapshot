@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/loops.i (no preprocessing)
 [value] Analyzing an incomplete application starting at stop_f2
 [value] Computing initial state
@@ -58,5 +57,4 @@ void stop_f2(int c)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_18_loops.i (no preprocessing)

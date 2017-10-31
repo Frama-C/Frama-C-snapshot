@@ -36,7 +36,7 @@ m4_define([FRAMAC_SHARE],
 m4_ifndef([FRAMAC_M4_MACROS], [m4_include(FRAMAC_SHARE/configure.ac)])
 
 check_plugin(loop_analysis,PLUGIN_RELATIVE_PATH(plugin_file),
-             [support for loop analysis plug-in],yes,yes)
+             [support for loop analysis plug-in],yes)
 
 #######################
 # Generating Makefile #

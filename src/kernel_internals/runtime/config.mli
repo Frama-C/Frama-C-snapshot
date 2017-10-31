@@ -53,12 +53,6 @@ val plugin_path: string
   (** The coma-separated concatenation of [plugin_dir].
       @since Magnesium-20151001 *)
 
-val static_plugins: string list
-  (** Plug-ins statically linked within Frama-C. *)
-
-val static_gui_plugins: string list
-  (** GUI of plug-ins statically linked within Frama-C. *)
-
 val compilation_unit_names: string list
   (** List of names of all kernel compilation units.
       @since Boron-20100401 *)

@@ -132,6 +132,15 @@ extern int setvbuf(FILE * restrict stream,
      char * restrict buf,
      int mode, size_t size);
 
+/*@
+  // Axiomatic used by the Variadic plugin to generate specifications
+  // for some functions, e.g. snprintf().
+  axiomatic format_length {
+    //TODO: this logic function will be extended to handle variadic formats
+    logic integer format_length{L}(char *format);
+  }
+*/
+
 // Direct specifications for variadic functions are unsupported;
 // use the Variadic plug-in instead.
 extern int fprintf(FILE * restrict stream,
@@ -322,6 +331,8 @@ extern size_t fwrite_unlocked(const void *ptr, size_t size, size_t n,
 
 extern char *fgets_unlocked(char *s, int n, FILE *stream);
 extern int fputs_unlocked(const char *s, FILE *stream);
+
+extern int dprintf(int fd, const char *restrict format, ...);
 
 __END_DECLS
 

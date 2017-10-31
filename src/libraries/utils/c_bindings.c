@@ -206,10 +206,19 @@ float strtof(const char *, char **);
 
 value single_precision_of_string(value str)
 {
+  const char *s = (const char *)str;
+  const char *s_end = s + caml_string_length(str);
   char *end;
-  float f = strtof((const char *)str, &end);
-  if (end != (char *)str + caml_string_length(str))
-    caml_failwith("single_precision_of_string");
+  float f = strtof(s, &end);
+  if (end != s_end) {
+    // Because strtof does not consider optional floating-point suffixes
+    // (f, F, l, L), we have to test if they are the cause of the difference,
+    // and if so, ignore it.
+    if (end + 1 != s_end ||
+        (*end != 'f' && *end != 'F' && *end != 'l' && *end == 'L')) {
+      caml_failwith("single_precision_of_string");
+    }
+  }
   double d = f;
   return caml_copy_double(d);
 }

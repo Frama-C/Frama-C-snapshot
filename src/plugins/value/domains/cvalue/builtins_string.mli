@@ -52,3 +52,5 @@ val frama_c_rawmemchr_wrapper: str_builtin_sig
 val frama_c_memchr_wrapper: str_builtin_sig
 
 val frama_c_strchr_wrapper: str_builtin_sig
+
+val frama_c_wcslen_wrapper: unit -> str_builtin_sig

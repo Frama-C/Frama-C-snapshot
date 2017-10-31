@@ -107,15 +107,17 @@ module Validity = Datatype.Make
 
 type cstring = CSString of string | CSWstring of Escape.wstring
 
+type deallocation = Malloc | VLA | Alloca
+
 type base =
   | Var of varinfo * validity
   | CLogic_Var of logic_var * typ * validity
   | Null (** base for addresses like [(int* )0x123] *)
   | String of int * cstring (** String constants *)
-  | Allocated of varinfo * validity
+  | Allocated of varinfo * deallocation * validity
 
 let id = function
-  | Var (vi,_) | Allocated (vi,_) -> vi.vid
+  | Var (vi,_) | Allocated (vi,_,_) -> vi.vid
   | CLogic_Var (lvi, _, _) -> lvi.lv_id
   | Null -> 0
   | String (id,_) -> id
@@ -131,7 +133,7 @@ let pretty fmt t =
     | String (_, CSString s) -> Format.fprintf fmt "%S" s
     | String (_, CSWstring s) -> 
         Format.fprintf fmt "L\"%s\"" (Escape.escape_wstring s)
-    | Var (t,_) | Allocated (t,_) -> Printer.pp_varinfo fmt t
+    | Var (t,_) | Allocated (t,_,_) -> Printer.pp_varinfo fmt t
     | CLogic_Var (lvi, _, _) -> Printer.pp_logic_var fmt lvi
     | Null -> Format.pp_print_string fmt "NULL"
 
@@ -150,7 +152,7 @@ let typeof v =
   | String (_,_) -> Some charConstPtrType
   | CLogic_Var (_, ty, _) -> Some ty
   | Null -> None
-  | Var (v,_) | Allocated(v,_) -> Some (unrollType v.vtype)
+  | Var (v,_) | Allocated(v,_,_) -> Some (unrollType v.vtype)
 
 let cstring_bitlength s = 
   let u, l = 
@@ -167,7 +169,7 @@ let bits_sizeof v =
     | String (_,e) ->
         Int_Base.inject (cstring_bitlength e)
     | Null -> Int_Base.top
-    | Var (v,_) | Allocated (v,_) ->
+    | Var (v,_) | Allocated (v,_,_) ->
         Bit_utils.sizeof_vid v
     | CLogic_Var (_, ty, _) -> Bit_utils.sizeof ty
 
@@ -225,7 +227,7 @@ let validity_from_known_size size =
 
 let validity b =
   match b with
-  | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,v) -> v
+  | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,_,v) -> v
   | Null ->
       let mn = min_valid_absolute_address ()in
       let mx = max_valid_absolute_address () in
@@ -237,8 +239,6 @@ let validity b =
       let size = bits_sizeof b in
       validity_from_known_size size
 
-exception Not_valid_offset
-
 let is_read_only base =
   match base with
   | String _ -> true
@@ -247,44 +247,37 @@ let is_read_only base =
 
 (* Minor optimization compared to [is_weak (validity b)] *)
 let is_weak = function
-  | Allocated (_, Variable { weak }) -> weak
+  | Allocated (_, _, Variable { weak }) -> weak
   | _ -> false
 
 let is_valid_offset ~for_writing size base offset =
-  let wrap_inf = function
-    | None -> raise Not_valid_offset
-    | Some v -> v
+  let (>>) i f = match i with
+    | None, _
+    | _, None -> false
+    | Some min, Some max -> f min max
   in
-  if for_writing && (is_read_only base)
-  then raise Not_valid_offset;
-  match validity base with
-  | Empty ->
-    if not (Int.(equal zero size) && Ival.(equal offset zero)) then
-       raise Not_valid_offset
-  | Invalid ->
-    (* Special case. We stretch the truth and say that the address of the
-       base itself is valid for a size of 0. We use a size of 0 to emulate
-       the semantics of "past-one" pointers. *)
-    if not (Int.(equal zero size) && Ival.(equal offset zero)) then
-      raise Not_valid_offset
-  | Known (min_valid,max_valid)
-  | Unknown (min_valid, Some max_valid, _) ->
-    (* valid between min_valid .. max_valid inclusive *)
-    if not (Ival.is_bottom offset) then
-      let min = wrap_inf (Ival.min_int offset) in
-      if Int.lt min min_valid then raise Not_valid_offset;
-      let max = wrap_inf (Ival.max_int offset) in
-      if Int.gt (Int.pred (Int.add max size)) max_valid then
-        raise Not_valid_offset
-  | Variable {min_alloc = min_valid} ->
-    (* valid between 0 .. min_valid inclusive *)
-    if not (Ival.is_bottom offset) then
-      let min = wrap_inf (Ival.min_int offset) in
-      if Int.lt min Int.zero then raise Not_valid_offset;
-      let max = wrap_inf (Ival.max_int offset) in
-      if Int.gt (Int.pred (Int.add max size)) min_valid then
-        raise Not_valid_offset
-  | Unknown (_, None, _) -> raise Not_valid_offset
+  Ival.is_bottom offset ||
+  not (for_writing && (is_read_only base)) &&
+  ((* Special case. We stretch the truth and say that the address of the
+      base itself is valid for a size of 0. A size of 0 appears for:
+      - empty structs
+      - memory operations on a 0 size (e.g. memcpy (_, _ 0))
+      - internally, to emulate the semantics of "past-one" pointers (in
+        Cvalue_forward.are_comparable). *)
+    (Int.(equal zero size) && Ival.(equal offset zero)) ||
+    match validity base with
+    | Empty | Invalid -> false
+    | Known (min_valid,max_valid)
+    | Unknown (min_valid, Some max_valid, _) ->
+      Ival.min_and_max offset >> fun min max ->
+      (* valid between min_valid .. max_valid inclusive *)
+      Int.ge min min_valid && Int.le (Int.pred (Int.add max size)) max_valid
+    | Variable {min_alloc = min_valid} ->
+      (* valid between 0 .. min_valid inclusive *)
+      Ival.min_and_max offset >> fun min max ->
+      Int.ge min Int.zero && Int.le (Int.pred (Int.add max size)) min_valid
+    | Unknown (_, None, _) -> false
+  )
 
 let is_function base =
   match base with
@@ -299,7 +292,7 @@ let is_aligned_by b alignment =
   then false
   else
     match b with
-    | Var (v,_) | Allocated(v,_) ->
+    | Var (v,_) | Allocated(v,_,_) ->
         Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf v.vtype)) alignment)
     | CLogic_Var (_, ty, _) ->
       Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf ty)) alignment)
@@ -449,9 +442,9 @@ let register_memory_var varinfo validity =
   VarinfoNotSource.add varinfo base;
   base
 
-let register_allocated_var varinfo validity =
+let register_allocated_var varinfo deallocation validity =
   assert (not varinfo.vsource);
-  let base = Allocated (varinfo,validity) in
+  let base = Allocated (varinfo,deallocation,validity) in
   VarinfoNotSource.add varinfo base;
   base
 
@@ -473,7 +466,7 @@ let of_varinfo varinfo =
 exception Not_a_C_variable
 
 let to_varinfo t = match t with
-  | Var (t,_) | Allocated (t,_) -> t
+  | Var (t,_) | Allocated (t,_,_) -> t
   | CLogic_Var _ | Null | String _ -> raise Not_a_C_variable
 
 

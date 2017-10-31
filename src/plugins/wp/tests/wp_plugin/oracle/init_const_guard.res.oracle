@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/init_const_guard.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -14,8 +13,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'Pointed_Valid' in 'f':
-Assume { (* Heap *) Have: (region(G_x_67) <= 0) /\ linked(Malloc_0). }
-Prove: valid_rw(Malloc_0, global(G_x_67), 1).
+Assume { (* Heap *) Have: (region(G_x_18) <= 0) /\ linked(Malloc_0). }
+Prove: valid_rw(Malloc_0, global(G_x_18), 1).
 
 ------------------------------------------------------------
 
@@ -39,12 +38,12 @@ Prove: true.
 
 Goal Assertion 'Read' (file tests/wp_plugin/init_const_guard.i, line 31):
 Assume { (* Heap *) Have: (region(p.base) <= 0) /\ linked(Malloc_0). }
-Prove: valid_rd(Malloc_0, global(G_x_67), 1).
+Prove: valid_rd(Malloc_0, global(G_x_18), 1).
 
 ------------------------------------------------------------
 
 Goal Assertion 'Guard_against_Const' (file tests/wp_plugin/init_const_guard.i, line 32):
-Let a = global(G_x_67).
+Let a = global(G_x_18).
 Assume {
   (* Heap *)
   Have: (region(p.base) <= 0) /\ linked(Malloc_0).

@@ -54,7 +54,7 @@ module DoShift =
        let help = "when on (default), annotate for left and right shifts by a value out of bounds"
      end)
 
-(* annotates division by zero (undefined behavior) *)
+(* annotates casts from floating-point to integer (undefined behavior) *)
 module DoFloatToInt =
   True
     (struct
@@ -62,6 +62,15 @@ module DoFloatToInt =
        let help = "when on (default), annotate casts from floating-point to \
                    integer"
      end)
+
+(* annotates local variables and pointers read (aside from globals) initialization *)
+module DoInitialized =
+  False
+    (struct
+      let option_name = "-rte-initialized"
+      let help = "when on, annotates local variables and pointers \
+                  reads with initialization tests"
+    end)
 
 (* annotates invalid memory access (undefined behavior) *)
 module DoMemAccess =

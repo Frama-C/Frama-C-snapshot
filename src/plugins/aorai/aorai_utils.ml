@@ -885,14 +885,17 @@ let pred_of_condition subst subst_res label cond =
   in
   let mk_func_start f = mk_func_status f Promelaast.Call in
   let mk_func_return f = mk_func_status f Promelaast.Return in
-  let rec aux kf pos = function
+  let rec aux kf is_or = function
     | TOr(c1,c2) ->
-      kf, Logic_const.por (snd (aux kf pos c1), snd (aux kf pos c2))
+        let kf, c1 = aux kf true c1 in
+        let kf, c2 = aux kf true c2 in
+        kf, Logic_const.por (c1, c2)
     | TAnd(c1,c2) ->
-      let kf, c1 = aux kf pos c1 in
-      let kf, c2 = aux kf pos c2 in
+      let kf, c1 = aux kf false c1 in
+      let kf, c2 = aux kf false c2 in
       kf, Logic_const.pand (c1, c2)
-    | TNot c -> let kf, c = aux kf (not pos) c in kf, Logic_const.pnot c
+    | TNot c ->
+        let kf, c = aux kf (not is_or) c in kf, Logic_const.pnot c
     | TCall (s,b) ->
       let pred = mk_func_start (Kernel_function.get_name s) in
       let pred =
@@ -904,19 +907,20 @@ let pred_of_condition subst subst_res label cond =
       in
       kf, pred
     | TReturn s ->
-      let kf = if pos then Some s else kf in
-      kf, mk_func_return (Kernel_function.get_name s)
+        let kf = if is_or then kf else Some s in
+        kf, mk_func_return (Kernel_function.get_name s)
     | TTrue -> kf, ptrue
     | TFalse -> kf, pfalse
     | TRel(rel,t1,t2) ->
       kf,
       unamed (change_vars subst subst_res kf label (prel (rel,t1,t2)).pred_content)
-  in snd (aux None true cond)
+  in
+  snd (aux None true cond)
 
 let mk_deterministic_lemma () =
   let automaton = Data_for_aorai.getAutomata () in
   let make_one_lemma state =
-    let label = Cil_types.LogicLabel(None, "L") in
+    let label = Cil_types.FormalLabel "L" in
     let disjoint_guards acc trans1 trans2 =
       if trans1.numt <= trans2.numt then acc
       (* don't need to repeat the same condition twice*)
@@ -1000,7 +1004,10 @@ let initGlobals root complete =
   if Aorai_option.Deterministic.get () then make_enum_states ();
   (* non deterministic mode uses one variable for each possible state *)
   mk_global_c_enum_type
-    listOp (List.map (fun e -> func_to_op_func e) (getFunctions_from_c()));
+    listOp
+    (List.map
+       (fun e -> func_to_op_func e)
+       (getFunctions_from_c() @ getIgnoredFunctions()));
   mk_global_c_initialized_enum curOp listOp
     (func_to_init (Kernel_function.get_name root));
   mk_global_c_enum_type  listStatus (callStatus::[termStatus]);

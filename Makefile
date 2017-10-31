@@ -58,8 +58,6 @@ FRAMAC_SHARE	= share
 # for a correct behavior of += (see section 6.6 of GNU Make manual)
 PLUGIN_LIST	:=
 PLUGIN_GENERATED_LIST:=
-PLUGIN_DYN_EXISTS:="no"
-PLUGIN_DYN_LIST :=
 PLUGIN_CMO_LIST	:=
 PLUGIN_CMX_LIST	:=
 PLUGIN_META_LIST :=
@@ -173,8 +171,7 @@ LIBC_DIR:= $(ROOT_LIBC_DIR) $(addprefix $(ROOT_LIBC_DIR)/,$(LIBC_SUBDIRS))
 LIBC_FILES:= \
 	$(wildcard share/*.h share/*.c) \
 	$(wildcard $(addsuffix /*.h,$(LIBC_DIR))) \
-	$(wildcard $(addsuffix /*.c,$(LIBC_DIR))) \
-	$(ROOT_LIBC_DIR)/__fc_builtin_for_normalization.i
+	$(wildcard $(addsuffix /*.c,$(LIBC_DIR)))
 
 # Checks that all .h can be included multiple times.
 ALL_LIBC_HEADERS:=$(wildcard share/*.h $(addsuffix /*.h,$(LIBC_DIR)))
@@ -212,9 +209,9 @@ clean-check-libc:
 # itself, rather than copied: otherwise, it could include references to
 # non-distributed plug-ins.
 DISTRIB_FILES:=\
-      $(wildcard bin/*2*.sh) bin/local_export.sh                        \
+      $(wildcard bin/migration_scripts/*2*.sh) bin/local_export.sh                        \
       bin/frama-c bin/frama-c.byte bin/frama-c-gui bin/frama-c-gui.byte \
-      share/frama-c.WIN32.rc share/frama-c.Unix.rc                      \
+      bin/frama-c-config share/frama-c.WIN32.rc share/frama-c.Unix.rc   \
       $(ICONS) $(FEEDBACK_ICONS_DEFAULT) $(FEEDBACK_ICONS_COLORBLIND)	\
       man/frama-c.1 doc/README						\
       doc/code/docgen.ml                                                \
@@ -230,6 +227,10 @@ DISTRIB_FILES:=\
       Changelog config.h.in						\
       VERSION $(wildcard licenses/*)                                    \
       $(LIBC_FILES)							\
+      share/analysis-scripts/cmd-dep.sh                                 \
+      share/analysis-scripts/frama-c.mk                                 \
+      share/analysis-scripts/parse-coverage.sh                          \
+      share/analysis-scripts/README.md                                  \
       $(wildcard share/emacs/*.el) share/autocomplete_frama-c           \
       share/_frama-c                                                    \
       share/configure.ac                                                \
@@ -262,7 +263,7 @@ DISTRIB_FILES:=\
       bin/sed_get_make_major bin/sed_get_make_minor                     \
       INSTALL.md README.md .make-clean	                        \
       .make-clean-stamp .force-reconfigure 	\
-      opam/opam opam/descr opam/frama-c/opam opam/frama-c/descr \
+      opam/opam opam/descr \
       opam/files/run_autoconf_if_needed.sh
 
 DISTRIB_TESTS=$(filter-out tests/non-free/%,$(shell git ls-files tests src/plugins/aorai/tests src/plugins/report/tests src/plugins/wp/tests))
@@ -281,7 +282,7 @@ DOC_GEN_FILES:=$(addprefix doc/code/,\
 
 # additional compilation targets for 'make all'.
 # cannot be delayed after 'make all'
-EXTRAS	= ptests bin/frama-c-config$(EXE)
+EXTRAS	= ptests bin/fc-config$(EXE)
 
 ifneq ($(ENABLE_GUI),no)
 ifeq ($(HAS_LABLGTK),yes)
@@ -516,7 +517,7 @@ KERNEL_CMO=\
 	src/kernel_services/abstract_interp/ival.cmo                    \
 	src/kernel_services/abstract_interp/base.cmo                    \
 	src/kernel_services/abstract_interp/origin.cmo                  \
-	src/kernel_services/abstract_interp/map_Lattice.cmo             \
+	src/kernel_services/abstract_interp/map_lattice.cmo             \
 	src/kernel_services/abstract_interp/tr_offset.cmo               \
 	src/kernel_services/abstract_interp/offsetmap.cmo               \
 	src/kernel_services/abstract_interp/int_Intervals.cmo           \
@@ -559,8 +560,7 @@ MLI_ONLY+=\
 	src/kernel_services/abstract_interp/lmap_sig.mli                     \
 	src/kernel_services/abstract_interp/offsetmap_bitwise_sig.mli
 
-NO_MLI+= src/kernel_services/abstract_interp/map_Lattice.mli    \
-	src/kernel_services/parsetree/cabs.mli                       \
+NO_MLI+= src/kernel_services/parsetree/cabs.mli                \
 	src/kernel_internals/runtime/machdep_ppc_32.mli         \
 	src/kernel_internals/runtime/machdep_x86_16.mli         \
 	src/kernel_internals/runtime/machdep_x86_32.mli         \
@@ -647,7 +647,6 @@ SINGLE_GUI_CMO:= $(patsubst %,src/plugins/gui/%.cmo,$(SINGLE_GUI_CMO))
 ###########
 
 PLUGIN_ENABLE:=$(ENABLE_METRICS)
-PLUGIN_DYNAMIC:=$(DYNAMIC_METRICS)
 PLUGIN_NAME:=Metrics
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_DIR:=src/plugins/metrics
@@ -664,11 +663,10 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 #############
 
 PLUGIN_ENABLE:=$(ENABLE_CALLGRAPH)
-PLUGIN_DYNAMIC:=$(DYNAMIC_CALLGRAPH)
 PLUGIN_NAME:=Callgraph
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_DIR:=src/plugins/callgraph
-PLUGIN_CMO:= options journalize cg services uses register
+PLUGIN_CMO:= options journalize subgraph cg services uses register
 PLUGIN_GUI_CMO:=cg_viewer
 PLUGIN_CMI:= callgraph_api
 PLUGIN_INTERNAL_TEST:=yes
@@ -681,7 +679,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ##################
 
 PLUGIN_ENABLE:=$(ENABLE_VALUE_ANALYSIS)
-PLUGIN_DYNAMIC:=$(DYNAMIC_VALUE_ANALYSIS)
 PLUGIN_NAME:=Value
 PLUGIN_DIR:=src/plugins/value
 PLUGIN_EXTRA_DIRS:=engine values domains domains/cvalue domains/apron \
@@ -689,47 +686,49 @@ PLUGIN_EXTRA_DIRS:=engine values domains domains/cvalue domains/apron \
 # General rules for ordering files within PLUGIN_CMO:
 # - try to keep the legacy Value before Eva
 PLUGIN_CMO:= slevel/split_strategy value_parameters \
-	slevel/stop_at_nth \
 	utils/value_perf utils/value_util \
-	utils/mark_noresults slevel/separate \
+	utils/mark_noresults \
 	utils/widen_hints_ext utils/widen \
 	engine/split_return \
 	slevel/per_stmt_slevel \
 	utils/library_functions \
 	utils/eval_typ utils/backward_formals \
-	alarmset legacy/warn \
-	eval utils/structure \
+	alarmset eval utils/structure \
 	values/value_product values/location_lift \
 	values/cvalue_forward values/cvalue_backward \
-	values/main_values values/main_locations values/offsm_value \
+	values/main_values values/main_locations \
+	values/offsm_value values/sign_value \
 	legacy/eval_op legacy/function_args \
 	domains/domain_store domains/domain_builder \
 	domains/domain_product domains/domain_lift domains/unit_domain \
+	domains/simple_memory \
 	domains/gauges/gauges_domain \
 	domains/apron/apron_domain \
 	domains/hcexprs \
 	domains/equality/equality domains/equality/equality_domain \
 	domains/offsm_domain \
-	domains/symbolic_locs\
-	domains/cvalue/locals_scoping \
+	domains/symbolic_locs \
+	domains/sign_domain \
+	domains/cvalue/warn domains/cvalue/locals_scoping \
 	domains/cvalue/builtins domains/cvalue/builtins_malloc \
 	domains/cvalue/builtins_string domains/cvalue/builtins_misc \
 	$(sort $(patsubst src/plugins/value/%.ml,%,\
 	   $(wildcard src/plugins/value/domains/cvalue/builtins_nonfree*.ml))) \
-	domains/cvalue/builtins_float \
+	domains/cvalue/builtins_float domains/cvalue/builtins_split \
+	domains/inout_domain \
 	utils/value_results utils/state_import \
 	legacy/eval_terms legacy/eval_annots \
 	domains/powerset engine/transfer_logic \
 	domains/cvalue/cvalue_transfer domains/cvalue/cvalue_init \
 	domains/cvalue/cvalue_specification \
 	domains/cvalue/cvalue_domain \
-	engine/evaluation engine/non_linear_evaluation \
-	engine/recursion engine/transfer_stmt \
+	engine/subdivided_evaluation engine/evaluation \
+	engine/recursion engine/transfer_stmt engine/transfer_specification \
 	engine/partitioning engine/mem_exec engine/partitioned_dataflow \
 	engine/initialization engine/abstractions \
 	engine/compute_functions engine/analysis register
-PLUGIN_CMI:= values/abstract_value values/abstract_location domains/abstract_domain \
-	domains/equality/equality_sig
+PLUGIN_CMI:= values/abstract_value values/abstract_location \
+	domains/abstract_domain domains/simpler_domains domains/equality/equality_sig
 PLUGIN_DEPENDENCIES:=Callgraph LoopAnalysis RteGen
 
 ifeq ($(HAS_APRON),yes)
@@ -749,7 +748,8 @@ GENERATED += src/plugins/value/domains/apron/apron_domain.ml
 PLUGIN_DISTRIB_EXTERNAL:=domains/apron/apron_domain.ok.ml domains/apron/apron_domain.ko.ml
 
 # These files are used by the GUI, but do not depend on Lablgtk
-VALUE_GUI_AUX:=gui_files/gui_types gui_files/gui_eval gui_files/gui_callstacks_filters
+VALUE_GUI_AUX:=gui_files/gui_types gui_files/gui_eval \
+	gui_files/gui_callstacks_filters gui_files/gui_callstacks_manager
 PLUGIN_GUI_CMO:=$(VALUE_GUI_AUX) gui_files/register_gui
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
@@ -765,7 +765,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ##################
 
 PLUGIN_ENABLE:=$(ENABLE_OCCURRENCE)
-PLUGIN_DYNAMIC:=$(DYNAMIC_OCCURRENCE)
 PLUGIN_NAME:=Occurrence
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_DIR:=src/plugins/occurrence
@@ -781,7 +780,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ################################################
 
 PLUGIN_ENABLE:=$(ENABLE_RTEGEN)
-PLUGIN_DYNAMIC:=$(DYNAMIC_RTEGEN)
 PLUGIN_NAME:=RteGen
 PLUGIN_DIR:=src/plugins/rte
 PLUGIN_CMO:= options generator rte visit register
@@ -795,7 +793,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 #################
 
 PLUGIN_ENABLE:=$(ENABLE_FROM_ANALYSIS)
-PLUGIN_DYNAMIC:=$(DYNAMIC_FROM_ANALYSIS)
 PLUGIN_NAME:=From
 PLUGIN_DIR:=src/plugins/from
 PLUGIN_CMO:= from_parameters from_compute \
@@ -816,7 +813,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ##################
 
 PLUGIN_ENABLE:=$(ENABLE_USERS)
-PLUGIN_DYNAMIC:=$(DYNAMIC_USERS)
 PLUGIN_NAME:=Users
 PLUGIN_DIR:=src/plugins/users
 PLUGIN_CMO:= users_register
@@ -832,7 +828,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ########################
 
 PLUGIN_ENABLE:=$(ENABLE_CONSTANT_PROPAGATION)
-PLUGIN_DYNAMIC:=$(DYNAMIC_CONSTANT_PROPAGATION)
 PLUGIN_NAME:=Constant_Propagation
 PLUGIN_DIR:=src/plugins/constant_propagation
 PLUGIN_CMO:= propagationParameters \
@@ -848,7 +843,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ###################
 
 PLUGIN_ENABLE:=$(ENABLE_POSTDOMINATORS)
-PLUGIN_DYNAMIC:=$(DYNAMIC_POSTDOMINATORS)
 PLUGIN_NAME:=Postdominators
 PLUGIN_DIR:=src/plugins/postdominators
 PLUGIN_CMO:= postdominators_parameters print compute
@@ -862,7 +856,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 #########
 
 PLUGIN_ENABLE:=$(ENABLE_INOUT)
-PLUGIN_DYNAMIC:=$(DYNAMIC_INOUT)
 PLUGIN_NAME:=Inout
 PLUGIN_DIR:=src/plugins/inout
 PLUGIN_CMO:= inout_parameters cumulative_analysis \
@@ -882,7 +875,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ###################
 
 PLUGIN_ENABLE:=$(ENABLE_IMPACT)
-PLUGIN_DYNAMIC:=$(DYNAMIC_IMPACT)
 PLUGIN_NAME:=Impact
 PLUGIN_DIR:=src/plugins/impact
 PLUGIN_CMO:= options pdg_aux reason_graph compute_impact register
@@ -890,7 +882,7 @@ PLUGIN_GUI_CMO:= register_gui
 PLUGIN_DISTRIBUTED:=yes
 # PLUGIN_UNDOC:=impact_gui.ml
 PLUGIN_INTERNAL_TEST:=yes
-PLUGIN_DEPENDENCIES:=Inout Value Pdg
+PLUGIN_DEPENDENCIES:=Inout Value Pdg Slicing
 
 $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 
@@ -899,7 +891,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ##################################
 
 PLUGIN_ENABLE:=$(ENABLE_PDG)
-PLUGIN_DYNAMIC:=$(DYNAMIC_PDG)
 PLUGIN_NAME:=Pdg
 PLUGIN_DIR:=src/plugins/pdg
 PLUGIN_CMO:= pdg_parameters \
@@ -928,7 +919,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ################################################
 
 PLUGIN_ENABLE:=$(ENABLE_SCOPE)
-PLUGIN_DYNAMIC:=$(DYNAMIC_SCOPE)
 PLUGIN_NAME:=Scope
 PLUGIN_DIR:=src/plugins/scope
 PLUGIN_CMO:= datascope zones defs
@@ -944,7 +934,6 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 #####################################
 
 PLUGIN_ENABLE:=$(ENABLE_SPARECODE)
-PLUGIN_DYNAMIC:=$(DYNAMIC_SPARECODE)
 PLUGIN_NAME:=Sparecode
 PLUGIN_DIR:=src/plugins/sparecode
 PLUGIN_CMO:= sparecode_params globs spare_marks transform register
@@ -960,11 +949,12 @@ $(eval $(call include_generic_plugin_Makefile,$(PLUGIN_NAME)))
 ###########
 
 PLUGIN_ENABLE:=$(ENABLE_SLICING)
-PLUGIN_DYNAMIC:=$(DYNAMIC_SLICING)
 PLUGIN_NAME:=Slicing
 PLUGIN_DIR:=src/plugins/slicing
-PLUGIN_CMO:= slicingParameters \
-            slicingState \
+PLUGIN_CMO:= slicingInternals \
+	    slicingTypes \
+	    slicingParameters \
+	    slicingState \
 	    slicingMacros \
 	    slicingMarks \
 	    slicingActions \
@@ -972,16 +962,14 @@ PLUGIN_CMO:= slicingParameters \
 	    printSlice \
 	    slicingProject \
 	    slicingTransform \
+	    slicingSelect \
 	    slicingCmds \
+	    api \
 	    register
-SLICING_TYPES:=slicingInternals slicingTypes
-SLICING_TYPES:=$(addprefix src/plugins/slicing_types/,$(SLICING_TYPES))
-PLUGIN_TYPES_CMO:=$(SLICING_TYPES)
 
 PLUGIN_GUI_CMO:=register_gui
 
 PLUGIN_INTRO:=doc/code/intro_slicing.txt
-PLUGIN_TYPES_TODOC:= $(addsuffix .ml,$(SLICING_TYPES))
 PLUGIN_UNDOC:=register.ml # slicing_gui.ml
 
 PLUGIN_TESTS_DIRS:= slicing
@@ -1101,14 +1089,12 @@ $(PLUGIN_DYN_DEP_GUI_CMX_LIST): OFLAGS+= $(GUI_INCLUDES)
 
 .PHONY:gui
 
-gui:: bin/viewer.byte$(EXE) \
-	share/Makefile.dynamic_config \
-	share/Makefile.kernel \
-	$(PLUGIN_META_LIST)
+gui-byte:: bin/viewer.byte$(EXE) share/Makefile.dynamic_config \
+           $(PLUGIN_META_LIST)
 
-ifeq ($(OCAMLBEST),opt)
-gui:: bin/viewer.opt$(EXE)
-endif
+gui-opt:: gui-byte bin/viewer.opt$(EXE)
+
+gui: gui-$(OCAMLBEST)
 
 ALL_GUI_CMO= $(ALL_CMO) $(GRAPH_GUICMO) $(GUICMO)
 ALL_GUI_CMX= $(patsubst %.cma,%.cmxa,$(ALL_GUI_CMO:.cmo=.cmx))
@@ -1167,11 +1153,6 @@ OPTDOT=Some \"$(DOT)\"
 else
 OPTDOT=None
 endif
-
-STATIC_PLUGINS=$(foreach p,$(PLUGIN_LIST),\"$(notdir $p)\"; )
-
-STATIC_GUI_PLUGINS=\
-  $(foreach p,$(CONFIG_PLUGIN_CMO),\"$(notdir $(patsubst %.cmo,%,$p))\"; )
 
 COMPILATION_UNITS=\
   $(foreach p,$(CONFIG_CMO),\"$(notdir $(patsubst %.cmo,%,$p))\"; )
@@ -1239,7 +1220,7 @@ acsl_tests: byte
 	find doc/speclang -name \*.c -exec ./bin/toplevel.byte$(EXE) {} \; > /dev/null
 
 # Non-plugin test directories containing some ML files to compile
-TEST_DIRS_AS_PLUGIN=dynamic dynamic_plugin journal saveload spec misc syntax pretty_printing non-free libc value
+TEST_DIRS_AS_PLUGIN=dynamic dynamic_plugin journal saveload spec misc syntax pretty_printing non-free libc value callgraph
 PLUGIN_TESTS_LIST += $(TEST_DIRS_AS_PLUGIN)
 
 LONELY_TESTS_ML_FILES=$(wildcard $(TEST_DIRS_AS_PLUGIN:%=tests/%/*.ml))
@@ -1456,6 +1437,84 @@ check-devguide: $(CHECK_CODE) $(DOC_DEPEND) $(DOC_DIR)/kernel-doc.ocamldoc
 	$(ECHO) see all the information displayed here \
 		in $(CHECK_API_DIR)/summary.txt
 	$(RM) code_file
+################################
+# Code prettyfication and lint #
+################################
+
+# We're interested by any .ml[i]? file in src, except for scripts in test
+# directories, and generated files (in particular lexers and parsers)
+
+ALL_ML_FILES:=$(shell find src -name '*.ml' -o -name '*.mli' -o -path '*/tests' -prune -false)
+
+# Allow control of files to be linted/fixed by external sources
+# (e.g. pre-commit hook that will concentrate on files which have changed)
+
+MANUAL_ML_FILES?=$(filter-out $(GENERATED) $(PLUGIN_GENERATED_LIST), $(ALL_ML_FILES))
+
+INDENT_TARGET= $(patsubst %,%.indent,$(MANUAL_ML_FILES))
+
+LINT_TARGET= $(patsubst %,%.lint,$(MANUAL_ML_FILES))
+
+FIX_SYNTAX_TARGET=$(patsubst %,%.fix-syntax,$(MANUAL_ML_FILES))
+
+.PHONY: $(INDENT_TARGET) $(LINT_TARGET) $(FIX_SYNTAX_TARGET) \
+        indent lint fix-syntax
+
+indent: $(INDENT_TARGET)
+
+lint: $(LINT_TARGET)
+
+fix-syntax: $(FIX_SYNTAX_TARGET)
+
+$(INDENT_TARGET): %.indent: %
+	ocp-indent -i $<
+
+$(LINT_TARGET): %.lint: %
+	# See SO 1825552 on mixing grep and \t (and cry)
+	# For OK_NL, we have three cases:
+	# - for empty files, the computation boils down to 0 - 0 == 0
+	# - for non-empty files with a proper \n at the end, to 1 - 1 == 0
+	# - for empty files without \n, to 1 - 0 == 1 that will be catched
+	OK_TAB=$$(grep -c -e "$$(printf '^ *\t')" $<) ; \
+        OK_SPACE=$$(grep -c -e '[[:blank:]]$$' $<) ; \
+        OK_NL=$$(($$(tail -c -1 $< | wc -c) - $$(tail -n -1 $< | wc -l))) ; \
+        OK_EMPTY=$$(tail -n -1 $< | grep -c -e '^[[:blank:]]*$$') ; \
+        ERROR=$$(($$OK_TAB + $$OK_SPACE + $$OK_NL + $$OK_EMPTY)) ; \
+        if test $$ERROR -gt 0; then \
+          echo "File $< does not pass syntactic checks:"; \
+          echo "$$OK_TAB lines indented with tabulation instead of spaces"; \
+          echo "$$OK_SPACE lines with spaces at end of line"; \
+          test $$OK_NL -eq 0 || echo "No newline at end of file"; \
+          test $$OK_EMPTY -eq 0 || echo "Empty line(s) at end of file"; \
+          echo "Please run make $<.fix-syntax before proceeding"; \
+          exit 1 ; \
+        fi
+	ocp-indent $< > $<.tmp;
+	if cmp -s $< $<.tmp; \
+        then rm -f $<.tmp; \
+        else \
+          echo "File $< is not indented correctly. please run make $<.indent";\
+          rm $<.tmp; \
+          exit 1; \
+        fi
+
+$(FIX_SYNTAX_TARGET): %.fix-syntax: %
+	$(ISED) -e 's/^ *\t\+/ /' $<
+	$(ISED) -e 's/\(.*[^[:blank:]]\)[[:blank:]]\+$$/\1/' $<
+	$(ISED) -e 's/^[ \t]\+$$//' $<
+	if test \( $$(tail -n -1 $< | wc -l) -eq 0 \) -a \( $$(wc -c $< | cut -d " " -f 1) -gt 0 \) ; then \
+          echo "" >> $<; \
+        else \
+          while tail -n -1 $< | grep -l -e '^[ \t]*$$'; do \
+            head -n -1 $< > $<.tmp; \
+            mv $<.tmp $<; \
+          done; \
+        fi
+
+# Avoid a UTF-8 locale at all cost: in such setting, sed does not work
+# reliably if you happen to have latin-1 encoding somewhere,
+# which is still unfortunately the case in some dark corners of the platform
+%.fix-syntax: LC_ALL = C
 
 ################
 # Installation #
@@ -1530,10 +1589,16 @@ install:: install-lib
 	$(PRINT_INSTALL) shared files
 	$(CP) \
 	  $(wildcard share/*.c share/*.h) \
-	  share/Makefile.dynamic share/Makefile.plugin.template share/Makefile.kernel \
+	  share/Makefile.dynamic share/Makefile.plugin.template \
 	  share/Makefile.config share/Makefile.common share/Makefile.generic \
 	  share/configure.ac share/autocomplete_frama-c share/_frama-c \
 	  $(FRAMAC_DATADIR)
+	$(MKDIR) $(FRAMAC_DATADIR)/analysis-scripts
+	$(CP) share/analysis-scripts/cmd-dep.sh \
+	  share/analysis-scripts/frama-c.mk \
+	  share/analysis-scripts/parse-coverage.sh \
+	  share/analysis-scripts/README.md \
+	  $(FRAMAC_DATADIR)/analysis-scripts
 	$(MKDIR) $(FRAMAC_DATADIR)/emacs
 	$(CP) $(wildcard share/emacs/*.el) $(FRAMAC_DATADIR)/emacs
 	$(CP) share/frama-c.rc $(ICONS) $(FRAMAC_DATADIR)
@@ -1566,22 +1631,22 @@ install:: install-lib
 	fi
 	$(CP) bin/ptests.$(PTESTSBEST)$(EXE) \
 	      $(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
-	if [ -x bin/frama-c-config$(EXE) ] ; then \
-		$(CP) bin/frama-c-config$(EXE) $(BINDIR); \
+	if [ -x bin/fc-config$(EXE) ] ; then \
+		$(CP) bin/fc-config$(EXE) $(BINDIR)/frama-c-config; \
 	fi
 	$(PRINT_INSTALL) config files
 	$(CP) $(addprefix ptests/,$(PTESTS_FILES)) $(FRAMAC_LIBDIR)
 	$(PRINT_INSTALL) API documentation
 	$(MKDIR) $(FRAMAC_DATADIR)/doc/code
 	$(CP) $(wildcard $(DOC_GEN_FILES)) $(FRAMAC_DATADIR)/doc/code
-	$(PRINT_INSTALL) dynamic plug-ins
-	if [ -d "$(FRAMAC_PLUGIN)" -a "$(PLUGIN_DYN_EXISTS)" = "yes" ]; then \
+	$(PRINT_INSTALL) plug-ins
+	if [ -d "$(FRAMAC_PLUGIN)" ]; then \
 	  $(CP)  $(PLUGIN_DYN_CMI_LIST) $(PLUGIN_META_LIST) \
 		 $(FRAMAC_PLUGINDIR); \
 	  $(CP)  $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
 		 $(FRAMAC_PLUGINDIR)/top; \
 	fi
-	$(PRINT_INSTALL) dynamic gui plug-ins
+	$(PRINT_INSTALL) gui plug-ins
 	if [ -d "$(FRAMAC_PLUGIN_GUI)" -a "$(PLUGIN_DYN_GUI_EXISTS)" = "yes" ]; \
 	then \
 	  $(CP) $(patsubst %.cma,%.cmi,$(PLUGIN_DYN_GUI_CMO_LIST:.cmo=.cmi)) \
@@ -1655,6 +1720,9 @@ CURRENT_HEADERS?=open-source
 #    inside HEADER_SPEC_FILE
 # 3. Checks that all these files are not under DISTRIB_PROPRIETARY_HEADERS
 #    licences
+# Also check that distributed files are not encoded in ISO-8859. Do this first,
+# because identical headers but with different encodings are not exactly
+# easy to distinguish
 .PHONY: check-headers
 check-headers: $(HDRCK)
 	$(PRINT) "Checking $(DISTRIB_HEADERS) headers (OPEN_SOURCE=$(OPEN_SOURCE), CURRENT_HEADERS=$(CURRENT_HEADERS))..."
@@ -1668,6 +1736,13 @@ check-headers: $(HDRCK)
 	@$(foreach file,$(HEADER_EXCEPTIONS),\
 			echo $(file) >> file_list_exceptions.tmp$(NEWLINE))
 
+	@if command -v file >/dev/null 2>/dev/null; then \
+		echo "Checking that distributed files do not use iso-8859..."; \
+		file --mime-encoding -f file_list_to_check.tmp | \
+			grep "iso-8859" \
+			| $(SED) "s/^/error: invalid encoding in /" || true; \
+	else echo "command 'file' not found, skipping encoding checks"; \
+	fi
 	$(HDRCK) \
 		-header-dirs headers/$(CURRENT_HEADERS) \
 		-headache-config-file ./headers/headache_config.txt \
@@ -1754,7 +1829,7 @@ clean-gui::
 	$(RM) src/*/*/*_gui.cm* src/*/*/*_gui.o \
 	      src/plugins/gui/*.cm* src/plugins/gui/*.o
 
-clean:: $(PLUGIN_LIST:=_CLEAN) $(PLUGIN_DYN_LIST:=_CLEAN) \
+clean:: $(PLUGIN_LIST:=_CLEAN) \
 		clean-tests clean-journal clean-check-libc
 	$(PRINT_RM) lib/plugins
 	$(RM) $(addprefix $(PLUGIN_LIB_DIR)/,*.mli *.cm* *.o META.*)
@@ -1772,7 +1847,7 @@ clean:: $(PLUGIN_LIST:=_CLEAN) $(PLUGIN_DYN_LIST:=_CLEAN) \
 	$(PRINT_RM) binaries
 	$(RM) bin/toplevel.byte$(EXE) bin/viewer.byte$(EXE) \
 		bin/ptests.byte$(EXE) bin/*.opt$(EXE) bin/toplevel.top$(EXE)
-	$(RM) bin/frama-c-config$(EXE)
+	$(RM) bin/fc-config$(EXE)
 
 smartclean:
 	$(MAKE) -f share/Makefile.clean smartclean
@@ -1781,8 +1856,7 @@ smartclean:
 # as the very last step performed by make (who'll otherwise try to regenerate
 # it in the middle of cleaning)
 dist-clean distclean: clean clean-doc \
-	              $(PLUGIN_LIST:=_DIST_CLEAN) \
-                      $(PLUGIN_DYN_LIST:=_DIST_CLEAN)
+	              $(PLUGIN_LIST:=_DIST_CLEAN)
 	$(PRINT_RM) config
 	$(RM) share/Makefile.config
 	$(RM) config.cache config.log config.h
@@ -1813,12 +1887,11 @@ GENERATED+=share/frama-c.rc
 # Depend #
 ##########
 
-PLUGIN_DEP_LIST:=$(PLUGIN_LIST) $(PLUGIN_DYN_LIST)
+PLUGIN_DEP_LIST:=$(PLUGIN_LIST)
 
 .PHONY: depend
 
-.depend depend:: $(GENERATED) \
-		 share/Makefile.dynamic_config share/Makefile.kernel
+.depend depend:: $(GENERATED) share/Makefile.dynamic_config
 	$(PRINT_MAKING) .depend
 	$(RM) .depend
 	$(OCAMLDEP) $(INCLUDES) $(FILES_FOR_OCAMLDEP) > .depend
@@ -2002,13 +2075,11 @@ bin-distrib: depend configure Makefile
 
 create_lib_to_install_list = $(addprefix $(FRAMAC_LIB)/,$(call map,notdir,$(1)))
 
-byte:: bin/toplevel.byte$(EXE) \
-      share/Makefile.dynamic_config share/Makefile.kernel \
+byte:: bin/toplevel.byte$(EXE) share/Makefile.dynamic_config \
 	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)) \
       $(PLUGIN_META_LIST)
 
-opt:: bin/toplevel.opt$(EXE) \
-     share/Makefile.dynamic_config share/Makefile.kernel \
+opt:: bin/toplevel.opt$(EXE) share/Makefile.dynamic_config \
 	$(call create_lib_to_install_list,$(LIB_OPT_TO_INSTALL)) \
 	$(filter %.o %.cmi,\
 	   $(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL))) \

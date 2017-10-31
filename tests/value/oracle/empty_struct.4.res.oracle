@@ -1,0 +1,23 @@
+[kernel] Parsing tests/value/empty_struct.c (with preprocessing)
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  NULL[rbits 0 to 15] ∈ [--..--]
+  s2 ∈ {0}
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main2:
+  ptr_ret ∈ {2}
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          ptr_ret
+[inout] Inputs for function main2:
+          \nothing

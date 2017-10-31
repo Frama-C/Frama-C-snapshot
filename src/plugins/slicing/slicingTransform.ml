@@ -28,34 +28,6 @@ open Cil
 
 (**/**)
 
-(* Look at (only once) the callers of [kf] ([kf] included). *)
-let exists_fun_callers fpred kf =
-  let table = ref Cil_datatype.Varinfo.Set.empty in
-  let rec exists_fun_callers kf =
-    if fpred kf
-    then true
-    else let vf = Kernel_function.get_vi kf in
-      if Cil_datatype.Varinfo.Set.mem vf !table
-      then false (* no way to call the initial [kf]. *)
-      else begin
-        table := Cil_datatype.Varinfo.Set.add vf !table ;
-        List.exists
-          (fun (kf,_) -> exists_fun_callers kf)
-          (!Db.Value.callers kf)
-      end
-  in
-  exists_fun_callers kf
-
-let is_src_fun_visible = exists_fun_callers SlicingMacros.is_src_fun_visible
-
-let is_src_fun_called kf =
-  let kf_entry, _library = Globals.entry_point () in
-  let fpred f =
-    if (kf_entry == f)
-    then SlicingMacros.is_src_fun_visible f (* for the entry point *)
-    else SlicingMacros.is_src_fun_called f (* for the others *)
-  in exists_fun_callers fpred kf
-
 module Visibility (SliceName : sig
                      val get : kernel_function -> bool -> int -> string
                    end) = struct
@@ -85,7 +57,7 @@ module Visibility (SliceName : sig
   let fct_info _proj kf =
     let fi = SlicingMacros.get_kf_fi kf in
     let slices = SlicingMacros.fi_slices fi in
-    let src_visible = is_src_fun_visible kf in
+    let src_visible = Fct_slice.is_src_fun_visible kf in
       SlicingParameters.debug ~level:1 "[SlicingTransform.Visibility.fct_info] processing %a (%d slices/src %svisible)"
           Kernel_function.pretty kf (List.length slices)
           (if src_visible then "" else "not ");
@@ -117,7 +89,7 @@ module Visibility (SliceName : sig
       SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fct_name] get fct_name = %s" name;
       name
 
-  let visible_mark m = not (!Db.Slicing.Mark.is_bottom m)
+  let visible_mark m = not (SlicingMarks.is_bottom_mark m)
 
   let param_visible ff_opt n = match ff_opt with
     | Isrc _ | Iproto -> true
@@ -132,14 +104,14 @@ module Visibility (SliceName : sig
     | Isrc _ -> true
     | Iproto -> false
     | Iff {slice = ff} ->
-        let m = !Db.Slicing.Slice.get_mark_from_stmt ff inst in
+        let m = Fct_slice.get_stmt_mark ff inst in
           visible_mark m
 
   let label_visible ff_opt inst label =  match ff_opt with
     | Isrc _ -> true
     | Iproto -> false
     | Iff {slice = ff} ->
-        let m = !Db.Slicing.Slice.get_mark_from_label ff inst label in
+        let m = Fct_slice.get_label_mark ff inst label in
         let v = visible_mark m in
           SlicingParameters.debug ~level:2
             "[SlicingTransform.Visibility.label_visible] label %a is %svisible"
@@ -162,7 +134,7 @@ module Visibility (SliceName : sig
  let all_nodes_visible ff nodes =
    let is_visible visi n =
      let m = Fct_slice.get_node_mark ff n in
-       if !Db.Slicing.Mark.is_bottom m then
+       if SlicingMarks.is_bottom_mark m then
          begin
            SlicingParameters.debug ~level:3
              "[SlicingTransform.Visibility.all_nodes_visible] node %a invisible"
@@ -196,7 +168,7 @@ module Visibility (SliceName : sig
             | _, _ -> key
           in
           let m = Fct_slice.get_node_key_mark ff key in
-            if !Db.Slicing.Mark.is_bottom m then
+            if SlicingMarks.is_bottom_mark m then
               begin
                 SlicingParameters.debug ~level:2
                   "[SlicingTransform.Visibility.data_nodes_visible]@\n\
@@ -422,7 +394,7 @@ module Visibility (SliceName : sig
     | Isrc _ -> true
     | Iproto -> false
     | Iff {slice = ff} ->
-        let m = !Db.Slicing.Slice.get_mark_from_local_var ff var in
+        let m = Fct_slice.get_local_var_mark ff var in
           visible_mark m
 
   let res_call_visible ff call_stmt = match ff with
@@ -465,7 +437,7 @@ module Visibility (SliceName : sig
               | Some (Some (SlicingInternals.CallSlice ff)) ->
                   let kf_ff = SlicingMacros.get_ff_kf ff in
                   (* BY: no idea why this is not the same code as in fct_info *)
-                  let src_visible = is_src_fun_visible kf_ff in
+                  let src_visible = Fct_slice.is_src_fun_visible kf_ff in
                   let keep_body = keep_body kf_ff in
                   Some (kf_ff, Iff { slice = ff; src_visible; keep_body})
           with Not_found ->
@@ -490,7 +462,9 @@ let default_slice_names kf _src_visible ff_num =
 let extract ~f_slice_names new_proj_name =
   SlicingParameters.feedback ~level:1
     "exporting project to '%s'..." new_proj_name;
-  !Db.Slicing.Request.apply_all_internal ();
+  SlicingParameters.feedback ~level:1 "applying all slicing requests...";
+  SlicingProject.apply_all_actions ();
+  SlicingParameters.feedback ~level:2 "done (applying all slicing requests).";
   let module S = struct let get = f_slice_names end in
   let module Visi = Visibility (S) in
   let module Transform = Filter.F (Visi) in

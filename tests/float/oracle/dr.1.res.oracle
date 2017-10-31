@@ -1,6 +1,5 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/dr.i (no preprocessing)
-tests/float/dr.i:6:[kernel] warning: Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106. See documentation for option -warn-decimal-float
+tests/float/dr.i:7:[kernel] warning: Floating-point constant 100e30f is not represented exactly. Will use 0x1.3b8b5c0000000p106. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -21,7 +20,7 @@ tests/float/dr.i:6:[kernel] warning: Floating-point constant 100e30f is not repr
   d2 ∈ {0x1.02f8f50000000p0}
   e1 ∈ {0}
   e2 ∈ {0}
-[value] Called Frama_C_show_each({1}, {0})
+tests/float/dr.i:26:[value] Frama_C_show_each: {1}, {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

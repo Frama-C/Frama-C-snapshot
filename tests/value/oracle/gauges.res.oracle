@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/gauges.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -12,23 +11,23 @@
         Called from tests/value/gauges.i:336.
 tests/value/gauges.i:14:[value] entering loop for the first time
 tests/value/gauges.i:16:[value] entering loop for the first time
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
 tests/value/gauges.i:21:[value] warning: signed overflow. assert -2147483648 ≤ j - 4;
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
 tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
 [value] Recording results for main0
 [value] Done for function main0
@@ -36,72 +35,72 @@ tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 21474
         Called from tests/value/gauges.i:337.
 tests/value/gauges.i:36:[value] entering loop for the first time
 tests/value/gauges.i:38:[value] entering loop for the first time
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
 tests/value/gauges.i:43:[value] warning: signed overflow. assert -2147483648 ≤ j - 4;
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
-[value] Called Frama_C_show_each_0({{ "in" }})
-[value] Called Frama_C_show_each_1({{ "in" }})
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
 tests/value/gauges.i:46:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
 [value] Recording results for main0_bis
 [value] Done for function main0_bis
 [value] computing for function main1 <- main.
         Called from tests/value/gauges.i:338.
 tests/value/gauges.i:55:[value] entering loop for the first time
-[value] Called Frama_C_show_each({{ "in" }})
-[value] Called Frama_C_show_each({{ "in" }})
-[value] Called Frama_C_show_each({{ "in" }})
-[value] Called Frama_C_show_each({{ "in" }})
-[value] Called Frama_C_show_each({{ "in" }})
-[value] Called Frama_C_show_each({{ "in" }})
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
+tests/value/gauges.i:57:[value] Frama_C_show_each: {{ "in" }}
 tests/value/gauges.i:56:[value] warning: accessing out of bounds index. assert j < 38;
-[value] Called Frama_C_show_each({{ "out" }})
+tests/value/gauges.i:60:[value] Frama_C_show_each: {{ "out" }}
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
         Called from tests/value/gauges.i:339.
 tests/value/gauges.i:68:[value] entering loop for the first time
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
 tests/value/gauges.i:69:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from p++)
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:70:[value] Frama_C_show_each:
+tests/value/gauges.i:70:[value] Frama_C_show_each:
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
         Called from tests/value/gauges.i:340.
 tests/value/gauges.i:76:[value] entering loop for the first time
 tests/value/gauges.i:77:[value] entering loop for the first time
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "inner" }})
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
 tests/value/gauges.i:79:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({{ "outer" }})
+tests/value/gauges.i:81:[value] Frama_C_show_each: {{ "outer" }}
 tests/value/gauges.i:82:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "outer" }})
-[value] Called Frama_C_show_each({{ "inner" }})
-[value] Called Frama_C_show_each({{ "outer" }})
-[value] Called Frama_C_show_each([0..2147483647])
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:81:[value] Frama_C_show_each: {{ "outer" }}
+tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+tests/value/gauges.i:81:[value] Frama_C_show_each: {{ "outer" }}
+tests/value/gauges.i:84:[value] Frama_C_show_each: [0..2147483647]
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
@@ -109,12 +108,12 @@ tests/value/gauges.i:82:[value] warning: signed overflow. assert k + 1 ≤ 21474
 [value] computing for function main4_search <- main4 <- main.
         Called from tests/value/gauges.i:105.
 tests/value/gauges.i:94:[value] entering loop for the first time
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:95:[value] Frama_C_show_each:
+tests/value/gauges.i:95:[value] Frama_C_show_each:
+tests/value/gauges.i:95:[value] Frama_C_show_each:
+tests/value/gauges.i:95:[value] Frama_C_show_each:
+tests/value/gauges.i:95:[value] Frama_C_show_each:
+tests/value/gauges.i:95:[value] Frama_C_show_each:
 tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
 [value] Recording results for main4_search
 [value] Done for function main4_search
@@ -123,33 +122,32 @@ tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 21474
 [value] computing for function main5 <- main.
         Called from tests/value/gauges.i:342.
 tests/value/gauges.i:111:[value] entering loop for the first time
-[value] Called Frama_C_show_each({{ &x }})
-[value] Called Frama_C_show_each({{ &x + {0; 4} }})
-[value] Called Frama_C_show_each({{ &x + {0; 4; 8} }})
-[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12} ; &y }})
-[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16} ; &y + {0; 4} }})
-[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16; 20} ; &y + {0; 4; 8} }})
-[value] Called Frama_C_show_each({{ &x + {0; 4; 8; 12; 16; 20; 24} ;
-                                    &y + {0; 4; 8; 12} }})
-[value] Called Frama_C_show_each({{ &x + [0..36],0%4 ; &y + [0..36],0%4 }})
-[value] Called Frama_C_show_each({{ &x + [0..40],0%4 ; &y + [0..40],0%4 }})
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4} }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4; 8} }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4; 8; 12} ; &y }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16} ; &y + {0; 4} }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16; 20} ; &y + {0; 4; 8} }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + {0; 4; 8; 12; 16; 20; 24} ; &y + {0; 4; 8; 12} }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + [0..36],0%4 ; &y + [0..36],0%4 }}
+tests/value/gauges.i:114:[value] Frama_C_show_each: {{ &x + [0..40],0%4 ; &y + [0..40],0%4 }}
 tests/value/gauges.i:115:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main5_bis <- main.
         Called from tests/value/gauges.i:343.
-[value] Called Frama_C_show_each({{ &x }})
-[value] Called Frama_C_show_each({{ &x + {4} }})
-[value] Called Frama_C_show_each({{ &x + {8} }})
-[value] Called Frama_C_show_each({{ &y }})
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &x }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &x + {4} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &x + {8} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y }}
 tests/value/gauges.i:124:[value] entering loop for the first time
-[value] Called Frama_C_show_each({{ &y + {4} }})
-[value] Called Frama_C_show_each({{ &y + {4; 8} }})
-[value] Called Frama_C_show_each({{ &y + {4; 8; 12} }})
-[value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16} }})
-[value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16; 20} }})
-[value] Called Frama_C_show_each({{ &y + [4..36],0%4 }})
-[value] Called Frama_C_show_each({{ &y + [4..40],0%4 }})
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8; 12} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8; 12; 16} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20} }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + [4..36],0%4 }}
+tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + [4..40],0%4 }}
 tests/value/gauges.i:128:[value] warning: out of bounds write. assert \valid(p);
 [value] Recording results for main5_bis
 [value] Done for function main5_bis
@@ -163,7 +161,7 @@ tests/value/gauges.i:138:[value] warning: signed overflow. assert j + 1 ≤ 2147
         Called from tests/value/gauges.i:345.
 [value] computing for function main7_aux <- main7 <- main.
         Called from tests/value/gauges.i:162.
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:143:[value] Frama_C_show_each:
 tests/value/gauges.i:145:[value] entering loop for the first time
 tests/value/gauges.i:147:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from p--)
@@ -171,7 +169,7 @@ tests/value/gauges.i:147:[value] warning: out of bounds write. assert \valid(tmp
 [value] Done for function main7_aux
 [value] computing for function main7_aux2 <- main7 <- main.
         Called from tests/value/gauges.i:163.
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:152:[value] Frama_C_show_each:
 tests/value/gauges.i:154:[value] entering loop for the first time
 tests/value/gauges.i:156:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from p--)
@@ -184,21 +182,21 @@ tests/value/gauges.i:154:[value] warning: signed overflow. assert -2147483648 �
         Called from tests/value/gauges.i:346.
 [value] computing for function main8_aux <- main8 <- main.
         Called from tests/value/gauges.i:176.
-[value] Called Frama_C_show_each({0})
-[value] Called Frama_C_show_each({4294967295})
+tests/value/gauges.i:170:[value] Frama_C_show_each: {0}
+tests/value/gauges.i:170:[value] Frama_C_show_each: {4294967295}
 tests/value/gauges.i:169:[value] entering loop for the first time
-[value] Called Frama_C_show_each({4294967294})
-[value] Called Frama_C_show_each({4294967293; 4294967294})
-[value] Called Frama_C_show_each({4294967292; 4294967293; 4294967294})
-[value] Called Frama_C_show_each([2147483647..4294967294])
-[value] Called Frama_C_show_each([2147483646..4294967294])
-[value] Called Frama_C_show_each([1..4294967294])
-[value] Called Frama_C_show_each([1..4294967294])
-[value] Called Frama_C_show_each([1..4294967294])
-[value] Called Frama_C_show_each([1..4294967294])
+tests/value/gauges.i:170:[value] Frama_C_show_each: {4294967294}
+tests/value/gauges.i:170:[value] Frama_C_show_each: {4294967293; 4294967294}
+tests/value/gauges.i:170:[value] Frama_C_show_each: {4294967292; 4294967293; 4294967294}
+tests/value/gauges.i:170:[value] Frama_C_show_each: [2147483647..4294967294]
+tests/value/gauges.i:170:[value] Frama_C_show_each: [2147483646..4294967294]
+tests/value/gauges.i:170:[value] Frama_C_show_each: [1..4294967294]
+tests/value/gauges.i:170:[value] Frama_C_show_each: [1..4294967294]
+tests/value/gauges.i:170:[value] Frama_C_show_each: [1..4294967294]
+tests/value/gauges.i:170:[value] Frama_C_show_each: [1..4294967294]
 tests/value/gauges.i:171:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from p++)
-[value] Called Frama_C_show_each([1..4294967294])
+tests/value/gauges.i:170:[value] Frama_C_show_each: [1..4294967294]
 [value] Recording results for main8_aux
 [value] Done for function main8_aux
 [value] Recording results for main8
@@ -234,21 +232,21 @@ tests/value/gauges.i:200:[value] warning: non-finite float value.
 [value] Done for function main10_aux
 tests/value/gauges.i:209:[value] warning: overflow in conversion from floating-point to integer.
                  assert tmp < 2147483648;
-                 (tmp from main10_aux(& p, (float const *)(& A), (float const *)(& B), 10))
+                 (tmp from main10_aux(& p, (float const *)(A), (float const *)(B), 10))
 [value] Recording results for main10
 [value] Done for function main10
 [value] computing for function main11 <- main.
         Called from tests/value/gauges.i:349.
 tests/value/gauges.i:215:[value] entering loop for the first time
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
 tests/value/gauges.i:217:[value] warning: signed overflow. assert i + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
-[value] Called Frama_C_show_each()
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
+tests/value/gauges.i:216:[value] Frama_C_show_each:
 tests/value/gauges.i:218:[value] warning: signed overflow. assert -2147483648 ≤ n - 1;
 [value] Recording results for main11
 [value] Done for function main11
@@ -264,28 +262,28 @@ tests/value/gauges.i:223:[value] warning: signed overflow. assert i + 1 ≤ 2147
         Called from tests/value/gauges.i:278.
 tests/value/gauges.i:236:[value] entering loop for the first time
 tests/value/gauges.i:238:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..2147483647])
+tests/value/gauges.i:240:[value] Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..2147483647]
 [value] Recording results for main13_1
 [value] Done for function main13_1
 [value] computing for function main13_2 <- main13 <- main.
         Called from tests/value/gauges.i:279.
 tests/value/gauges.i:247:[value] entering loop for the first time
 tests/value/gauges.i:249:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..2147483647])
+tests/value/gauges.i:252:[value] Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..2147483647]
 [value] Recording results for main13_2
 [value] Done for function main13_2
 [value] computing for function main13_3 <- main13 <- main.
         Called from tests/value/gauges.i:280.
 tests/value/gauges.i:259:[value] entering loop for the first time
 tests/value/gauges.i:261:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..2147483647])
+tests/value/gauges.i:263:[value] Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..2147483647]
 [value] Recording results for main13_3
 [value] Done for function main13_3
 [value] computing for function main13_4 <- main13 <- main.
         Called from tests/value/gauges.i:281.
 tests/value/gauges.i:270:[value] entering loop for the first time
 tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..2147483647])
+tests/value/gauges.i:274:[value] Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..2147483647]
 [value] Recording results for main13_4
 [value] Done for function main13_4
 [value] Recording results for main13
@@ -294,14 +292,14 @@ tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147
         Called from tests/value/gauges.i:352.
 tests/value/gauges.i:289:[value] entering loop for the first time
 tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
-                                 [0..2147483647])
+tests/value/gauges.i:295:[value] Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..2147483647]
 [value] Recording results for main14
 [value] Done for function main14
 [value] computing for function main15 <- main.
         Called from tests/value/gauges.i:353.
 tests/value/gauges.i:302:[value] entering loop for the first time
-[value] DUMPING STATE of file tests/value/gauges.i line 304
+tests/value/gauges.i:304:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -343,8 +341,9 @@ tests/value/gauges.i:302:[value] entering loop for the first time
         y ∈ UNINITIALIZED
         p ∈ {{ &x }}
         i ∈ {1}
-        =END OF DUMP==
-[value] DUMPING STATE of file tests/value/gauges.i line 304
+        ==END OF DUMP==
+tests/value/gauges.i:304:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -386,8 +385,9 @@ tests/value/gauges.i:302:[value] entering loop for the first time
         y ∈ UNINITIALIZED
         p ∈ {{ &x ; &y }}
         i ∈ {1; 2}
-        =END OF DUMP==
-[value] DUMPING STATE of file tests/value/gauges.i line 304
+        ==END OF DUMP==
+tests/value/gauges.i:304:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -429,8 +429,9 @@ tests/value/gauges.i:302:[value] entering loop for the first time
         y ∈ UNINITIALIZED
         p ∈ {{ &x ; &y }}
         i ∈ {1; 2; 3}
-        =END OF DUMP==
-[value] DUMPING STATE of file tests/value/gauges.i line 304
+        ==END OF DUMP==
+tests/value/gauges.i:304:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -472,7 +473,7 @@ tests/value/gauges.i:302:[value] entering loop for the first time
         y ∈ UNINITIALIZED
         p ∈ {{ &x ; &y }}
         i ∈ [1..11]
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main15
 [value] Done for function main15
 [value] computing for function main16 <- main.
@@ -480,7 +481,8 @@ tests/value/gauges.i:302:[value] entering loop for the first time
 tests/value/gauges.i:319:[value] entering loop for the first time
 tests/value/gauges.i:321:[value] entering loop for the first time
 tests/value/gauges.i:322:[value] entering loop for the first time
-[value] DUMPING STATE of file tests/value/gauges.i line 323
+tests/value/gauges.i:323:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -522,10 +524,11 @@ tests/value/gauges.i:322:[value] entering loop for the first time
         b ∈ {0}
         p ∈ {{ &a }}
         i ∈ {2}
-        =END OF DUMP==
+        ==END OF DUMP==
 tests/value/gauges.i:324:[value] entering loop for the first time
 tests/value/gauges.i:325:[value] entering loop for the first time
-[value] DUMPING STATE of file tests/value/gauges.i line 323
+tests/value/gauges.i:323:[value] Frama_C_dump_each:
+        # Cvalue domain:
         v ∈ [--..--]
         t[0..4] ∈ {0}
          [5] ∈ [0..48],0%3
@@ -567,7 +570,7 @@ tests/value/gauges.i:325:[value] entering loop for the first time
         b ∈ {0}
         p ∈ {{ &a ; &b }}
         i ∈ {2}
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main16
 [value] Done for function main16
 [value] Recording results for main
@@ -779,8 +782,6 @@ tests/value/gauges.i:325:[value] entering loop for the first time
 [from] Computing for function main14
 [from] Done for function main14
 [from] Computing for function main15
-[from] Computing for function Frama_C_dump_each <-main15
-[from] Done for function Frama_C_dump_each
 [from] Done for function main15
 [from] Computing for function main16
 [from] Done for function main16

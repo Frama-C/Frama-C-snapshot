@@ -1,0 +1,4 @@
+[kernel] Parsing tests/misc/function_ptr_lvalue_2.i (no preprocessing)
+tests/misc/function_ptr_lvalue_2.i:7:[kernel] failure: cannot cast from void (*)(void) to void (void)
+[kernel] user error: stopping on file "tests/misc/function_ptr_lvalue_2.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

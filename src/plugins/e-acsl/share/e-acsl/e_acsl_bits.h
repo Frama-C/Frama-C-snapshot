@@ -35,8 +35,8 @@
  * assume little-endian byte order.
 ***************************************************************************/
 
-#ifndef E_ACSL_BITS
-#define E_ACSL_BITS
+#ifndef E_ACSL_BITS_H
+#define E_ACSL_BITS_H
 
 #include <stdint.h>
 #include <stddef.h>

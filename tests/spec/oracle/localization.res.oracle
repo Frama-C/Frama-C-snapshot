@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/localization.c (with preprocessing)
 tests/spec/localization.c:6:[kernel] warning: unbound logic variable j. Ignoring global annotation
 tests/spec/localization.c:8:[kernel] warning: unbound logic variable k. Ignoring global annotation

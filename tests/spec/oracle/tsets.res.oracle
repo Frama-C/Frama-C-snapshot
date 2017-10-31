@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/tsets.c (with preprocessing)
 tests/spec/tsets.c:36:[kernel] warning: sets of sets are not supported yet. Ignoring global annotation
 tests/spec/tsets.c:45:[kernel] warning: comparison of incompatible types: set<char>

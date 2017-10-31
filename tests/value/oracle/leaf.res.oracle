@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/leaf.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -37,41 +36,26 @@ tests/value/leaf.i:48:[kernel] warning: Neither code nor specification for funct
 tests/value/leaf.i:50:[kernel] warning: No code nor implicit assigns clause for function f_int_star_int, generating default assigns from the prototype
 [value] using specification for function f_int_star_int
 [value] Done for function f_int_star_int
-tests/value/leaf.i:51:[value] warning: out of bounds read. assert \valid_read(p);
-[value] Called Frama_C_show_each_F([-2147483648..2147483647])
-[value] Called Frama_C_show_each_F([-2147483648..2147483647])
+tests/value/leaf.i:51:[value] Frama_C_show_each_F: [-2147483648..2147483647]
+tests/value/leaf.i:52:[value] warning: out of bounds write. assert \valid(p);
+tests/value/leaf.i:53:[value] Frama_C_show_each_F: [-2147483648..2147483647]
 [value] computing for function f_int_star_int_star_int <- main.
         Called from tests/value/leaf.i:55.
 tests/value/leaf.i:55:[kernel] warning: No code nor implicit assigns clause for function f_int_star_int_star_int, generating default assigns from the prototype
 [value] using specification for function f_int_star_int_star_int
 [value] Done for function f_int_star_int_star_int
-tests/value/leaf.i:56:[value] warning: out of bounds read. assert \valid_read(pp);
-tests/value/leaf.i:56:[value] Reading left-value *pp.
-        The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179869152],0%32 }}.
-        It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
-        because of Library function {tests/value/leaf.i:55}.
-[value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                                   (origin: Library function {tests/value/leaf.i:55}) }})
-tests/value/leaf.i:57:[value] warning: out of bounds read. assert \valid_read(*pp);
-tests/value/leaf.i:57:[value] Reading left-value *(*pp).
-        The location is {{ alloced_return_f_int_star_int_star_int -> [0..34359738336],0%8 }}.
-        It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
-        because of Library function {tests/value/leaf.i:55}.
-[value] Called Frama_C_show_each_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                                   (origin: Library function {tests/value/leaf.i:55}) }})
-tests/value/leaf.i:59:[value] Reading left-value *pp.
-        The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179869152],0%32 }}.
-        It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
-        because of Library function {tests/value/leaf.i:55}.
-[value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                                   (origin: Library function {tests/value/leaf.i:55}) }})
-tests/value/leaf.i:60:[value] warning: out of bounds read. assert \valid_read(*pp);
-tests/value/leaf.i:60:[value] Reading left-value *(*pp).
-        The location is {{ alloced_return_f_int_star_int_star_int -> [0..34359738336],0%8 }}.
-        It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
-        because of Library function {tests/value/leaf.i:55}.
-[value] Called Frama_C_show_each_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                                   (origin: Library function {tests/value/leaf.i:55}) }})
+tests/value/leaf.i:56:[value] Frama_C_show_each_G:
+        {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+        (origin: Library function {tests/value/leaf.i:55}) }}
+tests/value/leaf.i:57:[value] Frama_C_show_each_F:
+        {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+        (origin: Library function {tests/value/leaf.i:55}) }}
+tests/value/leaf.i:59:[value] Frama_C_show_each_G:
+        {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+        (origin: Library function {tests/value/leaf.i:55}) }}
+tests/value/leaf.i:60:[value] Frama_C_show_each_F:
+        {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+        (origin: Library function {tests/value/leaf.i:55}) }}
 [value] computing for function f_star_int_cint <- main.
         Called from tests/value/leaf.i:62.
 tests/value/leaf.i:62:[kernel] warning: Neither code nor specification for function f_star_int_cint, generating default assigns from the prototype
@@ -128,7 +112,6 @@ tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for funct
 [value] Done for function f_star_st_tab3_int_int
 [value] Recording results for main
 [value] done for function main
-[scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   T[0] ∈ [--..--]
@@ -158,7 +141,9 @@ tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for funct
   st_tab3_int_1 ∈ [--..--]
   st_tab3_int_3 ∈ [--..--]
   p ∈ {{ &alloced_return_f_int_star_int + [0..2147483644],0%4 }}
-  pp ∈ {{ &alloced_return_f_int_star_int_star_int + [0..2147483644],0%4 }}
+  pp ∈
+    {{ NULL + [--..--] ;
+       &alloced_return_f_int_star_int_star_int + [0..2147483644],0%4 }}
   alloced_return_f_int_star_int[bits 0 to ..] ∈ [--..--]
 [from] Computing for function main
 [from] Computing for function f_int_int <-main

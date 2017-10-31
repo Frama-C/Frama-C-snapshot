@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/volatile.c (with preprocessing)
 [kernel] Parsing tests/spec/volatile_aux.c (with preprocessing)
 tests/spec/volatile.c:8:[kernel] warning: Overlapping volatile specification: volatile location y already associated to a writes function in annotation at loc tests/spec/volatile.c:7. Ignoring new binding.

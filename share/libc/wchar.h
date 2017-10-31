@@ -27,10 +27,24 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 #include "__fc_define_wchar_t.h"
+#include "__fc_define_wint_t.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_file.h"
 
+// Include <stdint.h> to retrieve definitions such as WCHAR_MIN and WINT_MAX,
+// required by ISO C (and not necessarily respected by the glibc).
+// Note that POSIX does not specify that all symbols in <stdint.h> can be
+// made visible in wchar.h, but in practice this should be fine.
+#include <stdint.h>
+
+// ISO C requires the tag 'struct tm' (as declared in <time.h>) to be declared.
+#include <time.h>
+
 __BEGIN_DECLS
+
+#ifndef WEOF
+#define WEOF __FC_WEOF
+#endif
 
 /*@
   assigns \result \from s, indirect:s[0 .. n-1], indirect:c, indirect:n;
@@ -60,6 +74,8 @@ extern wchar_t * wmemmove(wchar_t *dest, const wchar_t *src, size_t n);
   assigns wcs[0 .. n-1] \from wc, indirect:n;
   assigns \result \from wcs;
   ensures \result == wcs;
+  ensures \initialized(wcs + (0 .. n-1));
+  ensures \subset(wcs[0 .. n-1], wc);
 */
 extern wchar_t * wmemset(wchar_t *wcs, wchar_t wc, size_t n);
 
@@ -146,6 +162,14 @@ extern size_t wcsspn(const wchar_t *wcs, const wchar_t *accept);
  */
 extern wchar_t * wcsstr(const wchar_t *haystack, const wchar_t *needle);
 
+/*@
+  // Axiomatic used by the Variadic plugin to generate specifications
+  // for some functions, e.g. swprintf().
+  axiomatic wformat_length {
+    //TODO: this logic function will be extended to handle variadic formats
+    logic integer wformat_length{L}(wchar_t *format);
+  }
+*/
 
 /* It is unclear whether these are more often in wchar.h or stdio.h */
 

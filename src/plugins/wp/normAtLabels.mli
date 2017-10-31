@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
+open Clabels
 
 (* exception LabelError of logic_label *)
 val catch_label_error : exn -> string -> string -> unit
@@ -31,19 +32,17 @@ val labels_empty : label_mapping
 val labels_fct_pre : label_mapping
 val labels_fct_post : label_mapping
 val labels_fct_assigns : label_mapping
-val labels_assert_before : stmt -> label_mapping
-val labels_assert_after : stmt -> logic_label option -> label_mapping
-val labels_loop_inv : stmt -> label_mapping
+val labels_assert_before : kf:kernel_function -> stmt -> label_mapping
+val labels_assert_after : kf:kernel_function -> stmt -> c_label option -> label_mapping
+val labels_loop_inv : established:bool -> stmt -> label_mapping
 val labels_loop_assigns : stmt -> label_mapping
-val labels_stmt_pre : stmt -> label_mapping
-val labels_stmt_post : stmt -> logic_label option -> label_mapping
-val labels_stmt_assigns : stmt -> logic_label option -> label_mapping
+val labels_stmt_pre : kf:kernel_function -> stmt -> label_mapping
+val labels_stmt_post : kf:kernel_function -> stmt -> c_label option -> label_mapping
+val labels_stmt_assigns : kf:kernel_function -> stmt -> c_label option -> label_mapping
 val labels_predicate : (logic_label * logic_label) list -> label_mapping
 val labels_axiom : label_mapping
 
 val preproc_annot : label_mapping -> predicate -> predicate
 
-val preproc_assigns :
-  label_mapping -> identified_term from list -> identified_term from list
+val preproc_assigns : label_mapping -> from list -> from list
 
-val preproc_label : label_mapping -> logic_label -> logic_label

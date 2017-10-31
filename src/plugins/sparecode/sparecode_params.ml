@@ -42,11 +42,10 @@ module Annot =
 
 module GlobDecl =
   False(struct
-          let option_name = "-rm-unused-globals"
-          let help = ("only remove unused global types and variables "^
-                       "(automatically done by -sparecode-analysis)")
-        end)
- 
+    let option_name = "-sparecode-rm-unused-globals"
+    let help = ("only remove unused global types and variables "^
+                "(automatically done by -sparecode-analysis)")
+  end)
 
 (*
 Local Variables:

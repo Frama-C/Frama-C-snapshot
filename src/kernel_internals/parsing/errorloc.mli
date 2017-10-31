@@ -75,9 +75,12 @@ val finishParsing: unit -> unit (** Call this function to finish parsing and
 
 
 (** prints the line identified by the position, together with [ctx] lines
-    of context before and after. [ctx] defaults to 2. *)
+    of context before and after. [ctx] defaults to 2.
+    If [start_line] is specified, then all lines between [start_line] and
+    [pos.pos_lnum] are considered part of the error.
+ *)
 val pp_context_from_file:
-  ?ctx:int -> Format.formatter -> Lexing.position -> unit
+  ?ctx:int -> ?start_line:int -> Format.formatter -> Lexing.position -> unit
 
 (** Parse errors are usually fatal, but their reporting is sometimes
     delayed until the end of the current parsing phase. Functions that

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/widen_hints.c (with preprocessing)
 [value:widen-hints] computing global widen hints
 tests/misc/widen_hints.c:71:[value:widen-hints] adding hint from annotation: a, {87} (for all statements)

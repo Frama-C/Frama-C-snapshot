@@ -321,16 +321,16 @@ let loc_to_offset ~result loc =
                  Some h, loc_offset_to_offset ~result o
              | Some _ -> error_lval()
           )
-      | Tat ({ term_node = TLval(TResult _,_)} as lv,LogicLabel (_,"Post")) ->
-          aux h lv.term_node
+      | Tat ({ term_node = TLval(TResult _,_)} as lv, BuiltinLabel Post) ->
+        aux h lv.term_node
       | Tunion locs -> List.fold_left
             (fun (b,l) x ->
                let (b,l') = aux b x.term_node in b, l @ l') (h,[]) locs
       | Tempty_set -> h,[]
-      | Trange _ | TAddrOf _
+      | Trange _ | TAddrOf _ | Tat _
       | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
       | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _
-      | Tat _ | Toffset _ | Tbase_addr _ | Tblock_length _ | Tnull
+      | Toffset _ | Tbase_addr _ | Tblock_length _ | Tnull
       | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
       | Ttypeof _ | Ttype _ | Tcomprehension _ | Tinter _ | Tlet _
       | TLogic_coerce _ 
@@ -571,13 +571,13 @@ struct
   let is_same_label absl l =
     match absl, l with
       | AbsLabel_stmt s1, StmtLabel s2 -> Cil_datatype.Stmt.equal s1 !s2
-      | AbsLabel_here, LogicLabel (_, "Here") -> true
-      | AbsLabel_pre, LogicLabel (_, "Pre") -> true
-      | AbsLabel_post, LogicLabel (_, "Post") -> true
-      | AbsLabel_init, LogicLabel (_, "Init") -> true
-      | AbsLabel_loop_entry, LogicLabel (_, "LoopEntry") -> true
-      | AbsLabel_loop_current, LogicLabel (_, "LoopCurrent") -> true
-      | _ -> false
+      | AbsLabel_here, BuiltinLabel Here -> true
+      | AbsLabel_pre, BuiltinLabel Pre -> true
+      | AbsLabel_post, BuiltinLabel Post -> true
+      | AbsLabel_init, BuiltinLabel Init -> true
+      | AbsLabel_loop_entry, BuiltinLabel LoopEntry -> true
+      | AbsLabel_loop_current, BuiltinLabel LoopCurrent -> true
+      | _, (StmtLabel _ | FormalLabel _ | BuiltinLabel _) -> false
 
 
   class populate_zone before_opt ki_opt kf =
@@ -725,17 +725,17 @@ to function contracts."
                       "[logic_interp] %a" Printer.pp_predicate_node p))
       in
       match p with
-      | Pat (_, LogicLabel (_,"Old")) -> self#change_label_to_old p
-      | Pat (_, LogicLabel (_,"Here")) -> self#change_label_to_here p
-      | Pat (_, LogicLabel (_,"Pre")) -> self#change_label_to_pre p
-      | Pat (_, LogicLabel (_,"Post")) -> self#change_label_to_post p
-      | Pat (_, LogicLabel (_,"Init")) ->
+      | Pat (_, BuiltinLabel Old) -> self#change_label_to_old p
+      | Pat (_, BuiltinLabel Here) -> self#change_label_to_here p
+      | Pat (_, BuiltinLabel Pre) -> self#change_label_to_pre p
+      | Pat (_, BuiltinLabel Post) -> self#change_label_to_post p
+      | Pat (_, BuiltinLabel Init) ->
         self#change_label_aux AbsLabel_init p
-      | Pat (_, LogicLabel (_,"LoopCurrent")) ->
+      | Pat (_, BuiltinLabel LoopCurrent) ->
         self#change_label_aux AbsLabel_loop_current p
-      | Pat (_, LogicLabel (_,"LoopEntry")) ->
+      | Pat (_, BuiltinLabel LoopEntry) ->
         self#change_label_aux AbsLabel_loop_entry p
-      | Pat (_, LogicLabel (_,s)) ->
+      | Pat (_, FormalLabel s) ->
         failwith ("unknown logic label" ^ s)
       | Pat (_, StmtLabel st) -> self#change_label_to_stmt !st p
       | Pfalse | Ptrue | Prel _ | Pand _ | Por _ | Pxor _ | Pimplies _
@@ -774,7 +774,7 @@ to function contracts."
         try
           let deps = !Db.From.find_deps_term_no_transitivity_state state t in
           (* TODO: what we should we do with other program points? *)
-          let z = Logic_label.Map.find (LogicLabel (None,"Here")) deps in
+          let z = Logic_label.Map.find (BuiltinLabel Here) deps in
           let z =
             Locations.Zone.filter_base
               (function Base.CLogic_Var _ -> false | _ -> true)
@@ -790,18 +790,18 @@ to function contracts."
           | TLval(TVar {lv_origin = Some _},_) | TStartOf _  ->
               self#do_term_lval t;
               SkipChildren
-          | Tat (_, LogicLabel (_,"Old")) -> self#change_label_to_old t
-          | Tat (_, LogicLabel (_,"Here")) -> self#change_label_to_here t
-          | Tat (_, LogicLabel (_,"Pre")) -> self#change_label_to_pre t
-          | Tat (_, LogicLabel (_,"Post")) -> self#change_label_to_post t
-          | Tat (_, LogicLabel (_,"Init")) ->
+          | Tat (_, BuiltinLabel Old) -> self#change_label_to_old t
+          | Tat (_, BuiltinLabel Here) -> self#change_label_to_here t
+          | Tat (_, BuiltinLabel Pre) -> self#change_label_to_pre t
+          | Tat (_, BuiltinLabel Post) -> self#change_label_to_post t
+          | Tat (_, BuiltinLabel Init) ->
             self#change_label_aux AbsLabel_init t
-          | Tat (_, LogicLabel (_,"LoopCurrent")) ->
+          | Tat (_, BuiltinLabel LoopCurrent) ->
             self#change_label_aux AbsLabel_loop_current t
-          | Tat (_, LogicLabel (_,"LoopEntry")) ->
+          | Tat (_, BuiltinLabel LoopEntry) ->
             self#change_label_aux AbsLabel_loop_entry t
           | Tat (_, StmtLabel st) -> self#change_label_to_stmt !st t
-          | Tat (_, LogicLabel (_,s)) ->
+          | Tat (_, FormalLabel s) ->
             failwith ("unknown logic label" ^ s)
           | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
             (* These are static constructors, there are no dependencies here *)

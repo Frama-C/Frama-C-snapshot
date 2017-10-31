@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
 tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
 [wp] Running WP plugin...
@@ -10,7 +9,7 @@ tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers fo
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/array_initialized.c, line 71):
-Let a = shift_A500_sint32(global(K_g_67), 0).
+Let a = global(K_g_18).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
@@ -26,8 +25,8 @@ Prove: Mint_0[shift_sint32(a, i)] = 0.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/array_initialized.c, line 185):
-Let a = shift_A500_sint32(global(K_h1_71), 0).
-Let a_1 = shift_A500_sint32(global(K_h2_72), 0).
+Let a = global(K_h1_22).
+Let a_1 = global(K_h2_23).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
@@ -254,13 +253,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/array_initialized.c, line 283):
-Let a = shift_A500_PTR(global(K_p_79), 0).
+Let a = global(K_p_30).
 Assume {
   (* Goal *)
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (Mptr_0[shift_PTR(a, i_1)] = global(G_p0_78)))).
+      (Mptr_0[shift_PTR(a, i_1)] = global(G_p0_29)))).
   (* Heap *)
   Have: framed(Mptr_0) /\ linked(Malloc_0).
 }
@@ -283,8 +282,8 @@ Assume {
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 49) ->
       (Mint_0[shift_sint32(t, i_1)] = x))).
   If 0 <= x
-  Then { Have: simpl_0 = 1. }
-  Else { Have: simpl_0 = 0. }
+  Then { (* Return *) Have: simpl_0 = 1. }
+  Else { (* Return *) Have: simpl_0 = 0. }
 }
 Prove: (0 <= Mint_0[shift_sint32(t, i)]) <-> (simpl_0 = 1).
 

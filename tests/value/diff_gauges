@@ -1,143 +1,140 @@
 diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_gauges/bitfield.res.oracle
-122a123,133
-> [value] Called Frama_C_show_each({{ garbled mix of &{b}
->                                  (origin: Misaligned {tests/value/bitfield.i:70}) }})
-> [value] Called Frama_C_show_each({{ garbled mix of &{b}
->                                  (origin: Misaligned {tests/value/bitfield.i:70}) }})
+115a116,126
+> tests/value/bitfield.i:75:[value] Frama_C_show_each:
+>         {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:74}) }}
+> tests/value/bitfield.i:77:[value] Frama_C_show_each:
+>         {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:74}) }}
 > [value] computing for function leaf <- imprecise_bts_1671 <- main.
->         Called from tests/value/bitfield.i:70.
+>         Called from tests/value/bitfield.i:74.
 > [value] Done for function leaf
-> [value] Called Frama_C_show_each({{ garbled mix of &{b}
->                                  (origin: Misaligned {tests/value/bitfield.i:70}) }})
-> [value] Called Frama_C_show_each({{ garbled mix of &{b}
->                                  (origin: Misaligned {tests/value/bitfield.i:70}) }})
+> tests/value/bitfield.i:75:[value] Frama_C_show_each:
+>         {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:74}) }}
+> tests/value/bitfield.i:77:[value] Frama_C_show_each:
+>         {{ garbled mix of &{b} (origin: Misaligned {tests/value/bitfield.i:74}) }}
 diff tests/value/oracle/for_loops.1.res.oracle tests/value/oracle_gauges/for_loops.1.res.oracle
-38,39c38
+37,38c37
 < tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each_F([0..2147483647])
+< tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..2147483647]
 ---
-> [value] Called Frama_C_show_each_F([0..100])
+> tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..100]
 diff tests/value/oracle/for_loops.2.res.oracle tests/value/oracle_gauges/for_loops.2.res.oracle
-33,34c33
+34,35c34
 < tests/value/for_loops.c:42:[value] warning: signed overflow. assert w + T[j] ≤ 2147483647;
-< [value] Called Frama_C_show_each([0..2147483647])
+< tests/value/for_loops.c:43:[value] Frama_C_show_each: [0..2147483647]
 ---
-> [value] Called Frama_C_show_each([0..1000])
-43c42
-<   w ∈ [0..2147483647]
----
->   w ∈ [0..1000]
+> tests/value/for_loops.c:43:[value] Frama_C_show_each: [0..1000]
 diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.oracle
-27d26
+26d25
 < tests/value/gauges.i:21:[value] warning: signed overflow. assert -2147483648 ≤ j - 4;
-32c31,32
+31c30,31
 < tests/value/gauges.i:24:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
 ---
-> [value] Called Frama_C_show_each_0({{ "in" }})
-> [value] Called Frama_C_show_each_1({{ "in" }})
-50a51,52
-> [value] Called Frama_C_show_each_0({{ "in" }})
-> [value] Called Frama_C_show_each_1({{ "in" }})
-56d57
+> tests/value/gauges.i:17:[value] Frama_C_show_each_0: {{ "in" }}
+> tests/value/gauges.i:19:[value] Frama_C_show_each_1: {{ "in" }}
+49a50,51
+> tests/value/gauges.i:39:[value] Frama_C_show_each_0: {{ "in" }}
+> tests/value/gauges.i:41:[value] Frama_C_show_each_1: {{ "in" }}
+55d56
 < tests/value/gauges.i:46:[value] warning: signed overflow. assert l + 1 ≤ 2147483647;
-68d68
+67d67
 < tests/value/gauges.i:56:[value] warning: accessing out of bounds index. assert j < 38;
-81,84d80
+80,83d79
 < tests/value/gauges.i:69:[value] warning: out of bounds write. assert \valid(tmp);
 <                                       (tmp from p++)
-< [value] Called Frama_C_show_each()
-< [value] Called Frama_C_show_each()
-97d92
+< tests/value/gauges.i:70:[value] Frama_C_show_each:
+< tests/value/gauges.i:70:[value] Frama_C_show_each:
+96d91
 < tests/value/gauges.i:79:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
-99d93
+98d92
 < tests/value/gauges.i:82:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;
-104c98,100
-< [value] Called Frama_C_show_each([0..2147483647])
+103c97,99
+< tests/value/gauges.i:84:[value] Frama_C_show_each: [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({{ "inner" }})
-> [value] Called Frama_C_show_each({{ "outer" }})
-> [value] Called Frama_C_show_each({390})
-118d113
+> tests/value/gauges.i:78:[value] Frama_C_show_each: {{ "inner" }}
+> tests/value/gauges.i:81:[value] Frama_C_show_each: {{ "outer" }}
+> tests/value/gauges.i:84:[value] Frama_C_show_each: {390}
+117d112
 < tests/value/gauges.i:97:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
-151,153c146,147
-< [value] Called Frama_C_show_each({{ &y + [4..36],0%4 }})
-< [value] Called Frama_C_show_each({{ &y + [4..40],0%4 }})
+149,151c144,145
+< tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + [4..36],0%4 }}
+< tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + [4..40],0%4 }}
 < tests/value/gauges.i:128:[value] warning: out of bounds write. assert \valid(p);
 ---
-> [value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16; 20; 24} }})
-> [value] Called Frama_C_show_each({{ &y + {4; 8; 12; 16; 20; 24} }})
-159d152
+> tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20; 24} }}
+> tests/value/gauges.i:127:[value] Frama_C_show_each: {{ &y + {4; 8; 12; 16; 20; 24} }}
+157d150
 < tests/value/gauges.i:138:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-176,177d168
+174,175d166
 < tests/value/gauges.i:156:[value] warning: out of bounds write. assert \valid(tmp);
 <                                       (tmp from p--)
-216,217d206
+214,215d204
 < tests/value/gauges.i:190:[value] warning: out of bounds write. assert \valid(p);
 < tests/value/gauges.i:191:[value] warning: out of bounds write. assert \valid(q);
-225,228d213
+223,226d211
 < tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp);
 <                                      (tmp from A++)
 < tests/value/gauges.i:200:[value] warning: out of bounds read. assert \valid_read(tmp_0);
 <                                      (tmp_0 from B++)
-266,267c251
+264,265c249
 < tests/value/gauges.i:238:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each({45; 46; 47; 48; 49; 50; 51}, [0..2147483647])
+< tests/value/gauges.i:240:[value] Frama_C_show_each: {45; 46; 47; 48; 49; 50; 51}, [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({47; 48}, {6})
-273,274c257
+> tests/value/gauges.i:240:[value] Frama_C_show_each: {47; 48}, {6}
+271,272c255
 < tests/value/gauges.i:249:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, [0..2147483647])
+< tests/value/gauges.i:252:[value] Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({48; 49; 50; 51; 52; 53; 54}, {6; 7})
-280,281c263
+> tests/value/gauges.i:252:[value] Frama_C_show_each: {48; 49; 50; 51; 52; 53; 54}, {6; 7}
+278,279c261
 < tests/value/gauges.i:261:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each({-59; -58; -57; -56; -55; -54; -53}, [0..2147483647])
+< tests/value/gauges.i:263:[value] Frama_C_show_each: {-59; -58; -57; -56; -55; -54; -53}, [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({-58; -57}, {9})
-287,288c269
+> tests/value/gauges.i:263:[value] Frama_C_show_each: {-58; -57}, {9}
+285,286c267
 < tests/value/gauges.i:272:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, [0..2147483647])
+< tests/value/gauges.i:274:[value] Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({-64; -63; -62; -61; -60; -59; -58}, {9; 10})
-296,298c277
+> tests/value/gauges.i:274:[value] Frama_C_show_each: {-64; -63; -62; -61; -60; -59; -58}, {9; 10}
+294,295c275
 < tests/value/gauges.i:291:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
-< [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588},
-<                                  [0..2147483647])
+< tests/value/gauges.i:295:[value] Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [0..2147483647]
 ---
-> [value] Called Frama_C_show_each({-593; -592; -591; -590; -589; -588}, [99..119])
-346a326,329
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
->                  V: [{[ p -> {{ &x }}
->                         i -> {1} ]}]
->                  s395: λ(0)
-389a373,376
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
->                  V: [{[ i -> {1} ]}]
->                  s395: λ([0 .. 1])
->                        {[ i -> {1} ]}
-432a420,423
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
->                  V: [{[ i -> {1} ]}]
->                  s395: λ([0 .. 2])
->                        {[ i -> {1} ]}
-475a467,470
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 304
->                  V: [{[ i -> {1} ]}]
->                  s395: λ([0 .. 10])
->                        {[ i -> {1} ]}
-525a521,525
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
->                  V: [{[ p -> {{ &a }}
->                         i -> {2} ]}]
->                  s409: λ(0)
->                  s408: λ(0)
-570a571,671
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
->                  V: [{[ i -> {2} ]}]
->                  s409: λ(0)
->                  s408: λ([0 .. 1])
->                        {[ i -> {0} ]}
-> [value] DUMPING STATE of file tests/value/gauges.i line 323
+> tests/value/gauges.i:295:[value] Frama_C_show_each: {-593; -592; -591; -590; -589; -588}, [99..119]
+343a324,327
+>         # Gauges domain:
+>         V: [{[ p -> {{ &x }}
+>                i -> {1} ]}]
+>         s395: λ(0)
+387a372,375
+>         # Gauges domain:
+>         V: [{[ i -> {1} ]}]
+>         s395: λ([0 .. 1])
+>               {[ i -> {1} ]}
+431a420,423
+>         # Gauges domain:
+>         V: [{[ i -> {1} ]}]
+>         s395: λ([0 .. 2])
+>               {[ i -> {1} ]}
+475a468,471
+>         # Gauges domain:
+>         V: [{[ i -> {1} ]}]
+>         s395: λ([0 .. 10])
+>               {[ i -> {1} ]}
+526a523,527
+>         # Gauges domain:
+>         V: [{[ p -> {{ &a }}
+>                i -> {2} ]}]
+>         s409: λ(0)
+>         s408: λ(0)
+572a574,676
+>         # Gauges domain:
+>         V: [{[ i -> {2} ]}]
+>         s409: λ(0)
+>         s408: λ([0 .. 1])
+>               {[ i -> {0} ]}
+>         ==END OF DUMP==
+> tests/value/gauges.i:323:[value] Frama_C_dump_each:
+>         # Cvalue domain:
 >         v ∈ [--..--]
 >         t[0..4] ∈ {0}
 >          [5] ∈ [0..48],0%3
@@ -179,13 +176,14 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >         b ∈ {0}
 >         p ∈ {{ &a ; &b }}
 >         i ∈ {2}
->         =END OF DUMP==
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
->                  V: [{[ i -> {2} ]}]
->                  s409: λ(0)
->                  s408: λ([0 .. 2])
->                        {[ i -> {0} ]}
-> [value] DUMPING STATE of file tests/value/gauges.i line 323
+>         # Gauges domain:
+>         V: [{[ i -> {2} ]}]
+>         s409: λ(0)
+>         s408: λ([0 .. 2])
+>               {[ i -> {0} ]}
+>         ==END OF DUMP==
+> tests/value/gauges.i:323:[value] Frama_C_dump_each:
+>         # Cvalue domain:
 >         v ∈ [--..--]
 >         t[0..4] ∈ {0}
 >          [5] ∈ [0..48],0%3
@@ -227,89 +225,68 @@ diff tests/value/oracle/gauges.res.oracle tests/value/oracle_gauges/gauges.res.o
 >         b ∈ {0}
 >         p ∈ {{ &a ; &b }}
 >         i ∈ {2}
->         =END OF DUMP==
-> [value:d-gauges] DUMPING GAUGES STATE of file tests/value/gauges.i line 323
->                  V: [{[ i -> {2} ]}]
->                  s409: λ(0)
->                  s408: λ([0 .. +oo])
->                        {[ i -> {0} ]}
-580c681
+>         # Gauges domain:
+>         V: [{[ i -> {2} ]}]
+>         s409: λ(0)
+>         s408: λ([0 .. +oo])
+>               {[ i -> {0} ]}
+583c687
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..53]
-585c686
+588c692
 <   l ∈ [4..2147483647]
 ---
 >   l ∈ [4..53]
-623,624c724,725
+626,627c730,731
 <   A ∈ {{ &A + [0..--],0%4 }}
 <   B ∈ {{ &B + [0..--],0%4 }}
 ---
 >   A ∈ {{ &A + [0..36],0%4 }}
 >   B ∈ {{ &B + [0..36],0%4 }}
-642,643c743,744
+645c749
 <   i ∈ {45; 46; 47; 48; 49; 50; 51}
-<   j ∈ [0..2147483647]
 ---
->   i ∈ {47; 48}
->   j ∈ {6}
-646c747
-<   j ∈ [0..2147483647]
----
->   j ∈ {6; 7}
-648,649c749,750
+>   i ∈ {45; 46; 47; 48}
+651c755
 <   i ∈ {-59; -58; -57; -56; -55; -54; -53}
-<   j ∈ [0..2147483647]
 ---
->   i ∈ {-58; -57}
->   j ∈ {9}
-652c753
-<   j ∈ [0..2147483647]
----
->   j ∈ {9; 10}
-658c759
-<   j ∈ [0..2147483647]
----
->   j ∈ [99..119]
-668c769
+>   i ∈ {-58; -57; -56; -55; -54; -53}
+671c775
 <   p ∈ {{ &u + [0..--],0%4 }}
 ---
 >   p ∈ {{ &u + [0..400],0%4 }}
-670c771
+673c777
 <   k ∈ [0..2147483647]
 ---
->   k ∈ {390}
-675c776
+>   k ∈ [0..390]
+678c782
 <   i ∈ [0..2147483647]
 ---
 >   i ∈ [0..21]
-686,687c787,789
+689,690c793,795
 <    [1..9] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 <   p ∈ {{ &y + [4..40],0%4 }}
 ---
 >    [1..6] ∈ {4; 5; 6; 7; 8; 9} or UNINITIALIZED
 >    [7..9] ∈ UNINITIALIZED
 >   p ∈ {{ &y[7] }}
-698c800
+701c806
 <   p ∈ {{ &T + [--..396],0%4 }}
 ---
 >   p ∈ {{ &T + [-4..396],0%4 }}
-826,827c928,929
+829,830c934,935
 <   p FROM p; A; B; n; p; A[0..9]; B[0..9] (and SELF)
 <   \result FROM p; A; B; n; p; A[0..9]; B[0..9]
 ---
 >   p FROM p; A; B; n; p; A[0..8]; B[0..8] (and SELF)
 >   \result FROM p; A; B; n; p; A[0..8]; B[0..8]
-899c1001
+902c1007
 <           p; A[0..9]; B[0..9]
 ---
 >           p; A[0..8]; B[0..8]
-965c1067
-<           x[0..2]; y[0..9]; p; i
----
->           x[0..2]; y[0..6]; p; i
 diff tests/value/oracle/infinite.res.oracle tests/value/oracle_gauges/infinite.res.oracle
-13a14,22
+12a13,21
 > [value] computing for function pause <- main.
 >         Called from tests/value/infinite.i:9.
 > [value] Done for function pause
@@ -320,276 +297,244 @@ diff tests/value/oracle/infinite.res.oracle tests/value/oracle_gauges/infinite.r
 >         Called from tests/value/infinite.i:9.
 > [value] Done for function pause
 diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_gauges/local_slevel.res.oracle
-14,16c14,16
-< [value] Called Frama_C_show_each({1}, {1}, {0; 1})
-< [value] Called Frama_C_show_each({-1}, {0}, {0; 1})
-< [value] Called Frama_C_show_each({1}, {1}, {0; 1; 2})
+13,15c13,15
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {0; 1}
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, {0}, {0; 1}
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {0; 1; 2}
 ---
-> [value] Called Frama_C_show_each({1}, {1}, {1})
-> [value] Called Frama_C_show_each({-1}, {0}, {0})
-> [value] Called Frama_C_show_each({1}, {1}, {1})
-18c18
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {1}
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, {0}, {0}
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {1}
+17c17
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3}
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3})
-20c20
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3; 4})
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3}
+19c19
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3; 4}
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3; 4})
-22,27c22,23
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483647])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483647])
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483648])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483648])
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..4294967295])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..4294967295])
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3; 4}
+21,26c21,22
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..2147483647]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483647]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..2147483648]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483648]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..4294967295]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
-> [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
-141c137
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [1..79]
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
+140c136
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
-382,384c378,380
-< [value] Called Frama_C_show_each({1}, {1}, {0; 1})
-< [value] Called Frama_C_show_each({-1}, {0}, {0; 1})
-< [value] Called Frama_C_show_each({1}, {1}, {0; 1; 2})
+381,383c377,379
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {0; 1}
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, {0}, {0; 1}
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {0; 1; 2}
 ---
-> [value] Called Frama_C_show_each({1}, {1}, {1})
-> [value] Called Frama_C_show_each({-1}, {0}, {0})
-> [value] Called Frama_C_show_each({1}, {1}, {1})
-386c382
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3})
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {1}
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, {0}, {0}
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {1}
+385c381
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3}
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3})
-388c384
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, {0; 1; 2; 3; 4})
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3}
+387c383
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {0; 1; 2; 3; 4}
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, {1; 2; 3; 4})
-390,395c386,387
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483647])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483647])
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..2147483648])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..2147483648])
-< [value] Called Frama_C_show_each({1}, [1..79],1%2, [0..4294967295])
-< [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..4294967295])
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, {1; 2; 3; 4}
+389,394c385,386
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..2147483647]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483647]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..2147483648]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..2147483648]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [0..4294967295]
+< tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..4294967295]
 ---
-> [value] Called Frama_C_show_each({1}, [1..79],1%2, [1..79])
-> [value] Called Frama_C_show_each({-1}, [0..78],0%2, [0..78])
-509c501
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, [1..79],1%2, [1..79]
+> tests/value/local_slevel.i:17:[value] Frama_C_show_each: {-1}, [0..78],0%2, [0..78]
+508c500
 <   r ∈ [--..--]
 ---
 >   r ∈ [0..2147483647]
 diff tests/value/oracle/loop_wvar.1.res.oracle tests/value/oracle_gauges/loop_wvar.1.res.oracle
-23,24c23
-< [value] Called Frama_C_show_each([0..9], [0..17], [0..11])
-< [value] Called Frama_C_show_each([0..9], [0..18], [0..12])
+22,23c22
+< tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], [0..17], [0..11]
+< tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], [0..18], [0..12]
 ---
-> [value] Called Frama_C_show_each([0..9], [0..9], [0..9])
-33,34c32,33
+> tests/value/loop_wvar.i:71:[value] Frama_C_show_each: [0..9], [0..9], [0..9]
+32,33c31,32
 <   j ∈ [0..18]
 <   k ∈ [0..12]
 ---
 >   j ∈ [0..17]
 >   k ∈ [0..11]
 diff tests/value/oracle/modulo.res.oracle tests/value/oracle_gauges/modulo.res.oracle
-39a40,111
-> [value] Called Frama_C_show_each_1([-10..-1], [-9..-1], [-8..0])
-> [value] Called Frama_C_show_each_1([-10..-1], [1..9], [-8..0])
-> [value] Called Frama_C_show_each_1([1..10], [-9..-1], [0..8])
-> [value] Called Frama_C_show_each_1([1..10], [1..9], [0..8])
-> [value] Called Frama_C_show_each_1([1..9],
->                                    {1; 2; 3; 4; 5; 6; 7; 8},
->                                    {0; 1; 2; 3; 4; 5; 6; 7})
-> [value] Called Frama_C_show_each_1([-9..-1],
->                                    {1; 2; 3; 4; 5; 6; 7; 8},
->                                    {-7; -6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1([1..9],
->                                    {-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5; 6; 7})
-> [value] Called Frama_C_show_each_1([-9..-1],
->                                    {-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {-7; -6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {-7; -6; -5; -4; -3; -2; -1},
->                                    {-6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5; 6; 7},
->                                    {-6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7; 8},
->                                    {-7; -6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5; 6})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7; 8},
->                                    {1; 2; 3; 4; 5; 6; 7},
->                                    {0; 1; 2; 3; 4; 5; 6})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7},
->                                    {1; 2; 3; 4; 5; 6},
->                                    {0; 1; 2; 3; 4; 5})
-> [value] Called Frama_C_show_each_1({-7; -6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5; 6},
->                                    {-5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6; 7},
->                                    {-6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5})
-> [value] Called Frama_C_show_each_1({-7; -6; -5; -4; -3; -2; -1},
->                                    {-6; -5; -4; -3; -2; -1},
->                                    {-5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({-6; -5; -4; -3; -2; -1},
->                                    {-5; -4; -3; -2; -1},
->                                    {-4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({-6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5},
->                                    {-4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6},
->                                    {-5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5; 6},
->                                    {1; 2; 3; 4; 5},
->                                    {0; 1; 2; 3; 4})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3})
-> [value] Called Frama_C_show_each_1({-5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4},
->                                    {-3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3})
-> [value] Called Frama_C_show_each_1({-5; -4; -3; -2; -1},
->                                    {-4; -3; -2; -1},
->                                    {-3; -2; -1; 0})
-> [value] Called Frama_C_show_each_1({-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0})
-> [value] Called Frama_C_show_each_1({-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2})
-> [value] Called Frama_C_show_each_1({1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2})
-> [value] Called Frama_C_show_each_1({1; 2; 3}, {1; 2}, {0; 1})
-> [value] Called Frama_C_show_each_1({-3; -2; -1}, {1; 2}, {-1; 0})
-> [value] Called Frama_C_show_each_1({1; 2; 3}, {-2; -1}, {0; 1})
-> [value] Called Frama_C_show_each_1({-3; -2; -1}, {-2; -1}, {-1; 0})
-> [value] Called Frama_C_show_each_1({-2; -1}, {-1}, {0})
-> [value] Called Frama_C_show_each_1({-2; -1}, {1}, {0})
-> [value] Called Frama_C_show_each_1({1; 2}, {-1}, {0})
-> [value] Called Frama_C_show_each_1({1; 2}, {1}, {0})
-47a120,191
-> [value] Called Frama_C_show_each_2([-10..-1], [1..9], [-8..0])
-> [value] Called Frama_C_show_each_2([-10..-1], [-9..-1], [-8..0])
-> [value] Called Frama_C_show_each_2([1..10], [1..9], [0..8])
-> [value] Called Frama_C_show_each_2([1..10], [-9..-1], [0..8])
-> [value] Called Frama_C_show_each_2([-9..-1],
->                                    {1; 2; 3; 4; 5; 6; 7; 8},
->                                    {-7; -6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2([1..9],
->                                    {1; 2; 3; 4; 5; 6; 7; 8},
->                                    {0; 1; 2; 3; 4; 5; 6; 7})
-> [value] Called Frama_C_show_each_2([-9..-1],
->                                    {-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {-7; -6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2([1..9],
->                                    {-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5; 6; 7})
-> [value] Called Frama_C_show_each_2({-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5; 6; 7},
->                                    {-6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({-8; -7; -6; -5; -4; -3; -2; -1},
->                                    {-7; -6; -5; -4; -3; -2; -1},
->                                    {-6; -5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7; 8},
->                                    {1; 2; 3; 4; 5; 6; 7},
->                                    {0; 1; 2; 3; 4; 5; 6})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7; 8},
->                                    {-7; -6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5; 6})
-> [value] Called Frama_C_show_each_2({-7; -6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5; 6},
->                                    {-5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7},
->                                    {1; 2; 3; 4; 5; 6},
->                                    {0; 1; 2; 3; 4; 5})
-> [value] Called Frama_C_show_each_2({-7; -6; -5; -4; -3; -2; -1},
->                                    {-6; -5; -4; -3; -2; -1},
->                                    {-5; -4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6; 7},
->                                    {-6; -5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4; 5})
-> [value] Called Frama_C_show_each_2({-6; -5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4; 5},
->                                    {-4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({-6; -5; -4; -3; -2; -1},
->                                    {-5; -4; -3; -2; -1},
->                                    {-4; -3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6},
->                                    {1; 2; 3; 4; 5},
->                                    {0; 1; 2; 3; 4})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5; 6},
->                                    {-5; -4; -3; -2; -1},
->                                    {0; 1; 2; 3; 4})
-> [value] Called Frama_C_show_each_2({-5; -4; -3; -2; -1},
->                                    {1; 2; 3; 4},
->                                    {-3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3})
-> [value] Called Frama_C_show_each_2({-5; -4; -3; -2; -1},
->                                    {-4; -3; -2; -1},
->                                    {-3; -2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3})
-> [value] Called Frama_C_show_each_2({-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0})
-> [value] Called Frama_C_show_each_2({-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2})
-> [value] Called Frama_C_show_each_2({1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2})
-> [value] Called Frama_C_show_each_2({-3; -2; -1}, {1; 2}, {-1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3}, {1; 2}, {0; 1})
-> [value] Called Frama_C_show_each_2({-3; -2; -1}, {-2; -1}, {-1; 0})
-> [value] Called Frama_C_show_each_2({1; 2; 3}, {-2; -1}, {0; 1})
-> [value] Called Frama_C_show_each_2({-2; -1}, {1}, {0})
-> [value] Called Frama_C_show_each_2({-2; -1}, {-1}, {0})
-> [value] Called Frama_C_show_each_2({1; 2}, {1}, {0})
-> [value] Called Frama_C_show_each_2({1; 2}, {-1}, {0})
-54a199,211
-> [value] Called Frama_C_show_each_3([-10..10], [-9..9], [-8..8])
-> [value] Called Frama_C_show_each_3([-9..9], [-8..8], [-7..7])
-> [value] Called Frama_C_show_each_3([-8..8], [-7..7], [-6..6])
-> [value] Called Frama_C_show_each_3([-7..7], [-6..6], [-5..5])
-> [value] Called Frama_C_show_each_3([-6..6], [-5..5], [-4..4])
-> [value] Called Frama_C_show_each_3([-5..5],
->                                    {-4; -3; -2; -1; 1; 2; 3; 4},
->                                    {-3; -2; -1; 0; 1; 2; 3})
-> [value] Called Frama_C_show_each_3({-4; -3; -2; -1; 1; 2; 3; 4},
->                                    {-3; -2; -1; 1; 2; 3},
->                                    {-2; -1; 0; 1; 2})
-> [value] Called Frama_C_show_each_3({-3; -2; -1; 1; 2; 3}, {-2; -1; 1; 2}, {-1; 0; 1})
-> [value] Called Frama_C_show_each_3({-2; -1; 1; 2}, {-1; 1}, {0})
+38a39,95
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: [-10..-1], [-9..-1], [-8..0]
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: [-10..-1], [1..9], [-8..0]
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [1..9], [0..8]
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-8; -7; -6; -5; -4; -3; -2; -1},
+>         {-7; -6; -5; -4; -3; -2; -1},
+>         {-6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-8; -7; -6; -5; -4; -3; -2; -1},
+>         {1; 2; 3; 4; 5; 6; 7},
+>         {-6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {1; 2; 3; 4; 5; 6; 7}, {1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4; 5}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-7; -6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {1; 2; 3; 4; 5; 6; 7}, {-6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-7; -6; -5; -4; -3; -2; -1},
+>         {-6; -5; -4; -3; -2; -1},
+>         {-5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-6; -5; -4; -3; -2; -1}, {-5; -4; -3; -2; -1}, {-4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {-6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5}, {-4; -3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1:
+>         {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-5; -4; -3; -2; -1}, {1; 2; 3; 4}, {-3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-5; -4; -3; -2; -1}, {-4; -3; -2; -1}, {-3; -2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3}, {1; 2}, {0; 1}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-3; -2; -1}, {1; 2}, {-1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2; 3}, {-2; -1}, {0; 1}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-3; -2; -1}, {-2; -1}, {-1; 0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-2; -1}, {-1}, {0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {-2; -1}, {1}, {0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2}, {-1}, {0}
+> tests/value/modulo.i:41:[value] Frama_C_show_each_1: {1; 2}, {1}, {0}
+46a104,160
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [1..9], [0..8]
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-8; -7; -6; -5; -4; -3; -2; -1},
+>         {1; 2; 3; 4; 5; 6; 7},
+>         {-6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-8; -7; -6; -5; -4; -3; -2; -1},
+>         {-7; -6; -5; -4; -3; -2; -1},
+>         {-6; -5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {1; 2; 3; 4; 5; 6; 7; 8}, {1; 2; 3; 4; 5; 6; 7}, {0; 1; 2; 3; 4; 5; 6}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-7; -6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {1; 2; 3; 4; 5; 6; 7}, {1; 2; 3; 4; 5; 6}, {0; 1; 2; 3; 4; 5}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-7; -6; -5; -4; -3; -2; -1},
+>         {-6; -5; -4; -3; -2; -1},
+>         {-5; -4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {1; 2; 3; 4; 5; 6; 7}, {-6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-6; -5; -4; -3; -2; -1}, {1; 2; 3; 4; 5}, {-4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {-6; -5; -4; -3; -2; -1}, {-5; -4; -3; -2; -1}, {-4; -3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3; 4; 5; 6}, {1; 2; 3; 4; 5}, {0; 1; 2; 3; 4}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2:
+>         {1; 2; 3; 4; 5; 6}, {-5; -4; -3; -2; -1}, {0; 1; 2; 3; 4}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-5; -4; -3; -2; -1}, {1; 2; 3; 4}, {-3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3; 4; 5}, {1; 2; 3; 4}, {0; 1; 2; 3}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-5; -4; -3; -2; -1}, {-4; -3; -2; -1}, {-3; -2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3; 4; 5}, {-4; -3; -2; -1}, {0; 1; 2; 3}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-4; -3; -2; -1}, {1; 2; 3}, {-2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-4; -3; -2; -1}, {-3; -2; -1}, {-2; -1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3; 4}, {1; 2; 3}, {0; 1; 2}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3; 4}, {-3; -2; -1}, {0; 1; 2}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-3; -2; -1}, {1; 2}, {-1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3}, {1; 2}, {0; 1}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-3; -2; -1}, {-2; -1}, {-1; 0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2; 3}, {-2; -1}, {0; 1}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-2; -1}, {1}, {0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {-2; -1}, {-1}, {0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2}, {1}, {0}
+> tests/value/modulo.i:53:[value] Frama_C_show_each_2: {1; 2}, {-1}, {0}
+53a168,178
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-8..8], [-7..7], [-6..6]
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-7..7], [-6..6], [-5..5]
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-6..6], [-5..5], [-4..4]
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3:
+>         [-5..5], {-4; -3; -2; -1; 1; 2; 3; 4}, {-3; -2; -1; 0; 1; 2; 3}
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3:
+>         {-4; -3; -2; -1; 1; 2; 3; 4}, {-3; -2; -1; 1; 2; 3}, {-2; -1; 0; 1; 2}
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: {-3; -2; -1; 1; 2; 3}, {-2; -1; 1; 2}, {-1; 0; 1}
+> tests/value/modulo.i:64:[value] Frama_C_show_each_3: {-2; -1; 1; 2}, {-1; 1}, {0}
 diff tests/value/oracle/precise_locations.res.oracle tests/value/oracle_gauges/precise_locations.res.oracle
 63a64,67
 > [value] computing for function ct <- main.
 >         Called from tests/value/precise_locations.i:39.
 > [value] Recording results for ct
 > [value] Done for function ct
-545a550,553
+532a537,540
 > [value] computing for function ct <- main.
 >         Called from tests/value/precise_locations.i:39.
 > [value] Recording results for ct
 > [value] Done for function ct
 diff tests/value/oracle/reevaluate_alarms.res.oracle tests/value/oracle_gauges/reevaluate_alarms.res.oracle
-14,15d13
+13,14d12
 < tests/value/reevaluate_alarms.i:14:[value] warning: out of bounds write. assert \valid(tmp);
 <                                       (tmp from p++)
-121,122d118
+120,121d117
 < [    -    ] Assertion 'Value,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
 <             tried with Value.
-141,142c137,138
+140,141c136,137
 <      4 To be validated
 <      4 Total
 ---
 >      3 To be validated
 >      3 Total
-178d173
+177d172
 < tests/value/reevaluate_alarms.i:14:[value] assertion 'Value,mem_access' got final status valid.
-267,268d261
+266,267d260
 < [  Valid  ] Assertion 'Value,mem_access' (file tests/value/reevaluate_alarms.i, line 14)
 <             by Value (v2).
-287,288c280,281
+286,287c279,280
 <      4 Completely validated
 <      4 Total
 ---
 >      3 Completely validated
 >      3 Total
 diff tests/value/oracle/semaphore.res.oracle tests/value/oracle_gauges/semaphore.res.oracle
-24a25,33
+23a24,32
 > [value] computing for function V <- g.
 >         Called from tests/value/semaphore.i:31.
 > [value] Done for function V
@@ -600,58 +545,49 @@ diff tests/value/oracle/semaphore.res.oracle tests/value/oracle_gauges/semaphore
 >         Called from tests/value/semaphore.i:31.
 > [value] Done for function V
 diff tests/value/oracle/unroll.res.oracle tests/value/oracle_gauges/unroll.res.oracle
-26c26
+25c25
 <   j ∈ [-2147483648..-123]
 ---
 >   j ∈ {-238}
 diff tests/value/oracle/unroll_simple.res.oracle tests/value/oracle_gauges/unroll_simple.res.oracle
-21c21
+20c20
 <   j ∈ [-2147483648..-126]
 ---
 >   j ∈ {-250}
 diff tests/value/oracle/va_list2.res.oracle tests/value/oracle_gauges/va_list2.res.oracle
-18a19,22
-> [value] Called Frama_C_show_each_i([-2147483648..2147483647])
-> [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
-> [value] Called Frama_C_show_each_i([-2147483648..2147483647])
-> [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
+17a18,21
+> tests/value/va_list2.c:12:[value] Frama_C_show_each_i: [-2147483648..2147483647]
+> tests/value/va_list2.c:17:[value] Frama_C_show_each_f: [-3.40282346639e+38 .. 3.40282346639e+38]
+> tests/value/va_list2.c:12:[value] Frama_C_show_each_i: [-2147483648..2147483647]
+> tests/value/va_list2.c:17:[value] Frama_C_show_each_f: [-3.40282346639e+38 .. 3.40282346639e+38]
 diff tests/value/oracle/widen_non_constant.res.oracle tests/value/oracle_gauges/widen_non_constant.res.oracle
-27c27
-< [value] Called Frama_C_show_each_in([0..23], [1..23])
+26c26
+< tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: [0..23], [1..23]
 ---
-> [value] Called Frama_C_show_each_in([0..22], [1..23])
-42c42
-< [value] Called Frama_C_show_each_in([0..25], [1..23])
+> tests/value/widen_non_constant.i:13:[value] Frama_C_show_each_in: [0..22], [1..23]
+41c41
+< tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: [0..25], [1..23]
 ---
-> [value] Called Frama_C_show_each_in({0; 1; 2}, [1..23])
-43a44
-> [value] Called Frama_C_show_each_in([0..22], [1..23])
-58,60c59
-< [value] Called Frama_C_show_each_in([0..2147483647], [1..23])
+> tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: {0; 1; 2}, [1..23]
+42a43
+> tests/value/widen_non_constant.i:29:[value] Frama_C_show_each_in: [0..22], [1..23]
+57,59c58
+< tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: [0..2147483647], [1..23]
 < tests/value/widen_non_constant.i:49:[value] warning: out of bounds read. assert \valid_read(p + j);
 < tests/value/widen_non_constant.i:45:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
 ---
-> [value] Called Frama_C_show_each_in({0; 1; 2}, [1..23])
-61a61
-> [value] Called Frama_C_show_each_in([0..22], [1..23])
-78c78
+> tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: {0; 1; 2}, [1..23]
+60a60
+> tests/value/widen_non_constant.i:48:[value] Frama_C_show_each_in: [0..22], [1..23]
+77c77
 <   j ∈ {23; 24}
 ---
 >   j ∈ {23}
-81c81
+80c80
 <   j ∈ {23; 24; 25; 26}
 ---
 >   j ∈ {23; 24; 25}
-132c132
-<           N; B[0..25]
----
->           N; B[0..23]
-144c144
-<           N; A[0..23]; B[0..25]; C[0..23]
----
->           N; A[0..23]; B[0..23]; C[0..23]
 diff tests/value/oracle/widen_on_non_monotonic.res.oracle tests/value/oracle_gauges/widen_on_non_monotonic.res.oracle
-22a23,25
-> tests/value/widen_on_non_monotonic.i:26:[value] entering loop for the first time
+22a23,24
 > tests/value/widen_on_non_monotonic.i:21:[value] entering loop for the first time
 > tests/value/widen_on_non_monotonic.i:18:[value] entering loop for the first time

@@ -20,11 +20,28 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let get_init_funcs main cg =
-  (* the entry point is always a root *)
-  let init_funcs = Kernel_function.Set.add main (Options.Init_func.get ()) in
-  (* Add the callees of entry point as roots *)
-  Cg.G.fold_succ Kernel_function.Set.add cg main init_funcs
+let initial_service_roots cg =
+  let roots = Options.Service_roots.get () in
+  let roots =
+    if Kernel_function.Set.is_empty roots then
+      (* if possible, use the main function as initial root *)
+      try Kernel_function.Set.singleton (fst (Globals.entry_point ()))
+      with Globals.No_such_entry_point _ ->
+        (* otherwise use every uncalled function *)
+        Cg.G.fold_vertex
+          (fun v set ->
+            if Cg.G.in_degree cg v = 0 then Kernel_function.Set.add v set
+            else set)
+          cg
+          Kernel_function.Set.empty
+    else
+      roots
+  in
+  (* Add the callees of initial roots as roots *)
+  Kernel_function.Set.fold
+    (fun v set -> Cg.G.fold_succ Kernel_function.Set.add cg v set)
+    roots
+    roots
 
 (* Intermediate module because of Ocaml:
    "The parameter cannot be eliminated in the result type.
@@ -44,10 +61,11 @@ module G_for_S = struct
 end
 
 module S = Service_graph.Make(G_for_S)
-
 module G = S.Service_graph
+
 module Graphviz_attributes = S.TP
 let entry_point = S.entry_point
+let is_root kf = (S.vertex kf).Service_graph.is_root
 
 module State =
   State_builder.Option_ref
@@ -63,22 +81,33 @@ let self = State.self
 
 let compute () =
   let cg = Cg.get () in
-  let init_funcs = get_init_funcs (fst (Globals.entry_point ())) cg in
-  let init_func_names =
+  let isr = initial_service_roots cg in
+  let isr_names =
     Kernel_function.Set.fold
       (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
-      init_funcs
+      isr
       Datatype.String.Set.empty
   in
-  let sg = S.compute cg init_func_names in
+  let sg = S.compute cg isr_names in
   State.mark_as_computed ();
   sg
 
 let get () = State.memo compute
 let compute () = ignore (compute ())
 
+module Subgraph =
+  Subgraph.Make
+    (G)
+    (S.Service_graph.Datatype)
+    (struct
+      let self = State.self
+      let name = State.name
+      let get = get
+      let vertex = S.vertex
+     end)
+
 let dump () =
-  let sg = get () in
+  let sg = Subgraph.get () in
   Service_graph.frama_c_display false;
   Options.dump S.output_graph sg
 
@@ -94,6 +123,6 @@ include Journalize.Make
 
 (*
 Local Variables:
-compile-command: "make -C ../.."
+compile-command: "make -C ../../.."
 End:
 *)

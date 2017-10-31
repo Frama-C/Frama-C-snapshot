@@ -90,7 +90,7 @@ let rec add_callee_nodes z acc nodes =
     initial zone that we are looking for, so that we do not look for more
     than it. *)
 (* BYTODO: maybe [undef] could be used instead of [z] altogether *)
-let rec add_caller_nodes z kf acc (undef, nodes) = 
+let rec add_caller_nodes z kf acc (undef, nodes) =
   let join_undef u u' = match u, u' with
     | _, None -> u
     | None, Some _ -> u'
@@ -119,7 +119,7 @@ let rec add_caller_nodes z kf acc (undef, nodes) =
                     acc_undef, NSet.add n acc
               | PdgIndex.Signature.InImpl z' ->
                   let z = Locations.Zone.narrow z z' in
-                  let nodes, undef'= !Db.Pdg.find_location_nodes_at_stmt 
+                  let nodes, undef'= !Db.Pdg.find_location_nodes_at_stmt
                                        pdg stmt ~before:true z
                   in
                   let acc_undef = join_undef acc_undef undef' in
@@ -131,7 +131,7 @@ let rec add_caller_nodes z kf acc (undef, nodes) =
   in
   let add_one_caller_nodes acc (kf, stmts) =
     let pdg = !Db.Pdg.get kf in
-    let acc_undef, caller_nodes = 
+    let acc_undef, caller_nodes =
       List.fold_left (add_one_call_nodes pdg) (None, NSet.empty) stmts
     in add_caller_nodes z kf (NSet.union caller_nodes acc) (acc_undef, caller_nodes)
   in List.fold_left add_one_caller_nodes acc (!Db.Value.callers kf)
@@ -145,7 +145,7 @@ let compute_aux kf stmt zone =
       !Db.Pdg.find_location_nodes_at_stmt pdg stmt ~before:true zone
     in
     let nodes = add_list_to_set (List.map fst nodes) NSet.empty  in
-    let nodes = 
+    let nodes =
       if Interproc.get () then
         begin
           let caller_nodes = add_caller_nodes zone kf nodes (undef, nodes) in
@@ -169,9 +169,7 @@ let compute kf stmt lval =
     (defs, undef)
   in
   !Db.Value.compute ();
-  let zone =
-    !Db.Value.lval_to_zone (Kstmt stmt) ~with_alarms:CilE.warn_none_mode lval
-  in
+  let zone = !Db.Value.lval_to_zone (Kstmt stmt) lval in
   Extlib.opt_map extract (compute_aux kf stmt zone)
 
 (* Variation of the function above. For each PDG node that has been found,
@@ -209,7 +207,7 @@ let compute_with_def_type_zone kf stmt zone =
                       change s (true, false)
                   | _ ->
                       (* defined within call to a function with a body*)
-                      change s (false, true)  
+                      change s (false, true)
               end
           )
         | PdgIndex.Key.SigKey _ -> acc
@@ -222,9 +220,7 @@ let compute_with_def_type_zone kf stmt zone =
 
 let compute_with_def_type kf stmt lval =
   !Db.Value.compute ();
-  let zone =
-    !Db.Value.lval_to_zone (Kstmt stmt) ~with_alarms:CilE.warn_none_mode lval
-  in
+  let zone = !Db.Value.lval_to_zone (Kstmt stmt) lval in
   compute_with_def_type_zone kf stmt zone
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -237,19 +233,14 @@ module DT = Datatype.Option
                 (Stmt.Map.Make(Datatype.Pair(Datatype.Bool)(Datatype.Bool)))
                 (Datatype.Option(Locations.Zone)))
 
-let () =
-  Db.register (* kernel_function -> stmt -> lval ->
-                   (Cil_datatype.Stmt.Hptset.t * Locations.Zone.t option) option *)
-    (Db.Journalize
-       ("Scope.get_defs",
-        Datatype.func3 Kernel_function.ty Stmt.ty Lval.ty (D.ty)))
-    Db.Scope.get_defs compute;
-  Db.register (* kernel_function -> stmt -> lval ->
-                    ((bool, bool) Cil_datatype.Stmt.Map.t *
-                     Locations.Zone.t option) option *)
-    (Db.Journalize
-       ("Scope.get_defs_with_type",
-        Datatype.func3 Kernel_function.ty Stmt.ty Lval.ty (DT.ty)))
-    Db.Scope.get_defs_with_type compute_with_def_type;
+let get_defs =
+  Journal.register
+    "Scope.Defs.get_defs"
+    (Datatype.func3 Kernel_function.ty Stmt.ty Lval.ty (D.ty))
+    compute
 
-
+let get_defs_with_type =
+  Journal.register
+    "Scope.Defs.get_defs_with_type"
+    (Datatype.func3 Kernel_function.ty Stmt.ty Lval.ty (DT.ty))
+    compute_with_def_type

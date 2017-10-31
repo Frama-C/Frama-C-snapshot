@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/all.c (with preprocessing)
 tests/spec/all.c:32:[kernel] warning: Inconsistent relation chain.
 tests/spec/all.c:50:[kernel] warning: Assignment operators not allowed in annotations.

@@ -480,25 +480,33 @@ let get_call_out_edges cfg v =
   | _, _ -> assert false
   in en, ee
 
+let get_edge_stmt e = 
+  match node_type (edge_dst e) with
+  | Vstart | VfctIn | Vexit | VfctOut -> None
+  | VblkIn (Bstmt s, _) | Vstmt s
+  | Vcall (s,_,_,_) | Vtest (true, s, _) | Vswitch (s,_) -> Some s
+  | Vloop (_,s) -> if is_back_edge e then None else Some s
+  | Vtest _ | VblkIn _ | VblkOut _ | Vend | Vloop2 _ -> None
+
 let get_edge_labels e =
   let v_after = edge_dst e in
   let l = match node_type v_after with
     | Vstart -> assert false
     | VfctIn -> []
-    | Vexit | VfctOut -> [Clabels.Post]
+    | Vexit | VfctOut -> [Clabels.post]
     | VblkIn (Bstmt s, _)
     | Vcall (s,_,_,_) | Vstmt s | Vtest (true, s, _) | Vswitch (s,_) ->
-        [Clabels.mk_stmt_label s]
+        [Clabels.stmt s]
     | Vloop (_,s) ->
         if is_back_edge e then []
-        else [Clabels.mk_stmt_label s]
+        else [Clabels.stmt s]
     | Vtest (false, _, _) | VblkIn _ | VblkOut _ | Vend -> []
     | Vloop2 _ -> []
   in
   let v_before =  edge_src e in
   match node_type v_before with
-  | VfctIn -> Clabels.Pre::l
-  | Vloop (_, s) -> (Clabels.mk_loop_label s)::l
+  | VfctIn -> Clabels.pre::l
+  | Vloop (_, s) -> (Clabels.loop_current s)::l
   | _ -> l
 
 let next_edge cfg n =
@@ -610,12 +618,13 @@ let rec get_edge_next_stmt cfg e =
       | Some s -> Some s
       | None -> get_next v_after
 
-let get_post_logic_label cfg v =
-  match get_post_edges cfg v with [] -> None
-                                | e::_ -> (* TODO: is this ok to consider only one edge ? *)
-                                    match get_edge_next_stmt cfg e with
-                                    | None -> None
-                                    | Some s ->  Some (Clabels.mk_logic_label s)
+let get_post_label cfg v =
+  match get_post_edges cfg v with
+    | [] -> None
+    | e::_ -> (* TODO: is this ok to consider only one edge ? *)
+        match get_edge_next_stmt cfg e with
+        | None -> None
+        | Some s -> Some (Clabels.stmt s)
 
 let blocks_closed_by_edge cfg e =
   debug "[blocks_closed_by_edge] for %a...@." pp_edge e;

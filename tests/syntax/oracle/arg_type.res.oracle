@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/arg_type.i (no preprocessing)
 tests/syntax/arg_type.i:15:[kernel] user error: Declaration of g does not match previous declaration from tests/syntax/arg_type.i:13 (different integer types:
                      'int' and 'short').

@@ -470,9 +470,9 @@ void test_assigns() {
   int a, b;
   int *p1, *p2, *p3;
 
-  p1 = f(&a, &b); // garbled_mix of &{a}
-  p2 = f(0, &b); // garbled_mix of &{b}
-  p3 = f(0, 0); // [0..+oo]
+  p1 = (int*)f(&a, &b); // garbled_mix of &{a}
+  p2 = (int*)f(0, &b); // garbled_mix of &{b}
+  p3 = (int*)f(0, 0); // [0..+oo]
 }
 
 char T[10];
@@ -602,7 +602,7 @@ void test_small6_bis() {
     ensures \result == 1;
   complete behaviors;
  */
-int f9(char* s, int n);
+int f9(char const* s, int n);
 
 void test_promote() {
   int x = nondet;

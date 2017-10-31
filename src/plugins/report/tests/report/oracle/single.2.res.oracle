@@ -1,11 +1,7 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/report/single.i (no preprocessing)
 [report] Computing properties status...
-
 --------------------------------------------------------------------------------
---- Status Report Summary
---------------------------------------------------------------------------------
-     0 Total
+--- No status to report
 --------------------------------------------------------------------------------
 [kernel] Test1 SET STATUS TO unknown
 [kernel] Test2 SET STATUS TO unknown

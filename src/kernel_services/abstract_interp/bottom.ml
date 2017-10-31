@@ -122,12 +122,6 @@ module Bound_Lattice
   let bottom = `Bottom
   let join = join Lattice.join
   let is_included = is_included Lattice.is_included
-  let join_and_is_included a b = match a, b with
-    | `Bottom, _ -> b, true
-    | _, `Bottom -> a, false
-    | `Value a, `Value b ->
-        let joined, is_included = Lattice.join_and_is_included a b in
-        `Value joined, is_included
 end
 
 

@@ -62,9 +62,10 @@ class browser ?on_cluster f cluster =
   end
 
 let browse f s =
-  let main = Definitions.cluster ~id:"browser" () in
-  let visitor = new browser f main in
-  visitor#vterm (Tactical.selected s)
+  if Model.is_model_defined () then
+    let main = Definitions.cluster ~id:"browser" () in
+    let visitor = new browser f main in
+    visitor#vterm (Tactical.selected s)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Search Lemma Tactical                                              --- *)

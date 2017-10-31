@@ -56,7 +56,7 @@ module type RemoveInfo = sig
 
   val fun_frees_visible : fct -> identified_term -> bool
   val fun_allocates_visible : fct -> identified_term -> bool
-  val fun_assign_visible : fct -> identified_term from -> bool
+  val fun_assign_visible : fct -> from -> bool
   val fun_deps_visible : fct -> identified_term -> bool
 
   val called_info : (proj * fct) -> stmt ->
@@ -363,6 +363,17 @@ end = struct
         with Not_found ->
           Cil.SkipChildren
       else Cil.SkipChildren (*copy has already been done by default visitor*)
+
+    method! vexpr e =
+      (* We may be creating entirely new expressions through the specialization
+         mechanism. When not performing a basic copy, refresh the ids. *)
+      let do_post e' =
+        if Cil_datatype.ExpStructEq.equal e e' then
+          e'
+        else
+          Cil.new_exp ~loc:e.eloc e'.enode
+      in
+      DoChildrenPost do_post
 
     (*method vvdec _ = SkipChildren (* everything is done elsewhere *)*)
 

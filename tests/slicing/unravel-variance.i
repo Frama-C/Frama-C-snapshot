@@ -31,7 +31,7 @@ main()
          scanf ("%d", &n);
          for ( i = 0 ; i < n ; i = i + 1)
          {
-           scanf ("%f", &x[i]);
+           scanf ("%f", (int*)&x[i]);
            t1 = t1 + x[i];
            ssq = ssq + x[i] * x[i];
           }

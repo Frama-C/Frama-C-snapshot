@@ -101,8 +101,7 @@ val is_out_of_state_exp: state -> location -> Cil_types.exp
     @since Neon-20140301 adds kf argument
  *)
 val aorai_assigns:
-  Data_for_aorai.state ->
-  Cil_types.location -> Cil_types.identified_term Cil_types.assigns
+  Data_for_aorai.state -> Cil_types.location -> Cil_types.assigns
 
 (** returns the list of predicates expressing that for each current state
     the automaton currently is in, there is at least one transition that is

@@ -95,22 +95,14 @@ module V = struct
       | Map _ -> is_topint v || is_bottom v || is_zero v
 
   let contains_zero loc =
-    try
-      let is_valid_offset base offset =
-        match base with
-          Base.Null ->
-            if Ival.contains_zero offset then raise Base.Not_valid_offset
-        | _ ->
-            let bits_offset = Ival.scale (Bit_utils.sizeofchar()) offset in
-            Base.is_valid_offset ~for_writing:false Int.zero base bits_offset
-      in
-      match loc with
-      | Location_Bytes.Top _ -> true
-      | Location_Bytes.Map m ->
-          Location_Bytes.M.iter is_valid_offset m;
-          false
-    with
-    | Base.Not_valid_offset -> true
+    let offset_contains_zero base offset =
+      if Base.is_null base
+      then Ival.contains_zero offset
+      else
+        let bits_offset = Ival.scale (Bit_utils.sizeofchar()) offset in
+        not (Base.is_valid_offset ~for_writing:false Int.zero base bits_offset)
+    in
+    Location_Bytes.exists offset_contains_zero loc
 
   let contains_non_zero v =
     not ((equal v bottom) || (is_zero v))
@@ -448,7 +440,7 @@ module V = struct
     if ok_garbled && integer_part' == integer_part then
       v (* both pointer and integer part are unchanged *), true
     else
-      join (inject_ival integer_part') pointer_part', ok_garbled
+      join (inject_ival integer_part') pointer_part', false
 
  let cast_float_to_int ~signed ~size v =
    try
@@ -652,6 +644,11 @@ module V = struct
       else topify_with_origin_kind topify v
     | Integer.Too_big -> top_int
 
+  let restrict_topint_to_size value size =
+    if is_topint value
+    then inject_ival (Ival.create_all_values ~signed:false ~size)
+    else value
+
   let big_endian_merge_bits ~topify ~conflate_bottom ~total_length ~length ~value ~offset acc =
     if is_bottom acc || is_bottom value
     then begin
@@ -666,6 +663,7 @@ module V = struct
     else
       let total_length_i = Int.of_int total_length in
       let factor = Int.sub (Int.sub total_length_i offset) length in
+      let value = restrict_topint_to_size value (Integer.to_int length) in
       let value' = shift_left_by_integer ~topify factor value in
       let result = add_untyped ~topify ~factor:Int_Base.one value' acc in
 (*    Format.printf "big_endian_merge_bits : total_length:%d length:%a value:%a offset:%a acc:%a GOT:%a@."
@@ -677,7 +675,7 @@ module V = struct
       pretty result; *)
     result
 
-  let little_endian_merge_bits ~topify ~conflate_bottom ~value ~offset acc =
+  let little_endian_merge_bits ~topify ~conflate_bottom ~length ~value ~offset acc =
     if is_bottom acc || is_bottom value
     then begin
         if conflate_bottom
@@ -689,6 +687,7 @@ module V = struct
             (topify_with_origin_kind topify value)
       end
     else
+      let value = restrict_topint_to_size value (Integer.to_int length) in
       let value' = shift_left_by_integer ~topify offset value in
       let result = add_untyped ~topify ~factor:Int_Base.one value' acc in
     (*Format.printf "le merge_bits : total_length:%d value:%a offset:%a acc:%a GOT:%a@."
@@ -828,9 +827,6 @@ module V_Or_Uninitialized = struct
     (lnot flags2) lor flags1 = -1 &&
         V.is_included (get_v t1) (get_v t2)
 
-  let join_and_is_included t1 t2 =
-    let t12 = join t1 t2 in (t12, equal t12 t2)
-
   let pretty_aux pp fmt t =
     let no_escaping_adr = is_noesc t in
     let initialized = is_initialized t in
@@ -911,11 +907,11 @@ module V_Or_Uninitialized = struct
     inform_extract_pointer_bits,
     create (get_flags t) v
 
-  let little_endian_merge_bits ~topify ~conflate_bottom ~value ~offset t =
+  let little_endian_merge_bits ~topify ~conflate_bottom ~length ~value ~offset t =
     create
       ((get_flags t) land (get_flags value))
       (V.little_endian_merge_bits ~topify ~conflate_bottom
-          ~value:(get_v value) ~offset
+          ~length ~value:(get_v value) ~offset
           (get_v t))
 
   let big_endian_merge_bits ~topify ~conflate_bottom ~total_length ~length ~value ~offset t =
@@ -954,21 +950,17 @@ module V_Or_Uninitialized = struct
     in
     removed, t'
 
-  let reduce_by_initializedness init v = match init, v with
-    | true, C_uninit_esc v -> C_init_esc v
-    | true, C_uninit_noesc v -> C_init_noesc v
-    | true, (C_init_esc _ | C_init_noesc _) -> v
-    | false, (C_init_esc _ | C_init_noesc _) -> bottom
-    | false, C_uninit_noesc _ -> C_uninit_noesc V.bottom
-    | false, C_uninit_esc _ -> C_uninit_esc V.bottom
+  let reduce_by_initializedness pos v =
+    if pos then
+      meet v (C_init_esc V.top)
+    else
+      meet v (C_uninit_noesc V.bottom)
 
-  let reduce_by_danglingness spec v = match spec, v with
-    | false, C_uninit_esc v -> C_uninit_noesc v
-    | false, C_init_esc v -> C_init_noesc v
-    | false, (C_uninit_noesc _ | C_init_noesc _) -> v
-    | true, (C_uninit_noesc _ | C_init_noesc _) -> bottom
-    | true, C_uninit_esc _ -> C_uninit_esc V.bottom
-    | true, C_init_esc _ -> C_init_esc V.bottom
+  let reduce_by_danglingness pos v =
+    if pos then
+      narrow v (C_init_esc V.bottom)
+    else
+      narrow v (C_uninit_noesc V.top)
 
   let remove_indeterminateness = function
     | C_init_noesc _ as v -> v
@@ -1069,7 +1061,7 @@ module Default_offsetmap = struct
       | `Value size -> `Value (V_Offsetmap.create_isotropic ~size v)
     in
     match base with
-    | Base.Allocated (_, validity) ->
+    | Base.Allocated (_, _, validity) ->
       aux validity V_Or_Uninitialized.bottom
     | Base.Var (_, validity) | Base.CLogic_Var (_, _, validity) ->
       aux validity V_Or_Uninitialized.uninitialized

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/some.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -12,7 +11,8 @@
 [value] Semantic level unrolling superposing up to 30 states
 [value] Semantic level unrolling superposing up to 40 states
 [value] Semantic level unrolling superposing up to 50 states
-[value] DUMPING STATE of file tests/float/some.c line 16
+tests/float/some.c:16:[value] Frama_C_dump_each:
+        # Cvalue domain:
         t[0] ∈ {1.0000000000000000}
          [1] ∈ {1.5000000000000000}
          [2] ∈ {1.7500000000000000}
@@ -69,7 +69,7 @@
          [53..54] ∈ {2.0000000000000000}
         y ∈ {1.0000000000000000*2^-55}
         i ∈ {55}
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

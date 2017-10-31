@@ -47,8 +47,21 @@ void main3() {  // Widening is completely inactivated on this example
   }
 }
 
+/* The result of the widening should be reduced by the loop invariant,
+   but the loop invariant must have an unknown status if it still does not hold
+   in the reduced state —here due to the missing backward propagation on the
+   multiplication. Change the invariant for a more complicated one when this
+   propagator is implemented. */
+void main4 () {
+  int a = 9;
+  int x = 0;
+ /*@ loop invariant x<10 && x*x<10; */
+  while(x < a) x++;
+}
+
 void main(int c) {
   main1(c);
   if (c) main2();
   main3();
+  main4();
 }

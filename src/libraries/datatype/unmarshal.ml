@@ -36,8 +36,11 @@
 
 (* caml_unmarshal by Ineffable Casters *)
 
-(* Version 3.11.2.0 *)
-
+(* Version big-marshal.
+   Patch by TrustInSoft. See
+   - https://github.com/ocaml/ocaml/pull/224
+   - https://github.com/TrustInSoft/tis-interpreter/blob/master/src/libraries/datatype/unmarshal.ml
+*)
 
 (* Warning:
 
@@ -61,8 +64,6 @@ and structure =
 let arch_sixtyfour = Sys.word_size = 64;;
 let arch_bigendian = (Obj.magic [| 0x00002600 |] : string).[1] <> 'L';;
 let arch_float_endianness = (Obj.magic 1.23530711838574823e-307 : string).[1];;
-
-let intext_magic_number = "\x84\x95\xA6\xBE";;
 
 let ill_formed reason =
   let msg = "input_value: ill-formed message" in
@@ -146,6 +147,8 @@ let readheader32 ch =
   let c2 = Char.code (input_char ch) in
   let c1 = Char.code (input_char ch) in
   let c0 = Char.code (input_char ch) in
+  (* fst: read32u masked by 0xFF
+     snd: read32u shifted right by 10 (Wosize_hd) *)
   (c0, (c1 lsr 2) lor (c2 lsl 6) lor (c3 lsl 14))
 ;;
 
@@ -160,8 +163,10 @@ let readheader64 =
       let c2 = Char.code (input_char ch) in
       let c1 = Char.code (input_char ch) in
       let c0 = Char.code (input_char ch) in
-      (c0, (c1 lsr 2) lor (c2 lsr 6) lor (c3 lsr 14) lor (c4 lsr 22)
-           lor (c5 lsr 30) lor (c6 lsr 38) lor (c7 lsr 46))
+      (* fst: read64u masked by 0xFF
+         snd: read64u shifted right by 10 (Wosize_hd) *)
+      (c0, (c1 lsr 2) lor (c2 lsl 6) lor (c3 lsl 14) lor (c4 lsl 22)
+           lor (c5 lsl 30) lor (c6 lsl 38) lor (c7 lsl 46))
   end else begin
     fun _ -> failwith "input_value: data block too large"
   end
@@ -228,10 +233,14 @@ let (code_area_start, cksum) =
 ;;
 *)
 
-let check_const ch s msg =
-  for i = 0 to String.length s - 1 do
-    if input_char ch <> s.[i] then failwith msg;
-  done
+let check_const ch s =
+  try
+    for i = 0 to String.length s - 1 do
+      if input_char ch <> s.[i] then raise Exit
+    done;
+    false
+  with Exit -> true
+
 ;;
 
 (* Auxiliary functions for handling Custom blocks. *)
@@ -341,13 +350,36 @@ let rec get_structure t context =
   | Dynamic _ -> assert false
 ;;
 
+(* let intext_magic_number_small = "\x84\x95\xA6\xBE";;
+let intext_magic_number_big = "\x84\x95\xA6\xBF";;
+*)
+
 let input_val ch t =
   set_binary_mode_in ch true;
-  check_const ch intext_magic_number "input_value: bad object";
-  let _block_len = getword ch in
-  let num_objects = read32u ch in
-  let _size_32 = getword ch in
-  let _size_64 = getword ch in
+  let num_objects =
+    if check_const ch "\x84\x95\xA6"
+    then failwith "input_value: bad object";
+    let last_char = input_char ch in
+    match last_char with
+    | '\xBF' ->
+      (* See
+         https://github.com/ocaml/ocaml/blob/c065a0995c0a18fcc2430977dbc887766b6ffe45/byterun/extern.c#L626
+         https://github.com/ocaml/ocaml/blob/e2d0a13165b31cb06d4a7bdba3847198b32e1bd4/byterun/caml/intext.h#L43 *)
+      if check_const ch "\x00\x00\x00\x00"
+      then failwith "input_value: bad object (reserved bytes should be 0)";
+      ignore (read64s ch); (* block_len *)
+      let n = read64u ch in
+      ignore (read64s ch); (* size_64 *)
+      n
+    | '\xBE' ->
+      ignore (getword ch); (* block_len *)
+      let n = read32u ch in
+      ignore (getword ch); (* size_32 *)
+      ignore (getword ch); (* size_64 *)
+      n
+    | _ ->
+      failwith "input_value: bad object"
+  in
   let tbl = LA.make num_objects null in
   let patch = LA.make num_objects [] in
 
@@ -384,6 +416,9 @@ let input_val ch t =
       | 0x06 (* CODE_SHARED32 *) ->
           let ofs = read32u ch in
           read_shared stk ofs
+      | 0x14 (* CODE_SHARED64 *) ->
+          let ofs = read64u ch in
+          read_shared stk ofs
 
       | 0x08 (* CODE_BLOCK32 *) ->
           let (tag, size) = readheader32 ch in
@@ -397,6 +432,9 @@ let input_val ch t =
           read_string stk t len
       | 0x0A (* CODE_STRING32 *) ->
           let len = read32u ch in
+          read_string stk t len
+      | 0x15 (* CODE_STRING64 *) ->
+          let len = read64u ch in
           read_string stk t len
 
       | 0x0C (* CODE_DOUBLE_LITTLE *) ->
@@ -414,6 +452,12 @@ let input_val ch t =
           read_double_array stk t len readfloat_little
       | 0x0F (* CODE_DOUBLE_ARRAY32_BIG *) ->
           let len = read32u ch in
+          read_double_array stk t len readfloat_big
+      | 0x17 (* CODE_DOUBLE_ARRAY64_LITTLE *) ->
+          let len = read64u ch in
+          read_double_array stk t len readfloat_little
+      | 0x16 (* CODE_DOUBLE_ARRAY64_BIG *) ->
+          let len = read64u ch in
           read_double_array stk t len readfloat_big
 
       | 0x10 (* CODE_CODEPOINTER *) ->

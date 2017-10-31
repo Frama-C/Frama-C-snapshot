@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/loop.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -11,12 +10,12 @@
   r ∈ {0}
   G ∈ {0}
 tests/value/loop.i:7:[value] entering loop for the first time
-[value] Called Frama_C_show_each_F({0})
-[value] Called Frama_C_show_each_F({0; 2})
-[value] Called Frama_C_show_each_F({0; 2; 4})
-[value] Called Frama_C_show_each_F([0..48],0%2)
-[value] Called Frama_C_show_each_F([0..48],0%2)
-[value] Called Frama_C_show_each_F([0..48],0%2)
+tests/value/loop.i:8:[value] Frama_C_show_each_F: {0}
+tests/value/loop.i:8:[value] Frama_C_show_each_F: {0; 2}
+tests/value/loop.i:8:[value] Frama_C_show_each_F: {0; 2; 4}
+tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
+tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
+tests/value/loop.i:8:[value] Frama_C_show_each_F: [0..48],0%2
 tests/value/loop.i:9:[value] warning: signed overflow. assert i_0 + r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main

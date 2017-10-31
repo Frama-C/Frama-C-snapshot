@@ -33,14 +33,11 @@ module Cfg (W : Mcfg.S) = struct
   (** Before storing something at a program point, we have to process the label
    * at that point. *)
   let do_labels wenv e obj =
-    let do_lab o l =
-      debug "[do_label] process %a@." Clabels.pretty l;
-      W.label wenv l o
-    in
-    let obj = do_lab obj Clabels.Here in
+    let do_lab s o l = W.label wenv s l o in
+    let obj = do_lab None obj Clabels.here in
+    let stmt = Cil2cfg.get_edge_stmt e in
     let labels = Cil2cfg.get_edge_labels e in
-    let obj = List.fold_left do_lab obj labels in
-    obj
+    List.fold_left (do_lab stmt) obj labels
 
   let add_hyp wenv obj h =
     debug "add hyp %a@." WpPropId.pp_pred_info h;
@@ -80,12 +77,12 @@ module Cfg (W : Mcfg.S) = struct
     | WpPropId.AssignsLocations (h_id, a) ->
         let hid = Some h_id in
         let obj = W.use_assigns wenv a.WpPropId.a_stmt hid a obj in
-        Some (Clabels.c_label a.WpPropId.a_label), obj
+        Some a.WpPropId.a_label, obj
     | WpPropId.AssignsAny a ->
         Wp_parameters.warning ~current:true ~once:true
           "Missing assigns clause (assigns 'everything' instead)" ;
         let obj = W.use_assigns wenv a.WpPropId.a_stmt None a obj in
-        Some (Clabels.c_label a.WpPropId.a_label), obj
+        Some a.WpPropId.a_label, obj
     | WpPropId.NoAssignsInfo -> None, obj
 
   (** detect if the computation of the result at [edge] is possible,
@@ -620,7 +617,7 @@ module Cfg (W : Mcfg.S) = struct
           let oblig = W.loop_step oblig in
           if test_edge_loop_ok cfg None e
           then R.add_memo res e oblig
-          else R.add_oblig res Clabels.Pre (W.close wenv oblig);
+          else R.add_oblig res Clabels.pre (W.close wenv oblig);
           edge_annot
 
   and get_only_succ env cfg v = match Cil2cfg.succ_e cfg v with
@@ -735,7 +732,7 @@ module Cfg (W : Mcfg.S) = struct
   let process_global_init wenv kf obj =
     if WpStrategy.is_main_init kf then
       begin
-        let obj = W.label wenv Clabels.Init obj in
+        let obj = W.label wenv None Clabels.init obj in
         compute_global_init wenv `All obj
       end
     else if W.has_init wenv then
@@ -744,7 +741,7 @@ module Cfg (W : Mcfg.S) = struct
           if WpStrategy.isInitConst ()
           then process_global_const wenv obj else obj in
         let obj = W.use_assigns wenv None None WpPropId.mk_init_assigns obj in
-        let obj = W.label wenv Clabels.Init obj in
+        let obj = W.label wenv None Clabels.init obj in
         compute_global_init wenv `All obj
       end
     else

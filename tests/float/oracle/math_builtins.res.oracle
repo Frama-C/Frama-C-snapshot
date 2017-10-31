@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/math_builtins.c (with preprocessing)
 tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is not represented exactly. Will use 0x1.7333333333333p2. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
@@ -127,12 +126,13 @@ tests/float/math_builtins.c:117:[value] warning: builtin Frama_C_pow: out-of-ran
         Called from tests/float/math_builtins.c:120.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] Called Frama_C_show_each_i([0.0000000000000000 .. 1.0000000000000000*2^-1000])
+tests/float/math_builtins.c:122:[value] Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-1000]
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
         Called from tests/float/math_builtins.c:123.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] Called Frama_C_show_each_j([0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330])
+tests/float/math_builtins.c:125:[value] Frama_C_show_each_j:
+        [0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330]
 [value] computing for function double_interval <- test_pow_singleton_exp <- main.
         Called from tests/float/math_builtins.c:132.
 [value] Recording results for double_interval
@@ -620,12 +620,12 @@ tests/float/math_builtins.c:250:[value] warning: builtin Frama_C_powf: out-of-ra
         Called from tests/float/math_builtins.c:253.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] Called Frama_C_show_each_i([0.0000000000000000 .. 1.0000000000000000*2^-120])
+tests/float/math_builtins.c:255:[value] Frama_C_show_each_i: [0.0000000000000000 .. 1.0000000000000000*2^-120]
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
         Called from tests/float/math_builtins.c:256.
 [value] Recording results for double_interval
 [value] Done for function double_interval
-[value] Called Frama_C_show_each_j({0})
+tests/float/math_builtins.c:258:[value] Frama_C_show_each_j: {0}
 [value] computing for function double_interval <- test_powf_singleton_exp <- main.
         Called from tests/float/math_builtins.c:265.
 [value] Recording results for double_interval

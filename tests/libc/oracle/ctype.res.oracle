@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/libc/ctype.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -7,7 +6,7 @@
   __fc_errno ∈ [--..--]
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..511] ∈ {0}
+  __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]

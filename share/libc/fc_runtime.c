@@ -24,6 +24,7 @@
 #include "assert.c"
 #include "ctype.c"
 #include "errno.c"
+#include "fenv.c"
 #include "getopt.c"
 #include "inttypes.c"
 #include "locale.c"

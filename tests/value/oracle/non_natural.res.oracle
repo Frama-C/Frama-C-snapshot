@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/non_natural.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -8,11 +7,11 @@
 [value] computing for function main1 <- main.
         Called from tests/value/non_natural.i:63.
 tests/value/non_natural.i:13:[kernel] warning: Non-natural loop detected.
-[value] Called Frama_C_show_each({0})
-[value] Called Frama_C_show_each({0; 1})
-[value] Called Frama_C_show_each({0; 1; 2})
-[value] Called Frama_C_show_each({0; 1; 2; 3})
-[value] Called Frama_C_show_each([0..999999])
+tests/value/non_natural.i:11:[value] Frama_C_show_each: {0}
+tests/value/non_natural.i:11:[value] Frama_C_show_each: {0; 1}
+tests/value/non_natural.i:11:[value] Frama_C_show_each: {0; 1; 2}
+tests/value/non_natural.i:11:[value] Frama_C_show_each: {0; 1; 2; 3}
+tests/value/non_natural.i:11:[value] Frama_C_show_each: [0..999999]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
@@ -21,7 +20,7 @@ tests/value/non_natural.i:13:[kernel] warning: Non-natural loop detected.
         Called from tests/value/non_natural.i:57.
 tests/value/non_natural.i:21:[kernel] warning: Non-natural loop detected.
 tests/value/non_natural.i:21:[value] entering loop for the first time
-[value] Called Frama_C_show_each({{ &p2 }})
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 }}
 tests/value/non_natural.i:23:[value] warning: accessing uninitialized left-value.
                  assert \initialized(tmp_0);
                  (tmp_0 from from++)
@@ -46,11 +45,11 @@ tests/value/non_natural.i:29:[value] warning: accessing uninitialized left-value
 tests/value/non_natural.i:30:[value] warning: accessing uninitialized left-value.
                  assert \initialized(tmp_14);
                  (tmp_14 from from++)
-[value] Called Frama_C_show_each({{ &p2 + {0; 32} }})
-[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64} }})
-[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96} }})
-[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96; 128} }})
-[value] Called Frama_C_show_each({{ &p2 + [0..399968],0%32 }})
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + {0; 32} }}
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + {0; 32; 64; 96} }}
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + {0; 32; 64; 96; 128} }}
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + [0..399968],0%32 }}
 tests/value/non_natural.i:23:[kernel] more than 200(12500) locations to update in array. Approximating.
 tests/value/non_natural.i:24:[kernel] more than 200(12500) locations to update in array. Approximating.
 tests/value/non_natural.i:25:[value] warning: out of bounds read. assert \valid_read(tmp_4);
@@ -71,7 +70,7 @@ tests/value/non_natural.i:29:[kernel] more than 200(12500) locations to update i
 tests/value/non_natural.i:30:[value] warning: out of bounds read. assert \valid_read(tmp_14);
                                      (tmp_14 from from++)
 tests/value/non_natural.i:30:[kernel] more than 200(12500) locations to update in array. Approximating.
-[value] Called Frama_C_show_each({{ &p2 + [0..400000],0%32 }})
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
 tests/value/non_natural.i:23:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from to++)
 tests/value/non_natural.i:23:[value] warning: out of bounds read. assert \valid_read(tmp_0);
@@ -92,7 +91,7 @@ tests/value/non_natural.i:29:[value] warning: out of bounds write. assert \valid
                                       (tmp_11 from to++)
 tests/value/non_natural.i:30:[value] warning: out of bounds write. assert \valid(tmp_13);
                                       (tmp_13 from to++)
-[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+tests/value/non_natural.i:22:[value] Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
 [value] Recording results for duff1
 tests/value/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
 tests/value/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
@@ -110,7 +109,7 @@ tests/value/non_natural.i:58:[value] warning: accessing out of bounds index. ass
 [value] computing for function duff2 <- main2 <- main.
         Called from tests/value/non_natural.i:59.
 tests/value/non_natural.i:38:[kernel] warning: Non-natural loop detected.
-[value] Called Frama_C_show_each({{ &p2 }})
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 }}
 tests/value/non_natural.i:39:[value] warning: accessing uninitialized left-value.
                  assert \initialized(tmp_0);
                  (tmp_0 from from++)
@@ -135,9 +134,9 @@ tests/value/non_natural.i:45:[value] warning: accessing uninitialized left-value
 tests/value/non_natural.i:46:[value] warning: accessing uninitialized left-value.
                  assert \initialized(tmp_14);
                  (tmp_14 from from++)
-[value] Called Frama_C_show_each({{ &p2 + {0; 32} }})
-[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64} }})
-[value] Called Frama_C_show_each({{ &p2 + [0..399968],0%32 }})
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 + {0; 32} }}
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 + {0; 32; 64} }}
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 + [0..399968],0%32 }}
 tests/value/non_natural.i:39:[kernel] more than 200(12500) locations to update in array. Approximating.
 tests/value/non_natural.i:40:[kernel] more than 200(12500) locations to update in array. Approximating.
 tests/value/non_natural.i:41:[value] warning: out of bounds read. assert \valid_read(tmp_4);
@@ -158,7 +157,7 @@ tests/value/non_natural.i:45:[kernel] more than 200(12500) locations to update i
 tests/value/non_natural.i:46:[value] warning: out of bounds read. assert \valid_read(tmp_14);
                                      (tmp_14 from from++)
 tests/value/non_natural.i:46:[kernel] more than 200(12500) locations to update in array. Approximating.
-[value] Called Frama_C_show_each({{ &p2 + [0..400000],0%32 }})
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 + [0..400000],0%32 }}
 tests/value/non_natural.i:39:[value] warning: out of bounds write. assert \valid(tmp);
                                       (tmp from to++)
 tests/value/non_natural.i:39:[value] warning: out of bounds read. assert \valid_read(tmp_0);
@@ -179,7 +178,7 @@ tests/value/non_natural.i:45:[value] warning: out of bounds write. assert \valid
                                       (tmp_11 from to++)
 tests/value/non_natural.i:46:[value] warning: out of bounds write. assert \valid(tmp_13);
                                       (tmp_13 from to++)
-[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+tests/value/non_natural.i:38:[value] Frama_C_show_each: {{ &p2 + [0..--],0%32 }}
 [value] Recording results for duff2
 [value] Done for function duff2
 [value] Recording results for main2

@@ -279,7 +279,8 @@ let pretty_extern_vars fmt s =
   Pretty_utils.pp_iter ~pre:"@[" ~suf:"@]" ~sep:";@ "
     VInfoSet.iter Printer.pp_varinfo fmt s
 
-let is_in_libc attrs = Cil.hasAttribute "fc_stdlib" attrs
+let is_in_libc attrs = Cil.hasAttribute "fc_stdlib" attrs ||
+                       Cil.hasAttribute "fc_stdlib_generated" attrs
 
 let is_entry_point vinfo times_called =
   times_called = 0 && not vinfo.vaddrof && not (is_in_libc vinfo.vattr)

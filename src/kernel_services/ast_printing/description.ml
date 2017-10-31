@@ -75,7 +75,7 @@ let pp_allocation kloc fmt (allocation:identified_term list) =
       | _ ->
 	  Format.fprintf fmt "'%s'" (String.concat "," names)
 
-let pp_region kloc fmt (region:identified_term from list) =
+let pp_region kloc fmt (region:from list) =
   if region = [] then Format.fprintf fmt "nothing"
   else
     let names = 

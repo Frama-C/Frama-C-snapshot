@@ -51,7 +51,7 @@ let alphaSeparatorLen = String.length alphaSeparator
 (** For each prefix we remember the next integer suffix to use and the list 
  * of suffixes, each with some data associated with the newAlphaName that 
  * created the suffix. *)
-type 'a alphaTableData = Big_int.big_int * (string * 'a) list
+type 'a alphaTableData = Integer.t * (string * 'a) list
 
 type 'a undoAlphaElement = 
     AlphaChangedSuffix of 'a alphaTableData ref * 'a alphaTableData (* The 
@@ -88,12 +88,12 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
                      ?undolist
                      ~(lookupname: string) ~(data:'a)
                      (make_new: bool) : string * 'a = 
-  let prefix, suffix, (numsuffix: Big_int.big_int) =
+  let prefix, suffix, (numsuffix: Integer.t) =
     splitNameForAlpha ~lookupname
   in
   if debugAlpha prefix then
     (Kernel.debug "Alpha worker: prefix=%s suffix=%s (%s) create=%b. " 
-              prefix suffix (Big_int.string_of_big_int numsuffix) make_new);
+              prefix suffix (Integer.to_string numsuffix) make_new);
   let newname, (olddata: 'a) = 
     try
       let rc = H.find alphaTable prefix in
@@ -101,7 +101,7 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
       (* We have seen this prefix *)
       if debugAlpha prefix then
         Kernel.debug " Old max %s. Old suffixes: @[%a@]" 
-	  (Big_int.string_of_big_int max)
+          (Integer.to_string max)
           (Pretty_utils.pp_list (fun fmt (s,_) -> Format.fprintf fmt "%s" s)) suffixes ;
       (* Save the undo info *)
       (match undolist with 
@@ -109,7 +109,7 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
       | _ -> ());
 
       let newmax, newsuffix, (olddata: 'a), newsuffixes = 
-        if Big_int.gt_big_int numsuffix max then begin 
+        if Integer.gt numsuffix max then begin
           (* Clearly we have not seen it *)
           numsuffix, suffix, data,
           (suffix, data) :: suffixes 
@@ -121,9 +121,9 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
               (* We have seen this exact suffix before *)
               if make_new then 
                 let newsuffix = 
-                  alphaSeparator ^ (Big_int.string_of_big_int (Big_int.succ_big_int max )) 
+                  alphaSeparator ^ (Integer.to_string (Integer.succ max))
                 in
-               Big_int.succ_big_int max, newsuffix, l, (newsuffix, data) :: suffixes
+               Integer.succ max, newsuffix, l, (newsuffix, data) :: suffixes
               else
                 max, suffix, data, suffixes
           |  _ -> (Kernel.fatal "Cil.alphaWorker")
@@ -147,7 +147,7 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
 (* Strip the suffix. Return the prefix, the suffix (including the separator 
  * and the numeric value, possibly empty), and the 
  * numeric value of the suffix (possibly -1 if missing) *) 
-and splitNameForAlpha ~(lookupname: string) : (string * string * Big_int.big_int) = 
+and splitNameForAlpha ~(lookupname: string) : (string * string * Integer.t) = 
   let len = String.length lookupname in
   (* Search backward for the numeric suffix. Return the first digit of the 
    * suffix. Returns len if no numeric suffix *)
@@ -169,12 +169,12 @@ and splitNameForAlpha ~(lookupname: string) : (string * string * Big_int.big_int
                                  (startSuffix - alphaSeparatorLen)  
                                  alphaSeparatorLen 
   then
-    (lookupname, "", (Big_int.minus_big_int Big_int.unit_big_int))  (* No valid suffix in the name *)
+    (lookupname, "", Integer.minus_one)  (* No valid suffix in the name *)
   else
     (String.sub lookupname 0 (startSuffix - alphaSeparatorLen), 
      String.sub lookupname (startSuffix - alphaSeparatorLen) 
                            (len - startSuffix + alphaSeparatorLen),
-     Big_int.big_int_of_string (String.sub lookupname startSuffix (len - startSuffix)))
+     Integer.of_string (String.sub lookupname startSuffix (len - startSuffix)))
     
 
 let getAlphaPrefix ~(lookupname:string) : string = 
@@ -199,6 +199,6 @@ let docAlphaTable fmt (alphaTable: (string, 'a alphaTableData ref) H.t) =
   H.iter (fun k d -> acc := (k, !d) :: !acc) alphaTable;
   Pretty_utils.pp_list ~sep:"@\n" 
     (fun fmt (k, (d, _)) -> 
-       Format.fprintf fmt "  %s -> %s" k (Big_int.string_of_big_int d))
+       Format.fprintf fmt "  %s -> %s" k (Integer.to_string d))
     fmt !acc
 

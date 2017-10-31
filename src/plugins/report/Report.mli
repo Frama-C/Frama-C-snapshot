@@ -20,5 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-
-(** No function is directly exported: they are registered in {!Db.Report}. *)
+(* Pretty prints a report about the status of all properties.
+   @since Sulfur-20171101 *)
+module Register : sig
+  val print : unit -> unit
+end

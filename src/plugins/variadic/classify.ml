@@ -82,9 +82,28 @@ let mk_aggregator env fun_name a_pos pname a_type =
         (* In case of failure return Misc (apply generic translation) *)
       with Exit -> Misc
 
-let mk_format_fun ~buffer ?(additional=[]) ~format f_kind =
-  FormatFun { f_kind; f_buffer = buffer ; f_format_pos = format ;
-  f_additional_args = additional; }
+let mk_format_fun vi f_kind f_buffer ~format_pos =
+  let buffer_arguments = match f_buffer with
+    | StdIO | Syslog -> []
+    | File i | Stream i | Arg (i, None) -> [i]
+    | Arg (i, Some j) -> [i ; j]
+  in
+  let expected_args = buffer_arguments @ [ format_pos ] in
+  let n_expected_args = (List.fold_left max (-1) expected_args) + 1
+  and n_actual_args = List.length (Typ.params vi.vtype) in
+  if n_actual_args < n_expected_args then
+  begin
+    Self.warning ~current:true
+      "The standard function %s was expected to have at least %d fixed \
+       parameters but only has %d.@ \
+       No variadic translation will be performed."
+      vi.vname
+      n_expected_args
+      n_actual_args;
+    Misc
+  end
+  else
+    FormatFun { f_kind ; f_buffer ; f_format_pos = format_pos }
 
 
 (* ************************************************************************ *)
@@ -107,25 +126,28 @@ let classify_std env vi = match vi.vname with
   | "syscall" -> Misc
 
   (* stdio.h *)
-  | "fprintf"  -> mk_format_fun ~buffer:(Stream 0) ~format:1 PrintfLike
-  | "printf"   -> mk_format_fun ~buffer:(StdIO) ~format:0 PrintfLike
-  | "sprintf"  -> mk_format_fun ~buffer:(Arg 0) ~format:1 PrintfLike
-  | "snprintf" -> mk_format_fun ~buffer:(Arg 0) ~additional:[1] ~format:2 PrintfLike
-  | "dprintf"  -> mk_format_fun ~buffer:(File 0) ~format:1 PrintfLike
-  | "fscanf"   -> mk_format_fun ~buffer:(Stream 0) ~format:1 ScanfLike
-  | "scanf"    -> mk_format_fun ~buffer:(StdIO) ~format:0 ScanfLike
-  | "sscanf"   -> mk_format_fun ~buffer:(Arg 0) ~format:1 ScanfLike
+  | "fprintf"  -> mk_format_fun vi PrintfLike ~format_pos:1 (Stream 0)
+  | "printf"   -> mk_format_fun vi PrintfLike ~format_pos:0 (StdIO)
+  | "sprintf"  -> mk_format_fun vi PrintfLike ~format_pos:1 (Arg (0, None))
+  | "snprintf" -> mk_format_fun vi PrintfLike ~format_pos:2 (Arg (0, Some 1))
+  | "dprintf"  -> mk_format_fun vi PrintfLike ~format_pos:1 (File 0)
+  | "fscanf"   -> mk_format_fun vi ScanfLike  ~format_pos:1 (Stream 0)
+  | "scanf"    -> mk_format_fun vi ScanfLike  ~format_pos:0 (StdIO)
+  | "sscanf"   -> mk_format_fun vi ScanfLike  ~format_pos:1 (Arg (0, None))
 
   (* syslog.h *)
-  | "syslog"   -> mk_format_fun ~buffer:(Syslog) ~format:1 PrintfLike
+  | "syslog"   -> mk_format_fun vi PrintfLike ~format_pos:1 (Syslog)
 
   (* wchar.h *)
-  | "fwprintf" -> mk_format_fun ~buffer:(Stream 0) ~format:1 PrintfLike
-  | "swprintf" -> mk_format_fun ~buffer:(Arg 0) ~format:1 PrintfLike
-  | "wprintf"  -> mk_format_fun ~buffer:(StdIO) ~format:0 PrintfLike
-  | "fwscanf"  -> mk_format_fun ~buffer:(Stream 0) ~format:1 ScanfLike
-  | "swscanf"  -> mk_format_fun ~buffer:(StdIO) ~format:0 ScanfLike
-  | "wscanf"   -> mk_format_fun ~buffer:(Arg 0) ~format:1 ScanfLike
+  | "fwprintf" -> mk_format_fun vi PrintfLike ~format_pos:1 (Stream 0)
+  | "swprintf" -> mk_format_fun vi PrintfLike ~format_pos:2 (Arg (0, Some 1))
+  | "wprintf"  -> mk_format_fun vi PrintfLike ~format_pos:0 (StdIO)
+  | "fwscanf"  -> mk_format_fun vi ScanfLike  ~format_pos:1 (Stream 0)
+  | "swscanf"  -> mk_format_fun vi ScanfLike  ~format_pos:1 (Arg (0, None))
+  | "wscanf"   -> mk_format_fun vi ScanfLike  ~format_pos:0 (StdIO)
+
+  (* stropts.h *)
+  | "ioctl"   -> mk_overload env ["__va_ioctl_void" ; "__va_ioctl_ptr"]
 
   (* Anything else *)
   | _ -> Unknown

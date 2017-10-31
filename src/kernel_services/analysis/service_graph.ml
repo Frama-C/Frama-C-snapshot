@@ -30,9 +30,10 @@ module type S = sig
   type node
   type graph
   module Service_graph: sig
-    include Graph.Sig.G with type V.t = node vertex and type E.label = edge
+    include Graph.Sig.I with type V.t = node vertex and type E.label = edge
     module Datatype: Datatype.S with type t = t
   end
+  val vertex: node -> node vertex
   val compute: graph -> Datatype.String.Set.t -> Service_graph.t
   val output_graph: out_channel -> Service_graph.t -> unit
   val entry_point: unit -> Service_graph.V.t option
@@ -116,6 +117,10 @@ struct
     let replace = HVertex.replace vertices
     let clear () = HVertex.clear vertices
   end
+  let vertex n =
+    try fst (Vertices.find n)
+    with Not_found ->
+      Kernel.fatal "[service_graph] node %s not found" (G.V.name n)
 
   let edge_invariant src dst = function
     | Inter_functions ->
@@ -277,13 +282,13 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
 
   let compute g initial_roots =
     entry_point_ref := None;
+    Vertices.clear ();
     let module Go = Graph.Topological.Make(G) in
     let callg = Service_graph.create () in
     Go.iter (make_vertex g callg initial_roots) g;
     Go.iter (update_vertex g) g;
     add_edges g callg;
     check_invariant callg;
-    Vertices.clear ();
     callg
 
   let entry_point () = !entry_point_ref

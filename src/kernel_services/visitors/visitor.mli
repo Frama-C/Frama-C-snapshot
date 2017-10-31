@@ -184,17 +184,13 @@ val visitFramacAnnotation:
 val visitFramacCodeAnnotation:
   frama_c_visitor -> code_annotation -> code_annotation
 
-val visitFramacAllocation:
-  frama_c_visitor -> identified_term allocation -> identified_term allocation
+val visitFramacAllocation: frama_c_visitor -> allocation -> allocation
 
-val visitFramacAssigns:
-  frama_c_visitor -> identified_term assigns -> identified_term assigns
+val visitFramacAssigns: frama_c_visitor -> assigns -> assigns
 
-val visitFramacFrom:
-  frama_c_visitor -> identified_term from -> identified_term from
+val visitFramacFrom: frama_c_visitor -> from -> from
 
-val visitFramacDeps:
-  frama_c_visitor -> identified_term deps -> identified_term deps
+val visitFramacDeps: frama_c_visitor -> deps -> deps
 
 val visitFramacFunspec: frama_c_visitor -> funspec -> funspec
 

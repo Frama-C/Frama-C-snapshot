@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/core.i (no preprocessing)
 tests/wp_usage/core.i:11:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
@@ -13,7 +12,11 @@ tests/wp_usage/core.i:17:[wp] warning: Missing assigns clause (assigns 'everythi
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_usage/core.i, line 12) in 'f':
-Let x_1 = 1 + x. Assume { Type: is_sint32(x) /\ is_sint32(x_1). }
+Let x_1 = 1 + x.
+Assume {
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(c) /\ is_sint32(x) /\
+      is_sint32(x_1).
+}
 Prove: P_OBS(x, x_1).
 
 ------------------------------------------------------------

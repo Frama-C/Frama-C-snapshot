@@ -2,14 +2,14 @@
 #define _INCLUDE_conf1
 
 /*
-spécification de l'opérateur CONF1
+spÃ©cification de l'opÃ©rateur CONF1
 
 _E1 : BOOLEAN
 _S1 : BOOLEAN
 
 Calcul :
-_S1 = TRUE si la durée de l'état TRUE sur _E1 est >= Time et tant que _E1 = TRUE
-_S1 = FALSE si la durée de l'état TRUE sur _E1 est < Time ou si _E1 = FALSE
+_S1 = TRUE si la durÃ©e de l'Ã©tat TRUE sur _E1 est >= Time et tant que _E1 = TRUE
+_S1 = FALSE si la durÃ©e de l'Ã©tat TRUE sur _E1 est < Time ou si _E1 = FALSE
 
 Initialisation :
 _S1 = FALSE

@@ -286,57 +286,6 @@ let register_locking_machinery ?(lock_last=false) ~lock ~unlock () =
     Unlock.extend false unlock
   end
 
-exception Found of string * string
-let splitting_for_utf8 s =
-  let idx = ref 0 in
-  let buggy_string = "(* not a valid utf8 string *)" in
-  let len = String.length s in
-  try
-    try
-      for i = 1 to 6 do
-        idx := i;
-        if len = i then raise Exit;
-        let pre = String.sub s 0 (len - i) in
-        let suf = String.sub s (len - i) i in
-        if Glib.Utf8.validate pre then raise (Found (pre, suf))
-      done;
-      buggy_string, ""
-    with Exit ->
-      buggy_string, ""
-  with Found(pre, suf) ->
-    pre, suf
-
-let channel_redirector channel callback =
-  let cout,cin = Unix.pipe () in
-  Unix.dup2 cin channel ;
-  let channel = Glib.Io.channel_of_descr cout in
-  let len = 80 in
-  let current_partial = ref "" in
-  let buf = Bytes.create len in
-  ignore (Glib.Io.add_watch channel ~prio:0 ~cond:[`IN; `HUP; `ERR] ~callback:
-            begin fun cond ->
-              try if List.mem `IN cond then begin
-                  (* On Windows, you must use Io.read *)
-                  (* buf' is added only to work around the suspicious type of
-                     Glib.Io.read *)
-                  let buf' = Bytes.to_string buf in
-                  let len = Glib.Io.read channel ~buf:buf' ~pos:0 ~len in
-                  let buf = Bytes.of_string buf' in
-                  len >= 1 &&
-                  (let full_string = !current_partial ^ Bytes.sub_string buf 0 len in
-                   let to_emit, c = splitting_for_utf8 full_string in
-                   current_partial := c;
-                   callback to_emit)
-                end
-                else false
-              with e ->
-                ignore
-                  (callback
-                     ("Channel redirector got an exception: "
-                      ^ (Printexc.to_string e)));
-                false
-            end)
-
 let log_redirector ?(flush=fun () -> ()) emit_string =
   let output s offset length = emit_string (String.sub s offset length) in
   Log.set_output ~isatty:false output flush
@@ -696,6 +645,59 @@ struct
     cview#set_cell_data_func renderer (m_renderer renderer);
     cview
 end
+
+(* NOTE: this code has been copied from lablgtk's gToolbox.ml to
+   allow binding the behavior of "keypad enter" to the "return" key *)
+let input_widget ~widget ~event ~get_text ~bind_ok ~expand
+    ~title ?(ok="Ok") ?(cancel="Cancel") message =
+  let retour = ref None in
+  let window = GWindow.dialog ~title ~modal:true () in
+  ignore (window#connect#destroy ~callback: GMain.Main.quit);
+  let main_box = window#vbox in
+  let hbox_boutons = window#action_area in
+  let vbox_saisie = GPack.vbox ~packing: (main_box#pack ~expand: true) () in
+  ignore (GMisc.label ~text:message ~packing:(vbox_saisie#pack ~padding:3) ());
+  vbox_saisie#pack widget ~expand ~padding: 3;
+  let wb_ok = GButton.button ~label: ok
+      ~packing: (hbox_boutons#pack ~expand: true ~padding: 3) () in
+  wb_ok#grab_default ();
+  let wb_cancel = GButton.button ~label: cancel
+      ~packing: (hbox_boutons#pack ~expand: true ~padding: 3) () in
+  let f_ok () =
+    retour := Some (get_text ()) ;
+    window#destroy ()
+  in
+  let f_cancel () =
+    retour := None;
+    window#destroy ()
+  in
+  ignore (wb_ok#connect#clicked f_ok);
+  ignore (wb_cancel#connect#clicked f_cancel);
+  (* the enter key is linked to the ok action *)
+  (* the escape key is linked to the cancel action *)
+  ignore (event#connect#key_press ~callback:
+    begin fun ev ->
+      if (GdkEvent.Key.keyval ev = GdkKeysyms._Return ||
+          GdkEvent.Key.keyval ev = GdkKeysyms._KP_Enter) && bind_ok
+      then f_ok ();
+      if GdkEvent.Key.keyval ev = GdkKeysyms._Escape then f_cancel ();
+      false
+    end);
+  widget#misc#grab_focus ();
+  window#show ();
+  GMain.Main.main ();
+  !retour
+
+(* NOTE: this code has been copied from lablgtk's gToolbox.ml to
+   allow binding the behavior of "keypad enter" to the "return" key *)
+let input_string ~title ?ok ?cancel ?(text="") message =
+  let we_chaine = GEdit.entry ~text () in
+  if text <> "" then
+    we_chaine#select_region 0 (we_chaine#text_length);
+  input_widget ~widget:we_chaine#coerce ~event:we_chaine#event
+    ~get_text:(fun () -> we_chaine#text) ~bind_ok:true
+    ~expand: false
+    ~title ?ok ?cancel message
 
 (* ************************************************************************** *)
 (** {2 Error manager} *)

@@ -61,14 +61,6 @@ union f2 {
   int data[3];
 } f2 = { { 1 } };
 
-void gcc_zero_length_examples() {
-  union foo { int x; int y[]; };
-  //union bar c = { { 1, { } } }; // error: cannot create init of empty union
-  union f1 {
-    int x; int y[];
-  } f1;
-}
-
 int main() {
   int k;
   union empty e1, e2;
@@ -98,8 +90,6 @@ int main() {
   //e2 = many_empty[2];
   e1 = array_of_comp[0].e;
   char *pc = empty_init_array;
-
-  gcc_zero_length_examples();
 
   return 0;
 }

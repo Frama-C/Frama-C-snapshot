@@ -45,8 +45,10 @@ module Make_Dataflow
     (Domain : Abstract_domain.External)
     (States : Powerset.S with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t)
+    (Init: Initialization.S with type state := Domain.state)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
+    (Spec: sig val treat_statement_assigns: assigns -> Domain.t -> Domain.t end)
     (AnalysisParam : sig
        val kf: kernel_function
        val call_kinstr: kinstr
@@ -54,14 +56,12 @@ module Make_Dataflow
      end)
 = struct
 
-  let with_alarms = Value_util.warn_all_quiet_mode ()
-
   module Partition = Partitioning.Make (Domain) (States)
 
   let current_kf = AnalysisParam.kf
   let current_fundec = Kernel_function.get_definition current_kf
-  let return = Kernel_function.find_return current_kf
-  let return_lv = match return.skind with
+  let return_stmt = Kernel_function.find_return current_kf
+  let return_lv = match return_stmt.skind with
     | Return (Some ({enode = Lval ((Var v, NoOffset) as lv)} as exp), _) ->
       Some (exp, lv, v)
     | Return (None, _) -> None
@@ -127,7 +127,7 @@ module Make_Dataflow
     (* Remark: the pre-condition cannot talk about the locals. BUT
        check_fct_preconditions split the state into a stateset, hence
        it is simpler to apply it to the (unique) state with locals *)
-    Logic.check_fct_preconditions kf ab call_kinstr state
+    Logic.check_fct_preconditions call_kinstr kf ab state
 
   let initial_state =
     match initial_states with
@@ -155,7 +155,15 @@ module Make_Dataflow
        [widening_state] is decremented each time we visit the statement,
        unless it is equal to zero. (In which case we widen, and set
        [widening_state] to a non-zero value, currently 1.) *)
-    mutable widening : int;
+    mutable widening_counter : int;
+
+    (* For the n first widening, the widened state is reduced by the loop
+       invariant. This can correct the extrapolations made by the widening,
+       but also impedes the convergence of the analysis. After n reduced
+       widening, the standard widening is used instead. The propagated state
+       is still reduced by the invariant, but the widened state recorded at
+       the loop head is not. *)
+    mutable reduced_widening_counter : int;
 
     (* Number of states that were put in [superposition]; i.e. the
        sum of the cardinals of the state sets that were added with
@@ -167,7 +175,8 @@ module Make_Dataflow
 
   let empty_record () = {
     superposition = Partition.empty () ;
-    widening = Value_parameters.WideningLevel.get () ;
+    widening_counter = Value_parameters.WideningLevel.get () ;
+    reduced_widening_counter = 4;
     widening_state = `Bottom ;
     counter_unroll = 0;
   }
@@ -189,34 +198,21 @@ module Make_Dataflow
       StmtHtbl.add current_table s record;
       record
 
-  let stmt_widening_info s =
-    let r = stmt_state s in
-    r.widening, r.widening_state
-
   (* merges [set] into the state associated to [stmt], and returns the subset
      of [set] that was not already in the superposition. *)
-  let update_stmt_states stmt set =
-    let record = stmt_state stmt in
+  let merge_stmt_states record set =
     match record.widening_state with
-    | `Bottom ->
-      Partition.merge_set_return_new set record.superposition
+    | `Bottom -> Partition.merge_set_return_new set record.superposition
     | `Value widening_state ->
       match States.join set with
       | `Bottom -> States.empty
       | `Value state ->
         if Domain.is_included state widening_state
         then States.empty
-        else (
-          let join = Domain.join widening_state state in
-          record.widening_state <-`Value join;
-          States.singleton join
-        )
+        else States.singleton (Domain.join widening_state state)
 
-  let update_stmt_widening_info stmt wcounter wstate =
-    let record = stmt_state stmt in
-    record.widening <- wcounter;
-    record.widening_state <-
-      Bottom.join Domain.join record.widening_state wstate
+  let join_incoming_states record state =
+    record.widening_state <- Bottom.join Domain.join record.widening_state state
 
 
   let states_unmerged s =
@@ -329,6 +325,23 @@ module Make_Dataflow
         Cil.CurrentLoc.set old_loc;
         r
 
+    (* Tries to evaluate \assigns … \from … clauses for assembly code. *)
+    let doAsm stmt d =
+      let asm_contracts = Annotations.code_annot stmt in
+      match Logic_utils.extract_contract asm_contracts with
+      | [] ->
+        Value_util.warning_once_current
+          "assuming assembly code has no effects in function %t"
+          Value_util.pretty_current_cfunction_name;
+        d
+      (* There should be only one statement contract, if any. *)
+      | (_, spec) :: _ ->
+        let assigns = Ast_info.merge_assigns_from_spec ~warn:false spec in
+        let transfer = Spec.treat_statement_assigns assigns in
+        let process state acc = States.add (transfer state) acc in
+        let states = States.fold process d.to_propagate States.empty in
+        { to_propagate = states }
+
     let doInstr stmt (i: instr) (d: t) =
       !Db.progress ();
       current_ki := Kstmt stmt;
@@ -339,7 +352,7 @@ module Make_Dataflow
           (* Analysis of one call on [state]. Returns a list of states *)
           let interp_call stmt lval_option funcexp args state =
             let results, call_cacheable =
-              Transfer.call with_alarms stmt lval_option funcexp args state
+              Transfer.call stmt lval_option funcexp args state
             in
             if call_cacheable = Value_types.NoCacheCallers then
               (* Propagate info that the current call cannot be cached either *)
@@ -364,13 +377,12 @@ module Make_Dataflow
           match i with
           | Local_init (v, AssignInit i, _loc) ->
             let process state =
-              Transfer.init ~with_alarms state current_kf stmt v i
+              let state = Domain.enter_scope current_kf [v] state in
+              Init.initialize_local_variable stmt v i state
             in
             apply_each_state States.add' process
           | Set (lv,exp,_loc) ->
-            let process state =
-              Transfer.assign ~with_alarms state current_kf stmt lv exp
-            in
+            let process state = Transfer.assign state (Kstmt stmt) lv exp in
             apply_each_state States.add' process
           | Call (lval_option, funcexp, args, _loc) ->
             let process = interp_call stmt lval_option funcexp args in
@@ -387,17 +399,13 @@ module Make_Dataflow
             in
             let process = Cil.treat_constructor_as_func as_func v f args k l in
             apply_each_state add_list_to_states process
-          | Asm _ ->
-            Value_util.warning_once_current
-              "assuming assembly code has no effects in function %t"
-              Value_util.pretty_current_cfunction_name;
-            d
+          | Asm _ -> doAsm stmt d
           | Skip _ -> d
           | Code_annot (_,_) -> d (* processed directly in doStmt from the
                                      annotation table *)
         end
 
-    let doStmtSpecific stmt _d states =
+    let doStmtSpecific stmt states =
       match stmt.skind with
       | Loop _ ->
         let current_info = stmt_state stmt in
@@ -409,10 +417,9 @@ module Make_Dataflow
       | UnspecifiedSequence seq ->
         if Kernel.UnspecifiedAccess.get ()
         then
-          let with_alarms = Value_util.warn_all_mode in
           let check = Transfer.check_unspecified_sequence in
           States.fold
-            (fun s acc -> match check ~with_alarms stmt s seq with
+            (fun s acc -> match check stmt s seq with
                | `Bottom -> acc
                | `Value () -> States.add s acc)
             states
@@ -420,117 +427,119 @@ module Make_Dataflow
         else states
       | _ -> states
 
+    (* Builds the function that interprets the annotation of a statement. *)
+    let do_annotation stmt slevel =
+      (* We do not interpret annotations that come from statement contracts
+         and everything previously emitted by Value (currently, alarms) *)
+      let annots = Annotations.fold_code_annot
+          (fun e ca acc ->
+             if Logic_utils.is_contract ca || Emitter.equal e Value_util.emitter
+             then acc
+             else ca :: acc
+          ) stmt []
+      in
+      (* [record] indicates whether the logical status are recorded. *)
+      fun record states ->
+        List.fold_left
+          (fun states annot -> Logic.interp_annot ~limit:slevel ~record
+              current_kf active_behaviors stmt annot ~initial_state states )
+          states annots
+
+    (* Loop head: widen or decrement widen counter. *)
+    let do_loop_widening stmt do_annotation prev_wstate record joined =
+      let wcounter = record.widening_counter in
+      if wcounter > 0
+      then (record.widening_counter <- pred wcounter; States.singleton' joined)
+      else
+        (* Widening *)
+        let widen = Domain.widen current_kf stmt in
+        let widened_state = Bottom.join widen prev_wstate record.widening_state in
+        (* One normal join between two widenings. *)
+        record.widening_counter <- 1;
+        if Bottom.equal Domain.equal widened_state record.widening_state
+        then States.singleton' joined
+        else
+          (* Records the new widened state as a propagated state,
+             and interprets the annotations accordingly. *)
+          let propagate_new_state new_state =
+            join_incoming_states record new_state;
+            do_annotation true (States.singleton' new_state)
+          in
+          (* Reduces only the first widenings. *)
+          let reduced_wcounter = record.reduced_widening_counter in
+          if reduced_wcounter = 0
+          then propagate_new_state widened_state
+          else
+            begin
+              (* Correct over-widening by reducing the widened state by the
+                 annotation, without recording the status; then, interpret the
+                 annotation and record the status for the reduced widened
+                 state. Thus, status are recorded for incoming states before
+                 the widening and for the state propagated after widening. *)
+              let widened_states = States.singleton' widened_state in
+              let new_states = do_annotation false widened_states in
+              record.reduced_widening_counter <- pred reduced_wcounter;
+              propagate_new_state (States.join new_states)
+            end
+
+    let do_stmt_aux stmt states =
+      let (>>) states cont =
+        if States.is_empty states then Dataflow2.SDefault else cont states
+      in
+      states >> fun states ->
+      let slevel = slevel stmt in
+      let is_return = is_return stmt in
+      let do_annotation = do_annotation stmt slevel in
+      let record = stmt_state stmt in
+      let pre_states =
+        if obviously_terminates
+        then begin
+          if is_return
+          then join_incoming_states record (States.join states);
+          states
+        end
+        (* Remove the states that have already been propagated. *)
+        else merge_stmt_states record states
+      in
+      pre_states >> fun pre_states ->
+      (* Interprets the annotation and reduces the state accordingly. *)
+      do_annotation true pre_states >> fun states ->
+      let new_states =
+        if record.counter_unroll <= slevel || is_return
+        then states
+        else
+          (* No slevel left: performs some join and/or widening,
+             and fills the record.widening_state with the pre_states. *)
+          let prev_wstate = record.widening_state in
+          record.widening_state <- (States.join pre_states);
+          let joined = States.join states in
+          (* On a loop head, widens further the joined state. *)
+          if not (is_loop stmt) || obviously_terminates
+          then States.singleton' joined
+          else do_loop_widening stmt do_annotation prev_wstate record joined
+      in
+      let new_states = doStmtSpecific stmt new_states in
+      Dataflow2.SUse { to_propagate = new_states }
+
+
     let get_cvalue = Domain.get Cvalue_domain.key
     let gather_cvalue = match get_cvalue with
       | Some get -> fun state acc -> get state :: acc
       | None -> fun _ acc -> acc
 
-    let doStmt (s: stmt) (d: t) =
-      current_ki := Kstmt s;
+    let doStmt (stmt: stmt) (d: t) =
+      current_ki := Kstmt stmt;
       check_signals ();
       (* Merge incoming states if the user requested it *)
-      if merge s then
+      if merge stmt then
         d.to_propagate <- States.singleton' (States.join d.to_propagate);
       let states = d.to_propagate in
-      (* TODO: apply on all domains. *)
       let cvalue_states = States.fold gather_cvalue states [] in
       Db.Value.Compute_Statement_Callbacks.apply
-        (s, Value_util.call_stack (), cvalue_states);
-      (* Cleanup function, to be called on all exit paths *)
-      let ret result =
-        (* Do this as late as possible, as a non-empty to_propagate field
-           is shown in a special way in case of degeneration *)
-        d.to_propagate <- States.empty;
-        result
-      in
-      if States.is_empty states then ret Dataflow2.SDefault
-      else
-        (* Snapshot the currently propagated state (curr_wstate) here,
-           because this information is modified imperatively by
-           [update_stmt_states] *)
-        let curr_wcounter, curr_wstate = stmt_widening_info s in
-        let states =
-          if obviously_terminates
-          then states
-          else
-            (* store the states that we are propagating, and remove the states
-               that have already been propagated. Notice that, if the slevel
-               is exhausted, the field [widening_state] will contain the
-               join of [states], but in practice we may propagate *less*,
-               because the states are reduced by assertions/loop invariants. *)
-            update_stmt_states s states 
-        in
-        if States.is_empty states then ret Dataflow2.SDefault
-        else
-          (* We do not interpret annotations that come from statement contracts
-             and everything previously emitted by Value (currently, alarms) *)
-          let annots = Annotations.fold_code_annot
-              (fun e ca acc ->
-                 if Logic_utils.is_contract ca || Emitter.equal e Value_util.emitter
-                 then acc
-                 else ca :: acc
-              ) s []
-          in
-          let slevel = slevel s in
-          let interp_annot record states annot =
-            Logic.interp_annot
-              ~limit:slevel ~record
-              current_kf active_behaviors s annot
-              ~initial_state states
-          in
-          let states = List.fold_left (interp_annot true) states annots in
-          if States.is_empty states then ret Dataflow2.SDefault
-          else
-            let is_return = is_return s in
-            let current_info = stmt_state s in
-            let old_counter = current_info.counter_unroll in
-            let new_states =
-              if (old_counter > slevel && not is_return)
-              || (is_return && obviously_terminates)
-              then (* No slevel left, perform some join and/or widening *)
-                let state = States.join states in
-                let joined = Bottom.join Domain.join curr_wstate state in
-                if Bottom.equal Domain.equal joined curr_wstate then
-                  States.empty (* [state] is included in the last propagated
-                                  state. Nothing remains to do *)
-                else
-                if obviously_terminates
-                then begin (* User thinks the analysis will terminate: do not widen *)
-                  update_stmt_widening_info s 0 joined;
-                  states
-                end
-                else
-                  let r =
-                    if is_loop s && curr_wcounter = 0 then
-                      Bottom.join (Domain.widen current_kf s) curr_wstate joined
-                    else
-                      joined
-                  in
-                  let new_wcounter =
-                    if curr_wcounter = 0 then 1 else pred curr_wcounter
-                  in
-                  let new_state = States.singleton' r in
-                  if Bottom.equal Domain.equal r joined then (
-                    update_stmt_widening_info s new_wcounter r;
-                    new_state)
-                  else begin (* Try to correct over-widenings *)
-                    let new_states =
-                      (* Do *not* record the status after interpreting the annotation
-                         here. Possible unproven assertions have already been recorded
-                         when the assertion has been interpreted the first time higher
-                         in this function. *)
-                      List.fold_left (interp_annot false) new_state annots
-                    in
-                    let new_joined = States.join new_states in
-                    update_stmt_widening_info s new_wcounter new_joined;
-                    States.singleton' new_joined
-                  end
-              else states
-            in
-            let new_states = doStmtSpecific s d new_states in
-            (* This temporary propagation value will be passed on to the successors
-               of [s] *)
-            ret (Dataflow2.SUse { to_propagate = new_states })
+        (stmt, Value_util.call_stack (), cvalue_states);
+      let stmt_action = do_stmt_aux stmt states in
+      d.to_propagate <- States.empty;
+      stmt_action
 
     let doEdge s succ d =
       let states = d.to_propagate in
@@ -597,7 +606,7 @@ module Make_Dataflow
         let new_values =
           States.fold
             (fun state acc ->
-               match Transfer.assume ~with_alarms state stmt exp positive with
+               match Transfer.assume state stmt exp positive with
                | `Bottom -> acc
                | `Value state -> States.add state acc)
             t.to_propagate
@@ -644,7 +653,7 @@ module Make_Dataflow
       in
       if new_status <> 0
       then StmtHtbl.replace conditions_table stmt new_status;
-      Separate.filter_if stmt thel
+      thel
 
   end
 
@@ -655,13 +664,13 @@ module Make_Dataflow
       let vi_ret = Extlib.the (Library_functions.get_retres_vi current_kf) in
       let lv = Var vi_ret, NoOffset in
       let state = Domain.enter_scope current_kf [vi_ret] state in
-      Transfer.assign ~with_alarms state current_kf return lv exp
+      Transfer.assign state (Kstmt return_stmt) lv exp
 
   (* Leave the scope of the blocks closed by the return, _except_ the
      outermost block of the function (which is closed directly in
      Transfer_stmt). *)
   let leave_scope_return state =
-    let closed = Kernel_function.find_all_enclosing_blocks return in
+    let closed = Kernel_function.find_all_enclosing_blocks return_stmt in
     let rec close state = function
       | [] -> assert false
       | [_] -> state (* outermost block *)
@@ -718,9 +727,9 @@ module Make_Dataflow
     | Split_strategy.SplitAuto     -> assert false (* transformed into SplitEqList*)
 
   let results () =
-    current_ki := Kstmt return;
+    current_ki := Kstmt return_stmt;
     if DataflowArg.debug then checkConvergence ();
-    let final_states = states_unmerged return in
+    let final_states = states_unmerged return_stmt in
     (* Reduce final states according to the function postcondition *)
     let result = match return_lv with
       | Some (_, _, varinfo) -> Some varinfo
@@ -787,8 +796,8 @@ module Make_Dataflow
     (* Since the return instruction has no successor, it is not visited
        by the iter above. We fill it manually *)
     (try
-       let s = StmtHtbl.find states_before return in
-       StmtHtbl.add states_after return s
+       let s = StmtHtbl.find states_before return_stmt in
+       StmtHtbl.add states_after return_stmt s
      with Kernel_function.No_Statement | Not_found -> ()
     );
     states_after
@@ -890,17 +899,16 @@ module Computer
     (States : Powerset.S with type state = Domain.t)
     (Transfer : Transfer_stmt.S with type state = Domain.t
                                  and type value = Domain.value)
+    (Init: Initialization.S with type state := Domain.state)
     (Logic : Transfer_logic.S with type state = Domain.t
                                and type states = States.t)
+    (Spec: sig val treat_statement_assigns: assigns -> Domain.t -> Domain.t end)
 = struct
 
   let compute kf call_kinstr state =
     let module Dataflow =
       Make_Dataflow
-        (Domain)
-        (States)
-        (Transfer)
-        (Logic)
+        (Domain) (States) (Transfer) (Init) (Logic) (Spec)
         (struct
           let kf = kf
           let call_kinstr = call_kinstr

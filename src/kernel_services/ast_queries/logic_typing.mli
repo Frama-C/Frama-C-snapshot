@@ -119,8 +119,8 @@ type typing_context = {
     typing_context -> Lenv.t -> Logic_ptree.lexpr -> term;
   type_assigns:
     typing_context ->
-    accept_formal:bool ->
-    Lenv.t -> Logic_ptree.lexpr assigns -> identified_term assigns;
+    accept_formal:bool -> 
+    Lenv.t -> Logic_ptree.assigns -> assigns;
   error: 'a 'b. location -> ('a,Format.formatter,unit,'b) format4 -> 'a;
 }
 

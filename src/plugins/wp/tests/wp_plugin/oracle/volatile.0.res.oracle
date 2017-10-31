@@ -1,0 +1,43 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/volatile.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job_assigns
+------------------------------------------------------------
+
+Goal Assertion 'KO_WHEN_VOLATILE' (file tests/wp_plugin/volatile.i, line 15):
+Prove: w = 0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job_read
+------------------------------------------------------------
+
+Goal Assertion 'KO_WHEN_VOLATILE' (file tests/wp_plugin/volatile.i, line 21):
+Assume { Type: is_sint32(x). }
+Prove: x = w.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job_struct
+------------------------------------------------------------
+
+Goal Assertion 'ok,dead_code' (file tests/wp_plugin/volatile.i, line 29):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job_struct_assigns
+------------------------------------------------------------
+
+Goal Assertion 'KO_WHEN_VOLATILE' (file tests/wp_plugin/volatile.i, line 35):
+Assume {
+  (* Heap *)
+  Have: region(p.base) <= 0.
+  Have: havoc(Mint_0, Mint_1, p, 2).
+}
+Prove: EqS1_st_v(w, w_1).
+
+------------------------------------------------------------

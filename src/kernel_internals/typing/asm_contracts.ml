@@ -133,11 +133,15 @@ object(self)
                 Annotations.add_code_annot emitter ~kf stmt ca;
                 if not mem_clobbered && Kernel.AsmContractsAutoValidate.get()
                 then begin
-                  let ips = Property.ip_of_code_annot kf stmt ca in
+                  let active = [] in
+                  let ip_assigns =
+                    Property.ip_assigns_of_behavior kf (Kstmt stmt) ~active bhv in
+                  let ip_from =
+                    Property.ip_from_of_behavior kf (Kstmt stmt) ~active bhv in
                   List.iter
                     Property_status.(
                       fun x -> emit emitter ~hyps:[] x True)
-                    ips
+                    (Extlib.list_of_opt ip_assigns @ ip_from)
                 end
            | [ { annot_content = AStmtSpec ([], spec) } ] ->
                 (* Already existing contracts. Just add assigns clause for

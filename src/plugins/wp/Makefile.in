@@ -54,7 +54,6 @@ PLUGIN_GUI_CMO:= \
 endif
 
 PLUGIN_ENABLE:=@ENABLE_WP@
-PLUGIN_DYNAMIC:=@DYNAMIC_WP@
 PLUGIN_NAME:=Wp
 PLUGIN_CMO:= \
 	rformat wprop \
@@ -64,9 +63,9 @@ PLUGIN_CMO:= \
 	LogicUsage RefUsage \
 	cil2cfg normAtLabels wpPropId mcfg \
 	Context Warning Model Lang Repr Matrix Passive Splitter \
-	Letify Cleaning \
 	LogicBuiltins Definitions \
 	Cint Cfloat Vset Vlist Region Cstring Cvalues \
+	Letify Cleaning \
 	Memory Mstate Conditions \
 	Filtering \
 	Plang Pcfg Pcond \
@@ -81,7 +80,8 @@ PLUGIN_CMO:= \
 	TacArray TacCompound TacUnfold \
 	TacHavoc TacInstance TacLemma \
 	TacFilter TacCut WpTac TacNormalForm \
-	TacRewrite Auto \
+	TacRewrite TacBitwised TacBitrange TacShift \
+	TacRatio TacOverflow Auto \
 	ProofSession ProofScript ProofEngine \
 	why3_xml \
 	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
@@ -152,7 +152,7 @@ PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
 PLUGIN_TESTS_DIRS:= \
   wp wp_plugin wp_acsl wp_bts \
   wp_store wp_hoare wp_typed wp_usage \
-  wp_gallery
+  wp_gallery wp_manual
 
 # --------------------------------------------------------------------------
 # --- Dynamic Plugin                                                     ---

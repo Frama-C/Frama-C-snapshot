@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Ref)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/logicref_simple.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -20,7 +19,7 @@
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 fsimple              1      1 (11)     2       100%
-fsimple_array        1      1 (14)     2       100%
+fsimple_array        1      1 (26)     2       100%
 ftwo_star            1      1 (13)     2       100%
 fvpositive           2      1 (9)      3       100%
 ----------------------------------------------------------

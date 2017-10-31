@@ -23,4 +23,13 @@ void main() {
     //@ assert \dangling(&x);
     int j = *x + 1;
   }
+
+  int *p[2];
+  {
+    int z;
+    p[0] = &z;
+    p[1] = 42;
+  }
+  //@ assert !\dangling(&p[0..1]);
+
 }

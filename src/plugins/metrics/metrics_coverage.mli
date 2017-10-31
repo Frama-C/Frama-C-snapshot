@@ -41,8 +41,17 @@ val percent_coverage : coverage_metrics -> float ;;
 val compute : libc:bool -> coverage_metrics ;;
 (** Computes both syntactic and semantic coverage information. *)
 
-val compute_coverage_by_fun:  Cil_datatype.Varinfo.Set.t ->
-  (Cil_types.kernel_function * int * int * float) list
+(** Computes the semantic coverage by function. *)
+val compute_coverage_by_fun: unit -> unit
+
+(** Returns the coverage for a given function. Raises [Not_found] if it has
+    not been computed for the function. *)
+val get_coverage: Kernel_function.t -> int * int * float
+
+(* Returns [true] if the coverage by function has been computed. *)
+val is_computed_by_fun: unit -> bool
+
+val clear_coverage_by_fun: unit -> unit
 
 (** Pretty-printer for syntactic coverage metrics. *)
 class syntactic_printer : libc:bool -> Cil_datatype.Varinfo.Set.t -> object

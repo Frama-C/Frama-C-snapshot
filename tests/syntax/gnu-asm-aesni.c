@@ -10,7 +10,15 @@
    OPT: -cpp-extra-args='-DUSE_AESNI' -print
    -------------------------
 */
+#ifdef __FRAMAC__
 #include <__fc_builtin.h>
+#else
+volatile int nondet;
+#define Frama_C_make_unknown(a, n) do {                 \
+    for (int __i = 0; i < n; i++) a[i] = nondet;        \
+  } while (0)
+#define Frama_C_dump_each()
+#endif
 #include <string.h>
 typedef unsigned short int byte;
 
@@ -152,7 +160,7 @@ void encrypt_aesni(void)
   for(i=0; i<MAXROUNDS+1; i++)
     for(j=0; j<4; j++)
       for(k=0; k<4; k++){
-        Frama_C_make_unknown(&ctx.keyschenc[i][j][k], sizeof(byte));
+        Frama_C_make_unknown((char*)&ctx.keyschenc[i][j][k], sizeof(byte));
       }
   ctx.rounds = 12;
   ctx.use_aesni = 1;

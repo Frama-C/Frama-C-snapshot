@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/bts0283.c (with preprocessing)
 tests/spec/bts0283.c:5:[kernel] warning: incompatible types ℤ and int *. Ignoring code annotation
 tests/spec/bts0283.c:7:[kernel] warning: incompatible types int and int *

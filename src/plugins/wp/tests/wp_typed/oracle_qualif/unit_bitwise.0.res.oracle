@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -42,7 +41,7 @@
 [wp] [Qed] Goal typed_bnot_uint_post_ok : Valid
 [wp] [Alt-Ergo] Goal typed_bor_char_post_ok : Valid
 [wp] [Qed] Goal typed_bor_int_post_ok : Valid
-[wp] [Alt-Ergo] Goal typed_bor_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_bor_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_bor_uint_post_ok : Valid
 [wp] [Alt-Ergo] Goal typed_bxor_char_post_ok : Valid
 [wp] [Qed] Goal typed_bxor_int_post_ok : Valid
@@ -50,8 +49,8 @@
 [wp] [Alt-Ergo] Goal typed_bxor_uchar_post_ok_2 : Valid
 [wp] [Qed] Goal typed_bxor_uint_post_ok : Valid
 [wp] [Alt-Ergo] Goal typed_bxor_uint_post_ok_2 : Valid
-[wp] [Alt-Ergo] Goal typed_cast_post_ok : Valid
-[wp] [Alt-Ergo] Goal typed_cast_assert_ok : Valid
+[wp] [Qed] Goal typed_cast_post_ok : Valid
+[wp] [Qed] Goal typed_cast_assert_ok : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_2 : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_3 : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_4 : Valid
@@ -59,7 +58,7 @@
 [wp] [Qed] Goal typed_cast_assert_ok_6 : Valid
 [wp] [Qed] Goal typed_cast_assert_ok_7 : Valid
 [wp] [Qed] Goal typed_lshift_char_post_ok : Valid
-[wp] [Alt-Ergo] Goal typed_lshift_int_post_ok : Valid
+[wp] [Qed] Goal typed_lshift_int_post_ok : Valid
 [wp] [Qed] Goal typed_lshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_lshift_uint_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_char_post_ok : Valid
@@ -67,8 +66,8 @@
 [wp] [Alt-Ergo] Goal typed_rshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_uint_post_ok : Valid
 [wp] Proved goals:   61 / 61
-     Qed:            37 
-     Alt-Ergo:       24
+     Qed:            41 
+     Alt-Ergo:       20
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               10      8 (54)    18       100%
@@ -78,7 +77,7 @@ band_int             2     -           2       100%
 bor_int              1     -           1       100%
 bxor_int             1     -           1       100%
 bnot_int             1     -           1       100%
-lshift_int          -       1 (28)     1       100%
+lshift_int           1     -           1       100%
 rshift_int           1     -           1       100%
 band1_uint           1      1 (14)     2       100%
 band_uint            1     -           1       100%
@@ -95,12 +94,12 @@ lshift_char          1     -           1       100%
 rshift_char          1     -           1       100%
 band1_uchar          1      1 (14)     2       100%
 band_uchar          -       1 (12)     1       100%
-bor_uchar           -       1 (11)     1       100%
+bor_uchar            1     -           1       100%
 bxor_uchar           1      1 (12)     2       100%
 bnot_uchar           1     -           1       100%
 lshift_uchar         1     -           1       100%
 rshift_uchar        -       1 (22)     1       100%
 band1_ushort         1      1 (14)     2       100%
 band1_ulong          1      1 (14)     2       100%
-cast                 6      2 (30)     8       100%
+cast                 8     -           8       100%
 ----------------------------------------------------------

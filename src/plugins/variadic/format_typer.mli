@@ -26,7 +26,10 @@ open Cil_types
 exception Type_not_found of string
 exception Invalid_specifier
 
-type arg_dir = [ `ArgIn | `ArgInArray | `ArgOut | `ArgOutArray ]
+type arg_dir = [ `ArgIn
+               | `ArgInArray of precision option (* for '%.*s' or '%.42s' *)
+               | `ArgOut
+               | `ArgOutArray ]
 
 type typdef_finder = Logic_typing.type_namespace -> string -> Cil_types.typ
 

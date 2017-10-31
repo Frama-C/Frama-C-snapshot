@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_usage/issue-189-bis.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -42,6 +41,6 @@
      Alt-Ergo:       14
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
-memcpy_alias_vars    9      7 (1570)  16       100%
-memcpy_context_vars   9     7 (1570)  16       100%
+memcpy_alias_vars    9      7 (1172)  16       100%
+memcpy_context_vars   9     7 (1172)  16       100%
 ----------------------------------------------------------

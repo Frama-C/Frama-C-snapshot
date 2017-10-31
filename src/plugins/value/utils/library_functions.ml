@@ -31,7 +31,7 @@ module Retres =
   Kernel_function.Make_Table
     (Datatype.Option(Cil_datatype.Varinfo))
     (struct
-      let name = "retres_variable"
+      let name = "Value.Library_functions.Retres"
       let size = 9
       let dependencies = [Ast.self]
      end)
@@ -107,7 +107,7 @@ let returned_value kf state =
       let size_v (* bits *) =
         try
           if isVoidType typ then Int.one else Int_Base.project (sizeof typ)
-        with Int_Base.Error_Top ->
+        with Abstract_interp.Error_Top ->
           assert (Cvalue.V.is_isotropic initial_value);
           Int.one
       in

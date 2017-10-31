@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/bts0672_link.c (with preprocessing)
 [kernel] Parsing tests/syntax/bts0672_link_2.c (with preprocessing)
 tests/syntax/bts0672_link_2.c:10:[kernel] warning: Calling undeclared function Frama_C_nondet. Old style K&R code?

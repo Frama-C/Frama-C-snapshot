@@ -210,9 +210,14 @@ class visitor fmt c =
               | Rec -> engine#declare_fixpoint ~prefix:"Fix"
               | Def -> engine#declare_definition
             in pp fmt d.d_lfun d.d_params Logic.Prop (F.e_prop p)
-        | Inductive _ ->
-            engine#declare_signature fmt
+        | Inductive dl ->
+            engine#declare_inductive fmt
               d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop
+              (List.map (fun l -> (Lang.lemma_id l.l_name,
+                                   l.l_forall,
+                                   l.l_triggers,
+                                   (F.e_prop l.l_lemma))
+                        ) dl)
       end
 
   end
@@ -220,16 +225,17 @@ class visitor fmt c =
 let write_cluster c =
   let f = cluster_file c in
   Wp_parameters.debug ~dkey "Generate '%s'" f ;
-  Command.print_file f
-    begin fun fmt ->
-      let v = new visitor fmt c in
-      v#lines ;
-      v#printf "Require Import ZArith.@\n" ;
-      v#printf "Require Import Reals.@\n" ;
-      v#on_library "qed" ;
-      v#vself ;
-      v#flush ;
-    end
+  let deps = Command.print_file f
+      begin fun fmt ->
+        let v = new visitor fmt c in
+        v#lines ;
+        v#printf "Require Import ZArith.@\n" ;
+        v#printf "Require Import Reals.@\n" ;
+        v#on_library "qed" ;
+        v#vself ;
+        v#flush ;
+      end
+  in Wp_parameters.print_generated f ; deps
 
 (* -------------------------------------------------------------------------- *)
 (* --- Assembling Goal                                                    --- *)
@@ -381,10 +387,10 @@ class runcoq includes source =
   let base = Filename.chop_extension source in
   let logout = base ^ "_Coq.out" in
   let logerr = base ^ "_Coq.err" in
-  object(coq)
+  object(self)
 
     inherit ProverTask.command "coq"
-      
+    
     method private project =
       let dir = Filename.dirname source in
       let p = Wp_parameters.CoqProject.get () in
@@ -405,11 +411,11 @@ class runcoq includes source =
         List.iter
           (fun (dir,name) ->
              if name = "" then
-               coq#add ["-R";dir;""]
+               self#add ["-R";dir;""]
              else
-               coq#add ["-R";dir;name]
+               self#add ["-R";dir;name]
           ) includes ;
-        coq#add [ "-noglob" ] ;
+        self#add [ "-noglob" ] ;
       end
 
     method failed : 'a. 'a task =
@@ -426,54 +432,54 @@ class runcoq includes source =
 
     method compile =
       let cmd = Wp_parameters.CoqCompiler.get () in
-      coq#set_command cmd ;
-      coq#options ;
-      coq#add [ source ] ;
-      coq#timeout (coq_timeout ()) ;
+      self#set_command cmd ;
+      self#options ;
+      self#add [ source ] ;
+      self#timeout (coq_timeout ()) ;
       Task.call
         (fun () ->
            if not (Wp_parameters.Check.get ()) then
              let name = Filename.basename source in
              Wp_parameters.feedback ~ontty:`Transient
                "[Coq] Compiling '%s'." name) ()
-      >>= coq#run ~logout ~logerr
+      >>= self#run ~logout ~logerr
       >>= fun r ->
       if r = 127 then Task.failed "Command '%s' not found" cmd
-      else if r <> 0 then coq#failed
+      else if r <> 0 then self#failed
       else Task.return ()
 
     method check =
       let cmd = Wp_parameters.CoqCompiler.get () in
-      coq#set_command cmd ;
-      coq#options ;
-      coq#add [ source ] ;
-      coq#timeout (coq_timeout ()) ;
-      coq#run ~logout ~logerr () >>= function
+      self#set_command cmd ;
+      self#options ;
+      self#add [ source ] ;
+      self#timeout (coq_timeout ()) ;
+      self#run ~logout ~logerr () >>= function
       | 127 -> Task.failed "Command '%s' not found" cmd
       | 0 -> Task.return true
       | 1 -> Task.return false
-      | _ -> coq#failed
+      | _ -> self#failed
 
     method script =
       let script = Wp_parameters.Script.get () in
-      if Sys.file_exists script then coq#add [ script ]
+      if Sys.file_exists script then self#add [ script ]
     
     method coqide =
       let coqide = Wp_parameters.CoqIde.get () in
-      coq#set_command coqide ;
+      self#set_command coqide ;
       if is_emacs coqide then
         begin
-          coq#project ;
-          coq#script ;
-          coq#add [ source ] ;
+          self#project ;
+          self#script ;
+          self#add [ source ] ;
         end
       else
         begin
-          coq#options ;
-          coq#add [ source ] ;
-          coq#script ;
+          self#options ;
+          self#add [ source ] ;
+          self#script ;
         end ;
-      Task.sync coqide_lock (coq#run ~logout ~logerr)
+      Task.sync coqide_lock (self#run ~logout ~logerr)
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -621,6 +627,13 @@ let prove_session ~mode w =
 
 exception Admitted_not_proved
 
+let gen_session w =
+  begin
+    make_script w "  ...\n" "Qed." ;
+    Wp_parameters.print_generated w.cw_script ;
+    Task.return VCS.no_result
+  end
+  
 let check_session w =
   compile_headers w.cw_includes false w.cw_headers >>=
   (fun () -> check_script w) >>> function
@@ -630,9 +643,12 @@ let check_session w =
       Task.raised Admitted_not_proved
 
 let prove_session ~mode w =
-  if Wp_parameters.Check.get ()
-  then check_session w
-  else prove_session ~mode w
+  if Wp_parameters.Generate.get () then
+    gen_session w
+  else if Wp_parameters.Check.get () then
+    check_session w
+  else
+    prove_session ~mode w
 
 let prove_prop wpo ~mode ~axioms ~prop =
   let pid = wpo.po_pid in
@@ -642,17 +658,14 @@ let prove_prop wpo ~mode ~axioms ~prop =
   let includes , headers , goal =
     Model.with_model model (assemble_goal ~pid axioms) prop
   in
-  Wp_parameters.print_generated script;
-  if Wp_parameters.Generate.get ()
-  then Task.return VCS.no_result
-  else prove_session ~mode {
-      cw_pid = pid ;
-      cw_gid = gid ;
-      cw_goal = goal ;
-      cw_script = script ;
-      cw_headers = headers ;
-      cw_includes = includes ;
-    }
+  prove_session ~mode {
+    cw_pid = pid ;
+    cw_gid = gid ;
+    cw_goal = goal ;
+    cw_script = script ;
+    cw_headers = headers ;
+    cw_includes = includes ;
+  }
 
 let prove_annot wpo vcq ~mode =
   Task.todo

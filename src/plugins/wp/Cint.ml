@@ -405,6 +405,10 @@ let configure = Context.set model
 
 let of_real i a = convert i (e_fun f_truncate [a])
 
+let integer_of_real a = e_fun f_truncate [a]
+let to_integer a = a
+let of_integer i a = convert i a
+
 let range i a =
   match Context.get model with
   | Natural ->
@@ -413,11 +417,27 @@ let range i a =
       else F.p_leq F.e_zero a
   | Machine -> p_call (p_is_int i) [a]
 
-let downcast i a =
-  if is_downcast_an_error i then a else e_fun (f_to_int i) [a]
+let check_rte () =
+  if Wp_parameters.RTE.get () ||
+     Dynamic.Parameter.Bool.get "-rte" ()
+  then
+    (Wp_parameters.warning ~once:true
+       "Option -wp-overflows incompatiable with RTE (ignored)" ;
+     false)
+  else true
 
-let overflow i a =
-  if is_overflow_an_error i then a else e_fun (f_to_int i) [a]
+let ensures error i a =
+  if error i
+  then
+    (if Wp_parameters.Overflows.get () && Lang.has_gamma () &&
+        check_rte ()
+     then
+       Lang.assume (range i a) ;
+     a)
+  else e_fun (f_to_int i) [a]
+
+let downcast = ensures is_downcast_an_error
+let overflow = ensures is_overflow_an_error
 
 (* -------------------------------------------------------------------------- *)
 (* --- Arithmetics                                                        --- *)
@@ -863,6 +883,91 @@ let is_cint_simplifier = object (self)
 
   method infer = []
 end
+
+
+let mask_simplifier =
+  object(self)
+        
+    (** Must be 2^n-1 *)
+    val mutable magnitude : Integer.t Tmap.t = Tmap.empty
+
+    method name = "Rewrite unsigned masks"
+    method copy = {< magnitude = magnitude >}
+                                                 
+    method private update x m =
+      let better =
+        try Integer.lt m (Tmap.find x magnitude)
+        with Not_found -> true in
+      if better then magnitude <- Tmap.add x m magnitude
+
+    method private collect d x =
+      try
+        let m = Tmap.find x magnitude in
+        match d with
+        | None -> Some m
+        | Some m0 -> if Integer.lt m m0 then Some m else d
+      with Not_found -> d
+
+    method private reduce m x =
+      match F.repr x with
+      | Kint v -> F.e_zint (Integer.logand m v)
+      | _ -> x
+    
+    method private rewrite e =
+      match F.repr e with
+      | Fun(f,es) when f == f_land ->
+          begin
+            match List.fold_left self#collect None es with
+            | None -> raise Not_found
+            | Some m -> F.e_fun f_land (List.map (self#reduce m) es)
+          end
+      | _ -> raise Not_found
+    
+    method target _ = ()
+    method infer = []
+    method fixpoint = ()
+
+    method assume p =
+      let rec walk e = match F.repr e with
+        | And es -> List.iter walk es
+        | Fun(f,[x]) ->
+            begin
+              try
+                let iota = is_cint f in
+                if not (Ctypes.signed iota) then
+                  self#update x (snd (Ctypes.bounds iota))
+              with Not_found -> ()
+            end
+        | _ -> ()
+      in walk (F.e_prop p)
+
+    method simplify_exp e =
+      if Tmap.is_empty magnitude then e else
+        F.e_subst self#rewrite e
+
+    method simplify_hyp p =
+      if Tmap.is_empty magnitude then p else
+        F.p_subst self#rewrite p
+
+    method simplify_branch p =
+      if Tmap.is_empty magnitude then p else
+        F.p_subst self#rewrite p
+
+    method simplify_goal p =
+      if Tmap.is_empty magnitude then p else
+        F.p_subst self#rewrite p
+    
+  end
+
+
+
+
+
+
+
+
+
+
 
 
 (* -------------------------------------------------------------------------- *)

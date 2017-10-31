@@ -38,7 +38,7 @@ let warn f = Options.Self.warning ~current:true f
 let check_flag spec flag =
   let cs = spec.f_conversion_specifier in
   match flag, cs with
-  | FSharp, #capitalizable -> true
+  | FSharp, #has_alternative_form -> true
   | FZero, #integer_specifier when Extlib.has_some spec.f_precision ->
       warn "Flag 0 is ignored when a precision is specified"; false
   | FZero, #numeric_specifier when List.mem FMinus spec.f_flags ->
@@ -48,7 +48,7 @@ let check_flag spec flag =
   | FSpace, #signed_specifier when List.mem FPlus spec.f_flags ->
       warn "Flag ' ' is ignored when flag + is also specified."; false
   | FSpace, #signed_specifier -> true
-  | FPlus, #signed_specifier -> true
+  | FPlus, (#signed_specifier | #float_specifier) -> true
   | _ -> 
       warn "Flag %a and conversion specififer %a are not compatibles."
         pp_flag flag
@@ -136,34 +136,40 @@ let check_format = function
 
 module Buffer =
 struct
-  type t = string * int ref
+  type t = Format_string.t * int ref
 
-  let create (s : string) : t = (s,ref 0)
+  let create (s : Format_string.t) : t = (s,ref 0)
 
   let consume (_s,i : t) : unit = incr i
 
   let back (_s,i : t) : unit = decr i
 
   let get (s,i : t) : char =
-    try let c = String.get s !i in incr i; c
-    with _ -> '\000'
+    try let c = Format_string.get_char s !i in incr i; c
+    with Format_string.OutOfBounds -> '\000'
+      |  Format_string.NotAscii _ -> '\026'
 
   let last (s,i : t) : char =
-    String.get s (!i - 1)
+    try Format_string.get_char s (!i - 1)
+    with Format_string.OutOfBounds -> '\000'
+      |  Format_string.NotAscii _ -> '\026'
 
   let peek (s,i : t) : char =
-    try String.get s !i
-    with _ -> '\000'
+    try Format_string.get_char s !i
+    with Format_string.OutOfBounds -> '\000'
+      |  Format_string.NotAscii _ -> '\026'
 
   let getall (f : char -> bool) (s,i as b : t) : string =
     let start = !i in
     let len = ref 0 in
-    while f (get b) do
-      incr len;
-    done;
-    let s = String.sub s start !len in
-    back b; (* last char has not been matched *)
-    s
+    begin try
+      while f (get b) do
+        incr len;
+      done;
+      back b; (* last char has not been matched *)
+    with _ -> ()
+    end;
+    Format_string.sub_string s start !len
 end
 
 
@@ -265,6 +271,9 @@ let parse_f_cs b =
   | 'a' | 'A' -> `a
   | '\000' ->
      warn "Missing conversion specifier at the end of format.";
+     raise Invalid_format
+  | '\026' ->
+     warn "Conversion specifiers must be ascii characters.";
      raise Invalid_format
   | c ->
      warn "Unknown conversion specifier %c." c;

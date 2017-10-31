@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/first.c (with preprocessing)
 [kernel] Parsing tests/spec/third.c (with preprocessing)
 [kernel] Parsing tests/spec/second.c (with preprocessing)

@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/subset_fopen.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -39,9 +38,7 @@ Assume {
   (* Assertion 'Ok_A' *)
   Have: (0 <= i) /\ (i <= 9).
   (* Call 'fopen' *)
-  Have: included(p, 2,
-          shift___fc_FILE(shift_A512___fc_FILE(global(G___fc_fopen_68), 0),
-            0), 1024).
+  Have: included(p, 2, shift___fc_FILE(global(G___fc_fopen_19), 0), 1024).
 }
 Prove: valid_rw(Malloc_0, p, 2).
 

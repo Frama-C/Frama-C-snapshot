@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/mask.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function compute
+------------------------------------------------------------
+
+Goal Post-condition 'A' in 'compute':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B' in 'compute':
+Prove: true.
+
+------------------------------------------------------------

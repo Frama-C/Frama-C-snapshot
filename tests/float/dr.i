@@ -1,6 +1,7 @@
 /* run.config*
   STDOPT:
   STDOPT: #"-float-hex"
+  STDOPT: #"-all-rounding-modes-constants"
 */
 
 float big  = 100e30f;

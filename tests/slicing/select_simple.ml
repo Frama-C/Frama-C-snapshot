@@ -6,7 +6,7 @@ include LibSelect ;;
 let main _ =
   ignore (test_select_data "f1" "G");
   ignore (test_select_retres "f1");
-  !Db.Slicing.set_modes ~calls:2 ();
+  Slicing.Api.set_modes ~calls:2 ();
   ignore (test_select_retres "f2");
   ignore (test_select_data "f6" "n");
 

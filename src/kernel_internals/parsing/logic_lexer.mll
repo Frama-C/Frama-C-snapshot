@@ -231,6 +231,8 @@
    let pos = lexbuf.Lexing.lex_curr_p in
     lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = file }
 
+  let accept_c_comments_into_acsl_spec = ref false
+
 }
 
 let space = [' ' '\t' '\012' '\r' '@' ]
@@ -260,6 +262,11 @@ rule token = parse
   | '\n' { update_newline_loc lexbuf; token lexbuf }
   | comment_line '\n' { update_newline_loc lexbuf; token lexbuf }
   | comment_line eof { token lexbuf }
+  | "*/" { lex_error lexbuf "unexpected block-comment closing" }
+  | "/*" { if !accept_c_comments_into_acsl_spec
+           then comment lexbuf
+           else lex_error lexbuf "unexpected block-comment opening"
+         }
 
   | '\\' rL (rL | rD)* { bs_identifier lexbuf }
   | rL (rL | rD)*       { let s = lexeme lexbuf in identifier s }
@@ -433,6 +440,12 @@ and endline = parse
 |   eof                         { EOF }
 |	_			{ endline lexbuf}
 
+and comment = parse
+    '\n' { update_newline_loc lexbuf; comment lexbuf}
+  | "*/" { token lexbuf}
+  | eof  { lex_error lexbuf "non-terminating block-comment" }
+  | _    { comment lexbuf}
+
 {
   let set_initial_location dest_lexbuf src_loc =
     Lexing.(
@@ -478,8 +491,14 @@ and endline = parse
 
   let spec = parse_from_location Logic_parser.spec
 
-  (* ACSL extension for external spec file *)
-  let ext_spec = parse_from_location Logic_parser.ext_spec
+  let ext_spec lexbuf = try
+      accept_c_comments_into_acsl_spec := true ;
+      let r = Logic_parser.ext_spec token lexbuf in
+      accept_c_comments_into_acsl_spec := false ;
+      r
+    with exn ->
+      accept_c_comments_into_acsl_spec := false ;
+      raise exn
 
   type 'a parse = Lexing.position * string -> Lexing.position * 'a
 

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/initialized.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -15,7 +14,7 @@
   v1 ∈ {0}
   i6 ∈ [--..--]
 [value] computing for function g1 <- main.
-        Called from tests/value/initialized.c:153.
+        Called from tests/value/initialized.c:158.
 tests/value/initialized.c:19:[value] entering loop for the first time
 tests/value/initialized.c:21:[value] warning: assertion got status unknown.
 tests/value/initialized.c:22:[value] warning: assertion got status unknown.
@@ -52,14 +51,15 @@ tests/value/initialized.c:38:[value] warning: assertion got status unknown.
 [value] Recording results for g1
 [value] Done for function g1
 [value] computing for function g2 <- main.
-        Called from tests/value/initialized.c:154.
+        Called from tests/value/initialized.c:159.
 tests/value/initialized.c:50:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&b4) + (int)(&b4);
 tests/value/initialized.c:50:[value] warning: signed overflow. assert (int)(&b4) + (int)(&b4) ≤ 2147483647;
 tests/value/initialized.c:50:[value] Assigning imprecise value to t[6].
         The imprecision originates from Arithmetic {tests/value/initialized.c:50}
 tests/value/initialized.c:51:[value] Assigning imprecise value to t[7].
         The imprecision originates from Arithmetic {tests/value/initialized.c:50}
-[value] DUMPING STATE of file tests/value/initialized.c line 63
+tests/value/initialized.c:63:[value] Frama_C_dump_each:
+        # Cvalue domain:
         Frama_C_entropy_source ∈ [--..--]
         b1 ∈ [--..--]
         b2 ∈ [--..--]
@@ -85,9 +85,10 @@ tests/value/initialized.c:51:[value] Assigning imprecise value to t[7].
         v1 ∈ {0}
         i6 ∈ [--..--]
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
 tests/value/initialized.c:66:[value] warning: assertion got status unknown.
-[value] DUMPING STATE of file tests/value/initialized.c line 68
+tests/value/initialized.c:68:[value] Frama_C_dump_each:
+        # Cvalue domain:
         Frama_C_entropy_source ∈ [--..--]
         b1 ∈ [--..--]
         b2 ∈ [--..--]
@@ -118,10 +119,8 @@ tests/value/initialized.c:66:[value] warning: assertion got status unknown.
         v1 ∈ {0}
         i6 ∈ [--..--]
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
-[value] Called Frama_C_show_each([bits 0 to 7]# ∈ {0x11223344}%32, bits 24 to 31 
-                                 [bits 8 to 31]# ∈ {0x55667788}%32, bits 0 to 23 
-                                 This amounts to: {0x66778811})
+        ==END OF DUMP==
+tests/value/initialized.c:70:[value] Frama_C_show_each: {0x66778811}
 tests/value/initialized.c:72:[value] warning: assertion got status unknown.
 tests/value/initialized.c:74:[value] warning: assertion got status unknown.
 tests/value/initialized.c:76:[value] warning: assertion got status unknown.
@@ -130,7 +129,7 @@ tests/value/initialized.c:80:[value] warning: assertion got status unknown.
 [value] Recording results for g2
 [value] Done for function g2
 [value] computing for function g3 <- main.
-        Called from tests/value/initialized.c:155.
+        Called from tests/value/initialized.c:160.
 tests/value/initialized.c:89:[value] warning: assertion got status unknown.
 tests/value/initialized.c:93:[value] warning: accessing uninitialized left-value. assert \initialized(&r2);
 tests/value/initialized.c:96:[value] warning: accessing uninitialized left-value. assert \initialized(&x3);
@@ -147,12 +146,12 @@ tests/value/initialized.c:8:[value] warning: function f: postcondition got statu
 [value] Recording results for g3
 [value] Done for function g3
 [value] computing for function g4 <- main.
-        Called from tests/value/initialized.c:156.
+        Called from tests/value/initialized.c:161.
 tests/value/initialized.c:104:[value] warning: accessing uninitialized left-value. assert \initialized(&y);
 [value] Recording results for g4
 [value] Done for function g4
 [value] computing for function g5 <- main.
-        Called from tests/value/initialized.c:157.
+        Called from tests/value/initialized.c:162.
 [value] computing for function wrong_assigns <- g5 <- main.
         Called from tests/value/initialized.c:127.
 [value] using specification for function wrong_assigns
@@ -166,7 +165,7 @@ tests/value/initialized.c:133:[value] warning: assertion got status unknown.
 [value] Recording results for g5
 [value] Done for function g5
 [value] computing for function g6 <- main.
-        Called from tests/value/initialized.c:158.
+        Called from tests/value/initialized.c:163.
 tests/value/initialized.c:143:[value] warning: assertion got status unknown.
 tests/value/initialized.c:144:[value] warning: assertion got status unknown.
 tests/value/initialized.c:145:[value] warning: assertion got status unknown.
@@ -175,6 +174,16 @@ tests/value/initialized.c:147:[value] warning: assertion got status unknown.
 tests/value/initialized.c:148:[value] assertion got status valid.
 [value] Recording results for g6
 [value] Done for function g6
+[value] computing for function g7 <- main.
+        Called from tests/value/initialized.c:164.
+[value] computing for function Frama_C_make_unknown <- g7 <- main.
+        Called from tests/value/initialized.c:153.
+[value] using specification for function Frama_C_make_unknown
+share/libc/__fc_builtin.h:33:[value] function Frama_C_make_unknown: precondition got status valid.
+[value] Done for function Frama_C_make_unknown
+tests/value/initialized.c:154:[value] assertion got status valid.
+[value] Recording results for g7
+[value] Done for function g7
 [value] Recording results for main
 [value] done for function main
 tests/value/initialized.c:93:[value] assertion 'Value,initialisation' got final status invalid.
@@ -245,6 +254,10 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
   NON TERMINATING FUNCTION
 [value:final-states] Values at end of function g6:
   i6 ∈ UNINITIALIZED
+[value:final-states] Values at end of function g7:
+  Frama_C_entropy_source ∈ [--..--]
+  key[0..63] ∈ [--..--]
+     [64..127] ∈ UNINITIALIZED
 [value:final-states] Values at end of function g5:
   v ∈ UNINITIALIZED
   p ∈ {{ &v1 ; &v2 }}
@@ -259,8 +272,6 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
 [from] Done for function Frama_C_interval
 [from] Done for function g1
 [from] Computing for function g2
-[from] Computing for function Frama_C_dump_each <-g2
-[from] Done for function Frama_C_dump_each
 [from] Done for function g2
 [from] Computing for function g3
 [from] Done for function g3
@@ -269,6 +280,10 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
 [from] Done for function g4
 [from] Computing for function g6
 [from] Done for function g6
+[from] Computing for function g7
+[from] Computing for function Frama_C_make_unknown <-g7
+[from] Done for function Frama_C_make_unknown
+[from] Done for function g7
 [from] Computing for function g5
 [from] Computing for function wrong_assigns <-g5
 [from] Done for function wrong_assigns
@@ -280,6 +295,9 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
+[from] Function Frama_C_make_unknown:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  key[0..63] FROM Frama_C_entropy_source
 [from] Function f:
   t1[1..4] FROM m; t; n (and SELF)
   t2[1..248] FROM m; t; n (and SELF)
@@ -293,6 +311,8 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
   NON TERMINATING - NO EFFECTS
 [from] Function g6:
   i6 FROM rand (and SELF)
+[from] Function g7:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] Function wrong_assigns:
   v{.a; .b} FROM \nothing
 [from] Function g5:
@@ -327,6 +347,10 @@ tests/value/initialized.c:104:[value] assertion 'Value,initialisation' got final
           i6
 [inout] Inputs for function g6:
           rand
+[inout] Out (internal) for function g7:
+          Frama_C_entropy_source; key[0..63]
+[inout] Inputs for function g7:
+          Frama_C_entropy_source
 [inout] Out (internal) for function g5:
           v{.a; .b}; p; tmp
 [inout] Inputs for function g5:

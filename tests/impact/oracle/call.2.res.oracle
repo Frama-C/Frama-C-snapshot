@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/impact/call.i (no preprocessing)
 [impact] beginning analysis
 [value] Analyzing a complete application starting at main3
@@ -14,7 +13,7 @@
 [value] computing for function p3 <- test3 <- call_test3 <- main3.
         Called from tests/impact/call.i:45.
 [value] using specification for function p3
-tests/impact/call.i:41:[value] warning: no \from part for clause 'assigns G;' of function p3
+tests/impact/call.i:41:[value] warning: no \from part for clause 'assigns G;'
 [value] Done for function p3
 [value] computing for function p2 <- test3 <- call_test3 <- main3.
         Called from tests/impact/call.i:45.

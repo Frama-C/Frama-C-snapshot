@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/sparecode/intra.i (no preprocessing)
 [sparecode] remove unused code...
 [value] Analyzing a complete application starting at main2
@@ -21,14 +20,6 @@ tests/sparecode/intra.i:109:[value] assertion got status valid.
 [pdg] done for function main2
 [pdg] computing for function f10
 [pdg] done for function f10
-[pdg] computing for function Frama_C_bzero
-[from] Computing for function Frama_C_bzero
-[from] Done for function Frama_C_bzero
-[pdg] done for function Frama_C_bzero
-[pdg] computing for function Frama_C_copy_block
-[from] Computing for function Frama_C_copy_block
-[from] Done for function Frama_C_copy_block
-[pdg] done for function Frama_C_copy_block
 [pdg] computing for function assign
 [pdg] warning: unreachable entry point (sid:32, function assign)
 [pdg] Bottom for function assign

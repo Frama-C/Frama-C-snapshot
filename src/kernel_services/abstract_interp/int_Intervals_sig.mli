@@ -28,7 +28,6 @@ open Abstract_interp
 type itv = Int.t * Int.t
 
 include Lattice_type.Full_Lattice
-include Lattice_type.With_Error_Top
 
 val is_top: t -> bool
 

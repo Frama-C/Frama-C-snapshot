@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_acsl/e_imply.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -227,16 +226,13 @@ Prove: (!P_F) \/ (!P_P(2)) \/ P_P(3) \/ (!P_P(4)).
 ------------------------------------------------------------
 
 Goal Post-condition 'f0' in 'f':
-Assume { (* Goal *) When: P_P(1) /\ P_P(2) /\ (P_P(1) \/ P_P(12)). }
+Assume { (* Goal *) When: P_P(1) /\ P_P(2). }
 Prove: P_T.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'f1' in 'f':
-Assume {
-  (* Goal *)
-  When: P_P(1) /\ P_P(2) /\ (P_P(1) \/ P_P(12)) /\ (P_P(2) \/ P_P(11)).
-}
+Assume { (* Goal *) When: P_P(1) /\ P_P(2). }
 Prove: P_T.
 
 ------------------------------------------------------------

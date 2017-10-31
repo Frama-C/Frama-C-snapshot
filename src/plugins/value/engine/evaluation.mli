@@ -74,20 +74,6 @@ module type S = sig
     ?valuation:Valuation.t -> for_writing:bool ->
     state -> lval -> (Valuation.t * loc * typ) evaluated
 
-  (** [can_copy is_ret state kf lv e] checks whether assigning [e] to [lv]
-      inside function [kf] and in the context of [state]
-      can be a simple copy of an lval or must be an assignment
-      (see {!Eval.assigned} for more information).
-      [is_ret] indicates whether the assigned expr is in fact the value
-      returned by a callee.
-
-      @return [Some rlv] if the assignment can be seen as a copy from rlv to lv,
-      and [None] otherwise
-  *)
-  val can_copy:
-    ?valuation:Valuation.t -> is_ret:bool -> state -> Kernel_function.t ->
-    lval -> exp -> (lval option * Valuation.t) evaluated
-
   (** [reduce ~valuation state expr positive] evaluates the expression [expr]
       in the state [state], and then reduces the [valuation] such that
       the expression [expr] evaluates to a zero or a non-zero value, according
@@ -122,8 +108,6 @@ module type S = sig
   val split_by_evaluation:
     exp -> Integer.t list -> state list ->
     (Integer.t * state list * bool) list * state list
-
-  val check_copy_lval: (lval * loc) -> (lval * loc) -> bool evaluated
 
   val check_non_overlapping:
     state -> lval list -> lval list -> unit evaluated

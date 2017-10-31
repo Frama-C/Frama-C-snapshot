@@ -655,23 +655,15 @@ HAS_GTKSOURCEVIEW
 GTKSOURCEVIEW
 WHY3COQC
 COQC
-DYNAMIC_WP
 ENABLE_WP
-DYNAMIC_VARIADIC
 ENABLE_VARIADIC
-DYNAMIC_SECURITY_SLICING
+ENABLE_STUDIA
 ENABLE_SECURITY_SLICING
-DYNAMIC_REPORT
 ENABLE_REPORT
-DYNAMIC_PRINT_API
 ENABLE_PRINT_API
-DYNAMIC_OBFUSCATOR
 ENABLE_OBFUSCATOR
-DYNAMIC_NONTERM
 ENABLE_NONTERM
-DYNAMIC_LOOP_ANALYSIS
 ENABLE_LOOP_ANALYSIS
-FULL_GMP
 OCAMLVERSION
 MAY_RUN_TESTS
 OPTIMIZED_RTL
@@ -680,43 +672,25 @@ LIBOBJS
 HAVE_DOT
 DOXYGEN
 UNAME
-DYNAMIC_E_ACSL
 ENABLE_E_ACSL
 LTLTOBA
 HAS_LTLTOBA
-DYNAMIC_AORAI
 ENABLE_AORAI
-DYNAMIC_VALUE_ANALYSIS
 ENABLE_VALUE_ANALYSIS
-DYNAMIC_USERS
 ENABLE_USERS
-DYNAMIC_SPARECODE
 ENABLE_SPARECODE
-DYNAMIC_SLICING
 ENABLE_SLICING
-DYNAMIC_SCOPE
 ENABLE_SCOPE
-DYNAMIC_RTEGEN
 ENABLE_RTEGEN
-DYNAMIC_POSTDOMINATORS
 ENABLE_POSTDOMINATORS
-DYNAMIC_PDG
 ENABLE_PDG
-DYNAMIC_OCCURRENCE
 ENABLE_OCCURRENCE
-DYNAMIC_METRICS
 ENABLE_METRICS
-DYNAMIC_INOUT
 ENABLE_INOUT
-DYNAMIC_IMPACT
 ENABLE_IMPACT
-DYNAMIC_GUI
 ENABLE_GUI
-DYNAMIC_FROM_ANALYSIS
 ENABLE_FROM_ANALYSIS
-DYNAMIC_SEMANTIC_CONSTANT_FOLDING
 ENABLE_SEMANTIC_CONSTANT_FOLDING
-DYNAMIC_CALLGRAPH
 ENABLE_CALLGRAPH
 EGREP
 GREP
@@ -761,7 +735,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -790,61 +763,35 @@ enable_landmarks
 with_cc
 enable_localmachdep
 with_cpp
-with_all_static
 with_no_plugin
 enable_callgraph
-with_callgraph_static
 enable_semantic_constant_folding
-with_semantic_constant_folding_static
 enable_from_analysis
-with_from_analysis_static
 enable_gui
 enable_impact
-with_impact_static
 enable_inout
-with_inout_static
 enable_metrics
-with_metrics_static
 enable_occurrence
-with_occurrence_static
 enable_pdg
-with_pdg_static
 enable_postdominators
-with_postdominators_static
 enable_rtegen
-with_rtegen_static
 enable_scope
-with_scope_static
 enable_slicing
-with_slicing_static
 enable_sparecode
-with_sparecode_static
 enable_users
-with_users_static
 enable_value_analysis
-with_value_analysis_static
 enable_external
 enable_aorai
-with_aorai_static
 enable_e_acsl
-with_e_acsl_static
-enable_full_gmp
 enable_loop_analysis
-with_loop_analysis_static
 enable_nonterm
-with_nonterm_static
 enable_obfuscator
-with_obfuscator_static
 enable_print_api
-with_print_api_static
 enable_report
-with_report_static
 enable_security_slicing
-with_security_slicing_static
+enable_studia
 enable_variadic
-with_variadic_static
 enable_wp
-with_wp_static
 enable_wp_coq
 enable_wp_why3
 '
@@ -895,7 +842,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1148,15 +1094,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1294,7 +1231,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1447,7 +1384,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1503,7 +1439,6 @@ Optional Features:
                           some external plug-ins.
   --enable-aorai          support for Aorai plug-in (default: yes)
   --enable-e_acsl         support for E-ACSL plug-in (default: yes)
-  --enable-full-gmp       "Disable runtime assertions in the RTL"
   --enable-loop_analysis  support for loop analysis plug-in (default: yes)
   --enable-nonterm        support for nonterm plug-in (default: yes)
   --enable-obfuscator     support for Obfuscator plug-in (default: yes)
@@ -1511,6 +1446,7 @@ Optional Features:
   --enable-report         support for report plug-in (default: yes)
   --enable-security_slicing
                           support for Security_slicing plug-in (default: yes)
+  --enable-studia         support for studia plug-in (default: yes)
   --enable-variadic       support for variadic plug-in (default: yes)
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
@@ -1521,41 +1457,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
 specifies a custom C compiler and pre-processor
   --with-cpp             customize default preprocessor for Frama-C
-  --with-all-static       link all plug-ins statically (default: no)
   --with-no-plugin        disable all plug-ins (default: no)
-  --with-callgraph-static link callgraph statically (default: no)
-  --with-semantic_constant_folding-static
-                          link semantic_constant_folding statically (default: no)
-  --with-from_analysis-static
-                          link from_analysis statically (default: no)
-  --with-impact-static    link impact statically (default: no)
-  --with-inout-static     link inout statically (default: no)
-  --with-metrics-static   link metrics statically (default: no)
-  --with-occurrence-static
-                          link occurrence statically (default: no)
-  --with-pdg-static       link pdg statically (default: no)
-  --with-postdominators-static
-                          link postdominators statically (default: no)
-  --with-rtegen-static    link rtegen statically (default: no)
-  --with-scope-static     link scope statically (default: no)
-  --with-slicing-static   link slicing statically (default: no)
-  --with-sparecode-static link sparecode statically (default: no)
-  --with-users-static     link users statically (default: no)
-  --with-value_analysis-static
-                          link value_analysis statically (default: no)
-  --with-aorai-static     link aorai statically (default: no)
-  --with-e_acsl-static    link e_acsl statically (default: no)
-  --with-loop_analysis-static
-                          link loop_analysis statically (default: no)
-  --with-nonterm-static   link nonterm statically (default: no)
-  --with-obfuscator-static
-                          link obfuscator statically (default: no)
-  --with-print_api-static link print_api statically (default: no)
-  --with-report-static    link report statically (default: no)
-  --with-security_slicing-static
-                          link security_slicing statically (default: no)
-  --with-variadic-static  link variadic statically (default: no)
-  --with-wp-static        link wp statically (default: no)
 
 Some influential environment variables:
   CC          C compiler command
@@ -5239,17 +5141,6 @@ $as_echo "Default preprocessor supported architecture-related options: $DEFAULT_
 
 new_section "wished frama-c plug-ins"
 
-# Option -with-all-static
-#######################
-
-
-
-# Check whether --with-all-static was given.
-if test "${with_all_static+set}" = set; then :
-  withval=$with_all_static; IS_ALL_STATIC=$withval
-fi
-
-
 # Option -with-no-plugin
 #######################
 
@@ -5307,7 +5198,6 @@ PLUGINS_FORCE_LIST=
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/callgraph" >&5
 $as_echo_n "checking for src/plugins/callgraph... " >&6; }
 if ${ac_cv_file_src_plugins_callgraph+:} false; then :
@@ -5347,21 +5237,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "callgraph is not available" "$LINENO" 5
 fi
@@ -5375,35 +5250,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_CALLGRAPH=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-callgraph-static was given.
-if test "${with_callgraph_static+set}" = set; then :
-  withval=$with_callgraph_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_CALLGRAPH=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} callgraph"
-     DYNAMIC_CALLGRAPH=yes
-   else
-     DYNAMIC_CALLGRAPH=no
-   fi
-
-
 
 echo "callgraph... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -5441,7 +5292,6 @@ echo "callgraph... $ENABLE"
 
 # constant propagation
 ######################
-
 
 
 
@@ -5488,21 +5338,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "semantic_constant_folding is not available" "$LINENO" 5
 fi
@@ -5516,35 +5351,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_SEMANTIC_CONSTANT_FOLDING=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-semantic_constant_folding-static was given.
-if test "${with_semantic_constant_folding_static+set}" = set; then :
-  withval=$with_semantic_constant_folding_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_SEMANTIC_CONSTANT_FOLDING=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} semantic_constant_folding"
-     DYNAMIC_SEMANTIC_CONSTANT_FOLDING=yes
-   else
-     DYNAMIC_SEMANTIC_CONSTANT_FOLDING=no
-   fi
-
-
 
 echo "semantic_constant_folding... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -5566,7 +5377,6 @@ echo "semantic_constant_folding... $ENABLE"
 
 # from
 ######
-
 
 
 
@@ -5613,21 +5423,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "from_analysis is not available" "$LINENO" 5
 fi
@@ -5641,35 +5436,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_FROM_ANALYSIS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-from_analysis-static was given.
-if test "${with_from_analysis_static+set}" = set; then :
-  withval=$with_from_analysis_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_FROM_ANALYSIS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} from_analysis"
-     DYNAMIC_FROM_ANALYSIS=yes
-   else
-     DYNAMIC_FROM_ANALYSIS=no
-   fi
-
-
 
 echo "from_analysis... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -5702,7 +5473,6 @@ echo "from_analysis... $ENABLE"
 
 # gui
 #####
-
 
 
 
@@ -5749,21 +5519,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "gui is not available" "$LINENO" 5
 fi
@@ -5777,17 +5532,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_GUI=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_GUI=no
-
-
 
 echo "gui... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -5818,7 +5567,6 @@ echo "gui... $ENABLE"
 
 # impact
 ########
-
 
 
 
@@ -5865,21 +5613,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "impact is not available" "$LINENO" 5
 fi
@@ -5893,35 +5626,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_IMPACT=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-impact-static was given.
-if test "${with_impact_static+set}" = set; then :
-  withval=$with_impact_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_IMPACT=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} impact"
-     DYNAMIC_IMPACT=yes
-   else
-     DYNAMIC_IMPACT=no
-   fi
-
-
 
 echo "impact... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -5994,7 +5703,6 @@ echo "impact... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/inout" >&5
 $as_echo_n "checking for src/plugins/inout... " >&6; }
 if ${ac_cv_file_src_plugins_inout+:} false; then :
@@ -6034,21 +5742,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "inout is not available" "$LINENO" 5
 fi
@@ -6062,35 +5755,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_INOUT=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-inout-static was given.
-if test "${with_inout_static+set}" = set; then :
-  withval=$with_inout_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_INOUT=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} inout"
-     DYNAMIC_INOUT=yes
-   else
-     DYNAMIC_INOUT=no
-   fi
-
-
 
 echo "inout... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -6140,7 +5809,6 @@ echo "inout... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/metrics" >&5
 $as_echo_n "checking for src/plugins/metrics... " >&6; }
 if ${ac_cv_file_src_plugins_metrics+:} false; then :
@@ -6180,21 +5848,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "metrics is not available" "$LINENO" 5
 fi
@@ -6208,35 +5861,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_METRICS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-metrics-static was given.
-if test "${with_metrics_static+set}" = set; then :
-  withval=$with_metrics_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_METRICS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} metrics"
-     DYNAMIC_METRICS=yes
-   else
-     DYNAMIC_METRICS=no
-   fi
-
-
 
 echo "metrics... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -6268,7 +5897,6 @@ echo "metrics... $ENABLE"
 
 # occurrence
 ############
-
 
 
 
@@ -6315,21 +5943,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "occurrence is not available" "$LINENO" 5
 fi
@@ -6343,35 +5956,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_OCCURRENCE=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-occurrence-static was given.
-if test "${with_occurrence_static+set}" = set; then :
-  withval=$with_occurrence_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_OCCURRENCE=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} occurrence"
-     DYNAMIC_OCCURRENCE=yes
-   else
-     DYNAMIC_OCCURRENCE=no
-   fi
-
-
 
 echo "occurrence... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -6403,7 +5992,6 @@ echo "occurrence... $ENABLE"
 
 # pdg
 #####
-
 
 
 
@@ -6450,21 +6038,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "pdg is not available" "$LINENO" 5
 fi
@@ -6478,35 +6051,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_PDG=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-pdg-static was given.
-if test "${with_pdg_static+set}" = set; then :
-  withval=$with_pdg_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_PDG=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} pdg"
-     DYNAMIC_PDG=yes
-   else
-     DYNAMIC_PDG=no
-   fi
-
-
 
 echo "pdg... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -6556,7 +6105,6 @@ echo "pdg... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/postdominators" >&5
 $as_echo_n "checking for src/plugins/postdominators... " >&6; }
 if ${ac_cv_file_src_plugins_postdominators+:} false; then :
@@ -6596,21 +6144,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "postdominators is not available" "$LINENO" 5
 fi
@@ -6624,29 +6157,6 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_POSTDOMINATORS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-postdominators-static was given.
-if test "${with_postdominators_static+set}" = set; then :
-  withval=$with_postdominators_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_POSTDOMINATORS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} postdominators"
-     DYNAMIC_POSTDOMINATORS=yes
-   else
-     DYNAMIC_POSTDOMINATORS=no
-   fi
-
-
 
 echo "postdominators... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
@@ -6659,10 +6169,8 @@ echo "postdominators... $ENABLE"
 
 
 
-
 # rte
 #####
-
 
 
 
@@ -6709,21 +6217,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "rtegen is not available" "$LINENO" 5
 fi
@@ -6737,29 +6230,6 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_RTEGEN=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-rtegen-static was given.
-if test "${with_rtegen_static+set}" = set; then :
-  withval=$with_rtegen_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_RTEGEN=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} rtegen"
-     DYNAMIC_RTEGEN=yes
-   else
-     DYNAMIC_RTEGEN=no
-   fi
-
-
 
 echo "rtegen... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
@@ -6772,10 +6242,8 @@ echo "rtegen... $ENABLE"
 
 
 
-
 # scope
 ############
-
 
 
 
@@ -6822,21 +6290,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "scope is not available" "$LINENO" 5
 fi
@@ -6850,35 +6303,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_SCOPE=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-scope-static was given.
-if test "${with_scope_static+set}" = set; then :
-  withval=$with_scope_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_SCOPE=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} scope"
-     DYNAMIC_SCOPE=yes
-   else
-     DYNAMIC_SCOPE=no
-   fi
-
-
 
 echo "scope... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -6950,7 +6379,6 @@ echo "scope... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/slicing" >&5
 $as_echo_n "checking for src/plugins/slicing... " >&6; }
 if ${ac_cv_file_src_plugins_slicing+:} false; then :
@@ -6990,21 +6418,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "slicing is not available" "$LINENO" 5
 fi
@@ -7018,35 +6431,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_SLICING=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-slicing-static was given.
-if test "${with_slicing_static+set}" = set; then :
-  withval=$with_slicing_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_SLICING=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} slicing"
-     DYNAMIC_SLICING=yes
-   else
-     DYNAMIC_SLICING=no
-   fi
-
-
 
 echo "slicing... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -7118,7 +6507,6 @@ echo "slicing... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/sparecode" >&5
 $as_echo_n "checking for src/plugins/sparecode... " >&6; }
 if ${ac_cv_file_src_plugins_sparecode+:} false; then :
@@ -7158,21 +6546,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "sparecode is not available" "$LINENO" 5
 fi
@@ -7186,35 +6559,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_SPARECODE=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-sparecode-static was given.
-if test "${with_sparecode_static+set}" = set; then :
-  withval=$with_sparecode_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_SPARECODE=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} sparecode"
-     DYNAMIC_SPARECODE=yes
-   else
-     DYNAMIC_SPARECODE=no
-   fi
-
-
 
 echo "sparecode... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -7246,7 +6595,6 @@ echo "sparecode... $ENABLE"
 
 # users
 #######
-
 
 
 
@@ -7293,21 +6641,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "users is not available" "$LINENO" 5
 fi
@@ -7321,35 +6654,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_USERS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-users-static was given.
-if test "${with_users_static+set}" = set; then :
-  withval=$with_users_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_USERS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} users"
-     DYNAMIC_USERS=yes
-   else
-     DYNAMIC_USERS=no
-   fi
-
-
 
 echo "users... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -7381,7 +6690,6 @@ echo "users... $ENABLE"
 
 # value
 #######
-
 
 
 
@@ -7428,21 +6736,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "value_analysis is not available" "$LINENO" 5
 fi
@@ -7456,35 +6749,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_VALUE_ANALYSIS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-value_analysis-static was given.
-if test "${with_value_analysis_static+set}" = set; then :
-  withval=$with_value_analysis_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_VALUE_ANALYSIS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} value_analysis"
-     DYNAMIC_VALUE_ANALYSIS=yes
-   else
-     DYNAMIC_VALUE_ANALYSIS=no
-   fi
-
-
 
 echo "value_analysis... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -7606,7 +6875,6 @@ fi
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/aorai/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/aorai/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_aorai_Makefile_in+:} false; then :
@@ -7646,21 +6914,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "aorai is not available" "$LINENO" 5
 fi
@@ -7674,35 +6927,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_AORAI=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-aorai-static was given.
-if test "${with_aorai_static+set}" = set; then :
-  withval=$with_aorai_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_AORAI=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} aorai"
-     DYNAMIC_AORAI=yes
-   else
-     DYNAMIC_AORAI=no
-   fi
-
-
 
 echo "aorai... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -7848,7 +7077,6 @@ fi
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/e-acsl/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/e-acsl/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_e_acsl_Makefile_in+:} false; then :
@@ -7888,21 +7116,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "e_acsl is not available" "$LINENO" 5
 fi
@@ -7916,35 +7129,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_E_ACSL=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-e_acsl-static was given.
-if test "${with_e_acsl_static+set}" = set; then :
-  withval=$with_e_acsl_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_E_ACSL=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} e_acsl"
-     DYNAMIC_E_ACSL=yes
-   else
-     DYNAMIC_E_ACSL=no
-   fi
-
-
 
 echo "e_acsl... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -8020,7 +7209,7 @@ fi
 
 HOST_OS=$($UNAME -s)
 case $HOST_OS in
-Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
+Darwin | Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
 # BSDs haven't really be tested, but it should at least compile fine
 ;;
 *)
@@ -9446,20 +8635,9 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
-# GMP
-#####
-# Check whether --enable-full-gmp was given.
-if test "${enable_full_gmp+set}" = set; then :
-  enableval=$enable_full_gmp; FULL_GMP="yes"
-else
-  FULL_GMP="no"
-fi
-
-
 #######################
 # Generating Makefile #
 #######################
-
 
 
 
@@ -9482,20 +8660,6 @@ fi
 ###############################
 
 
-
-# Configure libgmp
-if test "$FULL_GMP" = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Configure libgmp" >&5
-$as_echo "$as_me: Configure libgmp" >&6;}
-  (cd src/plugins/e-acsl/contrib/libgmp && ./configure)
-fi
-
-# Configure libjemalloc
-{ $as_echo "$as_me:${as_lineno-$LINENO}: Configure libjemalloc" >&5
-$as_echo "$as_me: Configure libjemalloc" >&6;}
-(cd src/plugins/e-acsl/contrib/libjemalloc && ./autogen.sh \
-  --with-jemalloc-prefix="__e_acsl_native_" \
-  --with-private-namespace="__e_acsl_hidden_")
 
 fi
 
@@ -9556,7 +8720,6 @@ fi
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/loop_analysis/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/loop_analysis/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_loop_analysis_Makefile_in+:} false; then :
@@ -9596,21 +8759,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "loop_analysis is not available" "$LINENO" 5
 fi
@@ -9624,35 +8772,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_LOOP_ANALYSIS=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-loop_analysis-static was given.
-if test "${with_loop_analysis_static+set}" = set; then :
-  withval=$with_loop_analysis_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_LOOP_ANALYSIS=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} loop_analysis"
-     DYNAMIC_LOOP_ANALYSIS=yes
-   else
-     DYNAMIC_LOOP_ANALYSIS=no
-   fi
-
-
 
 echo "loop_analysis... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -9730,7 +8854,6 @@ echo "loop_analysis... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/nonterm/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/nonterm/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_nonterm_Makefile_in+:} false; then :
@@ -9770,21 +8893,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "nonterm is not available" "$LINENO" 5
 fi
@@ -9798,35 +8906,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_NONTERM=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-nonterm-static was given.
-if test "${with_nonterm_static+set}" = set; then :
-  withval=$with_nonterm_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_NONTERM=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} nonterm"
-     DYNAMIC_NONTERM=yes
-   else
-     DYNAMIC_NONTERM=no
-   fi
-
-
 
 echo "nonterm... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -9911,7 +8995,6 @@ echo "nonterm... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/obfuscator/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/obfuscator/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_obfuscator_Makefile_in+:} false; then :
@@ -9951,21 +9034,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "obfuscator is not available" "$LINENO" 5
 fi
@@ -9979,35 +9047,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_OBFUSCATOR=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-obfuscator-static was given.
-if test "${with_obfuscator_static+set}" = set; then :
-  withval=$with_obfuscator_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_OBFUSCATOR=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} obfuscator"
-     DYNAMIC_OBFUSCATOR=yes
-   else
-     DYNAMIC_OBFUSCATOR=no
-   fi
-
-
 
 echo "obfuscator... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -10025,7 +9069,6 @@ echo "obfuscator... $ENABLE"
          if test "$ENABLE_OBFUSCATOR" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/obfuscator";
          fi
-
 
 
 
@@ -10090,21 +9133,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "print_api is not available" "$LINENO" 5
 fi
@@ -10118,35 +9146,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_PRINT_API=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-print_api-static was given.
-if test "${with_print_api_static+set}" = set; then :
-  withval=$with_print_api_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_PRINT_API=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} print_api"
-     DYNAMIC_PRINT_API=yes
-   else
-     DYNAMIC_PRINT_API=no
-   fi
-
-
 
 echo "print_api... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -10207,7 +9211,6 @@ echo "print_api... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/report/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/report/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_report_Makefile_in+:} false; then :
@@ -10247,21 +9250,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "report is not available" "$LINENO" 5
 fi
@@ -10275,35 +9263,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_REPORT=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-report-static was given.
-if test "${with_report_static+set}" = set; then :
-  withval=$with_report_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_REPORT=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} report"
-     DYNAMIC_REPORT=yes
-   else
-     DYNAMIC_REPORT=no
-   fi
-
-
 
 echo "report... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -10378,7 +9342,6 @@ echo "report... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/security_slicing/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/security_slicing/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_security_slicing_Makefile_in+:} false; then :
@@ -10418,21 +9381,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "security_slicing is not available" "$LINENO" 5
 fi
@@ -10446,35 +9394,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_SECURITY_SLICING=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-security_slicing-static was given.
-if test "${with_security_slicing_static+set}" = set; then :
-  withval=$with_security_slicing_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_SECURITY_SLICING=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} security_slicing"
-     DYNAMIC_SECURITY_SLICING=yes
-   else
-     DYNAMIC_SECURITY_SLICING=no
-   fi
-
-
 
 echo "security_slicing... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -10557,6 +9481,88 @@ echo "security_slicing... $ENABLE"
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/studia" >&5
+$as_echo_n "checking for src/plugins/studia... " >&6; }
+if ${ac_cv_file_src_plugins_studia+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/studia"; then
+  ac_cv_file_src_plugins_studia=yes
+else
+  ac_cv_file_src_plugins_studia=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_studia" >&5
+$as_echo "$ac_cv_file_src_plugins_studia" >&6; }
+if test "x$ac_cv_file_src_plugins_studia" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-studia was given.
+if test "${enable_studia+set}" = set; then :
+  enableval=$enable_studia; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "studia is not available" "$LINENO" 5
+fi
+
+FORCE_STUDIA=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_STUDIA
+
+ENABLE_STUDIA=$ENABLE
+NAME_STUDIA=studia
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_STUDIA=" (not available by default)"
+fi
+
+
+echo "studia... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+                      if test "$ENABLE_STUDIA" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/studia";
+                      fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10590,7 +9596,6 @@ echo "security_slicing... $ENABLE"
 ##########################################
 # Variadic as a standard Frama-C plug-in #
 ##########################################
-
 
 
 
@@ -10645,21 +9650,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "variadic is not available" "$LINENO" 5
 fi
@@ -10673,35 +9663,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_VARIADIC=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-variadic-static was given.
-if test "${with_variadic_static+set}" = set; then :
-  withval=$with_variadic_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_VARIADIC=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} variadic"
-     DYNAMIC_VARIADIC=yes
-   else
-     DYNAMIC_VARIADIC=no
-   fi
-
-
 
 echo "variadic... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -10774,7 +9740,6 @@ echo "variadic... $ENABLE"
 
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/wp/Makefile.in" >&5
 $as_echo_n "checking for src/plugins/wp/Makefile.in... " >&6; }
 if ${ac_cv_file_src_plugins_wp_Makefile_in+:} false; then :
@@ -10814,21 +9779,6 @@ fi
 
 
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   as_fn_error $? "wp is not available" "$LINENO" 5
 fi
@@ -10842,35 +9792,11 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   INFO_WP=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-
-
-# Check whether --with-wp-static was given.
-if test "${with_wp_static+set}" = set; then :
-  withval=$with_wp_static; is_static=$withval
-else
-  is_static=$IS_ALL_STATIC
-fi
-
-
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   STATIC_WP=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} wp"
-     DYNAMIC_WP=yes
-   else
-     DYNAMIC_WP=no
-   fi
-
-
 
 echo "wp... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
-
 
 
 
@@ -11320,7 +10246,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.4pl6|8.5*|trunk)
+        8.5*|8.6*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
@@ -11331,8 +10257,8 @@ $as_echo "unsupported coqc version $COQVERSION" >&6; }
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5" >&5
-$as_echo "$as_me: rerun configure to make wp using coq 8.5" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5+" >&5
+$as_echo "$as_me: rerun configure to make wp using coq 8.5+" >&6;}
     fi
   else
     COQC="no"
@@ -11617,31 +10543,6 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -12992,28 +11893,15 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI E_ACSL LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING STUDIA VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
-  d=DYNAMIC_$plugin
-  s=STATIC_$plugin
   i=INFO_$plugin
   eval nv=\$$n
   eval ev=\$$e
-  eval dv=\$$d
-  eval sv=\$$s
   eval iv=\$$i
-  if test "$ev" = "no"; then
-    res=$ev;
-  elif test "$dv" = "yes"; then
-    res="$ev, dynamic";
-  elif test "$sv" = "yes"; then
-    res="$ev, static";
-  else
-    res=$ev;
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: $nv: $res$iv" >&5
-$as_echo "$as_me: $nv: $res$iv" >&6;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: $nv: $ev$iv" >&5
+$as_echo "$as_me: $nv: $ev$iv" >&6;}
 done
 
 if test "$EXTRA_EXTERNAL_PLUGINS" != ""; then

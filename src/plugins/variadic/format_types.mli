@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** See C11, 7.21.6 *)
+
 type flag = FMinus | FPlus | FSpace | FSharp | FZero
 type flags = flag list
 
@@ -37,6 +39,7 @@ type integer_specifier = [ signed_specifier | unsigned_specifier ]
 type float_specifier = [ `f | `e | `g | `a  ]
 type numeric_specifier = [ integer_specifier | float_specifier ]
 type capitalizable = [ `x | `f | `e | `g | `a  ]
+type has_alternative_form = [ `o | `x | `f | `e | `g | `a  ]
 
 type f_conversion_specifier =
   [ numeric_specifier | `c | `s | `p | `n ]
@@ -61,8 +64,7 @@ type s_conversion_specification = {
   mutable s_conversion_specifier: s_conversion_specifier;
 }
 
-(** Un élément du format est soit un caractère,
-    soit une spécification de conversion. *)
+(** A format element is either a character or a conversion specification. *)
 type 'spec token =
 | Char of char
 | Specification of 'spec

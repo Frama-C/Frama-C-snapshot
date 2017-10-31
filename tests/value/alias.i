@@ -42,9 +42,9 @@ void main (void) {
   /* SECTION 1 */
   A=1;
   B=2;
-  f(&A,&B);
-  f(&A,&A);
-  f(&p,&B);
+  f((char*)&A,&B);
+  f((char*)&A,&A);
+  f((char*)&p,&B);
 
   /* SECTION 2 */
   x = 1;
@@ -265,7 +265,7 @@ void main11(void)
   }
   D = *PTR3;
 
-  f2(p2);
+  f2((char*)p2);
 
   t = c2?0:1;
   ll1 = (c2+1)?15:16;

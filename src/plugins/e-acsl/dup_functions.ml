@@ -160,7 +160,19 @@ let dup_funspec tbl bhv spec =
 let dup_fundec loc spec bhv kf vi new_vi =
   new_vi.vdefined <- true;
   let formals = Kernel_function.get_formals kf in
-  let new_formals = List.map (fun vi -> Cil.copyVarinfo vi vi.vname) formals in
+  let mk_formal vi =
+    let name =
+      if vi.vname = "" then
+        (* unamed formal parameter: must generate a fresh name since a fundec
+           cannot have unnamed formals (see bts #2303). *)
+        Env.Varname.get ~scope:Env.Function
+          (Misc.mk_gen_name "unamed_formal")
+      else
+        vi.vname
+    in
+    Cil.copyVarinfo vi name
+  in
+  let new_formals = List.map mk_formal formals in
   let res =
     let ty = Kernel_function.get_return_type kf in
     if Cil.isVoidType ty then None

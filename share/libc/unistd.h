@@ -38,7 +38,7 @@ __PUSH_FC_STDLIB
 
 #include <getopt.h>
 
-extern int Frama_C_entropy_source;
+extern volatile int Frama_C_entropy_source;
 
 /* Values for the second argument to access.
    These may be OR'd together.  */

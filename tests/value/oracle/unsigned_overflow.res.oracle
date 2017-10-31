@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/unsigned_overflow.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -8,7 +7,7 @@
   i2 ∈ [--..--]
 tests/value/unsigned_overflow.c:4:[value] warning: assertion got status unknown.
 tests/value/unsigned_overflow.c:5:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each_dead()
+tests/value/unsigned_overflow.c:10:[value] Frama_C_show_each_dead:
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

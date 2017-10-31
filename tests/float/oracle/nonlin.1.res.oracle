@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/nonlin.c (with preprocessing)
 tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is not represented exactly. Will use 0x1.12e0be826d695p-30. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
@@ -36,7 +35,7 @@ tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is
   rbits2 ∈ {0}
   v ∈ [--..--]
 [value] computing for function nonlin_f <- main.
-        Called from tests/float/nonlin.c:85.
+        Called from tests/float/nonlin.c:92.
 [value] computing for function Frama_C_float_interval <- nonlin_f <- main.
         Called from tests/float/nonlin.c:16.
 [value] using specification for function Frama_C_float_interval
@@ -48,76 +47,94 @@ share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondit
 [value] Done for function Frama_C_float_interval
 tests/float/nonlin.c:20:[value] assertion got status valid.
 tests/float/nonlin.c:22:[value:nonlin] non-linear 'a + b * (c - a)', lv 'a'
+tests/float/nonlin.c:22:[value:nonlin] subdividing on a
 tests/float/nonlin.c:24:[value] assertion got status valid.
 tests/float/nonlin.c:41:[value:nonlin] non-linear 'b * (c - a) + a', lv 'a'
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.4000000000000p2 .. 0x1.4800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.4800000000000p2 .. 0x1.5000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.4800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.5000000000000p2 .. 0x1.5800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.5000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.5800000000000p2 .. 0x1.6000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.5800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.6000000000000p2 .. 0x1.6800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.6000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.6800000000000p2 .. 0x1.7000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.6800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.7000000000000p2 .. 0x1.7800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.7000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.7800000000000p2 .. 0x1.8000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.7800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.8000000000000p2 .. 0x1.8800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.8000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.8800000000000p2 .. 0x1.9000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.8800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.9000000000000p2 .. 0x1.9800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.9000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.9800000000000p2 .. 0x1.a000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.9800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.a000000000000p2 .. 0x1.a800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.a000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.a800000000000p2 .. 0x1.b000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.a800000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.b000000000000p2 .. 0x1.b800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.b000000000000p2 .. 0x1.c0fffffffffffp2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.b800000000000p2 .. 0x1.c000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.b800000000000p2 .. 0x1.c0fffffffffffp2])
+tests/float/nonlin.c:41:[value:nonlin] subdividing on a
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.4000000000000p2 .. 0x1.4800000000000p2],
+        {{ "r2" }},
+        [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.4800000000000p2 .. 0x1.5000000000000p2],
+        {{ "r2" }},
+        [0x1.4800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.5000000000000p2 .. 0x1.5800000000000p2],
+        {{ "r2" }},
+        [0x1.5000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.5800000000000p2 .. 0x1.6000000000000p2],
+        {{ "r2" }},
+        [0x1.5800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.6000000000000p2 .. 0x1.6800000000000p2],
+        {{ "r2" }},
+        [0x1.6000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.6800000000000p2 .. 0x1.7000000000000p2],
+        {{ "r2" }},
+        [0x1.6800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.7000000000000p2 .. 0x1.7800000000000p2],
+        {{ "r2" }},
+        [0x1.7000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.7800000000000p2 .. 0x1.8000000000000p2],
+        {{ "r2" }},
+        [0x1.7800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.8000000000000p2 .. 0x1.8800000000000p2],
+        {{ "r2" }},
+        [0x1.8000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.8800000000000p2 .. 0x1.9000000000000p2],
+        {{ "r2" }},
+        [0x1.8800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.9000000000000p2 .. 0x1.9800000000000p2],
+        {{ "r2" }},
+        [0x1.9000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.9800000000000p2 .. 0x1.a000000000000p2],
+        {{ "r2" }},
+        [0x1.9800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.a000000000000p2 .. 0x1.a800000000000p2],
+        {{ "r2" }},
+        [0x1.a000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.a800000000000p2 .. 0x1.b000000000000p2],
+        {{ "r2" }},
+        [0x1.a800000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.b000000000000p2 .. 0x1.b800000000000p2],
+        {{ "r2" }},
+        [0x1.b000000000000p2 .. 0x1.c0fffffffffffp2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.b800000000000p2 .. 0x1.c000000000000p2],
+        {{ "r2" }},
+        [0x1.b800000000000p2 .. 0x1.c0fffffffffffp2]
 [value] Recording results for nonlin_f
 [value] Done for function nonlin_f
 [value] computing for function other <- main.
-        Called from tests/float/nonlin.c:86.
+        Called from tests/float/nonlin.c:93.
 [value] computing for function Frama_C_float_interval <- other <- main.
         Called from tests/float/nonlin.c:59.
 [value] Done for function Frama_C_float_interval
@@ -125,13 +142,19 @@ tests/float/nonlin.c:41:[value:nonlin] non-linear 'b * (c - a) + a', lv 'a'
         Called from tests/float/nonlin.c:60.
 [value] Done for function Frama_C_float_interval
 tests/float/nonlin.c:61:[value:nonlin] non-linear 'i * i', lv 'i'
+tests/float/nonlin.c:61:[value:nonlin] subdividing on i
 tests/float/nonlin.c:61:[value] warning: accessing out of bounds index.
                  assert (int)((double)((double)(i * i) + 2.0)) < 10;
 tests/float/nonlin.c:62:[value:nonlin] non-linear 's - s', lv 's'
+tests/float/nonlin.c:62:[value:nonlin] subdividing on s
 tests/float/nonlin.c:63:[value:nonlin] non-linear 's - s', lv 's'
+tests/float/nonlin.c:63:[value:nonlin] subdividing on s
 tests/float/nonlin.c:64:[value:nonlin] non-linear 's + s', lv 's'
+tests/float/nonlin.c:64:[value:nonlin] subdividing on s
 tests/float/nonlin.c:65:[value:nonlin] non-linear 's * s', lv 's'
+tests/float/nonlin.c:65:[value:nonlin] subdividing on s
 tests/float/nonlin.c:66:[value:nonlin] non-linear 's * ((double)1 - s)', lv 's'
+tests/float/nonlin.c:66:[value:nonlin] subdividing on s
 [value] computing for function access_bits <- other <- main.
         Called from tests/float/nonlin.c:67.
 [value] Recording results for access_bits
@@ -142,23 +165,39 @@ tests/float/nonlin.c:66:[value:nonlin] non-linear 's * ((double)1 - s)', lv 's'
 share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/float/nonlin.c:70:[value:nonlin] non-linear '(1 / x) * x', lv 'x'
+tests/float/nonlin.c:70:[value:nonlin] subdividing on x
 tests/float/nonlin.c:70:[value] warning: division by zero. assert x ≢ 0;
 [value] Recording results for other
 [value] Done for function other
 [value] computing for function split_alarm <- main.
-        Called from tests/float/nonlin.c:87.
+        Called from tests/float/nonlin.c:94.
 tests/float/nonlin.c:74:[value] warning: non-finite float value. assert \is_finite(v);
 tests/float/nonlin.c:75:[value:nonlin] non-linear '(double)ff * (double)ff', lv 'ff'
+tests/float/nonlin.c:75:[value:nonlin] subdividing on ff
 [value] Recording results for split_alarm
 [value] Done for function split_alarm
 [value] computing for function norm <- main.
-        Called from tests/float/nonlin.c:88.
+        Called from tests/float/nonlin.c:95.
 tests/float/nonlin.c:79:[value] warning: non-finite float value. assert \is_finite(v);
 tests/float/nonlin.c:80:[value] warning: non-finite float value. assert \is_finite(v);
 tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v1 * (double)v1', lv 'v1'
 tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 'v2'
+tests/float/nonlin.c:81:[value:nonlin] subdividing on v1
+tests/float/nonlin.c:81:[value:nonlin] subdividing on v2
 [value] Recording results for norm
 [value] Done for function norm
+[value] computing for function garbled <- main.
+        Called from tests/float/nonlin.c:96.
+tests/float/nonlin.c:87:[value] warning: non-finite float value.
+                 assert \is_finite((float)((int)(&x_0 + (int)(&x_0))));
+tests/float/nonlin.c:87:[value] Assigning imprecise value to a_0.
+        The imprecision originates from Arithmetic {tests/float/nonlin.c:87}
+tests/float/nonlin.c:88:[value:nonlin] non-linear 'a_0 + a_0', lv 'a_0'
+tests/float/nonlin.c:88:[value:nonlin] subdividing on a_0
+tests/float/nonlin.c:88:[value] warning: non-finite float value. assert \is_finite(a_0);
+tests/float/nonlin.c:88:[value] warning: non-finite float value. assert \is_finite((float)(a_0 + a_0));
+[value] Recording results for garbled
+[value] Done for function garbled
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -166,6 +205,11 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [--..--]
   __retres ∈ {0; 1}
+[value:final-states] Values at end of function garbled:
+  a_0 ∈
+     {{ garbled mix of &{x_0}
+      (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+  f ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
 [value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
@@ -180,7 +224,7 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   square ∈ [-0x0.0000000000000p-1022 .. 0x1.fffffc0000020p256]
 [value:final-states] Values at end of function other:
   Frama_C_entropy_source ∈ [--..--]
-  i ∈ [-0x1.05ffffffffffbp2 .. 0x1.6a3b000000004p1]
+  i ∈ [-0x1.714fffffffff7p1 .. 0x1.71c0000000003p1]
   s ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
   zf ∈ [-0x1.12ffffffffffep4 .. 0x1.12ffffffffffep4]
   s2 ∈ [-0x1.0a00000000000p8 .. 0x1.1c00000000000p8]
@@ -203,7 +247,7 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   r1 ∈ [0x1.4000000000000p2 .. 0x1.cffffffffffffp2]
   r2 ∈ [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2]
   d ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
-  i ∈ [-0x1.05ffffffffffbp2 .. 0x1.6a3b000000004p1]
+  i ∈ [-0x1.714fffffffff7p1 .. 0x1.71c0000000003p1]
   s ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
   zf ∈ [-0x1.12ffffffffffep4 .. 0x1.12ffffffffffep4]
   s2 ∈ [-0x1.0a00000000000p8 .. 0x1.1c00000000000p8]
@@ -220,6 +264,11 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [--..--]
   __retres ∈ {0; 1}
+[value:final-states] Values at end of function garbled:
+  a_0 ∈
+     {{ garbled mix of &{x_0}
+      (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
 [value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [5. .. 7.]
@@ -234,7 +283,7 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   square ∈ [-0. .. 2.31584150868e+77]
 [value:final-states] Values at end of function other:
   Frama_C_entropy_source ∈ [--..--]
-  i ∈ [-4.09375 .. 2.82992553711]
+  i ∈ [-2.88525390625 .. 2.888671875]
   s ∈ [-133. .. 142.]
   zf ∈ [-17.1875 .. 17.1875]
   s2 ∈ [-266. .. 284.]
@@ -257,7 +306,7 @@ tests/float/nonlin.c:81:[value:nonlin] non-linear '(double)v2 * (double)v2', lv 
   r1 ∈ [5. .. 7.25]
   r2 ∈ [5. .. 7.015625]
   d ∈ [5. .. 7.]
-  i ∈ [-4.09375 .. 2.82992553711]
+  i ∈ [-2.88525390625 .. 2.888671875]
   s ∈ [-133. .. 142.]
   zf ∈ [-17.1875 .. 17.1875]
   s2 ∈ [-266. .. 284.]

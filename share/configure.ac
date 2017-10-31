@@ -87,8 +87,7 @@ define([PLUGIN_NAME],$1)
 define([PLUGIN_FILE],$2)
 define([PLUGIN_MSG],$3)
 define([PLUGIN_DEFAULT],$4)
-define([PLUGIN_DYNAMIC],$5)
-define([PLUGIN_ADDITIONAL_DIR],$6)
+define([PLUGIN_ADDITIONAL_DIR],$5)
 AC_CHECK_FILE(PLUGIN_FILE,
               default=PLUGIN_DEFAULT;plugin_present=yes,
 	      plugin_present=no;default=no)
@@ -110,21 +109,6 @@ fi
 
 define([KNOWN_SRC_DIRS],KNOWN_SRC_DIRS PLUGIN_FILE PLUGIN_ADDITIONAL_DIR)
 
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
   AC_MSG_ERROR([PLUGIN_NAME is not available])
 fi
@@ -138,30 +122,7 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
   [INFO_]UP=" (not available by default)"
 fi
 
-# Dynamic plug-ins configuration
-m4_if("PLUGIN_DYNAMIC","yes",
-  [define([STATIC_HELP],
-          AC_HELP_STRING([--with-PLUGIN_NAME-static],
-                         [link PLUGIN_NAME statically (default: no)]))
-   AC_ARG_WITH(PLUGIN_NAME[-static],STATIC_HELP,
-               [is_static=$withval],
-	       [is_static=$IS_ALL_STATIC])
-   undefine([STATIC_HELP])
-   # is_static = "yes" iff the user forces the plug-in to be static
-   # is_static = "no"  iff the user forces the plug-in to be dynamic
-   # is_static = "" in others cases (no special instruction)
-   [STATIC_]UP=$is_static
-   if test "$is_static" != "yes"; then
-     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} PLUGIN_NAME"
-     [DYNAMIC_]UP=yes
-   else
-     [DYNAMIC_]UP=no
-   fi],
-   # static plug-in
-   [[DYNAMIC_]UP=no])
-
 AC_SUBST([ENABLE_]UP)
-AC_SUBST([DYNAMIC_]UP)
 echo "PLUGIN_NAME... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
@@ -169,7 +130,6 @@ echo "PLUGIN_NAME... $ENABLE"
 m4_undefine([PLUGIN_FILE])
 m4_undefine([PLUGIN_MSG])
 m4_undefine([PLUGIN_DEFAULT])
-m4_undefine([PLUGIN_DYNAMIC])
 m4_undefine([PLUGIN_ADDITIONAL_DIR])
 m4_undefine([UP])
 ]) # end of check_plugin

@@ -48,15 +48,16 @@ let not_yet_implemented ?(model= !current) fmt =
 open Cil_types
 
 let pp_logic_label fmt label =
-  let name = match label with
-    | LogicLabel (_,l) -> l
-    | StmtLabel {contents=stmt} ->
-        let rec pickLabel = function
-          | [] -> Printf.sprintf "__unknown_label_%d" stmt.sid
-          | Label (l, _, _) :: _ -> l
-          | _ :: rest -> pickLabel rest
-        in pickLabel stmt.labels
-  in Format.pp_print_string fmt name
+  match label with
+  | BuiltinLabel l -> Printer.pp_logic_builtin_label fmt l
+  | FormalLabel s -> Format.pp_print_string fmt s
+  | StmtLabel {contents=stmt} ->
+      Format.pp_print_string fmt
+        (let rec pickLabel = function
+            | [] -> Printf.sprintf "__unknown_label_%d" stmt.sid
+            | Label (l, _, _) :: _ -> l
+            | _ :: rest -> pickLabel rest
+         in pickLabel stmt.labels)
 
 let pp_assigns fmt asgns =
   match asgns with

@@ -88,7 +88,7 @@ Ltac Z_compare Inf EQ Sup i j :=
   [ destruct TMP as [ Inf | Sup ] | try rewrite <- EQ ];
   auto with zarith.
 
-(** For proving a symmetrical relation [P],
+(** For proving a symmetrical relation [P], 
     it is sufficient to prove [P i j] for [i<j] and [P i i]. *)
 Lemma symmetrical_ind: forall (P : nat -> nat -> Prop),
    (forall i j, P i j -> P j i) ->
@@ -160,7 +160,7 @@ Qed.
 						    
 (** {@trailing:} *)
 (** * Eventually constant functions *)
-(** The bits representation of [Z] integers are eventually constant
+(** The bits representation of [Z] integers are eventually constant 
     [nat -> bool] functions. Positive integers finally ends with an infinite 
     sequence of 0-bits, while negative inetegers ends with 1-bits. 
 

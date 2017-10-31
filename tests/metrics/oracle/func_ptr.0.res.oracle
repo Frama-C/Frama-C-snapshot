@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/metrics/func_ptr.c (with preprocessing)
 tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. Old style K&R code?
 [metrics] Defined functions (4)

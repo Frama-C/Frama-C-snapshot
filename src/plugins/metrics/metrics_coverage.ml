@@ -208,25 +208,39 @@ class coverageByFun = object
   method result = (total, value)
 end
 
-let compute_coverage_by_fun semantic =
-  let one_fun vi acc =
-    try
-      let kf = Globals.Functions.get vi in
-      let dec = Kernel_function.get_definition kf in
-      let vis = new coverageByFun in
-      ignore (Visitor.visitFramacFunction (vis :> Visitor.frama_c_visitor) dec);
-      let (total, value) = vis#result in
-      let percent = (float_of_int value) /. (float_of_int total) *. 100. in
-      (kf, total, value, percent) :: acc
-    with Kernel_function.No_Definition -> acc
-  in
-  let res = Varinfo.Set.fold one_fun semantic [] in
-  (* Sort by percentage (higher first),
-     then sort by name (for same percentage) *)
-  List.sort (fun (kf1, _, _, p1) (kf2, _, _, p2) ->
-      let c = compare p2 p1 in
-      if c = 0 then compare kf1 kf2 else c
-    ) res
+module Kf_Coverage = Kernel_function.Make_Table
+    (Datatype.Triple (Datatype.Int) (Datatype.Int) (Datatype.Float))
+    (struct
+      let name = "Metrics_coverage.Kf_coverage"
+      let size = 7
+      let dependencies = [ Db.Value.self; Metrics_parameters.Libc.self ]
+    end)
+
+let is_computed_by_fun () = Kf_Coverage.length () > 0
+
+let get_coverage = Kf_Coverage.find
+
+let compute_coverage_for kf =
+  try
+    let dec = Kernel_function.get_definition kf in
+    let vis = new coverageByFun in
+    ignore (Visitor.visitFramacFunction (vis :> Visitor.frama_c_visitor) dec);
+    let (total, value) = vis#result in
+    let percent = (float_of_int value) /. (float_of_int total) *. 100. in
+    Kf_Coverage.replace kf (total, value, percent)
+  with Kernel_function.No_Definition -> ()
+
+let compute_coverage_by_fun () =
+  if Db.Value.is_computed () && not (is_computed_by_fun ())
+  then
+    let libc = Metrics_parameters.Libc.get () in
+    Globals.Functions.iter
+      (fun kf ->
+         if !Db.Value.is_called kf &&
+            Metrics_base.consider_function ~libc (Kernel_function.get_vi kf)
+         then compute_coverage_for kf)
+
+let clear_coverage_by_fun = Kf_Coverage.clear
 
 let compute_syntactic ~libc kf =
   let vis = new callableFunctionsVisitor ~libc in
@@ -274,15 +288,15 @@ class syntactic_printer ~libc reachable = object(self)
         (fun fvinfo acc ->
            if Metrics_base.consider_function ~libc fvinfo then
              let fname = Metrics_base.file_of_vinfodef fvinfo in
-             add_binding acc fname fvinfo
+             add_binding acc (Filepath.pretty fname) fvinfo
            else acc
         ) set Datatype.String.Map.empty
     in
     Format.fprintf fmt "@[<v 0>";
     Datatype.String.Map.iter
-      (fun fname fvinfoset ->
+      (fun pretty_fname fvinfoset ->
          Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
-           (Filepath.pretty fname)
+           pretty_fname
            (fun fmt vinfoset ->
               let vars = Varinfo.Set.elements vinfoset in
               let sorted_vars = List.sort compare_vi_names vars in
@@ -348,8 +362,20 @@ class semantic_printer ~libc (cov_metrics : coverage_metrics) = object(self)
 
   (* uses semantic *)
   method pp_stmts_reached_by_function fmt =
-    let semantic = compute_semantic ~libc in
-    let l = compute_coverage_by_fun semantic in
+    compute_coverage_by_fun ();
+    let l =
+      Kf_Coverage.fold
+        (fun kf (total, value, percent) l -> (kf, total, value, percent) :: l)
+        []
+    in
+    (* Sort by percentage (higher first),
+       then sort by name (for same percentage) *)
+    let l =
+      List.sort (fun (kf1, _, _, p1) (kf2, _, _, p2) ->
+          let c = compare p2 p1 in
+          if c = 0 then compare kf1 kf2 else c
+        ) l
+    in
     let sum_total, sum_value = List.fold_left
         (fun (at, av) (_, t, v, _) -> at+t, av+v) (0, 0) l in
     let percent = 100. *. (float_of_int sum_value) /. (float_of_int sum_total) in

@@ -8,6 +8,6 @@
 int bar(int *second);
 
 void sub (char * c) {
-  bar(c);
+  bar((int*)c);
   
 }

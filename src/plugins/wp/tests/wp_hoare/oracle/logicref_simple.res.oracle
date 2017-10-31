@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Ref)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/logicref_simple.i (no preprocessing)
 [wp] Running WP plugin...
 .................................................
@@ -52,12 +51,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 19) in 'fsimple_array':
-Let a = shift_A10_sint32(global(G_t_80), 0).
+Let a = global(G_t_31).
 Let x = Mint_0[shift_sint32(a, 3)].
 Assume {
   Type: is_sint32(x) /\ is_sint32(1 + x).
   (* Pre-condition *)
-  Have: P_simple_array(Mint_0, a).
+  Have: P_simple_array(Mint_0, shift_sint32(a, 0)).
 }
 Prove: x = 0.
 

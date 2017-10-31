@@ -18,6 +18,7 @@ Thanks to this approach, Frama-C provides sophisticated tools, including:
 - a program proof framework based on weakest precondition calculus (**WP**);
 - a program slicer (**Slicing**);
 - a tool for verification of temporal (LTL) properties (**Aoraï**);
+- a runtime verification tool (**E-ACSL**);
 - several tools for code base exploration and dependency analysis
   (**From**, **Impact**, **Metrics**, **Occurrence**, **Scope**, etc.).
 

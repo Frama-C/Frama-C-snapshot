@@ -20,8 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Functors for generic lattices implementations. 
+(** Functors for generic lattices implementations.
     @plugin developer guide *)
+
+exception Error_Top
+(** Raised by some functions when encountering a top value. *)
+
+exception Error_Bottom
+(** Raised by Lattice_Base.project. *)
 
 exception Not_less_than
 (** Raised by {!Lattice.cardinal_less_than}. *)
@@ -90,12 +96,16 @@ module Bool : sig
 end
 
 module Make_Lattice_Base (V : Lattice_Value) : Lattice_Base with type l = V.t
-module Make_Lattice_Set (V : Lattice_Value) : Lattice_Set with type O.elt=V.t
+
+module Make_Lattice_Set
+    (V : Datatype.S)
+    (Set: Lattice_type.Set with type elt = V.t)
+  : Lattice_type.Lattice_Set with module O = Set
 
 module Make_Hashconsed_Lattice_Set
-  (V : Hptmap.Id_Datatype)
-  (O: Hptset.S with type elt = V.t)
-  : Lattice_Hashconsed_Set with module O = O
+  (V: Hptmap.Id_Datatype)
+  (Set: Hptset.S with type elt = V.t)
+  : Lattice_type.Lattice_Set with module O = Set
 (** See e.g. base.ml and locations.ml to see how this functor should be
     applied. The [O] module passed as argument is the same as [O] in the
     result. It is passed here to avoid having multiple modules calling

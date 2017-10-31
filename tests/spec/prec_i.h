@@ -4,7 +4,7 @@
 #define _INCLUDE_prec_i
 
 /*
- spécification de l'opérateur PREC_I
+ spÃ©cification de l'opÃ©rateur PREC_I
 
 _E1 : INTEGER
 _S1 : INTEGER

@@ -1,12 +1,11 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/replace_by_show_each.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
-[value] Called Frama_C_show_each_2()
-[value] Called Frama_C_show_each_1()
+tests/value/replace_by_show_each.c:23:[value] Frama_C_show_each_2:
+tests/value/replace_by_show_each.c:25:[value] Frama_C_show_each_1:
 [inout] warning: no assigns clauses for function Frama_C_show_each_1. Results will be
                  imprecise.
 [from] warning: no assigns clauses for function Frama_C_show_each_1. Results will be

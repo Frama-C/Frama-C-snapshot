@@ -32,7 +32,7 @@ let ( <=~ ) = Integer.le
 let ( >=~ ) = Integer.ge
 let ( +~ ) = Integer.add
 let ( -~ ) = Integer.sub
-(*let ( *~ ) = Integer.mul*)
+(* let ( *~ ) = Integer.mul *)
 let ( /~ ) = Integer.pos_div
 let ( %~ ) = Integer.pos_rem
 let succ = Integer.succ
@@ -83,6 +83,14 @@ type 'a offsetmap =
     int
       (** tag: hash-consing id of the node, plus an additional boolean.
           Not related to the contents of the tree. *)
+
+
+(* In a node, the alignment of the value is relative to the start of the
+   interval of the node. When splitting or merging nodes, this relative
+   alignment must be recomputed wrt the offset of the new interval. The new
+   alignment should be consistent with the size of the value. *)
+let realign ~offset ~new_offset rem modu =
+  Rel.pos_rem (Rel.add (Rel.sub_abs offset new_offset) rem) modu
 
 (** plevel-related operation: value + hooks to call when the value is modified*)
 let plevel = ref 200
@@ -336,16 +344,10 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  let clear_caches_ref = ref []
 
 
-  let equal_vv (rem1, modu1, v1) (rem2, modu2, v2) =
-    rem1 =~ rem2 && modu1 =~ modu2 && V.equal v1 v2
-  ;;
-
-  let get_vv node curr_off =
+  let get_vv node =
     match node with
     | Empty -> assert false
-    | Node (_, _, _, _, _, remrel, modu, v, _) ->
-        let rem = (Rel.add_abs curr_off remrel) %~ modu in
-        rem, modu, v
+    | Node (_, _, _, _, _, rem, modu, v, _) -> rem, modu, v
   ;;
 
   let _get_v = function
@@ -358,11 +360,6 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
     | Empty -> assert false
     | Node (max, _, _, _, _, _, _, _, _) ->
         max
-  ;;
-
-  let get_modu = function
-    | Empty -> assert false
-    | Node (_, _, _, _, _, _, modu, _, _) -> modu
   ;;
 
   let is_above min1 max1 min2 max2 =
@@ -558,7 +555,27 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      | Empty -> acc
      | Node (_, _, left, _, right, _, _, v, _) ->
          fold_on_values f right (f v ((fold_on_values f left acc)))
-;;
+ ;;
+
+ (* Two adjacent nodes can be merged into one when:
+    - they contains the same value of the same size (thus repeated with the
+      same modulo) and the same alignment wrt the offset of the left node
+      (thus the alignment of the value in the right node must be converted
+      wrt the left offset).
+    - and the offset of the right node is aligned with the repeated value:
+      the separation does not cut the value, and can safely be removed.
+      Otherwise, a separation that cuts a value can only be removed if the
+      concretization of the value is a singleton, ensuring that the two parts
+      of the value are always consistent.  *)
+ let are_mergeable_nodes ~left_offset ~left ~right_offset ~right =
+   let lrem, lmodu, lv = left
+   and rrem, rmodu, rv = right in
+   V.equal lv rv && lmodu =~ rmodu &&
+   let new_rrem =
+     realign ~offset:right_offset ~new_offset:left_offset rrem rmodu
+   in
+   Rel.equal new_rrem lrem &&
+   (Rel.is_zero rrem || V.cardinal_zero_or_one lv)
 
  (** Smart constructor for nodes:
      it glues the node being allocated to potential candidates if needed
@@ -567,20 +584,19 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  let make_node curr_off max offl subl offr subr rem modu v =
    let rem, modu =
      if V.is_isotropic v
-     then Integer.zero, Integer.one
+     then Rel.zero, Integer.one
      else rem, modu
    in
    let curr_vv = (rem, modu, v) in
    let max, offr, subr =
      try
-       let offset, nr, zr =
-         leftmost_child (curr_off +~ offr) End subr in
+       let offset, nr, zr = leftmost_child (curr_off +~ offr) End subr in
        match nr with
-       | Node (nmax, _, nsubl , noffr, nsubr, nrelrem, nmodu, nv, _) ->
+       | Node (nmax, _, nsubl , noffr, nsubr, nrem, nmodu, nv, _) ->
            assert (is_empty nsubl);
-           let nrem = (Rel.add_abs offset nrelrem) %~ nmodu in
-           if equal_vv (nrem, nmodu, nv) curr_vv &&
-             (V.cardinal_zero_or_one v || (offset %~ modu =~ rem))
+           let right = nrem, nmodu, nv in
+           if are_mergeable_nodes
+               ~left_offset:curr_off ~left:curr_vv ~right_offset:offset ~right
            then
              begin
                let curr_offr, new_subr = rezip zr (offset +~ noffr) nsubr in
@@ -594,16 +610,16 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      with Empty_tree -> max, offr, subr
    in
    if debug then assert (Integer.ge max Integer.zero);
-   let curr_off, max, offl, subl, offr =
+   let curr_off, max, rem, offl, subl, offr =
      try
        let offset, nl, zl =
          rightmost_child (curr_off +~ offl) End subl in
        match nl with
-       | Node (nmax, noffl, nsubl , _, noffr, nrelrem, nmodu, nv, _) ->
+       | Node (nmax, noffl, nsubl , _, noffr, nrem, nmodu, nv, _) ->
            assert (is_empty noffr);
-           let nrem = (Rel.add_abs offset nrelrem) %~ nmodu in
-           if equal_vv (nrem, nmodu, nv) curr_vv &&
-             (V.cardinal_zero_or_one v || (curr_off %~ modu =~ rem))
+           let left = nrem, nmodu, nv in
+           if are_mergeable_nodes
+               ~left_offset:offset ~left ~right_offset:curr_off ~right:curr_vv
            then (
                let new_curr_offl, new_subl = rezip zl (offset +~ noffl) nsubl in
                let succ_nmax = succ nmax in
@@ -611,26 +627,24 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
                let new_offl = new_curr_offl -~ offset in
                let new_offr = offr +~ succ_nmax in
                let new_coff = curr_off -~ succ_nmax in
+               let rem = realign ~offset:curr_off ~new_offset:offset rem modu in
                (*assert (new_coff =~ offset);*)
-               new_coff, lmax, new_offl, new_subl, new_offr)
-           else curr_off, max, offl, subl, offr
+               new_coff, lmax, rem, new_offl, new_subl, new_offr)
+           else curr_off, max, rem, offl, subl, offr
        |Empty -> assert false
-     with Empty_tree -> curr_off, max, offl, subl, offr
+     with Empty_tree -> curr_off, max, rem, offl, subl, offr
    in
-   let remrel = Rel.pos_rem (Rel.sub_abs rem curr_off) modu in
-   curr_off, nNode max offl subl offr subr remrel modu v
+   curr_off, nNode max offl subl offr subr rem modu v
  ;;
 
- (* Creates the tree representing the interval [curr_off..cur_off+span],
-    bound to [v] *)
- let interval_aux curr_off span rem modu v =
-   let remrel, modu =
+ (* Creates the tree representing the interval [O..span], bound to [v] *)
+ let interval_aux span rem modu v =
+   let rem, modu =
      if V.is_isotropic v
      then Rel.zero, Integer.one
-     else Rel.pos_rem (Rel.sub_abs rem curr_off) modu, modu
+     else rem, modu
    in
-   curr_off,
-   nNode span Integer.zero m_empty (succ span) m_empty remrel modu v
+   nNode span Integer.zero m_empty (succ span) m_empty rem modu v
 
  (* creates a fresh tree that binds [0..size-1] to the isotropic value [v].
     if [size] if 0, returns [Empty]. *)
@@ -651,10 +665,8 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    if debug then assert (min <=~ max);
    let rec aux_add curr_off tree =
      match tree with
-     | Empty ->
-         interval_aux min (max -~ min) rem modu v
-     | Node (nmax, noffl, nsubl, noffr, nsubr, nremrel, nmodu, nv, _) ->
-         let nrem = (Rel.add_abs curr_off nremrel) %~ nmodu in
+     | Empty ->  min, interval_aux (max -~ min) rem modu v
+     | Node (nmax, noffl, nsubl, noffr, nsubr, nrem, nmodu, nv, _) ->
          let abs_min = curr_off
          and abs_max = nmax +~ curr_off in
          if max <~ abs_min then
@@ -708,12 +720,11 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
     a single value (unless [v] is isotropic) *)
  let append_basic_itv ~min ~max ~v m =
    if V.is_isotropic v then
-     snd (add_node ~min ~max Integer.zero Integer.one v Integer.zero(*co*) m)
+     snd (add_node ~min ~max Rel.zero Integer.one v Integer.zero(*co*) m)
    else
      let size = Integer.length min max in
      let v = V.anisotropic_cast ~size v in
-     let rem = min %~ size in
-     snd (add_node ~min ~max rem size v Integer.zero(*co*) m)
+     snd (add_node ~min ~max Rel.zero size v Integer.zero(*co*) m)
 
  (** Checks that [tree] is sanely built  *)
  let rec check_aux curr_off tree =
@@ -889,15 +900,13 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        t1_curr_off, t1
    | Empty, Node _ -> t2_curr_off, t2
    | Node _, Empty -> t1_curr_off, t1
-   | Node (lmax, loffl, lsubl, loffr, lsubr, lremrel, lmodu, lv, _),
-       Node (rmax, roffl, rsubl, roffr, rsubr, rremrel, rmodu, rv, _) ->
+   | Node (lmax, loffl, lsubl, loffr, lsubr, lrem, lmodu, lv, _),
+       Node (rmax, roffl, rsubl, roffr, rsubr, rrem, rmodu, rv, _) ->
          let labs_min = t1_curr_off
          and labs_max = lmax +~ t1_curr_off
          and rabs_min = t2_curr_off
          and rabs_max = rmax +~ t2_curr_off
          in
-         let lrem = (Rel.add_abs t1_curr_off lremrel) %~ lmodu in
-         let rrem = (Rel.add_abs t2_curr_off rremrel) %~ rmodu in
          if is_above labs_min labs_max rabs_min rabs_max
          then
            (* t2 is on the right of t1 *)
@@ -932,40 +941,46 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      | Empty, Empty -> o1, t1
      | Node _, Empty -> assert false
      | Empty, Node _ -> assert false
-     | Node (max1, offl1, subl1, offr1, subr1, rem1rel, modu1, v1, _),
-       Node (max2, offl2, subl2, offr2, subr2, rem2rel, modu2, v2, _) ->
+     | Node (max1, offl1, subl1, offr1, subr1, rem1, modu1, v1, _),
+       Node (max2, offl2, subl2, offr2, subr2, rem2, modu2, v2, _) ->
        let abs_min1 = o1
        and abs_max1 = max1 +~ o1
        and abs_min2 = o2
        and abs_max2 = max2 +~ o2
-       and rem1 = (Rel.add_abs o1 rem1rel) %~ modu1
-       and rem2 = (Rel.add_abs o2 rem2rel) %~ modu2
        in
        if debug then assert (abs_min2 <=~ abs_max1 && abs_min1 <=~ abs_max2);
          (* here n1 \inter n2 <> \emptyset, given the invariants on offsetmaps
             shape and the fact that both trees cover the same range.
-              -compute the intersection interval: middle_abs_min, middle_abs_max
+              - compute the intersection interval: middle_abs_min, middle_abs_max
+              - recompute the alignment of the values wrt middle_abs_min
+                (named middle_rem1 and middle_rem2)
               - add the rest of the nodes to their left/right subtree
               depending on the size of the node
               - add the new node in the merged left subtree
               and plug the merged right tree in
            *)
-         let (curr_offl, left_t), middle_abs_min =
+         let (curr_offl, left_t), middle_abs_min, middle_rem1, middle_rem2 =
            let abs_offl1 = o1 +~ offl1
            and abs_offl2 = o2 +~ offl2 in
            if abs_min1 =~ abs_min2  then
-             cache (abs_offl1, subl1) (abs_offl2, subl2), abs_min1
+             cache (abs_offl1, subl1) (abs_offl2, subl2), abs_min1, rem1, rem2
            else if abs_min1 <~ abs_min2 then
              let new_offl1, new_subl1 =
                add_node ~min:abs_min1 ~max:(pred abs_min2)
                  rem1 modu1 v1 abs_offl1 subl1
-             in cache (new_offl1, new_subl1) (abs_offl2, subl2), abs_min2
+             in
+             let new_rem1 = realign ~offset:o1 ~new_offset:o2 rem1 modu1 in
+             cache (new_offl1, new_subl1) (abs_offl2, subl2),
+             abs_min2, new_rem1, rem2
            else
              begin (* abs_min1 >~ abs_min2 *)
                let new_offl2, new_subl2 =
                  add_node ~min:abs_min2 ~max:(pred abs_min1) rem2 modu2
                    v2 abs_offl2 subl2
-               in cache (abs_offl1, subl1) (new_offl2, new_subl2), abs_min1
+               in
+               let new_rem2 = realign ~offset:o2 ~new_offset:o1 rem2 modu2 in
+               cache (abs_offl1, subl1) (new_offl2, new_subl2),
+               abs_min1, rem1, new_rem2
              end
          in
          let (curr_offr, right_t), middle_abs_max =
@@ -974,15 +989,16 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
            if abs_max1 =~ abs_max2 then
              cache (abs_offr1, subr1) (abs_offr2, subr2), abs_max1
            else if abs_max1 <~ abs_max2 then
+             let min = succ abs_max1 in
+             let rem2 = realign ~offset:o2 ~new_offset:min rem2 modu2 in
              let new_offr2, new_subr2 =
-               add_node
-                 ~min:(succ abs_max1) ~max:abs_max2
-                 rem2 modu2 v2 abs_offr2 subr2
+               add_node ~min ~max:abs_max2 rem2 modu2 v2 abs_offr2 subr2
              in
              cache (abs_offr1, subr1) (new_offr2, new_subr2), abs_max1
            else
              begin (* abs_max1 >~ abs_max2 *)
-               let min = (succ abs_max2) in
+               let min = succ abs_max2 in
+               let rem1 = Rel.pos_rem (Rel.add (Rel.sub_abs o1 min) rem1) modu1 in
                let new_offr1, new_subr1 =
                  add_node ~min ~max:abs_max1 rem1 modu1 v1 abs_offr1 subr1
                in
@@ -990,7 +1006,8 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
              end
          in
          let rem, modu, v =
-           f_aux middle_abs_min middle_abs_max rem1 modu1 v1 rem2 modu2 v2
+           f_aux middle_abs_min
+             middle_abs_max middle_rem1 modu1 v1 middle_rem2 modu2 v2
          in
          let curr_offl, left_t =
            add_node ~min:middle_abs_min ~max:middle_abs_max
@@ -1001,14 +1018,13 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  let rec map_on_values_aux f curr_off t =
    match t with
    | Empty -> curr_off, t
-   | Node (max, offl, subl, offr, subr, relrem, modu, v, _) ->
+   | Node (max, offl, subl, offr, subr, rem, modu, v, _) ->
      let v' = f v in
      let offl', l' = map_on_values_aux f (curr_off +~ offl) subl in
      let offr', r' = map_on_values_aux f (curr_off +~ offr) subr in
      if l' == subl && r' == subr && V.equal v v'
      then curr_off, t
      else
-       let rem = (Rel.add_abs curr_off relrem) %~ modu in
        make_node
          curr_off max (offl' -~ curr_off) l' (offr' -~ curr_off) r' rem modu v'
  ;;
@@ -1030,7 +1046,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  let merge_bits ~topify ~conflate_bottom ~offset ~length ~value ~total_length acc =
    assert (length +~ offset <=~ Integer.of_int total_length);
    if Cil.theMachine.Cil.theMachine.Cil_types.little_endian then
-     V.little_endian_merge_bits ~topify ~conflate_bottom ~offset ~value acc
+     V.little_endian_merge_bits ~topify ~conflate_bottom ~offset ~length ~value acc
    else
      V.big_endian_merge_bits
        ~topify ~conflate_bottom ~offset ~value ~total_length ~length acc
@@ -1043,17 +1059,16 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    [acc] is the current state of accumulated reads.
  *)
  let extract_bits_and_stitch ~topify ~conflate_bottom ~offset ~size curr_off (rem, modu, v) max acc =
+   let rem = (Rel.add_abs curr_off rem) %~ modu in
    let r =
      let abs_max = curr_off +~ max in
      (*  last bit to be read,
          be it in the current node or one of its successors *)
      let max_bit = pred (offset +~ size) in
+     (* for this function, [min >= offset && min >= curr_off] holds *)
      let extract_single_step min acc =
        assert (not (V.is_isotropic v));
        let interval_offset = min -~ offset in
-       let merge_offset =
-         if interval_offset >=~ Integer.zero then interval_offset else Integer.zero
-       in
        let start = (min -~ rem) %~ modu in
        let modu_end = if rem =~ Integer.zero then pred modu else pred rem in
        (* where do we stop reading ?
@@ -1066,10 +1081,10 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 	   max_bit 
        in
        let stop = (read_end -~ rem) %~ modu in
-(*       Format.printf "Single step: merge offset %a length %a \
+(*       Format.printf "Single step: interval offset %a length %a \
  start %a stop %a total length %a offset %a max bit %a\
  @\n current offset %a Rem %a modu %a V %a@."
-         pretty_int merge_offset pretty_int (Integer.length start stop)
+         pretty_int interval_offset pretty_int (Integer.length start stop)
          pretty_int start pretty_int stop pretty_int size
          pretty_int offset pretty_int max_bit
          pretty_int curr_off pretty_int rem pretty_int modu V.pretty v ; *)
@@ -1080,7 +1095,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        (* Format.printf "After single step: read bits %a@." V.pretty read_bits; *)
        let result = 
 	 merge_bits ~topify ~conflate_bottom
-           ~offset:merge_offset ~length:(Integer.length start stop)
+           ~offset:interval_offset ~length:(Integer.length start stop)
            ~value:read_bits ~total_length:(Integer.to_int size) acc
        in
        (* Format.printf "After merge_bits: result %a@." V.pretty result; *)
@@ -1089,18 +1104,13 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      let start = Integer.max offset curr_off
      and stop = Integer.min max_bit abs_max in
      if V.is_isotropic v then
-       let interval_offset = rem -~ start (* ? *) in
-       let merge_offset =
-         if interval_offset <~ Integer.zero
-         then Integer.zero
-         else interval_offset
-       in merge_bits ~topify ~conflate_bottom ~offset:merge_offset
-            ~length:(Integer.length start stop)
-            ~value:v ~total_length:(Integer.to_int size) acc
+       let offset = start -~ offset in
+       merge_bits ~topify ~conflate_bottom
+         ~offset ~length:(Integer.length start stop)
+         ~value:v ~total_length:(Integer.to_int size) acc
      else
        let start_point = ref start in
        let acc = ref acc in
-
        while !start_point <=~ stop do
 	 let read_end, result = extract_single_step !start_point !acc in
          acc := result;
@@ -1124,7 +1134,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      enough -- or that {!V.narrow} handles differences in representations
      soundly. *)
  let f_aux_merge_generic merge_v abs_min abs_max rem1 modu1 v1 rem2 modu2 v2 =
-   if rem1 =~ rem2 && modu1 =~ modu2
+   if Rel.equal rem1 rem2 && modu1 =~ modu2
    then
      rem1, modu1, V.anisotropic_cast modu1 (merge_v modu1 v1 v2)
  (*  Format.printf "f_aux_merge: [%a, %a]@.(%a %a %a)@.(%a %a %a)@."
@@ -1134,19 +1144,22 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      let topify = Origin.K_Merge in
      let offset = abs_min in
      let size = Integer.length abs_min abs_max in
-     let rem = abs_min %~ size in
-     let v1' =
-       if modu1 =~ size && ((rem1 %~ size) =~ rem)
-       then v1
-       else extract_bits_and_stitch ~topify ~conflate_bottom:false
-         ~offset ~size offset (rem1, modu1, v1) abs_max V.merge_neutral_element
+     let v1_fit = modu1 =~ size && Rel.is_zero rem1
+     and v2_fit = modu2 =~ size && Rel.is_zero rem2 in
+     let v1', v2' =
+       if (V.is_isotropic v1 || v1_fit) && (V.is_isotropic v2 || v2_fit)
+       then v1, v2
+       else
+         let reinterpret_bits x =
+           extract_bits_and_stitch ~topify ~conflate_bottom:false
+             ~offset ~size offset x abs_max V.merge_neutral_element
+         in
+         reinterpret_bits (rem1, modu1, v1),
+         reinterpret_bits (rem2, modu2, v2)
      in
-     let v2' =
-       if modu2 =~ size && ((rem2 %~ size) =~ rem)
-       then v2
-       else extract_bits_and_stitch ~topify ~conflate_bottom:false
-         ~offset ~size offset (rem2, modu2, v2) abs_max V.merge_neutral_element
-     in
+     (* The values were already aligned with the offset or have been
+        reinterpreted, so the alignment is always zero here. *)
+     let rem = Rel.zero in
 (*     Format.printf "1: (%a, %a, %a);@.2: (%a, %a, %a);@.[%a--%a] -> %a/%a@."
        pretty_int rem1 pretty_int modu1 V.pretty v1
        pretty_int rem2 pretty_int modu2 V.pretty v2
@@ -1161,7 +1174,6 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    let topify = Origin.K_Merge in
    let offset = abs_min in
    let size = Integer.length abs_min abs_max in
-   let rem = abs_min %~ size in
    let v1' =
      extract_bits_and_stitch ~topify ~conflate_bottom:false
        ~offset ~size offset (rem1, modu1, v1) abs_max V.merge_neutral_element
@@ -1170,7 +1182,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      extract_bits_and_stitch ~topify ~conflate_bottom:false
        ~offset ~size offset (rem2, modu2, v2) abs_max V.merge_neutral_element
    in
-   rem, size, (merge_v size v1' v2': v)
+   Rel.zero, size, (merge_v size v1' v2': v)
  ;;
 
  
@@ -1247,9 +1259,6 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 
  end
 
- let join_and_is_included t1 t2 =
-   let r = join t1 t2 in r, equal r t2
-
  let widen wh t1 t2 =
    (* Due to the way f_aux_merge is designed, we can obtain intervals on which
       the two bindings do not verify [is_included v1 v2]. The widening
@@ -1286,7 +1295,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
      | Hptmap_sig.NoCache -> fun f x y -> f x y
    in
    let f' _abs_min _abs_max _rem1 _modu1 v1 _rem2 _modu2 v2 =
-     Int.zero, Int.one, f v1 v2
+     Rel.zero, Int.one, f v1 v2
    in
    (* See the invariants a the top of {!merge}: [bounds o1 n1 = bounds o2 n2]
       holds *)
@@ -1302,7 +1311,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
        end else begin
          (* build an interval mapped to [v], of the same width as t1 and t2 *)
          let ib1, ie1 = bounds_offset o1 n1 in
-         interval_aux ib1 (ie1 -~ ib1) Int.zero Int.one v
+         ib1, interval_aux (ie1 -~ ib1) Rel.zero Int.one v
        end
    in
    aux
@@ -1347,7 +1356,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    let rec aux tree_offset tree =
      match tree with
      | Empty -> V.bottom
-     | Node (max, offl, subl, offr, subr, _rrel, _m, v, _) ->
+     | Node (max, offl, subl, offr, subr, _rem, _m, v, _) ->
        let abs_max = max +~ tree_offset in
        let subl_value =
          if first_bit <~ tree_offset then
@@ -1375,99 +1384,204 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
    in
    aux Integer.zero tree
 
-(* Query the offsetmap for the interval [start, start + size - 1], which is
-   supposed to fit in the offsetmap. Assumes the offsetmap is rooted at
-   offset 0 *)
- let find_itv ~conflate_bottom ~start ~size tree period_read_ahead =
-   let z, cur_off, root = find_bit start tree in
-   let topify = Origin.K_Misalign_read in
+ (* Reads the interval [start, start + size - 1] in the offsetmap [tree].
+    Assumes that the interval fits into the offsetmap, and that the offsetmap
+    is rooted at offset 0.
+    [read_value] and [read_nodes] are used to read the offsetmap:
+    - [read_value v size] is used if the read matches exactly a value [v] of
+      size [size].
+    - otherwise, [read_nodes ~offset node zipper ~start ~size] is called, with
+      [node] the node in which the read starts, [offset] the offset of [node],
+      and [zipper] a zipper to navigate from the root of [node].
+    When the read belongs to a series of periodic reads, [since_and_period]
+    should be the first offset and the period of the reads. This function then
+    returns the last offset of the node being read if the series of reads can
+    skip the rest of the node: it means that all other reads within the node
+    will give a value that has already been read in the series. Otherwise, the
+    function returns None.  *)
+ let read_itv ?since_and_period ~start ~size tree ~read_value ~read_nodes =
+   let zipper, cur_off, root = find_bit start tree in
    match root with
-     | Empty ->
-           (* Bit_Not_found has been raised by find_bit in this case *)
-         assert false
-     | Node (max, _, _, _, _subr, rrel, m, v, _) ->
-         let r = (Rel.add_abs cur_off rrel) %~ m in
-         let isize = pred (start +~ size) in
-         let nsize = cur_off +~ max in
-         let isotropic = V.is_isotropic v in
-         if isize <=~ nsize && (isotropic || (m =~ size && start %~ m =~ r))
-         then begin
-             let read_ahead =
-               if isotropic || (Integer.is_zero (period_read_ahead %~ m))
-               then Some nsize
-               else None
-             in
-             read_ahead, v
-           end
+   | Empty -> assert false
+   | Node (max, _, _, _, _subr, rrel, m, v, _) ->
+     let r = (Rel.add_abs cur_off rrel) %~ m in
+     let read_ending = pred (start +~ size) in
+     let node_ending = cur_off +~ max in
+     let isotropic = V.is_isotropic v in
+     let read_fit_in_node = read_ending <=~ node_ending in
+     let value =
+       if read_fit_in_node && (isotropic || (m =~ size && start %~ m =~ r))
+       then read_value v size
+       else read_nodes ~offset:cur_off root zipper ~start ~size
+     in
+     (* Could a series of periodic reads jump ahead in the offsetmap (for
+        performance issue)? *)
+     let read_ahead = match since_and_period with
+       | None -> None
+       | Some (since, period) ->
+         (* If the next read reaches the next node, we cannot optimize *)
+         if (read_ending +~ size) >~ node_ending
+         then None
+         (* If the value of the node is isotropic, or if the size of the
+            repeated value divides the period, then all reads in this node
+            are equivalent: jump to the next node. *)
+         else if isotropic || (Int.is_zero (period %~ m))
+         then Some node_ending
          else
-           let acc = ref V.merge_neutral_element in
-           let impz = { node = root; offset = cur_off; zipper = z; } in
-           while impz.offset <=~ isize do
-             let v =
-               extract_bits_and_stitch ~topify ~conflate_bottom
-                 ~offset:start ~size
-                 impz.offset (get_vv impz.node impz.offset) (get_max impz.node)
-                 !acc
-             in
-             acc := v;
-             if impz.offset +~ (get_max impz.node) >=~ isize
-             then impz.offset <- succ isize (* end the loop *)
-             else
-               (* Nominal behavior: do next binding *)
-               imp_move_right impz
-           done;
-           None, !acc
- ;;
+           let since = Int.max since cur_off in
+           (* The value in the node is repeated every [m] bits, and we have
+              read every [period] bits. Once we have read [lcm period m] bits,
+              we will have read all possible combinations. *)
+           if start -~ since >= Int.ppcm period m
+           then Some node_ending
+           else None
+     in
+     read_ahead, value
+
+ (* Reads only one interval by calling [read_itv]. Ignores the argument and
+    result dedicated to periodic reads. *)
+ let read_one_itv ~start ~size tree ~read_value ~read_nodes =
+   snd (read_itv ~start ~size tree ~read_value ~read_nodes)
+
+ (* Performs a series of periodic reads, starting at [min], ending at [max], and
+    whose period is [period]. [size] is the size of each read. [read_value] and
+    [read_nodes] are used to read the offsetmap (see read_itv for details).
+    [join] is used to merge the result of each read, starting with [acc]. *)
+ let read_series_itv ~min ~max ~period ~size tree ~read_value ~read_nodes ~join acc =
+   let r = min %~ period in
+   let since_and_period = min, period in
+   let rec read_series start acc =
+     let read_ahead, v =
+       read_itv ~since_and_period ~start ~size tree ~read_value ~read_nodes
+     in
+     let acc = join v acc in
+     (* Compute the offset of the next read. By default, add the [period] to the
+        current [start], unless we can jump to the end of the current node. *)
+     let next = match read_ahead with
+       | None -> start +~ period
+       | Some read_ahead ->
+         (* [read_ahead] is the last offset of the node that has been read.
+            The next reads within the node are unnecessary, so we could
+            theoretically start at [succ read_ahead] (after re-alignement on
+            [period]). However, the last read that starts on this node
+            may overlap with the next node, and must be performed. So
+            we rewind by [pred size] bits, then round up to the next periodic
+            index that must be read. *)
+         let min_next = (succ read_ahead) -~ (pred size) in
+         Integer.round_up_to_r ~min:min_next ~r ~modu:period
+     in
+     (* Do not read past [max]. *)
+     if next <=~ max
+     then read_series next acc
+     else acc
+   in
+   read_series min acc
+
+ (* Reads [tree] at each offset of [offsets]. [size] is the size of each read.
+    [read_value] and [read_nodes] perform the reads; [join] merges the result
+    of each read, starting with [acc]. *)
+ let read ~offsets ~size tree ~read_value ~read_nodes ~join acc =
+   match offsets with
+   | Tr_offset.Interval (min, max, period) ->
+     read_series_itv
+       ~min ~max ~period ~size tree ~read_value ~read_nodes ~join acc
+   | Tr_offset.Set s ->
+     List.fold_left
+       (fun acc start ->
+          let t = read_one_itv ~start ~size tree ~read_value ~read_nodes in
+          join acc t)
+       acc s
+   | Tr_offset.Overlap(min, max, _origin) ->
+     let v = find_imprecise_between (min, max) tree in
+     read_value v size
+   | Tr_offset.Invalid -> acc
+
+ (* Transforms a function reading one node into a function reading successive
+    nodes. The resulting function can be supplied to the [read_itv] function.
+    It reads the interval [start, start + size - 1], which is supposed to start
+    in the node [node]. [offset] is the offset of [node] in the offsetmap, and
+    [zipper] is a zipper to navigate from the root of [node]. It is used to
+    read the next nodes of the offsetmap if needed. The function [read_one_node]
+    performs the read of each node. *)
+ let read_successive_nodes ~read_one_node acc =
+   fun ~offset node zipper ~start ~size ->
+     let read_end = pred (start +~ size) in
+     let rec read_nodes offset node zipper acc =
+       let node_end = offset +~ (get_max node) in
+       let t = read_one_node ~offset node ~start ~size acc in
+       if node_end >=~ read_end
+       then t
+       else
+         let offset, node, zipper = move_right offset node zipper in
+         read_nodes offset node zipper t
+     in
+     read_nodes offset node zipper acc
 
  (*  Finds the value associated to some offsets represented as an ival. *)
- let find ~validity ?(conflate_bottom=true) ~offsets ~size tree  =
-    let alarm, filtered_by_bound =
-      Tr_offset.trim_by_validity offsets size validity
-    in
-    let r = try
-      match filtered_by_bound with
-       | Tr_offset.Interval(mn, mx, m) ->
-           let r = mn %~ m in
-           let mn = ref mn in
-           let acc = ref V.bottom in
-           let pred_size = pred size in
-           while !mn <=~ mx do
-             let read_ahead, v =
-               find_itv ~conflate_bottom ~start:!mn ~size tree m
-             in
-             acc := V.join v !acc;
-             let naive_next = !mn +~ m in
-             mn :=
-               match read_ahead with
-                 None -> naive_next
-               | Some read_ahead ->
-                   let max = read_ahead -~ pred_size in
-                   let aligned_b = Integer.round_down_to_r ~max ~r ~modu:m in
-                   Integer.max naive_next aligned_b
-           done;
-           !acc
-       | Tr_offset.Set s ->
-           List.fold_left
-             (fun acc offset ->
-                let _, new_value =
-                  find_itv ~conflate_bottom ~start:offset ~size tree Int.zero
-                in
-                V.join acc new_value
-             ) V.bottom s
-       | Tr_offset.Overlap (mn, mx, _origin) ->
-           find_imprecise_between (mn, mx) tree
-       | Tr_offset.Invalid -> V.bottom
-      with Bit_Not_found -> assert false(*does not happen with proper validity*)
-    in
-    alarm, r
- ;;
+ let find ~validity ?(conflate_bottom=true) ~offsets ~size tree =
+   let alarm, offsets = Tr_offset.trim_by_validity offsets size validity in
+   let topify = Origin.K_Misalign_read in
+   let read_one_node ~offset node ~start ~size acc =
+     extract_bits_and_stitch ~topify ~conflate_bottom
+       ~offset:start ~size
+       offset (get_vv node) (get_max node)
+       acc
+   in
+   let neutral = V.merge_neutral_element in
+   let read_nodes = read_successive_nodes ~read_one_node neutral in
+   let read_value v _size = v in
+   let join = V.join in
+   let v = read ~offsets ~size tree ~read_value ~read_nodes ~join V.bottom in
+   alarm, v
+
+ (* Copies the node [node] at the end of the offsetmap [acc], as part of the
+    larger copy of the interval [start..start+size-1] from the englobing
+    offsetmap of [node]. [offset] is the offset of [node] in this offsetmap.
+    As the new offsetmap represents the interval [0..size-1], the offsets are
+    shifted by [start]. *)
+ let copy_one_node ~offset node ~start ~size acc  =
+   match node with
+   | Empty -> assert false
+   | Node (max, _, _, _, _subr, rem, modu, v, _) ->
+     (* The current copy starts at [offset], unless the overall copy starts in
+        the middle of the node. The new start is then shifted by [start]. *)
+     let min = (Integer.max offset start) -~ start in
+     (* Same kind of reasoning for the end of the current copy. *)
+     let node_end = offset +~ max in
+     let read_end = pred (start +~ size) in
+     let max = (Integer.min read_end node_end) -~ start in
+     (* For the first node, if the read starts in the middle of the node,
+        realign the value wrt the offset of the read (but not wrt the offset of
+        the node in the new offsetmap). *)
+     let new_rem =
+       if offset <~ start
+       then realign ~offset:offset ~new_offset:start rem modu
+       else rem
+     in
+     let o, t = add_node ~min ~max new_rem modu v Integer.zero acc in
+     assert (o =~ Integer.zero);
+     t
+
+ let copy_slice ~validity ~offsets ~size tree =
+   let alarm, offsets = Tr_offset.trim_by_validity offsets size validity in
+   if Int.(equal size zero) then alarm, `Value Empty
+   else match offsets with
+     | Tr_offset.Invalid -> alarm, `Bottom
+     | _ ->
+       let read_one_node = copy_one_node in
+       let neutral = m_empty in
+       let read_nodes = read_successive_nodes ~read_one_node neutral in
+       let read_value v size = interval_aux (pred size) Rel.zero size v in
+       let init = isotropic_interval size V.bottom in
+       let t = read ~offsets ~size tree ~read_value ~read_nodes ~join init in
+       alarm, `Value t
 
  (* Keep the part of the tree strictly under (i.e. strictly on the left) of a
     given offset. *)
  let rec keep_below ~offset curr_off tree =
    match tree with
      | Empty -> offset, tree
-     | Node (max, offl, subl, offr, subr, rrel, m, v, _) ->
+     | Node (max, offl, subl, offr, subr, rem, m, v, _) ->
        let new_offl = offl +~ curr_off in
        if offset <~ curr_off then
          keep_below offset new_offl subl
@@ -1478,12 +1592,12 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
          if offset >~ sup then
            let new_offr, new_subr = keep_below offset (curr_off +~ offr) subr in
            curr_off,
-           nNode max offl subl (new_offr -~ curr_off) new_subr rrel m v
+           nNode max offl subl (new_offr -~ curr_off) new_subr rem m v
          else
            let new_max = pred (offset -~ curr_off) in
            add_node
              ~min:curr_off ~max:(new_max +~ curr_off)
-             ((Rel.add_abs curr_off rrel) %~ m) m v
+             rem m v
              (curr_off +~ offl ) subl
  ;;
 
@@ -1492,7 +1606,7 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
  let rec keep_above ~offset curr_off tree =
    match tree with
      | Empty -> (succ offset), tree
-     | Node (max, offl, subl, offr, subr, rrel, m, v, _) ->
+     | Node (max, offl, subl, offr, subr, rem, m, v, _) ->
         let new_offr = offr +~ curr_off in
         let abs_max = curr_off +~ max in
         if offset >~ abs_max then
@@ -1512,22 +1626,22 @@ module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
               keep_above offset (curr_off +~ offl) subl
             in
             curr_off,
-            nNode max (new_offl -~ curr_off) new_subl offr subr rrel m v
+            nNode max (new_offl -~ curr_off) new_subl offr subr rem m v
           else
             (* the cut happens somewhere in this node it should be cut
                accordingly and reinjected into its right subtree *)
-            let new_reml = (Rel.add_abs curr_off rrel) %~ m in
-            add_node ~min:(succ offset) ~max:abs_max new_reml m v new_offr subr
+            let min = succ offset in
+            let new_reml = realign ~offset:curr_off ~new_offset:min rem m in
+            add_node ~min ~max:abs_max new_reml m v new_offr subr
 ;;
 
 let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
   if Int.(equal size zero) then curr_off, tree else 
   let off1, t1 = keep_above abs_max curr_off tree in
   let off2, t2 = keep_below offset curr_off tree in
-  let rabs = (Rel.add_abs offset rem) %~ size in
   if exact then
      let off_add, t_add =
-       add_node ~min:offset ~max:abs_max rabs size v off1 t1
+       add_node ~min:offset ~max:abs_max rem size v off1 t1
      in
      union off2 t2 off_add t_add
   else
@@ -1539,26 +1653,20 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
    while impz.offset <=~ abs_max do
      match impz.node with
        | Empty -> assert false
-       | Node (max, _offl, _subl, _offr, _subr, rrel, m_node, v_node, _) ->
-         let rabs_node = (Rel.add_abs impz.offset rrel) %~ m_node in
+       | Node (max, _offl, _subl, _offr, _subr, r_node, m_node, v_node, _) ->
+         let new_offset = Integer.max offset impz.offset in
+         let rem = realign ~offset ~new_offset rem size in
+         let r_node = realign ~offset:impz.offset ~new_offset r_node m_node in
          let new_r, new_m, new_v =
-           if V.is_isotropic v_node || v_is_isotropic  ||
-             (rabs =~ rabs_node && m_node =~ size)
-           then
-             let new_r, new_m =
-               if v_is_isotropic
-               then rabs_node, m_node
-               else rabs, size
-             in
-             let cast_v =
-               V.anisotropic_cast ~size:new_m (V.join v_node v)
-             in
-             new_r, new_m, cast_v
-
+           let joined_value = V.join v_node v in
+           if v_is_isotropic || (Rel.equal rem r_node && m_node =~ size)
+           then r_node, m_node, V.anisotropic_cast ~size:m_node joined_value
+           else if V.is_isotropic v_node
+           then rem, size, V.anisotropic_cast ~size joined_value
            else
              let origin = Origin.(current K_Merge) in
-             let new_value = V.topify_with_origin origin (V.join v_node v) in
-             let new_rem = Integer.zero and new_modu = Integer.one in
+             let new_value = V.topify_with_origin origin joined_value in
+             let new_rem = Rel.zero and new_modu = Integer.one in
              new_rem, new_modu, new_value
          in
          let node_abs_max = impz.offset +~ max in
@@ -1569,8 +1677,9 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
          in
          let new_left_offset, new_left_tree =
            add_node
-             ~min:(Integer.max impz.offset offset) ~max:write_max
-             new_r new_m new_v !left_offset !left_tree in
+             ~min:new_offset ~max:write_max
+             new_r new_m new_v !left_offset !left_tree
+         in
          left_tree := new_left_tree;
          left_offset := new_left_offset;
          if not end_reached then imp_move_right impz
@@ -1679,8 +1788,7 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem v curr_off tree =
            let o, t =
              add_node 
 	       ~min:curr_off ~max:(curr_off +~ max)
-               ((Rel.add_abs curr_off r_node) %~ m_node)
-               m_node v_node new_offl new_subl 
+               r_node m_node v_node new_offl new_subl 
 	   in
            let curr_off, tree = union o t new_offr new_subr in
            match undone_left, undone_right with
@@ -1819,54 +1927,6 @@ let update_under ~validity ~exact ~offsets ~size v t =
       alarm, `Value t
     with Update_Result_is_bottom -> true, `Bottom
 
-
- let copy_single offset tree size period_read_ahead =
-   let z, cur_off, root = find_bit offset tree in
-   let cur_copy_offset = ref offset (* different from cur_off, as we may
-                                       be in the middle of the node *) in
-   let impz = { node = root; offset = cur_off; zipper = z; } in
-   let acc = ref m_empty in
-   let iend = pred (offset +~ size) in
-   let read_ahead =
-     (* See if we can read everything in this node with some read-ahead *)
-     let max, modu = get_max root, get_modu root in 
-     let next_end = cur_off +~ max in
-     if offset >=~ cur_off &&
-       iend <~ cur_off +~ max &&
-       Integer.is_zero (period_read_ahead %~ modu)
-     then Some next_end
-     else None
-   in
-   while
-     (match impz.node with
-       | Empty ->
-           assert false
-       | Node (max, _, _, _, _subr, rrel, m, v, _) ->
-         let next_end = impz.offset +~ max in
-         let nend = Integer.min iend next_end in
-         let new_rel_end = nend -~ offset in
-         let nbeg = !cur_copy_offset -~ offset in
-         let abs_rem =
-           (Rel.add_abs nbeg
-              (Rel.sub rrel (Rel.sub_abs !cur_copy_offset impz.offset))) %~ m
-         in
-         let o, t =
-           add_node ~min:nbeg ~max:new_rel_end abs_rem m v Integer.zero !acc
-         in
-         assert (o =~ Integer.zero);
-         acc := t;
-         let cond = iend >~ next_end in
-         if cond then begin
-           imp_move_right impz;
-           cur_copy_offset := impz.offset;
-         end;
-         cond)
-   do ();
-   done;
-   (* [!acc <> Empty] because the Node case executes at least once *)
-   read_ahead, !acc
- ;;
-
  let is_single_interval o =
    match o with
    | Node(_, _, Empty, _, Empty, _, _, _, _) -> true
@@ -1882,52 +1942,6 @@ let update_under ~validity ~exact ~offsets ~size v t =
    | Empty -> true
    | Node(_, _, Empty, _, Empty, _, _, v', _) -> V.equal v v'
    | _ -> false
-
- let copy_slice ~validity ~offsets ~size tree =
-   let alarm, filtered_by_bound =
-     Tr_offset.trim_by_validity offsets size validity
-   in
-   if Int.(equal size zero) then alarm, `Value Empty
-   else
-    let init = isotropic_interval size V.bottom in
-    let result =
-      match filtered_by_bound with
-       | Tr_offset.Interval(mn, mx, m) ->
-          let r = mn %~ m in
-          let mn = ref mn in
-          let acc_tree = ref init in
-          let pred_size = pred size in
-          while !mn <=~ mx do
-            let read_ahead, new_tree =
-              copy_single !mn tree size m
-	    in
-            acc_tree := join !acc_tree new_tree;
-            let naive_next = !mn +~ m in
-            mn := match read_ahead with
-              | None -> naive_next
-              | Some read_ahead ->
-                let max = read_ahead -~ pred_size in
-                let aligned_b = Integer.round_down_to_r ~max ~r ~modu:m in
-                Integer.max naive_next aligned_b
-          done;
-          `Value !acc_tree
-       | Tr_offset.Set s ->
-         let m =
-           List.fold_left
-             (fun acc_tree offset ->
-               let _, t = copy_single offset tree size Integer.zero in
-               join acc_tree t
-             ) init s
-         in
-         `Value m
-       | Tr_offset.Overlap(mn, mx, _origin) ->
-           let v = find_imprecise_between (mn, mx) tree in
-           `Value (isotropic_interval size v)
-       | Tr_offset.Invalid ->
-           `Bottom
-    in
-    alarm, result
- ;;
 
  let fold_between ?(direction=`LTR) ~entire (imin, imax) f t acc =
    let rec aux curr_off t acc = match t with
@@ -2127,7 +2141,7 @@ let update_under ~validity ~exact ~offsets ~size v t =
   let create ~size v ~size_v =
     assert (Int.ge size Int.zero);
     if Int.(equal size zero) then Empty
-    else snd (interval_aux Int.zero (pred size) Int.zero size_v v)
+    else snd (Int.zero, interval_aux (pred size) Rel.zero size_v v)
 
   let cardinal_zero_or_one offsetmap =
     (singleton_tag offsetmap) <> 0
@@ -2177,7 +2191,7 @@ module FullyIsotropic = struct
   let topify_with_origin _o v = v
 
   let extract_bits ~topify:_ ~start:_ ~stop:_ ~size:_ m = false, m
-  let little_endian_merge_bits ~topify:_ ~conflate_bottom:_ ~value:_ ~offset:_ v = v
+  let little_endian_merge_bits ~topify:_ ~conflate_bottom:_ ~length:_ ~value:_ ~offset:_ v = v
   let big_endian_merge_bits ~topify:_ ~conflate_bottom:_ ~total_length:_ ~length:_ ~value:_ ~offset:_ v = v
 
   let cardinal_zero_or_one _ = false
@@ -2201,7 +2215,6 @@ module Int_Intervals_Map = struct
     let bottom = false
     let join = (||)
     let is_included b1 b2 = b2 || not b1
-    let join_and_is_included b1 b2 = let r = b1 || b2 in r, r = b2
     let merge_neutral_element = bottom
 
     let pretty_typ _ fmt v = pretty fmt v
@@ -2275,7 +2288,7 @@ module Int_Intervals_Map = struct
   (* Auxiliary function that binds [b] to the interval [min..max], which
      is assumed not to be bound in [m] *)
   let add_itv ~min ~max b co m : itvs =
-    add_node ~min ~max Int.zero Int.one b co m
+    add_node ~min ~max Rel.zero Int.one b co m
 
   (* enlarges the offsetmap [m] from range [prev_min..prev_max] to
      [new_min..new_max], by adding an interval bound to [false] at the left
@@ -2345,7 +2358,7 @@ module Int_Intervals_Map = struct
         let curr_off', node' =
           make_node
             curr_off max offl subl (new_rcurr_off -~ curr_off) new_rtree
-            Integer.zero Integer.one v
+            Rel.zero Integer.one v
         in
         curr_off', node', rbit
 
@@ -2371,15 +2384,13 @@ module Int_Intervals_Map = struct
         let curr_off', node' =
           make_node
             curr_off max (new_lcurr_off -~ curr_off) new_ltree offr subr
-            Integer.zero Integer.one v
+            Rel.zero Integer.one v
         in
         curr_off', node', lbit
 
 end
 
 module Int_Intervals = struct
-
-  exception Error_Top
 
   type itv = Int.t * Int.t
 
@@ -2514,9 +2525,6 @@ module Int_Intervals = struct
 
   let link = join  (* all constructors but Top, which is never returned,
                        are exact. *)
-
-  let join_and_is_included t1 t2 =
-    let r = join t1 t2 in r, equal r t2
 
   (* Drop the leftmost and rightmost intervals if they are equal to
      [false], and detect if the result is [Bottom] *)
@@ -2810,7 +2818,7 @@ end) = struct
           else m
         in
         `Value (Int_Intervals.fold aux_itv itvs m)
-    with Int_Intervals.Error_Top ->
+    with Error_Top ->
       update_imprecise_everywhere ~validity Origin.top v m
 
   let add_binding_ival ~validity ~exact offsets ~size v m =
@@ -2830,7 +2838,7 @@ end) = struct
     try
       let aux_itv i acc =  V.join acc (find i m) in
       Int_Intervals.fold aux_itv itvs V.bottom
-    with Int_Intervals.Error_Top -> find_imprecise ~validity m
+    with Error_Top -> find_imprecise ~validity m
 
   module V_Hashtbl = FCHashtbl.Make(V)
 

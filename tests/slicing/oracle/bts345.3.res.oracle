@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/bts345.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at top
@@ -65,5 +64,4 @@ void top(int x)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_3_bts345.i (no preprocessing)

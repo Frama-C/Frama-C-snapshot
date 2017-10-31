@@ -25,6 +25,7 @@ module type S = sig
   val set: Kernel_function.t -> bool -> unit
 end
 
+module Initialized: S
 module Mem_access: S
 module Pointer_call: S
 module Div_mod: S
@@ -34,6 +35,7 @@ module Signed_downcast: S
 module Unsigned_overflow: S
 module Unsigned_downcast: S
 module Float_to_int: S
+module Finite_float: S
 module Called_precond: S
 
 val emitter: Emitter.t
@@ -41,6 +43,7 @@ val emitter: Emitter.t
 val precond_status: Db.RteGen.status_accessor
 val shift_status: Db.RteGen.status_accessor
 val div_mod_status: Db.RteGen.status_accessor
+val initialized_status: Db.RteGen.status_accessor
 val mem_access_status: Db.RteGen.status_accessor
 val pointer_call_status: Db.RteGen.status_accessor
 val float_to_int_status: Db.RteGen.status_accessor
@@ -48,6 +51,8 @@ val signed_overflow_status: Db.RteGen.status_accessor
 val signed_downcast_status: Db.RteGen.status_accessor
 val unsigned_overflow_status: Db.RteGen.status_accessor
 val unsigned_downcast_status: Db.RteGen.status_accessor
+val float_to_int: Db.RteGen.status_accessor
+val finite_float: Db.RteGen.status_accessor
 
 val all_status: Db.RteGen.status_accessor list
 

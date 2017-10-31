@@ -994,8 +994,26 @@ struct
     | Field f -> Dfield f
     | Shift(_,k) -> let u = Some k in Drange(u,u)
 
-  let delta ofs = List.map dofs ofs
+  let tofs = function
+    | Field d -> Ctypes.object_of d.ftype
+    | Shift(elt,_) -> elt
 
+  let rec dstartof dim = function
+    | C_array arr ->
+        let n = match arr.arr_flat with None -> 1 | Some a -> a.arr_dim in
+        if n > dim then
+          let u = Some e_zero in
+          let elt = Ctypes.object_of arr.arr_element in
+          Drange(u,u) :: dstartof dim elt
+        else []
+    | _ -> []
+           
+  let rec doffset obj host = function
+    | d::ds -> dofs d :: (doffset obj (tofs d) ds)
+    | [] -> dstartof (Ctypes.get_array_dim obj) host
+
+  let delta obj x ofs = doffset obj (Ctypes.object_of x.vtype) ofs
+  
   let rec range ofs obj a b =
     match ofs with
     | [] -> [ Drange(a,b) ]
@@ -1009,14 +1027,16 @@ struct
     | Rrange(Ref x,_,_,_) -> noref ~op:"sub-range of" x
           
     | Rloc(obj,Loc l) -> Lseg (Rloc(obj,l))
-    | Rloc(_,Val((CVAL|CREF),x,ofs)) -> Fseg(x,delta ofs)
+    | Rloc(obj,Val((CVAL|CREF),x,ofs)) ->
+        Fseg(x,delta obj x ofs)
 
     | Rrange(Loc l,obj,a,b) -> Lseg (Rrange(l,obj,a,b))
-    | Rrange(Val((CVAL|CREF),x,ofs),obj,a,b) -> Fseg(x,range ofs obj a b)
+    | Rrange(Val((CVAL|CREF),x,ofs),obj,a,b) ->
+        Fseg(x,range ofs obj a b)
 
     (* in M: *)
     | Rloc(obj,Val((CTXT|CARR|HEAP) as m,x,ofs)) ->
-        Mseg(Rloc(obj,mloc_of_path m x ofs),x,delta ofs)
+        Mseg(Rloc(obj,mloc_of_path m x ofs),x,delta obj x ofs)
     | Rrange(Val((CTXT|CARR|HEAP) as m,x,ofs),obj,a,b) ->
         Mseg(Rrange(mloc_of_path m x ofs,obj,a,b),x,range ofs obj a b)
 

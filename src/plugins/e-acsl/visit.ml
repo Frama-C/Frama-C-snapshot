@@ -111,7 +111,8 @@ class e_acsl_visitor prj generate = object (self)
   (* Global flag set to [true] if a currently visited node
      belongs to a global initializer and set to [false] otherwise *)
 
-  val global_vars: init option Varinfo.Hashtbl.t = Varinfo.Hashtbl.create 7
+  val global_vars: (offset * init option) Varinfo.Hashtbl.t =
+    Varinfo.Hashtbl.create 7
   (* Hashtable mapping global variables (as Cil_type.varinfo) to their
      initializers aiming to capture memory allocated by global variable
      declarations and initialization. At runtime the memory blocks
@@ -150,7 +151,7 @@ class e_acsl_visitor prj generate = object (self)
             ||
               try
                 Varinfo.Hashtbl.iter
-                  (fun old_vi i -> match i with None | Some _ ->
+                  (fun old_vi (_, i) -> match i with None | Some _ ->
                     if Mmodel_analysis.must_model_vi old_vi then raise Exit)
                   global_vars;
                 false
@@ -160,13 +161,10 @@ class e_acsl_visitor prj generate = object (self)
           if must_init then begin
             let build_initializer () =
               Options.feedback ~dkey ~level:2 "building global initializer.";
-              let return =
-                Cil.mkStmt ~valid_sid:true (Return(None, Location.unknown))
-              in
               let env = Env.push !function_env in
               let stmts, env =
                 Varinfo.Hashtbl.fold_sorted
-                  (fun old_vi i (stmts, env) ->
+                  (fun old_vi (_, i) (stmts, env) ->
                     let new_vi = Cil.get_varinfo self#behavior old_vi in
                     (* [model] creates an initialization statement
                        of the form [__e_acsl_full_init(...)] for every global
@@ -192,7 +190,7 @@ class e_acsl_visitor prj generate = object (self)
                     | Some (SingleInit e) ->
                       let _, env = self#literal_string env e in stmts, env)
                   global_vars
-                  ([ return ], env)
+                  ([ ], env)
               in
               let stmts =
                 (* literal strings initialization *)
@@ -208,6 +206,20 @@ class e_acsl_visitor prj generate = object (self)
                     :: stmts)
                   stmts
               in
+              let return =
+                Cil.mkStmt ~valid_sid:true (Return(None, Location.unknown)) in
+              (* Generate init statements for temporal analysis *)
+              let tinit_stmts = Varinfo.Hashtbl.fold
+                (fun vi (off, init) acc ->
+                  match init with
+                  | Some init ->
+                    let stmt = Temporal.generate_global_init vi off init env in
+                      (match stmt with | Some stmt -> stmt :: acc | None -> acc)
+                  | None -> acc)
+                global_vars
+                [return]
+              in
+              let stmts = stmts @ tinit_stmts in
               (* Create a new code block with generated statements *)
               let (b, env), stmts = match stmts with
                 | [] -> assert false
@@ -323,10 +335,9 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
             in
             Extlib.may handle_main main_fct
           in
-          if Mmodel_analysis.use_model () then
-            Project.on prj build_mmodel_initializer ();
-            (* reset copied states at the end to be observationally
-               equivalent to a standard visitor. *)
+          Project.on prj build_mmodel_initializer ();
+          (* reset copied states at the end to be observationally
+              equivalent to a standard visitor. *)
           Project.clear ~selection ~project:prj ();
         end; (* generate *)
         f)
@@ -371,19 +382,23 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         ()
     in
     (match g with
-    | GVar(vi, _, _) | GVarDecl(vi, _) ->
+    | GVar(vi, _, _) | GVarDecl(vi, _) | GFun({ svar = vi }, _)
+      (* Track function addresses but the main function that is tracked
+         internally via RTL *)
+        when vi.vorig_name <> Kernel.MainFunction.get () ->
       (* Make a unique mapping for each global variable omitting initializers.
        Initializers (used to capture literal strings) are added to
        [global_vars] via the [vinit] visitor method (see comments below). *)
-      Varinfo.Hashtbl.replace global_vars vi None
+      Varinfo.Hashtbl.replace global_vars vi (NoOffset, None)
     | _ -> ());
     if generate then Cil.DoChildrenPost(fun g -> List.iter do_it g; g)
     else Cil.DoChildren
 
   (* Add mappings from global variables to their initializers in [global_vars].
      Note that the below function captures only [SingleInit]s. All compound
-     initializers (which contain single ones) are unrapped and thrown away. *)
-  method !vinit vi _off _i =
+     initializers containing SingleInits (except for empty compound
+     initializers) are unrapped and thrown away. *)
+  method !vinit vi off _ =
     if generate then
       if Mmodel_analysis.must_model_vi vi then begin
         is_initializer <- vi.vglob;
@@ -393,7 +408,13 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
             (* Note the use of [add] instead of [replace]. This is because a
              single variable can be associated with multiple initializers
              and all of them need to be captured. *)
-            | true -> Varinfo.Hashtbl.add global_vars vi (Some i)
+            | true ->
+              (match i with
+              (* Case of an empty CompoundInit, treat it as if there were
+               * no initializer at all *)
+              | CompoundInit(_,[]) -> ()
+              | CompoundInit(_,_) | SingleInit _ ->
+                Varinfo.Hashtbl.add global_vars vi (off, (Some i)))
             | false-> ());
             is_initializer <- false;
           i)
@@ -524,8 +545,11 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       if self#is_first_stmt kf stmt then
         (* JS: should be done in the new project? *)
         let env =
-          if generate then Memory.store env kf (Kernel_function.get_formals kf)
-          else env
+          if generate && not is_main then
+            let env = Memory.store env kf (Kernel_function.get_formals kf) in
+            Temporal.handle_function_parameters kf env
+          else
+            env
         in
         (* translate the precondition of the function *)
         if Dup_functions.is_generated (Extlib.the self#current_kf) then
@@ -571,6 +595,16 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
          been modified from the time where pre actions have been executed.
          Use [function_env] to get it back. *)
       let env = !function_env in
+      let env =
+        if generate then
+          (* Add temporal analysis instrumentations *)
+          let env = Temporal.handle_stmt stmt env in
+          (* Add initialization statements and store_block statements stemming
+             from Local_init *)
+            self#handle_instructions stmt env kf
+        else
+          env
+      in
       let env =
         if stmt.ghost && generate then begin
           stmt.ghost <- false;
@@ -635,7 +669,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                 let loc = Stmt.loc stmt in
                 let delete_stmts =
                   Varinfo.Hashtbl.fold_sorted
-                    (fun old_vi i acc ->
+                    (fun old_vi (_, i) acc ->
                       if Mmodel_analysis.must_model_vi old_vi then
                         let new_vi = Cil.get_varinfo self#behavior old_vi in
                         (* Since there are multiple entries for same variables
@@ -680,15 +714,6 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                 ~global_clear:false
                 Env.Before
             in
-            (match stmt.skind with
-            | Instr (Local_init (vi, _, _)) when
-                Mmodel_analysis.old_must_model_vi self#behavior ~kf vi ->
-              let vi = Cil.get_varinfo self#behavior vi in
-              (* must generate the new stmts after the declaration of [vi] *)
-              post_block.bstmts <-
-                post_block.bstmts @
-                [Misc.mk_store_stmt vi; Misc.mk_full_init_stmt vi]
-            | _ -> ());
             let post_block = Cil.transient_block post_block in
             Misc.mk_block prj new_stmt post_block, env
           end else
@@ -702,55 +727,39 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
     in
     Cil.ChangeDoChildrenPost(stmt, mk_block)
 
-  method private add_initializer loc checked_lv assigned_lv =
-    assert generate;
-    let kf = Extlib.the self#current_kf in
-    let stmt = Extlib.the self#current_stmt in
-    let may_safely_ignore = function
-      | Var vi, NoOffset -> vi.vglob || vi.vformal
-      | _ -> false
-    in
-
-    if not (may_safely_ignore assigned_lv) &&
-      Mmodel_analysis.must_model_lval ~kf ~stmt checked_lv
-    then
-      let new_stmt =
-        (* must be in the new project to build a new stmt *)
-        Project.on
-          prj
-          (Misc.mk_initialize ~loc)
-          assigned_lv
+  method private handle_instructions stmt env kf =
+    let add_initializer loc ?vi lv ?(post=false) stmt env kf =
+      assert generate;
+      let may_safely_ignore = function
+        | Var vi, NoOffset -> vi.vglob || vi.vformal
+        | _ -> false
       in
-      let before = Cil.memo_stmt self#behavior stmt in
-      let new_stmt = Cil.memo_stmt self#behavior new_stmt in
-      function_env := Env.add_stmt ~before !function_env new_stmt
-
-  method !vinst = function
-  | Set(old_lv, _, _) ->
-    if generate then
-      Cil.DoChildrenPost
-        (function
-        | [ Set(new_lv, _, loc) ] as l ->
-          self#add_initializer loc old_lv new_lv;
-          l
-        | _ -> assert false)
-    else
-      Cil.DoChildren
-  | Local_init _ ->
-    (* initialization is registered in vstmt. *)
-    Cil.DoChildren
-  | Call(Some old_ret, _, _, _) ->
-    if not generate || Misc.is_generated_kf (Extlib.the self#current_kf) then
-      Cil.DoChildren
-    else
-      Cil.DoChildrenPost
-        (function
-        | [ Call(Some new_ret, _, _, loc) ] as l ->
-          self#add_initializer loc old_ret new_ret;
-          l
-        | _ -> assert false)
-  | _ ->
-    Cil.DoChildren
+      if not (may_safely_ignore lv) && Mmodel_analysis.must_model_lval ~stmt ~kf lv then
+        let before = Cil.memo_stmt self#behavior stmt in
+        let new_stmt = Project.on prj (Misc.mk_initialize ~loc) lv in
+        let new_stmt = Cil.memo_stmt self#behavior new_stmt in
+        let env = Env.add_stmt ~post ~before env new_stmt in
+        let env = match vi with
+          | None -> env
+          | Some vi ->
+            let new_stmt = Project.on prj Misc.mk_store_stmt vi in
+            let new_stmt = Cil.memo_stmt self#behavior new_stmt in
+            Env.add_stmt ~post ~before env new_stmt
+        in
+        env
+      else
+        env
+    in
+    match stmt.skind with
+    | Instr(Set(lv, _, loc)) -> add_initializer loc lv stmt env kf
+    | Instr(Local_init(vi, _, loc)) ->
+      let lv = (Var(vi), NoOffset) in
+      add_initializer loc ~vi lv ~post:true stmt env kf
+    | Instr(Call (Some lv, _, _, loc)) ->
+      if not (Misc.is_generated_kf kf) then
+        add_initializer loc lv ~post:false stmt env kf
+      else env
+    | _ -> env
 
   method !vblock blk =
     let handle_memory new_blk =
@@ -761,7 +770,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         let add_locals stmts =
           List.fold_left
             (fun acc vi ->
-              if Mmodel_analysis.old_must_model_vi self#behavior ~kf vi then
+              if Mmodel_analysis.must_model_vi ~bhv:self#behavior ~kf vi then
                 Misc.mk_delete_stmt vi :: acc
               else
                 acc)

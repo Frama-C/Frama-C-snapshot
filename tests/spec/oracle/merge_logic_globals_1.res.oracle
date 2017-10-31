@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/merge_logic_globals_1.c (with preprocessing)
 [kernel] Parsing tests/spec/merge_logic_globals_2.c (with preprocessing)
 tests/spec/merge_logic_globals.h:14:[kernel] warning: dropping duplicate def'n of func test at tests/spec/merge_logic_globals.h:14 in favor of that at tests/spec/merge_logic_globals.h:14
@@ -10,7 +9,7 @@ typedef struct s_t t;
 /*@ type invariant inv_t(t x) = x.n > 0;
  */
 int i = 42;
-/*@ predicate p(int x) = x ≥ i;
+/*@ predicate p{Here}(int x) = x ≥ i;
  */
 /*@ axiomatic Bar {
       logic ℤ li;

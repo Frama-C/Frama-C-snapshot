@@ -275,22 +275,22 @@ module Value = struct
       FunArgs.self;
       VGlobals.self ]
 
-  let size = 1789
+  let size = 256
 
   module States_by_callstack =
     Value_types.Callstack.Hashtbl.Make(Cvalue.Model)
 
-  module Table_By_Callstack = 
+  module Table_By_Callstack =
     Cil_state_builder.Stmt_hashtbl(States_by_callstack)
       (struct
-        let name = "Value analysis results by callstack"
+        let name = "Db.Value.Table_By_Callstack"
         let size = size
         let dependencies = dependencies
        end)
   module Table =
     Cil_state_builder.Stmt_hashtbl(Cvalue.Model)
       (struct
-        let name = "Value analysis results"
+        let name = "Db.Value.Table"
         let size = size
         let dependencies = [ Table_By_Callstack.self ]
        end)
@@ -309,12 +309,12 @@ module Value = struct
     )
 
 
-  module AfterTable_By_Callstack = 
+  module AfterTable_By_Callstack =
     Cil_state_builder.Stmt_hashtbl(States_by_callstack)
       (struct
-        let name = "Value analysis results after states by callstack"
+        let name = "Db.Value.AfterTable_By_Callstack"
         let size = size
-        let dependencies = dependencies
+        let dependencies = [ Table_By_Callstack.self ]
        end)
 
 
@@ -332,7 +332,7 @@ module Value = struct
     Cil_state_builder.Stmt_hashtbl
       (Datatype.Int)
       (struct
-         let name = "Conditions statuses"
+         let name = "Db.Value.Conditions_table"
          let size = 101
          let dependencies = only_self
        end)
@@ -374,7 +374,7 @@ module Value = struct
     State_builder.Hashtbl(Kernel_function.Hashtbl)
       (States_by_callstack)
       (struct
-         let name = "called_functions_by_callstack"
+         let name = "Db.Value.Called_Functions_By_Callstack"
          let size = 11
          let dependencies = only_self
        end)
@@ -383,7 +383,7 @@ module Value = struct
     State_builder.Hashtbl(Kernel_function.Hashtbl)
       (Cvalue.Model)
       (struct
-         let name = "called_functions_memo"
+         let name = "Db.Value.Called_Functions_Memo"
          let size = 11
          let dependencies = [ Called_Functions_By_Callstack.self ]
        end)
@@ -451,10 +451,15 @@ module Value = struct
     Hook.Build
       (struct type t = stmt * callstack * state list end)
 
+  (* -remove-redundant-alarms feature, applied at the end of an Eva analysis,
+     fulfilled by the Scope plugin that also depends on Eva. We thus use a
+     reference here to avoid a cyclic dependency. *)
+  let rm_asserts = mk_fun "Value.rm_asserts"
+
   let no_results = mk_fun "Value.no_results"
 
   let update_callstack_table ~after stmt callstack v =
-    let open Value_types in 
+    let open Value_types in
     let find,add =
       if after
       then AfterTable_By_Callstack.find, AfterTable_By_Callstack.add
@@ -462,11 +467,11 @@ module Value = struct
     in
     try
       let by_callstack = find stmt in
-      begin try 
-	let o = Callstack.Hashtbl.find by_callstack callstack in
-	Callstack.Hashtbl.replace by_callstack callstack(Cvalue.Model.join o v)
-	with Not_found -> 
-	  Callstack.Hashtbl.add by_callstack callstack v
+      begin try
+        let o = Callstack.Hashtbl.find by_callstack callstack in
+        Callstack.Hashtbl.replace by_callstack callstack(Cvalue.Model.join o v)
+        with Not_found ->
+          Callstack.Hashtbl.add by_callstack callstack v
       end;
     with Not_found ->
       let r = Callstack.Hashtbl.create 7 in
@@ -549,7 +554,7 @@ module Value = struct
     assert (is_computed ()); (* this assertion fails during value analysis *)
     try
       Some (if after then AfterTable_By_Callstack.find stmt else
-	  Table_By_Callstack.find stmt)
+          Table_By_Callstack.find stmt)
     with Not_found -> None
 
   let fold_stmt_state_callstack f acc ~after stmt =
@@ -614,12 +619,12 @@ module Value = struct
     mk_fun "Value.use_spec_instead_of_definition"
 
   let eval_lval =
-    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_lval")
+    ref (fun ?with_alarms:_ _ -> mk_labeled_fun "Value.eval_lval")
   let eval_expr =
-    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr")
+    ref (fun ?with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr")
 
   let eval_expr_with_state =
-    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr_with_state")
+    ref (fun ?with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr_with_state")
 
   let reduce_by_cond = mk_fun "Value.reduce_by_cond"
 
@@ -641,8 +646,7 @@ module Value = struct
   let call_to_kernel_function call_stmt = match call_stmt.skind with
     | Instr (Call (_, fexp, _, _)) ->
         let _, called_functions =
-          !expr_to_kernel_function
-            ~with_alarms:CilE.warn_none_mode ~deps:None
+          !expr_to_kernel_function ?with_alarms:None ~deps:None
             (Kstmt call_stmt) fexp
         in called_functions
     | Instr(Local_init(_, ConsInit(f,_,_),_)) ->
@@ -660,7 +664,7 @@ module Value = struct
   let lval_to_zone_state = mk_fun "Value.lval_to_zone_state"
   let lval_to_zone_with_deps_state = mk_fun "Value.lval_to_zone_with_deps_state"
   let lval_to_precise_loc_state =
-    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.lval_to_precise_loc")
+    ref (fun ?with_alarms:_ _ -> mk_labeled_fun "Value.lval_to_precise_loc")
   let lval_to_precise_loc_with_deps_state =
     mk_fun "Value.lval_to_precise_loc_with_deps_state"
   let assigns_inputs_to_zone = mk_fun "Value.assigns_inputs_to_zone"
@@ -690,7 +694,7 @@ module Value = struct
         | { skind = Return (None, _) } -> raise Void_Function
         | _ -> assert false
       in
-      !lval_to_loc (Kstmt ki) ~with_alarms:CilE.warn_none_mode lval
+      !lval_to_loc (Kstmt ki) ?with_alarms:None lval
     with Kernel_function.No_Statement ->
       (* [JS 2011/05/17] should be better to have another name for this
          exception or another one since it is possible to have no return without
@@ -825,25 +829,6 @@ module Pdg = struct
 end
 
 (* ************************************************************************* *)
-(** {2 Scope} *)
-(* ************************************************************************* *)
-
-(** Interface for the Scope plugin *)
-module Scope = struct
-  let get_data_scope_at_stmt = mk_fun "Datascope.get_data_scope_at_stmt"
-  let get_prop_scope_at_stmt = mk_fun "Datascope.get_prop_scope_at_stmt"
-  let check_asserts = mk_fun "Datascope.check_asserts"
-  let rm_asserts = mk_fun "Datascope.rm_asserts"
-  let get_defs = mk_fun "Datascope.get_defs"
-  let get_defs_with_type = mk_fun "Datascope.get_defs_with_type"
-
-  type t_zones = Locations.Zone.t Stmt.Hashtbl.t
-  let build_zones = mk_fun "Pdg.build_zones"
-  let pretty_zones = mk_fun "Pdg.pretty_zones"
-  let get_zones = mk_fun "Pdg.get_zones"
-end
-
-(* ************************************************************************* *)
 (** {2 Spare Code} *)
 (* ************************************************************************* *)
 
@@ -853,175 +838,6 @@ module Sparecode = struct
     ref (fun ~select_annot:_  -> mk_labeled_fun "Sparecode.run")
   let rm_unused_globals =
     ref (fun ?new_proj_name:_ -> mk_labeled_fun "Sparecode.rm_unused_globals")
-end
-
-(* ************************************************************************* *)
-(** {2 Slicing} *)
-(* ************************************************************************* *)
-
-(** Interface for the slicing tool. *)
-module Slicing = struct
-
-  let self = ref State.dummy
-
-  let set_modes =
-    ref (fun ?calls:_ ?callers:_ ?sliceUndef:_ ?keepAnnotations:_
-           ?print:_ _ -> mk_labeled_fun "Slicing.set_modes")
-
-  (* TODO: merge with frama-c projects (?) *)
-  module Project = struct
-    let default_slice_names = mk_fun "Slicing.Project.default_slice_names"
-    let extract = mk_fun "Slicing.Project.extract"
-    let pretty = mk_fun "Slicing.Project.pretty"
-    let print_extracted_project =
-      ref (fun ?fmt:_ ~extracted_prj:_ ->
-             mk_labeled_fun "Slicing.Project.print_extracted_project")
-    let print_dot =
-      ref (fun ~filename:_ ~title:_ ->
-             mk_labeled_fun "Slicing.Project.print_dot")
-
-    let reset_slice = mk_fun "Slicing.Project.reset_slice"
-
-    let is_directly_called_internal =
-      mk_fun "Slicing.Project.is_directly_called_internal"
-    let is_called = mk_fun "Slicing.Project.is_called"
-    let has_persistent_selection =
-      mk_fun "Slicing.Project.has_persistent_selection"
-    let change_slicing_level =
-      mk_fun "Slicing.Project.change_slicing_level"
-  end
-
-  module Mark = struct
-    type t = SlicingTypes.sl_mark
-    let dyn_t = SlicingTypes.dyn_sl_mark
-    let compare = mk_fun "Slicing.Mark.compare"
-    let pretty = mk_fun "Slicing.Mark.pretty"
-    let make =
-      ref (fun ~data:_ ~addr:_ ~ctrl:_ -> mk_labeled_fun "Slicing.Mark.make")
-    let is_bottom = mk_fun "Slicing.Mark.is_bottom"
-    let is_spare = mk_fun "Slicing.Mark.is_spare"
-    let is_ctrl = mk_fun "Slicing.Mark.is_ctrl"
-    let is_data = mk_fun "Slicing.Mark.is_data"
-    let is_addr = mk_fun "Slicing.Mark.is_addr"
-    let get_from_src_func  = mk_fun "Slicing.Mark.get_from_src_func"
-  end
-
-  module Select = struct
-    type t = SlicingTypes.sl_select
-    let dyn_t = SlicingTypes.Sl_select.ty
-    type set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
-    module S = Cil_datatype.Varinfo.Map.Make(SlicingTypes.Fct_user_crit)
-    let dyn_set = S.ty
-
-    let get_function = mk_fun "Slicing.Select.get_function"
-    let select_stmt = mk_fun "Slicing.Select.select_stmt"
-    let select_stmt_ctrl = mk_fun "Slicing.Select.select_stmt_ctrl"
-    let select_stmt_lval_rw = mk_fun "Slicing.Select.select_stmt_lval_rw"
-    let select_stmt_lval = mk_fun "Slicing.Select.select_stmt_lval"
-    let select_stmt_zone = mk_fun "Slicing.Select.select_stmt_zone"
-    let select_stmt_annots = mk_fun "Slicing.Select.select_stmt_annots"
-    let select_stmt_annot = mk_fun "Slicing.Select.select_stmt_annot"
-    let select_stmt_pred = mk_fun "Slicing.Select.select_stmt_pred"
-    let select_stmt_term = mk_fun "Slicing.Select.select_stmt_term"
-    let select_func_return = mk_fun "Slicing.Select.select_func_return"
-    let select_func_calls_to = mk_fun "Slicing.Select.select_func_calls_to"
-    let select_func_calls_into = mk_fun "Slicing.Select.select_func_calls_into"
-    let select_func_lval_rw = mk_fun "Slicing.Select.select_func_lval_rw"
-    let select_func_lval = mk_fun "Slicing.Select.select_func_lval"
-    let select_func_zone = mk_fun "Slicing.Select.select_func_zone"
-    let select_func_annots = mk_fun "Slicing.Select.select_func_annots"
-    let select_stmt_internal = mk_fun "Slicing.Select.select_stmt_internal"
-    let select_label_internal = mk_fun "Slicing.Select.select_label_internal"
-    let empty_selects =
-      Journal.register
-        "Db.Slicing.Select.empty_selects"
-        dyn_set
-        Cil_datatype.Varinfo.Map.empty
-    let add_to_selects_internal =
-      mk_fun "Slicing.Select.add_to_selects_internal"
-    let iter_selects_internal =
-      mk_fun "Slicing.Select.iter_selects_internal"
-        (* didn't manage to put this polymorphic function as a ref... *)
-    let fold_selects_internal f acc selections =
-      let r = ref acc in
-      let dof select = r := f !r select in
-        !iter_selects_internal dof selections; !r
-    let merge_internal =
-      mk_fun "Slicing.Select.merge_internal"
-    let select_min_call_internal =
-      mk_fun "Slicing.Select.select_min_call_internal"
-    let select_stmt_ctrl_internal =
-      mk_fun "Slicing.Select.select_control_stmt_ctrl"
-    let select_pdg_nodes =
-      mk_fun "Slicing.Select.select_pdg_nodes"
-    let select_entry_point_internal =
-      mk_fun "Slicing.Select.select_entry_point_internal"
-    let select_return_internal =
-      mk_fun "Slicing.Select.select_return_internal"
-    let select_decl_var_internal =
-      mk_fun "Slicing.Select.select_decl_var_internal"
-    let select_pdg_nodes_internal =
-      mk_fun "Slicing.Select.select_pdg_nodes_internal"
-    let select_stmt_zone_internal =
-      mk_fun "Slicing.Select.select_stmt_zone_internal"
-    let select_zone_at_entry_point_internal =
-      mk_fun "Slicing.Select.select_zone_at_entry_point_internal"
-    let select_modified_output_zone_internal =
-      mk_fun "Slicing.Select.select_modified_output_zone_internal"
-    let select_zone_at_end_internal =
-      mk_fun "Slicing.Select.select_zone_at_end_internal"
-    let pretty = mk_fun "Slicing.Select.pretty"
-  end
-
-  module Slice = struct
-    type t = SlicingTypes.sl_fct_slice
-    let dyn_t = SlicingTypes.dyn_sl_fct_slice
-    let create = mk_fun "Slicing.Slice.create"
-    let remove = mk_fun "Slicing.Slice.remove"
-    let remove_uncalled = mk_fun "Slicing.Slice.remove_uncalled"
-    let get_all = mk_fun "Slicing.Slice.get_all"
-    let get_callers = mk_fun "Slicing.Slice.get_callers"
-    let get_called_slice = mk_fun "Slicing.Slice.get_called_slice"
-    let get_called_funcs = mk_fun "Slicing.Slice.get_called_funcs"
-    let get_function = mk_fun "Slicing.Slice.get_function"
-    let pretty = mk_fun "Slicing.Slice.pretty"
-    let get_mark_from_stmt = mk_fun "Slicing.Slice.get_mark_from_stmt"
-    let get_mark_from_local_var =
-      mk_fun "Slicing.Slice.get_mark_from_local_var"
-    let get_mark_from_formal = mk_fun "Slicing.Slice.get_mark_from_formal"
-    let get_mark_from_label = mk_fun "Slicing.Slice.get_from_label"
-    let get_user_mark_from_inputs =
-      mk_fun "Slicing.Slice.get_user_mark_from_inputs"
-    let get_num_id =
-      mk_fun "Slicing.Slice.get_num_id"
-    let from_num_id =
-      mk_fun "Slicing.Slice.from_num_id"
-  end
-
-  module Request = struct
-    let add_selection = mk_fun "Slicing.Request.add_selection"
-    let add_persistent_selection = mk_fun "Slicing.Request.add_persistent_selection"
-    let add_persistent_cmdline = mk_fun "Slicing.Request.add_persistent_cmdline"
-    let is_already_selected_internal =
-      mk_fun "Slicing.Request.is_already_selected_internal"
-    let add_slice_selection_internal =
-      mk_fun "Slicing.Request.add_slice_selection_internal"
-    let add_selection_internal =
-      mk_fun "Slicing.Request.add_selection_internal"
-    let add_call_slice = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_slice")
-    let add_call_fun = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_fun")
-    let add_call_min_fun = ref (fun ~caller:_ ~to_call:_ -> mk_labeled_fun "Slicing.Request.add_call_min_fun")
-    let merge_slices = mk_fun "Slicing.Request.merge_slices"
-    let copy_slice = mk_fun "Slicing.Request.copy_slice"
-    let split_slice = mk_fun "Slicing.Request.split_slice"
-    let propagate_user_marks = mk_fun "Slicing.Request.propagate_user_marks"
-    let apply_all = ref (fun ~propagate_to_callers:_ -> mk_labeled_fun "Slicing.Request.apply_all")
-    let apply_all_internal = mk_fun "Slicing.Request.apply_all_internal"
-    let apply_next_internal = mk_fun "Slicing.Request.apply_next_internal"
-    let is_request_empty_internal = mk_fun "Slicing.Request.is_request_empty_internal"
-    let pretty = mk_fun "Slicing.Request.pretty"
-  end
-
 end
 
 (* ************************************************************************* *)
@@ -1168,10 +984,10 @@ module Properties = struct
   end
 
   let add_assert emitter kf kinstr prop =
-    Kernel.deprecated "Db.Properties.add_assert" ~now:"ACSL_importer plug-in" 
+    Kernel.deprecated "Db.Properties.add_assert" ~now:"ACSL_importer plug-in"
       (fun () ->
-	let interp_prop = !Interp.code_annot kf kinstr prop in
-	Annotations.add_code_annot emitter kinstr interp_prop)
+        let interp_prop = !Interp.code_annot kf kinstr prop in
+        Annotations.add_code_annot emitter kinstr interp_prop)
       ()
 
 end
@@ -1202,7 +1018,7 @@ module Occurrence = struct
 end
 
 module RteGen = struct
-  type status_accessor = 
+  type status_accessor =
       string * (kernel_function -> bool -> unit) * (kernel_function -> bool)
   let compute = mk_fun "RteGen.compute"
   let annotate_kf = mk_fun "RteGen.annotate_kf"
@@ -1214,15 +1030,14 @@ module RteGen = struct
   let get_precond_status = mk_fun "RteGen.get_precond_status"
   let get_signedOv_status = mk_fun "RteGen.get_signedOv_status"
   let get_divMod_status = mk_fun "RteGen.get_divMod_status"
+  let get_initialized_status = mk_fun "RteGen.get_initialized_status"
   let get_signed_downCast_status = mk_fun "RteGen.get_signed_downCast_status"
   let get_memAccess_status = mk_fun "RteGen.get_memAccess_status"
   let get_pointerCall_status = mk_fun "RteGen.get_pointerCall_status"
   let get_unsignedOv_status = mk_fun "RteGen.get_unsignedOv_status"
   let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"
-end
-
-module Report = struct
-  let print = mk_fun "Report.print"
+  let get_float_to_int_status = mk_fun "RteGen.get_float_to_int_status"
+  let get_finite_float_status = mk_fun "RteGen.get_finite_float_status"
 end
 
 module Constant_Propagation = struct

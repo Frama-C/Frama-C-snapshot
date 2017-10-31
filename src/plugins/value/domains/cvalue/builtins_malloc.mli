@@ -23,8 +23,10 @@
 (** Dynamic allocation related builtins.
     Most functionality is exported as builtins. *)
 
-val malloced_bases: unit -> Base.Hptset.t
-(** All bases that have been dynamically created in the current execution. *)
+val fold_dynamic_bases: (Base.t -> Value_types.Callstack.t -> 'a -> 'a) -> 'a -> 'a
+(** [fold_dynamic_bases f init] folds [f] to each dynamically allocated base,
+    with initial accumulator [init].
+    Note that this also includes bases created by [alloca] and [VLAs]. *)
 
 val alloc_size_ok: Cvalue.V.t -> Alarmset.status
 (* [alloc_size_ok size] checks that [size] represents a valid allocation
@@ -32,6 +34,11 @@ val alloc_size_ok: Cvalue.V.t -> Alarmset.status
    small enough, [False] that the allocation is guaranteed to fail (because
    the size is always greater than SIZE_MAX). *)
 
+val free_automatic_bases: Value_types.Callstack.t -> Cvalue.Model.t -> Cvalue.Model.t
+(** Performs the equivalent of [free] for each location that was allocated via
+    [alloca()] in the current function (as per [Value_util.call_stack ()]).
+    This function must be called during finalization of a function call. *)
+
 (**/**)
-val register_malloced_base: Base.t -> unit
+val register_malloced_base: ?stack:Value_types.Callstack.t -> Base.t -> unit
 (* Should not be used by casual users. *)

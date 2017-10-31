@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/addition.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -88,7 +87,7 @@ tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char 
 tests/value/addition.i:61:[value] Assigning imprecise value to p14.
         The imprecision originates from Misaligned {tests/value/addition.i:61}
 tests/value/addition.i:66:[value] warning: out of bounds read. assert \valid_read(*((int **)45));
-[value] Called Frama_C_show_each_1([-10..15])
+tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
 tests/value/addition.i:88:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
@@ -308,7 +307,7 @@ tests/value/addition.i:59:[value] warning: signed overflow. assert (int)*((char 
 tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
 tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
 tests/value/addition.i:66:[value] warning: out of bounds read. assert \valid_read(*((int **)45));
-[value] Called Frama_C_show_each_1([-10..15])
+tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
 [value] Recording results for main
 [value] done for function main
 [value] warning: Garbled mix generated during analysis:

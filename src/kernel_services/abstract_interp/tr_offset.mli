@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** Reduction of a location (expressed as an Ival.t and a size)
-    by a base validity. Only the locations in the trimmed result are valid. *)
+    by a base validity. Only the locations in the trimmed result are valid.
+    All offsets are expressed in bits. *)
 
 type t = private
   | Invalid (** No location is valid *)
@@ -38,9 +39,10 @@ val pretty: t Pretty_utils.formatter
 
 (** [trim_by_validity ?origin offsets size validity] reduces [offsets] so that
     all accesses to [offsets+(0..size-1)] are valid according to [validity].
+    For a size of 0, consider the offsets up to the validity past-one valid.
     The returned boolean indicates that at least one of the offsets does not
     comply with [validity]. If the valid offsets cannot be represented
-    precisely, the [Imprecise] constructor is returned. When specified,
+    precisely, the [Overlap] constructor is returned. When specified,
     the [origin] argument is used as the source of this imprecision . *)
 val trim_by_validity :
   ?origin:Origin.t ->

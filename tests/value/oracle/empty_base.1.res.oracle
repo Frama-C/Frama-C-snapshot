@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/empty_base.c (with preprocessing)
 tests/value/empty_base.c:49:[kernel] user error: empty initializers only allowed for GCC/MSVC
                      47    struct empty empty_array_of_empty[0];

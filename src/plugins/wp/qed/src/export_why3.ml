@@ -58,12 +58,13 @@ struct
       inherit E.engine as super
 
       method! basename s =
-        (** TODO: better uncapitalization of the first letter? utf8? *)
-        let lower0 = Char.lowercase s.[0] in
-        if String.length s > 0 &&  lower0 <> s.[0] then
-          let s = String.copy s in
-          s.[0] <- lower0;
-          s
+        if String.length s > 0 then
+          let a = Bytes.of_string s in
+          match Bytes.get a 0 with
+          | 'A'..'Z' as c ->
+              Bytes.set a 0 (Char.lowercase c) ;
+              Bytes.to_string a
+          | _ -> s
         else s
 
       (* -------------------------------------------------------------------------- *)

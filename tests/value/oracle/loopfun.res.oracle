@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/loopfun.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -17,7 +16,7 @@
         Called from tests/value/loopfun.i:16.
 [value] Recording results for test
 [value] Done for function test
-[value] Called Frama_C_show_each_t({5})
+tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {5}
 [value] computing for function test <- main.
         Called from tests/value/loopfun.i:14.
 [value] Recording results for test
@@ -30,7 +29,7 @@
         Called from tests/value/loopfun.i:16.
 [value] Recording results for test
 [value] Done for function test
-[value] Called Frama_C_show_each_t({2})
+tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {2}
 [value] computing for function test <- main.
         Called from tests/value/loopfun.i:14.
 [value] Recording results for test

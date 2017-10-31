@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/cte_overflow.i (no preprocessing)
 tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf
 tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf

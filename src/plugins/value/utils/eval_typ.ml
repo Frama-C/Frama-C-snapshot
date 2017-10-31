@@ -73,16 +73,12 @@ type fct_pointer_compatibility =
   | Incompatible_but_accepted
 
 let compatible_functions ~typ_pointed ~typ_fun =
-  let really_compatible t1 t2 =
-    try ignore (Cabs2cil.compatibleTypes t1 t2); true
-    with Failure _ -> false
-  in
   (* our own notion of weak compatibility:
      - attributes and qualifiers are always ignored
      - all pointers types are considered compatible
      - enums and integer types with the same signedness and size are equal *)
   let weak_compatible t1 t2 =
-    really_compatible t1 t2 ||
+    Cabs2cil.areCompatibleTypes t1 t2 ||
       match Cil.unrollType t1, Cil.unrollType t2 with
       | TVoid _, TVoid _ -> true
       | TPtr _, TPtr _ -> true
@@ -95,7 +91,7 @@ let compatible_functions ~typ_pointed ~typ_fun =
         Cil_datatype.Compinfo.equal ci1 ci2
       | _ -> false
   in
-  if really_compatible typ_pointed typ_fun then Compatible
+  if Cabs2cil.areCompatibleTypes typ_pointed typ_fun then Compatible
   else
     let continue = match Cil.unrollType typ_pointed, Cil.unrollType typ_fun with
       | TFun (ret1, args1, var1, _), TFun (ret2, args2, var2, _) ->
@@ -144,7 +140,7 @@ let resolve_functions ~typ_pointer v =
     let acc_init = Kernel_function.Hptset.empty in
     let kfs = Locations.Location_Bytes.fold_topset_ok aux v acc_init in
     `Value kfs, !warn
-  with Locations.Location_Bytes.Error_Top -> `Top, true
+  with Abstract_interp.Error_Top -> `Top, true
 
 
 let rec expr_contains_volatile expr =

@@ -28,45 +28,18 @@ open Cvalue
 (** Transformation a value into an offsetmap of size [sizeof(typ)] bytes. *)
 val offsetmap_of_v: typ:Cil_types.typ -> V.t -> V_Offsetmap.t
 
+(** Returns the offsetmap at a precise_location from a state.
+    May raise Abstract_interp.Error_Top. *)
+val offsetmap_of_loc:
+  Precise_locs.precise_location -> Model.t -> V_Offsetmap.t Eval.or_bottom
+
 (** Specialization of the function above for standard types *)
 val wrap_size_t: V.t -> V_Offsetmap.t option
 val wrap_int: V.t -> V_Offsetmap.t option
 val wrap_ptr: V.t -> V_Offsetmap.t option
 val wrap_double: V.t -> V_Offsetmap.t option
 val wrap_float: V.t -> V_Offsetmap.t option
-
-val reinterpret_float:
-  with_alarms:CilE.warn_mode -> Cil_types.fkind -> V.t -> V.t
-(** Read the given value value as a float int of the given [fkind]. Warn if the
-    value contains an address, or is not representable as a finite float.  *)
-
-val reinterpret:
-  with_alarms:CilE.warn_mode -> Cil_types.typ -> V.t -> V.t
-
-
-val eval_binop_float :
-  with_alarms:CilE.warn_mode ->
-  Fval.rounding_mode ->
-  Cvalue.V.t -> binop -> Cvalue.V.t -> Cvalue.V.t
-
-val eval_binop_int :
-  with_alarms:CilE.warn_mode ->
-  te1:typ ->
-  Cvalue.V.t -> binop -> Cvalue.V.t -> Cvalue.V.t
-
-val eval_unop:
-  check_overflow:bool ->
-  with_alarms:CilE.warn_mode ->
-  Cvalue.V.t ->
-  typ (** Type of the expression under the unop *) ->
-  Cil_types.unop -> Cvalue.V.t
-
-val do_promotion:
-  with_alarms:CilE.warn_mode ->
-  Fval.rounding_mode ->
-  src_typ:Cil_types.typ ->
-  dst_typ:Cil_types.typ ->
-  Cvalue.V.t -> Cvalue.V.t
+val wrap_long_long: V.t -> V_Offsetmap.t option
 
 val backward_comp_left_from_type:
   Cil_types.typ ->
@@ -99,6 +72,7 @@ val make_loc_contiguous: Locations.location -> Locations.location
     with a size that covers the entire range. *)
 
 val pretty_stitched_offsetmap: Format.formatter -> typ -> V_Offsetmap.t -> unit
+val pretty_offsetmap: typ -> Format.formatter -> V_Offsetmap.t -> unit
 
 (*
 Local Variables:

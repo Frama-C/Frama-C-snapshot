@@ -7,8 +7,6 @@ typedef struct {
 } tt;
 
 void main (const tt *p1) {
-  int i;
-  int j;
   while(1) {
   switch ((p1+1)->v) {
   case 1:

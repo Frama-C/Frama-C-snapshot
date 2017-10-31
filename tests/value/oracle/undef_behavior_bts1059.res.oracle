@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/undef_behavior_bts1059.i (no preprocessing)
 tests/value/undef_behavior_bts1059.i:15:[kernel] warning: Unspecified sequence with side effect:
                   /* a <- 

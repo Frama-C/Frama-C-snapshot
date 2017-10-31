@@ -1,13 +1,12 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/scope/no-effect.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/scope/no-effect.i:12:[value] entering loop for the first time
-tests/scope/no-effect.i:13:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
-tests/scope/no-effect.i:18:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
+tests/scope/no-effect.i:10:[value] entering loop for the first time
+tests/scope/no-effect.i:11:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
+tests/scope/no-effect.i:16:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 1 assertion(s)

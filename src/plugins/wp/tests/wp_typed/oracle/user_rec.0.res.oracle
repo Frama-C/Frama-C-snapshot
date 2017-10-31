@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/user_rec.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -26,16 +25,19 @@ Prove: let x_0 = (L_fact m_0) in
 
 Goal Post-condition (file tests/wp_typed/user_rec.i, line 6) in 'F1':
 Assume {
-  Type: is_sint32(F1_0) /\ is_sint32(i) /\ is_sint32(n).
+  Type: is_sint32(F1_0) /\ is_sint32(i) /\ is_sint32(n) /\
+      is_sint32(retres_0).
   If n <= 1
-  Then { Have: F1_0 = 1. }
+  Then { Have: retres_0 = 1. (* Return *) Have: F1_0 = 1. }
   Else {
+    Let x = L_fact(i - 1).
     (* Invariant *)
-    Have: L_fact(i - 1) = F1_0.
+    Have: x = F1_0.
     (* Invariant *)
     Have: (2 <= i) /\ (i <= (1 + n)).
     (* Else *)
     Have: n < i.
+    Have: (retres_0 = F1_0) /\ (x = retres_0).
   }
 }
 Prove: L_fact(n) = F1_0.

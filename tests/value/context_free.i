@@ -36,7 +36,7 @@ extern struct {
 extern void *qvoid; // void* pointer: valid, size unknown
 
 
-void f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5])
+void f(int x, float y, int **p, int (*g)(char const*), void *vv, void **vvv, int ta[5])
 {
   if (x >= 0) a = x;
   b = s.s1 ;

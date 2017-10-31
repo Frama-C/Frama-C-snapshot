@@ -38,6 +38,8 @@ val neg : string
 val x_or : string
 val inset : string
 val emptyset : string
+val top: string
+val bottom:string
 val minus: string
 val boolean: string
 val integer: string

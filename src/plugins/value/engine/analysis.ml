@@ -26,15 +26,26 @@ open Eval
 module type Results = sig
   type state
   type value
+  type location
 
   val get_stmt_state : stmt -> state or_bottom
+  val get_kinstr_state: kinstr -> state or_bottom
+  val get_stmt_state_by_callstack:
+    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
+  val get_initial_state_by_callstack:
+    kernel_function -> state Value_types.Callstack.Hashtbl.t or_top_or_bottom
+
   val eval_expr : state -> exp -> value evaluated
+  val copy_lvalue: state -> lval -> value flagged_value evaluated
+  val eval_lval_to_loc: state -> lval -> location evaluated
+  val eval_function_exp: state -> exp -> kernel_function list evaluated
 end
 
 module type S = sig
   include Abstractions.S
   include Results with type state := Dom.state
                    and type value := Val.t
+                   and type location := Loc.location
 end
 
 module type Analyzer = sig
@@ -49,8 +60,7 @@ module Make (Abstract: Abstractions.S) = struct
 
   include Abstract
 
-  module Eva = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
-  module Eval = Non_linear_evaluation.Make (Abstract.Val) (Eva)
+  module Eval = Evaluation.Make (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
 
   include Compute_functions.Make (Abstract) (Eval)
 
@@ -60,7 +70,27 @@ module Make (Abstract: Abstractions.S) = struct
     then Abstract.Dom.Store.get_stmt_state stmt
     else `Value Abstract.Dom.top
 
+  let get_kinstr_state = function
+    | Kglobal -> Abstract.Dom.Store.get_global_state ()
+    | Kstmt stmt -> get_stmt_state stmt
+
+  let get_stmt_state_by_callstack =
+    Abstract.Dom.Store.get_stmt_state_by_callstack
+
+  let get_initial_state_by_callstack =
+    Abstract.Dom.Store.get_initial_state_by_callstack
+
   let eval_expr state expr = Eval.evaluate state expr >>=: snd
+
+  let copy_lvalue state expr = Eval.copy_lvalue state expr >>=: snd
+
+  let eval_lval_to_loc state lv =
+    let get_loc (_, loc, _) = loc in
+    let for_writing = false in
+    Eval.lvaluate ~for_writing state lv >>=: get_loc
+
+  let eval_function_exp state e =
+    Eval.eval_function_exp e state >>=: (List.map fst)
 
 end
 
@@ -74,40 +104,74 @@ module Default =
      else (module Make (Abstractions.Default)))
     : Analyzer)
 
-let abstracts config =
-  if config = Abstractions.default_config
-  then (module Abstractions.Default : Abstractions.S)
-  else Abstractions.make config
 
+(* Reference to the current configuration (built by Abstractions.configure from
+   the parameters of Eva regarding the abstractions used in the analysis) and
+   the current Analyzer module. *)
 let ref_analyzer =
   ref (Abstractions.default_config, (module Default : Analyzer))
 
-let current = ref (module Default : S)
-let current_analyzer = ref (module Default : Analyzer)
+(* Returns the current Analyzer module. *)
+let current_analyzer () = (module (val (snd !ref_analyzer)): S)
+
+(* Set of hooks called whenever the current Analyzer module is changed.
+   Useful for the GUI parts that depend on it. *)
+module Analyzer_Hook = Hook.Build (struct type t = (module S) end)
+
+(* Register a new hook. *)
+let register_hook = Analyzer_Hook.extend
+
+(* Sets the current Analyzer module for a given configuration.
+   Calls the hooks above. *)
+let set_current_analyzer config (analyzer: (module Analyzer)) =
+  Analyzer_Hook.apply (module (val analyzer): S);
+  ref_analyzer := (config, analyzer)
 
 let cvalue_initial_state () =
-  let module A = (val !current_analyzer) in
+  let module A = (val snd !ref_analyzer) in
   let _, lib_entry = Globals.entry_point () in
   Cvalue_domain.extract A.Dom.get (A.initial_state ~lib_entry)
 
-let compute config ~lib_entry kf =
+(* Builds the Analyzer module corresponding to a given configuration,
+   and sets it as the current analyzer. *)
+let make_analyzer config =
   let analyzer =
     if config = Abstractions.legacy_config then (module Legacy: Analyzer)
     else if config = Abstractions.default_config then (module Default)
-    else if config = fst !ref_analyzer then snd !ref_analyzer
     else
-      let module Abstract = (val abstracts config) in
+      let module Abstract = (val Abstractions.make config) in
       let module Analyzer = Make (Abstract) in
-      ref_analyzer := (config, (module Analyzer));
       (module Analyzer)
   in
-  let module Analyzer = (val analyzer) in
-  current := (module Analyzer: S);
-  current_analyzer := (module Analyzer: Analyzer);
-  Analyzer.compute_from_entry_point ~lib_entry kf
+  set_current_analyzer config analyzer
 
+(* Builds the analyzer according to the parameters of Eva. *)
+let reset_analyzer () =
+  let config = Abstractions.configure () in
+  (* If the configuration has not changed, do not reset the Analyzer but uses
+     the reference instead. *)
+  if config <> fst !ref_analyzer
+  then make_analyzer config
+
+(* Builds the analyzer if needed, and run the analysis. *)
 let force_compute () =
   Ast.compute ();
   let kf, lib_entry = Globals.entry_point () in
-  let config = Abstractions.configure () in
-  compute config ~lib_entry kf
+  reset_analyzer ();
+  let module Analyzer = (val snd !ref_analyzer) in
+  Analyzer.compute_from_entry_point ~lib_entry kf
+
+let set_hook_on_parameter parameter =
+  let open Typed_parameter in
+  match parameter.accessor with
+  | Bool (accessor, _)   -> accessor.add_set_hook (fun _ _ -> reset_analyzer ())
+  | Int (accessor, _)    -> accessor.add_set_hook (fun _ _ -> reset_analyzer ())
+  | String (accessor, _) -> accessor.add_set_hook (fun _ _ -> reset_analyzer ())
+
+(* Resets the Analyzer whenever an abstraction parameter or the current project
+   is changed. This maintains the analyzer consistent with the Eva parameters. *)
+let () =
+  List.iter set_hook_on_parameter Value_parameters.parameters_abstractions;
+  Project.register_after_set_current_hook
+    ~user_only:true (fun _ -> reset_analyzer ());
+  Project.register_after_global_load_hook reset_analyzer

@@ -100,12 +100,10 @@ let mk_annot_id kf stmt ca = Property.ip_of_code_annot_single kf stmt ca
 let mk_annot_ids kf stmt ca = Property.ip_of_code_annot kf stmt ca
 
 let mk_code_annot_ids kf s ca =  List.map (mk_prop PKProp) (mk_annot_ids kf s ca)
-
-
-
 let mk_assert_id kf s ca = mk_prop PKProp  (mk_annot_id kf s ca)
-let mk_establish_id  kf s ca = mk_prop PKEstablished (mk_annot_id kf s ca)
-let mk_preserve_id   kf s ca = mk_prop PKPreserved (mk_annot_id kf s ca)
+let mk_loop_inv_id kf s ~established ca =
+  let kind = if established then PKEstablished else PKPreserved in
+  mk_prop kind (mk_annot_id kf s ca)
 let mk_inv_hyp_id    kf s ca = mk_prop PKPropLoop  (mk_annot_id kf s ca)
 let mk_var_decr_id   kf s ca = mk_prop PKVarDecr (mk_annot_id kf s ca)
 let mk_var_pos_id    kf s ca = mk_prop PKVarPos  (mk_annot_id kf s ca)
@@ -653,35 +651,35 @@ type a_kind = LoopAssigns | StmtAssigns
 type effect_source = FromCode | FromCall | FromReturn
 
 type assigns_desc = {
-  a_label : Cil_types.logic_label ;
+  a_label : Clabels.c_label ;
   a_stmt : Cil_types.stmt option ;
   a_kind : a_kind ;
-  a_assigns : Cil_types.identified_term Cil_types.assigns ;
+  a_assigns : Cil_types.assigns ;
 }
 
 let mk_asm_assigns_desc s = {
-  a_label = Clabels.mk_logic_label s ;
+  a_label = Clabels.stmt s ;
   a_stmt = Some s ;
   a_kind = StmtAssigns ;
   a_assigns = WritesAny ;
 }
 
 let mk_loop_assigns_desc s assigns = {
-  a_label = Clabels.mk_logic_label s ;
+  a_label = Clabels.stmt s ;
   a_stmt = Some s ;
   a_kind = LoopAssigns ;
   a_assigns = Writes assigns
 }
 
 let mk_stmt_assigns_desc s assigns = {
-  a_label =  Clabels.mk_logic_label s ;
+  a_label = Clabels.stmt s ;
   a_stmt = Some s ;
   a_kind = StmtAssigns ;
   a_assigns = Writes assigns ;
 }
 
 let mk_init_assigns = {
-  a_label = Logic_const.init_label ;
+  a_label = Clabels.init ;
   a_stmt = None ;
   a_kind = StmtAssigns ;
   a_assigns = WritesAny ;
@@ -706,7 +704,7 @@ let mk_exit_assigns_desc assigns = {
 *)
 
 let mk_kf_assigns_desc assigns = {
-  a_label = Logic_const.pre_label ;
+  a_label = Clabels.pre ;
   a_stmt = None ;
   a_kind = StmtAssigns ;
   a_assigns = Writes assigns ;
@@ -751,7 +749,7 @@ let mk_assigns_info id a = AssignsLocations (id, a)
 
 let mk_stmt_any_assigns_info s =
   let a = {
-    a_label = Clabels.mk_logic_label s ;
+    a_label = Clabels.stmt s ;
     a_stmt = Some s ;
     a_kind = StmtAssigns ;
     a_assigns = WritesAny ;
@@ -760,7 +758,7 @@ let mk_stmt_any_assigns_info s =
 
 let mk_kf_any_assigns_info () =
   let a = {
-    a_label = Logic_const.pre_label ;
+    a_label = Clabels.pre ;
     a_stmt = None ;
     a_kind = StmtAssigns ;
     a_assigns = WritesAny ;
@@ -769,7 +767,7 @@ let mk_kf_any_assigns_info () =
 
 let mk_loop_any_assigns_info s =
   let a = {
-    a_label = Clabels.mk_logic_label s ;
+    a_label = Clabels.stmt s ;
     a_stmt = Some s ;
     a_kind = LoopAssigns ;
     a_assigns = WritesAny ;
@@ -787,10 +785,11 @@ let pp_assign_info k fmt a = match a with
         | LoopAssigns -> "loop"
       in
       Format.fprintf fmt "%s(@@%a): %s assigns everything@."
-        k Wp_error.pp_logic_label a.a_label pkind
-  | AssignsLocations (_,a) -> Format.fprintf fmt "%s(@@%a): %a@." k
-                                Wp_error.pp_logic_label a.a_label
-                                pp_assigns_desc a
+        k Clabels.pretty a.a_label pkind
+  | AssignsLocations (_,a) ->
+      Format.fprintf fmt "%s(@@%a): %a@." k
+        Clabels.pretty a.a_label
+        pp_assigns_desc a
 
 let merge_assign_info a1 a2 = match a1,a2 with
   | NoAssignsInfo, a | a, NoAssignsInfo -> a

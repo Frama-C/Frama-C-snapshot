@@ -169,6 +169,7 @@ val get_results : t -> (prover * result) list
 val get_proof : t -> bool * Property.t
 val is_trivial : t -> bool
 val is_proved : t -> bool
+val is_unknown : t -> bool
 val warnings : t -> Warning.t list
 
 (** [true] if the result is valid. Dynamically exported.

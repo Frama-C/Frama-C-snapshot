@@ -197,6 +197,27 @@ void main17(int *p, int i) {
   }
 }
 
+typedef struct {
+   int *addr;
+   int i;
+} s18;
+
+//@ assigns *x, *y \from *x, *y;
+void f18 (s18 *x, s18 *y);
+
+void main18() {
+  int base_a = 17;
+  s18 a;
+  a.addr = & base_a;
+  int base_b = 11;
+  s18 b;
+  b.addr = & base_b;
+  f18(&a, &b); /* There are bottom bits in a and b. Make sure that the proper
+                  conflate_bottom is used to evaluate the contents of the from
+                  clauses */
+}
+
+
 void main(void)
 {
   constante = 2;
@@ -229,6 +250,7 @@ void main(void)
   main14();
   main16();
   main17(t17, 10);
+  main18();
 }
 
 

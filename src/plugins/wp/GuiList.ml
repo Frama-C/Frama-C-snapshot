@@ -38,7 +38,7 @@ class model =
     method get k = Windex.get k index
     method coerce = (self :> Wpo.t Wtable.listmodel)
   end
-
+      
 let render_prover_result p =
   let icn_stock name = [`STOCK_ID name] in
   let icn_status s = [`PIXBUF(Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback s))] in
@@ -64,7 +64,7 @@ let render_prover_result p =
     | { verdict=NoResult } , Qed -> icn_na
     | { verdict=NoResult } , Tactical ->
         begin
-          match ProofEngine.get w with
+          match ProverScript.get w with
           | `None -> icn_na
           | `Script -> icn_stock "gtk-media-play"
           | `Proof -> icn_stock "gtk-edit"

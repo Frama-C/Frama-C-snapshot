@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/reqlabl.c (with preprocessing)
 [rte] annotating function g
 tests/rte/reqlabl.c:11:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype

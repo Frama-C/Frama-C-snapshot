@@ -1,0 +1,21 @@
+[kernel] Parsing tests/wp_plugin/stmt.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] [CFG] Goal f_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_post : Valid (Unreachable)
+[wp] [CFG] Goal g_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_assign : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_post : Valid (Unreachable)
+[wp] [CFG] Goal h_stmt_exit : Valid (Unreachable)
+[wp] CFG h -> h
+[wp] CFG h -> h_NEG_stmt_16
+[wp] CFG h -> h_POS_stmt_16
+[wp] CFG h -> h_default_for_stmt_16
+[wp] CFG g -> g
+[wp] CFG g -> g_default_for_stmt_11
+[wp] CFG f -> f
+[wp] CFG f -> f_default_for_stmt_2
+[wp] 0 goal scheduled
+[wp] Proved goals:    0 / 0

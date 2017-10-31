@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_bts/bts0843.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -19,7 +18,7 @@ Prove: true.
 
 Goal Assigns (file tests/wp_bts/bts0843.i, line 14) in 'g3':
 Call Effect at line 16
-Let a = Mptr_0[shift_PTR(global(G_p_67), 0)].
+Let a = Mptr_0[global(G_p_18)].
 Let a_1 = shiftfield_F1_a(a).
 Assume {
   (* Goal *)
@@ -35,7 +34,7 @@ Prove: a_1 = shiftfield_F1_a(Mptr_0[L_p_ref]).
 
 Goal Assigns (file tests/wp_bts/bts0843.i, line 14) in 'g3':
 Call Effect at line 16
-Let a = Mptr_0[shift_PTR(global(G_p_67), 0)].
+Let a = Mptr_0[global(G_p_18)].
 Let a_1 = shiftfield_F1_a(a).
 Assume {
   (* Goal *)

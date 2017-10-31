@@ -29,6 +29,7 @@ val are_comparable: Abstract_interp.Comp.t -> V.t -> V.t -> bool
 
 val forward_binop_int:
   context: Eval.binop_context ->
+  logic: bool ->
   typ: typ ->
   V.t -> binop -> V.t -> V.t * Alarmset.t
 
@@ -42,9 +43,12 @@ val forward_binop_float_alarm:
   V.t -> binop -> V.t -> V.t * Alarmset.t
 
 val forward_unop:
-  check_overflow:bool ->
   context: Eval.unop_context ->
   typ -> unop -> V.t -> V.t * Alarmset.t
+
+val truncate_integer: exp -> Eval_typ.integer_range -> V.t -> V.t * Alarmset.t
+val rewrap_integer: Eval_typ.integer_range -> V.t -> V.t
+val cast_float: exp -> fkind -> V.t -> V.t * Alarmset.t
 
 val reinterpret: exp -> typ -> V.t -> V.t * Alarmset.t
 val unsafe_reinterpret: typ -> V.t -> V.t

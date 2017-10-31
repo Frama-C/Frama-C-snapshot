@@ -434,6 +434,15 @@ module PrintLibc =
       let default = !Fc_config.is_gui (* always print by default on the GUI *)
      end)
 
+let () = Parameter_customize.set_group inout_source
+module PrintReturn =
+  False
+    (struct
+      let module_name = "PrintReturn"
+      let option_name = "-print-return"
+      let help = "inline gotos to return statement"
+     end)
+
 module CodeOutput = struct
 
   let () = Parameter_customize.set_group inout_source
@@ -702,22 +711,6 @@ module Machdep =
          "use <machine> as the current machine dependent configuration. \
           See \"-machdep help\" for a list"
      end)
-
-let () = Parameter_customize.set_group parsing
-let () = Parameter_customize.do_not_reset_on_copy ()
-module CustomAnnot =
-  P.Empty_string(
-      struct
-        let option_name = "-custom-annot-char"
-        let help = "use a custom character <c> for starting ACSL annotations"
-        let arg_name = "c"
-      end)
-let () = CustomAnnot.add_set_hook 
-           (fun _ s ->
-            if CamlString.length s <> 1 then
-              abort
-                "-custom-annot expects a single character. Invalid argument %s"
-                s)
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
@@ -1028,17 +1021,7 @@ module DoCollapseCallCast =
                    and the lvalue it is assigned to."
   end)
 
-let () = Parameter_customize.set_group normalisation
-module ForceRLArgEval =
-  False(struct
-    let option_name = "-force-rl-arg-eval"
-    let module_name = "ForceRLArgEval"
-    let help = "Force right to left evaluation order for \
-                              arguments of function calls"
-  end)
-
 let normalization_parameters = [
-  ForceRLArgEval.parameter;
   UnrollingLevel.parameter;
   Machdep.parameter;
   CppCommand.parameter;
@@ -1168,6 +1151,20 @@ module UnsignedDowncast =
       let help = "generate alarms when unsigned downcasts may exceed the \
 destination range"
      end)
+
+
+(* Not finite floats are ok, but might not always be a behavior the programmer
+   wants. *)
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
+module FiniteFloat =
+  False
+    (struct
+      let module_name = "FiniteFloat"
+      let option_name = "-warn-not-finite-float"
+      let help = "generate alarms when infinite floats or NaN  are produced"
+     end)
+
 
 (* ************************************************************************* *)
 (** {2 Sequencing options} *)

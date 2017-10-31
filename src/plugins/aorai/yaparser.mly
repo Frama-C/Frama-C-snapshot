@@ -285,7 +285,7 @@ seq_elt:
 ;
 
 repetition:
-  | /* empty */ %prec lowest
+  | /* empty */ %prec highest
       { Some Data_for_aorai.cst_one, Some Data_for_aorai.cst_one }
   | PLUS { Some Data_for_aorai.cst_one, None}
   | STAR { None, None }
@@ -322,18 +322,18 @@ logic_relation
 arith_relation
   : arith_relation_mul PLUS arith_relation { PBinop(Badd,$1,$3) }
   | arith_relation_mul MINUS arith_relation { PBinop(Bsub,$1,$3) }
-  | arith_relation_mul %prec lowest { $1 }
+  | arith_relation_mul %prec highest { $1 }
   ;
 
 arith_relation_mul
   : arith_relation_mul SLASH access_or_const { PBinop(Bdiv,$1,$3) }
   | arith_relation_mul STAR access_or_const { PBinop(Bmul, $1, $3) }
   | arith_relation_mul PERCENT access_or_const { PBinop(Bmod, $1, $3) }
-  | arith_relation_bw %prec lowest { $1 }
+  | arith_relation_bw %prec highest { $1 }
   ;
 
 arith_relation_bw
-  : access_or_const %prec lowest { $1 }
+  : access_or_const %prec highest { $1 }
   | arith_relation_bw AMP access_or_const { PBinop(Bbw_and,$1,$3) }
   | arith_relation_bw PIPE access_or_const { PBinop(Bbw_or,$1,$3) }
   | arith_relation_bw CARET access_or_const { PBinop(Bbw_xor,$1,$3) }

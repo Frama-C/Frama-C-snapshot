@@ -39,10 +39,11 @@ module type S = sig
   type graph
 
   module Service_graph: sig
-    include Graph.Sig.G with type V.t = node vertex and type E.label = edge
+    include Graph.Sig.I with type V.t = node vertex and type E.label = edge
     module Datatype: Datatype.S with type t = t
   end
 
+  val vertex: node -> node vertex
   val compute: graph -> Datatype.String.Set.t -> Service_graph.t
   val output_graph: out_channel -> Service_graph.t -> unit
 

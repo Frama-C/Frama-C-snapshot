@@ -46,26 +46,35 @@
 type wchar = int64
 type wstring = wchar list
 
+let escape_char_internal maybe_trigraph =
+  function
+  | '\007' -> maybe_trigraph := false; "\\a"
+  | '\b' -> maybe_trigraph := false; "\\b"
+  | '\t' -> maybe_trigraph := false; "\\t"
+  | '\n' -> maybe_trigraph := false; "\\n"
+  | '\011' -> maybe_trigraph := false; "\\v"
+  | '\012' -> maybe_trigraph := false; "\\f"
+  | '\r' -> maybe_trigraph := false; "\\r"
+  | '"' -> maybe_trigraph := false; "\\\""
+  | '\'' -> maybe_trigraph := false; "\\'"
+  | '\\' -> maybe_trigraph := false; "\\\\"
+  | '?' ->
+    let s = if !maybe_trigraph then "\\?" else "?" in
+    maybe_trigraph := true;
+    s
+  | ' ' .. '~' as printable -> maybe_trigraph := false; String.make 1 printable
+  | unprintable -> maybe_trigraph := false; Printf.sprintf "\\%03o" (Char.code unprintable)
 
-let escape_char = function
-  | '\007' -> "\\a"
-  | '\b' -> "\\b"
-  | '\t' -> "\\t"
-  | '\n' -> "\\n"
-  | '\011' -> "\\v"
-  | '\012' -> "\\f"
-  | '\r' -> "\\r"
-  | '"' -> "\\\""
-  | '\'' -> "\\'"
-  | '\\' -> "\\\\"
-  | ' ' .. '~' as printable -> String.make 1 printable
-  | unprintable -> Printf.sprintf "\\%03o" (Char.code unprintable)
+let escape_char c =
+  let r = ref false in
+  escape_char_internal r c
 
 let escape_string str =
   let length = String.length str in
   let buffer = Buffer.create length in
+  let maybe_trigraph = ref false in
   for index = 0 to length - 1 do
-    Buffer.add_string buffer (escape_char (String.get str index))
+    Buffer.add_string buffer (escape_char_internal maybe_trigraph (String.get str index))
   done;
   Buffer.contents buffer
 

@@ -149,7 +149,7 @@ class propagate project fnames ~cast_intro = object(self)
              self#current_kf)
       in
       let change_to = match b with
-        | Base.Var(vi, _) | Base.Allocated (vi, _)
+        | Base.Var(vi, _) | Base.Allocated (vi, _, _)
           when not (Base.is_weak b) &&  can_replace vi ->
           if vi.vglob && not (Varinfo.Set.mem vi known_globals) then
             self#add_decl_non_source_var vi;
@@ -249,7 +249,7 @@ class propagate project fnames ~cast_intro = object(self)
     with 
     | Cannot_change -> None
     | Not_found | Cannot_expand | Cil.Not_representable 
-    | Int_Base.Error_Top as e ->
+    | Abstract_interp.Error_Top as e ->
       PropagationParameters.debug "Replacement failed %s"
         (Printexc.to_string e);
       None

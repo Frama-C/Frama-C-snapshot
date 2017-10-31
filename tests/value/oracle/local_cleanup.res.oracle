@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/local_cleanup.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -21,10 +20,11 @@
         Called from tests/value/local_cleanup.c:22.
 [value] Recording results for h
 [value] Done for function h
-[value] DUMPING STATE of file tests/value/local_cleanup.c line 23
+tests/value/local_cleanup.c:23:[value] Frama_C_dump_each:
+        # Cvalue domain:
         lmain[0] ∈ UNINITIALIZED
              [1] ∈ {12}
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -48,8 +48,6 @@
 [from] Computing for function h
 [from] Done for function h
 [from] Computing for function main
-[from] Computing for function Frama_C_dump_each <-main
-[from] Done for function Frama_C_dump_each
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:

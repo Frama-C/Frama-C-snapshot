@@ -40,10 +40,7 @@ let actualize_formals kf state actuals =
 
 let offsetmap_of_lv state lv =
   let open Locations in
-  let state, loc_to_read, _typ =
-    !Db.Value.lval_to_precise_loc_state
-      ~with_alarms:CilE.warn_none_mode state lv
-  in
+  let state, loc_to_read, _typ = !Db.Value.lval_to_precise_loc_state state lv in
   let aux loc offsm_res =
     let size = Int_Base.project loc.size in
     let copy = Cvalue.Model.copy_offsetmap loc.loc size state in
@@ -56,7 +53,7 @@ let compute_actual state e =
   | { enode = Lval lv } when not (Eval_typ.is_bitfield (Cil.typeOfLval lv)) ->
     let o =
       try offsetmap_of_lv state lv
-      with Int_Base.Error_Top ->
+      with Abstract_interp.Error_Top ->
         Value_parameters.abort ~current:true "Function argument %a has \
             unknown size. Aborting" Printer.pp_exp e;
     in begin
@@ -65,9 +62,7 @@ let compute_actual state e =
       | `Bottom -> raise Actual_is_bottom
     end
   | _ ->
-    let interpreted_expr =
-      !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state e
-    in
+    let interpreted_expr = !Db.Value.eval_expr state e in
     if Cvalue.V.is_bottom interpreted_expr then raise Actual_is_bottom;
     let typ = Cil.typeOf e in
     Eval_op.offsetmap_of_v ~typ interpreted_expr

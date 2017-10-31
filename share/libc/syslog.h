@@ -69,7 +69,7 @@ typedef struct _code {
 #define	LOG_FAC(p)	(((p) & LOG_FACMASK) >> 3)
 #define	LOG_PRIMASK	0x07
 #define	LOG_PRI(p)	((p) & LOG_PRIMASK)
-#define	LOG_MAKEPRI(fac, pri)	(((fac) << 3) | (pri))
+#define LOG_MAKEPRI(fac, pri) ((fac) | (pri))
 #define	INTERNAL_NOPRI	0x10	/* the "no priority" priority */
 				/* mark "facility" */
 #define	INTERNAL_MARK	LOG_MAKEPRI(LOG_NFACILITIES, 0)

@@ -36,7 +36,7 @@ m4_define([FRAMAC_SHARE],
 m4_ifndef([FRAMAC_M4_MACROS], [m4_include(FRAMAC_SHARE/configure.ac)])
 
 check_plugin(e_acsl,PLUGIN_RELATIVE_PATH(plugin_file),
-	     [support for E-ACSL plug-in],yes,yes)
+             [support for E-ACSL plug-in],yes)
 
 plugin_require(e_acsl,rtegen)
 
@@ -49,7 +49,7 @@ fi
 
 HOST_OS=$($UNAME -s)
 case $HOST_OS in
-Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
+Darwin | Linux | DragonFly | FreeBSD | NetBSD | OpenBSD)
 # BSDs haven't really be tested, but it should at least compile fine
 ;;
 *)
@@ -126,13 +126,6 @@ AC_CHECK_PROG(DOXYGEN,doxygen,doxygen,no)
 AC_CHECK_PROG(HAVE_DOT,dot,yes,no)
 AC_OUTPUT(PLUGIN_RELATIVE_PATH(doc/doxygen/doxygen.cfg), [  ])
 
-# GMP
-#####
-AC_ARG_ENABLE(full-gmp,
-    AS_HELP_STRING([--enable-full-gmp],
-    ["Disable runtime assertions in the RTL"]),
-    [FULL_GMP="yes"],[FULL_GMP="no"])
-
 #######################
 # Generating Makefile #
 #######################
@@ -140,7 +133,6 @@ AC_ARG_ENABLE(full-gmp,
 AC_SUBST(OPTIMIZED_RTL)
 AC_SUBST(MAY_RUN_TESTS)
 AC_SUBST(OCAMLVERSION)
-AC_SUBST(FULL_GMP)
 
 write_plugin_config(Makefile)
 
@@ -151,17 +143,5 @@ write_plugin_config(Makefile)
 m4_ifndef([plugin_dir], [
   m4_define([plugin_dir],[./])
 ])
-
-# Configure libgmp
-if test "$FULL_GMP" = yes; then
-  AC_MSG_NOTICE([Configure libgmp])
-  (cd plugin_dir/contrib/libgmp && ./configure)
-fi
-
-# Configure libjemalloc
-AC_MSG_NOTICE([Configure libjemalloc])
-(cd plugin_dir/contrib/libjemalloc && ./autogen.sh \
-  --with-jemalloc-prefix="__e_acsl_native_" \
-  --with-private-namespace="__e_acsl_hidden_")
 
 fi

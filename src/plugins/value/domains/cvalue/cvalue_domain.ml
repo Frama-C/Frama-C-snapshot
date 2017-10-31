@@ -65,7 +65,7 @@ module Model = struct
     let process_one_loc = eval_one_loc state lval typ in
     let acc = Cvalue.V.bottom, Alarmset.none in
     let value1, alarms1 = Precise_locs.fold process_one_loc loc acc in
-    let expr = Cil.dummy_exp (Cil_types.Lval lval) in
+    let expr = Value_util.lval_to_exp lval in
     let value2, alarms2 = Cvalue_forward.reinterpret expr typ value1 in
     let alarms = Alarmset.union alarms1 alarms2 in
     (* The origin denotes whether the conversion has really improved the result.
@@ -104,7 +104,7 @@ module Model = struct
         let loc = loc.Locations.loc in
         Locations.Location_Bits.fold_i fold_ival loc acc
       with
-        Locations.Location_Bits.Error_Top -> loc.Locations.loc, value
+        Abstract_interp.Error_Top -> loc.Locations.loc, value
     in
     let acc = Locations.Location_Bits.bottom, Cvalue.V.bottom in
     let loc_bits, value = fold_location loc acc in
@@ -124,6 +124,8 @@ module State = struct
   let structure =
     Abstract_domain.Node (Abstract_domain.Leaf key, Abstract_domain.Void)
 
+  let log_category = Value_parameters.dkey_cvalue_domain
+
   include Datatype.Make_with_collections (
     struct
       include Datatype.Serializable_undefined
@@ -142,17 +144,22 @@ module State = struct
       let mem_project = Datatype.never_any_project
     end )
 
+  let name = "Cvalue domain"
+
   type value = Model.value
   type location = Model.location
 
   let top = Model.top, Locals_scoping.bottom ()
   let is_included (a, _) (b, _) = Model.is_included a b
   let join (a, clob) (b, _) = Model.join a b, clob
-  let join_and_is_included a b = let r = join a b in r, equal r b
 
   let widen kf stmt (a, clob) (b, _) =
     let hint = Widen.getWidenHints kf stmt in
     Model.widen hint a b, clob
+
+  let narrow (a, clob) (b, _) =
+    let s = Model.narrow a b in
+    if Model.(equal bottom s) then `Bottom else `Value (s, clob)
 
   type origin = Model.origin
 
@@ -171,10 +178,6 @@ module State = struct
   = struct
 
     module T = Cvalue_transfer.Transfer (Valuation)
-    type value = Valuation.value
-    type location = Valuation.loc
-    type state = t
-    type valuation = Valuation.t
 
     let update valuation (s, clob) = T.update valuation s, clob
 
@@ -192,12 +195,6 @@ module State = struct
       T.assume stmt expr positive valuation s >>-: fun s ->
       s, clob
 
-    let init_with_clob clob = function
-      | Default     -> Default
-      | Continue s  -> Continue (s, clob)
-      | Custom list ->
-        Custom (List.map (fun (stmt, s) -> (stmt, (s, clob))) list)
-
     let result_with_clob bases result =
       let clob = Locals_scoping.bottom () in
       Locals_scoping.remember_bases_with_locals clob bases;
@@ -205,8 +202,7 @@ module State = struct
 
     let start_call stmt call valuation (s, _clob) =
       match T.start_call stmt call valuation s with
-      | Compute (init, b), _ ->
-        Compute (init_with_clob (Locals_scoping.bottom ()) init, b)
+      | Compute state, _ -> Compute (state, Locals_scoping.bottom ())
       | Result (list, c), post_clob ->
         Result ((list >>-: fun l -> result_with_clob post_clob l), c)
 
@@ -221,6 +217,7 @@ module State = struct
     (* TODO *)
     let approximate_call _stmt _call (_state, _clob) = assert false
 
+    let show_expr valuation (state, _) = T.show_expr valuation state
   end
 
   (* ------------------------------------------------------------------------ *)
@@ -244,74 +241,86 @@ module State = struct
   (*                                  Logic                                   *)
   (* ------------------------------------------------------------------------ *)
 
-  (* Evaluation environment. *)
-  type eval_env = Eval_terms.eval_env * Locals_scoping.clobbered_set
-  let env_current_state (env, clob) =
-    let t = Eval_terms.env_current_state env in
-    if Model.is_reachable t then `Value (t, clob) else `Bottom
-  let env_annot ~pre:(pre, _) ~here:(here, clob) () =
-    Eval_terms.env_annot ~pre ~here (), clob
-  let env_pre_f ~pre:(pre, clob) () =
-    Eval_terms.env_pre_f ~pre (), clob
-  let env_post_f ~pre:(pre, _) ~post:(post, clob) ~result () =
-    Eval_terms.env_post_f ~pre ~post ~result (), clob
-  let eval_predicate (env, _) pred =
-    match Eval_terms.eval_predicate env pred with
+  let lift_env logic_env =
+    Abstract_domain.{ states = (fun label -> fst (logic_env.states label));
+                      result = logic_env.result; }
+
+  let evaluate_predicate logic_env (state, _clob) pred =
+    let eval_env = Eval_terms.make_env (lift_env logic_env) state in
+    match Eval_terms.eval_predicate eval_env pred with
     | Eval_terms.True -> Alarmset.True
     | Eval_terms.False -> Alarmset.False
     | Eval_terms.Unknown -> Alarmset.Unknown
-  let reduce_by_predicate (env, clob) b pred =
-    Eval_terms.reduce_by_predicate env b pred, clob
 
+  let reduce_by_predicate logic_env (state, clob) pred b =
+    let eval_env = Eval_terms.make_env (lift_env logic_env) state in
+    let eval_env = Eval_terms.reduce_by_predicate eval_env b pred in
+    let state = Eval_terms.env_current_state eval_env in
+    if Cvalue.Model.is_reachable state
+    then `Value (state, clob)
+    else `Bottom
 
-  (* ---------------------------------------------------------------------- *)
-  (*                             Specifications                             *)
-  (* ---------------------------------------------------------------------- *)
+  let pp_eval_error fmt e =
+    if e <> Eval_terms.CAlarm then
+      Format.fprintf fmt "@ (%a)" Eval_terms.pretty_logic_evaluation_error e
 
-  (* Evaluate [kf] in state [with_formals], first by reducing by the
-     preconditions, then by evaluating the assigns, then by reducing
-     by the post-conditions. *)
-  let compute_using_specification call_kinstr call spec state =
-    if Value_parameters.InterpreterMode.get ()
-    then begin
-      Value_util.warning_once_current "Library function call. Stopping.";
-      exit 0
-    end;
-    Value_parameters.feedback ~once:true "@[using specification for function %a@]"
-      Kernel_function.pretty call.kf;
-    Cvalue_specification.compute_using_specification
-      call spec ~call_kinstr ~with_formals:state
-    >>-: fun result ->
-    let aux (offsm, post_state) =
-      match offsm with
-      | None -> post_state
-      | Some offsm ->
-        let vi = Extlib.the call.return in
-        let b = Base.of_varinfo vi in
-        Cvalue.Model.add_base b offsm post_state
-    in
-    List.map aux result.Value_types.c_values, result.Value_types.c_clobbered
+  let evaluate_from_clause env (_, ins as assign) =
+    let open Cil_types in
+    match ins with
+    | FromAny -> Cvalue.V.top_int
+    | From l ->
+      try
+        (* Evaluates the contents of one element of the from clause, topify them,
+           and add them to the current state of the evaluation in acc. *)
+        let one_from_contents acc { it_content = t } =
+          let loc =
+            Eval_terms.(eval_tlval_as_location ~alarm_mode:Ignore env t)
+          in
+          let state = Eval_terms.env_current_state env in
+          let v = Cvalue.Model.find ~conflate_bottom:false state loc in
+          Cvalue.V.join acc (Cvalue.V.topify_leaf_origin v)
+        in
+        let filter x = not (List.mem "indirect" x.it_content.term_name) in
+        let direct = List.filter filter l in
+        List.fold_left one_from_contents Cvalue.V.top_int direct
+      with Eval_terms.LogicEvalError e ->
+        Value_util.warning_once_current
+          "cannot interpret@ 'from' clause@ '%a'%a"
+          Printer.pp_from assign pp_eval_error e;
+        Cvalue.V.top
 
-  let compute_using_specification call_kinstr call fundec (state, clob) =
-    compute_using_specification call_kinstr call fundec state
-    >>- fun (res, sclob) ->
-    Locals_scoping.(remember_bases_with_locals clob sclob);
-    let list = List.map (fun return -> return, clob) res in
-    Bottom.bot_of_list list
-
+  let logic_assign assign location ~pre:(pre_state, _) (state, sclob) =
+    let location = Precise_locs.imprecise_location location in
+    let env = Eval_terms.env_assigns pre_state in
+    let value = evaluate_from_clause env assign in
+    Locals_scoping.remember_if_locals_in_value sclob location value;
+    Cvalue.Model.add_binding ~exact:false state location value, sclob
 
   (* ------------------------------------------------------------------------ *)
   (*                             Initialization                               *)
   (* ------------------------------------------------------------------------ *)
 
-  let initialize_var (state, clob) _lval loc value =
-    let value = match value with
-      | `Bottom           -> Cvalue.V_Or_Uninitialized.uninitialized
-      | `Value (v, true)  -> Cvalue.V_Or_Uninitialized.C_init_noesc v
-      | `Value (v, false) -> Cvalue.V_Or_Uninitialized.C_uninit_noesc v
+  let introduce_globals vars (state, clob) =
+    let introduce state varinfo =
+      let base = Base.of_varinfo varinfo in
+      let loc = Locations.loc_of_base base in
+      let value = Cvalue.V_Or_Uninitialized.uninitialized in
+      Model.add_indeterminate_binding ~exact:true state loc value
+    in
+    List.fold_left introduce state vars, clob
+
+  let initialize_variable  _lval loc ~initialized init_value (state, clob) =
+    let value = match init_value with
+      | Abstract_domain.Top  -> Cvalue.V.top_int
+      | Abstract_domain.Zero -> Cvalue.V.singleton_zero
+    in
+    let cvalue =
+      if initialized
+      then Cvalue.V_Or_Uninitialized.C_init_noesc value
+      else Cvalue.V_Or_Uninitialized.C_uninit_noesc value
     in
     let loc = Precise_locs.imprecise_location loc in
-    Model.add_indeterminate_binding ~exact:true state loc value, clob
+    Model.add_indeterminate_binding ~exact:true state loc cvalue, clob
 
   let empty () =
     let open Cvalue in
@@ -338,21 +347,15 @@ module State = struct
     end
     else state, Locals_scoping.bottom ()
 
-  let initialize_var_using_type (state, clob) varinfo =
-    Cvalue_init.initialize_var_using_type varinfo state, clob
-
-  let global_state () =
-    if Db.Value.globals_use_supplied_state ()
-    then
-      let state = Db.Value.globals_state () in
-      let state =
-        if Model.is_reachable state
-        then `Value (state,  Locals_scoping.bottom ())
-        else `Bottom
-      in
-      Some state
-    else None
-
+  let initialize_variable_using_type kind varinfo (state, clob) =
+    match kind with
+    | Abstract_domain.Main_Formal
+    | Abstract_domain.Library_Global ->
+      Cvalue_init.initialize_var_using_type varinfo state, clob
+    | Abstract_domain.Spec_Return kf ->
+      let value, state = Library_functions.returned_value kf state in
+      let loc = Locations.loc_of_varinfo varinfo in
+      Model.add_binding ~exact:true state loc value, clob
 
   (* ------------------------------------------------------------------------ *)
   (*                                  Misc                                    *)
@@ -362,7 +365,13 @@ module State = struct
     let bind_local state vi =
       let b = Base.of_varinfo vi in
       let offsm =
-        Bottom.non_bottom (Cvalue.Default_offsetmap.default_offsetmap b)
+        if Value_parameters.InitializedLocals.get () then
+          let v = Cvalue.(V_Or_Uninitialized.initialized V.top_int) in
+          match Cvalue.V_Offsetmap.size_from_validity (Base.validity b) with
+          | `Bottom -> assert false
+          | `Value size -> Cvalue.V_Offsetmap.create_isotropic ~size v
+        else
+          Bottom.non_bottom (Cvalue.Default_offsetmap.default_offsetmap b)
       in
       Model.add_base b offsm state
     in
@@ -387,6 +396,15 @@ module State = struct
   (* ------------------------------------------------------------------------ *)
 
   module Store = struct
+    module Storage =
+      State_builder.Ref (Datatype.Bool)
+        (struct
+          let dependencies = [Db.Value.self]
+          let name = name ^ ".Storage"
+          let default () = false
+        end)
+
+    let register_global_state _ = Storage.set true
     let register_initial_state callstack (state, _clob) =
       Db.Value.merge_initial_state callstack state
     let register_state_before_stmt callstack stmt (state, _clob) =
@@ -408,13 +426,24 @@ module State = struct
       Callstack.Hashtbl.iter process tbl;
       h
 
+    let get_global_state () = return (Db.Value.globals_state ())
     let get_initial_state kf = return (Db.Value.get_initial_state kf)
     let get_initial_state_by_callstack kf =
-      Extlib.opt_map lift_tbl (Db.Value.get_initial_state_callstack kf)
+      if Storage.get ()
+      then
+        match Db.Value.get_initial_state_callstack kf with
+        | Some tbl -> `Value (lift_tbl tbl)
+        | None -> `Bottom
+      else `Top
 
     let get_stmt_state stmt = return (Db.Value.get_stmt_state stmt)
     let get_stmt_state_by_callstack ~after stmt =
-      Extlib.opt_map lift_tbl (Db.Value.get_stmt_state_callstack ~after stmt)
+      if Storage.get ()
+      then
+        match Db.Value.get_stmt_state_callstack ~after stmt with
+        | Some tbl -> `Value (lift_tbl tbl)
+        | None -> `Bottom
+      else `Top
 
   end
 end

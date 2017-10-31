@@ -111,7 +111,7 @@ let () = Ast.add_monotonic_state NodeSet.self
 
 (** set of nodes of the graph *)
 module NodeSetLattice = struct
-  include Abstract_interp.Make_Lattice_Set(Node)
+  include Abstract_interp.Make_Lattice_Set (Node) (Node.Set)
   let default : t = empty
 end
 

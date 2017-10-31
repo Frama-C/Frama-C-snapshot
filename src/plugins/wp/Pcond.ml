@@ -26,6 +26,8 @@ module F = Lang.F
 module Env = Plang.Env
 open F
 
+let dkey_state = Wp_parameters.register_category "state"
+
 type env = Plang.Env.t
 
 let rec alloc_hyp pool f seq =
@@ -435,13 +437,15 @@ class sequence (lang : #state) =
 (* -------------------------------------------------------------------------- *)
 
 let engine () =
-  if Wp_parameters.has_dkey "state" then
+  if Wp_parameters.has_dkey dkey_state then
     ( new sequence (new state) :> engine )
   else
     new engine (new Plang.engine)
 
 let pretty fmt seq =
   (engine())#pp_sequent fmt seq
+
+let () = Conditions.pretty := pretty
 
 let sequence ?(clause="Sequence") fmt seq =
   let plang = new Plang.engine in

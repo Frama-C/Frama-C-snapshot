@@ -32,6 +32,9 @@ open Lang.F
 open Memory
 open Definitions
 
+let dkey_layout = Wp_parameters.register_category "layout"
+
+
 module L = Qed.Logic
 
 let datatype = "MemTyped"
@@ -575,12 +578,13 @@ module STRING = Model.Generator(LITERAL)
         let a = Lang.freshvar ~basename:"alloc" (Chunk.tau_of_chunk T_alloc) in
         let m = e_var a in
         let m_linked = p_call p_linked [m] in
-        let base_size = Cstring.str_len cst (F.e_get m base) in
+        let alloc = F.e_get m base in (* The size is alloc-1 *)
+        let sized = Cstring.str_len cst (F.e_add alloc F.e_minus_one) in
         Definitions.define_lemma {
           l_assumed = true ;
           l_name = name ; l_types = 0 ;
           l_triggers = [] ; l_forall = [] ;
-          l_lemma = p_forall [a] (p_imply m_linked base_size) ;
+          l_lemma = p_forall [a] (p_imply m_linked sized) ;
           l_cluster = Cstring.cluster () ;
         }
 
@@ -931,13 +935,17 @@ let load sigma obj l = Val (loadvalue sigma obj l)
 (* -------------------------------------------------------------------------- *)
 
 let null = a_null
+
 let literal ~eid cst =
   shift (a_global (STRING.get (eid,cst))) (C_int (Ctypes.c_char ())) e_zero
+
 let cvar x =
   let base = a_global (BASE.get x) in
-  if Cil.isArrayType x.vtype || Cil.isPointerType x.vtype then
-    shift base (Ctypes.object_of x.vtype) e_zero
+  if Cil.isArrayType x.vtype then
+    let t_elt = Cil.typeOf_array_elem x.vtype in
+    shift base (Ctypes.object_of t_elt) e_zero
   else base
+
 let pointer_loc t = t
 let pointer_val t = t
 
@@ -1099,7 +1107,7 @@ end
 
 
 let pp_mismatch fmt s =
-  if Context.get pointer <> NoCast && Wp_parameters.has_dkey "layout" then
+  if Context.get pointer <> NoCast && Wp_parameters.has_dkey dkey_layout then
     Format.fprintf fmt
       "Cast with incompatible pointers types@\n\
        @[@[Source: %a*@]@ @[(layout: %a)@]@]@\n\

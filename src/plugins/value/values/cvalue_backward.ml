@@ -181,7 +181,7 @@ let backward_add_ptr typ ~res_value ~v1 ~v2 pos =
       b
     in
     try V.filter_base test v
-    with V.Error_Top -> v
+    with Abstract_interp.Error_Top -> v
   in
   let v1 = remove_lonely_bases ~other:v2 v1
   and v2 = remove_lonely_bases ~other:v1 v2 in
@@ -393,9 +393,9 @@ let backward_cast ~src_typ ~dst_typ ~src_val ~dst_val =
     let ik_dst = ikind dst_typ in
     let ik_src = ikind src_typ in
     if Cil.intTypeIncluded ik_src ik_dst (*the cast is statically the identity*)
-       || downcast_enabled ~ik_src ~ik_dst (* the cast may not be the identity, but
-          the alarms on downcasts ensure that [src_val] must fit in [dst_typ] *)
-       || fits_in_ikind ik_dst src_val (* the cast is dynamically the identity*)
+    || downcast_enabled ~ik_src ~ik_dst (* the cast may not be the identity, but
+                                           the alarms on downcasts ensure that [src_val] must fit in [dst_typ] *)
+    || fits_in_ikind ik_dst src_val (* the cast is dynamically the identity*)
     then
       (* in each case, the cast to [dst_typ] is the identity on [src_val]*)
       Some dst_val

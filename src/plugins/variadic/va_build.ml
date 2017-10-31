@@ -26,9 +26,10 @@ open Cil
 
 (* --- Cil builders --- *)
 
-let function_declaration ~loc name typ mk_spec =
+let function_declaration ?vattr ~loc name typ mk_spec =
   (* Build the varinfo *)
   let vi = makeGlobalVar name typ in
+  Extlib.may (fun extra_vattr -> vi.vattr <- vi.vattr @ extra_vattr) vattr;
   vi.vdecl <- loc;
   (* Build the formals *)
   setFormalsDecl vi typ;
@@ -63,29 +64,49 @@ let call ~loc lval callee args =
 
 (* --- Logic builders --- *)
 
-let logic_elval ~loc lval =
-  Logic_const.term ~loc (TLval lval) (typeOfTermLval lval)
-
-let logic_var vi =
+let lvar vi =
   TVar (Cil.cvar_to_lvar vi), TNoOffset
 
-let logic_evar ~loc vi =
-  logic_elval ~loc (TVar (Cil.cvar_to_lvar vi), TNoOffset)
+let tlval ~loc lval =
+  Logic_const.term ~loc (TLval lval) (typeOfTermLval lval)
 
-let logic_varmem ~loc vi =
-  TMem (logic_evar ~loc vi), TNoOffset
+let tvar ~loc vi =
+  tlval ~loc (lvar vi)
 
-let logic_varfield ~loc vi fieldinfo =
-  TMem (logic_evar ~loc vi), TField (fieldinfo, TNoOffset)
+let tvarmem ~loc vi =
+  TMem (tvar ~loc vi), TNoOffset
 
-let logic_varrange ~loc vi =
-  let tstart = Some (Logic_const.tint ~loc Integer.zero)
-  and tend = None in
-  let range = Logic_const.trange ~loc (tstart, tend) in
-(*  TVar (Cil.cvar_to_lvar vi), TIndex (range, TNoOffset) *)
-  let binop = Logic_const.term ~loc
-    (TBinOp (IndexPI, logic_evar ~loc vi, range)) (Ctype vi.vtype) in
-  TMem binop, TNoOffset
+let tvarfield ~loc vi fieldinfo =
+  TMem (tvar ~loc vi), TField (fieldinfo, TNoOffset)
 
-let logic_return typ =
+let tresult typ =
   TResult typ, TNoOffset
+
+let tzero ~loc = Cil.lzero ~loc ()
+let tone ~loc = Cil.lone ~loc ()
+
+let tbinop ~loc binop t1 t2 =
+  Logic_const.term ~loc (TBinOp (binop, t1, t2)) t1.term_type
+
+let tminus ~loc t1 t2 =
+  tbinop ~loc MinusA t1 t2
+
+let tplus ~loc t1 t2 =
+  tbinop ~loc PlusA t1 t2
+
+let trange ~loc tstart tend =
+  Logic_const.trange ~loc (tstart, tend)
+
+let trange_from_vi ~loc vi =
+  let var = tvar ~loc vi
+  and range = trange ~loc (Some (tzero ~loc)) None in
+  TMem (tbinop IndexPI ~loc var range), TNoOffset
+
+exception NotAFunction
+
+let tapp ~loc logic_info labels args =
+  let ltyp = match logic_info.l_type with
+  | None -> raise NotAFunction
+  | Some ltyp -> ltyp
+  in
+  Logic_const.term ~loc (Tapp (logic_info, labels, args)) ltyp

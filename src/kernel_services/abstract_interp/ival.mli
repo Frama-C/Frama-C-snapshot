@@ -59,8 +59,6 @@ module Widen_Hints : sig
   val default_widen_hints: t
 end
 
-exception Error_Bottom
-
 type size_widen_hint = Integer.t
 type generic_widen_hint = Widen_Hints.t
 
@@ -167,18 +165,6 @@ val inject_interval:
     infinity. Checks that [modu] > 0 and 0 <= [rest] < [modu], and fails
     otherwise. *)
 
-val inject_top :
-  Integer.t option -> Integer.t option -> Integer.t -> Integer.t -> t
-(** [inject_top min max r m] checks [min], [max], [r] and [m] for consistency
-    as arguments of the [Top] constructor
-    and returns the lattice element of integers equal to [r] modulo [m] 
-    between [min] and [max] (which may be a Set if there are few of these).
-    For [min] and [max], [None] means unbounded.
-
-    @deprecated {!inject_interval} offers a better API, and normalizes the
-    [min] and [max] bounds.
-*)
-
 
 (** Cardinality *)
 
@@ -222,13 +208,18 @@ val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
 (** Iterate on every value of the ival. Raise {!Error_Top} if the argument is a
     non-singleton float or a potentially infinite integer. *)
 
-val fold_split : split:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
+val fold_int_bounds: (t -> 'a -> 'a) -> t -> 'a -> 'a
+(** Given [i] an integer abstraction [min..max], [fold_int_bounds f i acc]
+    tries to apply [f] to [min], [max], and [i'] successively, where [i']
+    is [i] from which [min] and [max] have been removed. If [min] and/or
+    [max] are infinite, [f] is called with an argument [i'] unreduced
+    in the corresponding direction(s). *)
 
 val apply_set: (Integer.t -> Integer.t -> Integer.t ) -> t -> t -> t
 val apply_set_unary: (Integer.t -> Integer.t ) -> t -> t
 
 
-val subdiv_float_interval : size:int -> t -> t * t
+val subdiv_float_interval : size:Fval.float_kind option -> t -> t * t
 val subdiv_int: t -> t * t
 
 

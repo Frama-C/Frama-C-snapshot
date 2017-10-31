@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/if.c (with preprocessing)
 tests/spec/if.c:7:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 tests/spec/if.c:12:[kernel] warning: invalid implicit conversion from 'int' to 'char *'. Ignoring code annotation

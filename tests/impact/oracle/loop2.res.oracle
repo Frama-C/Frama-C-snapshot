@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/impact/loop2.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
@@ -69,7 +68,6 @@ tests/impact/loop2.i:25:[value] entering loop for the first time
            tests/impact/loop2.i:26 (sid 26): if(t[i]) <..>
            tests/impact/loop2.i:27 (sid 27): f(i);
 [impact] analysis done
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/impact/loop2.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state

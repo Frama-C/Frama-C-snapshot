@@ -111,7 +111,7 @@ let eval_assigns kf state assigns =
     let clean_deps =
       Locations.Zone.filter_base
         (function
-           | Base.Var (v, _) | Base.Allocated (v, _) ->
+           | Base.Var (v, _) | Base.Allocated (v, _, _) ->
                not (Kernel_function.is_formal v kf)
            | Base.CLogic_Var _ | Base.Null | Base.String _ -> true)
     in
@@ -201,7 +201,7 @@ let compute_using_prototype ?stmt kf =
 module Internals =
   Kernel_function.Make_Table(Inout_type)
     (struct
-       let name = "Internal inouts full"
+       let name = "Inout.Operational_inputs.Internals"
        let dependencies = [ Db.Value.self ]
        let size = 17
      end)
@@ -219,7 +219,7 @@ module CallwiseResults =
     let size = 17
     let dependencies = [Internals.self;
                         Inout_parameters.ForceCallwiseInout.self]
-    let name = "Operational_inputs.CallwiseResults"
+    let name = "Inout.Operational_inputs.CallwiseResults"
    end)
 
 module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
@@ -387,7 +387,7 @@ end) = struct
      edges get bottom, instead of the input state. *)
   let transfer_guard stmt e t =
     let state = X.stmt_state stmt in
-    let v_e = !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state e in
+    let v_e = !Db.Value.eval_expr state e in
     let t1 = Cil.unrollType (Cil.typeOf e) in
     let do_then, do_else =
       if Cil.isIntegralType t1 || Cil.isPointerType t1
@@ -770,7 +770,7 @@ let compute_external kf = ignore (get_external kf)
 module Externals_With_Formals =
   Kernel_function.Make_Table(Inout_type)
     (struct
-       let name = "External inouts with formals full"
+       let name = "Inout.Operational_inputs.Externals_With_Formals"
        let dependencies = [ Internals.self ]
        let size = 17
      end)

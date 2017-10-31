@@ -83,7 +83,7 @@ val register_guarded_compute:
   (unit -> unit) ref -> (unit -> unit) -> unit
 
 (** Frama-C main interface.
-    @since Lithium-20081201 
+    @since Lithium-20081201
     @plugin development guide *)
 module Main: sig
 
@@ -176,7 +176,7 @@ module Value : sig
   (** {3 Parameterization} *)
 
   exception Outside_builtin_possibilities
- 
+
   (** Type for a Value builtin function *)
   type builtin_sig =
       (** Memory state at the beginning of the function *)
@@ -267,8 +267,8 @@ module Value : sig
     kernel_function -> state Value_types.Callstack.Hashtbl.t option
   val get_state : kinstr -> state
 
-    
-  val get_stmt_state_callstack: 
+
+  val get_stmt_state_callstack:
     after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t option
 
   val get_stmt_state : stmt -> state
@@ -285,17 +285,17 @@ module Value : sig
   (** {3 Evaluations} *)
 
   val eval_lval :
-    (with_alarms:CilE.warn_mode ->
+    (?with_alarms:CilE.warn_mode ->
      Locations.Zone.t option ->
      state ->
      lval ->
      Locations.Zone.t option * t) ref
 
   val eval_expr :
-    (with_alarms:CilE.warn_mode -> state -> exp -> t) ref
+    (?with_alarms:CilE.warn_mode -> state -> exp -> t) ref
 
   val eval_expr_with_state :
-    (with_alarms:CilE.warn_mode -> state -> exp -> state * t) ref
+    (?with_alarms:CilE.warn_mode -> state -> exp -> state * t) ref
 
   val reduce_by_cond:
     (state -> exp -> bool -> state) ref
@@ -310,7 +310,7 @@ module Value : sig
 
   val expr_to_kernel_function :
     (kinstr
-     -> with_alarms:CilE.warn_mode
+     -> ?with_alarms:CilE.warn_mode
      -> deps:Locations.Zone.t option
      -> exp
      -> Locations.Zone.t * Kernel_function.Hptset.t) ref
@@ -364,11 +364,11 @@ module Value : sig
   (** {3 Locations of left values} *)
 
   val lval_to_loc :
-    (kinstr -> with_alarms:CilE.warn_mode -> lval -> Locations.location) ref
+    (kinstr -> ?with_alarms:CilE.warn_mode -> lval -> Locations.location) ref
 
   val lval_to_loc_with_deps :
     (kinstr
-     -> with_alarms:CilE.warn_mode
+     -> ?with_alarms:CilE.warn_mode
       -> deps:Locations.Zone.t
       -> lval
       -> Locations.Zone.t * Locations.location) ref
@@ -383,7 +383,7 @@ module Value : sig
     (state -> lval -> Locations.location) ref
 
   val lval_to_offsetmap :
-    ( kinstr -> lval -> with_alarms:CilE.warn_mode ->
+    ( kinstr -> ?with_alarms:CilE.warn_mode -> lval ->
       Cvalue.V_Offsetmap.t option) ref
 
   val lval_to_offsetmap_state :
@@ -391,7 +391,7 @@ module Value : sig
     (** @since Carbon-20110201 *)
 
   val lval_to_zone :
-    (kinstr -> with_alarms:CilE.warn_mode -> lval -> Locations.Zone.t) ref
+    (kinstr -> ?with_alarms:CilE.warn_mode -> lval -> Locations.Zone.t) ref
 
   val lval_to_zone_state :
     (state -> lval -> Locations.Zone.t) ref
@@ -409,7 +409,7 @@ module Value : sig
       to a valid location of cardinal at most one. *)
 
   val lval_to_precise_loc_state:
-    (with_alarms:CilE.warn_mode -> state -> lval ->
+    (?with_alarms:CilE.warn_mode -> state -> lval ->
      state * Precise_locs.precise_location * typ) ref
 
   val lval_to_precise_loc_with_deps_state:
@@ -419,16 +419,16 @@ module Value : sig
 
   (** Evaluation of the [\from] clause of an [assigns] clause.*)
   val assigns_inputs_to_zone :
-    (state -> identified_term assigns -> Locations.Zone.t) ref
+    (state -> assigns -> Locations.Zone.t) ref
 
   (** Evaluation of the left part of [assigns] clause (without [\from]).*)
   val assigns_outputs_to_zone :
-    (state -> result:varinfo option -> identified_term assigns -> Locations.Zone.t) ref
+    (state -> result:varinfo option -> assigns -> Locations.Zone.t) ref
 
   (** Evaluation of the left part of [assigns] clause (without [\from]). Each
       assigns term results in one location. *)
   val assigns_outputs_to_locations :
-    (state -> result:varinfo option -> identified_term assigns -> Locations.location list) ref
+    (state -> result:varinfo option -> assigns -> Locations.location list) ref
 
   (** For internal use only. Evaluate the [assigns] clause of the
       given function in the given prestate, compare it with the
@@ -447,7 +447,7 @@ module Value : sig
        Property_status.emitted_status) ref
       (** Evaluate the given predicate in the given states for the Pre
           and Here ACSL labels.
-	  @since Neon-20140301 *)
+          @since Neon-20140301 *)
   end
 
 
@@ -502,6 +502,11 @@ module Value : sig
   module Compute_Statement_Callbacks:
     Hook.Iter_hook with type param = stmt * callstack * state list
 
+  (* -remove-redundant-alarms feature, applied at the end of an Eva analysis,
+     fulfilled by the Scope plugin that also depends on Eva. We thus use a
+     reference here to avoid a cyclic dependency. *)
+  val rm_asserts: (unit -> unit) ref
+
 
   (** {3 Pretty printing} *)
 
@@ -547,7 +552,7 @@ end
 module From : sig
 
   (** exception raised by [find_deps_no_transitivity_*] if the given expression
-      is not an lvalue. 
+      is not an lvalue.
       @since Aluminium-20160501
    *)
   exception Not_lval
@@ -565,7 +570,7 @@ module From : sig
   val get : (kernel_function -> Function_Froms.t) ref
   val access : (Locations.Zone.t -> Function_Froms.Memory.t
                 -> Locations.Zone.t) ref
-  
+
   val find_deps_no_transitivity : (stmt -> exp -> Locations.Zone.t) ref
 
   val find_deps_no_transitivity_state :
@@ -642,14 +647,14 @@ module Properties : sig
     (** {3 From logic terms to C terms} *)
 
     (** Exception raised by the functions below when their given argument
-        cannot be interpreted in the C world. 
+        cannot be interpreted in the C world.
         @since Aluminium-20160501
      *)
     exception No_conversion
 
     val term_lval_to_lval:
       (result: Cil_types.varinfo option -> term_lval -> Cil_types.lval) ref
-      (** @raise No_conversion if the argument is not a left value. 
+      (** @raise No_conversion if the argument is not a left value.
           @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
        *)
 
@@ -669,7 +674,7 @@ module Properties : sig
       (result: Cil_types.varinfo option -> term -> Cil_types.exp list) ref
       (** @return a list of C expressions.
           @raise No_conversion if the argument is not a valid set of
-          expressions. 
+          expressions.
           @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
        *)
 
@@ -683,7 +688,7 @@ module Properties : sig
 
     val term_offset_to_offset:
       (result: Cil_types.varinfo option -> term_offset -> offset) ref
-      (** @raise No_conversion if the argument is not a valid offset. 
+      (** @raise No_conversion if the argument is not a valid offset.
           @modify Aluminium-20160501 raises a custom exn instead of generic Invalid_arg
        *)
 
@@ -699,7 +704,7 @@ module Properties : sig
     (** {3 From logic terms to Locations.location} *)
 
     val loc_to_loc:
-      (result: Cil_types.varinfo option -> Value.state -> term -> 
+      (result: Cil_types.varinfo option -> Value.state -> term ->
        Locations.location) ref
       (** @raise No_conversion if the translation fails.
           @modify Aluminium-20160501 raises a custom exn instead of generic
@@ -707,7 +712,7 @@ module Properties : sig
       *)
 
     val loc_to_loc_under_over:
-      (result: Cil_types.varinfo option -> Value.state -> term -> 
+      (result: Cil_types.varinfo option -> Value.state -> term ->
        Locations.location * Locations.location * Locations.Zone.t) ref
       (** Same as {!loc_to_loc}, except that we return simultaneously an
           under-approximation of the term (first location), and an
@@ -815,13 +820,13 @@ module Properties : sig
   (** {3 Assertions} *)
 
   val add_assert: Emitter.t -> kernel_function -> stmt -> string -> unit
-    (** @deprecated since Oxygen-20120901 
-        Ask for {ACSL_importer plug-in} if you need such functionality. 
-	@modify Boron-20100401 takes as additional argument the
-        computation which adds the assert. 
-	@modify Oxygen-20120901 replaces the State.t list by an Emitter.t
-     *) 
- 
+    (** @deprecated since Oxygen-20120901
+        Ask for {ACSL_importer plug-in} if you need such functionality.
+        @modify Boron-20100401 takes as additional argument the
+        computation which adds the assert.
+        @modify Oxygen-20120901 replaces the State.t list by an Emitter.t
+     *)
+
 end
 
 (* ************************************************************************* *)
@@ -865,34 +870,44 @@ module PostdominatorsValue: PostdominatorsTypes.Sig
 (** Runtime Error Annotation Generation plugin.
     @see <../rte/index.html> internal documentation. *)
 module RteGen : sig
+  (** Same result as having [-rte] on the command line*)
   val compute : (unit -> unit) ref
+
+  (** Generates RTE for a single function. Uses the status of the various
+      RTE options do decide which kinds of annotations must be generated.
+  *)
   val annotate_kf : (kernel_function -> unit) ref
-  val self: State.t ref
+
+  (** Only generates precond RTE for a given function
+      (see [-rte-precond] for more information). *)
   val do_precond : (kernel_function -> unit) ref
+
+  (** Generates all possible RTE for a given function. *)
   val do_all_rte : (kernel_function -> unit) ref
+
+  (** Generates all possible RTE except pre-conditions for a given function. *)
   val do_rte : (kernel_function -> unit) ref
-  type status_accessor = 
+
+  val self: State.t ref
+  type status_accessor =
       string (* name *)
       * (kernel_function -> bool -> unit) (* for each kf and each kind of
-					     annotation, set/unset the fact
-					     that there has been generated *)
-      * (kernel_function -> bool) (* is this kind of annotation generated in 
-				     kf? *) 
+                                             annotation, set/unset the fact
+                                             that there has been generated *)
+      * (kernel_function -> bool) (* is this kind of annotation generated in
+                                     kf? *)
   val get_all_status : (unit -> status_accessor list) ref
   val get_precond_status : (unit -> status_accessor) ref
   val get_divMod_status : (unit -> status_accessor) ref
+  val get_initialized_status: (unit -> status_accessor) ref
   val get_memAccess_status : (unit -> status_accessor) ref
   val get_pointerCall_status: (unit -> status_accessor) ref
   val get_signedOv_status : (unit -> status_accessor) ref
   val get_signed_downCast_status : (unit -> status_accessor) ref
   val get_unsignedOv_status : (unit -> status_accessor) ref
   val get_unsignedDownCast_status : (unit -> status_accessor) ref
-end
-
-(** Dump Properties-Status consolidation tree. *)
-module Report :
-sig
-  val print : (unit -> unit) ref
+  val get_float_to_int_status : (unit -> status_accessor) ref
+  val get_finite_float_status : (unit -> status_accessor) ref
 end
 
 (** Constant propagation plugin.
@@ -1268,64 +1283,6 @@ module Pdg : sig
 
 end
 
-(** Interface for the Scope plugin.
-    @see <../scope/index.html> internal documentation. *)
-module Scope : sig
-  val get_data_scope_at_stmt :
-    (kernel_function -> stmt -> lval ->
-       Stmt.Hptset.t * (Stmt.Hptset.t * Stmt.Hptset.t)) ref
-    (**
-    * @raise Kernel_function.No_Definition if [kf] has no definition.
-    * @return 3 statement sets related to the value of [lval] before [stmt] :
-    * - the forward selection,
-    * - the both way selection,
-    * - the backward selection.
-    *)
-
-  val get_prop_scope_at_stmt :
-    (kernel_function -> stmt -> code_annotation ->
-       Stmt.Hptset.t * code_annotation list) ref
-    (** compute the set of statements where the given annotation has the same
-      value as before the given stmt. Also returns the eventual code annotations
-      that are implied by the one given as argument. *)
-
-  val check_asserts : (unit -> code_annotation list) ref
-    (** Print how many assertions could be removed based on the previous
-    * analysis ([get_prop_scope_at_stmt]) and return the annotations
-    * that can be removed. *)
-
-  val rm_asserts : (unit -> unit) ref
-    (** Same analysis than [check_asserts] but mark the assertions as proven. *)
-
-  val get_defs :
-    (kernel_function -> stmt -> lval ->
-     (Stmt.Hptset.t * Locations.Zone.t option) option) ref
-    (** @return the set of statements that define [lval] before [stmt] in [kf].
-    * Also returns the zone that is possibly not defined.
-    * Can return [None] when the information is not available (Pdg missing).
-    * *)
-
-  val get_defs_with_type :
-    (kernel_function -> stmt -> lval ->
-     ((bool * bool) Stmt.Map.t * Locations.Zone.t option) option) ref
-    (** @return a map from the statements that define [lval] before [stmt] in
-        [kf]. The first boolean indicates the possibility of a direct
-        modification at this statement, ie. [lval = ...] or [lval = f()].
-        The second boolean indicates a possible indirect modification through
-        a call.
-        Also returns the zone that is possibly not defined.
-        Can return [None] when the information is not available (Pdg missing).
-    *)
-
-  (** {3 Zones} *)
-
-  type t_zones = Locations.Zone.t Stmt.Hashtbl.t
-  val build_zones :
-    (kernel_function -> stmt -> lval -> Stmt.Hptset.t * t_zones) ref
-  val pretty_zones : (Format.formatter -> t_zones -> unit) ref
-  val get_zones : (t_zones ->  Cil_types.stmt -> Locations.Zone.t) ref
-
-end
 
 (** Interface for the unused code detection.
     @see <../sparecode/index.html> internal documentation. *)
@@ -1359,542 +1316,6 @@ module Occurrence: sig
     (** Print all the occurrence of each variable declarations. *)
   val self: State.t ref
 end
-
-(** Interface for the slicing tool.
-    @see <../slicing/index.html> internal documentation. *)
-module Slicing : sig
-
-  val self: State.t ref
-    (** Internal state of the slicing tool from project viewpoints. *)
-
-  val set_modes : (?calls:int -> ?callers:bool -> ?sliceUndef:bool
-    -> ?keepAnnotations:bool -> ?print:bool
-    -> unit -> unit) ref
-
-  (** Slicing project management. *)
-  module Project : sig
-
-    val reset_slice : (unit -> unit) ref
-
-    (** {3 Kernel function} *)
-
-    val is_called : (kernel_function -> bool) ref
-      (** Return [true] iff the source function is called (even indirectly via
-          transitivity) from a [Slice.t]. *)
-
-    val has_persistent_selection : (kernel_function -> bool) ref
-      (** return [true] iff the source function has persistent selection *)
-
-    val change_slicing_level : (kernel_function -> int -> unit) ref
-      (** change the slicing level of this function
-          (see the [-slicing-level] option documentation to know the meaning of the
-          number)
-          @raise SlicingTypes.ExternalFunction if [kf] has no definition.
-          @raise SlicingTypes.WrongSlicingLevel if [n] is not valid.
-      *)
-
-    (** {3 Extraction} *)
-
-    val default_slice_names : (kernel_function -> bool  -> int -> string) ref
-
-    (* t was turned into unit,
-       but not erased because of the optional parameter *)
-    val extract : (string ->
-                   ?f_slice_names:(kernel_function -> bool  -> int -> string) ->
-                   unit -> Project.t) ref
-      (** Build a new [Db.Project.t] from all [Slice.t] of a project.
-      * Can optionally specify how to name the sliced functions
-      * by defining [f_slice_names].
-      * [f_slice_names kf src_visi num_slice] has to return the name
-      * of the exported functions based on the source function [kf].
-      * - [src_visi] tells if the source function name is used
-      *              (if not, it can be used for a slice)
-      * - [num_slice] gives the number of the slice to name.
-      * The entry point function is only exported once :
-      * it is VERY recommended to give to it its original name,
-      * even if it is sliced.
-      * *)
-
-    val print_extracted_project : (?fmt:Format.formatter ->
-                                    extracted_prj:Project.t -> unit) ref
-      (** Print the extracted project when "-slice-print" is set. *)
-
-    val print_dot : (filename:string -> title:string -> unit) ref
-      (** Print a representation of the slicing project (call graph)
-          in a dot file which name is the given string. *)
-
-    (** {3 Internal use only} *)
-
-    val pretty : (Format.formatter -> unit) ref
-      (** For debugging... Pretty print project information. *)
-
-    val is_directly_called_internal : (kernel_function -> bool) ref
-      (** Return [true] if the source function is directly (even via pointer
-          function) called from a [Slice.t]. *)
-
-  end
-
-  (** Access to slicing results. *)
-  module Mark : sig
-
-    type t = SlicingTypes.sl_mark
-        (** Abstract data type for mark value. *)
-    val dyn_t : t Type.t
-        (** For dynamic type checking and journalization. *)
-
-    val make : (data:bool -> addr:bool -> ctrl:bool -> t) ref
-      (** To construct a mark such as
-          [(is_ctrl result, is_data result, isaddr result) =
-          (~ctrl, ~data, ~addr)],
-          [(is_bottom result) = false] and
-          [(is_spare result) = not (~ctrl || ~data || ~addr)]. *)
-
-    val compare : (t -> t -> int) ref
-      (** A total ordering function similar to the generic structural
-          comparison function [compare].
-          Can be used to build a map from [t] marks to, for example, colors for
-          the GUI. *)
-
-    val is_bottom : (t -> bool) ref
-      (** [true] iff the mark is empty: it is the only case where the
-          associated element is invisible. *)
-
-    val is_spare : (t -> bool) ref
-      (** Smallest visible mark. Usually used to mark element that need to be
-          visible for compilation purpose, not really for the selected
-          computations. *)
-
-    val is_data : (t -> bool) ref
-      (** The element is used to compute selected data.
-          Notice that a mark can be [is_data] and/or [is_ctrl] and/or [is_addr]
-          at the same time. *)
-
-    val is_ctrl : (t -> bool) ref
-      (** The element is used to control the program point of a selected
-          data. *)
-
-    val is_addr : (t -> bool) ref
-      (** The element is used to compute the address of a selected data. *)
-
-    val get_from_src_func : (kernel_function -> t) ref
-      (** The mark [m] related to all statements of a source function [kf].
-          Property : [is_bottom (get_from_func proj kf) = not (Project.is_called proj kf) ] *)
-
-    val pretty : (Format.formatter -> t -> unit) ref
-      (** For debugging... Pretty mark information. *)
-
-  end
-
-  (** Slicing selections. *)
-  module Select : sig
-
-    type t = SlicingTypes.sl_select
-        (** Internal selection. *)
-    val dyn_t : t Type.t
-        (** For dynamic type checking and journalization. *)
-
-    type set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
-        (** Set of colored selections. *)
-    val dyn_set : set Type.t
-        (** For dynamic type checking and journalization. *)
-
-    val empty_selects : set
-      (** Empty selection. *)
-
-    val select_stmt :
-      (set -> spare:bool -> stmt -> kernel_function -> set) ref
-      (** To select a statement. *)
-
-    val select_stmt_ctrl :
-      (set -> spare:bool -> stmt -> kernel_function -> set) ref
-      (** To select a statement reachability.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_stmt_lval_rw :
-      (set ->
-       Mark.t ->
-       rd:Datatype.String.Set.t ->
-       wr:Datatype.String.Set.t ->
-       stmt ->
-       eval:stmt ->
-       kernel_function -> set) ref
-      (** To select rw accesses to lvalues (given as string) related to a statement.
-          Variables of [~rd] and [~wr] string are bounded
-          relatively to the whole scope of the function.
-          The interpretation of the address of the lvalues is
-          done just before the execution of the statement [~eval].
-          The selection preserve the [~rd] and ~[wr] accesses contained into the statement [ki].
-          Note: add also a transparent selection on the whole statement.
-	  @modify Magnesium-20151001 argument [~scope] removed. *)
-
-    val select_stmt_lval :
-      (set -> Mark.t -> Datatype.String.Set.t -> before:bool -> stmt ->
-        eval:stmt -> kernel_function -> set) ref
-      (** To select lvalues (given as string) related to a statement.
-          Variables of [lval_str] string are bounded
-          relatively to the whole scope of the function.
-          The interpretation of the address of the lvalue is
-          done just before the execution of the statement [~eval].
-          The selection preserve the value of these lvalues before or
-          after (c.f. boolean [~before]) the statement [ki].
-          Note: add also a transparent selection on the whole statement.
-	  @modify Magnesium-20151001 argument [~scope] removed.  *)
-
-    val select_stmt_zone :
-      (set -> Mark.t -> Locations.Zone.t -> before:bool -> stmt ->
-       kernel_function -> set) ref
-      (** To select a zone value related to a statement.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_stmt_term :
-      (set -> Mark.t -> term -> stmt ->
-        kernel_function -> set) ref
-      (** To select a predicate value related to a statement.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_stmt_pred :
-      (set -> Mark.t -> predicate -> stmt ->
-        kernel_function -> set) ref
-      (** To select a predicate value related to a statement.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_stmt_annot :
-      (set -> Mark.t -> spare:bool -> code_annotation ->  stmt ->
-       kernel_function -> set) ref
-      (** To select the annotations related to a statement.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_stmt_annots :
-      (set -> Mark.t -> spare:bool -> threat:bool -> user_assert:bool ->
-        slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
-        stmt -> kernel_function -> set) ref
-      (** To select the annotations related to a statement.
-          Note: add also a transparent selection on the whole statement. *)
-
-    val select_func_lval_rw :
-      (set -> Mark.t -> rd:Datatype.String.Set.t -> wr:Datatype.String.Set.t ->
-        eval:stmt -> kernel_function -> set) ref
-      (** To select rw accesses to lvalues (given as a string) related to a function.
-          Variables of [~rd] and [~wr] string are bounded
-          relatively to the whole scope of the function.
-          The interpretation of the address of the lvalues is
-          done just before the execution of the statement [~eval].
-          The selection preserve the value of these lvalues into the whole project.
-          @modify Magnesium-20151001 argument [~scope] removed. *)
-
-    val select_func_lval :
-      (set -> Mark.t -> Datatype.String.Set.t -> kernel_function -> set) ref
-      (** To select lvalues (given as a string) related to a function.
-          Variables of [lval_str] string are bounded
-          relatively to the scope of the first statement of [kf].
-          The interpretation of the address of the lvalues is
-          done just before the execution of the first statement [kf].
-          The selection preserve the value of these lvalues before
-          execution of the return statement. *)
-
-    val select_func_zone :
-      (set -> Mark.t -> Locations.Zone.t -> kernel_function -> set) ref
-      (** To select an output zone related to a function. *)
-
-    val select_func_return :
-      (set -> spare:bool -> kernel_function -> set) ref
-      (** To select the function result (returned value). *)
-
-    val select_func_calls_to :
-      (set -> spare:bool -> kernel_function -> set) ref
-      (** To select every calls to the given function, i.e. the call keeps
-          its semantics in the slice. *)
-
-    val select_func_calls_into :
-      (set -> spare:bool -> kernel_function -> set) ref
-      (** To select every calls to the given function without the selection of
-          its inputs/outputs. *)
-
-    val select_func_annots :
-      (set -> Mark.t -> spare:bool -> threat:bool -> user_assert:bool ->
-        slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
-        kernel_function -> set) ref
-      (** To select the annotations related to a function. *)
-
-    (** {3 Internal use only} *)
-
-    val pretty : (Format.formatter -> t -> unit) ref
-      (** For debugging... Pretty print selection information. *)
-
-    val get_function : (t -> kernel_function) ref
-      (** The function related to an internal selection. *)
-
-    val merge_internal : (t -> t -> t) ref
-      (** The function related to an internal selection. *)
-
-    val add_to_selects_internal : (t -> set -> set) ref
-    val iter_selects_internal : ((t -> unit) -> set -> unit) ref
-    val fold_selects_internal : (('a -> t -> 'a) -> 'a -> set -> 'a)
-
-    val select_stmt_internal : (kernel_function -> ?select:t ->
-                                  stmt -> Mark.t -> t) ref
-      (** Internally used to select a statement :
-          - if [is_ctrl_mark m],
-          propagate ctrl_mark on ctrl dependencies of the statement
-         - if [is_addr_mark m],
-          propagate addr_mark on addr dependencies of the statement
-         - if [is_data_mark m],
-          propagate data_mark on data dependencies of the statement
-         - mark the node with a spare_mark and propagate so that
-           the dependencies that were not selected yet will be marked spare.
-          When the statement is a call, its functional inputs/outputs are
-          also selected (The call is still selected even it has no output).
-          When the statement is a composed one (block, if, etc...),
-            all the sub-statements are selected.
-          @raise SlicingTypes.NoPdg if ?
-        *)
-
-    val select_label_internal : (kernel_function -> ?select:t ->
-                                  Logic_label.t -> Mark.t -> t) ref
-
-    val select_min_call_internal :
-      (kernel_function -> ?select:t -> stmt -> Mark.t -> t) ref
-      (** Internally used to select a statement call without its
-          inputs/outputs so that it doesn't select the statements computing the
-          inputs of the called function as [select_stmt_internal] would do.
-          Raise [Invalid_argument] when the [stmt] isn't a call.
-          @raise SlicingTypes.NoPdg if ?
-      *)
-
-    val select_stmt_zone_internal :
-      (kernel_function -> ?select:t ->
-       stmt -> before:bool -> Locations.Zone.t -> Mark.t -> t) ref
-      (** Internally used to select a zone value at a program point.
-          @raise SlicingTypes.NoPdg if ?
-       *)
-
-    val select_zone_at_entry_point_internal :
-      (kernel_function -> ?select:t -> Locations.Zone.t -> Mark.t -> t) ref
-      (** Internally used to select a zone value at the beginning of a function.
-      * For a defined function, it is similar to [select_stmt_zone_internal]
-      * with the initial statement, but it can also be used for undefined
-      * functions.
-      *
-          @raise SlicingTypes.NoPdg if ?
-       *)
-
-    val select_zone_at_end_internal :
-      (kernel_function -> ?select:t -> Locations.Zone.t -> Mark.t -> t) ref
-      (** Internally used to select a zone value at the end of a function.
-      * For a defined function, it is similar to [select_stmt_zone_internal]
-      * with the return statement, but it can also be used for undefined
-      * functions.
-      *
-          @raise SlicingTypes.NoPdg if ?
-       *)
-
-    val select_modified_output_zone_internal :
-      (kernel_function -> ?select:t -> Locations.Zone.t -> Mark.t -> t) ref
-      (** Internally used to select the statements that modify the
-      * given zone considered as in output.
-      * Be careful that it is NOT the same as selecting the zone at the end!
-      * ( the 'undef' zone is not propagated...)
-      * *)
-
-    val select_stmt_ctrl_internal :
-                   (kernel_function -> ?select:t -> stmt -> t) ref
-      (** Internally used to select a statement reachability :
-          Only propagate a ctrl_mark on the statement control dependencies.
-          @raise SlicingTypes.NoPdg if ?
-      *)
-
-    val select_pdg_nodes_internal :
-      (kernel_function -> ?select:t -> PdgTypes.Node.t list -> Mark.t -> t) ref
-      (** Internally used to select PDG nodes :
-          - if [is_ctrl_mark m],
-          propagate ctrl_mark on ctrl dependencies of the statement
-         - if [is_addr_mark m],
-          propagate addr_mark on addr dependencies of the statement
-         - if [is_data_mark m],
-          propagate data_mark on data dependencies of the statement
-         - mark the node with a spare_mark and propagate so that
-           the dependencies that were not selected yet will be marked spare.
-        *)
-
-    val select_entry_point_internal :
-                 (kernel_function -> ?select:t ->  Mark.t -> t) ref
-    val select_return_internal :
-                 (kernel_function -> ?select:t ->  Mark.t -> t) ref
-    val select_decl_var_internal :
-                 (kernel_function -> ?select:t ->  Cil_types.varinfo -> Mark.t -> t) ref
-    val select_pdg_nodes :
-      (set -> Mark.t  -> PdgTypes.Node.t list -> kernel_function -> set) ref
-  end
-
-  (** Function slice. *)
-  module Slice : sig
-
-    type t = SlicingTypes.sl_fct_slice
-        (** Abstract data type for function slice. *)
-    val dyn_t : t Type.t
-        (** For dynamic type checking and journalization. *)
-
-    val create : (kernel_function -> t) ref
-      (** Used to get an empty slice (nothing selected) related to a
-          function. *)
-
-    val remove : (t -> unit) ref
-      (** Remove the slice from the project. The slice shouldn't be called. *)
-
-    val remove_uncalled : (unit -> unit) ref
-      (** Remove the uncalled slice from the project. *)
-
-    (** {3 Getters} *)
-
-    val get_all: (kernel_function -> t list) ref
-      (** Get all slices related to a function. *)
-
-    val get_function : (t -> kernel_function) ref
-      (** To get the function related to a slice *)
-
-    val get_callers : (t -> t list) ref
-      (** Get the slices having direct calls to a slice. *)
-
-    val get_called_slice : (t -> stmt -> t option) ref
-      (** To get the slice directly called by the statement of a slice.
-          Returns None when the statement mark is bottom,
-          or else the statement isn't a call
-          or else the statement is a call to one or several (via pointer)
-          source functions. *)
-
-    val get_called_funcs : (t -> stmt -> kernel_function list) ref
-      (** To get the source functions called by the statement of a slice.
-          Returns an empty list when the statement mark is bottom,
-          or else the statement isn't a call
-          or else the statement is a call to a function slice. *)
-
-    val get_mark_from_stmt : (t -> stmt -> Mark.t) ref
-      (** Get the mark value of a statement. *)
-
-    val get_mark_from_label : (t -> stmt -> Cil_types.label -> Mark.t) ref
-      (** Get the mark value of a label. *)
-
-    val get_mark_from_local_var : (t -> varinfo -> Mark.t) ref
-      (** Get the mark value of local variable. *)
-
-    val get_mark_from_formal : (t -> varinfo -> Mark.t) ref
-      (** Get the mark from the formal of a function. *)
-
-    val get_user_mark_from_inputs : (t -> Mark.t) ref
-      (** Get a mark that is the merged user inputs marks of the slice *)
-
-    (** {3 Internal use only} *)
-
-    val get_num_id : (t -> int) ref
-
-    val from_num_id : (kernel_function -> int -> t) ref
-
-    val pretty : (Format.formatter -> t -> unit) ref
-      (** For debugging... Pretty print slice information. *)
-
-  end
-
-  (** Requests for slicing jobs.
-      Slicing requests are part of a slicing project.
-      So, user requests affect slicing project. *)
-  module Request : sig
-
-    val apply_all: (propagate_to_callers:bool -> unit) ref
-      (** Apply all slicing requests. *)
-
-    (** {3 Adding a request} *)
-
-    val add_selection: (Select.set -> unit) ref
-      (** Add a selection request to all slices (existing)
-          of a function to the project requests. *)
-
-    val add_persistent_selection: (Select.set -> unit) ref
-      (** Add a persistent selection request to all slices (already existing or
-          created later) of a function to the project requests. *)
-
-    val add_persistent_cmdline : (unit -> unit) ref
-      (** Add persistent selection from the command line. *)
-
-    val is_already_selected_internal: (Slice.t -> Select.t -> bool) ref
-      (** Return true when the requested selection is already selected into the
-      * slice. *)
-
-    val add_slice_selection_internal:
-      (Slice.t -> Select.t -> unit) ref
-      (** Internally used to add a selection request for a function slice
-          to the project requests. *)
-
-    val add_selection_internal:
-      (Select.t -> unit) ref
-      (** Internally used to add a selection request to the project requests.
-          This selection will be applied to every slicies of the function
-          (already existing or created later). *)
-
-    (* This first unit argument is to comply with the signature.
-       I assume there is a nicer solution. *)
-    val add_call_slice:
-      (caller:Slice.t -> to_call:Slice.t -> unit) ref
-      (** change every call to any [to_call] source or specialisation in order
-          to call [to_call] in [caller]. *)
-
-    val add_call_fun:
-      (caller:Slice.t -> to_call:kernel_function -> unit) ref
-      (** change every call to any [to_call] source or specialisation
-      * in order to call the source function [to_call] in [caller] *)
-
-    val add_call_min_fun:
-      (caller:Slice.t -> to_call:kernel_function -> unit) ref
-      (** For each call to [to_call] in [caller] such so that, at least, it
-          will be visible at the end, ie. call either the source function or
-          one of [to_call] slice (depending on the [slicing_level]). *)
-
-    (** {3 Internal use only} *)
-
-    val apply_all_internal: (unit -> unit) ref
-      (** Internally used to apply all slicing requests. *)
-
-    val apply_next_internal: (unit -> unit) ref
-      (** Internally used to apply the first slicing request of the project list
-          and remove it from the list.
-          That may modify the contents of the remaining list.
-          For example, new requests may be added to the list. *)
-
-    val is_request_empty_internal: (unit -> bool) ref
-      (** Internally used to know if internal requests are pending. *)
-
-    val merge_slices:
-      (Slice.t  -> Slice.t -> replace:bool -> Slice.t) ref
-        (** Build a new slice which marks is a merge of the two given slices.
-            [choose_call] requests are added to the project in order to choose
-            the called functions for this new slice.
-            If [replace] is true, more requests are added to call this new
-            slice instead of the two original slices. When these requests will
-            be applied, the user will be able to remove those two slices using
-            [Db.Slicing.Slice.remove]. *)
-
-    val copy_slice:
-      (Slice.t -> Slice.t) ref
-      (** Copy the input slice. The new slice is not called,
-      * so it is the user responsibility to change the calls if he wants to. *)
-
-    val split_slice:
-      (Slice.t  -> Slice.t list) ref
-      (** Copy the input slice to have one slice for each call of the original
-      * slice and generate requests in order to call them.
-      * @return the newly created slices.
-      *)
-
-    val propagate_user_marks : (unit -> unit) ref
-      (** Apply pending request then propagate user marks to callers
-          recursively then apply pending requests *)
-
-    val pretty : (Format.formatter -> unit) ref
-      (** For debugging... Pretty print the request list. *)
-
-  end
-
-end
-
 
 (** Signature common to some Inout plugin options. The results of
     the computations are available on a per function basis. *)

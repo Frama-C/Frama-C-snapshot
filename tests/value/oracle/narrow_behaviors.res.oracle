@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/narrow_behaviors.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -9,21 +8,54 @@
         Called from tests/value/narrow_behaviors.i:56.
 [value] using specification for function f1
 [value] Done for function f1
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 56
+tests/value/narrow_behaviors.i:56:[value] Frama_C_dump_each:
+        # Cvalue domain:
         nondet ∈ [--..--]
-        p{.x; .y} ∈ {1; 2}
+        p.x ∈ {2}
+         .y ∈ {1; 2}
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
+tests/value/narrow_behaviors.i:56:[value] Frama_C_dump_each:
+        # Cvalue domain:
+        nondet ∈ {0}
+        p{.x; .y} ∈ {1}
+        __retres ∈ UNINITIALIZED
+        ==END OF DUMP==
 [value] computing for function f2 <- main.
         Called from tests/value/narrow_behaviors.i:57.
 [value] using specification for function f2
 [value] Done for function f2
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 57
+[value] computing for function f2 <- main.
+        Called from tests/value/narrow_behaviors.i:57.
+tests/value/narrow_behaviors.i:57:[value] function f2, behavior b: assumes got status invalid; behavior not evaluated.
+tests/value/narrow_behaviors.i:57:[value] function f2, behavior c: assumes got status invalid; behavior not evaluated.
+[value] Done for function f2
+tests/value/narrow_behaviors.i:57:[value] Frama_C_dump_each:
+        # Cvalue domain:
         nondet ∈ [--..--]
-        p{.x; .y} ∈ {1; 2}
-        q{.x; .y} ∈ {1; 2}
+        p.x ∈ {2}
+         .y ∈ {1; 2}
+        q.x ∈ {2}
+         .y ∈ {1; 2}
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
+tests/value/narrow_behaviors.i:57:[value] Frama_C_dump_each:
+        # Cvalue domain:
+        nondet ∈ {0}
+        p.x ∈ {2}
+         .y ∈ {1; 2}
+        q.x ∈ {1; 2}
+         .y ∈ {1}
+        __retres ∈ UNINITIALIZED
+        ==END OF DUMP==
+tests/value/narrow_behaviors.i:57:[value] Frama_C_dump_each:
+        # Cvalue domain:
+        nondet ∈ {0}
+        p{.x; .y} ∈ {1}
+        q.x ∈ {1; 2}
+         .y ∈ {1}
+        __retres ∈ UNINITIALIZED
+        ==END OF DUMP==
 tests/value/narrow_behaviors.i:61:[value] warning: assertion got status unknown.
 [value] computing for function f1 <- main.
         Called from tests/value/narrow_behaviors.i:62.
@@ -35,16 +67,18 @@ tests/value/narrow_behaviors.i:62:[value] function f1, behavior c: assumes got s
 tests/value/narrow_behaviors.i:62:[value] function f1, behavior a: assumes got status invalid; behavior not evaluated.
 tests/value/narrow_behaviors.i:62:[value] function f1, behavior d: assumes got status invalid; behavior not evaluated.
 [value] Done for function f1
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 62
+tests/value/narrow_behaviors.i:62:[value] Frama_C_dump_each:
+        # Cvalue domain:
         nondet ∈ {0}
         r{.x; .y} ∈ {1}
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 62
+        ==END OF DUMP==
+tests/value/narrow_behaviors.i:62:[value] Frama_C_dump_each:
+        # Cvalue domain:
         nondet ∈ {1}
         r{.x; .y} ∈ {2}
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] computing for function f2 <- main.
         Called from tests/value/narrow_behaviors.i:63.
 tests/value/narrow_behaviors.i:63:[value] function f2, behavior b: assumes got status invalid; behavior not evaluated.
@@ -54,18 +88,19 @@ tests/value/narrow_behaviors.i:63:[value] function f2, behavior c: assumes got s
         Called from tests/value/narrow_behaviors.i:63.
 tests/value/narrow_behaviors.i:63:[value] function f2, behavior a: assumes got status invalid; behavior not evaluated.
 tests/value/narrow_behaviors.i:63:[value] function f2, behavior d: assumes got status invalid; behavior not evaluated.
-tests/value/narrow_behaviors.i:39:[value] warning: function f2, behavior b: this postcondition evaluates to false in this
+tests/value/narrow_behaviors.i:43:[value] warning: function f2, behavior c: this postcondition evaluates to false in this
                  context. If it is valid, either a precondition was not verified for this
                  call, or some assigns/from clauses are incomplete (or incorrect).
-tests/value/narrow_behaviors.i:40:[value] function f2, behavior b: no state left in which to evaluate postcondition, status not computed.
+tests/value/narrow_behaviors.i:44:[value] function f2, behavior c: no state left in which to evaluate postcondition, status not computed.
 [value] Done for function f2
-[value] DUMPING STATE of file tests/value/narrow_behaviors.i line 63
+tests/value/narrow_behaviors.i:63:[value] Frama_C_dump_each:
+        # Cvalue domain:
         nondet ∈ {0}
         r{.x; .y} ∈ {1}
         s.x ∈ {1; 2}
          .y ∈ {1}
         __retres ∈ UNINITIALIZED
-        =END OF DUMP==
+        ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -74,8 +109,6 @@ tests/value/narrow_behaviors.i:40:[value] function f2, behavior b: no state left
 [from] Computing for function main
 [from] Computing for function f1 <-main
 [from] Done for function f1
-[from] Computing for function Frama_C_dump_each <-main
-[from] Done for function Frama_C_dump_each
 [from] Computing for function f2 <-main
 [from] Done for function f2
 [from] Done for function main

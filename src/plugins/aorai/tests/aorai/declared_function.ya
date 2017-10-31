@@ -1,0 +1,7 @@
+%init : I;
+%deterministic;
+
+I  : { f().return == 0} -> I
+   | { f().return == 1 + 2 } -> I
+   | other -> I
+   ;

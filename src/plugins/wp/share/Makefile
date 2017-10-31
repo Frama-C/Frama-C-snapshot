@@ -48,7 +48,7 @@ WHY3INCLUDES= -R $(WHY3LIB)/coq Why3 -R $(WPLSHARE)/why3 ''
 
 $(WPLSHARE)/why3/%.vo: $(WPLSHARE)/why3/%.v
 	echo "Coqc         $@"
-	@coqc $(WHY3INCLUDES) $<
+	@coqc -w none $(WHY3INCLUDES) $<
 
 $(WPLSHARE)/why3/.depend: $(addprefix $(WPLSHARE)/, $(WHY3_COQ_SOURCES))
 	echo "Coqdep for $(WPLSHARE)/why3"
@@ -79,7 +79,7 @@ COQWPINCLUDES= -R $(WPLSHARE)/coqwp ''
 
 $(WPLSHARE)/coqwp/%.vo: $(WPLSHARE)/coqwp/%.v
 	echo "Coqc         $<"
-	@coqc $(COQWPINCLUDES) $<
+	@coqc -w none $(COQWPINCLUDES) $<
 
 $(WPLSHARE)/coqwp/.depend: $(addprefix $(WPLSHARE)/, $(WP_COQ_SOURCES))
 	echo "Coqdep for $(WPLSHARE)/coqwp"

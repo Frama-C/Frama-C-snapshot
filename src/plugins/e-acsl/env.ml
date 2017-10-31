@@ -42,6 +42,7 @@ type block_info = {
 			   block *) 
   pre_stmts: stmt list; (* stmts already inserted into the current stmt, but
 			   which should be before [new_stmts]. *)
+  post_stmts: stmt list;
 }
 
 type local_env = 
@@ -93,7 +94,9 @@ end
 let empty_block = 
   { new_block_vars = [];
     new_stmts = [];
-    pre_stmts = [] }
+    pre_stmts = [];
+    post_stmts = []
+}
 
 let empty_mpz_tbl =
   { new_exps = Term.Map.empty;
@@ -193,7 +196,9 @@ let do_new_var ~loc init ?(scope=Local_block) ?(name="") env t ty mk_stmts =
   let new_block = 
     { new_block_vars = new_block_vars; 
       new_stmts = new_stmts;
-      pre_stmts = local_block.pre_stmts } 
+      pre_stmts = local_block.pre_stmts;
+      post_stmts = local_block.post_stmts
+  }
   in
   v,
   e, 
@@ -324,11 +329,17 @@ let add_assert env stmt annot = match current_kf env with
       (fun () -> Annotations.add_assert emitter ~kf stmt annot) 
       env.visitor#get_filling_actions
 
-let add_stmt ?(init=false) ?before env stmt =
-  Extlib.may (fun old -> E_acsl_label.move env.visitor ~old stmt) before;
+let add_stmt ?(post=false) ?(init=false) ?before env stmt =
+  if not post then
+    Extlib.may (fun old -> E_acsl_label.move env.visitor ~old stmt) before;
   let local_env, tl = top init env in
   let block = local_env.block_info in
-  let block = { block with new_stmts = stmt :: block.new_stmts } in
+  let block =
+    if post then
+      { block with post_stmts = stmt :: block.post_stmts }
+    else
+      { block with new_stmts = stmt :: block.new_stmts }
+  in
   let local_env = { local_env with block_info = block } in
   { env with
     init_env = if init then local_env else env.init_env;
@@ -361,8 +372,9 @@ let transfer ~from env = match from.env_stack, env.env_stack with
     ->
     let new_blk = 
       { new_block_vars = from_blk.new_block_vars @ env_blk.new_block_vars;
-	new_stmts = from_blk.new_stmts @ env_blk.new_stmts;
-	pre_stmts = from_blk.pre_stmts @ env_blk.pre_stmts }
+        new_stmts = from_blk.new_stmts @ env_blk.new_stmts;
+        pre_stmts = from_blk.pre_stmts @ env_blk.pre_stmts;
+        post_stmts = from_blk.post_stmts @ env_blk.post_stmts }
     in
     { env with env_stack = { local with block_info = new_blk } :: tl }
   | _, _ ->
@@ -438,6 +450,8 @@ let pop_and_get ?(split=false) env stmt ~global_clear where =
   let final_blk = Cil.flatten_transient_sub_blocks final_blk in
   (* remove the non-scoping mark of the outermost block *)
   let final_blk = Cil.block_of_transient final_blk in
+  (* add post-block statements *)
+  final_blk.bstmts <- final_blk.bstmts @ block.post_stmts;
   final_blk, { env with env_stack = tl }
 
 let get_generated_variables env = List.rev env.new_global_vars

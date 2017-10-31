@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/threat_if.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -10,7 +9,7 @@
   i ∈ {0}
   X ∈ {-992}
 tests/value/threat_if.i:14:[value] warning: out of bounds write. assert \valid(p);
-[value] Called Frama_C_show_each({-126})
+tests/value/threat_if.i:18:[value] Frama_C_show_each: {-126}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

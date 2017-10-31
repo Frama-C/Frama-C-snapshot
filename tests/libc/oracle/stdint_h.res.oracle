@@ -1,0 +1,15 @@
+[kernel] Parsing tests/libc/stdint_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+tests/libc/stdint_h.c:7:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  min ∈ {-9223372036854775808}
+  max ∈ {9223372036854775807}
+  umax ∈ {18446744073709551615}
+  __retres ∈ {0}

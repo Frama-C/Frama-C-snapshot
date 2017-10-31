@@ -1,27 +1,26 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/libc/stdlib_h.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
-  __fc_random_counter ∈ {0}
+  __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
-  __fc_mblen_state ∈ {0}
-  __fc_mbtowc_state ∈ {0}
-  __fc_wctomb_state ∈ {0}
+  __fc_mblen_state ∈ [--..--]
+  __fc_mbtowc_state ∈ [--..--]
+  __fc_wctomb_state ∈ [--..--]
   nondet ∈ [--..--]
 [value] computing for function strtol <- main.
         Called from tests/libc/stdlib_h.c:15.
 [value] using specification for function strtol
-share/libc/stdlib.h:151:[value] function strtol: precondition got status valid.
 share/libc/stdlib.h:152:[value] function strtol: precondition got status valid.
 share/libc/stdlib.h:153:[value] function strtol: precondition got status valid.
-share/libc/stdlib.h:161:[value] function strtol, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:154:[value] function strtol: precondition got status valid.
+share/libc/stdlib.h:162:[value] function strtol, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtol
 [value] computing for function strtol <- main.
         Called from tests/libc/stdlib_h.c:16.
-share/libc/stdlib.h:151:[value] warning: function strtol: precondition got status unknown.
+share/libc/stdlib.h:152:[value] warning: function strtol: precondition got status unknown.
 [value] Done for function strtol
 [value] computing for function strtol <- main.
         Called from tests/libc/stdlib_h.c:17.
@@ -32,14 +31,14 @@ share/libc/stdlib.h:151:[value] warning: function strtol: precondition got statu
 [value] computing for function strtoll <- main.
         Called from tests/libc/stdlib_h.c:22.
 [value] using specification for function strtoll
-share/libc/stdlib.h:176:[value] function strtoll: precondition got status valid.
 share/libc/stdlib.h:177:[value] function strtoll: precondition got status valid.
 share/libc/stdlib.h:178:[value] function strtoll: precondition got status valid.
-share/libc/stdlib.h:186:[value] function strtoll, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:179:[value] function strtoll: precondition got status valid.
+share/libc/stdlib.h:187:[value] function strtoll, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtoll
 [value] computing for function strtoll <- main.
         Called from tests/libc/stdlib_h.c:23.
-share/libc/stdlib.h:176:[value] warning: function strtoll: precondition got status unknown.
+share/libc/stdlib.h:177:[value] warning: function strtoll: precondition got status unknown.
 [value] Done for function strtoll
 [value] computing for function strtoll <- main.
         Called from tests/libc/stdlib_h.c:24.
@@ -47,14 +46,14 @@ share/libc/stdlib.h:176:[value] warning: function strtoll: precondition got stat
 [value] computing for function strtoul <- main.
         Called from tests/libc/stdlib_h.c:28.
 [value] using specification for function strtoul
-share/libc/stdlib.h:201:[value] function strtoul: precondition got status valid.
 share/libc/stdlib.h:202:[value] function strtoul: precondition got status valid.
 share/libc/stdlib.h:203:[value] function strtoul: precondition got status valid.
-share/libc/stdlib.h:211:[value] function strtoul, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:204:[value] function strtoul: precondition got status valid.
+share/libc/stdlib.h:212:[value] function strtoul, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtoul
 [value] computing for function strtoul <- main.
         Called from tests/libc/stdlib_h.c:29.
-share/libc/stdlib.h:201:[value] warning: function strtoul: precondition got status unknown.
+share/libc/stdlib.h:202:[value] warning: function strtoul: precondition got status unknown.
 [value] Done for function strtoul
 [value] computing for function strtoul <- main.
         Called from tests/libc/stdlib_h.c:30.
@@ -62,14 +61,14 @@ share/libc/stdlib.h:201:[value] warning: function strtoul: precondition got stat
 [value] computing for function strtoull <- main.
         Called from tests/libc/stdlib_h.c:34.
 [value] using specification for function strtoull
-share/libc/stdlib.h:226:[value] function strtoull: precondition got status valid.
 share/libc/stdlib.h:227:[value] function strtoull: precondition got status valid.
 share/libc/stdlib.h:228:[value] function strtoull: precondition got status valid.
-share/libc/stdlib.h:236:[value] function strtoull, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:229:[value] function strtoull: precondition got status valid.
+share/libc/stdlib.h:237:[value] function strtoull, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtoull
 [value] computing for function strtoull <- main.
         Called from tests/libc/stdlib_h.c:35.
-share/libc/stdlib.h:226:[value] warning: function strtoull: precondition got status unknown.
+share/libc/stdlib.h:227:[value] warning: function strtoull: precondition got status unknown.
 [value] Done for function strtoull
 [value] computing for function strtoull <- main.
         Called from tests/libc/stdlib_h.c:36.
@@ -77,13 +76,13 @@ share/libc/stdlib.h:226:[value] warning: function strtoull: precondition got sta
 [value] computing for function strtod <- main.
         Called from tests/libc/stdlib_h.c:41.
 [value] using specification for function strtod
-share/libc/stdlib.h:85:[value] function strtod: precondition got status valid.
 share/libc/stdlib.h:86:[value] function strtod: precondition got status valid.
-share/libc/stdlib.h:94:[value] function strtod, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:87:[value] function strtod: precondition got status valid.
+share/libc/stdlib.h:95:[value] function strtod, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtod
 [value] computing for function strtod <- main.
         Called from tests/libc/stdlib_h.c:42.
-share/libc/stdlib.h:85:[value] warning: function strtod: precondition got status unknown.
+share/libc/stdlib.h:86:[value] warning: function strtod: precondition got status unknown.
 [value] Done for function strtod
 [value] computing for function strtod <- main.
         Called from tests/libc/stdlib_h.c:43.
@@ -91,13 +90,13 @@ share/libc/stdlib.h:85:[value] warning: function strtod: precondition got status
 [value] computing for function strtold <- main.
         Called from tests/libc/stdlib_h.c:47.
 [value] using specification for function strtold
-share/libc/stdlib.h:128:[value] function strtold: precondition got status valid.
 share/libc/stdlib.h:129:[value] function strtold: precondition got status valid.
-share/libc/stdlib.h:137:[value] function strtold, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:130:[value] function strtold: precondition got status valid.
+share/libc/stdlib.h:138:[value] function strtold, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtold
 [value] computing for function strtold <- main.
         Called from tests/libc/stdlib_h.c:48.
-share/libc/stdlib.h:128:[value] warning: function strtold: precondition got status unknown.
+share/libc/stdlib.h:129:[value] warning: function strtold: precondition got status unknown.
 [value] Done for function strtold
 [value] computing for function strtold <- main.
         Called from tests/libc/stdlib_h.c:49.
@@ -105,13 +104,13 @@ share/libc/stdlib.h:128:[value] warning: function strtold: precondition got stat
 [value] computing for function strtof <- main.
         Called from tests/libc/stdlib_h.c:53.
 [value] using specification for function strtof
-share/libc/stdlib.h:106:[value] function strtof: precondition got status valid.
 share/libc/stdlib.h:107:[value] function strtof: precondition got status valid.
-share/libc/stdlib.h:115:[value] function strtof, behavior nonnull_endptr: precondition got status valid.
+share/libc/stdlib.h:108:[value] function strtof: precondition got status valid.
+share/libc/stdlib.h:116:[value] function strtof, behavior nonnull_endptr: precondition got status valid.
 [value] Done for function strtof
 [value] computing for function strtof <- main.
         Called from tests/libc/stdlib_h.c:54.
-share/libc/stdlib.h:106:[value] warning: function strtof: precondition got status unknown.
+share/libc/stdlib.h:107:[value] warning: function strtof: precondition got status unknown.
 [value] Done for function strtof
 [value] computing for function strtof <- main.
         Called from tests/libc/stdlib_h.c:55.

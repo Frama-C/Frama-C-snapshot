@@ -1,0 +1,5 @@
+[kernel] Parsing tests/syntax/composite-tags.i (no preprocessing)
+tests/syntax/composite-tags.i:5:[kernel] user error: Declaration of f does not match previous declaration from tests/syntax/composite-tags.i:4 (structs with different tags).
+tests/syntax/composite-tags.i:11:[kernel] user error: Declaration of g does not match previous declaration from tests/syntax/composite-tags.i:10 (unions with different tags).
+[kernel] user error: stopping on file "tests/syntax/composite-tags.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

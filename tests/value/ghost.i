@@ -26,4 +26,4 @@ int main () {
 
 /* ICI avant H */
 int H;
-/* ICI après H */
+/* ICI aprÃ¨s H */

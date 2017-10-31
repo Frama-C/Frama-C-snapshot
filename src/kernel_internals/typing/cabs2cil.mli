@@ -219,19 +219,6 @@ val empty_local_env: local_env
  *)
 val ghost_local_env: bool -> local_env
 
-(* [VP] Jessie plug-in needs this function to be exported
-   for semi-good reasons. *)
-val blockInitializer :
-  local_env ->
-  Cil_types.varinfo -> Cabs.init_expression ->
-  Cil_types.block * Cil_types.init * Cil_types.typ
-
-(** Returns a block of statements equivalent to the initialization [init]
-    applied to lvalue [lval] of type [typ]. *)
-val blockInit:
-  ghost:bool ->
-  Cil_types.lval -> Cil_types.init -> Cil_types.typ -> Cil_types.block
-
 (** Applies [mkAddrOf] after marking variable whose address is taken. *)
 val mkAddrOfAndMark : Cil_types.location -> Cil_types.lval -> Cil_types.exp
 
@@ -258,14 +245,6 @@ val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
     @since Oxygen-20120901
 *)
 val allow_return_collapse: tlv:Cil_types.typ -> tf:Cil_types.typ -> bool
-
-val compatibleTypes: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
-(** Check that the two given types are compatible (C99, 6.2.7), and
-    return their composite type. Raise [Failure] with an explanation
-    if the two types are not compatible
-
-    @since Oxygen-20120901
-*)
 
 val areCompatibleTypes: Cil_types.typ -> Cil_types.typ -> bool
 (** Check that the two given types are compatible (C99, 6.2.7)

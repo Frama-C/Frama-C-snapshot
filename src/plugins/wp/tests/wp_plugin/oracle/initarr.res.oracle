@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/initarr.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -16,17 +15,17 @@ Let a_3 = A[i].
 Assume {
   Type: is_sint32(i).
   (* Initializer *)
-  Init: (a_2.F1_f) = global(G_a_67).
+  Init: (a_2.F1_f) = global(G_a_18).
   (* Initializer *)
-  Init: (a_2.F1_g) = global(G_b_68).
+  Init: (a_2.F1_g) = global(G_b_19).
   (* Initializer *)
-  Init: (a_1.F1_f) = global(G_c_69).
+  Init: (a_1.F1_f) = global(G_c_20).
   (* Initializer *)
-  Init: (a_1.F1_g) = global(G_d_70).
+  Init: (a_1.F1_g) = global(G_d_21).
   (* Initializer *)
-  Init: (a.F1_f) = global(G_e_71).
+  Init: (a.F1_f) = global(G_e_22).
   (* Initializer *)
-  Init: (a.F1_g) = global(G_f_72).
+  Init: (a.F1_g) = global(G_f_23).
   (* Pre-condition *)
   Have: (0 <= i) /\ (i <= 2).
 }
@@ -35,9 +34,9 @@ Prove: (a_3.F1_g) != (a_3.F1_f).
 ------------------------------------------------------------
 
 Goal Post-condition 'ALT' in 'job':
-Let a = global(G_e_71).
-Let a_1 = global(G_c_69).
-Let a_2 = global(G_a_67).
+Let a = global(G_e_22).
+Let a_1 = global(G_c_20).
+Let a_2 = global(G_a_18).
 Let a_3 = A[i].F1_f.
 Assume {
   Type: is_sint32(i).

@@ -344,6 +344,52 @@ let numeric_coerce ltyp t =
         | _ -> coerce t)
     | _ -> coerce t
 
+(* Don't forget to keep is_zero_comparable
+   and scalar_term_to_predicate in sync.
+*)
+
+let is_zero_comparable t =
+  match unroll_type t.term_type with
+    | Ctype (TInt _ | TFloat _ | TPtr _ | TArray _ | TFun _) -> true
+    | Ctype _ -> false
+    | Linteger | Lreal -> true
+    | Ltype ({lt_name},[]) -> lt_name = Utf8_logic.boolean
+    | Ltype _ -> false
+    | Lvar _ | Larrow _ -> false
+
+let scalar_term_to_predicate t =
+  let loc = t.term_loc in
+  let conversion zero = prel ~loc (Cil_types.Rneq, t, zero) in
+  let arith_conversion () = conversion (Cil.lzero ~loc ()) in
+  let ptr_conversion () = conversion (Logic_const.term ~loc Tnull t.term_type)
+  in
+  match unroll_type t.term_type with
+  | Ctype (TInt _) -> arith_conversion ()
+  | Ctype (TFloat _) ->
+      conversion
+        (Logic_const.treal_zero ~loc ~ltyp:t.term_type ())
+  | Ctype (TPtr _) -> ptr_conversion ()
+  | Ctype (TArray _) -> ptr_conversion ()
+  (* Could be transformed to \true: an array is never \null *)
+  | Ctype (TFun _) -> ptr_conversion ()
+  (* decay as pointer *)
+  | Linteger -> arith_conversion ()
+  | Lreal -> conversion (Logic_const.treal_zero ~loc ())
+  | Ltype ({lt_name = name},[]) when name = Utf8_logic.boolean ->
+    let ctrue = Logic_env.Logic_ctor_info.find "\\true" in
+    prel ~loc
+      (Cil_types.Req,t,
+       { term_node = TDataCons(ctrue,[]);
+         term_loc = loc;
+         term_type = Ltype(ctrue.ctor_type,[]);
+         term_name = [];
+       })
+  | Ltype _ | Lvar _ | Larrow _
+  | Ctype (TVoid _ | TNamed _ | TComp _ | TEnum _ | TBuiltin_va_list _)
+    -> Kernel.fatal
+         "Cannot convert to predicate a term of type %a"
+         Cil_printer.pp_logic_type t.term_type
+
 let rec expr_to_term ~cast e =
   let e_typ = unrollType (Cil.typeOf e) in
   let loc = e.eloc in
@@ -426,6 +472,26 @@ and offset_to_term_offset ~cast:cast = function
     TIndex (expr_to_term_coerce ~cast e,offset_to_term_offset ~cast off)
   | Field (fi,off) -> TField(fi,offset_to_term_offset ~cast off)
 
+and expr_to_predicate ~cast e =
+  let open Cil_types in
+  match e.enode with
+  | BinOp ((Lt | Gt | Le | Ge | Eq | Ne as op), l, r, _) ->
+    let tl = expr_to_term ~cast l in
+    let tr = expr_to_term ~cast r in
+    let rel = match op with
+      | Lt -> Rlt | Gt -> Rgt | Le -> Rle | Ge -> Rge | Eq -> Req | Ne -> Rneq
+      | _ -> assert false
+    in
+    let pred = Prel (rel, tl, tr) in
+    Logic_const.new_predicate (Logic_const.unamed ~loc:e.eloc pred)
+  | _ ->
+    let t = expr_to_term ~cast e in
+    if is_zero_comparable t then
+      Logic_const.new_predicate (scalar_term_to_predicate t)
+    else
+      Kernel.fatal
+        "Cannot convert into predicate the C expression %a"
+        Cil_printer.pp_exp e
 
 let array_with_range arr size =
   let loc = arr.eloc in
@@ -521,25 +587,9 @@ let rec add_attribute_glob_annot a g =
 let is_same_list f l1 l2 =
   try List.for_all2 f l1 l2 with Invalid_argument _ -> false
 
-(* [VP 2011-04-19] StmtLabel case is a bit restricted, but it's not really 
-   possible to do any better, and this function should not be called in 
-   contexts where it matters. *)
-let is_same_logic_label l1 l2 =
-  match l1, l2 with
-    StmtLabel s1, StmtLabel s2 -> !s1 == !s2
-  | StmtLabel _, LogicLabel _
-  | LogicLabel _, StmtLabel _ -> false
-    (* What is important here is the name of the logic label, not 
-       the hypothetical statement it is referring to. *)
-  | LogicLabel (_, l1), LogicLabel (_, l2)  -> l1 = l2
+let is_same_logic_label l1 l2 = Cil_datatype.Logic_label.equal l1 l2
 
-(* same remark as above *)
-let compare_logic_label l1 l2 =
-  match l1, l2 with
-  | StmtLabel s1, StmtLabel s2 -> Cil_datatype.Stmt.compare !s1 !s2
-  | StmtLabel _, LogicLabel _ -> 1
-  | LogicLabel _, StmtLabel _ -> -1
-  | LogicLabel (_,l1), LogicLabel(_,l2) -> String.compare l1 l2
+let compare_logic_label l1 l2 = Cil_datatype.Logic_label.compare l1 l2
 
 let is_same_opt f x1 x2 =
   match x1,x2 with
@@ -740,7 +790,7 @@ let rec is_same_term t1 t2 =
     | Tapp(f1,labels1, args1), Tapp(f2, labels2, args2) ->
       is_same_logic_signature f1 f2
       && List.for_all2
-        (fun (x,y) (t,z) -> is_same_logic_label x t && is_same_logic_label y z) 
+        is_same_logic_label
         labels1 labels2
       && List.for_all2 is_same_term args1 args2
     | Tif(c1,t1,e1), Tif(c2,t2,e2) ->
@@ -835,9 +885,7 @@ and is_same_predicate_node p1 p2 =
     | Papp(i1,labels1,args1), Papp(i2,labels2,args2) ->
         is_same_logic_signature i1 i2 &&
         List.for_all2
-	  (fun (x,y) (z,t) ->
-	    is_same_logic_label x z &&
-	      is_same_logic_label y t)
+	  is_same_logic_label
 	  labels1
 	  labels2
 	&&
@@ -918,7 +966,7 @@ let is_same_allocation a1 a2 =
 	is_same_list is_same_identified_term a1 a2
   | (FreeAllocAny | FreeAlloc _), _ -> false
 
-let is_same_variant (v1,o1 : _ Cil_types.variant) (v2,o2: _ Cil_types.variant) =
+let is_same_variant (v1,o1 : Cil_types.variant) (v2,o2: Cil_types.variant) =
   is_same_term v1 v2 &&
     (match o1, o2 with None, None -> true | None, _ | _, None -> false
        | Some o1, Some o2 -> o1 = o2)
@@ -1246,10 +1294,11 @@ and is_same_lexpr l1 l2 =
       | PLset _ | PLempty
     ),_ -> false
 
-let hash_label l = 
+let hash_label l =
   match l with
-      StmtLabel _ -> 0 (* We can't rely on sid at this point. *)
-    | LogicLabel (_,l) -> 19 + Hashtbl.hash l
+    StmtLabel _ -> 0 (* We can't rely on sid at this point. *)
+  | BuiltinLabel l -> 19 + Hashtbl.hash l
+  | FormalLabel s -> 23 + Hashtbl.hash s
 
 exception StopRecursion of int
 
@@ -1277,9 +1326,9 @@ let rec hash_term (acc,depth,tot) t =
       | TStartOf lv -> hash_term_lval (acc+209,depth-1,tot-1) lv
       | Tapp (li,labs,apps) ->
         let hash1 = acc + 228 + Hashtbl.hash li.l_var_info.lv_name in
-        let hash_lb (acc,tot) (_,lb) =
+        let hash_lb (acc,tot) l =
           if tot = 0 then raise (StopRecursion acc)
-          else (acc + hash_label lb,tot - 1)
+          else (acc + hash_label l,tot - 1)
         in
         let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
         let res = List.fold_left hash_lb (hash1,tot-1) labs in
@@ -1443,11 +1492,7 @@ let rec compare_term t1 t2 =
   | Tapp(f1,labels1, args1), Tapp(f2, labels2, args2) ->
     let res = compare_logic_signature f1 f2 in
     if res = 0 then
-      let compare_labels (x,y) (t,z) =
-        let res = compare_logic_label x t in
-        if res = 0 then compare_logic_label y z else res
-      in
-      let res = Extlib.list_compare compare_labels labels1 labels2 in
+      let res = Extlib.list_compare compare_logic_label labels1 labels2 in
       if res = 0 then Extlib.list_compare compare_term args1 args2 else res
     else res
   | Tapp _, _ -> 1
@@ -1620,11 +1665,7 @@ and compare_predicate_node p1 p2 =
   | Papp(i1,labels1,args1), Papp(i2,labels2,args2) ->
     let res = compare_logic_signature i1 i2 in
     if res = 0 then
-      let compare_labels (x,y) (z,t) =
-	let res = compare_logic_label x z in
-        if res = 0 then compare_logic_label y t else res
-      in
-      let res = Extlib.list_compare compare_labels labels1 labels2 in
+      let res = Extlib.list_compare compare_logic_label labels1 labels2 in
       if res = 0 then Extlib.list_compare compare_term args1 args2 else res
     else res
   | Papp _, _ -> 1

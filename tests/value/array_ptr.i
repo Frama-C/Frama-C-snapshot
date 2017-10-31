@@ -12,5 +12,5 @@ param_check l={1};
 
 int main() {
   int g = &l;
-  f(&g);
+  f((param_check **)&g);
 }

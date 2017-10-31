@@ -23,7 +23,6 @@
 (**************************************************************************)
 
 open Format
-open Cil_types
 open Pretty_utils
 open Logic_ptree
 

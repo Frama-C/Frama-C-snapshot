@@ -172,10 +172,6 @@ val make_formatter: ?flush:(unit -> unit) -> #GText.buffer -> Format.formatter
 (** Build a formatter that redirects its output to the given buffer.
     [flush] is called whenever the formatter is flushed. *)
 
-val channel_redirector:  Unix.file_descr -> (string -> bool) -> unit
-(** Redirects all strings written to the file descriptor
-    and call the given function on each. *)
-
 val log_redirector: ?flush:(unit->unit) -> (string -> unit) -> unit
 (** Redirects all strings written to the terminal and call the given function
     on each. *)
@@ -409,6 +405,12 @@ module MAKE_CUSTOM_LIST(A : sig type t end)
       title:string ->
       GTree.view_column
   end
+
+(** Copied from lablgtk [GToolbox.input_string]. See the lablgtk API for more
+    details. *)
+val input_string :
+    title:string ->
+    ?ok:string -> ?cancel:string -> ?text:string -> string -> string option
 
 (** Create a new window displaying a graph.
     @plugin development guide *)

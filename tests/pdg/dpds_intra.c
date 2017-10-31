@@ -108,7 +108,7 @@ int main (void) {
   int b = G;
   int res = 0;
   Tstr s = { 1, 2 };
-  int *p, *q;
+  int *p;
 
   a = b++ + s.a;
   b = 2*a;

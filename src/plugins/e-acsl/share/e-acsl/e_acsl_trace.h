@@ -25,9 +25,12 @@
  * \brief Interface for producing backtrace. Requires GLIBC.
 ***************************************************************************/
 
-#ifndef E_ACSL_TRACE
-#define E_ACSL_TRACE
+#ifndef E_ACSL_TRACE_H
+#define E_ACSL_TRACE_H
 
+#include <stddef.h>
+#include <limits.h>
+#include "e_acsl_printf.h"
 #include "e_acsl_shexec.h"
 
 extern void  *__libc_stack_end;
@@ -66,20 +69,20 @@ static int native_backtrace (void **array, int size) {
 }
 
 static void trace() {
-# ifdef __GLIBC__
 # ifdef __linux__
+
   int size = 24;
-  void **bb = native_malloc(sizeof(void*)*size);
+  void **bb = private_malloc(sizeof(void*)*size);
   native_backtrace(bb, size);
 
   char executable [PATH_MAX];
-  sprintf(executable, "/proc/%d/exe", getpid());
+  rtl_sprintf(executable, "/proc/%d/exe", getpid());
 
-  printf("/** Backtrace **************************/\n");
+  STDOUT("/** Backtrace **************************/\n");
   int counter = 0;
   while (*bb) {
-    char *addr = (char*)native_malloc(21);
-    sprintf(addr,"%p", *bb);
+    char *addr = (char*)private_malloc(21);
+    rtl_sprintf(addr,"%p", *bb);
     char *ar[] = { "addr2line", "-f", "-p", "-C", "-s", "-e",
       executable, addr, NULL};
     ipr_t *ipr = shexec(ar, NULL);
@@ -89,20 +92,19 @@ static void trace() {
       if (outs) {
         outs[strlen(outs)-1] = '\0';
         if (strlen(outs) && endswith(outs, "??:0") && endswith(outs, "??:?")) {
-          printf("%s%s\n", prefix, outs);
+          STDOUT("%s%s\n", prefix, outs);
         }
       } else {
         char *errs = (char*)ipr->stderrs;
         if (errs) {
-          printf("%s\n", errs);
+          STDOUT("%s\n", errs);
         }
       }
     }
     bb++;
     counter++;
   }
-  printf("/***************************************/\n");
+  STDOUT("/***************************************/\n");
 # endif /* __linux__ */
-# endif /* __GLIBC__ */
 }
 #endif

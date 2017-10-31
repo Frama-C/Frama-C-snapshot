@@ -23,65 +23,59 @@
 /* ISO C: 7.25 */
 #include "wchar.h"
 
-wchar_t* wmemcpy(wchar_t * region1, const wchar_t * region2, size_t n)
+wchar_t* wmemcpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
-  const wchar_t* first = (const wchar_t*)region2;
-  const wchar_t* last = ((const wchar_t*)region2) + n;
-  wchar_t* result = (wchar_t*)region1;
-  wchar_t* dest = result;
-  while (first != last)
-    *dest++ = *first++;
-  return result;
+  for (size_t i = 0; i < n; i++) {
+    dest[i] = src[i];
+  }
+  return dest;
 }
 
 wchar_t * wmemset(wchar_t *dest, wchar_t val, size_t len)
 {
-  wchar_t *ptr = dest;
-  while (len-- > 0)
-    *ptr++ = val;
+  for (size_t i = 0; i < len; i++) {
+    dest[i] = val;
+  }
   return dest;
 }
 
-
-wchar_t* wcscpy(wchar_t * s1, const wchar_t * s2)
+wchar_t* wcscpy(wchar_t *dest, const wchar_t *src)
 {
-  wchar_t *os1 = s1;
-
-  while (*s1++ = *s2++)
-    ;
-  return (os1);
+  size_t i;
+  for (i = 0; src[i] != L'\0'; i++)
+    dest[i] = src[i];
+  dest[i] = L'\0';
+  return dest;
 }
 
 size_t wcslen(const wchar_t * str)
 {
-  const wchar_t *s =str;
-  for (s = str; *s; ++s);
-  return(s - str);
+  size_t i;
+  for (i = 0; str[i] != L'\0'; i++);
+  return i;
 }
 
-wchar_t * wcsncpy(wchar_t * s1, const wchar_t * s2, size_t n)
+wchar_t * wcsncpy(wchar_t *dest, const wchar_t *src, size_t n)
 {
-  wchar_t *os1 = s1;
-
-  n++;
-  while ((--n != 0) && ((*s1++ = *s2++) != L'\0'))
-    ;
-  if (n != 0)
-    while (--n != 0)
-      *s1++ = L'\0';
-  return (os1);
+  size_t i;
+  for (i = 0; i < n; i++) {
+    dest[i] = src[i];
+    if (src[i] == L'\0') break;
+  }
+  for (; i < n; i++)
+    dest[i] = L'\0';
+  return dest;
 }
 
-wchar_t * wcscat(wchar_t * s1, const wchar_t * s2)
+wchar_t * wcscat(wchar_t *dest, const wchar_t *src)
 {
-  wchar_t *os1 = s1;
-
-  while (*s1++)
-    ;
-  --s1;
-  while (*s1++ = *s2++)
-    ;
-  return (os1);
+  size_t i;
+  size_t n = wcslen(dest);
+  for (i = 0; src[i] != L'\0'; i++) {
+    dest[n+i] = src[i];
+  }
+  dest[n+i] = L'\0';
+  return dest;
 }
 
 wchar_t* wcsncat(wchar_t *dest, const wchar_t *src, size_t n)

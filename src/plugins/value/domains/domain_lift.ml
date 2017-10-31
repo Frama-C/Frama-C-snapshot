@@ -46,6 +46,7 @@ module Make
   include (Domain : Abstract_domain.Lattice with type state = Domain.state)
 
   let structure = Domain.structure
+  let log_category = Domain.log_category
 
   type value = Convert.extended_value
   type location = Convert.extended_location
@@ -123,11 +124,6 @@ module Make
 
     module Internal_Transfer = Domain.Transfer (Internal_Valuation)
 
-    type state = Domain.state
-    type value = Convert.extended_value
-    type location = Convert.extended_location
-    type valuation = Valuation.t
-
     let update = Internal_Transfer.update
 
     let assign stmt lv expr value valuation state =
@@ -147,13 +143,14 @@ module Make
     let approximate_call stmt call state =
       Internal_Transfer.approximate_call stmt (lift_call call) state
 
+    let show_expr = Internal_Transfer.show_expr
   end
 
-  let compute_using_specification kinstr call spec state =
-    let call = lift_call call in
-    Domain.compute_using_specification kinstr call spec state
+  let logic_assign assigns location ~pre state =
+    Domain.logic_assign assigns (Convert.restrict_loc location) ~pre state
 
-  include (Domain : Abstract_domain.Logic with type state := t)
+  let evaluate_predicate = Domain.evaluate_predicate
+  let reduce_by_predicate = Domain.reduce_by_predicate
 
   let enter_scope = Domain.enter_scope
   let leave_scope = Domain.leave_scope
@@ -163,13 +160,12 @@ module Make
   let leave_loop = Domain.leave_loop
 
   let empty = Domain.empty
-  let initialize_var state lval loc value =
+  let introduce_globals = Domain.introduce_globals
+  let initialize_variable lval loc ~initialized init_value state =
     let loc = Convert.restrict_loc loc in
-    let value = value >>-: fun (v, b) -> Convert.restrict_val v, b in
-    Domain.initialize_var state lval loc value
+    Domain.initialize_variable lval loc ~initialized init_value state
 
-  let initialize_var_using_type = Domain.initialize_var_using_type
-  let global_state = Domain.global_state
+  let initialize_variable_using_type = Domain.initialize_variable_using_type
 
   let filter_by_bases = Domain.filter_by_bases
   let reuse = Domain.reuse

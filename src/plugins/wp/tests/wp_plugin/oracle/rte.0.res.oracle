@@ -1,5 +1,4 @@
 # frama-c -wp -wp-rte [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/rte.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -29,9 +28,9 @@ int job(int *p, int n)
 {
   int __retres;
   /*@ assert rte: mem_access: \valid(p); */
+  /*@ assert rte: mem_access: \valid_read(p); */
   /*@ assert rte: signed_overflow: -2147483648 <= *p + n; */
   /*@ assert rte: signed_overflow: *p + n <= 2147483647; */
-  /*@ assert rte: mem_access: \valid_read(p); */
   *p += n;
   /*@ assert rte: mem_access: \valid_read(p); */
   __retres = *p;

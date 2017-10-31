@@ -22,14 +22,14 @@
 
 #ifndef FC_NET_IF
 #define FC_NET_IF
-
 #include "../features.h"
-#include "sys/socket.h"
-
+__PUSH_FC_STDLIB
 __BEGIN_DECLS
 
+#include "sys/socket.h"
+
 struct if_nameidx {unsigned if_index; char *if_name;};
-#define IF_NAMESIZE 255
+#define IF_NAMESIZE 16
 extern unsigned              if_nametoindex(const char * name);
 extern char                 *if_indextoname(unsigned index, char *name);
 extern struct if_nameindex  *if_nameindex(void);
@@ -164,5 +164,6 @@ struct ifconf
 # define ifc_req	ifc_ifcu.ifcu_req	/* Array of structures.  */
 
 __END_DECLS
+__POP_FC_STDLIB
 
 #endif

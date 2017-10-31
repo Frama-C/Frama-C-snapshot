@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/pb.i (no preprocessing)
 tests/value/pb.i:2:[kernel] warning: Calling undeclared function f. Old style K&R code?
 [value] Analyzing a complete application starting at main

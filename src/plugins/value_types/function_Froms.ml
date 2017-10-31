@@ -221,10 +221,6 @@ module DepsOrUnassigned = struct
 
   include DatatypeDeps
 
-  let join_and_is_included d1 d2 =
-    let d12 = join d1 d2 in
-    (d12, equal d12 d2)
-
   let subst f d = match d with
     | DepsBottom -> DepsBottom
     | Unassigned -> Unassigned
@@ -447,7 +443,7 @@ module Memory = struct
       | Top -> Deps.top
       | Map m ->
         try f_map z (shape m)
-        with Zone.Error_Top -> Deps.top
+        with Abstract_interp.Error_Top -> Deps.top
 
   (** Auxiliary function that substitutes the indirect right-hand part of a
       dependency by a pre-existing From state. The returned result is a zone,
@@ -476,7 +472,7 @@ module Memory = struct
       | Top -> Zone.top
       | Map m ->
         try f_map z (shape m)
-        with Zone.Error_Top -> Zone.top
+        with Abstract_interp.Error_Top -> Zone.top
 
   let substitute call_site_froms deps =
     let open Deps in

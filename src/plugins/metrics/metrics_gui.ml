@@ -113,8 +113,10 @@ let coerce_panel_to_ui panel_box _main_ui = "Metrics", panel_box#coerce, None ;;
     The text is added to the combo box while the action is added to the
     association lists of possible actions.
 *)
-let register_metrics name display_function =
+let register_metrics ?(apply=false) name display_function =
   add_panel_action (name, display_function);
   let metrics_panel = get_panel () in
   GEdit.text_combo_add (Extlib.the metrics_panel.top) name;
+  if apply
+  then display_function (Extlib.the metrics_panel.bottom);
 ;;

@@ -600,14 +600,6 @@ AC_MSG_RESULT(Default preprocessor supported architecture-related options: $DEFA
 
 new_section "wished frama-c plug-ins"
 
-# Option -with-all-static
-#######################
-
-define([ALL_STATIC_HELP],
-       AC_HELP_STRING([--with-all-static],
-                      [link all plug-ins statically (default: no)]))
-AC_ARG_WITH(all-static,ALL_STATIC_HELP,IS_ALL_STATIC=$withval)
-
 # Option -with-no-plugin
 #######################
 
@@ -655,7 +647,7 @@ PLUGINS_FORCE_LIST=
 ###########
 
 check_plugin(callgraph, src/plugins/callgraph,
-             [support for callgraph plugin], yes, yes)
+             [support for callgraph plugin], yes)
 
 plugin_use_external(callgraph,dot)
 plugin_use(callgraph,gui)
@@ -665,14 +657,14 @@ plugin_use(callgraph,value_analysis)
 ######################
 
 check_plugin(semantic_constant_folding, src/plugins/constant_propagation,
-             [support for constant propagation plugin],yes,yes)
+             [support for constant propagation plugin],yes)
 
 plugin_require(semantic_constant_folding,value_analysis)
 
 # from
 ######
 
-check_plugin(from_analysis,src/plugins/from,[support for from analysis],yes,yes)
+check_plugin(from_analysis,src/plugins/from,[support for from analysis],yes)
 
 plugin_require(from_analysis,value_analysis)
 plugin_require(from_analysis,callgraph)
@@ -680,7 +672,7 @@ plugin_require(from_analysis,callgraph)
 # gui
 #####
 
-check_plugin(gui,src/plugins/gui,[support for gui],yes,no)
+check_plugin(gui,src/plugins/gui,[support for gui],yes)
 
 plugin_require_external(gui,lablgtk)
 plugin_require_external(gui,gnomecanvas)
@@ -690,7 +682,7 @@ plugin_use_external(gui,dot)
 # impact
 ########
 
-check_plugin(impact,src/plugins/impact,[support for impact plugin],yes,yes)
+check_plugin(impact,src/plugins/impact,[support for impact plugin],yes)
 
 plugin_use(impact,gui)
 plugin_use(impact,slicing)
@@ -701,7 +693,7 @@ plugin_require(impact,inout)
 # inout
 #######
 
-check_plugin(inout,src/plugins/inout,[support for inout analysis],yes,yes)
+check_plugin(inout,src/plugins/inout,[support for inout analysis],yes)
 plugin_require(inout,from_analysis)
 plugin_require(inout,value_analysis)
 plugin_require(inout,callgraph)
@@ -709,7 +701,7 @@ plugin_require(inout,callgraph)
 # metrics
 #########
 
-check_plugin(metrics,src/plugins/metrics,[support for metrics analysis],yes,yes)
+check_plugin(metrics,src/plugins/metrics,[support for metrics analysis],yes)
 plugin_use(metrics,value_analysis)
 plugin_use(metrics,gui)
 
@@ -717,14 +709,14 @@ plugin_use(metrics,gui)
 ############
 
 check_plugin(occurrence,src/plugins/occurrence,
-             [support for occurrence analysis],yes,yes)
+             [support for occurrence analysis],yes)
 plugin_use(occurrence,gui)
 plugin_require(occurrence,value_analysis)
 
 # pdg
 #####
 
-check_plugin(pdg,src/plugins/pdg,[support for pdg plugin],yes,yes,pdg_types)
+check_plugin(pdg,src/plugins/pdg,[support for pdg plugin],yes,pdg_types)
 plugin_require(pdg,from_analysis)
 plugin_require(pdg,value_analysis)
 plugin_require(pdg,callgraph)
@@ -733,18 +725,18 @@ plugin_require(pdg,callgraph)
 ################
 
 check_plugin(postdominators,src/plugins/postdominators,
-             [support for postdominators plugin],yes,yes)
+             [support for postdominators plugin],yes)
 
 # rte
 #####
 
 check_plugin(rtegen,src/plugins/rte,
-             [support for runtime error annotation],yes,yes)
+             [support for runtime error annotation],yes)
 
 # scope
 ############
 
-check_plugin(scope,src/plugins/scope,[support for scope plugin],yes,yes)
+check_plugin(scope,src/plugins/scope,[support for scope plugin],yes)
 plugin_require(scope,postdominators)
 plugin_require(scope,value_analysis)
 plugin_require(scope,from_analysis)
@@ -754,8 +746,7 @@ plugin_use(scope,gui)
 # slicing
 #########
 
-check_plugin(slicing,src/plugins/slicing,[support for slicing plugin],yes,yes,
-             src/slicing_types)
+check_plugin(slicing,src/plugins/slicing,[support for slicing plugin],yes)
 plugin_require(slicing,from_analysis)
 plugin_require(slicing,pdg)
 plugin_require(slicing,value_analysis)
@@ -766,14 +757,14 @@ plugin_use(slicing,gui)
 ############
 
 check_plugin(sparecode,src/plugins/sparecode,
-             [support for sparecode plugin],yes,yes)
+             [support for sparecode plugin],yes)
 plugin_require(sparecode,pdg)
 plugin_require(sparecode,value_analysis)
 
 # users
 #######
 
-check_plugin(users,src/plugins/users,[support for users analysis],yes,yes)
+check_plugin(users,src/plugins/users,[support for users analysis],yes)
 plugin_require(users,value_analysis)
 plugin_use(users,callgraph)
 
@@ -781,7 +772,7 @@ plugin_use(users,callgraph)
 #######
 
 check_plugin(value_analysis,src/plugins/value,
-             [support for value analysis],yes,yes)
+             [support for value analysis],yes)
 plugin_use(value_analysis,gui)
 plugin_use(value_analysis,scope)
 plugin_use(value_analysis,callgraph)
@@ -838,7 +829,7 @@ AC_FOREACH([__plugin],m4_esyscmd([ls src/plugins]),
                            )
                 m4_if(m4_sysval,[0],,
                       [ check_plugin(__plugin,plugin_dir,
-                         [support for __plugin plug-in],yes,yes)
+                         [support for __plugin plug-in],yes)
                       if test "$[ENABLE_]tovarname(__plugin)" != "no"; then
                          EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS plugin_dir";
                       fi])])],
@@ -965,7 +956,6 @@ AC_SUBST(LABLGTK_PATH)
 # Sadly AC_FOREACH is deprecated now...
 AC_FOREACH([p],PLUGINS_LIST,
         [AC_SUBST([ENABLE_]p)
-        AC_SUBST([DYNAMIC_]p)
         ])
 
 ################################################
@@ -987,24 +977,11 @@ new_section "summary: plug-ins available"
 for plugin in m4_flatten(PLUGINS_LIST); do
   n=NAME_$plugin
   e=ENABLE_$plugin
-  d=DYNAMIC_$plugin
-  s=STATIC_$plugin
   i=INFO_$plugin
   eval nv=\$$n
   eval ev=\$$e
-  eval dv=\$$d
-  eval sv=\$$s
   eval iv=\$$i
-  if test "$ev" = "no"; then
-    res=$ev;
-  elif test "$dv" = "yes"; then
-    res="$ev, dynamic";
-  elif test "$sv" = "yes"; then
-    res="$ev, static";
-  else
-    res=$ev;
-  fi
-  AC_MSG_NOTICE([$nv: $res$iv])
+  AC_MSG_NOTICE([$nv: $ev$iv])
 done
 
 if test "$EXTRA_EXTERNAL_PLUGINS" != ""; then

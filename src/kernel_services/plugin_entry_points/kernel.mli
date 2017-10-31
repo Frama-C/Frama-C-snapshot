@@ -95,6 +95,10 @@ module PrintLibc: Parameter_sig.Bool
 module PrintComments: Parameter_sig.Bool
   (** Behavior of option "-keep-comments" *)
 
+module PrintReturn : Parameter_sig.Bool
+  (** Behavior of option "-print-return"
+      @since Sulfur-20171101 *)
+
 (** Behavior of option "-ocode".
     @plugin development guide *)
 module CodeOutput : sig
@@ -197,9 +201,6 @@ module CppGnuLike: Parameter_sig.Bool
 module FramaCStdLib: Parameter_sig.Bool
   (** Behavior of option "-frama-c-stdlib" *)
 
-module CustomAnnot: Parameter_sig.String
-  (** Behavior of option "-custom-annot-char". *)
-
 module ReadAnnot: Parameter_sig.Bool
   (** Behavior of option "-read-annot" *)
 
@@ -281,9 +282,6 @@ module DoCollapseCallCast: Parameter_sig.Bool
       This is false by default.  Set to true to replicate the behavior
       of CIL 1.3.5 and earlier. *)
 
-module ForceRLArgEval: Parameter_sig.Bool
-  (** Behavior of option "-force-rl-arg-eval". *)
-
 (* ************************************************************************* *)
 (** {2 Analysis Behavior of options} *)
 (* ************************************************************************* *)
@@ -337,6 +335,9 @@ module SignedDowncast: Parameter_sig.Bool
 
 module UnsignedDowncast: Parameter_sig.Bool
   (** Behavior of option "-warn-unsigned-downcast" *)
+
+module FiniteFloat: Parameter_sig.Bool
+  (** Behavior of option "-warn-not-finite-float" *)
 
 module AbsoluteValidRange: Parameter_sig.String
   (** Behavior of option "-absolute-valid-range" *)

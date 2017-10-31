@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/widen_hints.c (with preprocessing)
 tests/misc/widen_hints.c:65:[value] user error: could not parse widening hint: local_const
                     If it contains variables, they must be global const integers.

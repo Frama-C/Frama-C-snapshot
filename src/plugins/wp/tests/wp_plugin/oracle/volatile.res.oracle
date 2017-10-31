@@ -1,0 +1,27 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/volatile.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+tests/wp_plugin/volatile.i:10:[wp] warning: read-access to volatile l-value
+tests/wp_plugin/volatile.i:9:[wp] warning: write-access to volatile l-value
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Assertion 'KO' (file tests/wp_plugin/volatile.i, line 10):
+tests/wp_plugin/volatile.i:9: warning from wp:
+ - Warning: Skip assignment
+   Reason: write-access to volatile l-value
+tests/wp_plugin/volatile.i:10: warning from wp:
+ - Warning: Hide sub-term definition
+   Reason: read-access to volatile l-value
+Assume {
+  (* Then *)
+  Warning[wp]: read-access to volatile l-value (Hide sub-term definition).
+  Have: 0 != w.
+}
+Prove: false.
+
+------------------------------------------------------------

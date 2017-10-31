@@ -81,12 +81,11 @@ module Memory = struct
   include
     Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap)(Default_offsetmap)
 
-  let join_and_is_included t1 t2 =
-    let t12 = join t1 t2 in (t12, equal t12 t2)
-
   let widen kf stmt s1 s2 =
     let wh = Widen.getWidenHints kf stmt in
     widen wh s1 s2
+
+  let narrow x _y = `Value x
 end
 
 
@@ -103,7 +102,9 @@ module Internal  : Domain_builder.InputDomain
              include Abstract_domain.Lattice with type state := state
            end)
 
+  let name = "Bitwise domain"
   let structure = Abstract_domain.Void
+  let log_category = dkey
 
   let empty _ = Memory.empty_map
 
@@ -122,15 +123,11 @@ module Internal  : Domain_builder.InputDomain
                                                 and type origin = origin
                                                 and type loc = Precise_locs.precise_location)
     : Abstract_domain.Transfer
-      with type state = state
-       and type value = offsm_or_top
-       and type location = Precise_locs.precise_location
-       and type valuation = Valuation.t
+      with type state := state
+       and type value := offsm_or_top
+       and type location := Precise_locs.precise_location
+       and type valuation := Valuation.t
   = struct
-    type value = offsm_or_top
-    type state = Memory.t
-    type location = Precise_locs.precise_location
-    type valuation = Valuation.t
 
     let update _valuation st = st (* TODO? *)
 
@@ -176,7 +173,7 @@ module Internal  : Domain_builder.InputDomain
 
     let start_call _stmt _call valuation state =
       let state = update valuation state in
-      Compute (Continue state, true)
+      Compute state
 
     let approximate_call _stmt call state =
       let kf = call.kf in
@@ -186,26 +183,12 @@ module Internal  : Domain_builder.InputDomain
           top
         with Kernel_function.No_Statement ->
           let name = Kernel_function.get_name kf in
-          if  Ast_info.is_frama_c_builtin name then begin
-            if Ast_info.is_cea_dump_function name
-            then begin
-              let l = fst (Cil.CurrentLoc.get ()) in
-              Value_parameters.result ~dkey "DUMPING OFFSM STATE \
-                                             of file %s line %d@.%a"
-                (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
-                pretty state;
-            end;
-            state
-          end
-          else top
+          if Ast_info.is_frama_c_builtin name then state else top
       in
       `Value [post_state]
 
+    let show_expr _valuation _state _fmt _expr = ()
   end
-
-  (* TODO: this function is buggy! *)
-  let compute_using_specification _ _ _ state =
-    `Value [state]
 
   let extract_expr _oracle _state _exp =
     `Value (Offsm_value.Offsm.top, ()), Alarmset.all
@@ -234,7 +217,7 @@ module Internal  : Domain_builder.InputDomain
           in
           Precise_locs.fold aux_loc locs `Bottom >>-: fun v ->
           v, ()
-        with Int_Base.Error_Top -> `Value (Top, ())
+        with Abstract_interp.Error_Top -> `Value (Top, ())
     in
     o, Alarmset.all
 
@@ -255,18 +238,14 @@ module Internal  : Domain_builder.InputDomain
     state
 
   (* Initial state *)
-  let global_state () = None
-  let initialize_var_using_type state _ = state
-  let initialize_var state _ _ _ = state
+  let introduce_globals _ state = state
+  let initialize_variable_using_type _ _ state = state
+  let initialize_variable _ _ ~initialized:_ _ state = state
 
   (* Logic *)
-  type eval_env = state
-  let env_current_state state = `Value state
-  let env_annot ~pre:_ ~here () = here
-  let env_pre_f ~pre () = pre
-  let env_post_f ~pre:_ ~post ~result:_ () = post
-  let eval_predicate _ _ = Alarmset.Unknown
-  let reduce_by_predicate state _ _ = state
+  let logic_assign _assign _location ~pre:_ _state = top
+  let evaluate_predicate _ _ _ = Alarmset.Unknown
+  let reduce_by_predicate _ state _ _ = `Value state
 
   let storage = Value_parameters.BitwiseOffsmStorage.get
 

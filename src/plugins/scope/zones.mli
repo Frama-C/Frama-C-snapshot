@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*
-   This file is empty on purpose. Plugins register callbacks in src/kernel/db.ml.
-*)
+open Cil_types
+open Cil_datatype
+
+type t_zones = Locations.Zone.t Stmt.Hashtbl.t
+val build_zones :
+  kernel_function -> stmt -> lval -> Stmt.Hptset.t * t_zones
+val pretty_zones : Format.formatter -> t_zones -> unit
+val get_zones : t_zones ->  Cil_types.stmt -> Locations.Zone.t

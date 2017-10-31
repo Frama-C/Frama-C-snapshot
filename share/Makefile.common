@@ -33,7 +33,7 @@ include $(MAKECONFIG_DIR)/Makefile.config
 #######################
 
 # Frama-C kernel directories
-FRAMAC_SRC_DIRS= plugins/slicing_types plugins/pdg_types plugins/value_types \
+FRAMAC_SRC_DIRS= plugins/pdg_types plugins/value_types \
 	       libraries/stdlib libraries/utils \
 	       libraries/project libraries/datatype \
 	       kernel_internals/parsing \

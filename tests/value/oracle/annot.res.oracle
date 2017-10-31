@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/annot.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -12,15 +11,15 @@
   w ∈ {0}
 tests/value/annot.i:5:[value] warning: function main: precondition got status unknown.
 tests/value/annot.i:15:[value] assertion got status valid.
-[value] Called Frama_C_show_each_diff({1})
+tests/value/annot.i:16:[value] Frama_C_show_each_diff: {1}
 tests/value/annot.i:21:[value] assertion got status valid.
 tests/value/annot.i:28:[value] warning: assertion got status unknown.
 tests/value/annot.i:33:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each_elseif_A_B({0}, {2})
+tests/value/annot.i:34:[value] Frama_C_show_each_elseif_A_B: {0}, {2}
 tests/value/annot.i:38:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each_else_A_B({0; 1}, {0; 2})
+tests/value/annot.i:39:[value] Frama_C_show_each_else_A_B: {0; 1}, {0; 2}
 tests/value/annot.i:42:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each_mn([0..9], [0..9])
+tests/value/annot.i:43:[value] Frama_C_show_each_mn: [0..9], [0..9]
 tests/value/annot.i:46:[value] assertion got status valid.
 tests/value/annot.i:47:[value] assertion got status valid.
 tests/value/annot.i:51:[value] warning: assertion got status unknown.

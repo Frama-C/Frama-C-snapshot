@@ -206,7 +206,7 @@ int main10() {
   float p = 1;
   float A[10] = {1};
   float B[10] = {2};
-  return (int)main10_aux(&p, &A, &B, 10);
+  return (int)main10_aux(&p, A, B, 10);
 }
 
 void main11 () {

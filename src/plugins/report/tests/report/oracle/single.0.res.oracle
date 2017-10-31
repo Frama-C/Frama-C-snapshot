@@ -1,4 +1,3 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/report/single.i (no preprocessing)
 [kernel] SETTING STATUS TO unknown IN p
 [report] Computing properties status...
@@ -51,11 +50,8 @@
 --------------------------------------------------------------------------------
 [kernel] CHANGING DEFAULT PROJECT TO p2
 [report] Computing properties status...
-
 --------------------------------------------------------------------------------
---- Status Report Summary
---------------------------------------------------------------------------------
-     0 Total
+--- No status to report
 --------------------------------------------------------------------------------
 [kernel] SETTING STATUS TO false_and_reachable
 [report] Computing properties status...
@@ -91,11 +87,8 @@
 --------------------------------------------------------------------------------
 [kernel] SETTING A CORRECTNESS PARAMETER
 [report] Computing properties status...
-
 --------------------------------------------------------------------------------
---- Status Report Summary
---------------------------------------------------------------------------------
-     0 Total
+--- No status to report
 --------------------------------------------------------------------------------
 [kernel] SETTING STATUS TO unknown IN p
 [report] Computing properties status...

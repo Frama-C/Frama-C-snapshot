@@ -1,0 +1,4 @@
+[kernel] Parsing tests/cil/acsl-comments.i (no preprocessing)
+tests/cil/acsl-comments.i:1:[kernel] user error: lexical error, unexpected block-comment opening
+[kernel] user error: stopping on file "tests/cil/acsl-comments.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -307,8 +306,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bor_uchar':
-Assume { Type: is_uint8(a) /\ is_uint8(b). }
-Prove: lor(to_uint8(a), to_uint8(b)) = lor(a, b).
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -369,21 +367,12 @@ Prove: to_uint32(x) = x.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'cast':
-Let x = to_sint8(c).
-Assume {
-  Type: is_uint8(c) /\ is_uint32(i).
-  (* Assertion 'ok' *)
-  Have: to_uint32(i) = i.
-  (* Assertion 'ko' *)
-  Have: to_uint32(x) = x.
-}
-Prove: to_uint8(c) = c.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176):
-Assume { Type: is_uint32(i). }
-Prove: to_uint32(i) = i.
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -418,12 +407,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 186):
-Let x = to_sint8(c).
-Assume {
-  Type: is_uint8(c) /\ is_uint32(i).
-  (* Assertion 'ok' *)
-  Have: to_uint32(i) = i.
-}
+Let x = to_sint8(c). Assume { Type: is_uint8(c). }
 Prove: to_uint32(x) = x.
 
 ------------------------------------------------------------
@@ -440,9 +424,7 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'lshift_int':
-Let x = lsl(a, n).
-Assume { Type: is_sint32(a) /\ is_sint32(n) /\ is_sint32(x). }
-Prove: to_sint32(x) = x.
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

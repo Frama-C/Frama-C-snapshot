@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/spec/behavior_names.c (with preprocessing)
 tests/spec/behavior_names.c:7:[kernel] warning: reference to unknown behavior UNEXISTENT_BEHAVIOR. Ignoring logic specification of function f
 tests/spec/behavior_names.c:19:[kernel] warning: reference to unknown behavior UNEXISTENT_BEHAVIOR. Ignoring logic specification of function g

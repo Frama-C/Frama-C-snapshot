@@ -34,8 +34,6 @@ type lmap = private Bottom | Top | Map of map
 
 include Datatype.S_with_collections with type t = lmap
 
-include Lattice_type.With_Error_Top
-
 val pretty: Format.formatter -> t -> unit
 val pretty_debug: Format.formatter -> t -> unit
 val pretty_filter: Format.formatter -> t -> Zone.t -> unit

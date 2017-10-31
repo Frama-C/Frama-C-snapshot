@@ -1,5 +1,4 @@
 # frama-c -wp -warn-unsigned-overflow [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/cint.i (no preprocessing)
 tests/wp_plugin/cint.i:22:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...

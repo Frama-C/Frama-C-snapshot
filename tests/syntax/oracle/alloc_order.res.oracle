@@ -1,0 +1,4 @@
+[kernel] Parsing tests/syntax/alloc_order.i (no preprocessing)
+tests/syntax/alloc_order.i:3:[kernel] user error: wrong order of clause in contract: requires after post-condition, assigns or allocates.
+[kernel] user error: stopping on file "tests/syntax/alloc_order.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

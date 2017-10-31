@@ -30,6 +30,7 @@ open Lang
 open Definitions
 
 let dkey = Wp_parameters.register_category "prover"
+let dkey_cluster = Wp_parameters.register_category "cluster"
 
 let option_file = LogicBuiltins.create_option
     (fun ~driver_dir x -> Filename.concat driver_dir x)
@@ -208,9 +209,10 @@ class visitor fmt c =
         | Predicate(_,p) ->
             engine#declare_definition fmt
               d.d_lfun d.d_params Logic.Prop (F.e_prop p)
-        | Inductive _ ->
+        | Inductive ds ->
             engine#declare_signature fmt
-              d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop
+              d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop;
+            List.iter self#on_dlemma ds
       end
 
   end
@@ -226,7 +228,7 @@ let write_cluster c job =
         v#flush
       end
   in
-  if Wp_parameters.has_dkey "cluster" then
+  if Wp_parameters.has_dkey dkey_cluster then
     Log.print_on_output
       begin fun fmt ->
         Format.fprintf fmt "---------------------------------------------@\n" ;

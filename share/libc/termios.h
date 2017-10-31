@@ -29,7 +29,7 @@
 __PUSH_FC_STDLIB
 #include "__fc_define_pid_t.h"
 
-extern int Frama_C_entropy_source;
+extern volatile int Frama_C_entropy_source;
 
 #define IGNBRK	0000001
 #define BRKINT	0000002

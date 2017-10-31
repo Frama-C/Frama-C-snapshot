@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/precond.c (with preprocessing)
 tests/rte/precond.c:27:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [rte] annotating function f
@@ -32,12 +31,12 @@ int global = 15;
 int f(int x, int y, float z)
 {
   int __retres;
-  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(x + y) - (int)z; */
-  /*@ assert rte: signed_overflow: (int)(x + y) - (int)z ≤ 2147483647; */
   /*@ assert rte: signed_overflow: -2147483648 ≤ x + y; */
   /*@ assert rte: signed_overflow: x + y ≤ 2147483647; */
   /*@ assert rte: float_to_int: z < 2147483648; */
   /*@ assert rte: float_to_int: -2147483649 < z; */
+  /*@ assert rte: signed_overflow: -2147483648 ≤ (int)(x + y) - (int)z; */
+  /*@ assert rte: signed_overflow: (int)(x + y) - (int)z ≤ 2147483647; */
   __retres = (x + y) - (int)z;
   return __retres;
 }

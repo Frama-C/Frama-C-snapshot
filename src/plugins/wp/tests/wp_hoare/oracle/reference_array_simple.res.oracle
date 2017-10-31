@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Ref)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_hoare/reference_array_simple.i (no preprocessing)
 [wp] Running WP plugin...
 .................................................
@@ -13,7 +12,7 @@
    i
 ............
 ... Function call_f1
-  &tt
+   tt
    tmp
 ............
 ... Function f2

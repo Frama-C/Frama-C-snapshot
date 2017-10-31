@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_bts/bts986.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -10,6 +9,6 @@
 
 Goal Assertion 'A' (file tests/wp_bts/bts986.i, line 12):
 Assume { (* Heap *) Have: linked(Malloc_0). }
-Prove: !valid_rw(Malloc_0[L_x_70 <- 0], global(L_x_70), 1).
+Prove: !valid_rw(Malloc_0[L_x_21 <- 0], global(L_x_21), 1).
 
 ------------------------------------------------------------

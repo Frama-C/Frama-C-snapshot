@@ -23,10 +23,42 @@
 /*! ***********************************************************************
  * \file e_acsl_bittree_mmodel.c
  * \brief Implementation of E-ACSL public API using a memory model based
- * on Patricia Trie. See e_acsl_mmodel_api.h for details.
+ * on Patricia Trie. See e_acsl.h for details.
 ***************************************************************************/
 
-#include "e_acsl_bittree.h"
+# include "e_acsl_bittree_api.h"
+# include "e_acsl_bittree.h"
+
+/* Public API {{{ */
+/* Debug */
+#ifdef E_ACSL_DEBUG
+# define bt_print_block     export_alias(bt_print_block)
+# define bt_print_tree      export_alias(bt_print_tree)
+# define block_info         export_alias(block_info)
+# define store_block_debug  export_alias(store_block_debug)
+# define delete_block_debug export_alias(delete_block_debug)
+#endif
+/* }}} */
+
+#define E_ACSL_MMODEL_DESC "patricia trie"
+
+/* Assertions in debug mode */
+#define ALLOCATED(_ptr,_size, _base) \
+  ((allocated(_ptr, _size, _base) == NULL) ? 0 : 1)
+
+#ifdef E_ACSL_DEBUG
+#define DVALIDATE_ALLOCATED(_ptr, _size, _base) \
+  vassert(ALLOCATED(_ptr, _size, _base), \
+  "Not allocated [%a, %a + %lu]", (uintptr_t)_ptr, _size)
+
+#define DVALIDATE_WRITEABLE(_ptr, _size, _base) { \
+  DVALIDATE_ALLOCATED(_ptr, _size, _base); \
+  vassert(!readonly(_ptr), "Location %a is read-only", (uintptr_t)_ptr); \
+}
+#else
+#define DVALIDATE_ALLOCATED(_ptr, _size, _base)
+#define DVALIDATE_WRITEABLE(_ptr, _size, _base)
+#endif
 
 /**************************/
 /* SUPPORT            {{{ */
@@ -42,19 +74,9 @@ static const int nbr_bits_to_1[256] = {
 };
 
 /* given the size of the memory block (_size) return (or rather evaluate to)
- * size in bytes requred to represent its partial initialization */
+ * size in bytes required to represent its partial initialization */
 #define needed_bytes(_size) \
   ((_size % 8) == 0 ? (_size/8) : (_size/8 + 1))
-/* }}} */
-
-/**************************/
-/* HEAP USAGE         {{{ */
-/**************************/
-static size_t heap_allocation_size = 0;
-
-static size_t get_heap_allocation_size(void) {
-  return heap_allocation_size;
-}
 /* }}} */
 
 /**************************/
@@ -76,7 +98,7 @@ static struct current_location {
 /**************************/
 
 /* mark the size bytes of ptr as initialized */
-static void initialize (void * ptr, size_t size) {
+void initialize (void * ptr, size_t size) {
   bt_block * tmp;
   if(!ptr)
     return;
@@ -92,7 +114,7 @@ static void initialize (void * ptr, size_t size) {
   /* fully uninitialized */
   if(tmp->init_bytes == 0) {
     int nb = needed_bytes(tmp->size);
-    tmp->init_ptr = native_malloc(nb);
+    tmp->init_ptr = private_malloc(nb);
     memset(tmp->init_ptr, 0, nb);
   }
 
@@ -120,13 +142,13 @@ static void initialize (void * ptr, size_t size) {
 
   /* now fully initialized */
   if(tmp->init_bytes == tmp->size) {
-    native_free(tmp->init_ptr);
+    private_free(tmp->init_ptr);
     tmp->init_ptr = NULL;
   }
 }
 
 /* mark all bytes of ptr as initialized */
-static void full_init (void * ptr) {
+void full_init (void * ptr) {
   bt_block * tmp;
   if (ptr == NULL)
     return;
@@ -136,21 +158,21 @@ static void full_init (void * ptr) {
     return;
 
   if (tmp->init_ptr != NULL) {
-    native_free(tmp->init_ptr);
+    private_free(tmp->init_ptr);
     tmp->init_ptr = NULL;
   }
   tmp->init_bytes = tmp->size;
 }
 
 /* mark a block as read-only */
-static void mark_readonly(void * ptr) {
+void mark_readonly(void * ptr) {
   bt_block * tmp;
   if (ptr == NULL)
     return;
   tmp = bt_lookup(ptr);
   if (tmp == NULL)
     return;
-  tmp->is_readonly = true;
+  tmp->is_readonly = 1;
 }
 /* }}} */
 
@@ -158,29 +180,29 @@ static void mark_readonly(void * ptr) {
 /* PREDICATES        {{{  */
 /**************************/
 
-static int freeable(void* ptr) {
+int freeable(void* ptr) {
   bt_block * tmp;
   if(ptr == NULL)
-    return false;
+    return 0;
   tmp = bt_lookup(ptr);
   if(tmp == NULL)
-    return false;
-  return tmp->freeable;
+    return 0;
+  return tmp->is_freeable;
 }
 
 /* return whether the size bytes of ptr are initialized */
-static int initialized(void * ptr, size_t size) {
+int initialized(void * ptr, size_t size) {
   unsigned i;
   bt_block * tmp = bt_find(ptr);
   if(tmp == NULL)
-    return false;
+    return 0;
 
   /* fully uninitialized */
   if(tmp->init_bytes == 0)
-    return false;
+    return 0;
   /* fully initialized */
   if(tmp->init_bytes == tmp->size)
-    return true;
+    return 1;
 
   /* see implementation of function `initialize` for details */
   for(i = 0; i < size; i++) {
@@ -188,53 +210,67 @@ static int initialized(void * ptr, size_t size) {
     int byte = offset/8;
     int bit = offset%8;
     if (!checkbit(bit, tmp->init_ptr[byte]))
-      return false;
+      return 0;
   }
-  return true;
+  return 1;
 }
 
 /* return the length (in bytes) of the block containing ptr */
-static size_t block_length(void* ptr) {
-  bt_block * tmp = bt_find(ptr);
+size_t block_length(void* ptr) {
+  bt_block * blk = bt_find(ptr);
   /* Hard failure when un-allocated memory is used */
-  vassert(tmp != NULL, "\\block_length of unallocated memory", NULL);
-  return tmp->size;
+  vassert(blk != NULL, "\\block_length of unallocated memory", NULL);
+  return blk->size;
 }
 
-static int allocated(void* ptr, size_t size, void *ptr_base) {
+static bt_block* allocated(void* ptr, size_t size, void *ptr_base) {
   bt_block * blk = bt_find(ptr);
+  if (blk == NULL)
+    return NULL;
+#ifndef E_ACSL_WEAK_VALIDITY
   bt_block * blk_base = bt_find(ptr_base);
-  if (blk == NULL || blk_base == NULL || blk->ptr != blk_base->ptr)
-    return false;
-  return (blk->size - ((size_t)ptr - blk->ptr) >= size);
+  if (blk_base == NULL || blk->ptr != blk_base->ptr)
+    return NULL;
+#endif
+  return (blk->size - ((size_t)ptr - blk->ptr) >= size) ? blk : NULL;
+}
+
+/** \brief Return 1 if a given memory location is read-only and 0 otherwise */
+static int readonly (void *ptr) {
+  bt_block * blk = bt_find(ptr);
+  vassert(blk != NULL, "Readonly on unallocated memory", NULL);
+  return blk->is_readonly;
 }
 
 /* return whether the size bytes of ptr are readable/writable */
-static int valid(void* ptr, size_t size, void *ptr_base, void *addr_of_base) {
-  /* Many similarities with allocated (so far at least), but it is better
-   * to use this tandalone definition, otherwise the block needs to be looked
-   * up twice */
-  bt_block * blk = bt_find(ptr);
-  bt_block * blk_base = bt_find(ptr_base);
-  if (blk == NULL || blk_base == NULL || blk->ptr != blk_base->ptr)
-    return false;
-  return (blk->size - ((size_t)ptr - blk->ptr) >= size && !blk->is_readonly);
+int valid(void* ptr, size_t size, void *ptr_base, void *addrof_base) {
+  bt_block * blk = allocated(ptr, size, ptr_base);
+  return blk != NULL && !blk->is_readonly
+#ifdef E_ACSL_TEMPORAL
+    && temporal_valid(ptr_base, addrof_base)
+#endif
+  ;
 }
 
 /* return whether the size bytes of ptr are readable */
-static int valid_read(void* ptr, size_t size, void *ptr_base, void *addr_of_base) {
-  return allocated(ptr, size, ptr_base);
+int valid_read(void* ptr, size_t size, void *ptr_base, void *addrof_base) {
+  bt_block * blk = allocated(ptr, size, ptr_base);
+  return blk != NULL
+#ifdef E_ACSL_TEMPORAL
+    && temporal_valid(ptr_base, addrof_base)
+#endif
+  ;
 }
 
 /* return the base address of the block containing ptr */
-static void* base_addr(void* ptr) {
+void* base_addr(void* ptr) {
   bt_block * tmp = bt_find(ptr);
   vassert(tmp != NULL, "\\base_addr of unallocated memory", NULL);
   return (void*)tmp->ptr;
 }
 
 /* return the offset of `ptr` within its block */
-static int offset(void* ptr) {
+int offset(void* ptr) {
   bt_block * tmp = bt_find(ptr);
   vassert(tmp != NULL, "\\offset of unallocated memory", NULL);
   return ((uintptr_t)ptr - tmp->ptr);
@@ -248,7 +284,7 @@ static int offset(void* ptr) {
 /* STACK ALLOCATION {{{ */
 /* store the block of size bytes starting at ptr, the new block is returned.
  * Warning: the return type is implicitly (bt_block*). */
-static void* store_block(void* ptr, size_t size) {
+void* store_block(void* ptr, size_t size) {
 #ifdef E_ACSL_DEBUG
   if (ptr == NULL)
     vabort("Attempt to record NULL block");
@@ -257,40 +293,60 @@ static void* store_block(void* ptr, size_t size) {
     bt_block * exitsing_block = bt_find(ptr);
     if (exitsing_block) {
       vabort("\nRecording %a [%lu] at %s:%d failed."
-          " Overlapping block %a [%lu] found at %s:%d\n",
-          ptr, size, cloc.file, cloc.line, base_addr(check),
-          block_length(check), exitsing_block->file, exitsing_block->line);
+        " Overlapping block %a [%lu] found at %s:%d\n",
+        ptr, size, cloc.file, cloc.line, base_addr(check),
+        block_length(check), exitsing_block->file, exitsing_block->line);
     }
     check += size - 1;
     exitsing_block = bt_find(check);
     if (exitsing_block) {
       vabort("\nRecording %a [%lu] at %d failed."
-          " Overlapping block %a [%lu] found at %s:%d\n",
-          ptr, size, cloc.file, cloc.line, base_addr(check),
-          block_length(check), exitsing_block->file, exitsing_block->line);
+        " Overlapping block %a [%lu] found at %s:%d\n",
+        ptr, size, cloc.file, cloc.line, base_addr(check),
+        block_length(check), exitsing_block->file, exitsing_block->line);
     }
   }
 #endif
   bt_block * tmp = NULL;
   if (ptr) {
-    tmp = native_malloc(sizeof(bt_block));
+    tmp = private_malloc(sizeof(bt_block));
     tmp->ptr = (uintptr_t)ptr;
     tmp->size = size;
     tmp->init_ptr = NULL;
     tmp->init_bytes = 0;
-    tmp->is_readonly = false;
-    tmp->freeable = false;
+    tmp->is_readonly = 0;
+    tmp->is_freeable = 0;
     bt_insert(tmp);
 #ifdef E_ACSL_DEBUG
     tmp->line = 0;
     tmp->file = "undefined";
 #endif
+#ifdef E_ACSL_TEMPORAL
+    tmp->timestamp = NEW_TEMPORAL_TIMESTAMP();
+    tmp->temporal_shadow = (size >= sizeof(void*)) ?
+      private_malloc(size) : NULL;
+#endif
   }
   return tmp;
 }
 
+/* Track a heap block. This is a wrapper for all memory allocation functions
+  that create new bittree nodes. It applies to all memory allocating functions
+  but realloc that modifies nodes rather than create them */
+static void* store_freeable_block(void* ptr, size_t size, int init_bytes) {
+  bt_block *blk = NULL;
+  if (ptr) {
+    blk = store_block(ptr, size);
+    blk->is_freeable = 1;
+    update_heap_allocation(size);
+    if (init_bytes)
+      blk->init_bytes = size;
+  }
+  return blk;
+}
+
 /* remove the block starting at ptr */
-static void delete_block(void* ptr) {
+void delete_block(void* ptr) {
 #ifdef E_ACSL_DEBUG
   /* Make sure the recorded block is not NULL */
   if (!ptr)
@@ -305,13 +361,16 @@ static void delete_block(void* ptr) {
 #endif
     if (tmp) {
       bt_clean_block_init(tmp);
+#ifdef E_ACSL_TEMPORAL
+      private_free(tmp->temporal_shadow);
+#endif
       bt_remove(tmp);
-      native_free(tmp);
+      private_free(tmp);
     }
   }
 }
 
-static void* store_block_duplicate(void* ptr, size_t size) {
+void* store_block_duplicate(void* ptr, size_t size) {
   bt_block * tmp = NULL;
   if (ptr != NULL) {
     bt_block * tmp = bt_lookup(ptr);
@@ -332,39 +391,29 @@ static void* store_block_duplicate(void* ptr, size_t size) {
 
 /* HEAP ALLOCATION {{{ */
 /*! \brief Replacement for `malloc` with memory tracking */
-static void* bittree_malloc(size_t size) {
-  if(size == 0)
+void* malloc(size_t size) {
+  if (size == 0)
     return NULL;
 
-  void *res = native_malloc(size);
-  if (res) {
-    bt_block * new_block = store_block(res, size);
-    heap_allocation_size += size;
-    new_block->freeable = true;
-  }
+  void *res = public_malloc(size);
+  store_freeable_block(res, size, 0);
   return res;
 }
 
 /*! \brief Replacement for `calloc` with memory tracking */
-static void* bittree_calloc(size_t nbr_block, size_t size_block) {
+void* calloc(size_t nbr_block, size_t size_block) {
   /* FIXME: Need an integer overflow check here */
   size_t size = nbr_block * size_block;
   if (size == 0)
     return NULL;
 
-  void *res = native_calloc(nbr_block, size_block);
-  if (res) {
-    bt_block * new_block = store_block(res, size);
-    heap_allocation_size += size;
-    new_block->freeable = 1;
-    /* Mark allocated block as freeable and initialized */
-    new_block->init_bytes = size;
-  }
+  void *res = public_calloc(nbr_block, size_block);
+  store_freeable_block(res, size, 1);
   return res;
 }
 
 /*! \brief Replacement for `aligned_alloc` with memory tracking */
-static void *bittree_aligned_alloc(size_t alignment, size_t size) {
+void *aligned_alloc(size_t alignment, size_t size) {
   /* Check if:
    *  - size and alignment are greater than zero
    *  - alignment is a power of 2
@@ -372,17 +421,13 @@ static void *bittree_aligned_alloc(size_t alignment, size_t size) {
   if (!size || !alignment || !powof2(alignment) || (size%alignment))
     return NULL;
 
-  void *res = native_aligned_alloc(alignment, size);
-  if (res) {
-    bt_block * new_block = store_block(res, size);
-    new_block->freeable = 1;
-    heap_allocation_size += size;
-  }
+  void *res = public_aligned_alloc(alignment, size);
+  store_freeable_block(res, size, 0);
   return res;
 }
 
 /*! \brief Replacement for `posix_memalign` with memory tracking */
-static int bittree_posix_memalign(void **memptr, size_t alignment, size_t size) {
+int posix_memalign(void **memptr, size_t alignment, size_t size) {
  /* Check if:
    *  - size and alignment are greater than zero
    *  - alignment is a power of 2 and a multiple of sizeof(void*) */
@@ -390,20 +435,16 @@ static int bittree_posix_memalign(void **memptr, size_t alignment, size_t size) 
     return -1;
 
   /* Make sure that the first argument to posix memalign is indeed allocated */
-  vassert(allocated((void*)memptr, sizeof(void*), (void*)memptr),
-      "\\invalid memptr in posix_memalign", NULL);
+  DVALIDATE_WRITEABLE((void*)memptr, sizeof(void*), (void*)memptr);
 
-  int res = native_posix_memalign(memptr, alignment, size);
-  if (!res) {
-    bt_block * new_block = store_block(*memptr, size);
-    new_block->freeable = 1;
-    heap_allocation_size += size;
-  }
+  int res = public_posix_memalign(memptr, alignment, size);
+  if (!res)
+    store_freeable_block(*memptr, size, 0);
   return res;
 }
 
 /*! \brief Replacement for `realloc` with memory tracking */
-static void* bittree_realloc(void* ptr, size_t size) {
+void* realloc(void* ptr, size_t size) {
   bt_block * tmp;
   void * new_ptr;
   /* ptr is NULL - malloc */
@@ -416,10 +457,14 @@ static void* bittree_realloc(void* ptr, size_t size) {
   }
   tmp = bt_lookup(ptr);
   DASSERT(tmp != NULL);
-  new_ptr = native_realloc((void*)tmp->ptr, size);
-  if(new_ptr == NULL)
+  new_ptr = public_realloc((void*)tmp->ptr, size);
+  if (new_ptr == NULL)
     return NULL;
-  heap_allocation_size -= tmp->size;
+
+  /* update the heap allocation size to `size - tmp->size` while keeping
+     constant the number of allocated blocks */
+  update_heap_allocation(size);
+  update_heap_allocation(-tmp->size);
   /* realloc changes start address -- re-enter the element */
   if (tmp->ptr != (uintptr_t)new_ptr) {
     bt_remove(tmp);
@@ -434,14 +479,14 @@ static void* bittree_realloc(void* ptr, size_t size) {
     if (size <= tmp->size) {
       /* adjust new size, allocation not necessary */
       tmp->init_bytes = size;
-    /* realloc bigger larger block */
+    /* realloc larger block */
     } else {
       /* size of tmp->init_ptr in the new block */
       int nb = needed_bytes(size);
       /* number of bits that need to be set in tmp->init_ptr */
       int nb_old = needed_bytes(tmp->size);
       /* allocate memory to store partial initialization */
-      tmp->init_ptr = native_calloc(1, nb);
+      tmp->init_ptr = private_calloc(1, nb);
       /* carry out initialization of the old block */
       setbits(tmp->size, tmp->init_ptr);
     }
@@ -449,33 +494,38 @@ static void* bittree_realloc(void* ptr, size_t size) {
     int nb = needed_bytes(size);
     int nb_old = needed_bytes(tmp->size);
     int i;
-    tmp->init_ptr = native_realloc(tmp->init_ptr, nb);
+    /* increase container with init data */
+    tmp->init_ptr = private_realloc(tmp->init_ptr, nb);
     for (i = nb_old; i < nb; i++)
       tmp->init_ptr[i] = 0;
     tmp->init_bytes = 0;
     for (i = 0; i < nb; i++)
       tmp->init_bytes += nbr_bits_to_1[tmp->init_ptr[i]];
     if (tmp->init_bytes == size || tmp->init_bytes == 0) {
-      native_free(tmp->init_ptr);
+      private_free(tmp->init_ptr);
       tmp->init_ptr = NULL;
     }
   }
   tmp->size = size;
-  tmp->freeable = true;
-  heap_allocation_size += size;
+  tmp->is_freeable = 1;
   return (void*)tmp->ptr;
 }
 
 /*! \brief Replacement for `free` with memory tracking */
-static void bittree_free(void* ptr) {
-  if (!ptr)
+void free(void* ptr) {
+  if (ptr == NULL) {
+/* Fail if instructed to treat NULL input to free as invalid. */
+#ifdef E_ACSL_FREE_VALID_ADDRESS
+    vabort("NULL pointer in free\n");
+#endif
     return;
+  }
   bt_block * res = bt_lookup(ptr);
   if (!res) {
     vabort("Not a start of block (%a) in free\n", ptr);
   } else {
-    heap_allocation_size -= res->size;
-    native_free(ptr);
+    update_heap_allocation(-res->size);
+    public_free(ptr);
     bt_clean_block_init(res);
     bt_remove(res);
   }
@@ -488,29 +538,60 @@ static void bittree_free(void* ptr) {
 /******************************/
 
 /* erase the content of the abstract structure */
-static void memory_clean() {
+void memory_clean() {
   bt_clean();
+  report_heap_leaks();
 }
 
+/* POSIX-compliant array of character pointers to the environment strings. */
+extern char **environ;
+
 /* add `argv` to the memory model */
-static void init_argv(int argc, char **argv) {
+static void argv_alloca(int *argc_ref,  char *** argv_ref) {
+  /* Track a top-level containers */
+  store_block((void*)argc_ref, sizeof(int));
+  store_block((void*)argv_ref, sizeof(char**));
+  int argc = *argc_ref;
+  char** argv = *argv_ref;
+  /* Track argv */
+
+  size_t argvlen = (argc + 1)*sizeof(char*);
+  store_block(argv, argvlen);
+  initialize(argv, (argc + 1)*sizeof(char*));
+
+  while (*argv) {
+    size_t arglen = strlen(*argv) + 1;
+    store_block(*argv, arglen);
+    initialize(*argv, arglen);
+    argv++;
+  }
+
+#ifdef E_ACSL_TEMPORAL /* Fill temporal shadow */
   int i;
+  argv = *argv_ref;
+  temporal_store_nblock(argv_ref, *argv_ref);
+  for (i = 0; i < argc; i++)
+    temporal_store_nblock(argv + i, *(argv+i));
+#endif
 
-  store_block(argv, (argc+1)*sizeof(char*));
-  full_init(argv);
-
-  for (i = 0; i < argc; i++) {
-    store_block(argv[i], strlen(argv[i])+1);
-    full_init(argv[i]);
+  while (*environ) {
+    size_t envlen = strlen(*environ) + 1;
+    store_block(*environ, envlen);
+    initialize(*environ, envlen);
+    environ++;
   }
 }
 
-static void memory_init(int *argc_ref, char ***argv_ref, size_t ptr_size) {
-  identify_run();
+void memory_init(int *argc_ref, char ***argv_ref, size_t ptr_size) {
+  describe_run();
+  /* Mspace sizes here are not that relevant as there is no shadowing and
+     mspaces will grow automatically */
+  make_memory_spaces(MB_SZ(64), MB_SZ(64));
   arch_assert(ptr_size);
+  initialize_report_file(argc_ref, argv_ref);
   /* Tracking program arguments */
   if (argc_ref)
-    init_argv(*argc_ref, *argv_ref);
+    argv_alloca(argc_ref, argv_ref);
   /* Tracking safe locations */
   collect_safe_locations();
   int i;
@@ -518,9 +599,10 @@ static void memory_init(int *argc_ref, char ***argv_ref, size_t ptr_size) {
     void *addr = (void*)safe_locations[i].address;
     uintptr_t len = safe_locations[i].length;
     store_block(addr, len);
-    if (safe_locations[i].initialized)
+    if (safe_locations[i].is_initialized)
       initialize(addr, len);
   }
+  init_infinity_values();
 }
 /* }}} */
 
@@ -561,50 +643,42 @@ void delete_block_debug(char *file, int line, void* ptr) {
 void block_info(char *p) {
   bt_block * res = bt_find(p);
   if (res) {
-    printf(" << %a >> %a [%lu] => %lu \n",
+    DLOG(" << %a >> %a [%lu] => %lu \n",
       p, base_addr(p), offset(p), block_length(p));
   } else {
-    printf(" << %a >> not allocated\n", p);
+    DLOG(" << %a >> not allocated\n", p);
   }
 }
 #endif
 
-/* API BINDINGS {{{ */
-/* Heap allocation (native) */
-strong_alias(bittree_malloc,	malloc)
-strong_alias(bittree_calloc, calloc)
-strong_alias(bittree_realloc, realloc)
-strong_alias(bittree_free, free)
-strong_alias(bittree_free, cfree)
-strong_alias(bittree_posix_memalign, posix_memalign)
-strong_alias(bittree_aligned_alloc, aligned_alloc)
-/* Explicit tracking */
-public_alias(delete_block)
-public_alias(store_block)
-public_alias(store_block_duplicate)
-/* Predicates */
-public_alias(offset)
-public_alias(base_addr)
-public_alias(valid_read)
-public_alias(valid)
-public_alias(block_length)
-public_alias(initialized)
-public_alias(freeable)
-public_alias(mark_readonly)
-/* Block initialization */
-public_alias(initialize)
-public_alias(full_init)
-/* Memory state initialization */
-public_alias(memory_clean)
-public_alias(memory_init)
-/* Heap size */
-public_alias(get_heap_allocation_size)
-public_alias(heap_allocation_size)
-#ifdef E_ACSL_DEBUG /* Debug */
-public_alias(bt_print_block)
-public_alias(bt_print_tree)
-public_alias(block_info)
-public_alias(store_block_debug)
-public_alias(delete_block_debug)
+/* Local operations on temporal timestamps {{{ */
+/* Remaining functionality (shared between all models) is located in e_acsl_temporal.h */
+#ifdef E_ACSL_TEMPORAL
+static uint32_t origin_timestamp(void *ptr) {
+  bt_block * blk = bt_find(ptr);
+  return blk != NULL ? blk->timestamp : INVALID_TEMPORAL_TIMESTAMP;
+}
+
+static uintptr_t temporal_referent_shadow(void *ptr) {
+  bt_block * blk = bt_find(ptr);
+  vassert(blk != NULL,
+    "referent timestamp on unallocated memory address %a", (uintptr_t)ptr);
+  vassert(blk->temporal_shadow != NULL,
+    "no temporal shadow of block with base address", (uintptr_t)blk->ptr);
+  return (uintptr_t)blk->temporal_shadow + offset(ptr);
+}
+
+static uint32_t referent_timestamp(void *ptr) {
+  bt_block * blk = bt_find(ptr);
+  if (blk != NULL)
+    return *((uint32_t*)temporal_referent_shadow(ptr));
+  else
+    return INVALID_TEMPORAL_TIMESTAMP;
+}
+
+static void store_temporal_referent(void *ptr, uint32_t ref) {
+  uint32_t *shadow = (uint32_t*)temporal_referent_shadow(ptr);
+  *shadow = ref;
+}
 #endif
 /* }}} */

@@ -294,42 +294,45 @@ let collect_nonterminating_statements fd to_ignore nonterm_stacks =
     Hashtbl.replace nonterm_stacks stmt (cs :: prev_stack_list)
   in
   List.iter (fun stmt ->
-      let source = fst (Stmt.loc stmt) in
-      Self.debug ~source "processing stmt:@ %a" Printer.pp_stmt stmt;
-      match Db.Value.get_stmt_state_callstack ~after:false stmt with
-      | None -> () (* unreachable stmt *)
-      | Some before_table ->
-        Value_types.Callstack.Hashtbl.iter
-          (fun cs before_state ->
-             try
-               match Db.Value.get_stmt_state_callstack ~after:true stmt with
-               | None -> (* no after table => non-terminating statement *)
+      match stmt.skind with
+      | Block _ -> (* do not compute; already done for the block stmts *) ()
+      | _ ->
+        let source = fst (Stmt.loc stmt) in
+        Self.debug ~source "processing stmt:@ %a" Printer.pp_stmt stmt;
+        match Db.Value.get_stmt_state_callstack ~after:false stmt with
+        | None -> () (* unreachable stmt *)
+        | Some before_table ->
+          Value_types.Callstack.Hashtbl.iter
+            (fun cs before_state ->
+               try
+                 match Db.Value.get_stmt_state_callstack ~after:true stmt with
+                 | None -> (* no after table => non-terminating statement *)
+                   add_stack stmt cs
+                 | Some after_table ->
+                   let after_state =
+                     Value_types.Callstack.Hashtbl.find after_table cs
+                   in
+                   if Cvalue.Model.is_reachable before_state then
+                     if not (Cvalue.Model.is_reachable after_state) then add_stack stmt cs
+                     else if match stmt.skind with Loop _ -> true | _ -> false then begin
+                       (* special treatment for loops: even if their after state
+                          is reachable, we must check that at least one outgoing
+                          edge is reachable *)
+                       let out_edges = Stmts_graph.get_all_stmt_out_edges stmt in
+                       let all_out_edges_unreachable =
+                         List.for_all (fun (_, out_stmt) ->
+                             match get_callstack_state ~after:false out_stmt cs with
+                             | None -> true
+                             | Some state -> not (Cvalue.Model.is_reachable state)
+                           ) out_edges
+                       in
+                       if all_out_edges_unreachable then add_stack stmt cs
+                     end
+               with
+               | Not_found ->
+                 (* in this callstack, the statement is non-terminating *)
                  add_stack stmt cs
-               | Some after_table ->
-                 let after_state =
-                   Value_types.Callstack.Hashtbl.find after_table cs
-                 in
-                 if Cvalue.Model.is_reachable before_state then
-                   if not (Cvalue.Model.is_reachable after_state) then add_stack stmt cs
-                   else if match stmt.skind with Loop _ -> true | _ -> false then begin
-                     (* special treatment for loops: even if their after state
-                        is reachable, we must check that at least one outgoing
-                        edge is reachable *)
-                     let out_edges = Stmts_graph.get_all_stmt_out_edges stmt in
-                     let all_out_edges_unreachable =
-                       List.for_all (fun (_, out_stmt) ->
-                           match get_callstack_state ~after:false out_stmt cs with
-                           | None -> true
-                           | Some state -> not (Cvalue.Model.is_reachable state)
-                         ) out_edges
-                     in
-                     if all_out_edges_unreachable then add_stack stmt cs
-                   end
-             with
-             | Not_found ->
-               (* in this callstack, the statement is non-terminating *)
-               add_stack stmt cs
-          ) before_table
+            ) before_table
     ) vis#get_instr_stmts;
   !new_nonterm_stmts
 ;;

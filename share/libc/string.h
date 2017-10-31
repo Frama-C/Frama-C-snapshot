@@ -220,6 +220,8 @@ extern char *strerror(int errnum);
 
 /*@ requires valid_string_src: valid_read_string(src);
   @ requires room_string: \valid(dest+(0..strlen(src)));
+  @ requires separated_strings:
+  @   \separated(dest+(0..strlen(src)), src+(0..strlen(src)));
   @ assigns dest[0..strlen(src)] \from src[0..strlen(src)];
   @ assigns \result \from dest;
   @ ensures strcmp(dest,src) == 0;
@@ -273,18 +275,19 @@ extern char *strcat(char *restrict dest, const char *restrict src);
 /*@ // missing: separation
   @ requires valid_string_src: valid_read_string(src) || \valid_read(src+(0..n-1));
   @ requires valid_string_dst: valid_string(dest);
-  @ requires room_string: \valid(dest + (strlen(dest) .. strlen(dest) + n)) ;
   @ assigns dest[strlen(dest) .. strlen(dest) + n] \from src[0..n];
   @ assigns \result \from dest;
   @ ensures \result == dest;
   @ behavior complete:
   @   assumes valid_read_string(src) && strlen(src) <= n;
+  @   requires room_string: \valid(dest + strlen(dest) + (0 .. strlen(src)));
   @   assigns dest[strlen(dest)..strlen(dest) + strlen(src)]
   @   \from src[0..strlen(src)];
   @   assigns \result \from dest;
   @   ensures strlen(dest) == \old(strlen(dest) + strlen(src));
   @ behavior partial:
   @   assumes ! (valid_read_string(src) && strlen(src) <= n);
+  @   requires room_string: \valid(dest + strlen(dest) + (0 .. n));
   @   assigns dest[strlen(dest)..strlen(dest) + n]
   @   \from src[0..strlen(src)];
   @   assigns \result \from dest;
@@ -315,6 +318,19 @@ extern char *strdup (const char *s);
   @         && strncmp(\result,s,n) == 0;
   @*/
 extern char *strndup (const char *s, size_t n);
+
+// More POSIX, non-C99 functions
+#ifdef _POSIX_C_SOURCE
+extern char *stpncpy(char *restrict dest, const char *restrict src, size_t n);
+//extern int strcoll_l(const char *s1, const char *s2, locale_t locale);
+//extern char *strerror_l(int errnum, locale_t locale);
+extern int strerror_r(int errnum, char *strerrbuf, size_t buflen);
+extern char *strsignal(int sig);
+extern char *strtok_r(char *restrict s, const char *restrict sep,
+                      char **restrict state);
+//extern size_t strxfrm_l(char *restrict s1, const char *restrict s2, size_t n,
+//                        locale_t locale);
+#endif
 
 __END_DECLS
 

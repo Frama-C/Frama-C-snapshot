@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing share/libc/string.h (with preprocessing)
 [kernel] Parsing tests/syntax/multiple_decls_contracts.c (with preprocessing)
 [kernel] Parsing tests/syntax/multiple_decls_contracts.c (with preprocessing)

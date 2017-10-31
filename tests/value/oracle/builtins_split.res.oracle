@@ -1,0 +1,342 @@
+[kernel] Parsing tests/value/builtins_split.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  p ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  t[0..9] ∈ {0}
+  v ∈ [--..--]
+  s0 ∈ {0}
+  s1 ∈ {0}
+  s2 ∈ {0}
+  s3 ∈ {0}
+  s4 ∈ {0}
+  s5 ∈ {0}
+  s6 ∈ {0}
+  s7 ∈ {0}
+  ps ∈ {0}
+[value] computing for function test1 <- main.
+        Called from tests/value/builtins_split.c:150.
+[value] computing for function setup1 <- test1 <- main.
+        Called from tests/value/builtins_split.c:20.
+[value] Recording results for setup1
+[value] Done for function setup1
+tests/value/builtins_split.c:22:[value] Location *p is not a singleton ({{ x -> {0}; y -> {0} }} (size:<32>)). Cannot split.
+tests/value/builtins_split.c:23:[value] Frama_C_show_each_split: {{ &x ; &y }}
+tests/value/builtins_split.c:26:[value] Frama_C_show_each_split_pointer: {{ &y }}
+tests/value/builtins_split.c:26:[value] Frama_C_show_each_split_pointer: {{ &x }}
+[value] Recording results for test1
+[value] Done for function test1
+[value] computing for function test2 <- main.
+        Called from tests/value/builtins_split.c:151.
+[value] computing for function setup2 <- test2 <- main.
+        Called from tests/value/builtins_split.c:40.
+[value] Recording results for setup2
+[value] Done for function setup2
+tests/value/builtins_split.c:42:[value] warning: assertion got status unknown.
+tests/value/builtins_split.c:43:[value] Frama_C_show_each_t_i_1: [0..9], {0; 4; 8; 12}
+tests/value/builtins_split.c:46:[value] Frama_C_show_each_t_i_2: {2}, {8}
+[value] Recording results for test2
+[value] Done for function test2
+[value] computing for function test3 <- main.
+        Called from tests/value/builtins_split.c:152.
+[value] computing for function setup3 <- test3 <- main.
+        Called from tests/value/builtins_split.c:77.
+[value] Recording results for setup3
+[value] Done for function setup3
+tests/value/builtins_split.c:82:[value] Frama_C_show_each_s_1: {{ &s3 + {4} }}, {1}
+tests/value/builtins_split.c:89:[value] warning: out of bounds read. assert \valid_read(&(ps->p)->p);
+tests/value/builtins_split.c:91:[value] Frama_C_show_each_s_2: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+tests/value/builtins_split.c:96:[value] warning: out of bounds read. assert \valid_read(&(ps->p)->p);
+tests/value/builtins_split.c:99:[value] Frama_C_show_each_s_3: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+tests/value/builtins_split.c:104:[value] warning: out of bounds read. assert \valid_read(&(ps->p)->p);
+tests/value/builtins_split.c:106:[value] warning: assertion got status invalid (stopping propagation).
+tests/value/builtins_split.c:106:[value] assertion got status valid.
+tests/value/builtins_split.c:107:[value] Frama_C_show_each_s_4: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+tests/value/builtins_split.c:112:[value] warning: out of bounds read. assert \valid_read(&(ps->p)->p);
+tests/value/builtins_split.c:112:[value] Location ((ps->p)->p)->v points to too many values ([--..--]). Cannot split.
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5:
+        {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s0 }}, {0}
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {-1}
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
+tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5:
+        {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+[value] Recording results for test3
+[value] Done for function test3
+[value] computing for function test4 <- main.
+        Called from tests/value/builtins_split.c:153.
+tests/value/builtins_split.c:121:[value] warning: assertion got status unknown.
+tests/value/builtins_split.c:123:[value] Frama_C_show_each_nb: {29}
+tests/value/builtins_split.c:124:[value] Location x_0 points to too many values ([-3..25]). Cannot split.
+tests/value/builtins_split.c:125:[value] Frama_C_show_each_test4_1: [-3..25]
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {25}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {24}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {23}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {22}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {21}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {20}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {19}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {18}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {17}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {16}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {15}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {14}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {13}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {12}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {11}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {10}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {9}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {8}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {7}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {6}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {5}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {4}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {3}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {2}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {1}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {0}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {-1}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {-2}
+tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {-3}
+[value] Recording results for test4
+[value] Done for function test4
+[value] computing for function test5 <- main.
+        Called from tests/value/builtins_split.c:154.
+tests/value/builtins_split.c:135:[value] Frama_C_show_each_max:
+        [-922337203255980851..922337203685477580], {922337203685477580}
+[value] Recording results for test5
+[value] Done for function test5
+[value] computing for function test6 <- main.
+        Called from tests/value/builtins_split.c:155.
+tests/value/builtins_split.c:142:[value] warning: assertion got status unknown.
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {5} or UNINITIALIZED
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {4} or UNINITIALIZED
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {3} or UNINITIALIZED
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {2} or UNINITIALIZED
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {1} or UNINITIALIZED
+tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
+        z : # Cvalue domain: {0} or UNINITIALIZED
+[value] Recording results for test6
+[value] Done for function test6
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function setup1:
+  p ∈ {{ &x ; &y }}
+[value:final-states] Values at end of function setup2:
+  t[0] ∈ {0}
+   [1] ∈ {0; 4}
+   [2] ∈ {0; 8; 12}
+   [3..9] ∈ {0}
+[value:final-states] Values at end of function setup3:
+  s0 ∈ {0}
+  s1.v ∈ {-1; 1}
+    .p ∈ {0}
+  s2.v ∈ {2}
+    .p ∈ {0}
+  s3.v ∈ {3}
+    .p ∈ {{ &s0 ; &s1 }}
+  s4.v ∈ {4}
+    .p ∈ {{ &s0 ; &s2 }}
+  s5.v ∈ {5}
+    .p ∈ {{ &s3 ; &s4 }}
+  s6.v ∈ {6}
+    .p ∈ {{ &s4 }}
+  ps ∈ {{ &s5 ; &s6 ; &s7 }}
+[value:final-states] Values at end of function test1:
+  p ∈ {{ &x ; &y }}
+[value:final-states] Values at end of function test2:
+  t[0] ∈ {0}
+   [1] ∈ {0; 4}
+   [2] ∈ {0; 8; 12}
+   [3..9] ∈ {0}
+  i ∈ [0..9]
+[value:final-states] Values at end of function test3:
+  s0 ∈ {0}
+  s1.v ∈ {-1; 1}
+    .p ∈ {0}
+  s2.v ∈ [--..--]
+    .p ∈ {0}
+  s3.v ∈ {3}
+    .p ∈ {{ &s0 ; &s1 }}
+  s4.v ∈ {4}
+    .p ∈ {{ &s0 ; &s2 }}
+  s5.v ∈ {5}
+    .p ∈ {{ &s3 ; &s4 }}
+  s6.v ∈ {6}
+    .p ∈ {{ &s4 }}
+  ps ∈ {{ &s5 ; &s6 ; &s7 }}
+[value:final-states] Values at end of function test4:
+  x_0 ∈ [-3..25]
+  nb ∈ {29}
+[value:final-states] Values at end of function test5:
+  x_0 ∈ [--..--]
+  y_0 ∈ [-922337203255980851..922337203685477580]
+  r ∈ {922337203685477580}
+[value:final-states] Values at end of function test6:
+  z ∈ {0; 1; 2; 3; 4; 5} or UNINITIALIZED
+[value:final-states] Values at end of function main:
+  p ∈ {{ &x ; &y }}
+  t[0] ∈ {0}
+   [1] ∈ {0; 4}
+   [2] ∈ {0; 8; 12}
+   [3..9] ∈ {0}
+  s0 ∈ {0}
+  s1.v ∈ {-1; 1}
+    .p ∈ {0}
+  s2.v ∈ [--..--]
+    .p ∈ {0}
+  s3.v ∈ {3}
+    .p ∈ {{ &s0 ; &s1 }}
+  s4.v ∈ {4}
+    .p ∈ {{ &s0 ; &s2 }}
+  s5.v ∈ {5}
+    .p ∈ {{ &s3 ; &s4 }}
+  s6.v ∈ {6}
+    .p ∈ {{ &s4 }}
+  ps ∈ {{ &s5 ; &s6 ; &s7 }}
+[from] Computing for function setup1
+[from] Done for function setup1
+[from] Computing for function setup2
+[from] Done for function setup2
+[from] Computing for function setup3
+[from] Done for function setup3
+[from] Computing for function test1
+[from] Done for function test1
+[from] Computing for function test2
+[from] Done for function test2
+[from] Computing for function test3
+[from] Done for function test3
+[from] Computing for function test4
+[from] Computing for function Frama_C_abstract_cardinal <-test4
+[from] Done for function Frama_C_abstract_cardinal
+[from] Done for function test4
+[from] Computing for function test5
+[from] Computing for function Frama_C_abstract_max <-test5
+[from] Done for function Frama_C_abstract_max
+[from] Done for function test5
+[from] Computing for function test6
+[from] Done for function test6
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_abstract_cardinal:
+  \result FROM i
+[from] Function Frama_C_abstract_max:
+  \result FROM i
+[from] Function Frama_C_builtin_split:
+[from] Computing for function Frama_C_builtin_split
+[from] Done for function Frama_C_builtin_split
+  \result FROM \nothing
+[from] Function Frama_C_builtin_split_all:
+[from] Computing for function Frama_C_builtin_split_all
+[from] Done for function Frama_C_builtin_split_all
+  \result FROM \nothing
+[from] Function Frama_C_builtin_split_pointer:
+[from] Computing for function Frama_C_builtin_split_pointer
+[from] Done for function Frama_C_builtin_split_pointer
+  \result FROM \nothing
+[from] Function setup1:
+  p FROM v
+[from] Function setup2:
+  t[1..2] FROM v (and SELF)
+[from] Function setup3:
+  s0.v FROM \nothing
+  s1.v FROM v
+  s2.v FROM \nothing
+  s3.v FROM \nothing
+    .p FROM v
+  s4.v FROM \nothing
+    .p FROM v
+  s5.v FROM \nothing
+    .p FROM v
+  s6 FROM \nothing
+  ps FROM v
+[from] Function test1:
+  p FROM v
+[from] Function test2:
+  t[1..2] FROM v (and SELF)
+[from] Function test3:
+  s0.v FROM \nothing
+  s1.v FROM v
+  s2.v FROM v
+  s3.v FROM \nothing
+    .p FROM v
+  s4.v FROM \nothing
+    .p FROM v
+  s5.v FROM \nothing
+    .p FROM v
+  s6 FROM \nothing
+  ps FROM v
+[from] Function test4:
+  NO EFFECTS
+[from] Function test5:
+  NO EFFECTS
+[from] Function test6:
+  NO EFFECTS
+[from] Function main:
+  p FROM v
+  t[1..2] FROM v (and SELF)
+  s0.v FROM \nothing
+  s1.v FROM v
+  s2.v FROM v
+  s3.v FROM \nothing
+    .p FROM v
+  s4.v FROM \nothing
+    .p FROM v
+  s5.v FROM \nothing
+    .p FROM v
+  s6 FROM \nothing
+  ps FROM v
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function setup1:
+          p
+[inout] Inputs for function setup1:
+          v
+[inout] Out (internal) for function setup2:
+          t[1..2]
+[inout] Inputs for function setup2:
+          v
+[inout] Out (internal) for function setup3:
+          s0.v; s1.v; s2.v; s3; s4; s5; s6; ps; tmp
+[inout] Inputs for function setup3:
+          v
+[inout] Out (internal) for function test1:
+          p
+[inout] Inputs for function test1:
+          p; x; y; v
+[inout] Out (internal) for function test2:
+          t[1..2]; i
+[inout] Inputs for function test2:
+          t[0..9]; v
+[inout] Out (internal) for function test3:
+          s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
+[inout] Inputs for function test3:
+          v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps
+[inout] Out (internal) for function test4:
+          x_0; nb
+[inout] Inputs for function test4:
+          v
+[inout] Out (internal) for function test5:
+          x_0; y_0; r
+[inout] Inputs for function test5:
+          v
+[inout] Out (internal) for function test6:
+          z
+[inout] Inputs for function test6:
+          v
+[inout] Out (internal) for function main:
+          p; t[1..2]; s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
+[inout] Inputs for function main:
+          p; x; y; t[0..9]; v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps

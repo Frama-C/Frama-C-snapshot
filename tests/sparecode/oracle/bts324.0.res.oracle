@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/sparecode/bts324.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main outputs and entry point
@@ -12,13 +11,13 @@
 [value] computing for function init <- main.
         Called from tests/sparecode/bts324.i:19.
 [value] using specification for function init
-tests/sparecode/bts324.i:14:[value] warning: no \from part for clause 'assigns *p_res;' of function init
+tests/sparecode/bts324.i:14:[value] warning: no \from part for clause 'assigns *p_res;'
 [value] Done for function init
 tests/sparecode/bts324.i:21:[value] entering loop for the first time
 [value] computing for function loop_body <- main.
         Called from tests/sparecode/bts324.i:22.
 [value] using specification for function loop_body
-tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i0, o0;' of function loop_body
+tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i0, o0;'
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
         Called from tests/sparecode/bts324.i:22.
@@ -36,16 +35,6 @@ tests/sparecode/bts324.i:11:[value] warning: no \from part for clause 'assigns i
 [sparecode] add selection in function 'main'
 [pdg] computing for function init
 [pdg] done for function init
-[sparecode] look for annotations in function Frama_C_bzero
-[pdg] computing for function Frama_C_bzero
-[from] Computing for function Frama_C_bzero
-[from] Done for function Frama_C_bzero
-[pdg] done for function Frama_C_bzero
-[sparecode] look for annotations in function Frama_C_copy_block
-[pdg] computing for function Frama_C_copy_block
-[from] Computing for function Frama_C_copy_block
-[from] Done for function Frama_C_copy_block
-[pdg] done for function Frama_C_copy_block
 [sparecode] look for annotations in function init
 [sparecode] look for annotations in function loop_body
 [pdg] computing for function loop_body

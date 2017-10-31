@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/arith_pointer.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -14,20 +13,20 @@
 [value] computing for function main2 <- main.
         Called from tests/value/arith_pointer.c:70.
 tests/value/arith_pointer.c:30:[value] warning: pointer subtraction. assert \base_addr(p1) ≡ \base_addr(p2);
-[value] Called Frama_C_show_each({-1})
-[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:36:[value] Frama_C_show_each: {-1}
+tests/value/arith_pointer.c:40:[value] Frama_C_show_each: {0}
 tests/value/arith_pointer.c:49:[value] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
-[value] Called Frama_C_show_each({6; 11})
+tests/value/arith_pointer.c:50:[value] Frama_C_show_each: {6; 11}
 tests/value/arith_pointer.c:51:[value] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p2);
-[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:52:[value] Frama_C_show_each: {0}
 tests/value/arith_pointer.c:54:[value] Assigning imprecise value to p1.
         The imprecision originates from Arithmetic {tests/value/arith_pointer.c:54}
 tests/value/arith_pointer.c:56:[value] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
 tests/value/arith_pointer.c:56:[value] warning: signed overflow. assert -2147483648 ≤ p2 - p1;
 tests/value/arith_pointer.c:56:[value] warning: signed overflow. assert p2 - p1 ≤ 2147483647;
-[value] Called Frama_C_show_each([-2147483648..2147483647])
+tests/value/arith_pointer.c:57:[value] Frama_C_show_each: [-2147483648..2147483647]
 tests/value/arith_pointer.c:60:[value] warning: assertion got status unknown.
-[value] Called Frama_C_show_each([-3..5])
+tests/value/arith_pointer.c:64:[value] Frama_C_show_each: [-3..5]
 tests/value/arith_pointer.c:65:[value] warning: assertion got status unknown.
 [value] Recording results for main2
 [value] Done for function main2
@@ -102,42 +101,31 @@ tests/value/arith_pointer.c:30:[value] warning: signed overflow. assert -2147483
 tests/value/arith_pointer.c:30:[value] warning: signed overflow. assert p1 - p2 ≤ 2147483647;
 tests/value/arith_pointer.c:30:[value] Assigning imprecise value to d.
         The imprecision originates from Arithmetic {tests/value/arith_pointer.c:30}
-tests/value/arith_pointer.c:31:[value] Reading left-value d.
-        It contains a garbled mix of {x; y} because of Arithmetic
-        {tests/value/arith_pointer.c:30}.
-[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
-                                 (origin: Arithmetic
-                                 {tests/value/arith_pointer.c:30}) }})
-[value] Called Frama_C_show_each({-1})
-[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:31:[value] Frama_C_show_each:
+        {{ garbled mix of &{x; y}
+        (origin: Arithmetic {tests/value/arith_pointer.c:30}) }}
+tests/value/arith_pointer.c:36:[value] Frama_C_show_each: {-1}
+tests/value/arith_pointer.c:40:[value] Frama_C_show_each: {0}
 tests/value/arith_pointer.c:49:[value] warning: signed overflow. assert -2147483648 ≤ p2 - p1;
 tests/value/arith_pointer.c:49:[value] warning: signed overflow. assert p2 - p1 ≤ 2147483647;
 tests/value/arith_pointer.c:49:[value] Assigning imprecise value to d.
         The imprecision originates from Arithmetic {tests/value/arith_pointer.c:49}
-tests/value/arith_pointer.c:50:[value] Reading left-value d.
-        It contains a garbled mix of {x; y} because of Arithmetic
-        {tests/value/arith_pointer.c:49}.
-[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
-                                 (origin: Arithmetic
-                                 {tests/value/arith_pointer.c:49}) }})
+tests/value/arith_pointer.c:50:[value] Frama_C_show_each:
+        {{ garbled mix of &{x; y}
+        (origin: Arithmetic {tests/value/arith_pointer.c:49}) }}
 tests/value/arith_pointer.c:51:[value] warning: signed overflow. assert -2147483648 ≤ p2 - p2;
 tests/value/arith_pointer.c:51:[value] warning: signed overflow. assert p2 - p2 ≤ 2147483647;
 tests/value/arith_pointer.c:51:[value] Assigning imprecise value to d.
         The imprecision originates from Arithmetic {tests/value/arith_pointer.c:51}
-tests/value/arith_pointer.c:52:[value] Reading left-value d.
-        It contains a garbled mix of {x; y} because of Arithmetic
-        {tests/value/arith_pointer.c:51}.
-[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
-                                 (origin: Arithmetic
-                                 {tests/value/arith_pointer.c:51}) }})
+tests/value/arith_pointer.c:52:[value] Frama_C_show_each:
+        {{ garbled mix of &{x; y}
+        (origin: Arithmetic {tests/value/arith_pointer.c:51}) }}
 tests/value/arith_pointer.c:56:[value] warning: signed overflow. assert -2147483648 ≤ p2 - p1;
 tests/value/arith_pointer.c:56:[value] warning: signed overflow. assert p2 - p1 ≤ 2147483647;
 tests/value/arith_pointer.c:56:[value] Assigning imprecise value to d.
         The imprecision originates from Arithmetic
-tests/value/arith_pointer.c:57:[value] Reading left-value d.
-        It contains a garbled mix of {x} because of Arithmetic.
-[value] Called Frama_C_show_each({{ garbled mix of &{x} (origin: Arithmetic) }})
-[value] Called Frama_C_show_each([-3..5])
+tests/value/arith_pointer.c:57:[value] Frama_C_show_each: {{ garbled mix of &{x} (origin: Arithmetic) }}
+tests/value/arith_pointer.c:64:[value] Frama_C_show_each: [-3..5]
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

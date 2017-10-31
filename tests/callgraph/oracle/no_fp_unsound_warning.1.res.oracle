@@ -1,0 +1,10 @@
+[kernel] Parsing tests/callgraph/no_fp_unsound_warning.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] done for function main
+[cg] warning: using callgraph while option -cg-function-pointers is unset, result may be unsound
+[inout] Out (internal) for function main:
+          \nothing

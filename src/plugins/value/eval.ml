@@ -31,6 +31,7 @@ open Cil_types
 include Bottom.Type
 
 type 'a or_top    = [ `Value of 'a | `Top ]
+type 'a or_top_or_bottom = [ `Value of 'a | `Top | `Bottom ]
 
 (* -------------------------------------------------------------------------- *)
 (**                     {2 Types for the evaluations }                        *)
@@ -66,7 +67,6 @@ type 'a reduced = [ `Bottom | `Unreduced | `Value of 'a ]
     expressions needed to create the appropriate alarms. *)
 type unop_context = {
   operand: exp;
-  result: exp;
 }
 
 (** Context for the evaluation of a binary operator: contains the expressions
@@ -76,7 +76,6 @@ type binop_context = {
   left_operand: exp;
   right_operand: exp;
   binary_result: exp;
-  result_typ: typ
 }
 
 
@@ -97,6 +96,32 @@ type 'a flagged_value = {
   initialized: bool;
   escaping: bool;
 }
+
+module Flagged_Value = struct
+
+  let bottom = {v = `Bottom; initialized=true; escaping=false; }
+  let equal equal v1 v2  =
+    Bottom.equal equal v1.v v2.v &&
+    v1.initialized = v2.initialized && v1.escaping = v2.escaping
+  let join join v1 v2 =
+    { v = Bottom.join join v1.v v2.v;
+      initialized = v1.initialized && v2.initialized;
+      escaping = v1.escaping || v2.escaping }
+
+  let pretty_flags fmt value = match value.initialized, value.escaping with
+    | false, true  -> Format.pp_print_string fmt "UNINITIALIZED or ESCAPINGADDR"
+    | false, false -> Format.pp_print_string fmt "UNINITIALIZED"
+    | true, true   -> Format.pp_print_string fmt "ESCAPINGADDR"
+    | true, false  -> Format.pp_print_string fmt "BOTTOM"
+
+  let pretty pp fmt value = match value.v with
+    | `Bottom -> pretty_flags fmt value
+    | `Value v ->
+      if value.initialized && not value.escaping
+      then pp fmt v
+      else Format.fprintf fmt "%a or %a" pp v pretty_flags value
+
+end
 
 (* Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
@@ -165,14 +190,14 @@ let compute_englobing_subexpr ~subexpr ~expr =
   Extlib.opt_conv [] (compute expr)
 
 module Englobing =
-  Datatype.Pair_with_collections (Cil_datatype.Exp) (Cil_datatype.Exp)
+  Datatype.Pair_with_collections (Cil_datatype.ExpStructEq) (Cil_datatype.ExpStructEq)
     (struct  let module_name = "Subexpressions" end)
 module SubExprs = Datatype.List (Cil_datatype.Exp)
 
 module EnglobingSubexpr =
   State_builder.Hashtbl (Englobing.Hashtbl) (SubExprs)
     (struct
-      let name = "Englobing_subexpressions"
+      let name = "Value.Eval.Englobing_subexpressions"
       let size = 32
       let dependencies = [ Ast.self ]
     end)
@@ -233,16 +258,10 @@ type 'value call = {
   recursive: bool;
 }
 
-(* Initialization of a dataflow analysis, by defining the initial value of
-    each statement. *)
-type 't init =
-  | Default
-  | Continue of 't
-  | Custom of (stmt * 't) list
 
 (* Action to perform on a call site. *)
 type 'state call_action =
-  | Compute of 'state init * bool
+  | Compute of 'state
   | Result  of 'state list or_bottom * Value_types.cacheable
 
 exception InvalidCall

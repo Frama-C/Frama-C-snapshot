@@ -93,14 +93,20 @@ struct
 
   let add_axiom _p _l = ()
 
-  let add_hyp _env (pid,_) k =
+  let add_hyp _env (pid,pred) k =
     let u = node () in
-    Format.fprintf !out "  %a [ color=green , label=\"Assume %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
+    if Wp_parameters.debug_atleast 1 then
+      Format.fprintf !out "  %a [ color=green , label=\"Assume %a\" ] ;@." pretty u Printer.pp_predicate pred
+    else
+      Format.fprintf !out "  %a [ color=green , label=\"Assume %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
     link u k ; u
 
-  let add_goal env (pid,_) k =
+  let add_goal env (pid,pred) k =
     let u = node () in
-    Format.fprintf !out "  %a [ color=red , label=\"Prove %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
+    if Wp_parameters.debug_atleast 1 then
+      Format.fprintf !out "  %a [ color=red , label=\"Prove %a\" ] ;@." pretty u Printer.pp_predicate pred
+    else
+      Format.fprintf !out "  %a [ color=red , label=\"Prove %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
     Format.fprintf !out "  %a -> %a [ style=dotted ] ;@." pretty u pretty k ;
     merge env u k
 
@@ -119,11 +125,17 @@ struct
     end ;
     link u k ; u
 
-  let label _env label k =
-    if label = Clabels.Here then k else
+  let label _env stmt label k =
+    if Clabels.is_here label then k else
       let u = node () in
-      Format.fprintf !out "  %a [ label=\"Label %a\" ] ;@." pretty u Clabels.pretty label ;
+      ( match stmt with
+        | None ->
+            Format.fprintf !out "  %a [ label=\"Label %a\" ] ;@." pretty u Clabels.pretty label
+        | Some s ->
+            Format.fprintf !out "  %a [ label=\"Label %a (Stmt s%d)\" ] ;@." pretty u Clabels.pretty label s.Cil_types.sid
+      ) ;
       link u k ; u
+        
 
   let assign _env _stmt x e k =
     let u = node () in
@@ -174,16 +186,25 @@ struct
 
   let call_goal_precond env _stmt kf _es ~pre k =
     let u = node () in
-    Format.fprintf !out "  %a [ color=red , label=\"Prove PreCond %a\" ] ;@." pretty u
-      Kernel_function.pretty kf ;
+    Format.fprintf !out "  %a [ color=red , label=\"Prove PreCond %a%t\" ] ;@."
+      pretty u Kernel_function.pretty kf
+      begin fun fmt ->
+        if Wp_parameters.debug_atleast 1 then
+          List.iter
+            (fun (_,p) -> Format.fprintf fmt "\n@[<hov 2>Requires %a ;@]"
+                Printer.pp_predicate p) pre
+      end ;
     ignore pre ; merge env u k
 
-  let call _env _stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
+  let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
+    let u_post = List.fold_right (add_hyp env) post p_post in
+    let u_exit = List.fold_right (add_hyp env) pexit p_exit in
     let u = node () in
-    Format.fprintf !out "  %a [ color=orange , label=\"Call %a\" ] ;@." pretty u
+    link u u_post ; link u u_exit ;
+    Format.fprintf !out "  %a [ color=orange , label=\"Call %a (assigns)\" ] ;@." pretty u
       Kernel_function.pretty kf ;
-    ignore pre ; ignore post ; ignore pexit ; ignore assigns ;
-    link u p_post ; link u p_exit ; u
+    ignore assigns ; ignore stmt ;
+    List.fold_right (add_hyp env) pre u
 
   let pp_scope sc fmt xs =
     let title = match sc with

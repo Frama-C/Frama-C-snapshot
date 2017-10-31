@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/incomplete_struct_field.i (no preprocessing)
 tests/syntax/incomplete_struct_field.i:1:[kernel] user error: declaration of array of incomplete type 'struct _s`
 [kernel] user error: type struct _s is circular

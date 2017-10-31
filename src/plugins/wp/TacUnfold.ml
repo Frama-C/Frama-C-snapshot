@@ -29,19 +29,35 @@ open Tactical
 
 open Definitions
 
-let definition ?at e f es =
+let definition f es =
   let d = find_symbol f in
   match d.d_definition with
   | Function(_,_,u) ->
-      let a = Pretty_utils.sfprintf "Unfold '%a'" Lang.Fun.pretty f in
-      let v = Subst.(e_apply (sigma d.d_params es) u) in
-      Tactical.rewrite ?at [a,F.p_true,e,v]
+      Subst.(e_apply (sigma d.d_params es) u)
   | Predicate(_,p) ->
-      let a = Pretty_utils.sfprintf "Unfold '%a'" Lang.Fun.pretty f in
-      let v = Subst.(p_apply (sigma d.d_params es) p) in
-      Tactical.rewrite ?at [a,F.p_true,e,F.e_prop v]
+      F.e_prop (Subst.(p_apply (sigma d.d_params es) p))
   | _ ->
       raise Not_found
+
+let range f es =
+  let a,b = Ctypes.bounds (Cint.is_cint f) in
+  let range e = F.p_and
+      (F.p_leq (F.e_zint a) e)
+      (F.p_leq e (F.e_zint b)) in
+  F.e_prop (F.p_all range es)
+
+let rec applicable ?at e f es = function
+  | phi::others ->
+      begin
+        try
+          let v = phi f es in
+          let d = Pretty_utils.sfprintf "Unfold '%a'" Lang.Fun.pretty f in
+          Applicable (Tactical.rewrite ?at [d,F.p_true,e,v])
+        with Not_found | Invalid_argument _ ->
+          applicable ?at e f es others
+      end
+  | [] ->
+      Not_applicable
 
 class unfold =
   object
@@ -55,10 +71,7 @@ class unfold =
       let e = Tactical.selected s in
       match F.repr e with
       | Qed.Logic.Fun(f,es) ->
-          begin
-            try Applicable (definition ?at e f es)
-            with Not_found | Invalid_argument _ -> Not_applicable
-          end
+          applicable ?at e f es [ definition ; range ]
       | _ -> Not_applicable
 
   end

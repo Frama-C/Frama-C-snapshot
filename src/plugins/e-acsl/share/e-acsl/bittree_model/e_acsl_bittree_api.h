@@ -28,20 +28,21 @@
 #ifndef E_ACSL_BITTREE_API
 #define E_ACSL_BITTREE_API
 
-#include "stdlib.h"
-#include "stdbool.h"
-
 /*! \brief Structure representing an allocated memory block */
 struct bt_block {
   size_t ptr;  //!< Base address
   size_t size; //!< Block length (in bytes)
   unsigned char * init_ptr; //!< Per-bit initialization
   size_t init_bytes; //!< Number of initialized bytes within a block
-  _Bool is_readonly; //!< True if a block is marked read-only
-  _Bool freeable; //!< True if a block can be de-allocated using `free`
+  int is_readonly; //!< True if a block is marked read-only
+  int is_freeable; //!< True if a block can be de-allocated using `free`
 #ifdef E_ACSL_DEBUG
   size_t line; //!< Line number where this block was recorded
   char* file; //!< File name where this block was recorded
+#endif
+#ifdef E_ACSL_TEMPORAL
+  uint32_t timestamp; //!< Temporal timestamp of a block's creation
+  void *temporal_shadow; //!< Temporal shadow for storing referent numbers
 #endif
 };
 
@@ -49,7 +50,7 @@ typedef struct bt_block bt_block;
 
 /*! \brief Structure representing a bittree node */
 struct bt_node {
-  _Bool is_leaf;
+  int is_leaf;
   size_t addr, mask;
   struct bt_node * left, * right, * parent;
   bt_block * leaf;

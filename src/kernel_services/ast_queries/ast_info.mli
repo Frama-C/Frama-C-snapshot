@@ -90,8 +90,8 @@ val complete_behaviors : funspec -> string list -> predicate
       @since Nitrogen-20111001 *)
 
 val merge_assigns_from_complete_bhvs: 
-  ?warn:bool -> ?unguarded:bool -> funbehavior list -> string list list -> identified_term assigns
-  (** @return the assigns of an unguarded behavior (when [unguarded]=true) 
+  ?warn:bool -> ?unguarded:bool -> funbehavior list -> string list list -> assigns
+  (** @return the assigns of an unguarded behavior (when [unguarded]=true)
       or a set of complete behaviors.
       - the funbehaviors can come from either a statement contract or a function
       contract. 
@@ -101,14 +101,14 @@ val merge_assigns_from_complete_bhvs:
       warnings.
       @since Oxygen-20120901 *)
 
-val merge_assigns_from_spec: ?warn:bool -> funspec -> identified_term assigns
+val merge_assigns_from_spec: ?warn:bool -> funspec -> assigns
 (** It is a shortcut for [merge_assigns_from_complete_bhvs
     spec.spec_complete_behaviors spec.spec_behavior].  Optional [warn] argument
     can be used to force emitting or cancelation of warnings 
     @return the assigns of an unguarded behavior or a set of complete behaviors.
     @since Oxygen-20120901 *) 
 
-val merge_assigns: ?warn:bool -> funbehavior list -> identified_term assigns
+val merge_assigns: ?warn:bool -> funbehavior list -> assigns
 (** Returns the assigns of an unguarded behavior. 
     @modify Oxygen-20120901 Optional [warn] argument added which can be used to
     force emitting or cancelation of warnings. *) 
@@ -181,6 +181,7 @@ end
 
 val can_be_cea_function : string -> bool
 val is_cea_function : string -> bool
+val is_cea_domain_function : string -> bool
 val is_cea_dump_function : string -> bool
 val is_cea_dump_file_function : string -> bool
 val is_frama_c_builtin : string -> bool

@@ -34,6 +34,8 @@ type config = {
   polka_loose : bool;
   polka_strict : bool;
   polka_equalities : bool;
+  inout: bool;
+  signs: bool;
 }
 
 (** Default configuration of EVA. *)

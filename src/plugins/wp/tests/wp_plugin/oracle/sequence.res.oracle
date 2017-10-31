@@ -1,5 +1,4 @@
 # frama-c -wp -wp-model 'Typed (Caveat)' [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_plugin/sequence.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
@@ -9,44 +8,22 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,first' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
-      is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Call 'f' *)
-  Have: a_2 = [ x ].
-  (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
-  (* Invariant 'ok,id_max' *)
-  Have: if (0 <= n) then (i <= n) else (i <= 0).
-  (* Invariant 'ok,id_min' *)
-  Have: 0 <= i.
-  (* Else *)
-  Have: n <= i.
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: nth(a, 0) = x.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ok,last' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
+Let a = ([ y ] *^ i).
+Let a_1 = [ x ] ^ a ^ [ z ].
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -54,24 +31,23 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_3) = a_1.
 }
-Prove: nth(a, length(a) - 1) = z.
+Prove: nth(a_1, 1 + length(a)) = z.
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,id_max' (file tests/wp_plugin/sequence.i, line 97):
-Let a = L_call_obs(call_seq_2).
-Let a_1 = L_call_obs(call_seq_1).
+Let a = ([ y ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(1 + i).
   (* Pre-condition *)
   Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: a_1 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a = a_1 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -79,7 +55,7 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: L_call_obs(call_seq_3) = a ^ [ y ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ y ].
 }
 Prove: 0 <= n.
 
@@ -91,17 +67,16 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,id_min' (file tests/wp_plugin/sequence.i, line 96):
-Let a = L_call_obs(call_seq_2).
-Let a_1 = L_call_obs(call_seq_1).
+Let a = ([ y ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(1 + i).
   (* Pre-condition *)
   Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: a_1 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a = a_1 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -109,7 +84,7 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: L_call_obs(call_seq_3) = a ^ [ y ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ y ].
 }
 Prove: (-1) <= i.
 
@@ -121,19 +96,17 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'ok,inv' (file tests/wp_plugin/sequence.i, line 98):
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_1).
+Let a = ([ y ] *^ i).
 Let x_1 = 1 + i.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(x_1).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_2) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -141,9 +114,9 @@ Assume {
   (* Then *)
   Have: i < n.
   (* Call 'g' *)
-  Have: a = a_1 ^ [ y ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ y ].
 }
-Prove: a = a_2 ^ ([ y ] *^ x_1).
+Prove: ([ y ] *^ x_1) = a ^ [ y ].
 
 ------------------------------------------------------------
 
@@ -195,20 +168,18 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,u1' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
+Let a = ([ y ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Pre-condition for 'g_called' *)
   Have: 0 < n.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: i <= n.
   (* Invariant 'ok,id_min' *)
@@ -216,38 +187,14 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ z ].
 }
-Prove: (2 + i) = length(a).
+Prove: length(a) = i.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,u2' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
-Let a_3 = ([ y ] *^ i).
-Assume {
-  Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
-      is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Pre-condition for 'g_called' *)
-  Have: 0 < n.
-  (* Call 'f' *)
-  Have: a_2 = [ x ].
-  (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ a_3.
-  (* Invariant 'ok,id_max' *)
-  Have: i <= n.
-  (* Invariant 'ok,id_min' *)
-  Have: 0 <= i.
-  (* Else *)
-  Have: n <= i.
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: a = [ x ] ^ a_3 ^ [ z ].
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -255,20 +202,18 @@ Prove: a = [ x ] ^ a_3 ^ [ z ].
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,v1' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
+Let a = ([ y ] *^ i).
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Pre-condition for 'g_not_called' *)
   Have: n <= 0.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = [ x ] ^ a.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -276,27 +221,26 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ z ].
 }
-Prove: length(a) = 2.
+Prove: length(a) = 0.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,v2' in 'loops':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
+Let a = ([ y ] *^ i).
+Let a_1 = [ x ] ^ a.
 Assume {
   Type: is_sint32(i) /\ is_sint32(n) /\ is_sint32(x) /\ is_sint32(y) /\
       is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Pre-condition for 'g_not_called' *)
   Have: n <= 0.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Invariant 'ok,inv' *)
-  Have: a_1 = a_2 ^ ([ y ] *^ i).
+  Have: L_call_obs(call_seq_2) = a_1.
   (* Invariant 'ok,id_max' *)
   Have: if (0 <= n) then (i <= n) else (i <= 0).
   (* Invariant 'ok,id_min' *)
@@ -304,9 +248,9 @@ Assume {
   (* Else *)
   Have: n <= i.
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_3) = [ x ] ^ a ^ [ z ].
 }
-Prove: a = [ x, z ].
+Prove: [ x ] = a_1.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -395,86 +339,35 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,o1' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Pre-condition for 'g_called' *)
-  Have: c != 0.
-  (* Call 'f' *)
-  Have: a_2 = [ x ].
-  (* Call 'g' *)
-  Have: a_1 = a_2 ^ [ y ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: length(a) = 3.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p1' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Pre-condition for 'g_called' *)
-  Have: c != 0.
-  (* Call 'f' *)
-  Have: a_2 = [ x ].
-  (* Call 'g' *)
-  Have: a_1 = a_2 ^ [ y ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: a = [ x, y, z ].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p2' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Pre-condition for 'g_called' *)
-  Have: c != 0.
-  (* Call 'f' *)
-  Have: a_2 = [ x ].
-  (* Call 'g' *)
-  Have: a_1 = a_2 ^ [ y ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: a = [ x, y, z ].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_called' 'ok,p3' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_3).
-Let a_2 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(c) /\ is_sint32(x) /\ is_sint32(y) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Pre-condition for 'g_called' *)
   Have: c != 0.
   (* Call 'f' *)
-  Have: a_2 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Call 'g' *)
-  Have: a_1 = a_2 ^ [ y ].
+  Have: L_call_obs(call_seq_2) = [ x, y ].
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_3) = [ x, y, z ].
 }
-Prove: a = [ x, y, z ] ^ L_call_nil.
+Prove: L_call_nil = nil.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -482,65 +375,30 @@ Prove: a = [ x, y, z ] ^ L_call_nil.
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,o2' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(x) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Call 'f' *)
-  Have: a_1 = [ x ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: length(a) = 2.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q1' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(x) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Call 'f' *)
-  Have: a_1 = [ x ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: a = [ x, z ].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q2' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_2).
-Assume {
-  Type: is_sint32(x) /\ is_sint32(z).
-  (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
-  (* Call 'f' *)
-  Have: a_1 = [ x ].
-  (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
-}
-Prove: a = [ x, z ].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition for 'g_not_called' 'ok,q3' in 'sequence':
-Let a = L_call_obs(call_seq_0).
-Let a_1 = L_call_obs(call_seq_2).
 Assume {
   Type: is_sint32(x) /\ is_sint32(z).
   (* Pre-condition *)
-  Have: L_call_obs(call_seq_1) = nil.
+  Have: L_call_obs(call_seq_0) = nil.
   (* Call 'f' *)
-  Have: a_1 = [ x ].
+  Have: L_call_obs(call_seq_1) = [ x ].
   (* Call 'f' *)
-  Have: a = a_1 ^ [ z ].
+  Have: L_call_obs(call_seq_2) = [ x, z ].
 }
-Prove: a = [ x ] ^ L_call_nil ^ [ z ].
+Prove: [ x ] = [ x ] ^ L_call_nil.
 
 ------------------------------------------------------------

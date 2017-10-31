@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/cmp_ptr_follow_all_branches.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -11,12 +10,12 @@ tests/value/cmp_ptr_follow_all_branches.i:14:[value:pointer-comparison] invalid 
 tests/value/cmp_ptr_follow_all_branches.i:14:[value] warning: pointer comparison.
                  assert
                  \pointer_comparable((void *)(p + (unsigned int)((int)(-5))), (void *)p);
-[value] Called Frama_C_show_each_2()
+tests/value/cmp_ptr_follow_all_branches.i:14:[value] Frama_C_show_each_2:
 tests/value/cmp_ptr_follow_all_branches.i:15:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
 tests/value/cmp_ptr_follow_all_branches.i:15:[value] warning: pointer comparison.
                  assert
                  \pointer_comparable((void *)(q + (unsigned int)((int)(-5))), (void *)q);
-[value] Called Frama_C_show_each_4()
+tests/value/cmp_ptr_follow_all_branches.i:15:[value] Frama_C_show_each_4:
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

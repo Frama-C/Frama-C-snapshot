@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
+open Clabels
 
 (** abstract type of a cfg *)
 type t
@@ -123,6 +124,9 @@ val very_strange_loops : t -> node list
 (** @return the (normalized) labels at the program point of the edge. *)
 val get_edge_labels : edge ->  Clabels.c_label list
 
+(** Complete get_edge_labels and returns the associated stmt, if any. *)
+val get_edge_stmt : edge -> stmt option
+
 (** @return None when the edge leads to the end of the function. *)
 val get_edge_next_stmt : t -> edge -> stmt option
 
@@ -138,7 +142,7 @@ val get_pre_edges : t -> node -> edge list
 val get_post_edges : t -> node -> edge list
 
 (** Get the label to be used for the Post state of the node contract if any. *)
-val get_post_logic_label : t -> node -> logic_label option
+val get_post_label : t -> node -> c_label option
 
 (** Find the edges [e] that goes to the [Vexit] node inside the statement
  * beginning at node [n] *)

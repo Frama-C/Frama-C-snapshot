@@ -1,11 +1,10 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_acsl/e_imply.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 [wp] Computing [100 goals...]
-[wp] 121 goals scheduled
+[wp] 119 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_p0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_p1 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_p2 : Valid
@@ -48,12 +47,12 @@
 [wp] [Alt-Ergo] Goal typed_f_post_o9 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
-[wp] Proved goals:  121 / 121
+[wp] Proved goals:  119 / 119
      Qed:             8 
-     Alt-Ergo:      113
+     Alt-Ergo:      111
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -      79 (13)    79       100%
+Lemma               -      77 (13)    77       100%
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    8     34 (8)     42       100%

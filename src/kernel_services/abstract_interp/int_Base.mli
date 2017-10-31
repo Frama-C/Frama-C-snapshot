@@ -35,8 +35,6 @@ val neg: t -> t
 val is_zero: t -> bool
 val is_top: t -> bool
 
-exception Error_Top
-
 val inject: Integer.t -> t
 val project: t -> Integer.t
   (** @raise Error_Top if the argument is {!Top}. *)

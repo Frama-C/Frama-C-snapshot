@@ -28,7 +28,7 @@ module Is_Called =
   Kernel_function.Make_Table
     (Datatype.Bool)
     (struct
-       let name = "is_called"
+       let name = "Value.Value_results.is_called"
        let dependencies = [ Db.Value.self ]
        let size = 17
      end)
@@ -49,7 +49,7 @@ module Callers =
   Kernel_function.Make_Table
     (Kernel_function.Map.Make(Stmt.Set))
     (struct
-       let name = "Callers"
+       let name = "Value.Value_results.Callers"
        let dependencies = [ Db.Value.self ]
        let size = 17
      end)

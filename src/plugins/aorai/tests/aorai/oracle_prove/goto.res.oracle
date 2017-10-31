@@ -1,8 +1,6 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/goto.c (with preprocessing)
 [aorai] Welcome to the Aorai plugin
 tests/aorai/goto.c:28:[aorai] warning: Call to opc does not follow automaton's specification. This path is assumed to be dead
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_goto0.i (no preprocessing)
 /tmp/aorai_goto0.i:4:[wp] warning: Global invariant not handled yet ('inv' ignored)
 [wp] Collecting axiomatic usage

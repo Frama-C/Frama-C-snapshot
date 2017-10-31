@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/rte/value_rte.c (with preprocessing)
 [rte] annotating function main
 [value] Analyzing a complete application starting at main
@@ -8,7 +7,7 @@
   __fc_errno ∈ [--..--]
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
-  __fc_fopen[0..511] ∈ {0}
+  __fc_fopen[0..15] ∈ {0}
   __fc_p_fopen ∈ {{ &__fc_fopen[0] }}
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]
@@ -134,6 +133,8 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 [  Valid  ] Axiomatic 'WcsLen'
             by Frama-C kernel.
 [  Valid  ] Axiomatic 'WcsNCmp'
+            by Frama-C kernel.
+[  Valid  ] Axiomatic 'format_length'
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
@@ -267,9 +268,9 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'vfprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 150)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 159)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 150)
+[ Extern  ] Froms (file share/libc/stdio.h, line 159)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -278,37 +279,15 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'vfscanf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 155)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 164)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 155)
+[ Extern  ] Froms (file share/libc/stdio.h, line 164)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'vprintf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 161)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 161)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'vscanf'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 165)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 165)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'vsnprintf'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 170)
@@ -319,12 +298,34 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
+--- Properties of Function 'vscanf'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 174)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 174)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'vsnprintf'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 179)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 179)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
 --- Properties of Function 'vsprintf'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 176)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 185)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 176)
+[ Extern  ] Froms (file share/libc/stdio.h, line 185)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -333,7 +334,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fgetc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 187)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 196)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -342,15 +343,15 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fgets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 193)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 202)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 191)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 200)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 191)
+[ Extern  ] Froms (file share/libc/stdio.h, line 200)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 191)
+[ Extern  ] Froms (file share/libc/stdio.h, line 200)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 192)
+[ Extern  ] Froms (file share/libc/stdio.h, line 201)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -359,7 +360,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fputc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 198)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 207)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -368,9 +369,9 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fputs'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 201)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 210)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 201)
+[ Extern  ] Froms (file share/libc/stdio.h, line 210)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -379,11 +380,11 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'getc'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 205)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 214)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 205)
+[ Extern  ] Froms (file share/libc/stdio.h, line 214)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 205)
+[ Extern  ] Froms (file share/libc/stdio.h, line 214)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -394,7 +395,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 
 [ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 208)
+[ Extern  ] Froms (file share/libc/stdio.h, line 217)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -403,52 +404,19 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'gets'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 213)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 222)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 211)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 220)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 211)
+[ Extern  ] Froms (file share/libc/stdio.h, line 220)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 212)
+[ Extern  ] Froms (file share/libc/stdio.h, line 221)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'putc'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 217)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 217)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'putchar'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 220)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 220)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'puts'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 223)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 223)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'ungetc'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 226)
@@ -459,18 +427,51 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'fread'
+--- Properties of Function 'putchar'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 234)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 229)
             Unverifiable but considered Valid.
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 235)
+[ Extern  ] Froms (file share/libc/stdio.h, line 229)
             Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'puts'
+--------------------------------------------------------------------------------
+
 [ Extern  ] Assigns (file share/libc/stdio.h, line 232)
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 232)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 233)
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'ungetc'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 235)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 235)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'fread'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 243)
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 244)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/stdio.h, line 241)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 241)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 242)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -479,13 +480,13 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fwrite'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file share/libc/stdio.h, line 246)
+[ Extern  ] Post-condition (file share/libc/stdio.h, line 255)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file share/libc/stdio.h, line 245)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 254)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 245)
+[ Extern  ] Froms (file share/libc/stdio.h, line 254)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 245)
+[ Extern  ] Froms (file share/libc/stdio.h, line 254)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -494,9 +495,9 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fgetpos'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 253)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 262)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 253)
+[ Extern  ] Froms (file share/libc/stdio.h, line 262)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -505,54 +506,19 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --- Properties of Function 'fseek'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 260)
+[ Extern  ] Assigns (file share/libc/stdio.h, line 269)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 260)
+[ Extern  ] Froms (file share/libc/stdio.h, line 269)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 261)
+[ Extern  ] Froms (file share/libc/stdio.h, line 270)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 261)
+[ Extern  ] Froms (file share/libc/stdio.h, line 270)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'fsetpos'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 265)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 265)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'ftell'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 268)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 268)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 268)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'rewind'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 271)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 271)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'clearerr'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 274)
@@ -563,10 +529,12 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'feof'
+--- Properties of Function 'ftell'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns nothing
+[ Extern  ] Assigns (file share/libc/stdio.h, line 277)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 277)
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 277)
             Unverifiable but considered Valid.
@@ -574,10 +542,10 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'fileno'
+--- Properties of Function 'rewind'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns nothing
+[ Extern  ] Assigns (file share/libc/stdio.h, line 280)
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 280)
             Unverifiable but considered Valid.
@@ -585,7 +553,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'flockfile'
+--- Properties of Function 'clearerr'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 283)
@@ -596,10 +564,10 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'funlockfile'
+--- Properties of Function 'feof'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 286)
+[ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 286)
             Unverifiable but considered Valid.
@@ -607,12 +575,10 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'ftrylockfile'
+--- Properties of Function 'fileno'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns (file share/libc/stdio.h, line 289)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 289)
+[ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 289)
             Unverifiable but considered Valid.
@@ -620,10 +586,10 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'ferror'
+--- Properties of Function 'flockfile'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Assigns nothing
+[ Extern  ] Assigns (file share/libc/stdio.h, line 292)
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 292)
             Unverifiable but considered Valid.
@@ -631,7 +597,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'perror'
+--- Properties of Function 'funlockfile'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 295)
@@ -642,7 +608,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'getc_unlocked'
+--- Properties of Function 'ftrylockfile'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 298)
@@ -655,29 +621,18 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'getchar_unlocked'
+--- Properties of Function 'ferror'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 300)
+[ Extern  ] Froms (file share/libc/stdio.h, line 301)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'putc_unlocked'
---------------------------------------------------------------------------------
-
-[ Extern  ] Assigns (file share/libc/stdio.h, line 302)
-            Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 302)
-            Unverifiable but considered Valid.
-[  Valid  ] Default behavior
-            by Frama-C kernel.
-
---------------------------------------------------------------------------------
---- Properties of Function 'putchar_unlocked'
+--- Properties of Function 'perror'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 304)
@@ -688,10 +643,12 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'clearerr_unlocked'
+--- Properties of Function 'getc_unlocked'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns (file share/libc/stdio.h, line 307)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 307)
             Unverifiable but considered Valid.
 [ Extern  ] Froms (file share/libc/stdio.h, line 307)
             Unverifiable but considered Valid.
@@ -699,7 +656,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
---- Properties of Function 'feof_unlocked'
+--- Properties of Function 'getchar_unlocked'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns nothing
@@ -710,12 +667,56 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
             by Frama-C kernel.
 
 --------------------------------------------------------------------------------
+--- Properties of Function 'putc_unlocked'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 311)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 311)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'putchar_unlocked'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 313)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 313)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'clearerr_unlocked'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns (file share/libc/stdio.h, line 316)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 316)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'feof_unlocked'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/stdio.h, line 318)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
 --- Properties of Function 'ferror_unlocked'
 --------------------------------------------------------------------------------
 
 [ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 311)
+[ Extern  ] Froms (file share/libc/stdio.h, line 320)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -726,7 +727,7 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 
 [ Extern  ] Assigns nothing
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file share/libc/stdio.h, line 313)
+[ Extern  ] Froms (file share/libc/stdio.h, line 322)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -745,8 +746,8 @@ tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got final statu
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-    63 Completely validated
+    64 Completely validated
    151 Considered valid
      1 To be validated
-   215 Total
+   216 Total
 --------------------------------------------------------------------------------

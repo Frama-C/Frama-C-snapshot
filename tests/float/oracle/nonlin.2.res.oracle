@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/nonlin.c (with preprocessing)
 tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is not represented exactly. Will use 0x1.12e0be826d695p-30. See documentation for option -warn-decimal-float
 [value] Analyzing a complete application starting at main
@@ -36,7 +35,7 @@ tests/float/nonlin.c:75:[kernel] warning: Floating-point constant 0.000000001 is
   rbits2 ∈ {0}
   v ∈ [--..--]
 [value] computing for function nonlin_f <- main.
-        Called from tests/float/nonlin.c:85.
+        Called from tests/float/nonlin.c:92.
 [value] computing for function Frama_C_float_interval <- nonlin_f <- main.
         Called from tests/float/nonlin.c:16.
 [value] using specification for function Frama_C_float_interval
@@ -48,74 +47,90 @@ share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondit
 [value] Done for function Frama_C_float_interval
 tests/float/nonlin.c:20:[value] assertion got status valid.
 tests/float/nonlin.c:24:[value] assertion got status valid.
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.4000000000000p2 .. 0x1.4800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.4000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.4800000000000p2 .. 0x1.5000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.4800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.5000000000000p2 .. 0x1.5800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.5000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.5800000000000p2 .. 0x1.6000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.5800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.6000000000000p2 .. 0x1.6800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.6000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.6800000000000p2 .. 0x1.7000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.6800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.7000000000000p2 .. 0x1.7800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.7000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.7800000000000p2 .. 0x1.8000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.7800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.8000000000000p2 .. 0x1.8800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.8000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.8800000000000p2 .. 0x1.9000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.8800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.9000000000000p2 .. 0x1.9800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.9000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.9800000000000p2 .. 0x1.a000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.9800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.a000000000000p2 .. 0x1.a800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.a000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.a800000000000p2 .. 0x1.b000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.a800000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.b000000000000p2 .. 0x1.b800000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.b000000000000p2 .. 0x1.c800000000000p2])
-[value] Called Frama_C_show_each_a_r2({{ "a" }},
-                                      [0x1.b800000000000p2 .. 0x1.c000000000000p2],
-                                      {{ "r2" }},
-                                      [0x1.b800000000000p2 .. 0x1.c800000000000p2])
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.4000000000000p2 .. 0x1.4800000000000p2],
+        {{ "r2" }},
+        [0x1.4000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.4800000000000p2 .. 0x1.5000000000000p2],
+        {{ "r2" }},
+        [0x1.4800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.5000000000000p2 .. 0x1.5800000000000p2],
+        {{ "r2" }},
+        [0x1.5000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.5800000000000p2 .. 0x1.6000000000000p2],
+        {{ "r2" }},
+        [0x1.5800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.6000000000000p2 .. 0x1.6800000000000p2],
+        {{ "r2" }},
+        [0x1.6000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.6800000000000p2 .. 0x1.7000000000000p2],
+        {{ "r2" }},
+        [0x1.6800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.7000000000000p2 .. 0x1.7800000000000p2],
+        {{ "r2" }},
+        [0x1.7000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.7800000000000p2 .. 0x1.8000000000000p2],
+        {{ "r2" }},
+        [0x1.7800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.8000000000000p2 .. 0x1.8800000000000p2],
+        {{ "r2" }},
+        [0x1.8000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.8800000000000p2 .. 0x1.9000000000000p2],
+        {{ "r2" }},
+        [0x1.8800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.9000000000000p2 .. 0x1.9800000000000p2],
+        {{ "r2" }},
+        [0x1.9000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.9800000000000p2 .. 0x1.a000000000000p2],
+        {{ "r2" }},
+        [0x1.9800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.a000000000000p2 .. 0x1.a800000000000p2],
+        {{ "r2" }},
+        [0x1.a000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.a800000000000p2 .. 0x1.b000000000000p2],
+        {{ "r2" }},
+        [0x1.a800000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.b000000000000p2 .. 0x1.b800000000000p2],
+        {{ "r2" }},
+        [0x1.b000000000000p2 .. 0x1.c800000000000p2]
+tests/float/nonlin.c:42:[value] Frama_C_show_each_a_r2:
+        {{ "a" }},
+        [0x1.b800000000000p2 .. 0x1.c000000000000p2],
+        {{ "r2" }},
+        [0x1.b800000000000p2 .. 0x1.c800000000000p2]
 [value] Recording results for nonlin_f
 [value] Done for function nonlin_f
 [value] computing for function other <- main.
-        Called from tests/float/nonlin.c:86.
+        Called from tests/float/nonlin.c:93.
 [value] computing for function Frama_C_float_interval <- other <- main.
         Called from tests/float/nonlin.c:59.
 [value] Done for function Frama_C_float_interval
@@ -139,7 +154,7 @@ tests/float/nonlin.c:70:[value] warning: division by zero. assert x ≢ 0;
 [value] Recording results for other
 [value] Done for function other
 [value] computing for function split_alarm <- main.
-        Called from tests/float/nonlin.c:87.
+        Called from tests/float/nonlin.c:94.
 tests/float/nonlin.c:74:[value] warning: non-finite float value. assert \is_finite(v);
 tests/float/nonlin.c:75:[value] warning: non-finite double value.
                  assert
@@ -148,11 +163,21 @@ tests/float/nonlin.c:75:[value] warning: non-finite double value.
 [value] Recording results for split_alarm
 [value] Done for function split_alarm
 [value] computing for function norm <- main.
-        Called from tests/float/nonlin.c:88.
+        Called from tests/float/nonlin.c:95.
 tests/float/nonlin.c:79:[value] warning: non-finite float value. assert \is_finite(v);
 tests/float/nonlin.c:80:[value] warning: non-finite float value. assert \is_finite(v);
 [value] Recording results for norm
 [value] Done for function norm
+[value] computing for function garbled <- main.
+        Called from tests/float/nonlin.c:96.
+tests/float/nonlin.c:87:[value] warning: non-finite float value.
+                 assert \is_finite((float)((int)(&x_0 + (int)(&x_0))));
+tests/float/nonlin.c:87:[value] Assigning imprecise value to a_0.
+        The imprecision originates from Arithmetic {tests/float/nonlin.c:87}
+tests/float/nonlin.c:88:[value] warning: non-finite float value. assert \is_finite(a_0);
+tests/float/nonlin.c:88:[value] warning: non-finite float value. assert \is_finite((float)(a_0 + a_0));
+[value] Recording results for garbled
+[value] Done for function garbled
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -160,6 +185,11 @@ tests/float/nonlin.c:80:[value] warning: non-finite float value. assert \is_fini
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [0..3271884800]
   __retres ∈ {0; 1}
+[value:final-states] Values at end of function garbled:
+  a_0 ∈
+     {{ garbled mix of &{x_0}
+      (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+  f ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
 [value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
@@ -214,6 +244,11 @@ tests/float/nonlin.c:80:[value] warning: non-finite float value. assert \is_fini
   rbits1 ∈ {0; 1; 2}
   x0 ∈ [0..3271884800]
   __retres ∈ {0; 1}
+[value:final-states] Values at end of function garbled:
+  a_0 ∈
+     {{ garbled mix of &{x_0}
+      (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
 [value:final-states] Values at end of function nonlin_f:
   Frama_C_entropy_source ∈ [--..--]
   a ∈ [5. .. 7.]

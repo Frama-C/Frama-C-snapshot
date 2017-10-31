@@ -128,8 +128,7 @@ and token_hex = parse
       | 'a' .. 'f' -> int_of_char 'a' - 10
       | 'A' .. 'F' -> int_of_char 'A' - 10
       | _ ->
-	  let e = "?" in e.[0] <- c ;
-	  error "Incorrect hex-digit" e
+	  error "Incorrect hex-digit" (String.make 1 c)
     in int_of_char c - d
 
   open Big_int
@@ -164,8 +163,9 @@ and token_hex = parse
 
   let power_of_ten e =
     if e < 0 then raise (Invalid_argument "negative power") ;
-    let s = String.make (succ e) '0' in
-    s.[0] <- '1' ; s
+    let s = Bytes.make (succ e) '0' in
+    Bytes.set s 0 '1' ;
+    Bytes.to_string s
 
   let significant cst =
     let digits = cst.man ^ cst.com in

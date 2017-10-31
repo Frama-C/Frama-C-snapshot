@@ -3,7 +3,7 @@
    OPT: -lib-entry -main g -val-show-progress -pdg -pdg-dot tests/pdg/call  -journal-disable -pdg-print -pdg-verbose 2
 */
 
-/* Ne pas modifier : exemple utilisé dans le rapport. */
+/* Ne pas modifier : exemple utilisÃ© dans le rapport. */
 
 /*BDOC*/
 struct {int a; int b; } G;

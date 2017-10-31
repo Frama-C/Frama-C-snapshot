@@ -1,5 +1,4 @@
 # frama-c -wp [...]
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
 tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
 [wp] Running WP plugin...
@@ -253,7 +252,7 @@ Assume {
   When: (0 <= i) /\ (i <= 499).
   (* Initializer *)
   Init: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 499) ->
-      (p[i_1] = global(G_p0_75)))).
+      (p[i_1] = global(G_p0_26)))).
   (* Heap *)
   Have: linked(Malloc_0).
 }
@@ -276,8 +275,8 @@ Assume {
   Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 49) ->
       (Mint_0[shift_sint32(t, i_1)] = x))).
   If 0 <= x
-  Then { Have: simpl_0 = 1. }
-  Else { Have: simpl_0 = 0. }
+  Then { (* Return *) Have: simpl_0 = 1. }
+  Else { (* Return *) Have: simpl_0 = 0. }
 }
 Prove: (0 <= Mint_0[shift_sint32(t, i)]) <-> (simpl_0 = 1).
 

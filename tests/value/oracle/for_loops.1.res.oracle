@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/for_loops.c (with preprocessing)
 [value] Analyzing a complete application starting at main_2
 [value] Computing initial state
@@ -15,28 +14,28 @@ tests/value/for_loops.c:16:[value] entering loop for the first time
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-[value] Called Frama_C_show_each_F({0; 1})
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1}
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-[value] Called Frama_C_show_each_F({0; 1; 2})
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2}
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-[value] Called Frama_C_show_each_F({0; 1; 2; 3})
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3}
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-[value] Called Frama_C_show_each_F({0; 1; 2; 3; 4})
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3; 4}
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-[value] Called Frama_C_show_each_F({0; 1; 2; 3; 4; 5})
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}
 [value] computing for function Frama_C_interval <- main_2.
         Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
 tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
-[value] Called Frama_C_show_each_F([0..2147483647])
+tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..2147483647]
 [value] Recording results for main_2
 [value] done for function main_2
 [value] ====== VALUES COMPUTED ======

@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/bts709.i (no preprocessing)
 tests/slicing/bts709.i:36:[kernel] warning: Calling undeclared function assert. Old style K&R code?
 [slicing] slicing requests in progress...
@@ -127,5 +126,4 @@ void inputsOf_testcase_func_slice_1(void)
 }
 
 
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/slicing/result/ocode_0_bts709.i (no preprocessing)

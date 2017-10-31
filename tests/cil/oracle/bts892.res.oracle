@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/cil/bts892.i (no preprocessing)
 tests/cil/bts892.i:11:[kernel] user error: Forbidden access to local variable i in static initializer
 [kernel] user error: stopping on file "tests/cil/bts892.i" that has errors.

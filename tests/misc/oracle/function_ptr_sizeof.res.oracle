@@ -1,0 +1,4 @@
+[kernel] Parsing tests/misc/function_ptr_sizeof.i (no preprocessing)
+tests/misc/function_ptr_sizeof.i:10:[kernel] user error: sizeof() called on function
+[kernel] user error: stopping on file "tests/misc/function_ptr_sizeof.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

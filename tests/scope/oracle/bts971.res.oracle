@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/scope/bts971.c (with preprocessing)
 === Tests for Scope.Defs
 --- Intraprocedural mode (-scope-no-defs-interproc)

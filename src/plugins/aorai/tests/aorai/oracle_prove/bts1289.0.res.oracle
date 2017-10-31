@@ -1,8 +1,6 @@
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/bts1289.i (no preprocessing)
 [aorai] Welcome to the Aorai plugin
 [aorai] warning: Call to main does not follow automaton's specification. This path is assumed to be dead
-[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_bts12890.i (no preprocessing)
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards

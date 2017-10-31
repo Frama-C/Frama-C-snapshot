@@ -1,0 +1,17 @@
+[kernel] Parsing tests/syntax/incompatible_qualifiers.c (with preprocessing)
+tests/syntax/incompatible_qualifiers.c:11:[kernel] user error: Declaration of f does not match previous declaration from tests/syntax/incompatible_qualifiers.c:9 (different qualifiers).
+tests/syntax/incompatible_qualifiers.c:19:[kernel] user error: Declaration of h does not match previous declaration from tests/syntax/incompatible_qualifiers.c:17 (different qualifiers).
+tests/syntax/incompatible_qualifiers.c:27:[kernel] user error: Declaration of j does not match previous declaration from tests/syntax/incompatible_qualifiers.c:25 (different qualifiers).
+tests/syntax/incompatible_qualifiers.c:38:[kernel] user error: Declaration of l does not match previous declaration from tests/syntax/incompatible_qualifiers.c:36 (different qualifiers).
+tests/syntax/incompatible_qualifiers.c:46:[kernel] user error: Declaration of n does not match previous declaration from tests/syntax/incompatible_qualifiers.c:44 (different qualifiers).
+tests/syntax/incompatible_qualifiers.c:51:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:65:[kernel] user error: function pointer type does not allow 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:72:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:73:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:74:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:75:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:76:[kernel] user error: invalid usage of 'restrict' qualifier
+tests/syntax/incompatible_qualifiers.c:77:[kernel] user error: function pointer type does not allow 'restrict' qualifier
+[kernel] user error: stopping on file "tests/syntax/incompatible_qualifiers.c" that has errors.
+                     Add '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

@@ -34,6 +34,7 @@ __BEGIN_DECLS
 
 struct passwd {
   char    *pw_name;
+  char    *pw_passwd; // not POSIX, but allowed by it, and present in glibc
   uid_t    pw_uid;
   gid_t    pw_gid;
   char    *pw_dir;

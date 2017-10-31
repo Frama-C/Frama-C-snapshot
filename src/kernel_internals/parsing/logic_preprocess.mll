@@ -324,6 +324,7 @@ and macro_char blacklisted = parse
 | _ as c { if not blacklisted then Buffer.add_char preprocess_buffer c;
            macro_char blacklisted lexbuf }
 and c_string = parse
+| eof { abort_preprocess "unterminated string" }
 | "\\\"" { Buffer.add_string output_buffer (lexeme lexbuf); c_string lexbuf }
 | "\"" { Buffer.add_char output_buffer '"'; main lexbuf }
 | '\n' { make_newline ();
@@ -334,6 +335,7 @@ and c_string = parse
 | _ as c { Buffer.add_char output_buffer c; c_string lexbuf }
 (* C syntax allows for multiple char character constants *)
 and c_char = parse
+| eof { abort_preprocess "unterminated char" }
 | "\\\'" { Buffer.add_string output_buffer (lexeme lexbuf);
            c_char lexbuf }
 | "'" { Buffer.add_char output_buffer '\''; main lexbuf }

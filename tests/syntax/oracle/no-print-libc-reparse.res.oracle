@@ -1,0 +1,2 @@
+[kernel] Parsing tests/syntax/no-print-libc-reparse.c (with preprocessing)
+[kernel] Parsing tests/syntax/result/ocode_0_no-print-libc-reparse.c (with preprocessing)

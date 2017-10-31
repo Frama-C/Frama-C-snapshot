@@ -1,11 +1,8 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/extern.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/value/extern.i:4:[kernel] imprecise size for variable T3 (Size of array without number of elements.)
 tests/value/extern.i:4:[value] warning: during initialization of variable 'T3', size of type 'int []' cannot be
                  computed (Size of array without number of elements.)
-tests/value/extern.i:5:[kernel] imprecise size for variable T4 (Size of array without number of elements.)
 tests/value/extern.i:5:[value] warning: during initialization of variable 'T4', size of type 'int const []' cannot be
                  computed (Size of array without number of elements.)
 tests/value/extern.i:14:[value] no size specified for array, assuming 0

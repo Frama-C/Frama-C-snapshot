@@ -1,9 +1,5 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/syntax/unroll_property_status_bts1442.i (no preprocessing)
 [report] Computing properties status...
-
 --------------------------------------------------------------------------------
---- Status Report Summary
---------------------------------------------------------------------------------
-     0 Total
+--- No status to report
 --------------------------------------------------------------------------------

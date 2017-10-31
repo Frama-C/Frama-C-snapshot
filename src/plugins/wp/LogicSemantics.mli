@@ -83,8 +83,8 @@ sig
   val term : env -> Cil_types.term -> term
   val pred : polarity -> env -> Cil_types.predicate -> pred
   val region : env -> Cil_types.term -> region
-  val assigns : env -> identified_term assigns -> (c_object * region) list option
-  val assigns_from : env -> identified_term from list -> (c_object * region) list
+  val assigns : env -> assigns -> (c_object * region) list option
+  val assigns_from : env -> from list -> (c_object * region) list
 
   val val_of_term : env -> Cil_types.term -> term
   val loc_of_term : env -> Cil_types.term -> loc

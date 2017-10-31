@@ -384,14 +384,14 @@ class virtual visitor main =
 
     method private vproperties = function
       | Logic _ | Function _ | Predicate _ -> ()
-      | Inductive cases -> List.iter self#vdlemma cases
+      | Inductive cases -> List.iter (fun l -> self#vdlemma l) cases
 
     method private vdfun d =
       begin
         List.iter self#vparam d.d_params ;
         self#vdefinition d.d_definition ;
-        self#on_dfun d ;
         self#vproperties d.d_definition ;
+        self#on_dfun d ;
       end
 
     method private vlfun f =
@@ -437,7 +437,6 @@ class virtual visitor main =
           List.iter self#vparam a.l_forall ;
           List.iter (List.iter self#vtrigger) a.l_triggers ;
           self#vpred a.l_lemma ;
-          self#on_dlemma a ;
         end
 
     method vlemma lem =
@@ -447,7 +446,7 @@ class virtual visitor main =
           lemmas <- DS.add l lemmas ;
           try
             let a = Lemma.find l in
-            if self#do_local a.l_cluster then self#vdlemma a
+            if self#do_local a.l_cluster then (self#vdlemma a; self#on_dlemma a)
           with Not_found ->
             Wp_parameters.fatal "Lemma '%s' undefined" l
         end
@@ -498,7 +497,7 @@ class virtual visitor main =
       rev_iter (fun d -> self#vsymbol d.d_lfun) main.c_symbols ;
 
     method vlemmas = (* Visit the lemmas *)
-      rev_iter (fun l -> self#vdlemma l) main.c_lemmas ;
+      rev_iter (fun l -> self#vdlemma l; self#on_dlemma l) main.c_lemmas ;
 
     method vself = (* Visit a cluster *)
       begin

@@ -33,6 +33,8 @@ module type S = sig
   type location  (** abstract locations *)
   type offset    (** abstract offsets *)
 
+  val top: location
+
   val equal_loc: location -> location -> bool
   val equal_offset: offset -> offset -> bool
   val pretty_loc: Format.formatter -> location -> unit
@@ -46,9 +48,6 @@ module type S = sig
   (** Needed for unspecified sequences. *)
   val check_non_overlapping:
     (lval * location) list -> (lval * location) list -> unit evaluated
-
-  (** Needed for Evaluation.get_influential_vars *)
-  val offset_cardinal_zero_or_one: offset -> bool
 
   (** {3 Forward Offset Operations } *)
 

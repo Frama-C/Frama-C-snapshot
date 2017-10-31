@@ -22,6 +22,9 @@
 
 #ifndef __FC_SYS_TIME_H__
 #define __FC_SYS_TIME_H__
+#include "../features.h"
+__PUSH_FC_STDLIB
+__BEGIN_DECLS
 
 #include "../__fc_define_time_t.h"
 #include "../__fc_define_suseconds_t.h"
@@ -175,4 +178,20 @@ extern int setitimer (int which,
       struct itimerval *restrict old_value);
 #endif
 
+// Non-POSIX, non-C99 functions (present in Linux and most BSDs)
+extern void timeradd(struct timeval *a, struct timeval *b,
+              struct timeval *res);
+
+extern void timersub(struct timeval *a, struct timeval *b,
+              struct timeval *res);
+
+extern void timerclear(struct timeval *tvp);
+
+extern int timerisset(struct timeval *tvp);
+
+#define timercmp(a, b, _CMP) _timercmp(a, b)
+extern int _timercmp(struct timeval *a, struct timeval *b);
+
+__END_DECLS
+__POP_FC_STDLIB
 #endif

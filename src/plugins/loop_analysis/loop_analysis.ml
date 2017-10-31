@@ -222,9 +222,6 @@ module Binary(* :BINARY_SEMILATTICE *) = struct
     | Unknown, Unknown -> Unknown
     | _,_ -> Unknown
 
-  (* let pretty _ = assert false *)
-  (* let join_and_is_included _ = assert false *)
-  (* let is_included _ = assert false *)
 end
 
 

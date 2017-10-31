@@ -33,6 +33,8 @@ module EqualityDomain: Parameter_sig.Bool
 module GaugesDomain: Parameter_sig.Bool
 module SymbolicLocsDomain: Parameter_sig.Bool
 module BitwiseOffsmDomain: Parameter_sig.Bool
+module InoutDomain: Parameter_sig.Bool
+module SignDomain: Parameter_sig.Bool
 
 module ApronOctagon: Parameter_sig.Bool
 module ApronBox: Parameter_sig.Bool
@@ -42,16 +44,13 @@ module PolkaEqualities: Parameter_sig.Bool
 
 module EqualityStorage: Parameter_sig.Bool
 module SymbolicLocsStorage: Parameter_sig.Bool
+module GaugesStorage: Parameter_sig.Bool
 module ApronStorage: Parameter_sig.Bool
 module BitwiseOffsmStorage: Parameter_sig.Bool
 
 
 module AutomaticContextMaxDepth: Parameter_sig.Int
 module AutomaticContextMaxWidth: Parameter_sig.Int
-
-module SeparateStmtStart:  Parameter_sig.String_set
-module SeparateStmtWord:  Parameter_sig.Int
-module SeparateStmtOf:  Parameter_sig.Int
 
 module AllRoundingModes: Parameter_sig.Bool
 module AllRoundingModesConstants: Parameter_sig.Bool
@@ -96,6 +95,7 @@ module UndefinedPointerComparisonPropagateAll: Parameter_sig.Bool
 module WarnPointerComparison: Parameter_sig.String
 
 module ReduceOnLogicAlarms: Parameter_sig.Bool
+module InitializedLocals: Parameter_sig.Bool
 
 module UsePrototype: Parameter_sig.Kernel_function_set
 
@@ -139,6 +139,7 @@ module MallocLevel: Parameter_sig.Int
 
 val parameters_correctness: Typed_parameter.t list
 val parameters_tuning: Typed_parameter.t list
+val parameters_abstractions: Typed_parameter.t list
 
 (** Debug categories responsible for printing initial and final states of Value.
    Enabled by default, but can be disabled via the command-line:
@@ -155,6 +156,9 @@ val dkey_garbled_mix: Log.category
 (** Debug category used to print information about invalid pointer comparisons*)
 val dkey_pointer_comparison: Log.category
 
+(** Debug category used to print the cvalue domain on Frama_C_[dump|show]_each
+    functions. *)
+val dkey_cvalue_domain: Log.category
 
 (*
 Local Variables:

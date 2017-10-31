@@ -14,7 +14,7 @@ void loop (void) {
   i=0 ;
   //@ loop assigns i, dest;
   while (i<100) {
-    f(&dest);
+    f((unsigned char*)&dest);
     copy(&dest, &src, sizeof(dest));
     i++;
   }

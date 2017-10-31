@@ -37,9 +37,9 @@ let compute_and_print pp str_data =
   let stmt, kf = pp in
   let lval_term = !Db.Properties.Interp.term_lval kf str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
-  let (_used_stmts, zones) = !Db.Scope.build_zones kf stmt lval in
+  let (_used_stmts, zones) = Scope.Zones.build_zones kf stmt lval in
     Format.printf "Zones for %s at current program point =@.%a\n@\n"
-      str_data !Db.Scope.pretty_zones zones
+      str_data Scope.Zones.pretty_zones zones
 ;;
 
 let main _ =

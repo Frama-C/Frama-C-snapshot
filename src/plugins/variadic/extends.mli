@@ -66,8 +66,6 @@ module Cil : sig
       is a non-variadic function or if it is not a function. *)
   val is_variadic_function : varinfo -> bool
 
-  val static_string : exp -> string option
-
   (** Does not use {! Globals.Functions.get} nor
       {! Kernel_function.get_return_type}. *)
   val get_fundec_return_type : fundec -> typ

@@ -8,3 +8,43 @@ Only in tests/float/oracle: absorb_sav.err
 Only in tests/float/oracle: absorb_sav.res
 Only in tests/float/oracle: absorb_sav2.err
 Only in tests/float/oracle: absorb_sav2.res
+diff tests/float/oracle/nonlin.0.res.oracle tests/float/oracle_equalities/nonlin.0.res.oracle
+191c191
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+250c250
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+diff tests/float/oracle/nonlin.1.res.oracle tests/float/oracle_equalities/nonlin.1.res.oracle
+53a54
+> tests/float/nonlin.c:42:[value:nonlin] subdividing on a
+211c212
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+270c271
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+diff tests/float/oracle/nonlin.2.res.oracle tests/float/oracle_equalities/nonlin.2.res.oracle
+191c191
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+250c250
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+diff tests/float/oracle/nonlin.3.res.oracle tests/float/oracle_equalities/nonlin.3.res.oracle
+53a54
+> tests/float/nonlin.c:42:[value:nonlin] subdividing on a
+211c212
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}
+270c271
+<       (origin: Arithmetic {tests/float/nonlin.c:87}) }}
+---
+>       (origin: Arithmetic {tests/float/nonlin.c:88}) }}

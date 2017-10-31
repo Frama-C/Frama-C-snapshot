@@ -56,6 +56,13 @@ val has_ltype : logic_type -> term -> pred
 val cdomain : typ -> (term -> pred) option
 val ldomain : logic_type -> (term -> pred) option
 
+(** {2 Volatile Access} *)
+
+val volatile : ?warn:string -> unit -> bool
+(** Check if a volatile access must be properly modelled or ignored.
+    In case the volatile attribute comes to be ignored,
+    the provided warning is emitted, if any. *)
+
 (** {2 ACSL Equality} *)
 
 val equal_object : c_object -> term -> term -> pred

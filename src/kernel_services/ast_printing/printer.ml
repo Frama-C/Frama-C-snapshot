@@ -271,7 +271,16 @@ class printer_with_annot () = object (self)
     end else
       self#stmtkind next fmt s.skind;
     Format.pp_close_box fmt ()
-
+  
+  method! stmtkind (next: stmt) fmt skind =
+    super#stmtkind next fmt
+      begin
+        match skind with
+        | Goto({ contents = { skind = (Return _) as return }},_)
+          when Kernel.PrintReturn.get () -> return
+        | _ -> skind
+      end
+  
 end (* class printer_with_annot *)
 
 include Printer_builder.Make(struct class printer = printer_with_annot end)
@@ -290,19 +299,35 @@ let () = Cil_datatype.Block.pretty_ref := pp_block
 let () = Cil_datatype.Instr.pretty_ref := pp_instr
 let () = Cil_datatype.Logic_var.pretty_ref := pp_logic_var
 let () = Cil_datatype.Model_info.pretty_ref := pp_model_info
-let () = Cil_datatype.Logic_label.pretty_ref := pp_logic_label
 let () = Cil_datatype.Logic_type.pretty_ref := pp_logic_type
 let () = Cil_datatype.Term.pretty_ref := pp_term
 let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
 let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset
+let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
+let () = Cil_datatype.Funspec.pretty_ref := pp_funspec
+  
+(*  to fix issue #2 *)                                          
+let () = Cil_datatype.Cabs_file.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Label.pretty_ref := pp_label
+let () = Cil_datatype.Compinfo.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Fieldinfo.pretty_ref := (fun fmt f -> pp_varname fmt f.fname)
+let () = Cil_datatype.Builtin_logic_info.pretty_ref := (fun _ _ -> assert false)                                         
+let () = Cil_datatype.Logic_type_info.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Logic_ctor_info.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Initinfo.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Logic_info.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Logic_constant.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Identified_term.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Term_lhost.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Logic_label.pretty_ref := pp_logic_label
 let () = Cil_datatype.Global_annotation.pretty_ref := pp_global_annotation
 let () = Cil_datatype.Global.pretty_ref := pp_global
-let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
 let () = Cil_datatype.Predicate.pretty_ref := pp_predicate
 let () = Cil_datatype.Identified_predicate.pretty_ref := pp_identified_predicate
-let () = Cil_datatype.Funspec.pretty_ref := pp_funspec
-let () =
-  Cil_datatype.Fieldinfo.pretty_ref := (fun fmt f -> pp_varname fmt f.fname)
+let () = Cil_datatype.Fundec.pretty_ref := (fun _ _ -> assert false)
+let () = Cil_datatype.Lexpr.pretty_ref := (fun _ _ -> assert false)
+                                               
+                                               
 
 (*
 Local Variables:

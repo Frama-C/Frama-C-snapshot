@@ -33,8 +33,12 @@ module type Graph = sig
   val get: unit -> G.t
   (** Get the graph from the AST. *)
 
+  module Subgraph: sig val get: unit -> G.t end
+  (** Subgraph of [get ()] wrt [Options.Roots.get ()] *)
+
   val dump: unit -> unit
-  (** Dump the graph in the file of the corresponding command line argument. *)
+  (** Dump the (possibly sub-)graph in the file of the corresponding command
+      line argument. *)
 
   val is_computed: unit -> bool
   (** Is the graph already built? *)
@@ -49,9 +53,15 @@ module type S = Graph with type G.V.t = Kernel_function.t
                       and type G.E.label = Cil_types.stmt
 
 (** Signature for a graph of services *)
-module type Services =
-  Graph with type G.V.t = Kernel_function.t Service_graph.vertex
-        and type G.E.label = Service_graph.edge
+module type Services = sig
+
+  include Graph with type G.V.t = Kernel_function.t Service_graph.vertex
+                and type G.E.label = Service_graph.edge
+
+  val entry_point: unit -> G.V.t option
+  val is_root: Kernel_function.t -> bool
+
+end
 
 (*
 Local Variables:

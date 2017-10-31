@@ -1,4 +1,3 @@
-[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/value/big_lib_entry.i (no preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
