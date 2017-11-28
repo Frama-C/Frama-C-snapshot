@@ -29,7 +29,7 @@
     (see module {!Interval.Env}).
 
     It implement Figure 3 of J. Signoles' JFLA'15 paper "Rester statique pour
-    devenir plus rapide, plus précis et plus mince".
+    devenir plus rapide, plus prÃ©cis et plus mince".
 
     Example: consider a variable [x] of type [int] on a (strange) architecture
     in which values of type [int] belongs to the interval \[-128;127\] and a

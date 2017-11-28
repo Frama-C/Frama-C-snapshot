@@ -1,0 +1,14 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/float_format.i (no preprocessing)
+tests/wp_plugin/float_format.i:10:[kernel] warning: Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3. See documentation for option -warn-decimal-float
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_output_post_KO : Unknown
+[wp] Proved goals:    0 / 1
+    Alt-Ergo:        0  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+output              -      -           1       0.0%
+----------------------------------------------------------

@@ -986,7 +986,8 @@ module G = struct
   let translate_exp state to_loc to_v e =
     let ptr_size e =
       let typ_pointed = Cil.typeOf_pointed (Cil.typeOf e) in
-      Integer.of_int (Cil.bytesSizeOf typ_pointed)
+      try Integer.of_int (Cil.bytesSizeOf typ_pointed)
+      with Cil.SizeOfError _ -> raise Untranslatable
     in
     (* This function translates the expression as a precise gauge. For any
        expression that cannot be handled, [Untranslatable] is raised. *)

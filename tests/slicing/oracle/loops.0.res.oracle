@@ -17,7 +17,7 @@ tests/slicing/loops.i:35:[value] warning: signed overflow. assert s + 1 ≤ 2147
 [from] Computing for function f1
 [from] Done for function f1
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======

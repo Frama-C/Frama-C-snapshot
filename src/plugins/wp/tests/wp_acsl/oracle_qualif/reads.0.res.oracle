@@ -12,8 +12,8 @@
 [wp] [Qed] Goal typed_modifies_y_post_qed_ok_G_OK : Valid
 [wp] [Alt-Ergo] Goal typed_modifies_y_post_qed_ok_W_OK_todo : Unknown
 [wp] Proved goals:    5 / 7
-     Qed:             3 
-     Alt-Ergo:        2  (unknown: 2)
+    Qed:             3 
+    Alt-Ergo:        2  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -       1 (13)     1       100%

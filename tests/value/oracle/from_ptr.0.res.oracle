@@ -28,13 +28,13 @@ tests/value/from_ptr.i:17:[value] assertion 'Value,mem_access' got final status 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   i FROM \nothing
   d FROM b; c
   q FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i; d; q
+      i; d; q
 [inout] Inputs for function main:
-          i; a; b; q
+      i; a; b; q

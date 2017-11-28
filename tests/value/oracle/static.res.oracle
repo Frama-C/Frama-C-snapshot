@@ -16,11 +16,11 @@ tests/value/static.i:21:[kernel] Dropping side-effect in sizeof. Nothing to worr
   Rv ∈ {99}
   x ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/value/static.i:19.
+    Called from tests/value/static.i:19.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/value/static.i:20.
+    Called from tests/value/static.i:20.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -42,7 +42,7 @@ tests/value/static.i:21:[kernel] Dropping side-effect in sizeof. Nothing to worr
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
@@ -56,10 +56,10 @@ tests/value/static.i:21:[kernel] Dropping side-effect in sizeof. Nothing to worr
   \result FROM T[0]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          __retres
+      __retres
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          GLOB; G; H; R; p; Rv; tmp; tmp_0; x; __retres
+      GLOB; G; H; R; p; Rv; tmp; tmp_0; x; __retres
 [inout] Inputs for function main:
-          T[0..4]; IT[9][bits 0 to 7]; p; a[0]; x
+      T[0..4]; IT[9][bits 0 to 7]; p; a[0]; x

@@ -15,8 +15,8 @@
 [wp] [Alt-Ergo] Goal typed_f_loop_assign_part3 : Valid
 [wp] [Alt-Ergo] Goal typed_f_assign : Unknown
 [wp] Proved goals:    8 / 10
-     Qed:             2 
-     Alt-Ergo:        6  (unknown: 2)
+    Qed:             2 
+    Alt-Ergo:        6  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    2      6 (98)    10      80.0%

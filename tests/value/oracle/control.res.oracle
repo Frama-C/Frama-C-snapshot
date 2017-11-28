@@ -18,11 +18,11 @@ tests/value/control.i:14:[value] warning: signed overflow. assert x + 1 ≤ 2147
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          x; i
+      x; i
 [inout] Inputs for function f:
-          x; c
+      x; c

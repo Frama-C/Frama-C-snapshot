@@ -6,7 +6,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function g <- f.
-        Called from tests/slicing/keep_annot.i:26.
+    Called from tests/slicing/keep_annot.i:26.
 tests/slicing/keep_annot.i:15:[value] entering loop for the first time
 tests/slicing/keep_annot.i:20:[value] warning: assertion got status unknown.
 tests/slicing/keep_annot.i:21:[value] warning: assertion got status unknown.

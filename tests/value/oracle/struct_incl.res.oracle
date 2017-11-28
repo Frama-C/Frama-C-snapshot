@@ -43,7 +43,7 @@ tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c} FROM \nothing
   x FROM \nothing
@@ -51,6 +51,6 @@ tests/value/struct_incl.i:48:[value] assertion 'Value,index_bound' got final sta
   z FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c}; x; y; z
+      s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c}; x; y; z
 [inout] Inputs for function main:
-          v
+      v

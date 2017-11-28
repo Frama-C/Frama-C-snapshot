@@ -18,13 +18,13 @@ tests/value/wide_string.c:19:[value] assertion 'Value,index_bound' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM "bar"{[bits 8 to 15]; [bits 24 to 31]};
                L"foO"{[bits 32 to 63]; [bits 96 to 127]}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p; q; c; wc; __retres
+      p; q; c; wc; __retres
 [inout] Inputs for function main:
-          "bar"{[bits 8 to 15]; [bits 24 to 31]};
-          L"foO"{[bits 32 to 63]; [bits 96 to 127]}
+      "bar"{[bits 8 to 15]; [bits 24 to 31]};
+      L"foO"{[bits 32 to 63]; [bits 96 to 127]}

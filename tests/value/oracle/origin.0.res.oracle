@@ -51,93 +51,93 @@
    .t[0] ∈ {{ &y }}
    .t[1] ∈ {0}
 [value] computing for function origin_arithmetic_1 <- main.
-        Called from tests/value/origin.i:94.
+    Called from tests/value/origin.i:94.
 tests/value/origin.i:14:[value] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta1));
 tests/value/origin.i:14:[value] warning: signed overflow. assert -((int)((int *)ta1)) ≤ 2147483647;
 tests/value/origin.i:14:[value] Assigning imprecise value to pa1.
-        The imprecision originates from Arithmetic {tests/value/origin.i:14}
+    The imprecision originates from Arithmetic {tests/value/origin.i:14}
 tests/value/origin.i:15:[value] warning: out of bounds write. assert \valid(pa1);
 [value] Recording results for origin_arithmetic_1
 [value] Done for function origin_arithmetic_1
 [value] computing for function origin_arithmetic_2 <- main.
-        Called from tests/value/origin.i:95.
+    Called from tests/value/origin.i:95.
 tests/value/origin.i:19:[value] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta2));
 tests/value/origin.i:19:[value] warning: signed overflow. assert -((int)((int *)ta2)) ≤ 2147483647;
 tests/value/origin.i:19:[value] Assigning imprecise value to pa2.
-        The imprecision originates from Arithmetic {tests/value/origin.i:19}
+    The imprecision originates from Arithmetic {tests/value/origin.i:19}
 tests/value/origin.i:20:[value] Assigning imprecise value to qa2.
-        The imprecision originates from Arithmetic {tests/value/origin.i:19}
+    The imprecision originates from Arithmetic {tests/value/origin.i:19}
 tests/value/origin.i:20:[value] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)tta2));
 tests/value/origin.i:20:[value] warning: signed overflow. assert -((int)((int *)tta2)) ≤ 2147483647;
 tests/value/origin.i:20:[value] Assigning imprecise value to qa2.
-        The imprecision originates from Arithmetic {tests/value/origin.i:20}
+    The imprecision originates from Arithmetic {tests/value/origin.i:20}
 tests/value/origin.i:21:[value] warning: out of bounds write. assert \valid(qa2);
 [value] Recording results for origin_arithmetic_2
 [value] Done for function origin_arithmetic_2
 [value] computing for function origin_arithmetic_3 <- main.
-        Called from tests/value/origin.i:96.
+    Called from tests/value/origin.i:96.
 tests/value/origin.i:25:[value] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta3));
 tests/value/origin.i:25:[value] warning: signed overflow. assert -((int)((int *)ta3)) ≤ 2147483647;
 tests/value/origin.i:25:[value] Assigning imprecise value to pa3.
-        The imprecision originates from Arithmetic {tests/value/origin.i:25}
+    The imprecision originates from Arithmetic {tests/value/origin.i:25}
 tests/value/origin.i:26:[value] warning: out of bounds write. assert \valid(pa3);
 [value] Recording results for origin_arithmetic_3
 [value] Done for function origin_arithmetic_3
 [value] computing for function origin_leaf_1 <- main.
-        Called from tests/value/origin.i:97.
+    Called from tests/value/origin.i:97.
 [value] computing for function g <- origin_leaf_1 <- main.
-        Called from tests/value/origin.i:38.
+    Called from tests/value/origin.i:38.
 tests/value/origin.i:38:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for origin_leaf_1
 [value] Done for function origin_leaf_1
 [value] computing for function g <- main.
-        Called from tests/value/origin.i:99.
+    Called from tests/value/origin.i:99.
 [value] Done for function g
 tests/value/origin.i:99:[value] warning: signed overflow. assert -2147483648 ≤ l2 + tmp;
-                                  (tmp from g())
+                     (tmp from g())
 tests/value/origin.i:99:[value] warning: signed overflow. assert l2 + tmp ≤ 2147483647;
-                                  (tmp from g())
+                     (tmp from g())
 [value] computing for function gp <- main.
-        Called from tests/value/origin.i:100.
+    Called from tests/value/origin.i:100.
 tests/value/origin.i:100:[kernel] warning: No code nor implicit assigns clause for function gp, generating default assigns from the prototype
 [value] using specification for function gp
 [value] Done for function gp
 tests/value/origin.i:101:[value] warning: out of bounds read. assert \valid_read(pl);
 [value] computing for function origin_misalign_1 <- main.
-        Called from tests/value/origin.i:102.
+    Called from tests/value/origin.i:102.
 tests/value/origin.i:48:[value] Assigning imprecise value to pm1.
-        The imprecision originates from Misaligned {tests/value/origin.i:48}
+    The imprecision originates from Misaligned {tests/value/origin.i:48}
 tests/value/origin.i:49:[value] warning: out of bounds write. assert \valid(pm1);
 [value] Recording results for origin_misalign_1
 [value] Done for function origin_misalign_1
 [value] computing for function origin_misalign_2 <- main.
-        Called from tests/value/origin.i:103.
+    Called from tests/value/origin.i:103.
 tests/value/origin.i:54:[value] Assigning imprecise value to qm2.
-        The imprecision originates from Misaligned {tests/value/origin.i:54}
+    The imprecision originates from Misaligned {tests/value/origin.i:54}
 tests/value/origin.i:55:[value] Frama_C_show_each:
-        {{ garbled mix of &{a; b} (origin: Misaligned {tests/value/origin.i:54}) }}
+    {{ garbled mix of &{a; b} (origin: Misaligned {tests/value/origin.i:54}) }}
 tests/value/origin.i:56:[value] warning: out of bounds write. assert \valid(qm2);
 [value] Recording results for origin_misalign_2
 [value] Done for function origin_misalign_2
 [value] computing for function origin_uninitialized_1 <- main.
-        Called from tests/value/origin.i:106.
+    Called from tests/value/origin.i:106.
 tests/value/origin.i:65:[value] warning: accessing uninitialized left-value. assert \initialized(&pi);
 [value] Recording results for origin_uninitialized_1
 [value] Done for function origin_uninitialized_1
 [value] computing for function origin_uninitialized_2 <- main.
-        Called from tests/value/origin.i:107.
+    Called from tests/value/origin.i:107.
 tests/value/origin.i:72:[value] warning: accessing uninitialized left-value. assert \initialized(&pi);
 tests/value/origin.i:75:[value] warning: accessing uninitialized left-value. assert \initialized(&i);
 [value] Recording results for origin_uninitialized_2
 [value] Done for function origin_uninitialized_2
 [value] computing for function local_escape_1 <- main.
-        Called from tests/value/origin.i:108.
+    Called from tests/value/origin.i:108.
 tests/value/origin.i:85:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&arg));
 tests/value/origin.i:85:[value] warning: signed overflow. assert -((int)(&arg)) ≤ 2147483647;
 tests/value/origin.i:85:[value] Assigning imprecise value to esc3.
-        The imprecision originates from Arithmetic {tests/value/origin.i:85}
+    The imprecision originates from Arithmetic {tests/value/origin.i:85}
 [value] Recording results for local_escape_1
 [value] Done for function local_escape_1
 tests/value/origin.i:108:[value] warning: locals {arg} escaping the scope of local_escape_1 through esc1
@@ -259,7 +259,7 @@ tests/value/origin.i:75:[value] assertion 'Value,initialisation' got final statu
 [from] Done for function gp
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   \result FROM \nothing
 [from] Function gp:
@@ -330,24 +330,24 @@ tests/value/origin.i:75:[value] assertion 'Value,initialisation' got final statu
   esc5 FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function local_escape_1:
-          esc1; esc2; esc3; esc4; esc5; local2
+      esc1; esc2; esc3; esc4; esc5; local2
 [inout] Out (internal) for function origin_arithmetic_1:
-          pa1; ta1[0..9]
+      pa1; ta1[0..9]
 [inout] Out (internal) for function origin_arithmetic_2:
-          pa2; qa2; ta2[0..9]; tta2[0..9]
+      pa2; qa2; ta2[0..9]; tta2[0..9]
 [inout] Out (internal) for function origin_arithmetic_3:
-          pa3; ta3[0..9]
+      pa3; ta3[0..9]
 [inout] Out (internal) for function origin_leaf_1:
-          l1
+      l1
 [inout] Out (internal) for function origin_misalign_1:
-          a; b; pm1
+      a; b; pm1
 [inout] Out (internal) for function origin_misalign_2:
-          a; b; pm2; qm2
+      a; b; pm2; qm2
 [inout] Out (internal) for function origin_uninitialized_1:
-          pun; pi
+      pun; pi
 [inout] Out (internal) for function origin_uninitialized_2:
-          pun2; qun2; pi
+      pun2; qun2; pi
 [inout] Out (internal) for function main:
-          a; b; p; pa1; pa2; qa2; pa3; q; ta1[0..9]; ta2[0..9]; ta3[0..9];
-          tta2[0..9]; l1; l2; l3; pl; pm1; pm2; qm2; pun; pun2; qun2; esc1; esc2;
-          esc3; esc4; esc5; tmp
+      a; b; p; pa1; pa2; qa2; pa3; q; ta1[0..9]; ta2[0..9]; ta3[0..9];
+      tta2[0..9]; l1; l2; l3; pl; pm1; pm2; qm2; pun; pun2; qun2; esc1; esc2;
+      esc3; esc4; esc5; tmp

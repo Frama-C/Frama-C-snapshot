@@ -28,7 +28,7 @@ tests/value/inout.i:18:[value] warning: out of bounds write. assert \valid(i);
 [from] Computing for function inout_11_0
 [from] Done for function inout_11_0
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function inout_11_0:
   Xt FROM I
   Xs FROM i1
@@ -38,9 +38,9 @@ tests/value/inout.i:18:[value] warning: out of bounds write. assert \valid(i);
   S_i[0] FROM i
 [from] ====== END OF DEPENDENCIES ======
 [inout] InOut (internal) for function inout_11_0:
-        Operational inputs:
-          Xs_I; I; i1; i2; i
-        Operational inputs on termination:
-          Xs_I; I; i1; i2; i
-        Sure outputs:
-          Xt; Xs; Xs_I; Ys; Z; S_i[0]
+    Operational inputs:
+      Xs_I; I; i1; i2; i
+    Operational inputs on termination:
+      Xs_I; I; i1; i2; i
+    Sure outputs:
+      Xt; Xs; Xs_I; Ys; Z; S_i[0]

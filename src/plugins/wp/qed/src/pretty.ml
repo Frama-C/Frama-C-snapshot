@@ -219,7 +219,7 @@ struct
     | True -> Atom "true"
     | False -> Atom "false"
     | Kint z -> Atom (Z.to_string z)
-    | Kreal r -> Atom (R.to_string r)
+    | Kreal r -> Atom (Q.to_string r)
     | Times(z,e) when Z.equal z Z.minus_one -> Unop("-",e)
     | Times(z,e) -> Hbox("*",[e_zint z;e])
     | Add es -> Sum es
@@ -335,7 +335,7 @@ struct
         (fun e (ps,ns) -> match T.repr e with
            | Times(k,n) when Z.equal k Z.minus_one -> (ps,n::ns)
            | Kint k when Z.lt k Z.zero -> (ps,e_zint (Z.neg k) :: ns)
-           | Kreal r when R.negative r -> (ps,e_real (R.opp r) :: ns)
+           | Kreal r when Q.lt r Q.zero -> (ps,e_real (Q.neg r) :: ns)
            | _ -> e::ps , ns)
         es ([],[])
     in match ps , ns with

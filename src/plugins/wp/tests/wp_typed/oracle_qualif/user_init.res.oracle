@@ -14,8 +14,8 @@
 [wp] [Alt-Ergo] Goal typed_init_loop_assign_part3 : Valid
 [wp] [Alt-Ergo] Goal typed_init_assign : Valid
 [wp] Proved goals:    9 / 9
-     Qed:             3 
-     Alt-Ergo:        6
+    Qed:             3 
+    Alt-Ergo:        6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 init                 3      6 (77)     9       100%

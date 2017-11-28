@@ -13,7 +13,7 @@
   S9 ∈ [--..--]
   u9[0..9] ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/volatile2.i:136.
+    Called from tests/value/volatile2.i:136.
 tests/value/volatile2.i:13:[value] warning: initialization of volatile variable c ignored
 tests/value/volatile2.i:23:[value] warning: signed overflow. assert (int)c << 8 ≤ 32767;
 tests/value/volatile2.i:24:[value] warning: signed overflow. assert (int)*p << 8 ≤ 32767;
@@ -22,11 +22,11 @@ tests/value/volatile2.i:26:[value] warning: signed overflow. assert (int)u.f1 <<
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/volatile2.i:137.
+    Called from tests/value/volatile2.i:137.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/volatile2.i:138.
+    Called from tests/value/volatile2.i:138.
 tests/value/volatile2.i:47:[value] warning: assertion got status invalid (stopping propagation).
 tests/value/volatile2.i:52:[value] assertion got status valid.
 tests/value/volatile2.i:55:[value] warning: assertion got status unknown.
@@ -35,55 +35,55 @@ tests/value/volatile2.i:59:[value] assertion got status valid.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/volatile2.i:139.
+    Called from tests/value/volatile2.i:139.
 tests/value/volatile2.i:67:[value] warning: initialization of volatile variable p2 ignored
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/volatile2.i:140.
+    Called from tests/value/volatile2.i:140.
 tests/value/volatile2.i:74:[value] warning: initialization of volatile variable i ignored
 tests/value/volatile2.i:75:[value] warning: initialization of volatile variable j ignored
 tests/value/volatile2.i:76:[value] warning: signed overflow. assert i + 1 ≤ 32767;
 tests/value/volatile2.i:76:[value] warning: signed overflow. assert j + 1 ≤ 32767;
 tests/value/volatile2.i:76:[value] warning: signed overflow.
-                 assert -32768 ≤ tmp + tmp_0;
-                 (tmp from i++, tmp_0 from j++)
+    assert -32768 ≤ tmp + tmp_0;
+    (tmp from i++, tmp_0 from j++)
 tests/value/volatile2.i:76:[value] warning: signed overflow. assert tmp + tmp_0 ≤ 32767;
-                                  (tmp from i++, tmp_0 from j++)
+                     (tmp from i++, tmp_0 from j++)
 tests/value/volatile2.i:78:[value] warning: signed overflow. assert i + 1 ≤ 32767;
 tests/value/volatile2.i:78:[value] warning: signed overflow. assert j + 1 ≤ 32767;
 tests/value/volatile2.i:78:[value] warning: signed overflow. assert -32768 ≤ i + j;
 tests/value/volatile2.i:78:[value] warning: signed overflow. assert i + j ≤ 32767;
 tests/value/volatile2.i:80:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        t[0..9] ∈ [--..--]
-        u ∈ [--..--]
-        pu ∈ {{ &u }}
-        s ∈ {0}
-        ps ∈ {{ &s }}
-        v ∈ [--..--]
-        i ∈ [--..--]
-        j ∈ [--..--]
-        k ∈ [--..--]
-        tmp ∈ [--..--]
-        tmp_0 ∈ [--..--]
-        l ∈ [--..--]
-        BITF ∈ [--..--]
-        S9 ∈ [--..--]
-        u9[0..9] ∈ [--..--]
-        ==END OF DUMP==
+    # Cvalue domain:
+    t[0..9] ∈ [--..--]
+    u ∈ [--..--]
+    pu ∈ {{ &u }}
+    s ∈ {0}
+    ps ∈ {{ &s }}
+    v ∈ [--..--]
+    i ∈ [--..--]
+    j ∈ [--..--]
+    k ∈ [--..--]
+    tmp ∈ [--..--]
+    tmp_0 ∈ [--..--]
+    l ∈ [--..--]
+    BITF ∈ [--..--]
+    S9 ∈ [--..--]
+    u9[0..9] ∈ [--..--]
+    ==END OF DUMP==
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-        Called from tests/value/volatile2.i:141.
+    Called from tests/value/volatile2.i:141.
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-        Called from tests/value/volatile2.i:142.
+    Called from tests/value/volatile2.i:142.
 [value] Recording results for main7
 [value] Done for function main7
 [value] computing for function main8 <- main.
-        Called from tests/value/volatile2.i:143.
+    Called from tests/value/volatile2.i:143.
 tests/value/volatile2.i:114:[value] warning: initialization of volatile variable a ignored
 tests/value/volatile2.i:115:[value] warning: initialization of volatile variable b ignored
 tests/value/volatile2.i:116:[value] warning: initialization of volatile variable c ignored
@@ -93,7 +93,7 @@ tests/value/volatile2.i:119:[value] Frama_C_show_each: [--..--], [--..--], [--..
 [value] Recording results for main8
 [value] Done for function main8
 [value] computing for function main9 <- main.
-        Called from tests/value/volatile2.i:144.
+    Called from tests/value/volatile2.i:144.
 tests/value/volatile2.i:129:[value] warning: accessing out of bounds index. assert 0 ≤ S9.i1;
 tests/value/volatile2.i:129:[value] warning: accessing out of bounds index. assert S9.i1 < 10;
 tests/value/volatile2.i:130:[value] warning: accessing out of bounds index. assert 0 ≤ S9.i1;

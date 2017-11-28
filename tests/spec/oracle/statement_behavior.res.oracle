@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function pfsqopfc <- main.
-        Called from tests/spec/statement_behavior.c:23.
+    Called from tests/spec/statement_behavior.c:23.
 tests/spec/statement_behavior.c:10:[value] warning: no \from part for clause 'assigns five_times;'
 tests/spec/statement_behavior.c:17:[value] warning: assertion got status unknown.
 tests/spec/statement_behavior.c:4:[value] warning: function pfsqopfc: postcondition got status unknown.
@@ -22,16 +22,16 @@ tests/spec/statement_behavior.c:18:[value] warning: accessing uninitialized left
   y ∈ [--..--]
   __retres ∈ {0}
 [inout] InOut (internal) for function pfsqopfc:
-        Operational inputs:
-          five_times
-        Operational inputs on termination:
-          five_times
-        Sure outputs:
-          \nothing
+    Operational inputs:
+      five_times
+    Operational inputs on termination:
+      five_times
+    Sure outputs:
+      \nothing
 [inout] InOut (internal) for function main:
-        Operational inputs:
-          \nothing
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          x; y; __retres
+    Operational inputs:
+      \nothing
+    Operational inputs on termination:
+      \nothing
+    Sure outputs:
+      x; y; __retres

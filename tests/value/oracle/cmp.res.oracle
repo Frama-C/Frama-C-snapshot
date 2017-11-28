@@ -7,7 +7,7 @@
 tests/value/cmp.i:10:[value] warning: accessing out of bounds index. assert 0 ≤ d;
 tests/value/cmp.i:10:[value] warning: accessing out of bounds index. assert d < 10;
 [value] computing for function cmp <- main.
-        Called from tests/value/cmp.i:11.
+    Called from tests/value/cmp.i:11.
 tests/value/cmp.i:4:[value] warning: accessing uninitialized left-value. assert \initialized(s1);
 tests/value/cmp.i:4:[value] warning: out of bounds read. assert \valid_read(s1);
 [value] Recording results for cmp
@@ -25,17 +25,17 @@ tests/value/cmp.i:4:[value] warning: out of bounds read. assert \valid_read(s1);
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function cmp:
   \result FROM \nothing
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function cmp:
-          __retres
+      __retres
 [inout] Inputs for function cmp:
-          T[0..9]; "V1.2"[bits 0 to 7]
+      T[0..9]; "V1.2"[bits 0 to 7]
 [inout] Out (internal) for function main:
-          T[0..9]; r
+      T[0..9]; r
 [inout] Inputs for function main:
-          "V1.2"[bits 0 to 7]
+      "V1.2"[bits 0 to 7]

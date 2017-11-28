@@ -57,8 +57,8 @@ let head_fields = function
 let head e =
   let open Qed.Logic in
   match F.repr e with
-  | Kint z -> F.Z.to_string z
-  | Kreal r -> Qed.R.to_string r
+  | Kint z -> Z.to_string z
+  | Kreal r -> Q.to_string r
   | Fvar x -> Printf.sprintf "$%s" (F.Var.basename x)
   | Bvar(k,_) -> Printf.sprintf "#%d" k
   | True -> "T"
@@ -73,7 +73,7 @@ let head e =
   | Neq _ -> "~"
   | Add _ -> "+"
   | Mul _ -> "*"
-  | Times(k,_) -> Printf.sprintf ".%s" (F.Z.to_string k)
+  | Times(k,_) -> Printf.sprintf ".%s" (Z.to_string k)
   | Div _ -> "/"
   | Mod _ -> "%"
   | If _ -> "?"

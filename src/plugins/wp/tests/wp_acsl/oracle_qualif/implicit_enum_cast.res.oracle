@@ -14,7 +14,7 @@
 [wp] [Qed] Goal typed_bar_assign_normal_part4 : Valid
 [wp] [Qed] Goal typed_bar_assign_normal_part5 : Valid
 [wp] Proved goals:    9 / 9
-     Qed:             9
+    Qed:             9
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 bar                  9     -           9       100%

@@ -40,8 +40,8 @@
 [wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_decrease : Valid
 [wp] [Qed] Goal typed_ref_equal_elements_loop_term_2_positive : Valid
 [wp] Proved goals:   35 / 35
-     Qed:            17 
-     Alt-Ergo:       18
+    Qed:            17 
+    Alt-Ergo:       18
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 equal_elements      17     18 (278)   35       100%
@@ -66,8 +66,8 @@ equal_elements      17     18 (278)   35       100%
 [wp] [Qed] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : Valid
 [wp] Proved goals:   16 / 16
-     Qed:            11 
-     Alt-Ergo:        5
+    Qed:            11 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 equal_elements      28     23 (278)   51       100%

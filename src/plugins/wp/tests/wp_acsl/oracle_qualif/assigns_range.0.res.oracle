@@ -22,8 +22,8 @@
 [wp] [Alt-Ergo] Goal typed_call_assigns_t2_call_assigns_t2_bound_pre : Valid
 [wp] [Alt-Ergo] Goal typed_call_assigns_t4_call_assigns_t4_sup_bound_pre : Valid
 [wp] Proved goals:   17 / 17
-     Qed:            12 
-     Alt-Ergo:        5
+    Qed:            12 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 call_assigns_all    12      2 (9)     14       100%

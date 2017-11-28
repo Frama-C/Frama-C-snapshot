@@ -23,6 +23,7 @@
 let show main_ui =
   let authors = [
     "Michele Alberti";
+    "Thibaud Antignac";
     "Gergö Barany";
     "Patrick Baudin";
     "François Bobot";

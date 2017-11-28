@@ -10,8 +10,8 @@
 [wp] [Qed] Goal typed_f_assert_4 : Valid
 [wp] [Alt-Ergo] Goal typed_f_assert_5 : Valid
 [wp] Proved goals:    5 / 5
-     Qed:             2 
-     Alt-Ergo:        3
+    Qed:             2 
+    Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    2      3 (19)     5       100%

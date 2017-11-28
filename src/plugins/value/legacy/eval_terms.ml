@@ -388,6 +388,26 @@ let infer_binop_res_type op targ =
     | Lt | Gt | Le | Ge | Eq | Ne | LAnd | LOr ->
         Cil.intType (* those operators always return a boolean *)
 
+(* Assumes that [lt] is a pointer type, or a set of pointer types. Returns
+   the pointed type. *)
+let logic_typ_pointed lt =
+  match Logic_utils.unroll_type lt with
+  | Ctype (TPtr _ as t)
+  | Ltype ({lt_name = "set"},[Ctype t]) -> Cil.typeOf_pointed t
+  | _ ->
+    ast_error
+      (Format.asprintf "not a pointer type %a" Printer.pp_logic_type lt)
+
+(* This function could probably be in Logic_const. It computes [*tsets],
+   assuming that [tsets] has a pointer type. (Note: it [tsets] is a tset,
+   the result should probably have a set type too. This is currently
+   not done. *)
+let deref_tsets tsets =
+  let star_tsets = Cil.mkTermMem ~addr:tsets ~off:TNoOffset in
+  let typ = logic_typ_pointed tsets.term_type in
+  Logic_const.term (TLval star_tsets) (Ctype typ)
+
+
 type logic_deps = Zone.t Logic_label.Map.t
 
 let deps_at lbl (ld:logic_deps) =
@@ -1016,19 +1036,20 @@ and eval_toffset ~alarm_mode env typ toffset =
         eunder = Ival.zero;
         eover = Ival.zero }
   | TIndex (idx, remaining) ->
-      let typ_pointed, size = match Cil.unrollType typ with
+      let typ_e, size = match Cil.unrollType typ with
         | TArray (t, size, _, _) -> t, size
         | _ -> ast_error "index on a non-array"
       in
       let idx = constraint_trange idx size in
       let idxs = eval_term ~alarm_mode env idx in
-      let offsrem = eval_toffset ~alarm_mode env typ_pointed remaining in
+      let offsrem = eval_toffset ~alarm_mode env typ_e remaining in
+      let size_e = Bit_utils.sizeof typ_e in
       let eover =
         let offset =
           try Cvalue.V.project_ival_bottom idxs.eover
           with Cvalue.V.Not_based_on_null -> Ival.top
         in
-	let offset = Ival.scale_int_base (sizeof typ_pointed) offset in
+	let offset = Ival.scale_int_base size_e offset in
 	Ival.add_int offset offsrem.eover
       in
       let eunder =
@@ -1036,7 +1057,7 @@ and eval_toffset ~alarm_mode env typ toffset =
           try Cvalue.V.project_ival idxs.eunder
           with Cvalue.V.Not_based_on_null -> Ival.bottom
         in
-	let offset = match (sizeof typ_pointed) with
+	let offset = match size_e with
 	  | Int_Base.Top -> Ival.bottom
 	  (* Note: scale_int_base would overapproximate when given a
 	     Float.  Should never happen. *)
@@ -1298,9 +1319,8 @@ let forall_in_under_location state loc test =
    [r] in [state]. The predicates holds whenever all the possible values at the
    location satisfy [test]. *)
 let eval_forall_predicate state r test =
-  let make_loc loc =
-    make_loc (loc_bytes_to_loc_bits loc) (sizeof_pointed r.etype)
-  in
+  let size_bits = Eval_typ.sizeof_lval_typ r.etype in
+  let make_loc loc = make_loc loc size_bits in
   let over_loc = make_loc r.eover in
   if not (Locations.is_valid ~for_writing:false over_loc) then c_alarm ();
   match forall_in_over_location state over_loc test with
@@ -1671,8 +1691,10 @@ let rec reduce_by_predicate ~alarm_mode env positive p =
       begin
         try
           let alarm_mode = alarm_reduce_mode () in
-          let rlocb = eval_term ~alarm_mode env tsets in
-          let size = Bit_utils.sizeof_pointed rlocb.etype in
+          (* See comments in the code for the evaluation of Pinitialized *)
+          let star_tsets = deref_tsets tsets in
+          let rlocb = eval_tlval ~alarm_mode env star_tsets in
+          let size = Eval_typ.sizeof_lval_typ rlocb.etype in
           let state = env_state env lbl_initialized in
           let fred = match p_content with
             | Pinitialized _ -> V_Or_Uninitialized.reduce_by_initializedness
@@ -1681,8 +1703,7 @@ let rec reduce_by_predicate ~alarm_mode env positive p =
           in
           let fred = Eval_op.reduce_by_initialized_defined (fred positive) in
           let state_reduced =
-            let loc_bits = loc_bytes_to_loc_bits rlocb.eunder in
-            let loc = make_loc loc_bits size in
+            let loc = make_loc rlocb.eunder size in
             let loc = Eval_op.make_loc_contiguous loc in
             Eval_op.apply_on_all_locs fred loc state
           in
@@ -1798,14 +1819,7 @@ and eval_predicate env pred =
           let for_writing =
             (match p.pred_content with Pvalid_read _ -> false | _ -> true) in
           let state = env_current_state env in
-          let typ_pointed = match Logic_utils.unroll_type tsets.term_type with
-            | Ctype (TPtr _ |  TArray _ as t)
-            | Ltype ({lt_name = "set"},[Ctype t]) -> Cil.typeOf_pointed t
-            | _ ->
-              ast_error
-                (Format.asprintf "valid on incorrect location %a"
-                   Printer.pp_term tsets)
-          in
+          let typ_pointed = logic_typ_pointed tsets.term_type in
           (* Check if we are trying to write in a const l-value *)
           if for_writing && Value_util.is_const_write_invalid typ_pointed then
             raise Stop;
@@ -1877,11 +1891,12 @@ and eval_predicate env pred =
 
     | Pinitialized (label,tsets) | Pdangling (label,tsets) -> begin
         try
-          let locb = eval_term ~alarm_mode env tsets in
+          (* Create [*tsets] and compute its location. This is important in
+             case [tsets] points to the address of a bitfield, which we
+             cannot evaluate as a pointer (indexed on bytes) *)
+          let star_tsets = deref_tsets tsets in
+          let locb = eval_tlval ~alarm_mode env star_tsets in
           let state = env_state env label in
-          if not (Cil.isPointerType locb.etype) then
-            ast_error "\\initialized or \\dangling on \
-                       incorrect location";
           match p.pred_content with
           | Pinitialized _ -> eval_initialized state locb
           | Pdangling _ -> eval_dangling state locb
@@ -1926,13 +1941,14 @@ and eval_predicate env pred =
     | Pseparated ltsets ->
         (try
            let to_zones tset =
-             let rtset = eval_term ~alarm_mode env tset in
-             let typ = rtset.etype in
-             if not (Cil.isPointerType typ)
-             then ast_error "separated on non-pointers";
-             let size = sizeof_pointed typ in
-             let loc_over = loc_bytes_to_loc_bits rtset.eover in
-             let loc_under = loc_bytes_to_loc_bits rtset.eunder in
+             (* Create [*tset] and compute its location. This is important in
+                case [tset] points to the address of a bitfield, which we
+                cannot evaluate as a pointer (indexed on bytes). *)
+             let star_tset = deref_tsets tset in
+             let rtset = eval_tlval ~alarm_mode env star_tset in
+             let size = Eval_typ.sizeof_lval_typ rtset.etype in
+             let loc_over = rtset.eover in
+             let loc_under = rtset.eunder in
              Locations.enumerate_bits (Locations.make_loc loc_over size),
              Locations.enumerate_bits_under (Locations.make_loc loc_under size)
            in

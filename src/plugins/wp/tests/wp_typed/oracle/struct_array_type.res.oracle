@@ -5,25 +5,25 @@
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp:print-generated] "WPOUT/typed/f_post.ergo"
-                     (* ---------------------------------------------------------- *)
-                     (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
-                     (* ---------------------------------------------------------- *)
-                     
-                     goal f_post:
-                       forall i_1,i : int.
-                       forall t : S1_s farray.
-                       let a = t[i_1] : S1_s in
-                       let a_1 = (a.F1_s_a)[0] : int in
-                       let a_2 = (a.F1_s_b)[0] : int in
-                       (0 <= i_1) ->
-                       (i_1 <= 9) ->
-                       is_uint32(i_1) ->
-                       is_sint32(i) ->
-                       is_sint32(a_1) ->
-                       is_sint32(a_2) ->
-                       (((a_2 < a_1) -> ((1 + (2 * a_1)) = (i + a_2))) and
-                        ((a_1 <= a_2) -> ((1 + (2 * a_2)) = (i + a_1)))) ->
-                       (a_2 < i)
+    (* ---------------------------------------------------------- *)
+    (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
+    (* ---------------------------------------------------------- *)
+    
+    goal f_post:
+      forall i_1,i : int.
+      forall t : S1_s farray.
+      let a = t[i_1] : S1_s in
+      let a_1 = (a.F1_s_a)[0] : int in
+      let a_2 = (a.F1_s_b)[0] : int in
+      (0 <= i_1) ->
+      (i_1 <= 9) ->
+      is_uint32(i_1) ->
+      is_sint32(i) ->
+      is_sint32(a_1) ->
+      is_sint32(a_2) ->
+      (((a_2 < a_1) -> ((1 + (2 * a_1)) = (i + a_2))) and
+       ((a_1 <= a_2) -> ((1 + (2 * a_2)) = (i + a_1)))) ->
+      (a_2 < i)
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f

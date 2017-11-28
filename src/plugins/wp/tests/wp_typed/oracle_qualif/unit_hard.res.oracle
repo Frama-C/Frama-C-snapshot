@@ -8,8 +8,8 @@
 [wp] [Qed] Goal typed_main_pre_q_is_66F0 : Valid
 [wp] [Alt-Ergo] Goal typed_main_pre_r_is_q1_ko : Unknown
 [wp] Proved goals:    2 / 3
-     Qed:             2 
-     Alt-Ergo:        0  (unknown: 1)
+    Qed:             2 
+    Alt-Ergo:        0  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                 2     -           3      66.7%

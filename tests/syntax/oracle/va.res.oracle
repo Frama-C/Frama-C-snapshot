@@ -1,9 +1,9 @@
 [kernel] Parsing tests/syntax/va.c (with preprocessing)
 tests/syntax/va.c:7:[kernel] user error: redefinition of 'x' in the same scope.
-                     Previous declaration was at tests/syntax/va.c:6
+    Previous declaration was at tests/syntax/va.c:6
 tests/syntax/va.c:13:[kernel] user error: redefinition of 'x' in the same scope.
-                     Previous declaration was at tests/syntax/va.c:12
+    Previous declaration was at tests/syntax/va.c:12
 tests/syntax/va.c:21:[kernel] user error: The last argument in call to __builtin_va_start should be the last formal argument of f
 [kernel] user error: stopping on file "tests/syntax/va.c" that has errors. Add
-                     '-kernel-msg-key pp' for preprocessing command.
+    '-kernel-msg-key pp' for preprocessing command.
 [kernel] Frama-C aborted: invalid user input.

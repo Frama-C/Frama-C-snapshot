@@ -15,8 +15,8 @@
 [wp] [Qed] Goal typed_exo1_loop_term_decrease : Valid
 [wp] [Qed] Goal typed_exo1_loop_term_positive : Valid
 [wp] Proved goals:   10 / 10
-     Qed:             6 
-     Alt-Ergo:        4
+    Qed:             6 
+    Alt-Ergo:        4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 exo1                 6      4 (187)   10       100%
@@ -30,8 +30,8 @@ exo1                 6      4 (187)   10       100%
 [wp] [Alt-Ergo] Goal typed_exo1_assert_rte_signed_overflow_2 : Valid
 [wp] [Alt-Ergo] Goal typed_exo1_assert_rte_signed_overflow_3 : Valid
 [wp] Proved goals:    5 / 5
-     Qed:             0 
-     Alt-Ergo:        5
+    Qed:             0 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 exo1                 6      9 (187)   15       100%

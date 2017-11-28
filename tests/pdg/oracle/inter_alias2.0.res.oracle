@@ -5,18 +5,18 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
-        Called from tests/pdg/inter_alias2.c:23.
+    Called from tests/pdg/inter_alias2.c:23.
 [value] computing for function incr_ptr <- f1 <- main.
-        Called from tests/pdg/inter_alias2.c:14.
+    Called from tests/pdg/inter_alias2.c:14.
 tests/pdg/inter_alias2.c:9:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
 [value] Recording results for incr_ptr
 [value] Done for function incr_ptr
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-        Called from tests/pdg/inter_alias2.c:24.
+    Called from tests/pdg/inter_alias2.c:24.
 [value] computing for function incr_ptr <- f2 <- main.
-        Called from tests/pdg/inter_alias2.c:19.
+    Called from tests/pdg/inter_alias2.c:19.
 [value] Recording results for incr_ptr
 [value] Done for function incr_ptr
 [value] Recording results for f2

@@ -33,10 +33,10 @@ tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2
   y ∈ [--..--]
   i ∈ {4}
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x; c; d (and SELF)
   y FROM y; c; d (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          x; y; i
+      x; y; i

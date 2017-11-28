@@ -18,11 +18,11 @@ tests/value/addr2.i:19:[value] Frama_C_show_each_F: [0..12]
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i
+      i
 [inout] Inputs for function main:
-          \nothing
+      \nothing

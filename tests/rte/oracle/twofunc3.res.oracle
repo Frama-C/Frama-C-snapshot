@@ -73,14 +73,14 @@ int main(void)
 [kernel] ================================
 [kernel] Rte-generated annotations for function f
 [kernel] For Statement if (x + y != 0) {
-                         if (x == 2147483647) 
-                           if (y == 1) {
-                             __retres = -1;
-                             goto return_label;
-                           }
-                         __retres = 0;
-                         goto return_label;
-                       }
+                    if (x == 2147483647) 
+                      if (y == 1) {
+                        __retres = -1;
+                        goto return_label;
+                      }
+                    __retres = 0;
+                    goto return_label;
+                  }
 [kernel] assert rte: signed_overflow: -2147483648 ≤ x + y;
 [kernel] assert rte: signed_overflow: x + y ≤ 2147483647;
 [kernel] For Statement return_label: return __retres;
@@ -104,19 +104,19 @@ int main(void)
 [kernel] assert rte: initialisation: \initialized(&i);
 [kernel] assert rte: signed_overflow: i + 1 ≤ 2147483647;
 [kernel] For Statement if (x > 0) 
-                         if (y > 0) {
-                           int tmp_0;
-                           tmp_0 = f(x,y);
-                           __retres = tmp_0;
-                           goto return_label;
-                         }
+                    if (y > 0) {
+                      int tmp_0;
+                      tmp_0 = f(x,y);
+                      __retres = tmp_0;
+                      goto return_label;
+                    }
 [kernel] assert rte: initialisation: \initialized(&x);
 [kernel] For Statement if (y > 0) {
-                         int tmp_0;
-                         tmp_0 = f(x,y);
-                         __retres = tmp_0;
-                         goto return_label;
-                       }
+                    int tmp_0;
+                    tmp_0 = f(x,y);
+                    __retres = tmp_0;
+                    goto return_label;
+                  }
 [kernel] assert rte: initialisation: \initialized(&y);
 [kernel] For Statement tmp_0 = f(x,y);
 [kernel] assert rte: initialisation: \initialized(&x);

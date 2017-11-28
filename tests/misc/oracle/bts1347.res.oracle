@@ -13,7 +13,7 @@ tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x
 [value:initial-state] Values of globals at initialization
   
 tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
-                                     (tmp from x++)
+                        (tmp from x++)
 [value] Recording results for g
 [value] done for function g
 [report] Computing properties status...
@@ -63,7 +63,7 @@ tests/misc/bts1347.i:5:[value] assertion 'emitter' got status valid.
 [value:initial-state] Values of globals at initialization
   
 tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
-                                     (tmp from x++)
+                        (tmp from x++)
 tests/misc/bts1347.i:6:[value] assertion 'emitter' got status valid.
 [value] Recording results for g
 [value] done for function g

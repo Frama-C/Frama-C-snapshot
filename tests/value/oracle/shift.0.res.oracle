@@ -32,7 +32,7 @@ tests/value/shift.i:48:[value] Frama_C_show_each: {{ "ua:%u\nub:%u\n" }}, {1401}
 tests/value/shift.i:52:[value] warning: unsigned overflow. assert 0 ≤ (unsigned long)((char *)t) << 8;
 tests/value/shift.i:52:[value] warning: unsigned overflow. assert (unsigned long)((char *)t) << 8 ≤ 4294967295;
 tests/value/shift.i:52:[value] Assigning imprecise value to r.
-        The imprecision originates from Arithmetic {tests/value/shift.i:52}
+    The imprecision originates from Arithmetic {tests/value/shift.i:52}
 tests/value/shift.i:53:[value] warning: invalid LHS operand for left shift. assert 0 ≤ (long)((char *)t);
 tests/value/shift.i:58:[value] warning: unsigned overflow. assert 2U << 31 ≤ 4294967295;
 [value] Recording results for main
@@ -56,7 +56,7 @@ tests/value/shift.i:58:[value] assertion 'Value,unsigned_overflow' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   a FROM v; c
   b FROM z (and SELF)
@@ -67,6 +67,6 @@ tests/value/shift.i:58:[value] assertion 'Value,unsigned_overflow' got final sta
   \result FROM b; z
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          a; b; d; f; ua; ub; c; z; zz; r; shl
+      a; b; d; f; ua; ub; c; z; zz; r; shl
 [inout] Inputs for function main:
-          b; d; f; ua; ub; v
+      b; d; f; ua; ub; v

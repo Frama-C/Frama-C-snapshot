@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function leaf <- main.
-        Called from tests/value/copy_stdin.i:4.
+    Called from tests/value/copy_stdin.i:4.
 tests/value/copy_stdin.i:4:[kernel] warning: Neither code nor specification for function leaf, generating default assigns from the prototype
 [value] using specification for function leaf
 [value] Done for function leaf
@@ -23,13 +23,13 @@ tests/value/copy_stdin.i:4:[kernel] warning: Neither code nor specification for 
 [from] Done for function leaf
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function leaf:
   \result FROM \nothing
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          stdin; toto
+      stdin; toto
 [inout] Inputs for function main:
-          \nothing
+      \nothing

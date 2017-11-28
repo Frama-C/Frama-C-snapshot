@@ -17,8 +17,8 @@ tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause 
 [wp] [Qed] Goal typed_main_call_f_pre_qed_ok_Rf : Valid
 [wp] [Qed] Goal typed_stmt_pre_stmt_pre_qed_ok_Rstmt : Valid
 [wp] Proved goals:   10 / 10
-     Qed:             9 
-     Alt-Ergo:        1
+    Qed:             9 
+    Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 double_call          1      1 (7)      2       100%

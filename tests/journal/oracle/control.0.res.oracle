@@ -19,9 +19,9 @@ tests/journal/control.i:21:[value] warning: signed overflow. assert x + 1 ≤ 21
   x ∈ [0..2147483647]
   i ∈ {4}
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          x; i
+      x; i

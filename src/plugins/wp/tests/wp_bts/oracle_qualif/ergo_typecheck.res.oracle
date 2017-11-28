@@ -13,7 +13,7 @@
 [wp] [Qed] Goal typed_f_post_var_unit4 : Valid
 [wp] [Qed] Goal typed_f_assign : Valid
 [wp] Proved goals:    8 / 8
-     Qed:             8
+    Qed:             8
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    8     -           8       100%

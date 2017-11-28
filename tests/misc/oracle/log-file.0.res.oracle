@@ -6,7 +6,7 @@ tests/misc/log-file.i:11:[value] warning: global initialization of volatile vari
 [value:initial-state] Values of globals at initialization
   a ∈ [--..--]
 [value] computing for function f <- main.
-        Called from tests/misc/log-file.i:17.
+    Called from tests/misc/log-file.i:17.
 tests/misc/log-file.i:17:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
@@ -22,13 +22,13 @@ tests/misc/log-file.i:18:[value] entering loop for the first time
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i; __retres
+      i; __retres
 [inout] Inputs for function main:
-          \nothing
+      \nothing

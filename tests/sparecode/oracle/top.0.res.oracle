@@ -9,7 +9,7 @@
 [value:initial-state] creating variable S_0_S___va_params with imprecise size (type void)
 [value:initial-state] creating variable S_1_S___va_params with imprecise size (type void)
 [value] computing for function f <- main_top.
-        Called from tests/sparecode/top.i:21.
+    Called from tests/sparecode/top.i:21.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top

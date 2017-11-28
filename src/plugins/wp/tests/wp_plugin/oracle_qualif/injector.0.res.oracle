@@ -18,7 +18,7 @@
 [wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_3 : Valid
 [wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_4 : Valid
 [wp] Proved goals:   13 / 13
-     Qed:            13
+    Qed:            13
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   13     -          13       100%

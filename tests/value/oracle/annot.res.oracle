@@ -33,11 +33,11 @@ tests/value/annot.i:53:[value] warning: assertion got status invalid (stopping p
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          A; B; x; y; z; a; b; tt[0]
+      A; B; x; y; z; a; b; tt[0]
 [inout] Inputs for function main:
-          A; B; u
+      A; B; u

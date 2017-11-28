@@ -19,8 +19,8 @@ tests/impact/loop.i:14:[value] warning: signed overflow. assert x + 1 ≤ 214748
 [pdg] computing for function loop
 [pdg] done for function loop
 [impact] impacted statements of stmt(s) 9 are:
-           tests/impact/loop.i:11 (sid 7): z = y + 1;
-           tests/impact/loop.i:13 (sid 9): x ++;
-           tests/impact/loop.i:14 (sid 10): y = x + 1;
-           tests/impact/loop.i:16 (sid 11): w = z;
+      tests/impact/loop.i:11 (sid 7): z = y + 1;
+      tests/impact/loop.i:13 (sid 9): x ++;
+      tests/impact/loop.i:14 (sid 10): y = x + 1;
+      tests/impact/loop.i:16 (sid 11): w = z;
 [impact] analysis done

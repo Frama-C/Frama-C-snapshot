@@ -12,8 +12,8 @@
 [wp] [Qed] Goal typed_job_assert_3 : Valid
 [wp] [Alt-Ergo] Goal typed_job_assert_4 : Valid
 [wp] Proved goals:    7 / 7
-     Qed:             4 
-     Alt-Ergo:        3
+    Qed:             4 
+    Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                  2      2 (19)     4       100%

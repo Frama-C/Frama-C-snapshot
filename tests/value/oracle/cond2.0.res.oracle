@@ -32,7 +32,7 @@ tests/value/cond2.i:27:[value] warning: signed overflow. assert y + 5 ≤ 214748
 [from] Computing for function zero_ou_un_0
 [from] Done for function zero_ou_un_0
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function zero_ou_un_0:
   x FROM Gx
   y FROM Gy
@@ -42,8 +42,8 @@ tests/value/cond2.i:27:[value] warning: signed overflow. assert y + 5 ≤ 214748
   u FROM Gx
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function zero_ou_un_0:
-          x; y; r; s; t; u; i
+      x; y; r; s; t; u; i
 [inout] Out (external) for function zero_ou_un_0:
-          x; y; r; s; t; u
+      x; y; r; s; t; u
 [inout] Inputs for function zero_ou_un_0:
-          Gx; Gy; x; y
+      Gx; Gy; x; y

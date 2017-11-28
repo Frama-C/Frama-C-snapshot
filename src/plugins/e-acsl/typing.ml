@@ -23,7 +23,7 @@
 open Cil_types
 
 (* Implement Figure 4 of J. Signoles' JFLA'15 paper "Rester statique pour
-   devenir plus rapide, plus précis et plus mince". *)
+   devenir plus rapide, plus prÃ©cis et plus mince". *)
 
 let dkey = Options.dkey_typing
 

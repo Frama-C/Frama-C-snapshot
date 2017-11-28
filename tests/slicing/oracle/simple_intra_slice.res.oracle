@@ -19,46 +19,46 @@ tests/slicing/simple_intra_slice.i:101:[value] warning: signed overflow. assert 
 tests/slicing/simple_intra_slice.i:101:[value] warning: signed overflow. assert S.a + 1 ≤ 2147483647;
 tests/slicing/simple_intra_slice.i:101:[value] warning: signed overflow. assert -2147483648 ≤ S.a - 1;
 [value] computing for function f2 <- main.
-        Called from tests/slicing/simple_intra_slice.i:103.
+    Called from tests/slicing/simple_intra_slice.i:103.
 [value] computing for function f1 <- f2 <- main.
-        Called from tests/slicing/simple_intra_slice.i:23.
+    Called from tests/slicing/simple_intra_slice.i:23.
 [value] Recording results for f1
 [value] Done for function f1
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-        Called from tests/slicing/simple_intra_slice.i:104.
+    Called from tests/slicing/simple_intra_slice.i:104.
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
-        Called from tests/slicing/simple_intra_slice.i:105.
+    Called from tests/slicing/simple_intra_slice.i:105.
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
-        Called from tests/slicing/simple_intra_slice.i:106.
+    Called from tests/slicing/simple_intra_slice.i:106.
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
-        Called from tests/slicing/simple_intra_slice.i:107.
+    Called from tests/slicing/simple_intra_slice.i:107.
 tests/slicing/simple_intra_slice.i:59:[value] entering loop for the first time
 tests/slicing/simple_intra_slice.i:71:[value] warning: signed overflow. assert -2147483648 ≤ 10 * n;
 tests/slicing/simple_intra_slice.i:71:[value] warning: signed overflow. assert 10 * n ≤ 2147483647;
 [value] Recording results for f6
 [value] Done for function f6
 tests/slicing/simple_intra_slice.i:107:[value] warning: signed overflow. assert res + tmp_3 ≤ 2147483647;
-                                  (tmp_3 from f6(Unknown))
+                     (tmp_3 from f6(Unknown))
 [value] computing for function f7 <- main.
-        Called from tests/slicing/simple_intra_slice.i:108.
+    Called from tests/slicing/simple_intra_slice.i:108.
 tests/slicing/simple_intra_slice.i:79:[value] warning: signed overflow. assert S.a + 3 ≤ 2147483647;
 tests/slicing/simple_intra_slice.i:82:[value] warning: signed overflow. assert s0.a + 1 ≤ 2147483647;
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
-        Called from tests/slicing/simple_intra_slice.i:110.
+    Called from tests/slicing/simple_intra_slice.i:110.
 [value] Recording results for f8
 [value] Done for function f8
 [value] computing for function f8 <- main.
-        Called from tests/slicing/simple_intra_slice.i:112.
+    Called from tests/slicing/simple_intra_slice.i:112.
 [value] Recording results for f8
 [value] Done for function f8
 [value] Recording results for main
@@ -82,7 +82,7 @@ tests/slicing/simple_intra_slice.i:82:[value] warning: signed overflow. assert s
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   G FROM x
   \result FROM y

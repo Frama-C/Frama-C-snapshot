@@ -241,28 +241,28 @@ tests/float/s.i:18:[kernel] warning: Floating-point constant 1.882f is not repre
   G18 ∈ {0}
   G19 ∈ {0}
 [value] computing for function F4 <- main.
-        Called from tests/float/s.i:260.
+    Called from tests/float/s.i:260.
 [value] computing for function F1 <- F4 <- main.
-        Called from tests/float/s.i:230.
+    Called from tests/float/s.i:230.
 tests/float/s.i:230:[kernel] warning: Neither code nor specification for function F1, generating default assigns from the prototype
 [value] using specification for function F1
 [value] Done for function F1
 tests/float/s.i:231:[value] warning: accessing out of bounds index. assert 0 ≤ V4;
 tests/float/s.i:231:[value] warning: accessing out of bounds index. assert V4 < 64;
 [value] computing for function F2 <- F4 <- main.
-        Called from tests/float/s.i:233.
+    Called from tests/float/s.i:233.
 tests/float/s.i:233:[kernel] warning: Neither code nor specification for function F2, generating default assigns from the prototype
 [value] using specification for function F2
 [value] Done for function F2
 tests/float/s.i:238:[value] warning: accessing out of bounds index. assert 0 ≤ V5;
 tests/float/s.i:238:[value] warning: accessing out of bounds index. assert V5 < 64;
 [value] computing for function F2 <- F4 <- main.
-        Called from tests/float/s.i:241.
+    Called from tests/float/s.i:241.
 [value] Done for function F2
 tests/float/s.i:242:[value] warning: accessing out of bounds index. assert 0 ≤ V6;
 tests/float/s.i:242:[value] warning: accessing out of bounds index. assert V6 < 64;
 [value] computing for function F3 <- F4 <- main.
-        Called from tests/float/s.i:244.
+    Called from tests/float/s.i:244.
 tests/float/s.i:244:[kernel] warning: Neither code nor specification for function F3, generating default assigns from the prototype
 [value] using specification for function F3
 [value] Done for function F3
@@ -306,7 +306,7 @@ tests/float/s.i:245:[value] warning: accessing out of bounds index. assert V7 < 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function F1:
   \result FROM G1
 [from] Function F2:
@@ -330,10 +330,10 @@ tests/float/s.i:245:[value] warning: accessing out of bounds index. assert V7 < 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function F4:
-          V1; V2; V3; V4; V5; V6; V7; G14; G15; G16; G17; G18; G19
+      V1; V2; V3; V4; V5; V6; V7; G14; G15; G16; G17; G18; G19
 [inout] Inputs for function F4:
-          G3; G9[0..63]; G10[0..63]; G11[0..63]; G12[0..31]; G13; G14; G15; G16; G18
+      G3; G9[0..63]; G10[0..63]; G11[0..63]; G12[0..31]; G13; G14; G15; G16; G18
 [inout] Out (internal) for function main:
-          V8; G14; G15; G16; G17; G18; G19
+      V8; G14; G15; G16; G17; G18; G19
 [inout] Inputs for function main:
-          G3; G9[0..63]; G10[0..63]; G11[0..63]; G12[0..31]; G13; G14; G15; G16; G18
+      G3; G9[0..63]; G10[0..63]; G11[0..63]; G12[0..31]; G13; G14; G15; G16; G18

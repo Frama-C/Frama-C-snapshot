@@ -35,21 +35,21 @@ diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_symblocs/b
 >   x1 ∈ {5}
 diff tests/value/oracle/bitwise_reduction.res.oracle tests/value/oracle_symblocs/bitwise_reduction.res.oracle
 15c15
-<         {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+<     {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 ---
->         {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+>     {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 17c17
-<         {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+<     {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 ---
->         {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+>     {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 21c21
-<         {{ &t + {0; 4} }}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+<     {{ &t + {0; 4} }}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 ---
->         {{ &t + {0; 4} }}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+>     {{ &t + {0; 4} }}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 23c23
-<         {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+<     {0; 1}, {0; 1; 0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 ---
->         {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
+>     {0; 1}, {0x3000; 0x3001; 0x3200; 0x3201; 0xF000; 0xFF00}
 diff tests/value/oracle/leaf.res.oracle tests/value/oracle_symblocs/leaf.res.oracle
 41c41
 < tests/value/leaf.i:53:[value] Frama_C_show_each_F: [-2147483648..2147483647]
@@ -90,7 +90,12 @@ diff tests/value/oracle/non_natural.res.oracle tests/value/oracle_symblocs/non_n
 < tests/value/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
 140a141
 > tests/value/non_natural.i:39:[kernel] more than 200(12500) elements to enumerate. Approximating.
-diff tests/value/oracle/offsetmap.res.oracle tests/value/oracle_symblocs/offsetmap.res.oracle
+diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_symblocs/offsetmap.0.res.oracle
+36d35
+< [value] Recording results for g
+37a37
+> [value] Recording results for g
+diff tests/value/oracle/offsetmap.1.res.oracle tests/value/oracle_symblocs/offsetmap.1.res.oracle
 36d35
 < [value] Recording results for g
 37a37
@@ -159,80 +164,80 @@ diff tests/value/oracle/struct2.res.oracle tests/value/oracle_symblocs/struct2.r
 >   tab6[0] ∈ {0}
 >       [1] ∈ {2}
 189c190
-<                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
+<              [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
 ---
->                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];
+>              [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];
 diff tests/value/oracle/symbolic_locs.res.oracle tests/value/oracle_symblocs/symbolic_locs.res.oracle
 18a19,24
->         # Symbolic locations domain:
->         V: {[ t[i] -> {4} ]}
->         Z: {[ t[i] -> t[0..8]; i ]}
->         I: {[ t -> {t[i]}
->               i -> {t[i]} ]}
->         S: {[ i -> {t[i]} ]}
+>     # Symbolic locations domain:
+>     V: {[ t[i] -> {4} ]}
+>     Z: {[ t[i] -> t[0..8]; i ]}
+>     I: {[ t -> {t[i]}
+>           i -> {t[i]} ]}
+>     S: {[ i -> {t[i]} ]}
 28a35,39
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 43a55,60
->         # Symbolic locations domain:
->         V: {[ t[i] -> {4} ]}
->         Z: {[ t[i] -> t[0..8]; i ]}
->         I: {[ t -> {t[i]}
->               i -> {t[i]} ]}
->         S: {[ i -> {t[i]} ]}
+>     # Symbolic locations domain:
+>     V: {[ t[i] -> {4} ]}
+>     Z: {[ t[i] -> t[0..8]; i ]}
+>     I: {[ t -> {t[i]}
+>           i -> {t[i]} ]}
+>     S: {[ i -> {t[i]} ]}
 53a71,75
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 69a92,98
->         # Symbolic locations domain:
->         V: {[ t[i] -> {{ &x }} ]}
->         Z: {[ t[i] -> t[0..8]; i ]}
->         I: {[ t -> {t[i]}
->               i -> {t[i]} ]}
->         S: {[ i -> {t[i]}
->               x -> {t[i]} ]}
+>     # Symbolic locations domain:
+>     V: {[ t[i] -> {{ &x }} ]}
+>     Z: {[ t[i] -> t[0..8]; i ]}
+>     I: {[ t -> {t[i]}
+>           i -> {t[i]} ]}
+>     S: {[ i -> {t[i]}
+>           x -> {t[i]} ]}
 80a110,114
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 94a129,134
->         # Symbolic locations domain:
->         V: {[ t[i] -> {1} ]}
->         Z: {[ t[i] -> t[0..8]; i ]}
->         I: {[ t -> {t[i]}
->               i -> {t[i]} ]}
->         S: {[ i -> {t[i]} ]}
+>     # Symbolic locations domain:
+>     V: {[ t[i] -> {1} ]}
+>     Z: {[ t[i] -> t[0..8]; i ]}
+>     I: {[ t -> {t[i]}
+>           i -> {t[i]} ]}
+>     S: {[ i -> {t[i]} ]}
 102a143,147
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 116a162,166
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 124,125c174
 < tests/value/symbolic_locs.i:111:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
 < tests/value/symbolic_locs.i:113:[value] Frama_C_show_each: [0..2147483647]
 ---
 > tests/value/symbolic_locs.i:113:[value] Frama_C_show_each: [10001..2147483647]
 133a183,187
->         # Symbolic locations domain:
->         V: {[  ]}
->         Z: {[  ]}
->         I: {[  ]}
->         S: {[  ]}
+>     # Symbolic locations domain:
+>     V: {[  ]}
+>     Z: {[  ]}
+>     I: {[  ]}
+>     S: {[  ]}
 diff tests/value/oracle/test.0.res.oracle tests/value/oracle_symblocs/test.0.res.oracle
 26c26
 <   tmp ∈ [--..--] or UNINITIALIZED

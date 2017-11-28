@@ -60,7 +60,7 @@ tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Igno
 [wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_precedence_let_ite : Unknown
 [wp] [Alt-Ergo] Goal typed_predicate_post_ko_l_assoc_naming : Unknown
 [wp] Proved goals:    0 / 37
-     Alt-Ergo:        0  (unknown: 37)
+    Alt-Ergo:        0  (unknown: 37)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 predicate           -      -          23       0.0%

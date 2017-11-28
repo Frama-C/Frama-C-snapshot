@@ -5,21 +5,21 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function rand <- main.
-        Called from tests/value/ptr_call_object.c:30.
+    Called from tests/value/ptr_call_object.c:30.
 [value] using specification for function rand
 [value] Done for function rand
 [value] computing for function next_0 <- main.
-        Called from tests/value/ptr_call_object.c:34.
+    Called from tests/value/ptr_call_object.c:34.
 tests/value/ptr_call_object.c:16:[value] Frama_C_show_each_p_in_next_0:
-        {{ &o0 }}, .next ∈ {{ &next_0 }}
-                   .i ∈ UNINITIALIZED
+    {{ &o0 }}, .next ∈ {{ &next_0 }}
+               .i ∈ UNINITIALIZED
 [value] Recording results for next_0
 [value] Done for function next_0
 [value] computing for function next_1 <- main.
-        Called from tests/value/ptr_call_object.c:34.
+    Called from tests/value/ptr_call_object.c:34.
 tests/value/ptr_call_object.c:11:[value] Frama_C_show_each_p_in_next_1:
-        {{ &o1 }}, .next ∈ {{ &next_1 }}
-                   .i ∈ UNINITIALIZED
+    {{ &o1 }}, .next ∈ {{ &next_1 }}
+               .i ∈ UNINITIALIZED
 [value] Recording results for next_1
 [value] Done for function next_1
 tests/value/ptr_call_object.c:35:[value] Frama_C_show_each_x: {{ &o1 }}
@@ -46,7 +46,7 @@ tests/value/ptr_call_object.c:35:[value] Frama_C_show_each_x: {{ &o1 }}
 [from] Done for function rand
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function next_0:
   \result FROM \nothing
 [from] Function next_1:
@@ -57,14 +57,14 @@ tests/value/ptr_call_object.c:35:[value] Frama_C_show_each_x: {{ &o1 }}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function next_0:
-          __retres
+      __retres
 [inout] Inputs for function next_0:
-          \nothing
+      \nothing
 [inout] Out (internal) for function next_1:
-          __retres
+      __retres
 [inout] Inputs for function next_1:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          o1.next; o0.next; p; tmp; tmp_0; __retres
+      o1.next; o0.next; p; tmp; tmp_0; __retres
 [inout] Inputs for function main:
-          \nothing
+      \nothing

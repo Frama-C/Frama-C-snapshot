@@ -18,8 +18,8 @@
 [wp] [Qed] Goal typed_main_pre_qed_ok_Tab_no_init : Valid
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_Tab_todo : Valid
 [wp] Proved goals:   13 / 13
-     Qed:            10 
-     Alt-Ergo:        3
+    Qed:            10 
+    Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                10      3 (28)    13       100%

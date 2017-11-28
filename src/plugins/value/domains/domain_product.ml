@@ -115,12 +115,15 @@ module Make
 
   (* TODO: this function does a cartesian product, which is pretty terrible. *)
   let merge_results _kf left_list right_list =
-    List.fold_left
-      (fun acc left ->
-         List.fold_left
-           (fun acc right -> (left, right) :: acc)
-           acc right_list)
-      [] left_list
+    let list =
+      List.fold_left
+        (fun acc left ->
+           List.fold_left
+             (fun acc right -> (left, right) :: acc)
+             acc right_list)
+        [] left_list
+    in
+    List.rev list
 
 
   module Transfer

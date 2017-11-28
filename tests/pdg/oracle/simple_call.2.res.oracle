@@ -8,7 +8,7 @@
   G2 ∈ [--..--]
   S ∈ [--..--]
 [value] computing for function mix_G1_G2 <- call_mix_G1_G2.
-        Called from tests/pdg/simple_call.c:28.
+    Called from tests/pdg/simple_call.c:28.
 [value] Recording results for mix_G1_G2
 [value] Done for function mix_G1_G2
 tests/pdg/simple_call.c:31:[value] warning: signed overflow. assert -2147483648 ≤ x1 + x2;

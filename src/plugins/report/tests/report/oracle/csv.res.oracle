@@ -5,40 +5,40 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/report/csv.c:54.
+    Called from tests/report/csv.c:54.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/report/csv.c:55.
+    Called from tests/report/csv.c:55.
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:21.
+    Called from tests/report/csv.c:21.
 tests/report/csv.c:21:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:22.
+    Called from tests/report/csv.c:22.
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:23.
+    Called from tests/report/csv.c:23.
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:24.
+    Called from tests/report/csv.c:24.
 tests/report/csv.c:17:[value] function f: precondition got status valid.
 [value] Done for function f
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/report/csv.c:56.
+    Called from tests/report/csv.c:56.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/report/csv.c:57.
+    Called from tests/report/csv.c:57.
 [value] computing for function any_double <- main4 <- main.
-        Called from tests/report/csv.c:49.
+    Called from tests/report/csv.c:49.
 [value] using specification for function any_double
 [value] Done for function any_double
 [value] computing for function __FC_assert <- main4 <- main.
-        Called from tests/report/csv.c:50.
+    Called from tests/report/csv.c:50.
 [value] using specification for function __FC_assert
 [value] Done for function __FC_assert
 [value] Recording results for main4
@@ -70,7 +70,7 @@ tests/report/csv.c:17:[value] function f: precondition got status valid.
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/report/csv.c:54.
+    Called from tests/report/csv.c:54.
 tests/report/csv.c:11:[value] warning: signed overflow. assert -2147483648 ≤ x * x;
 tests/report/csv.c:11:[value] warning: signed overflow. assert x * x ≤ 2147483647;
 tests/report/csv.c:12:[value] warning: accessing out of bounds index. assert 0 ≤ x;
@@ -80,38 +80,38 @@ tests/report/csv.c:14:[value] warning: accessing uninitialized left-value. asser
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/report/csv.c:55.
+    Called from tests/report/csv.c:55.
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:21.
+    Called from tests/report/csv.c:21.
 tests/report/csv.c:17:[value] warning: function f: precondition got status unknown.
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:22.
+    Called from tests/report/csv.c:22.
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:23.
+    Called from tests/report/csv.c:23.
 [value] Done for function f
 [value] computing for function f <- main2 <- main.
-        Called from tests/report/csv.c:24.
+    Called from tests/report/csv.c:24.
 [value] Done for function f
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/report/csv.c:56.
+    Called from tests/report/csv.c:56.
 tests/report/csv.c:33:[value] warning: builtin Frama_C_pow: out-of-range arguments
-                 ([-2147483648. .. 2147483647.], [-2147483648. .. 2147483647.]):
-                 negative base and noninteger exponent,
-                 computation may result in +oo/-oo/NaN
+    ([-2147483648. .. 2147483647.], [-2147483648. .. 2147483647.]):
+    negative base and noninteger exponent,
+    computation may result in +oo/-oo/NaN
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/report/csv.c:57.
+    Called from tests/report/csv.c:57.
 [value] computing for function any_double <- main4 <- main.
-        Called from tests/report/csv.c:49.
+    Called from tests/report/csv.c:49.
 [value] Done for function any_double
 tests/report/csv.c:50:[value] warning: non-finite double value. assert \is_finite(d);
 [value] computing for function __FC_assert <- main4 <- main.
-        Called from tests/report/csv.c:50.
+    Called from tests/report/csv.c:50.
 tests/report/csv.c:37:[value] warning: function __FC_assert: precondition got status invalid.
 [value] Done for function __FC_assert
 [value] Recording results for main4

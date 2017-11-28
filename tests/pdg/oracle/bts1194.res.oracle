@@ -7,9 +7,9 @@
   X ∈ {0}
   v ∈ [--..--]
 [value] computing for function f <- main.
-        Called from tests/pdg/bts1194.c:32.
+    Called from tests/pdg/bts1194.c:32.
 [value] computing for function input <- f <- main.
-        Called from tests/pdg/bts1194.c:13.
+    Called from tests/pdg/bts1194.c:13.
 [value] using specification for function input
 [value] Done for function input
 tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
@@ -18,9 +18,9 @@ tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
 [from] Done for function f
 [value] Done for function f
 [value] computing for function h <- main.
-        Called from tests/pdg/bts1194.c:33.
+    Called from tests/pdg/bts1194.c:33.
 [value] computing for function g <- h <- main.
-        Called from tests/pdg/bts1194.c:26.
+    Called from tests/pdg/bts1194.c:26.
 tests/pdg/bts1194.c:22:[value] entering loop for the first time
 [value] Recording results for g
 [from] Computing for function g
@@ -58,7 +58,7 @@ tests/pdg/bts1194.c:22:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   NON TERMINATING - NO EFFECTS
 [from] Function h:
@@ -87,33 +87,33 @@ tests/pdg/bts1194.c:22:[value] entering loop for the first time
   \result FROM \nothing
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] InOut (internal) for function g:
-        Operational inputs:
-          \nothing
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          ANYTHING(origin:Unknown)
+    Operational inputs:
+      \nothing
+    Operational inputs on termination:
+      \nothing
+    Sure outputs:
+      ANYTHING(origin:Unknown)
 [inout] InOut (internal) for function h:
-        Operational inputs:
-          X; v
-        Operational inputs on termination:
-          X; v
-        Sure outputs:
-          X
+    Operational inputs:
+      X; v
+    Operational inputs on termination:
+      X; v
+    Sure outputs:
+      X
 [inout] InOut (internal) for function f:
-        Operational inputs:
-          \nothing
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          Y; l
+    Operational inputs:
+      \nothing
+    Operational inputs on termination:
+      \nothing
+    Sure outputs:
+      Y; l
 [inout] InOut (internal) for function main:
-        Operational inputs:
-          X; v
-        Operational inputs on termination:
-          X; v
-        Sure outputs:
-          Y; X
+    Operational inputs:
+      X; v
+    Operational inputs on termination:
+      X; v
+    Sure outputs:
+      Y; X
 [pdg] computing for function g
 tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
 [pdg] done for function g
@@ -213,9 +213,9 @@ tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
 [value:initial-state] Values of globals at initialization
   Y ∈ {0}
 [value] computing for function f_slice_1 <- main.
-        Called from tests/pdg/bts1194.c:32.
+    Called from tests/pdg/bts1194.c:32.
 [value] computing for function input <- f_slice_1 <- main.
-        Called from tests/pdg/bts1194.c:13.
+    Called from tests/pdg/bts1194.c:13.
 tests/pdg/bts1194.c:13:[kernel] warning: Neither code nor specification for function input, generating default assigns from the prototype
 [value] using specification for function input
 [value] Done for function input

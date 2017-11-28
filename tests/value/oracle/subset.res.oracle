@@ -8,25 +8,25 @@
   _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/subset.c:71.
+    Called from tests/value/subset.c:71.
 tests/value/subset.c:16:[value] warning: assertion got status unknown.
 tests/value/subset.c:17:[value] assertion got status valid.
 tests/value/subset.c:18:[value] assertion got status valid.
 tests/value/subset.c:22:[value] warning: assertion got status unknown.
 [value] computing for function fopen <- main1 <- main.
-        Called from tests/value/subset.c:25.
+    Called from tests/value/subset.c:25.
 [value] using specification for function fopen
 [value] Done for function fopen
 tests/value/subset.c:26:[value] assertion got status valid.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/subset.c:72.
+    Called from tests/value/subset.c:72.
 tests/value/subset.c:35:[value] assertion got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/subset.c:73.
+    Called from tests/value/subset.c:73.
 tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert 0 ≤ v;
 tests/value/subset.c:40:[value] warning: accessing out of bounds index. assert v < 10;
 tests/value/subset.c:41:[value] warning: accessing out of bounds index. assert 0 ≤ v;
@@ -40,7 +40,7 @@ tests/value/subset.c:50:[value] warning: assertion got status unknown.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/subset.c:74.
+    Called from tests/value/subset.c:74.
 tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert 0 ≤ v;
 tests/value/subset.c:55:[value] warning: accessing out of bounds index. assert v < 10;
 tests/value/subset.c:56:[value] warning: assertion got status unknown.
@@ -90,7 +90,7 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function fopen:
   \result FROM _p__fc_fopen; "bla"
 [from] Function main1:
@@ -105,22 +105,22 @@ tests/value/subset.c:66:[value] warning: assertion 'KO' got status unknown.
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-          p
+      p
 [inout] Inputs for function main1:
-          _p__fc_fopen; "bla"
+      _p__fc_fopen; "bla"
 [inout] Out (internal) for function main2:
-          x; y; z
+      x; y; z
 [inout] Inputs for function main2:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main3:
-          a[0..9]; b[0..299]; z
+      a[0..9]; b[0..299]; z
 [inout] Inputs for function main3:
-          v
+      v
 [inout] Out (internal) for function main4:
-          a[0..9]; k
+      a[0..9]; k
 [inout] Inputs for function main4:
-          v
+      v
 [inout] Out (internal) for function main:
-          \nothing
+      \nothing
 [inout] Inputs for function main:
-          _p__fc_fopen; v; "bla"
+      _p__fc_fopen; v; "bla"

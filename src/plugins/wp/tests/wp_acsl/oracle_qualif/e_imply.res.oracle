@@ -48,8 +48,8 @@
 [wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
 [wp] Proved goals:  119 / 119
-     Qed:             8 
-     Alt-Ergo:      111
+    Qed:             8 
+    Alt-Ergo:      111
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               -      77 (13)    77       100%

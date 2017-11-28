@@ -6,8 +6,8 @@
 tests/wp_plugin/unroll.i:20:[wp] warning: Missing assigns clause (assigns 'everything' instead)
 [wp] 1 goal scheduled
 [wp] Proved goals:    1 / 1
-     Qed:             0 
-     Script:          1
+    Qed:             0 
+    Script:          1
 ------------------------------------------------------------
   Function unrolled_loop
 ------------------------------------------------------------

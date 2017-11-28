@@ -6,7 +6,7 @@
   a ∈ {1}
   b ∈ {2}
 [value] computing for function cpy <- main.
-        Called from tests/slicing/bts0950_annot.i:14.
+    Called from tests/slicing/bts0950_annot.i:14.
 tests/slicing/bts0950_annot.i:4:[value] function cpy: precondition got status valid.
 [value] Recording results for cpy
 [value] Done for function cpy
@@ -63,7 +63,7 @@ void main(void)
   a ∈ {1}
   b ∈ {2}
 [value] computing for function cpy <- main.
-        Called from tests/slicing/result/ocode_0_bts0950_annot.i:15.
+    Called from tests/slicing/result/ocode_0_bts0950_annot.i:15.
 tests/slicing/result/ocode_0_bts0950_annot.i:4:[value] function cpy: precondition got status valid.
 [value] Recording results for cpy
 [value] Done for function cpy

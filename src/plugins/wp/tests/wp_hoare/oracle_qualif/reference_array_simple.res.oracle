@@ -8,7 +8,7 @@
 [wp] [Qed] Goal typed_ref_call_f2_post : Valid
 [wp] [Qed] Goal typed_ref_call_f3_post : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             3
+    Qed:             3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 call_f1              1     -           1       100%

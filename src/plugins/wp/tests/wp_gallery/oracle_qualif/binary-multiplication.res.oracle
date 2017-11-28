@@ -21,8 +21,8 @@
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_decrease : Valid
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_term_positive : Valid
 [wp] Proved goals:   13 / 16
-     Qed:             5 
-     Alt-Ergo:        8  (interrupted: 2) (unknown: 1)
+    Qed:             5 
+    Alt-Ergo:        8  (interrupted: 2) (unknown: 1)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic mult       2      2 (4)      5      80.0%
@@ -39,8 +39,8 @@ BinaryMultiplication   3    6 (226)   11      81.8%
 [wp] [Alt-Ergo] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_preserved : Timeout
 [wp] [Qed] Goal typed_BinaryMultiplication_loop_inv_inv2_ok_established : Valid
 [wp] Proved goals:    2 / 5
-     Qed:             2 
-     Alt-Ergo:        0  (interrupted: 2) (unknown: 1)
+    Qed:             2 
+    Alt-Ergo:        0  (interrupted: 2) (unknown: 1)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic mult       2      2 (4)      5      80.0%

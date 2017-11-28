@@ -6,8 +6,8 @@
 [wp] [Alt-Ergo] Goal typed_lemma_with_consistent_antecedent_ok : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_with_inconsistent_antecedent_ok : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             0 
-     Alt-Ergo:        2
+    Qed:             0 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic With_consistent_antecedent  -     1 (4)   1  100%

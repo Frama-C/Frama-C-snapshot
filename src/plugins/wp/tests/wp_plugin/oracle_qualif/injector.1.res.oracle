@@ -9,7 +9,7 @@
 [wp] [Alt-Ergo] Goal typed_f_ko_1_post_qed_ko_2 : Unknown
 [wp] [Alt-Ergo] Goal typed_f_ko_1_post_qed_ko_3 : Unknown
 [wp] Proved goals:    0 / 4
-     Alt-Ergo:        0  (unknown: 4)
+    Alt-Ergo:        0  (unknown: 4)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -      -           4       0.0%

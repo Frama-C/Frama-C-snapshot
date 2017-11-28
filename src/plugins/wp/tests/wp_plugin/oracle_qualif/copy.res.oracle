@@ -16,8 +16,8 @@
 [wp] [Alt-Ergo] Goal typed_copy_loop_assign_part3 : Valid
 [wp] [Alt-Ergo] Goal typed_copy_assign : Valid
 [wp] Proved goals:   11 / 11
-     Qed:             3 
-     Alt-Ergo:        8
+    Qed:             3 
+    Alt-Ergo:        8
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 copy                 3      8 (315)   11       100%

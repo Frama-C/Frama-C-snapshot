@@ -7,8 +7,8 @@
 [wp] [Alt-Ergo] Goal typed_main_assert_ZERO : Valid
 [wp] [Alt-Ergo] Goal typed_main_assert_OVER : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             0 
-     Alt-Ergo:        2
+    Qed:             0 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                -       2 (23)     2       100%

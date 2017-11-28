@@ -14,8 +14,8 @@
 [wp] [Qed] Goal typed_ref_s_post_5 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_s_post_KO : Unknown
 [wp] Proved goals:    8 / 9
-     Qed:             7 
-     Alt-Ergo:        1  (unknown: 1)
+    Qed:             7 
+    Alt-Ergo:        1  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    1     -           1       100%

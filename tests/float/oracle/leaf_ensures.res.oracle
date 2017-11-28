@@ -13,13 +13,13 @@
   f4 ∈ {0}
   y ∈ {0}
 [value] computing for function d <- main.
-        Called from tests/float/leaf_ensures.i:24.
+    Called from tests/float/leaf_ensures.i:24.
 [value] using specification for function d
 tests/float/leaf_ensures.i:10:[value] warning: no 'assigns \result \from ...' clause specified for function d
 tests/float/leaf_ensures.i:4:[value] warning: no \from part for clause 'assigns d1, d2, d3;'
 [value] Done for function d
 [value] computing for function f <- main.
-        Called from tests/float/leaf_ensures.i:25.
+    Called from tests/float/leaf_ensures.i:25.
 [value] using specification for function f
 tests/float/leaf_ensures.i:20:[value] warning: no 'assigns \result \from ...' clause specified for function f
 tests/float/leaf_ensures.i:14:[value] warning: no \from part for clause 'assigns f1, f2, f3;'
@@ -44,7 +44,7 @@ tests/float/leaf_ensures.i:14:[value] warning: no \from part for clause 'assigns
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function d:
   d1 FROM ANYTHING(origin:Unknown) (and SELF)
   d2 FROM ANYTHING(origin:Unknown) (and SELF)
@@ -67,6 +67,6 @@ tests/float/leaf_ensures.i:14:[value] warning: no \from part for clause 'assigns
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          d1; d2; d3; d4; f1; f2; f3; f4; __retres
+      d1; d2; d3; d4; f1; f2; f3; f4; __retres
 [inout] Inputs for function main:
-          ANYTHING(origin:Unknown)
+      ANYTHING(origin:Unknown)

@@ -17,7 +17,7 @@ tests/slicing/loops.i:211:[value] warning: signed overflow. assert j + 1 ≤ 214
 [from] Computing for function alarm
 [from] Done for function alarm
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function alarm:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======

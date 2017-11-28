@@ -27,16 +27,16 @@ tests/value/inout.i:42:[value] warning: accessing uninitialized left-value. asse
 [from] Computing for function inout_11_3
 [from] Done for function inout_11_3
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function inout_11_3:
   Xs FROM i1
   Z FROM I_size; Itab{[0]; [7]}; i2 (and SELF)
   \result FROM I_size; Itab[0..7]; i2
 [from] ====== END OF DEPENDENCIES ======
 [inout] InOut (internal) for function inout_11_3:
-        Operational inputs:
-          I_size; Itab[0..7]; i1; i2; r
-        Operational inputs on termination:
-          I_size; Itab[0..7]; i1; i2; r
-        Sure outputs:
-          Xs; es
+    Operational inputs:
+      I_size; Itab[0..7]; i1; i2; r
+    Operational inputs on termination:
+      I_size; Itab[0..7]; i1; i2; r
+    Sure outputs:
+      Xs; es

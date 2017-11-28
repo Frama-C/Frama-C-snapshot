@@ -25,15 +25,13 @@
 open Logic
 
 module Make
-    ( Z : Arith.Z )
     ( ADT : Logic.Data )
     ( Field : Logic.Field )
     ( Fun : Logic.Function )
   :
   sig
     (** Logic API *)
-    include Logic.Term with module Z = Z
-                        and module ADT = ADT
+    include Logic.Term with module ADT = ADT
                         and module Field = Field
                         and module Fun = Fun
 

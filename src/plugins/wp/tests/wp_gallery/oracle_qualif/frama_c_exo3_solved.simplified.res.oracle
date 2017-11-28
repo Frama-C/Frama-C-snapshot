@@ -31,8 +31,8 @@
 [wp] [Alt-Ergo] Goal typed_pair_has_pair_post : Valid
 [wp] [Alt-Ergo] Goal typed_pair_no_pair_post : Valid
 [wp] Proved goals:   26 / 26
-     Qed:            16 
-     Alt-Ergo:       10
+    Qed:            16 
+    Alt-Ergo:       10
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 pair                16     10 (109)   26       100%
@@ -50,8 +50,8 @@ pair                16     10 (109)   26       100%
 [wp] [Qed] Goal typed_pair_assert_rte_index_bound_6 : Valid
 [wp] [Alt-Ergo] Goal typed_pair_assert_rte_signed_overflow_2 : Valid
 [wp] Proved goals:    9 / 9
-     Qed:             4 
-     Alt-Ergo:        5
+    Qed:             4 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 pair                20     15 (109)   35       100%

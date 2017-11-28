@@ -95,13 +95,13 @@ tests/value/alias.i:171:[value] warning: signed overflow. assert c + 1 ≤ 21474
 [from] Computing for function main5
 [from] Done for function main5
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main5:
   u FROM c
   v FROM c
   z FROM w; c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main5:
-          u; v; z; sss; pt; t1; t2_0
+      u; v; z; sss; pt; t1; t2_0
 [inout] Inputs for function main5:
-          u; v; w; c
+      u; v; w; c

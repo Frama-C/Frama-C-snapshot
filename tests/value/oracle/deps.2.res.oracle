@@ -16,11 +16,11 @@ tests/value/deps.i:32:[value] warning: signed overflow. assert a + b ≤ 2147483
 [from] Computing for function fonc2
 [from] Done for function fonc2
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function fonc2:
   \result FROM a; b
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function fonc2:
-          w; v1.x
+      w; v1.x
 [inout] Inputs for function fonc2:
-          \nothing
+      \nothing

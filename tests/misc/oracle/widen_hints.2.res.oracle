@@ -27,27 +27,27 @@ tests/misc/widen_hints.c:118:[value:widen-hints] adding new base due to dynamic 
 tests/misc/widen_hints.c:116:[value] entering loop for the first time
 tests/misc/widen_hints.c:118:[value] entering loop for the first time
 [value] computing for function using_dynamic_global <- main.
-        Called from tests/misc/widen_hints.c:124.
+    Called from tests/misc/widen_hints.c:124.
 tests/misc/widen_hints.c:58:[value:widen-hints] computing dynamic hints for statement 2
 tests/misc/widen_hints.c:58:[value:widen-hints] adding new base due to dynamic widen hint: outer_i, {87}
 [value] Recording results for using_dynamic_global
 [value] Done for function using_dynamic_global
 tests/misc/widen_hints.c:123:[value] entering loop for the first time
 [value] computing for function using_dynamic_global <- main.
-        Called from tests/misc/widen_hints.c:124.
+    Called from tests/misc/widen_hints.c:124.
 tests/misc/widen_hints.c:58:[value] entering loop for the first time
 [value] Recording results for using_dynamic_global
 [value] Done for function using_dynamic_global
 [value] computing for function using_dynamic_global <- main.
-        Called from tests/misc/widen_hints.c:124.
+    Called from tests/misc/widen_hints.c:124.
 [value] Recording results for using_dynamic_global
 [value] Done for function using_dynamic_global
 [value] computing for function using_dynamic_global <- main.
-        Called from tests/misc/widen_hints.c:124.
+    Called from tests/misc/widen_hints.c:124.
 [value] Recording results for using_dynamic_global
 [value] Done for function using_dynamic_global
 [value] computing for function using_dynamic_global <- main.
-        Called from tests/misc/widen_hints.c:124.
+    Called from tests/misc/widen_hints.c:124.
 [value] Recording results for using_dynamic_global
 [value] Done for function using_dynamic_global
 [value] Recording results for main

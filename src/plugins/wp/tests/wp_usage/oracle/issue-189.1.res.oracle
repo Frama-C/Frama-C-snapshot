@@ -15,7 +15,7 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 tests/wp_usage/issue-189.i:17:[wp] warning: forbidden write to variable 'src' considered in an isolated context.
-              Use model 'Typed' instead or specify '-wp-unalias-vars src'
+    Use model 'Typed' instead or specify '-wp-unalias-vars src'
 tests/wp_usage/issue-189.i:17:[wp] user error: forbidden assigns to variable 'src' considered in an isolated context.
-                 Use model 'Typed' instead or specify '-wp-unalias-vars src'
+    Use model 'Typed' instead or specify '-wp-unalias-vars src'
 [kernel] Plug-in wp aborted: invalid user input.

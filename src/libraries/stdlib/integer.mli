@@ -23,7 +23,7 @@
 (** Extension of [Big_int] compatible with [Zarith]. 
     @since Nitrogen-20111001 *)
 
-type t
+type t = Z.t
 
 exception Too_big (** Produced by values whose physical representation is too
                       costly (e.g. in terms of memory usage). *)
@@ -126,7 +126,6 @@ val add_2_32 : t -> t
 val is_even : t -> bool
 val round_down_to_zero : t -> t -> t
 val power_int_positive_int: int -> int -> t
-val to_num : t -> Num.num
 val popcount: t -> int
 
 val pretty : ?hexa:bool -> t Pretty_utils.formatter

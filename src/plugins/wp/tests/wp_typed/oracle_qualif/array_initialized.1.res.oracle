@@ -11,8 +11,8 @@ tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers fo
 [wp] [Alt-Ergo] Goal typed_main_pointer_assert : Valid
 [wp] [Alt-Ergo] Goal typed_simpl_post : Valid
 [wp] Proved goals:    5 / 5
-     Qed:             1 
-     Alt-Ergo:        4
+    Qed:             1 
+    Alt-Ergo:        4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main1               -       1 (20)     1       100%

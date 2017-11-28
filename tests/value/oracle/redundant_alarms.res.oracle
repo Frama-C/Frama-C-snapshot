@@ -6,14 +6,14 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/value/redundant_alarms.c:62.
+    Called from tests/value/redundant_alarms.c:62.
 tests/value/redundant_alarms.c:11:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 tests/value/redundant_alarms.c:12:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 tests/value/redundant_alarms.c:15:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/redundant_alarms.c:63.
+    Called from tests/value/redundant_alarms.c:63.
 tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert 0 ≤ i;
 tests/value/redundant_alarms.c:20:[value] warning: accessing out of bounds index. assert i < 10;
 tests/value/redundant_alarms.c:21:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
@@ -21,7 +21,7 @@ tests/value/redundant_alarms.c:22:[value] warning: accessing uninitialized left-
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/redundant_alarms.c:64.
+    Called from tests/value/redundant_alarms.c:64.
 tests/value/redundant_alarms.c:25:[value] warning: function main3: precondition got status unknown.
 tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[i]);
 tests/value/redundant_alarms.c:31:[value] warning: accessing uninitialized left-value. assert \initialized(&t[j]);
@@ -30,13 +30,13 @@ tests/value/redundant_alarms.c:33:[value] warning: accessing uninitialized left-
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/redundant_alarms.c:65.
+    Called from tests/value/redundant_alarms.c:65.
 tests/value/redundant_alarms.c:39:[value] entering loop for the first time
 tests/value/redundant_alarms.c:41:[value] warning: assertion got status unknown.
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/value/redundant_alarms.c:66.
+    Called from tests/value/redundant_alarms.c:66.
 tests/value/redundant_alarms.c:55:[value] assertion got status valid.
 tests/value/redundant_alarms.c:55:[value] warning: locals {x} escaping the scope of a block of main5 through p
 tests/value/redundant_alarms.c:58:[value] warning: assertion got status unknown.

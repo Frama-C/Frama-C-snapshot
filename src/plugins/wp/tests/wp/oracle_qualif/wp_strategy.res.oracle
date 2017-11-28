@@ -37,8 +37,8 @@
 [wp] [Qed] Goal hoare_spec_if_cond_stmt_post_qed_ok : Valid
 [wp] [Qed] Goal hoare_spec_if_not_cond_stmt_post_qed_ok : Valid
 [wp] Proved goals:   17 / 25
-     Qed:            17 
-     Alt-Ergo:        0  (unknown: 8)
+    Qed:            17 
+    Alt-Ergo:        0  (unknown: 8)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 bts0513             -      -           2       0.0%

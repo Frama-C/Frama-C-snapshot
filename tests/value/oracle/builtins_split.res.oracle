@@ -18,9 +18,9 @@
   s7 ∈ {0}
   ps ∈ {0}
 [value] computing for function test1 <- main.
-        Called from tests/value/builtins_split.c:150.
+    Called from tests/value/builtins_split.c:150.
 [value] computing for function setup1 <- test1 <- main.
-        Called from tests/value/builtins_split.c:20.
+    Called from tests/value/builtins_split.c:20.
 [value] Recording results for setup1
 [value] Done for function setup1
 tests/value/builtins_split.c:22:[value] Location *p is not a singleton ({{ x -> {0}; y -> {0} }} (size:<32>)). Cannot split.
@@ -30,9 +30,9 @@ tests/value/builtins_split.c:26:[value] Frama_C_show_each_split_pointer: {{ &x }
 [value] Recording results for test1
 [value] Done for function test1
 [value] computing for function test2 <- main.
-        Called from tests/value/builtins_split.c:151.
+    Called from tests/value/builtins_split.c:151.
 [value] computing for function setup2 <- test2 <- main.
-        Called from tests/value/builtins_split.c:40.
+    Called from tests/value/builtins_split.c:40.
 [value] Recording results for setup2
 [value] Done for function setup2
 tests/value/builtins_split.c:42:[value] warning: assertion got status unknown.
@@ -41,9 +41,9 @@ tests/value/builtins_split.c:46:[value] Frama_C_show_each_t_i_2: {2}, {8}
 [value] Recording results for test2
 [value] Done for function test2
 [value] computing for function test3 <- main.
-        Called from tests/value/builtins_split.c:152.
+    Called from tests/value/builtins_split.c:152.
 [value] computing for function setup3 <- test3 <- main.
-        Called from tests/value/builtins_split.c:77.
+    Called from tests/value/builtins_split.c:77.
 [value] Recording results for setup3
 [value] Done for function setup3
 tests/value/builtins_split.c:82:[value] Frama_C_show_each_s_1: {{ &s3 + {4} }}, {1}
@@ -59,17 +59,17 @@ tests/value/builtins_split.c:112:[value] warning: out of bounds read. assert \va
 tests/value/builtins_split.c:112:[value] Location ((ps->p)->p)->v points to too many values ([--..--]). Cannot split.
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5:
-        {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+    {{ &s5 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s0 }}, {0}
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {1}
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s5 + {4} }}, {{ &s3 + {4} }}, {{ &s1 }}, {-1}
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5: {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s0 }}, {0}
 tests/value/builtins_split.c:114:[value] Frama_C_show_each_s_5:
-        {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
+    {{ &s6 + {4} }}, {{ &s4 + {4} }}, {{ &s2 }}, [-2147483648..2147483647]
 [value] Recording results for test3
 [value] Done for function test3
 [value] computing for function test4 <- main.
-        Called from tests/value/builtins_split.c:153.
+    Called from tests/value/builtins_split.c:153.
 tests/value/builtins_split.c:121:[value] warning: assertion got status unknown.
 tests/value/builtins_split.c:123:[value] Frama_C_show_each_nb: {29}
 tests/value/builtins_split.c:124:[value] Location x_0 points to too many values ([-3..25]). Cannot split.
@@ -106,26 +106,26 @@ tests/value/builtins_split.c:128:[value] Frama_C_show_each_test4_2: {-3}
 [value] Recording results for test4
 [value] Done for function test4
 [value] computing for function test5 <- main.
-        Called from tests/value/builtins_split.c:154.
+    Called from tests/value/builtins_split.c:154.
 tests/value/builtins_split.c:135:[value] Frama_C_show_each_max:
-        [-922337203255980851..922337203685477580], {922337203685477580}
+    [-922337203255980851..922337203685477580], {922337203685477580}
 [value] Recording results for test5
 [value] Done for function test5
 [value] computing for function test6 <- main.
-        Called from tests/value/builtins_split.c:155.
+    Called from tests/value/builtins_split.c:155.
 tests/value/builtins_split.c:142:[value] warning: assertion got status unknown.
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {5} or UNINITIALIZED
+    z : # Cvalue domain: {5} or UNINITIALIZED
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {4} or UNINITIALIZED
+    z : # Cvalue domain: {4} or UNINITIALIZED
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {3} or UNINITIALIZED
+    z : # Cvalue domain: {3} or UNINITIALIZED
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {2} or UNINITIALIZED
+    z : # Cvalue domain: {2} or UNINITIALIZED
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {1} or UNINITIALIZED
+    z : # Cvalue domain: {1} or UNINITIALIZED
 tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
-        z : # Cvalue domain: {0} or UNINITIALIZED
+    z : # Cvalue domain: {0} or UNINITIALIZED
 [value] Recording results for test6
 [value] Done for function test6
 [value] Recording results for main
@@ -230,7 +230,7 @@ tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_abstract_cardinal:
   \result FROM i
 [from] Function Frama_C_abstract_max:
@@ -301,42 +301,42 @@ tests/value/builtins_split.c:146:[value] Frama_C_domain_show_each_test6:
   ps FROM v
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function setup1:
-          p
+      p
 [inout] Inputs for function setup1:
-          v
+      v
 [inout] Out (internal) for function setup2:
-          t[1..2]
+      t[1..2]
 [inout] Inputs for function setup2:
-          v
+      v
 [inout] Out (internal) for function setup3:
-          s0.v; s1.v; s2.v; s3; s4; s5; s6; ps; tmp
+      s0.v; s1.v; s2.v; s3; s4; s5; s6; ps; tmp
 [inout] Inputs for function setup3:
-          v
+      v
 [inout] Out (internal) for function test1:
-          p
+      p
 [inout] Inputs for function test1:
-          p; x; y; v
+      p; x; y; v
 [inout] Out (internal) for function test2:
-          t[1..2]; i
+      t[1..2]; i
 [inout] Inputs for function test2:
-          t[0..9]; v
+      t[0..9]; v
 [inout] Out (internal) for function test3:
-          s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
+      s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
 [inout] Inputs for function test3:
-          v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps
+      v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps
 [inout] Out (internal) for function test4:
-          x_0; nb
+      x_0; nb
 [inout] Inputs for function test4:
-          v
+      v
 [inout] Out (internal) for function test5:
-          x_0; y_0; r
+      x_0; y_0; r
 [inout] Inputs for function test5:
-          v
+      v
 [inout] Out (internal) for function test6:
-          z
+      z
 [inout] Inputs for function test6:
-          v
+      v
 [inout] Out (internal) for function main:
-          p; t[1..2]; s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
+      p; t[1..2]; s0.v; s1.v; s2.v; s3; s4; s5; s6; ps
 [inout] Inputs for function main:
-          p; x; y; t[0..9]; v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps
+      p; x; y; t[0..9]; v; s0.v; s1.v; s2.v; s3.p; s4.p; s5.p; s6.p; s7.p; ps

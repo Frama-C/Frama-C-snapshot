@@ -22,13 +22,13 @@ tests/value/threat_if.i:18:[value] Frama_C_show_each: {-126}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM i_0 (and SELF)
   l FROM p; i_0 (and SELF)
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p; l; G; c; __retres
+      p; l; G; c; __retres
 [inout] Inputs for function main:
-          p
+      p

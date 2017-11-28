@@ -16,8 +16,8 @@
 [wp] [Qed] Goal typed_f_post_P4_qed_ok : Valid
 [wp] [Qed] Goal typed_f_post_P5_qed_ok : Valid
 [wp] Proved goals:   11 / 11
-     Qed:             9 
-     Alt-Ergo:        2
+    Qed:             9 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    9      2 (11)    11       100%

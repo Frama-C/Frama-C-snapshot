@@ -8,4 +8,20 @@ struct __anonstruct_s_1 {
 } __attribute__((__packed__, __aligned__(1)));
 typedef struct __anonstruct_s_1 s;
 s s1;
+int f1(void)
+{
+  int __retres;
+  char c = s1.a;
+  __retres = 0;
+  return __retres;
+}
+
+int f4(void)
+{
+  int __retres;
+  char c = s1.a;
+  __retres = 0;
+  return __retres;
+}
+
 

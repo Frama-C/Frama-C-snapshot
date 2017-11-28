@@ -205,7 +205,7 @@ tests/float/const.i:48:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   f_ FROM f0
   f00 FROM f0
@@ -286,9 +286,9 @@ tests/float/const.i:48:[value] assertion got status valid.
   ca4 FROM f0
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          f_; f00; f2; f3; f_0; f13; f26; fic0; fic1; fic2; fic4; fec0; fec2; 
-          fec4; m_; m00; m2; m_0; m13; m26; d2; d3; d4; d5; d6; d7; A; B; C; 
-          D; E; F; G; H; I; J; K; L; P; Q; R; Am; Bm; Cm; Dm; Em; Fm; Gm; Hm; 
-          Im; Jm; Km; Lm; t1; t2; t3; t4; t5; t6; t7; t8; s1; s2; s3; s4; s5; 
-          s6; s7; s8; if1; ite1; ite2; ite3; ca1; ca2; ca3; ca4; tmp; tmp_0; 
-          tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; tmp_6; tmp_7
+      f_; f00; f2; f3; f_0; f13; f26; fic0; fic1; fic2; fic4; fec0; fec2; 
+      fec4; m_; m00; m2; m_0; m13; m26; d2; d3; d4; d5; d6; d7; A; B; C; 
+      D; E; F; G; H; I; J; K; L; P; Q; R; Am; Bm; Cm; Dm; Em; Fm; Gm; Hm; 
+      Im; Jm; Km; Lm; t1; t2; t3; t4; t5; t6; t7; t8; s1; s2; s3; s4; s5; 
+      s6; s7; s8; if1; ite1; ite2; ite3; ca1; ca2; ca3; ca4; tmp; tmp_0; 
+      tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; tmp_6; tmp_7

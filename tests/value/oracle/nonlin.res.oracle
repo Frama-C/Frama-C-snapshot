@@ -7,13 +7,13 @@
   v ∈ [--..--]
   vs ∈ [--..--]
 [value] computing for function subdivide_integer <- main.
-        Called from tests/value/nonlin.c:48.
+    Called from tests/value/nonlin.c:48.
 tests/value/nonlin.c:31:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
 tests/value/nonlin.c:31:[value:nonlin] subdividing on z
 tests/value/nonlin.c:32:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
 tests/value/nonlin.c:32:[value:nonlin] subdividing on z
 tests/value/nonlin.c:32:[value] warning: signed overflow.
-                 assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
+    assert (int)((int)z + 17817) * (int)((int)z + 17817) ≤ 2147483647;
 tests/value/nonlin.c:39:[value:nonlin] non-linear '(i2 + (long long)3) * (i2 + (long long)3)', lv 'i2'
 tests/value/nonlin.c:39:[value:nonlin] non-linear 'i1 * i1', lv 'i1'
 tests/value/nonlin.c:39:[value:nonlin] subdividing on i2
@@ -24,9 +24,9 @@ tests/value/nonlin.c:44:[value:nonlin] subdividing on idx
 [value] Recording results for subdivide_integer
 [value] Done for function subdivide_integer
 [value] computing for function subdivide_pointer <- main.
-        Called from tests/value/nonlin.c:49.
+    Called from tests/value/nonlin.c:49.
 [value] computing for function Frama_C_interval <- subdivide_pointer <- main.
-        Called from tests/value/nonlin.c:13.
+    Called from tests/value/nonlin.c:13.
 [value] using specification for function Frama_C_interval
 share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
@@ -70,7 +70,7 @@ tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read(
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -82,14 +82,14 @@ tests/value/nonlin.c:24:[value] warning: out of bounds read. assert \valid_read(
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function subdivide_integer:
-          z; k; l; x; p; i1; i2; r; t[0..100]; idx
+      z; k; l; x; p; i1; i2; r; t[0..100]; idx
 [inout] Inputs for function subdivide_integer:
-          v; vs
+      v; vs
 [inout] Out (internal) for function subdivide_pointer:
-          Frama_C_entropy_source; y; x; p; i; q
+      Frama_C_entropy_source; y; x; p; i; q
 [inout] Inputs for function subdivide_pointer:
-          Frama_C_entropy_source; v
+      Frama_C_entropy_source; v
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source
+      Frama_C_entropy_source
 [inout] Inputs for function main:
-          Frama_C_entropy_source; v; vs
+      Frama_C_entropy_source; v; vs

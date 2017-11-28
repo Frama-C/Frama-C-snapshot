@@ -7,8 +7,8 @@
 [wp] [Alt-Ergo] Goal typed_f_post_qed_ok_P : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_qed_ok_Q : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             0 
-     Alt-Ergo:        2
+    Qed:             0 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -       2 (27)     2       100%

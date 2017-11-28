@@ -100,10 +100,13 @@ void logic() {
 
   struct bitf w;
   w.v0_3 = 1;
+  //@ assert \initialized(&w.v0_3);
   //@ assert ! \initialized(&w.v4);
   if (foo) {
     int wc = w.v4 + 1;
   }
+
+  //@ assert \separated(&w.v0_3, &w.v4); // The status on this property will be invalid if the analysis evaluates the addresses using bytes
 }
 
 void main_old (){

@@ -25,7 +25,7 @@
 [wp] [Qed] Goal typed_job_assign_normal_part8 : Valid
 [wp] [Qed] Goal typed_job_assign_normal_part9 : Valid
 [wp] Proved goals:   20 / 20
-     Qed:            20
+    Qed:            20
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                 20     -          20       100%

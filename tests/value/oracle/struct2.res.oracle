@@ -132,7 +132,7 @@ tests/value/struct2.i:130:[value] assertion 'Value,mem_access' got final status 
 [from] Computing for function f_precis
 [from] Done for function f_precis
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f_precis:
   NULL{[4096..4099]; [4144..4147]} FROM NULL[4176..4179]; i
       {[4100..4111]; [4116..4143]; [4148..8192]}
@@ -179,12 +179,12 @@ tests/value/struct2.i:130:[value] assertion 'Value,mem_access' got final status 
   b FROM v; i (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f_precis:
-          NULL[4096..8192]; tab_s{[0]; [1].a}; tab_s1{[0].b; [1].b}; tab_s2[0];
-          tab_s3[0].a; tab_s4{[0].a; [1].a}; s1; s2{{.a; .d[0..1]}; .b; .c};
-          s4.e[0].a; s8.b; s7; tab1[0..1]; tab2[0..1]; tab3[0..1]; tab4[0]; tab5[0];
-          tab6[0..1]; p; p2; p3; p4; p5; p6; p7; q; r; s; t; a; b
+      NULL[4096..8192]; tab_s{[0]; [1].a}; tab_s1{[0].b; [1].b}; tab_s2[0];
+      tab_s3[0].a; tab_s4{[0].a; [1].a}; s1; s2{{.a; .d[0..1]}; .b; .c};
+      s4.e[0].a; s8.b; s7; tab1[0..1]; tab2[0..1]; tab3[0..1]; tab4[0]; tab5[0];
+      tab6[0..1]; p; p2; p3; p4; p5; p6; p7; q; r; s; t; a; b
 [inout] Inputs for function f_precis:
-          NULL{[4128..4131]; [4176..4179]; [4192]; [4200]}; tabst[2].a;
-          tabst2{[0].a; [1].a; [2].a; [3].a; [4].a; [5].a; [6].a; [7].a; [8].a;
-                 [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
-          tab2[0..1]; tab3[0..1]; p; p2; p3; p6; q; r; s; t; a; v
+      NULL{[4128..4131]; [4176..4179]; [4192]; [4200]}; tabst[2].a;
+      tabst2{[0].a; [1].a; [2].a; [3].a; [4].a; [5].a; [6].a; [7].a; [8].a;
+             [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
+      tab2[0..1]; tab3[0..1]; p; p2; p3; p6; q; r; s; t; a; v

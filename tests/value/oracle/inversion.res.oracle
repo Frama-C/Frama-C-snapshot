@@ -41,7 +41,7 @@ tests/value/inversion.i:30:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   x FROM px; t2{[0].ok; [1].ok; {[2]; [3].ok}; [4].ok} (and SELF)
   y FROM pz; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok} (and SELF)
@@ -51,7 +51,7 @@ tests/value/inversion.i:30:[value] entering loop for the first time
   ii[1] FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          x; y; z; X; pX; ii[1]; i; k
+      x; y; z; X; pX; ii[1]; i; k
 [inout] Inputs for function main:
-          pz; px; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok};
-          t2{[0].ok; [1].ok; {[2]; [3].ok}; [4].ok}; ii[1]
+      pz; px; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok};
+      t2{[0].ok; [1].ok; {[2]; [3].ok}; [4].ok}; ii[1]

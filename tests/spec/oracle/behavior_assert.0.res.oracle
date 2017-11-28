@@ -7,26 +7,26 @@
   G ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function f <- main.
-        Called from tests/spec/behavior_assert.c:90.
+    Called from tests/spec/behavior_assert.c:90.
 tests/spec/behavior_assert.c:14:[value] warning: assertion got status invalid.
 tests/spec/behavior_assert.c:16:[value] assertion got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/spec/behavior_assert.c:91.
+    Called from tests/spec/behavior_assert.c:91.
 tests/spec/behavior_assert.c:28:[value] entering loop for the first time
 tests/spec/behavior_assert.c:30:[value] assertion got status valid.
 tests/spec/behavior_assert.c:24:[value] function g, behavior be: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h2 <- main.
-        Called from tests/spec/behavior_assert.c:92.
+    Called from tests/spec/behavior_assert.c:92.
 tests/spec/behavior_assert.c:64:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
 tests/spec/behavior_assert.c:65:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;
 [value] computing for function h1 <- h2 <- main.
-        Called from tests/spec/behavior_assert.c:73.
+    Called from tests/spec/behavior_assert.c:73.
 [value] computing for function abs <- h1 <- h2 <- main.
-        Called from tests/spec/behavior_assert.c:52.
+    Called from tests/spec/behavior_assert.c:52.
 [value] Recording results for abs
 [value] Done for function abs
 tests/spec/behavior_assert.c:55:[value] warning: assertion got status unknown.
@@ -37,7 +37,7 @@ tests/spec/behavior_assert.c:74:[value] assertion got status valid.
 [value] Recording results for h2
 [value] Done for function h2
 [value] computing for function k <- main.
-        Called from tests/spec/behavior_assert.c:93.
+    Called from tests/spec/behavior_assert.c:93.
 tests/spec/behavior_assert.c:85:[value] assertion got status valid.
 tests/spec/behavior_assert.c:86:[value] warning: assertion got status invalid.
 [value] Recording results for k
@@ -77,7 +77,7 @@ tests/spec/behavior_assert.c:86:[value] warning: assertion got status invalid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function abs:
   \result FROM x
 [from] Function f:
@@ -94,30 +94,30 @@ tests/spec/behavior_assert.c:86:[value] warning: assertion got status invalid.
   G FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function abs:
-          __retres
+      __retres
 [inout] Inputs for function abs:
-          \nothing
+      \nothing
 [inout] Out (internal) for function f:
-          x
+      x
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [inout] Out (internal) for function g:
-          G; i
+      G; i
 [inout] Inputs for function g:
-          \nothing
+      \nothing
 [inout] Out (internal) for function h1:
-          r; r2
+      r; r2
 [inout] Inputs for function h1:
-          \nothing
+      \nothing
 [inout] Out (internal) for function h2:
-          a; b
+      a; b
 [inout] Inputs for function h2:
-          c
+      c
 [inout] Out (internal) for function k:
-          \nothing
+      \nothing
 [inout] Inputs for function k:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          G
+      G
 [inout] Inputs for function main:
-          c
+      c

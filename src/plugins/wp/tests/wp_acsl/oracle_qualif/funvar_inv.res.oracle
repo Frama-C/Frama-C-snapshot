@@ -8,7 +8,7 @@
 [wp] [Qed] Goal typed_ref_f2_loop_assign : Valid
 [wp] [Qed] Goal typed_ref_g_loop_assign : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             3
+    Qed:             3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    1     -           1       100%

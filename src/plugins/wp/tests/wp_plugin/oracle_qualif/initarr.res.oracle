@@ -7,8 +7,8 @@
 [wp] [Alt-Ergo] Goal typed_job_post_SEP : Valid
 [wp] [Alt-Ergo] Goal typed_job_post_ALT : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             0 
-     Alt-Ergo:        2
+    Qed:             0 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                 -       2 (40)     2       100%

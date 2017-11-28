@@ -3,5 +3,5 @@ tests/misc/widen_hints.c:14:[kernel] warning: invalid widen_hints annotation: no
 tests/misc/widen_hints.c:19:[kernel] warning: invalid widen_hints annotation: no hints. Ignoring code annotation
 tests/misc/widen_hints.c:24:[kernel] warning: unbound logic variable b. Ignoring code annotation
 tests/misc/widen_hints.c:29:[value] user error: could not parse widening hint: not_const
-                    If it contains variables, they must be global const integers.
+    If it contains variables, they must be global const integers.
 [kernel] Plug-in value aborted: invalid user input.

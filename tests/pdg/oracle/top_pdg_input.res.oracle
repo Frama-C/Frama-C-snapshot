@@ -8,68 +8,68 @@
   S ∈ {0}
   G ∈ {0}
 [value] computing for function f1 <- main.
-        Called from tests/pdg/top_pdg_input.c:38.
+    Called from tests/pdg/top_pdg_input.c:38.
 [value] computing for function top_input <- f1 <- main.
-        Called from tests/pdg/top_pdg_input.c:13.
+    Called from tests/pdg/top_pdg_input.c:13.
 tests/pdg/top_pdg_input.c:13:[kernel] warning: Neither code nor specification for function top_input, generating default assigns from the prototype
 [value] using specification for function top_input
 [value] Done for function top_input
 tests/pdg/top_pdg_input.c:13:[value] warning: out of bounds read. assert \valid_read(tmp);
-                                     (tmp from top_input())
+                        (tmp from top_input())
 tests/pdg/top_pdg_input.c:13:[value] warning: out of bounds read. assert \valid_read(*tmp);
-                                     (tmp from top_input())
+                        (tmp from top_input())
 tests/pdg/top_pdg_input.c:13:[value] Assigning imprecise value to i.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:13}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:13}
 tests/pdg/top_pdg_input.c:14:[value] warning: out of bounds read. assert \valid_read(&tab[i]);
 tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:13}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:13}
 tests/pdg/top_pdg_input.c:16:[value] Assigning imprecise value to \result<f1>.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:13}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:13}
 [value] Recording results for f1
 [value] Done for function f1
 tests/pdg/top_pdg_input.c:38:[value] Assigning imprecise value to i.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:13}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:13}
 [value] computing for function f2 <- main.
-        Called from tests/pdg/top_pdg_input.c:39.
+    Called from tests/pdg/top_pdg_input.c:39.
 [value] computing for function top_input <- f2 <- main.
-        Called from tests/pdg/top_pdg_input.c:20.
+    Called from tests/pdg/top_pdg_input.c:20.
 [value] Done for function top_input
 tests/pdg/top_pdg_input.c:20:[value] warning: out of bounds read. assert \valid_read(tmp);
-                                     (tmp from top_input())
+                        (tmp from top_input())
 tests/pdg/top_pdg_input.c:20:[value] warning: out of bounds read. assert \valid_read(*tmp);
-                                     (tmp from top_input())
+                        (tmp from top_input())
 tests/pdg/top_pdg_input.c:20:[value] Assigning imprecise value to i.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:20}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:24:[value] warning: out of bounds read. assert \valid_read(&s.t[i]);
 tests/pdg/top_pdg_input.c:24:[value] warning: signed overflow. assert -2147483648 ≤ s.a + s.t[i];
 tests/pdg/top_pdg_input.c:24:[value] warning: signed overflow. assert s.a + s.t[i] ≤ 2147483647;
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:20}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to \result<f2>.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:20}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:20}
 [value] Recording results for f2
 [value] Done for function f2
 tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to tmp_0.
-        The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:20}
+    The imprecision originates from Library function
+    {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert -2147483648 ≤ i + tmp_0;
-                                  (tmp_0 from f2())
+                     (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] warning: signed overflow. assert i + tmp_0 ≤ 2147483647;
-                                  (tmp_0 from f2())
+                     (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to i.
-        The imprecision originates from Library function
+    The imprecision originates from Library function
 tests/pdg/top_pdg_input.c:40:[value] warning: out of bounds read. assert \valid_read(p_str + i);
 [value] computing for function strlen <- main.
-        Called from tests/pdg/top_pdg_input.c:40.
+    Called from tests/pdg/top_pdg_input.c:40.
 tests/pdg/top_pdg_input.c:31:[value] Assigning imprecise value to q.
-        The imprecision originates from Misaligned {tests/pdg/top_pdg_input.c:40}
+    The imprecision originates from Misaligned {tests/pdg/top_pdg_input.c:40}
 tests/pdg/top_pdg_input.c:31:[value] entering loop for the first time
 tests/pdg/top_pdg_input.c:31:[value] warning: out of bounds read. assert \valid_read(q);
 tests/pdg/top_pdg_input.c:31:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)*q);
@@ -121,7 +121,7 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function strlen:
   \result FROM p; S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
                alloced_return_top_input[bits 0 to ..]
@@ -140,23 +140,23 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
                S_1_S_p_str[0..1]; alloced_return_top_input[bits 0 to ..]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function strlen:
-          q; k
+      q; k
 [inout] Inputs for function strlen:
-          S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
-          alloced_return_top_input[bits 0 to ..]
+      S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
+      alloced_return_top_input[bits 0 to ..]
 [inout] Out (internal) for function f1:
-          G; i; tmp; v
+      G; i; tmp; v
 [inout] Inputs for function f1:
-          tab[0..1]; G; alloced_return_top_input[bits 0 to ..]
+      tab[0..1]; G; alloced_return_top_input[bits 0 to ..]
 [inout] Out (internal) for function f2:
-          S.a; i; tmp; s; __retres
+      S.a; i; tmp; s; __retres
 [inout] Inputs for function f2:
-          S; alloced_return_top_input[bits 0 to ..]
+      S; alloced_return_top_input[bits 0 to ..]
 [inout] Out (internal) for function main:
-          S.a; G; i; tmp_0; tmp_1
+      S.a; G; i; tmp_0; tmp_1
 [inout] Inputs for function main:
-          tab[0..1]; S; G; S_p_str[0..1]; S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
-          alloced_return_top_input[bits 0 to ..]
+      tab[0..1]; S; G; S_p_str[0..1]; S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
+      alloced_return_top_input[bits 0 to ..]
 [pdg] computing for function strlen
 [pdg] done for function strlen
 [pdg] computing for function top_input
@@ -396,7 +396,7 @@ tests/pdg/top_pdg_input.c:31:[value] warning: signed overflow. assert k + 1 ≤ 
   S ∈ {0}
   G ∈ {0}
 [value] computing for function fun_asm <- main_asm.
-        Called from tests/pdg/top_pdg_input.c:51.
+    Called from tests/pdg/top_pdg_input.c:51.
 tests/pdg/top_pdg_input.c:45:[value] warning: assuming assembly code has no effects in function fun_asm
 [value] Recording results for fun_asm
 [value] Done for function fun_asm
@@ -412,20 +412,20 @@ tests/pdg/top_pdg_input.c:45:[value] warning: assuming assembly code has no effe
 [from] Computing for function main_asm
 [from] Done for function main_asm
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function fun_asm:
   \result FROM i
 [from] Function main_asm:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function fun_asm:
-          __retres
+      __retres
 [inout] Inputs for function fun_asm:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main_asm:
-          j; tmp
+      j; tmp
 [inout] Inputs for function main_asm:
-          \nothing
+      \nothing
 [pdg] computing for function fun_asm
 tests/pdg/top_pdg_input.c:45:[pdg] warning: Ignoring inline assembly code
 [pdg] done for function fun_asm

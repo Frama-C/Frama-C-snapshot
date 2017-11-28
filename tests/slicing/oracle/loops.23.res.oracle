@@ -10,11 +10,11 @@
   Y ∈ {0}
   Z ∈ {0}
 [value] computing for function may_write_Y_from_Z <- main.
-        Called from tests/slicing/loops.i:199.
+    Called from tests/slicing/loops.i:199.
 [value] using specification for function may_write_Y_from_Z
 [value] Done for function may_write_Y_from_Z
 [value] computing for function loop <- main.
-        Called from tests/slicing/loops.i:202.
+    Called from tests/slicing/loops.i:202.
 tests/slicing/loops.i:176:[value] entering loop for the first time
 tests/slicing/loops.i:183:[value] assertion got status valid.
 tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
@@ -31,7 +31,7 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   NON TERMINATING - NO EFFECTS
 [from] Function may_write_Y_from_Z:

@@ -2,7 +2,7 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 tests/value/empty_union.c:59:[value] warning: during initialization of variable 'f1', size of type 'int []' cannot be
-                 computed (Size of array without number of elements.)
+    computed (Size of array without number of elements.)
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
@@ -19,11 +19,11 @@ tests/value/empty_union.c:77:[value] Call to builtin memcpy(({{ (void *)&c2 }},{
 tests/value/empty_union.c:78:[value] Frama_C_show_each_c2: {77}
 tests/value/empty_union.c:79:[value] Frama_C_show_each_c2_e: ∅
 [value] computing for function f <- main.
-        Called from tests/value/empty_union.c:80.
+    Called from tests/value/empty_union.c:80.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function copy_empty <- main.
-        Called from tests/value/empty_union.c:81.
+    Called from tests/value/empty_union.c:81.
 tests/value/empty_union.c:37:[value] function copy_empty: postcondition got status valid.
 [value] Recording results for copy_empty
 [value] Done for function copy_empty
@@ -53,7 +53,7 @@ tests/value/empty_union.c:83:[value] Frama_C_show_each_res: {74}
 [from] Done for function memcpy
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function copy_empty:
   NO EFFECTS
 [from] Function f:
@@ -65,14 +65,14 @@ tests/value/empty_union.c:83:[value] Frama_C_show_each_res: {74}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function copy_empty:
-          \nothing
+      \nothing
 [inout] Inputs for function copy_empty:
-          \nothing
+      \nothing
 [inout] Out (internal) for function f:
-          res
+      res
 [inout] Inputs for function f:
-          nondet
+      nondet
 [inout] Out (internal) for function main:
-          c1; c2; res; cb; ce; p; pc; __retres
+      c1; c2; res; cb; ce; p; pc; __retres
 [inout] Inputs for function main:
-          nondet
+      nondet

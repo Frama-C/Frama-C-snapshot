@@ -7,8 +7,8 @@
 [wp] [Alt-Ergo] Goal typed_foo_assert_A : Valid
 [wp] [Alt-Ergo] Goal typed_foo_assert_B : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             0 
-     Alt-Ergo:        2
+    Qed:             0 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 foo                 -       2 (5)      2       100%

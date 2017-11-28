@@ -17,11 +17,11 @@ tests/saveload/basic.i:19:[value] warning: signed overflow. assert -2147483648 â
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i; j; tmp; __retres
+      i; j; tmp; __retres
 [inout] Inputs for function main:
-          \nothing
+      \nothing

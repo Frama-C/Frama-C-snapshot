@@ -17,8 +17,8 @@
 [wp] [Qed] Goal typed_diag_loop_assign_part2 : Valid
 [wp] [Qed] Goal typed_diag_loop_assign_2 : Valid
 [wp] Proved goals:   12 / 12
-     Qed:             7 
-     Alt-Ergo:        5
+    Qed:             7 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 diag                 7      5 (65)    12       100%

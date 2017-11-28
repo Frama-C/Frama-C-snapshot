@@ -28,7 +28,7 @@
 [wp] [Qed] Goal typed_rshift_post : Valid
 [wp] [Qed] Goal typed_rshift_shift1_post_lsr1 : Valid
 [wp] Proved goals:   23 / 23
-     Qed:            23
+    Qed:            23
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 band                 8     -           8       100%

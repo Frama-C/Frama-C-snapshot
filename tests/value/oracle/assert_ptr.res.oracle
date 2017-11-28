@@ -24,7 +24,7 @@ tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   ptr FROM c (and SELF)
   q FROM \nothing
@@ -33,6 +33,6 @@ tests/value/assert_ptr.i:13:[value] Frama_C_show_each_q: {{ &a }}
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          ptr; q; s_q; a; __retres
+      ptr; q; s_q; a; __retres
 [inout] Inputs for function main:
-          ptr; q; s_q; a
+      ptr; q; s_q; a

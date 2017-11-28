@@ -10,21 +10,21 @@
   X ∈ {0}
   Y ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/slicing/bts283.i:33.
+    Called from tests/slicing/bts283.i:33.
 tests/slicing/bts283.i:9:[value] function f: precondition got status valid.
 tests/slicing/bts283.i:10:[value] function f: postcondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/slicing/bts283.i:34.
+    Called from tests/slicing/bts283.i:34.
 [value] using specification for function g
 tests/slicing/bts283.i:14:[value] function g: precondition got status valid.
 tests/slicing/bts283.i:15:[value] function g: precondition got status valid.
 [value] Done for function g
 tests/slicing/bts283.i:34:[value] warning: signed overflow. assert z + tmp ≤ 2147483647;
-                                  (tmp from g(1, 2))
+                     (tmp from g(1, 2))
 [value] computing for function k <- main.
-        Called from tests/slicing/bts283.i:35.
+    Called from tests/slicing/bts283.i:35.
 tests/slicing/bts283.i:21:[value] function k: precondition got status valid.
 tests/slicing/bts283.i:27:[value] warning: signed overflow. assert Y + 1 ≤ 2147483647;
 tests/slicing/bts283.i:22:[value] function k: postcondition got status valid.

@@ -19,12 +19,12 @@ tests/value/threat_array.i:15:[value] warning: accessing out of bounds index. as
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T[0..9] FROM c (and SELF)
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          T[0..9]; p
+      T[0..9]; p
 [inout] Inputs for function main:
-          \nothing
+      \nothing

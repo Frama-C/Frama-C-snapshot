@@ -11,8 +11,8 @@
 [wp] [Alt-Ergo] Goal typed_localref_post_KO : Unknown
 [wp] [Qed] Goal typed_localref_assert_FRAMED : Valid
 [wp] Proved goals:    2 / 6
-     Qed:             2 
-     Alt-Ergo:        0  (unknown: 4)
+    Qed:             2 
+    Alt-Ergo:        0  (unknown: 4)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 local                1     -           2      50.0%

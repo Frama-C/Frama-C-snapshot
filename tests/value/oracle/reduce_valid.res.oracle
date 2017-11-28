@@ -34,7 +34,7 @@ tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final sta
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..1] FROM c
   u[1] FROM h
@@ -45,6 +45,6 @@ tests/value/reduce_valid.i:17:[value] assertion 'Value,mem_access' got final sta
   offs FROM g
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          t[0..1]; u[1]; p; q; r; A; offs; tmp
+      t[0..1]; u[1]; p; q; r; A; offs; tmp
 [inout] Inputs for function main:
-          t[1]; p; q; r; offs
+      t[1]; p; q; r; offs

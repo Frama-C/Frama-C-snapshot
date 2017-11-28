@@ -1632,7 +1632,7 @@ install:: install-lib
 	$(CP) bin/ptests.$(PTESTSBEST)$(EXE) \
 	      $(BINDIR)/ptests.$(PTESTSBEST)$(EXE)
 	if [ -x bin/fc-config$(EXE) ] ; then \
-		$(CP) bin/fc-config$(EXE) $(BINDIR)/frama-c-config; \
+		$(CP) bin/fc-config$(EXE) $(BINDIR)/frama-c-config$(EXE); \
 	fi
 	$(PRINT_INSTALL) config files
 	$(CP) $(addprefix ptests/,$(PTESTS_FILES)) $(FRAMAC_LIBDIR)
@@ -2061,6 +2061,11 @@ endif
 	)
 	$(PRINT_RM) $(DISTRIB_DIR)
 	$(RM) -r $(DISTRIB_DIR)
+
+doc-companions:
+	$(MAKE) -C doc/developer archives VERSION=$(VERSION)
+	$(MV) doc/developer/hello-$(VERSION).tar.gz hello-$(VERSION).tar.gz
+	$(ECHO) "The documentation companion hello-$(VERSION).tar.gz has been generated."
 
 clean-distrib: dist-clean
 	$(PRINT_RM) distrib

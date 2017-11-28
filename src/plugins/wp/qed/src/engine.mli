@@ -170,8 +170,7 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term,'env] engine =
     method e_false : cmode -> string (** ["false"] *)
 
     method pp_int : amode -> 'z printer
-    method pp_real : R.t printer
-    method pp_cst : Numbers.cst printer (** Non-zero reals *)
+    method pp_real : Q.t printer
 
     (** {3 Variables} *)
 

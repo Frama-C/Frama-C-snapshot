@@ -1,4 +1,4 @@
-/* run.config
+/* run.config*
    STDOPT: +"-val-show-progress -slevel 100"
 */
 

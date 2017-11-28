@@ -2,9 +2,9 @@
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 tests/value/extern.i:4:[value] warning: during initialization of variable 'T3', size of type 'int []' cannot be
-                 computed (Size of array without number of elements.)
+    computed (Size of array without number of elements.)
 tests/value/extern.i:5:[value] warning: during initialization of variable 'T4', size of type 'int const []' cannot be
-                 computed (Size of array without number of elements.)
+    computed (Size of array without number of elements.)
 tests/value/extern.i:14:[value] no size specified for array, assuming 0
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
@@ -33,11 +33,11 @@ tests/value/extern.i:22:[value] assertion 'Value,mem_access' got final status in
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          T1
+      T1
 [inout] Inputs for function main:
-          T3[3]; T4[3]; T5[1]; T6[1]; c
+      T3[3]; T4[3]; T5[1]; T6[1]; c

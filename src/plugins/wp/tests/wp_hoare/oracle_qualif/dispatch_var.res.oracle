@@ -83,7 +83,7 @@
 [wp] [Qed] Goal typed_ref_ref_bd_post : Valid
 [wp] [Qed] Goal typed_ref_ref_bd_assign : Valid
 [wp] Proved goals:   78 / 78
-     Qed:            78
+    Qed:            78
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 call_ref_ctr         4     -           4       100%

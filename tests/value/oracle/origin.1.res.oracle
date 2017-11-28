@@ -51,20 +51,20 @@
    .t[0] ∈ {{ &y }}
    .t[1] ∈ {0}
 [value] computing for function f <- origin.
-        Called from tests/value/origin.i:124.
+    Called from tests/value/origin.i:124.
 tests/value/origin.i:124:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 tests/value/origin.i:126:[value] Assigning imprecise value to r.p.
-        The imprecision originates from Misaligned {tests/value/origin.i:126}
+    The imprecision originates from Misaligned {tests/value/origin.i:126}
 tests/value/origin.i:129:[value] Assigning imprecise value to r.t[0].
-        The imprecision originates from Merge {tests/value/origin.i:129}
+    The imprecision originates from Merge {tests/value/origin.i:129}
 tests/value/origin.i:130:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
 tests/value/origin.i:130:[value] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
 tests/value/origin.i:130:[value] Assigning imprecise value to r.t[1].
-        The imprecision originates from Arithmetic {tests/value/origin.i:130}
+    The imprecision originates from Arithmetic {tests/value/origin.i:130}
 tests/value/origin.i:131:[value] Assigning imprecise value to \result<origin>.
-        The imprecision originates from Misaligned {tests/value/origin.i:126}
+    The imprecision originates from Misaligned {tests/value/origin.i:126}
 [value] Recording results for origin
 [value] done for function origin
 [value] ====== VALUES COMPUTED ======
@@ -91,7 +91,7 @@ tests/value/origin.i:131:[value] Assigning imprecise value to \result<origin>.
 [from] Done for function f
 [from] Done for function origin
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function origin:
@@ -100,4 +100,4 @@ tests/value/origin.i:131:[value] Assigning imprecise value to \result<origin>.
                 c0
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function origin:
-          r{.c; {.i; .p; .t[0..1]}}; q1; q2
+      r{.c; {.i; .p; .t[0..1]}}; q1; q2

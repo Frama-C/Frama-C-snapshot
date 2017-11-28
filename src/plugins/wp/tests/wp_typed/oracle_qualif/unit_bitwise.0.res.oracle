@@ -66,8 +66,8 @@
 [wp] [Alt-Ergo] Goal typed_rshift_uchar_post_ok : Valid
 [wp] [Qed] Goal typed_rshift_uint_post_ok : Valid
 [wp] Proved goals:   61 / 61
-     Qed:            41 
-     Alt-Ergo:       20
+    Qed:            41 
+    Alt-Ergo:       20
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               10      8 (54)    18       100%

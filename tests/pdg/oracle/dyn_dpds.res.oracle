@@ -13,7 +13,7 @@ tests/pdg/dyn_dpds.c:24:[value] warning: assertion got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM a; b; c
 [from] ====== END OF DEPENDENCIES ======

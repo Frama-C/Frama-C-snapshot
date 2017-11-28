@@ -7,13 +7,13 @@ tests/float/builtins.c:55:[kernel] warning: Floating-point constant 2.72 is not 
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function Frama_C_float_interval <- main.
-        Called from tests/float/builtins.c:11.
+    Called from tests/float/builtins.c:11.
 [value] using specification for function Frama_C_float_interval
 share/libc/__fc_builtin.h:149:[value] function Frama_C_float_interval: precondition got status valid.
 share/libc/__fc_builtin.h:150:[value] function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
 [value] computing for function Frama_C_double_interval <- main.
-        Called from tests/float/builtins.c:12.
+    Called from tests/float/builtins.c:12.
 [value] using specification for function Frama_C_double_interval
 share/libc/__fc_builtin.h:157:[value] function Frama_C_double_interval: precondition got status valid.
 share/libc/__fc_builtin.h:158:[value] function Frama_C_double_interval: precondition got status valid.
@@ -32,118 +32,118 @@ share/libc/__fc_builtin.h:158:[value] function Frama_C_double_interval: precondi
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:51.
+    Called from tests/float/builtins.c:51.
 tests/float/builtins.c:22:[value] function log: precondition got status valid.
 tests/float/builtins.c:23:[value] function log: precondition got status valid.
 tests/float/builtins.c:24:[value] function log: postcondition got status valid.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:52.
+    Called from tests/float/builtins.c:52.
 tests/float/builtins.c:29:[value] function log10: precondition got status valid.
 tests/float/builtins.c:30:[value] function log10: precondition got status valid.
 tests/float/builtins.c:31:[value] function log10: postcondition got status valid.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:55.
+    Called from tests/float/builtins.c:55.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:56.
+    Called from tests/float/builtins.c:56.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:59.
+    Called from tests/float/builtins.c:59.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:60.
+    Called from tests/float/builtins.c:60.
 [value] Recording results for log10
 [value] Done for function log10
 tests/float/builtins.c:63:[value] warning: assertion got status unknown.
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:64.
+    Called from tests/float/builtins.c:64.
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:67:[value] warning: assertion got status unknown.
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:68.
+    Called from tests/float/builtins.c:68.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:72.
+    Called from tests/float/builtins.c:72.
 tests/float/builtins.c:23:[value] warning: function log: precondition got status unknown.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:75.
+    Called from tests/float/builtins.c:75.
 tests/float/builtins.c:30:[value] warning: function log10: precondition got status unknown.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:78.
+    Called from tests/float/builtins.c:78.
 tests/float/builtins.c:23:[value] warning: function log: precondition got status invalid.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:81.
+    Called from tests/float/builtins.c:81.
 tests/float/builtins.c:30:[value] warning: function log10: precondition got status invalid.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:85.
+    Called from tests/float/builtins.c:85.
 tests/float/builtins.c:36:[value] function exp: precondition got status valid.
 tests/float/builtins.c:37:[value] function exp: precondition got status valid.
 tests/float/builtins.c:38:[value] function exp: postcondition got status valid.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:88.
+    Called from tests/float/builtins.c:88.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:91.
+    Called from tests/float/builtins.c:91.
 [value] Recording results for exp
 [value] Done for function exp
 tests/float/builtins.c:94:[value] warning: assertion got status unknown.
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:95.
+    Called from tests/float/builtins.c:95.
 tests/float/builtins.c:37:[value] warning: function exp: precondition got status unknown.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:98.
+    Called from tests/float/builtins.c:98.
 tests/float/builtins.c:37:[value] warning: function exp: precondition got status invalid.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:102.
+    Called from tests/float/builtins.c:102.
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:103:[value] assertion got status valid.
 tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:107.
+    Called from tests/float/builtins.c:107.
 tests/float/builtins.c:22:[value] warning: function log: precondition got status unknown.
 tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
 tests/float/builtins.c:26:[value] Reading left-value d.
-        It contains a garbled mix of {d} because of Arithmetic
-        {tests/float/builtins.c:107}.
+    It contains a garbled mix of {d} because of Arithmetic
+    {tests/float/builtins.c:107}.
 tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
-                 (origin: Arithmetic) }}
+    (origin: Arithmetic) }}
 tests/float/builtins.c:26:[value] function Frama_C_log applied to address
 tests/float/builtins.c:26:[value] Assigning imprecise value to tmp.
-        The imprecision originates from Arithmetic
+    The imprecision originates from Arithmetic
 tests/float/builtins.c:24:[value] warning: function log: postcondition got status unknown.
 tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
-                                          (tmp from Frama_C_log(d))
+                             (tmp from Frama_C_log(d))
 tests/float/builtins.c:26:[value] Assigning imprecise value to \result<log>.
-        The imprecision originates from Arithmetic
+    The imprecision originates from Arithmetic
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
-        The imprecision originates from Arithmetic
+    The imprecision originates from Arithmetic
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp
@@ -183,92 +183,92 @@ tests/float/builtins.c:111:[value] assertion 'Value,initialisation' got final st
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:51.
+    Called from tests/float/builtins.c:51.
 [value] warning: builtin Frama_C_log: option -all-rounding-modes not supported by builtin
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:52.
+    Called from tests/float/builtins.c:52.
 [value] warning: builtin Frama_C_log10: option -all-rounding-modes not supported by builtin
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:55.
+    Called from tests/float/builtins.c:55.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:56.
+    Called from tests/float/builtins.c:56.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:59.
+    Called from tests/float/builtins.c:59.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:60.
+    Called from tests/float/builtins.c:60.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:64.
+    Called from tests/float/builtins.c:64.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:68.
+    Called from tests/float/builtins.c:68.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:72.
+    Called from tests/float/builtins.c:72.
 tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument ([-0. .. 1.79769313486e+308]):
-                 negative argument,
-                 computation may result in NaN
+    negative argument,
+    computation may result in NaN
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:75.
+    Called from tests/float/builtins.c:75.
 tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range argument ([-0. .. 1.79769313486e+308]):
-                 negative argument,
-                 computation may result in NaN
+    negative argument,
+    computation may result in NaN
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:78.
+    Called from tests/float/builtins.c:78.
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
-        Called from tests/float/builtins.c:81.
+    Called from tests/float/builtins.c:81.
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:85.
+    Called from tests/float/builtins.c:85.
 [value] warning: builtin Frama_C_exp: option -all-rounding-modes not supported by builtin
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:88.
+    Called from tests/float/builtins.c:88.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:91.
+    Called from tests/float/builtins.c:91.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:95.
+    Called from tests/float/builtins.c:95.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function exp <- main_log_exp.
-        Called from tests/float/builtins.c:98.
+    Called from tests/float/builtins.c:98.
 [value] Recording results for exp
 [value] Done for function exp
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:102.
+    Called from tests/float/builtins.c:102.
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
 [value] computing for function log <- main_log_exp.
-        Called from tests/float/builtins.c:107.
+    Called from tests/float/builtins.c:107.
 tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(d);
 tests/float/builtins.c:26:[value] warning: non-finite double value. assert \is_finite(tmp);
-                                          (tmp from Frama_C_log(d))
+                             (tmp from Frama_C_log(d))
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
@@ -309,27 +309,27 @@ tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. 
   Frama_C_entropy_source ∈ [--..--]
   v ∈ [--..--]
 tests/float/builtins.c:72:[value] warning: builtin Frama_C_log: out-of-range argument
-                 ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
-                 computation may result in NaN
+    ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
+    computation may result in NaN
 tests/float/builtins.c:75:[value] warning: builtin Frama_C_log10: out-of-range argument
-                 ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
-                 computation may result in NaN
+    ([-1.79769313486e+308 .. 1.79769313486e+308]): negative argument,
+    computation may result in NaN
 tests/float/builtins.c:78:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.}):
-                 negative argument,
-                 computation may result in NaN
+    negative argument,
+    computation may result in NaN
 tests/float/builtins.c:81:[value] warning: builtin Frama_C_log10: completely out-of-range argument ({-1.}):
-                 negative argument,
-                 computation may result in NaN
+    negative argument,
+    computation may result in NaN
 tests/float/builtins.c:95:[value] warning: builtin Frama_C_exp: out-of-range argument ([100. .. 1000.]),
-                 computation may result in +oo
+    computation may result in +oo
 tests/float/builtins.c:98:[value] warning: builtin Frama_C_exp:
-                 result is always non-finite
+    result is always non-finite
 tests/float/builtins.c:107:[value] warning: non-finite double value. assert \is_finite((double)((int)(&d)));
 tests/float/builtins.c:107:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
-                 (origin: Arithmetic {tests/float/builtins.c:107}) }}
+    (origin: Arithmetic {tests/float/builtins.c:107}) }}
 tests/float/builtins.c:107:[value] function Frama_C_log applied to address
 tests/float/builtins.c:107:[value] Assigning imprecise value to l7.
-        The imprecision originates from Arithmetic {tests/float/builtins.c:107}
+    The imprecision originates from Arithmetic {tests/float/builtins.c:107}
 tests/float/builtins.c:111:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for main_log_exp
 [value] done for function main_log_exp

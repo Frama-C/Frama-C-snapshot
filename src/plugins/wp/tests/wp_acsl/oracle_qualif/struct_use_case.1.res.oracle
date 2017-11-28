@@ -7,7 +7,7 @@
 [wp] [Alt-Ergo] Goal typed_caveat_f_post_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_caveat_g_post_ko : Unknown
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (unknown: 2)
+    Alt-Ergo:        0  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -      -           1       0.0%

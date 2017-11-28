@@ -35,11 +35,11 @@ tests/value/cond.i:34:[kernel] warning: Calling undeclared function unknf. Old s
 tests/value/cond.i:14:[value] warning: out of bounds read. assert \valid_read(argv);
 tests/value/cond.i:14:[value] warning: out of bounds read. assert \valid_read(*argv);
 [value] computing for function f <- main.
-        Called from tests/value/cond.i:20.
+    Called from tests/value/cond.i:20.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function unknf <- main.
-        Called from tests/value/cond.i:34.
+    Called from tests/value/cond.i:34.
 tests/value/cond.i:34:[kernel] warning: Neither code nor specification for function unknf, generating default assigns from the prototype
 [value] using specification for function unknf
 [value] Done for function unknf
@@ -50,7 +50,7 @@ tests/value/cond.i:43:[value] Frama_C_show_each_5: [0..16],0%2
 tests/value/cond.i:45:[value] Frama_C_show_each_6: {0; 2; 4; 6; 8; 12; 14; 16}
 tests/value/cond.i:46:[value] Frama_C_show_each_7: [0..16],0%2
 [value] computing for function unknf <- main.
-        Called from tests/value/cond.i:48.
+    Called from tests/value/cond.i:48.
 [value] Done for function unknf
 tests/value/cond.i:49:[value] warning: accessing out of bounds index. assert w < 13;
 tests/value/cond.i:52:[value] Frama_C_show_each_w: [1..11]
@@ -81,7 +81,7 @@ tests/value/cond.i:53:[value] assertion got status valid.
 [from] Done for function unknf
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM G
 [from] Function unknf:
@@ -96,10 +96,10 @@ tests/value/cond.i:53:[value] assertion got status valid.
   \result FROM G
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          tmp
+      tmp
 [inout] Inputs for function f:
-          G
+      G
 [inout] Out (internal) for function main:
-          x; y; i; p; z; R; r; inRet; c; s; tmp; tmp_0; u; tmp_1; v; w; tmp_2
+      x; y; i; p; z; R; r; inRet; c; s; tmp; tmp_0; u; tmp_1; v; w; tmp_2
 [inout] Inputs for function main:
-          G; i; t[1..7]; p; U[0..12]; S_argv[0]; S_0_S_argv[0]
+      G; i; t[1..7]; p; U[0..12]; S_argv[0]; S_0_S_argv[0]

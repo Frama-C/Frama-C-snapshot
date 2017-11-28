@@ -10,7 +10,7 @@
   X ∈ {0}
   S ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/slicing/top2.i:24.
+    Called from tests/slicing/top2.i:24.
 tests/slicing/top2.i:13:[value] warning: initialization of volatile variable i ignored
 tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert 0 ≤ i;
 tests/slicing/top2.i:16:[value] warning: accessing out of bounds index. assert i < 2;

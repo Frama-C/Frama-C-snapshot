@@ -74,8 +74,6 @@ endif
 	$(OCAMLDOC) -html -d ../html -t "Qed Library" -stars $(DOC) | ocaml unix.cma feedback.ml
 	@cp -f ocamldoc.css ../html/style.css
 
-depend: numbers.ml
-
 depend.pdf: depend.dot
 	dot -T pdf -Grotate=180 -o $@ $<
 
@@ -90,7 +88,7 @@ distclean::
 	rm -f ../bin/Qed.*
 
 OPTML= -bin-annot -w PSUZ+7-3 -warn-error PSUZ+7-3
-INCLUDES=
+INCLUDES:=$(shell ocamlfind query zarith -i-format)
 OPTCMI=
 OPTCMO=
 ifeq ($(PACK),no)

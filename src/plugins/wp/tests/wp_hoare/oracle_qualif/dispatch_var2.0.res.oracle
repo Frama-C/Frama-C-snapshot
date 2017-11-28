@@ -39,8 +39,8 @@
 [wp] [Qed] Goal typed_ref_reset_post : Valid
 [wp] [Qed] Goal typed_ref_reset_assign : Valid
 [wp] Proved goals:   34 / 34
-     Qed:            23 
-     Alt-Ergo:       11
+    Qed:            23 
+    Alt-Ergo:       11
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 reset                2     -           2       100%

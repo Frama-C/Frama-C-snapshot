@@ -14,11 +14,11 @@ tests/value/eval_separated.c:9:[value] assertion got status valid.
 tests/value/eval_separated.c:11:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&q) + (int)(&q);
 tests/value/eval_separated.c:11:[value] warning: signed overflow. assert (int)(&q) + (int)(&q) ≤ 2147483647;
 tests/value/eval_separated.c:11:[value] Assigning imprecise value to q.
-        The imprecision originates from Arithmetic {tests/value/eval_separated.c:11}
+    The imprecision originates from Arithmetic {tests/value/eval_separated.c:11}
 tests/value/eval_separated.c:12:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&r) + (int)(&r);
 tests/value/eval_separated.c:12:[value] warning: signed overflow. assert (int)(&r) + (int)(&r) ≤ 2147483647;
 tests/value/eval_separated.c:12:[value] Assigning imprecise value to r.
-        The imprecision originates from Arithmetic {tests/value/eval_separated.c:12}
+    The imprecision originates from Arithmetic {tests/value/eval_separated.c:12}
 tests/value/eval_separated.c:13:[value] warning: assertion got status unknown.
 tests/value/eval_separated.c:14:[value] warning: assertion got status unknown.
 tests/value/eval_separated.c:15:[value] warning: assertion got status unknown.
@@ -54,11 +54,11 @@ tests/value/eval_separated.c:45:[value] warning: assertion got status unknown.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p; q; r
+      p; q; r
 [inout] Inputs for function main:
-          \nothing
+      \nothing

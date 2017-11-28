@@ -9,7 +9,7 @@
 [wp] [Qed] Goal typed_test_call_val_assigns_p_pre_HP_ok : Valid
 [wp] [Qed] Goal typed_test_call_val_assigns_q_pre_HQ_ok : Valid
 [wp] Proved goals:    4 / 4
-     Qed:             4
+    Qed:             4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 test                 4     -           4       100%

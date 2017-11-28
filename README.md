@@ -117,3 +117,4 @@ via the GUI:
 
 - The [Github snapshot repository](https://github.com/Frama-C/Frama-C-snapshot)
   contains the .tar.gz archives of stable Frama-C releases, ready to be cloned.
+  It can also be used for reporting issues and submitting pull requests.

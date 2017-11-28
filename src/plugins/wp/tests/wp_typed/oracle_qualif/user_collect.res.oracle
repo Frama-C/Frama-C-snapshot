@@ -37,8 +37,8 @@
 [wp] [Qed] Goal typed_job3_assign_part2 : Valid
 [wp] [Qed] Goal typed_job3_assign_part3 : Valid
 [wp] Proved goals:   32 / 32
-     Qed:            17 
-     Alt-Ergo:       15
+    Qed:            17 
+    Alt-Ergo:       15
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                  5     -           5       100%

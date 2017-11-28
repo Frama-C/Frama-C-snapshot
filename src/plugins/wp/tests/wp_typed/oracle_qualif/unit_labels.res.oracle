@@ -8,8 +8,8 @@
 [wp] [Alt-Ergo] Goal typed_duplet_assert_PI : Valid
 [wp] [Alt-Ergo] Goal typed_duplet_assert_PJ : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             0 
-     Alt-Ergo:        3
+    Qed:             0 
+    Alt-Ergo:        3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 duplet              -       3 (25)     3       100%

@@ -75,7 +75,7 @@ tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_re
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..1] FROM \nothing
   p FROM \nothing
@@ -98,7 +98,7 @@ tests/value/relations.i:56:[value] warning: out of bounds read. assert \valid_re
   S_pCs[0]{.T13; .T; .L8} FROM pCs; S_pCs[0]{.L0; .L1}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; R1; R2; R3; R4; R5; R6; R7; 
-          A7; R8; A8; S1; S2; c; e; f; tmp; tmp_0; S_pCs[0]{.T13; .T; .L8}
+      t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; R1; R2; R3; R4; R5; R6; R7; 
+      A7; R8; A8; S1; S2; c; e; f; tmp; tmp_0; S_pCs[0]{.T13; .T; .L8}
 [inout] Inputs for function main:
-          t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; S_pCs[0]{.L0; .L1; .T13; .T}
+      t[0..1]; p; x; u{[0..1]; [5]; [10..11]}; S_pCs[0]{.L0; .L1; .T13; .T}

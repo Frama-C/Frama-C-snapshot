@@ -6,9 +6,9 @@
   __fc_time ∈ [--..--]
   __fc_tz ∈ [--..--]
 [value] computing for function test_gettimeofday <- main.
-        Called from tests/libc/time.c:13.
+    Called from tests/libc/time.c:13.
 [value] computing for function gettimeofday <- test_gettimeofday <- main.
-        Called from tests/libc/time.c:6.
+    Called from tests/libc/time.c:6.
 tests/libc/time.c:6:[kernel] warning: No code nor explicit assigns clause for function gettimeofday, generating default assigns from the specification
 [value] using specification for function gettimeofday
 [value] Done for function gettimeofday

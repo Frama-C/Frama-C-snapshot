@@ -106,7 +106,7 @@ tests/value/alias.i:144:[value] warning: signed overflow. assert c + 4 ≤ 21474
 [from] Computing for function main4
 [from] Done for function main4
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main4:
   u FROM c
   v FROM c
@@ -115,6 +115,6 @@ tests/value/alias.i:144:[value] warning: signed overflow. assert c + 4 ≤ 21474
   z FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main4:
-          u; v; x; y; z; p_0; s; ss; sss; pt; t1; t2_0; tmp; tmp_0
+      u; v; x; y; z; p_0; s; ss; sss; pt; t1; t2_0; tmp; tmp_0
 [inout] Inputs for function main4:
-          NULL[0..11]; u; v; x; y; c
+      NULL[0..11]; u; v; x; y; c

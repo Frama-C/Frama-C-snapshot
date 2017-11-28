@@ -36,9 +36,9 @@ diff tests/value/oracle/divneg.res.oracle tests/value/oracle_apron/divneg.res.or
 >   vic ∈ {-1}
 diff tests/value/oracle/downcast.res.oracle tests/value/oracle_apron/downcast.res.oracle
 48c48
-<         [100000..2147483647], [100145..2147483647], [100145..2147483647]
+<     [100000..2147483647], [100145..2147483647], [100145..2147483647]
 ---
->         [100000..2147483502], [100145..2147483647], [100145..2147483647]
+>     [100000..2147483502], [100145..2147483647], [100145..2147483647]
 diff tests/value/oracle/dur.res.oracle tests/value/oracle_apron/dur.res.oracle
 310c310
 <   V6 ∈ [--..--] or UNINITIALIZED
@@ -56,9 +56,9 @@ diff tests/value/oracle/find_ivaltop.res.oracle tests/value/oracle_apron/find_iv
 ---
 >   \result FROM t[7]
 44c44
-<           t[0..7]
+<       t[0..7]
 ---
->           t[7]
+>       t[7]
 diff tests/value/oracle/for_loops.1.res.oracle tests/value/oracle_apron/for_loops.1.res.oracle
 37,38c37
 < tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
@@ -143,19 +143,19 @@ diff tests/value/oracle/ghost.res.oracle tests/value/oracle_apron/ghost.res.orac
 < tests/value/ghost.i:17:[value] warning: signed overflow. assert G + 1 ≤ 2147483647;
 diff tests/value/oracle/initialized_copy.1.res.oracle tests/value/oracle_apron/initialized_copy.1.res.oracle
 22,25c22
-<         c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
-<            [bits 8 to 15] ∈ {2}
-<            [bits 16 to 23] ∈ {3}
-<            [bits 24 to 31] ∈ {4}
+<     c_0[bits 0 to 7] ∈ {1} or UNINITIALIZED
+<        [bits 8 to 15] ∈ {2}
+<        [bits 16 to 23] ∈ {3}
+<        [bits 24 to 31] ∈ {4}
 ---
->         c_0 ∈ {67305985} or UNINITIALIZED
+>     c_0 ∈ {67305985} or UNINITIALIZED
 27,30c24
-<         a_2[bits 0 to 7] ∈ {1} or UNINITIALIZED
-<            [bits 8 to 15] ∈ {2}
-<            [bits 16 to 23] ∈ {3}
-<            [bits 24 to 31] ∈ {4}
+<     a_2[bits 0 to 7] ∈ {1} or UNINITIALIZED
+<        [bits 8 to 15] ∈ {2}
+<        [bits 16 to 23] ∈ {3}
+<        [bits 24 to 31] ∈ {4}
 ---
->         a_2 ∈ {67305985} or UNINITIALIZED
+>     a_2 ∈ {67305985} or UNINITIALIZED
 diff tests/value/oracle/local_slevel.res.oracle tests/value/oracle_apron/local_slevel.res.oracle
 13,15c13,15
 < tests/value/local_slevel.i:17:[value] Frama_C_show_each: {1}, {1}, {0; 1}
@@ -255,21 +255,21 @@ diff tests/value/oracle/memexec.res.oracle tests/value/oracle_apron/memexec.res.
 < tests/value/memexec.c:13:[value] Reusing old results for call to f11
 ---
 > [value] computing for function f11 <- f1 <- main.
->         Called from tests/value/memexec.c:13.
+>     Called from tests/value/memexec.c:13.
 > [value] Recording results for f11
 > [value] Done for function f11
 27c30,33
 < tests/value/memexec.c:16:[value] Reusing old results for call to f11
 ---
 > [value] computing for function f11 <- f1 <- main.
->         Called from tests/value/memexec.c:16.
+>     Called from tests/value/memexec.c:16.
 > [value] Recording results for f11
 > [value] Done for function f11
 29c35,38
 < tests/value/memexec.c:20:[value] Reusing old results for call to f11
 ---
 > [value] computing for function f11 <- f1 <- main.
->         Called from tests/value/memexec.c:20.
+>     Called from tests/value/memexec.c:20.
 > [value] Recording results for f11
 > [value] Done for function f11
 diff tests/value/oracle/modulo.res.oracle tests/value/oracle_apron/modulo.res.oracle
@@ -279,42 +279,63 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_apron/modulo.res.or
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [1..9], [0..8]
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         {-8; -7; -6; -5; -4; -3; -2; -1},
->         {1; 2; 3; 4; 5; 6; 7},
->         {-6; -5; -4; -3; -2; -1; 0}
+>     {-8; -7; -6; -5; -4; -3; -2; -1},
+>     {1; 2; 3; 4; 5; 6; 7},
+>     {-6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+>     {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
 46a65,82
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [1..9], [0..8]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         {-8; -7; -6; -5; -4; -3; -2; -1},
->         {1; 2; 3; 4; 5; 6; 7},
->         {-6; -5; -4; -3; -2; -1; 0}
+>     {-8; -7; -6; -5; -4; -3; -2; -1},
+>     {1; 2; 3; 4; 5; 6; 7},
+>     {-6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
+>     {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6}
 53a90,91
 > tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
 > tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
-diff tests/value/oracle/offsetmap.res.oracle tests/value/oracle_apron/offsetmap.res.oracle
+diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_apron/offsetmap.0.res.oracle
+59,60c59
+<   a[bits 0 to 7] ∈ {1; 6}
+<    [bits 8 to 31]# ∈ {6}%32, bits 8 to 31 
+---
+>   a ∈ {1; 6}
+62,63c61
+<   a7[bits 0 to 7] ∈ {1}
+<     [bits 8 to 31]# ∈ {97}%32, bits 8 to 31 
+---
+>   a7 ∈ {1}
+103,104c101
+<   a[bits 0 to 7] ∈ {1; 6}
+<    [bits 8 to 31]# ∈ {6}%32, bits 8 to 31 
+---
+>   a ∈ {1; 6}
+106,107c103
+<   a7[bits 0 to 7] ∈ {1}
+<     [bits 8 to 31]# ∈ {97}%32, bits 8 to 31 
+---
+>   a7 ∈ {1}
+diff tests/value/oracle/offsetmap.1.res.oracle tests/value/oracle_apron/offsetmap.1.res.oracle
 59,64c59,61
 <   a[bits 0 to 7] ∈ {1; 6}
 <    [bits 8 to 31]# ∈ {6}%32, bits 8 to 31 
@@ -366,19 +387,19 @@ diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_apron/r
 >   R3 ∈ {0; 7}
 diff tests/value/oracle/relation_shift.res.oracle tests/value/oracle_apron/relation_shift.res.oracle
 21,22c21,22
-<         r1 ∈ [--..--]
-<         r2 ∈ [--..--]
+<     r1 ∈ [--..--]
+<     r2 ∈ [--..--]
 ---
->         r1 ∈ {2}
->         r2 ∈ {7}
+>     r1 ∈ {2}
+>     r2 ∈ {7}
 25,27c25,27
-<         x ∈ [-2147483647..2147483647]
-<         y ∈ [-2147483648..2147483646]
-<         z ∈ [-2147483642..2147483647]
+<     x ∈ [-2147483647..2147483647]
+<     y ∈ [-2147483648..2147483646]
+<     z ∈ [-2147483642..2147483647]
 ---
->         x ∈ [-2147483646..2147483642]
->         y ∈ [-2147483648..2147483640]
->         z ∈ [-2147483641..2147483647]
+>     x ∈ [-2147483646..2147483642]
+>     y ∈ [-2147483648..2147483640]
+>     z ∈ [-2147483641..2147483647]
 39,40c39,40
 <   r1 ∈ [--..--]
 <   r2 ∈ [--..--]
@@ -403,16 +424,16 @@ diff tests/value/oracle/relations.res.oracle tests/value/oracle_apron/relations.
 >    [bits 8 to 31] ∈ [--..--]
 diff tests/value/oracle/relations2.res.oracle tests/value/oracle_apron/relations2.res.oracle
 22c22
-<         len ∈ [--..--]
+<     len ∈ [--..--]
 ---
->         len ∈ [0..1023]
+>     len ∈ [0..1023]
 33c33
 < tests/value/relations2.i:17:[value] Frama_C_show_each_end: [0..4294967295], [0..64]
 ---
 > tests/value/relations2.i:17:[value] Frama_C_show_each_end: [0..1023], [0..64]
 65,66d64
 < tests/value/relations2.i:34:[value] warning: accessing out of bounds index.
-<                  assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
+<     assert (unsigned int)(i - (unsigned int)(t + 1)) < 514;
 115d112
 < tests/value/relations2.i:35:[value] warning: signed overflow. assert s + b3 ≤ 2147483647;
 130c127

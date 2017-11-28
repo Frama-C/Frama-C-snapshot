@@ -11,55 +11,55 @@ tests/value/fun_ptr.i:56:[kernel] warning: expected 'short *' but got argument o
   R3 ∈ {0}
   v ∈ [--..--]
 [value] computing for function test1 <- main.
-        Called from tests/value/fun_ptr.i:78.
+    Called from tests/value/fun_ptr.i:78.
 tests/value/fun_ptr.i:28:[value] warning: pointer to function with incompatible type.
-                 assert \valid_function((int (*)(int ))t[nd]);
+    assert \valid_function((int (*)(int ))t[nd]);
 [value] computing for function f <- test1 <- main.
-        Called from tests/value/fun_ptr.i:28.
+    Called from tests/value/fun_ptr.i:28.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for test1
 [value] Done for function test1
 [value] computing for function test2 <- main.
-        Called from tests/value/fun_ptr.i:79.
+    Called from tests/value/fun_ptr.i:79.
 tests/value/fun_ptr.i:33:[value] warning: pointer to function with incompatible type.
-                 assert \valid_function((int (*)(int , int ))t[nd]);
+    assert \valid_function((int (*)(int , int ))t[nd]);
 [value] computing for function g <- test2 <- main.
-        Called from tests/value/fun_ptr.i:33.
+    Called from tests/value/fun_ptr.i:33.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- test2 <- main.
-        Called from tests/value/fun_ptr.i:33.
+    Called from tests/value/fun_ptr.i:33.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for test2
 [value] Done for function test2
 [value] computing for function test3 <- main.
-        Called from tests/value/fun_ptr.i:80.
+    Called from tests/value/fun_ptr.i:80.
 tests/value/fun_ptr.i:38:[value] warning: pointer to function with incompatible type.
-                 assert \valid_function((double (*)(int ))t[nd]);
+    assert \valid_function((double (*)(int ))t[nd]);
 [value] Recording results for test3
 [value] Done for function test3
 tests/value/fun_ptr.i:83:[value] warning: pointer to function with incompatible type. assert \valid_function(*ph);
 tests/value/fun_ptr.i:85:[value] warning: pointer to function with incompatible type. assert \valid_function(*ph);
 [value] computing for function h <- main.
-        Called from tests/value/fun_ptr.i:87.
+    Called from tests/value/fun_ptr.i:87.
 [value] Recording results for h
 [value] Done for function h
 [value] computing for function test_benign <- main.
-        Called from tests/value/fun_ptr.i:89.
+    Called from tests/value/fun_ptr.i:89.
 tests/value/fun_ptr.i:56:[value] warning: pointer to function with incompatible type. assert \valid_function(p);
 [value] computing for function benign <- test_benign <- main.
-        Called from tests/value/fun_ptr.i:56.
+    Called from tests/value/fun_ptr.i:56.
 [value] Recording results for benign
 [value] Done for function benign
 [value] Recording results for test_benign
 [value] Done for function test_benign
 [value] computing for function test_too_much_benign <- main.
-        Called from tests/value/fun_ptr.i:90.
+    Called from tests/value/fun_ptr.i:90.
 tests/value/fun_ptr.i:70:[value] warning: pointer to function with incompatible type. assert \valid_function(p);
 [value] computing for function too_much <- test_too_much_benign <- main.
-        Called from tests/value/fun_ptr.i:70.
+    Called from tests/value/fun_ptr.i:70.
 [value] Recording results for too_much
 [value] Done for function too_much
 tests/value/fun_ptr.i:73:[value] warning: pointer to function with incompatible type. assert \valid_function(p);
@@ -126,7 +126,7 @@ tests/value/fun_ptr.i:70:[from] warning: variadic call detected. Using only 1 ar
 tests/value/fun_ptr.i:85:[from] warning: variadic call detected. Using only 0 argument(s).
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function benign:
   x FROM j; p
 [from] Function f:
@@ -153,46 +153,46 @@ tests/value/fun_ptr.i:85:[from] warning: variadic call detected. Using only 0 ar
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function benign:
-          q; k; x
+      q; k; x
 [inout] Inputs for function benign:
-          \nothing
+      \nothing
 [inout] Out (internal) for function f:
-          __retres
+      __retres
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [inout] Out (internal) for function g:
-          __retres
+      __retres
 [inout] Inputs for function g:
-          \nothing
+      \nothing
 [inout] Out (internal) for function h:
-          __retres
+      __retres
 [inout] Inputs for function h:
-          \nothing
+      \nothing
 [inout] Out (internal) for function test1:
-          R1
+      R1
 [inout] Inputs for function test1:
-          t[0..1]
+      t[0..1]
 [inout] Out (internal) for function test2:
-          R2
+      R2
 [inout] Inputs for function test2:
-          t[0..1]
+      t[0..1]
 [inout] Out (internal) for function test3:
-          R3
+      R3
 [inout] Inputs for function test3:
-          t[0..1]
+      t[0..1]
 [inout] Out (internal) for function test_benign:
-          x; p
+      x; p
 [inout] Inputs for function test_benign:
-          \nothing
+      \nothing
 [inout] Out (internal) for function too_much:
-          j
+      j
 [inout] Inputs for function too_much:
-          \nothing
+      \nothing
 [inout] Out (internal) for function test_too_much_benign:
-          p
+      p
 [inout] Inputs for function test_too_much_benign:
-          v
+      v
 [inout] Out (internal) for function main:
-          R1; R2; R3; ph; __retres
+      R1; R2; R3; ph; __retres
 [inout] Inputs for function main:
-          t[0..1]; v
+      t[0..1]; v

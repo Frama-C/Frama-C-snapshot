@@ -17,27 +17,27 @@ tests/float/logic.i:12:[value] warning: assertion got status unknown.
 tests/float/logic.i:17:[value] warning: assertion got status invalid (stopping propagation).
 tests/float/logic.i:22:[value] assertion got status valid.
 [value] computing for function test_is_finite <- main.
-        Called from tests/float/logic.i:27.
+    Called from tests/float/logic.i:27.
 tests/float/logic.i:50:[value] assertion got status valid.
 tests/float/logic.i:51:[value] warning: assertion got status unknown.
 tests/float/logic.i:59:[value] warning: assertion got status unknown.
 tests/float/logic.i:67:[value] warning: assertion got status unknown.
 [value] computing for function my_fabs <- test_is_finite <- main.
-        Called from tests/float/logic.i:70.
+    Called from tests/float/logic.i:70.
 [value] using specification for function my_fabs
 [value] Done for function my_fabs
 [value] computing for function my_fabs <- test_is_finite <- main.
-        Called from tests/float/logic.i:71.
+    Called from tests/float/logic.i:71.
 [value] Done for function my_fabs
 [value] computing for function my_ratio <- test_is_finite <- main.
-        Called from tests/float/logic.i:74.
+    Called from tests/float/logic.i:74.
 [value] using specification for function my_ratio
 tests/float/logic.i:46:[value] warning: no 'assigns \result \from ...' clause specified for function my_ratio
 [value] Done for function my_ratio
 [value] computing for function my_ratio_body <- test_is_finite <- main.
-        Called from tests/float/logic.i:77.
+    Called from tests/float/logic.i:77.
 [value] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
-        Called from tests/float/logic.i:41.
+    Called from tests/float/logic.i:41.
 [value] Done for function my_fabs
 tests/float/logic.i:39:[value] function my_ratio_body: postcondition got status valid.
 tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status valid.
@@ -72,7 +72,7 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function my_fabs:
   \result FROM f
 [from] Function my_ratio:
@@ -85,14 +85,14 @@ tests/float/logic.i:40:[value] function my_ratio_body: postcondition got status 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function my_ratio_body:
-          tmp; __retres
+      tmp; __retres
 [inout] Inputs for function my_ratio_body:
-          \nothing
+      \nothing
 [inout] Out (internal) for function test_is_finite:
-          f1; f2; f3; p; g1; g2; g3; g4
+      f1; f2; f3; p; g1; g2; g3; g4
 [inout] Inputs for function test_is_finite:
-          undet; top_int
+      undet; top_int
 [inout] Out (internal) for function main:
-          d; d_0; f; __retres
+      d; d_0; f; __retres
 [inout] Inputs for function main:
-          v; undet; top_int
+      v; undet; top_int

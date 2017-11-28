@@ -6,7 +6,7 @@ tests/value/pb.i:2:[kernel] warning: Calling undeclared function f. Old style K&
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/value/pb.i:2.
+    Called from tests/value/pb.i:2.
 tests/value/pb.i:2:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
@@ -20,13 +20,13 @@ tests/value/pb.i:2:[kernel] warning: Neither code nor specification for function
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          \nothing
+      \nothing
 [inout] Inputs for function main:
-          \nothing
+      \nothing

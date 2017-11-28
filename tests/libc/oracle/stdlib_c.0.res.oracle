@@ -13,12 +13,12 @@
 tests/libc/stdlib_c.c:14:[value] allocating variable __calloc_main_l14
 tests/libc/stdlib_c.c:16:[value] assertion got status valid.
 [value] computing for function Frama_C_size_t_interval <- main.
-        Called from tests/libc/stdlib_c.c:20.
+    Called from tests/libc/stdlib_c.c:20.
 [value] using specification for function Frama_C_size_t_interval
 share/libc/__fc_builtin.h:142:[value] function Frama_C_size_t_interval: precondition got status valid.
 [value] Done for function Frama_C_size_t_interval
 [value] computing for function Frama_C_size_t_interval <- main.
-        Called from tests/libc/stdlib_c.c:20.
+    Called from tests/libc/stdlib_c.c:20.
 [value] Done for function Frama_C_size_t_interval
 tests/libc/stdlib_c.c:21:[value] warning: calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
 tests/libc/stdlib_c.c:21:[value] allocating variable __calloc_main_l21
@@ -35,9 +35,9 @@ tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' 
 tests/libc/stdlib_c.c:32:[value] warning: calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
 tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32' (0..31/127) to fit 0..63/34359738367
 tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32'
-               (0..31/34359738367) to fit 0..63/34359738367
+    (0..31/34359738367) to fit 0..63/34359738367
 tests/libc/stdlib_c.c:32:[value:malloc] resizing variable `__calloc_w_main_l32'
-               (0..31/34359738367) to fit 0..63/34359738367
+    (0..31/34359738367) to fit 0..63/34359738367
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -13,7 +13,7 @@
   m ∈ {-1}
   n ∈ {-1}
 [value] computing for function any_int <- main.
-        Called from tests/value/ineq.c:6.
+    Called from tests/value/ineq.c:6.
 tests/value/ineq.c:6:[kernel] warning: Neither code nor specification for function any_int, generating default assigns from the prototype
 [value] using specification for function any_int
 [value] Done for function any_int
@@ -37,7 +37,7 @@ tests/value/ineq.c:6:[kernel] warning: Neither code nor specification for functi
 [from] Done for function any_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:
@@ -52,6 +52,6 @@ tests/value/ineq.c:6:[kernel] warning: Neither code nor specification for functi
   n FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          G[0]; g; h; i; j; k; l; m; n; x
+      G[0]; g; h; i; j; k; l; m; n; x
 [inout] Inputs for function main:
-          \nothing
+      \nothing

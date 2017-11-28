@@ -39,14 +39,14 @@ tests/misc/widen_hints2.c:79:[value:widen-hints] computing dynamic hints for sta
 tests/misc/widen_hints2.c:79:[value] entering loop for the first time
 tests/misc/widen_hints2.c:80:[value] entering loop for the first time
 [value] computing for function f <- main.
-        Called from tests/misc/widen_hints2.c:85.
+    Called from tests/misc/widen_hints2.c:85.
 tests/misc/widen_hints2.c:22:[value:widen-hints] computing dynamic hints for statement 4
 tests/misc/widen_hints2.c:22:[value] entering loop for the first time
 tests/misc/widen_hints2.c:23:[value] entering loop for the first time
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/misc/widen_hints2.c:86.
+    Called from tests/misc/widen_hints2.c:86.
 tests/misc/widen_hints2.c:34:[value] entering loop for the first time
 tests/misc/widen_hints2.c:35:[value] entering loop for the first time
 tests/misc/widen_hints2.c:36:[value] warning: accessing out of bounds index. assert kk < 100;
@@ -78,7 +78,7 @@ tests/misc/widen_hints2.c:36:[value] warning: accessing out of bounds index. ass
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   NO EFFECTS
 [from] Function g:
@@ -89,14 +89,14 @@ tests/misc/widen_hints2.c:36:[value] warning: accessing out of bounds index. ass
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          tf[0..87]; m; n; a; b
+      tf[0..87]; m; n; a; b
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [inout] Out (internal) for function g:
-          tg[0..99]; m; n; ll; kk
+      tg[0..99]; m; n; ll; kk
 [inout] Inputs for function g:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          t[0..87]; glob; m; n; a; b; c; d; c_0; d_0; j; __retres
+      t[0..87]; glob; m; n; a; b; c; d; c_0; d_0; j; __retres
 [inout] Inputs for function main:
-          glob
+      glob

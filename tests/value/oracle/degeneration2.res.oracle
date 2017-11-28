@@ -8,7 +8,7 @@ tests/value/degeneration2.i:14:[value] warning: accessing uninitialized left-val
 tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -2147483648 ≤ -((int)A);
 tests/value/degeneration2.i:14:[value] warning: signed overflow. assert -((int)A) ≤ 2147483647;
 tests/value/degeneration2.i:14:[value] Assigning imprecise value to A.
-        The imprecision originates from Arithmetic {tests/value/degeneration2.i:14}
+    The imprecision originates from Arithmetic {tests/value/degeneration2.i:14}
 tests/value/degeneration2.i:16:[value] entering loop for the first time
 tests/value/degeneration2.i:17:[value] warning: accessing uninitialized left-value. assert \initialized((int *)A);
 tests/value/degeneration2.i:17:[value] warning: out of bounds read. assert \valid_read((int *)A);
@@ -28,11 +28,11 @@ tests/value/degeneration2.i:25:[value] assertion 'Value,initialisation' got fina
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          A; B; C; D; x; tmp; tmp_0; vv
+      A; B; C; D; x; tmp; tmp_0; vv
 [inout] Inputs for function main:
-          v
+      v

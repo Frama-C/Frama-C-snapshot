@@ -12,12 +12,12 @@ tests/occurrence/ptr_assert.i:16:[value] assertion got status valid.
 [value] done for function main
 [occurrence] analysis done
 [occurrence] variable x (global):
-               sid 1: x
-             variable y (global):
-               sid 4: y
-             variable z (parameter of main):
-               sid 10: z
-             variable p (local of main):
-               sid 2: p
-             variable q (local of main):
-               sid 4: q
+      sid 1: x
+    variable y (global):
+      sid 4: y
+    variable z (parameter of main):
+      sid 10: z
+    variable p (local of main):
+      sid 2: p
+    variable q (local of main):
+      sid 4: q

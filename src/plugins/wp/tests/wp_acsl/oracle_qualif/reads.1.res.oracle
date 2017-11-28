@@ -8,7 +8,7 @@
 [wp] [Alt-Ergo] Goal typed_modifies_x_post_qed_ko_H_KO : Unknown
 [wp] [Alt-Ergo] Goal typed_modifies_y_post_qed_ko_H_KO : Unknown
 [wp] Proved goals:    0 / 3
-     Alt-Ergo:        0  (unknown: 3)
+    Alt-Ergo:        0  (unknown: 3)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 modifies_y          -      -           1       0.0%

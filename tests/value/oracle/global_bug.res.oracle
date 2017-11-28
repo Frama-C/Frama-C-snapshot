@@ -9,7 +9,7 @@ tests/value/global_bug.i:7:[value] evaluation of initializer '99 << 63' failed
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] ====== END OF DEPENDENCIES ======
 [report] Computing properties status...
 

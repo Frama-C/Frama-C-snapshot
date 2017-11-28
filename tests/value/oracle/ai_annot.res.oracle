@@ -26,12 +26,12 @@ tests/value/ai_annot.i:14:[scope:rm_asserts] removing redundant assert Value: me
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_p[1] FROM x; p
   \result FROM x; p; S_p[2]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          __retres; S_p[1]
+      __retres; S_p[1]
 [inout] Inputs for function main:
-          S_p[2]
+      S_p[2]

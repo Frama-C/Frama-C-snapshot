@@ -115,7 +115,7 @@ tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
 [from] Computing for function un_1
 [from] Done for function un_1
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function un_1:
   px FROM Gx
   py FROM Gy
@@ -133,16 +133,16 @@ tests/value/cond2.i:67:[value] warning: out of bounds write. assert \valid(py);
   \result FROM Gx; Gy
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function un_1:
-          px; py; x; y;
-          T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
-            [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
-            [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
-            [88..89]; [92..93]; [96..97]}; s; t; u; r_0; i
+      px; py; x; y;
+      T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
+        [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
+        [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
+        [88..89]; [92..93]; [96..97]}; s; t; u; r_0; i
 [inout] Out (external) for function un_1:
-          px; py; x; y;
-          T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
-            [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
-            [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
-            [88..89]; [92..93]; [96..97]}; s; t; u
+      px; py; x; y;
+      T{[4..5]; [8..9]; [12..13]; [16..17]; [20..21]; [24..25]; [28..29];
+        [32..33]; [36..37]; [40..41]; [44..45]; [48..49]; [52..53]; [56..57];
+        [60..61]; [64..65]; [68..69]; [72..73]; [76..77]; [80..81]; [84..85];
+        [88..89]; [92..93]; [96..97]}; s; t; u
 [inout] Inputs for function un_1:
-          Gx; Gy; px; py; x; y; u
+      Gx; Gy; px; py; x; y; u

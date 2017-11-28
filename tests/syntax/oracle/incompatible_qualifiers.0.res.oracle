@@ -13,5 +13,5 @@ tests/syntax/incompatible_qualifiers.c:75:[kernel] user error: invalid usage of 
 tests/syntax/incompatible_qualifiers.c:76:[kernel] user error: invalid usage of 'restrict' qualifier
 tests/syntax/incompatible_qualifiers.c:77:[kernel] user error: function pointer type does not allow 'restrict' qualifier
 [kernel] user error: stopping on file "tests/syntax/incompatible_qualifiers.c" that has errors.
-                     Add '-kernel-msg-key pp' for preprocessing command.
+    Add '-kernel-msg-key pp' for preprocessing command.
 [kernel] Frama-C aborted: invalid user input.

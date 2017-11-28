@@ -13,22 +13,22 @@
   S___fc_stdout[0..1] ∈ [--..--]
 tests/rte/value_rte.c:11:[value] entering loop for the first time
 [value] computing for function getchar <- main.
-        Called from tests/rte/value_rte.c:12.
+    Called from tests/rte/value_rte.c:12.
 [value] using specification for function getchar
 [value] Done for function getchar
 tests/rte/value_rte.c:13:[value] assertion 'rte,index_bound' got status valid.
 tests/rte/value_rte.c:15:[value] assertion 'rte,signed_overflow' got status valid.
 [value] computing for function getchar <- main.
-        Called from tests/rte/value_rte.c:12.
+    Called from tests/rte/value_rte.c:12.
 [value] Done for function getchar
 [value] computing for function getchar <- main.
-        Called from tests/rte/value_rte.c:12.
+    Called from tests/rte/value_rte.c:12.
 [value] Done for function getchar
 [value] computing for function getchar <- main.
-        Called from tests/rte/value_rte.c:12.
+    Called from tests/rte/value_rte.c:12.
 [value] Done for function getchar
 [value] computing for function getchar <- main.
-        Called from tests/rte/value_rte.c:12.
+    Called from tests/rte/value_rte.c:12.
 [value] Done for function getchar
 tests/rte/value_rte.c:13:[value] warning: assertion 'rte,index_bound' got status unknown.
 [value] Recording results for main

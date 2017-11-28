@@ -8,9 +8,9 @@ tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] warning: a
 [value] done for function main
 tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] assertion 'Value,initialisation' got final status invalid.
 [inout] InOut (internal) for function main:
-        Operational inputs:
-          q
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          ANYTHING(origin:Unknown)
+    Operational inputs:
+      q
+    Operational inputs on termination:
+      \nothing
+    Sure outputs:
+      ANYTHING(origin:Unknown)

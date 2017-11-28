@@ -2,7 +2,7 @@
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
 tests/value/unknown_sizeof.i:8:[value] warning: during initialization of variable 's', size of type 'struct s' cannot be
-                 computed (abstract type 'struct s')
+    computed (abstract type 'struct s')
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   s.[bits 0 to ..] ∈ {0} or UNINITIALIZED

@@ -56,6 +56,9 @@ open Logic_utils
 
 let dkey = Kernel.register_category "mergecil"
 
+(* See note about WARNING categories in kernel.ml. *)
+let drop_unused_dkey = Kernel.register_category "WARNING:link:drop-conflicting-unused"
+
 let debugInlines = false
 
 (* Try to merge structure with the same name. However, do not complain if
@@ -1337,6 +1340,80 @@ and matchTypeInfo (oldfidx: int) (oldti: typeinfo)
     ()
   end
 
+let update_compinfo ci =
+  let node =
+    PlainMerging.getNode sEq sSyn !currentFidx ci.cname ci None
+  in
+  let loc =
+    match node.nloc with
+    | Some (loc,_) -> loc
+    | None -> Cil_datatype.Location.unknown
+  in
+  Alpha.registerAlphaName sAlpha ci.cname loc;
+  let n, _ = Alpha.newAlphaName sAlpha ci.cname loc in
+  let oldnode = PlainMerging.find true node in
+  if oldnode == node then begin
+    let node =
+      PlainMerging.mkSelfNode
+        sEq sSyn !currentFidx ci.cname ci (Some (loc, !currentFidx))
+    in
+    let renamed_node = { oldnode with nname = n } in
+    renamed_node.ndata.cname <- n;
+    renamed_node.nrep <- renamed_node;
+    node.nrep <- node;
+    oldnode.nrep <- node;
+    PlainMerging.add_eq_table sEq (!currentFidx,ci.cname) node;
+    PlainMerging.add_eq_table sEq (oldnode.nfidx, n) renamed_node
+  end else begin
+    let renamed_node = { oldnode with nname = n } in
+    renamed_node.ndata.cname <- n;
+    renamed_node.nrep <- renamed_node;
+    oldnode.nrep <- node;
+    node.nrep <- node;
+    PlainMerging.add_eq_table sEq (oldnode.nfidx, n) renamed_node;
+  end;
+  node.ndata
+
+let rec update_type_repr t =
+  match t with
+  | TNamed (ti,attrs) ->
+    ti.ttype <- update_type_repr ti.ttype;
+    let node =
+      PlainMerging.getNode tEq tSyn !currentFidx ti.tname ti None
+    in
+    let loc =
+      match node.nloc with
+      | Some (loc,_) -> loc
+      | None -> Cil_datatype.Location.unknown
+    in
+    Alpha.registerAlphaName vtAlpha ti.tname loc;
+    let n,_ = Alpha.newAlphaName vtAlpha ti.tname loc in
+    let oldnode = PlainMerging.find true node in
+    if oldnode == node then begin
+      let node =
+        PlainMerging.mkSelfNode
+          tEq tSyn !currentFidx ti.tname ti (Some (loc,!currentFidx))
+      in
+      let renamed_node = { oldnode with nname = n } in
+      renamed_node.ndata.tname <- n;
+      renamed_node.nrep <- renamed_node;
+      node.nrep <- node;
+      oldnode.nrep <- node;
+      PlainMerging.add_eq_table tEq (!currentFidx,ti.tname) node;
+      PlainMerging.add_eq_table tEq (oldnode.nfidx, n) renamed_node
+    end else begin
+      let renamed_node = { oldnode with nname = n } in
+      renamed_node.ndata.tname <- n;
+      renamed_node.nrep <- renamed_node;
+      oldnode.nrep <- node;
+      node.nrep <- node;
+      PlainMerging.add_eq_table tEq (oldnode.nfidx, n) renamed_node;
+    end;
+    TNamed(node.ndata,attrs)
+  | TComp (ci,_,attrs) ->
+    TComp (update_compinfo ci, {scache = Not_Computed}, attrs)
+  | _ -> t
+
 let static_var_visitor = object
     inherit Cil.nopCilVisitor
     method! vvrbl vi = if vi.vstorage = Static then raise Exit; DoChildren
@@ -1550,23 +1627,40 @@ let oneFilePass1 (f:file) : unit =
         vi.vname vi.vid oldvi.vname oldvi.vid;
       (* There is an old definition. We must combine the types. Do this first
        * because it might fail *)
-      let newtype =
+      let newtype, newrep =
         try
           combineTypes CombineOther
             oldvinode.nfidx oldvi.vtype
-            !currentFidx vi.vtype;
+            !currentFidx vi.vtype, fst (union oldvinode vinode);
         with (Failure reason) -> begin
-          Kernel.abort
-            "@[<hov>Incompatible declaration for %s:@ %s@\n\
-             First declaration was at  %a@\n\
-             Current declaration is at %a"
+            (* If one of the variable is currently unused, we can ignore it *)
+            let msg =
+              Format.asprintf
+                "@[<hov>Incompatible declaration for %s:@ %s@\n\
+                 First declaration was at %a@\nCurrent declaration is at %a@]"
             vi.vname reason
             Cil_printer.pp_location oldloc
             Cil_printer.pp_location loc
+            in
+            if not vi.vreferenced then begin
+              Kernel.result ~dkey:drop_unused_dkey
+                "%s@\nCurrent declaration is unused, silently removing it"
+                msg;
+              oldvi.vtype, fst (union oldvinode vinode)
+            end else if not oldvi.vreferenced then begin
+              Kernel.result ~dkey:drop_unused_dkey
+                "%s@\nOld declaration is unused, silently removing it"
+                msg;
+              vi.vtype <- update_type_repr vi.vtype;
+              H.replace vEnv vi.vname vinode;
+              vinode.nrep <- vinode;
+              oldvinode.nrep <- vinode;
+              vi.vtype, vinode
+            end else Kernel.abort "%s" msg
         end
       in
-      let newrep, _ = union oldvinode vinode in
       newrep.ndata.vdefined <- vi.vdefined || oldvi.vdefined;
+      newrep.ndata.vreferenced <- vi.vreferenced || oldvi.vreferenced;
       (* We do not want to turn non-"const" globals into "const" one. That
        * can happen if one file declares the variable a non-const while
        * others declare it as "const". *)
@@ -1605,7 +1699,6 @@ let oneFilePass1 (f:file) : unit =
        | GVarDecl (vi, l) | GVar (vi, _, l) | GFunDecl (_, vi, l)->
            CurrentLoc.set l;
            incr currentDeclIdx;
-           vi.vreferenced <- false;
            if vi.vstorage <> Static then begin
              matchVarinfo vi (l, !currentDeclIdx);
            end
@@ -1617,7 +1710,6 @@ let oneFilePass1 (f:file) : unit =
            let _, args, _, _ = splitFunctionTypeVI fdec.svar in
            H.add formalNames (!currentFidx, fdec.svar.vname)
              (List.map (fun (n,_,_) -> n) (argsToList args));
-           fdec.svar.vreferenced <- false;
            (* Force inline functions to be static. *)
            (* GN: This turns out to be wrong. inline functions are external,
             * unless specified to be static. *)
@@ -1798,23 +1890,17 @@ in
 object (self)
   inherit nopCilVisitor
 
-      (* This is either a global variable which we took care of, or a local
-       * variable. Must do its type and attributes. *)
   method! vvdec (_vi: varinfo) = DoChildren
 
       (* This is a variable use. See if we must change it *)
   method! vvrbl (vi: varinfo) : varinfo visitAction =
-    if not vi.vglob then DoChildren else
-    if vi.vreferenced then begin
-      H.add varUsedAlready vi.vname ();
-      DoChildren
-    end else begin
+    if not vi.vglob then DoChildren
+    else begin
       match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
         None -> DoChildren
       | Some (vi', oldfidx) ->
           Kernel.debug ~dkey "Renaming use of var %s(%d) to %s(%d)"
             vi.vname !currentFidx vi'.vname oldfidx;
-          vi'.vreferenced <- true;
           H.add varUsedAlready vi'.vname ();
           ChangeTo vi'
     end
@@ -2061,21 +2147,24 @@ let renameVisitor = new renameVisitorClass
  * except it only looks at the variables (thus it is a bit more efficient)
  * and it also renames forward declarations of the inlines to be removed. *)
 
-class renameInlineVisitorClass = object
+class renameInlineVisitorClass = object(self)
   inherit nopCilVisitor
+
+  val mutable visited = Cil_datatype.Varinfo.Set.empty
+
+  method private visit vi =
+    visited <- Cil_datatype.Varinfo.Set.add vi visited
 
       (* This is a variable use. See if we must change it *)
   method! vvrbl (vi: varinfo) : varinfo visitAction =
-    if not vi.vglob then DoChildren else
-    if vi.vreferenced then begin (* Already renamed *)
-      DoChildren
-    end else begin
+    if not vi.vglob || Cil_datatype.Varinfo.Set.mem vi visited then DoChildren
+    else begin
       match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
-        None -> DoChildren
+        None -> self#visit vi; DoChildren
       | Some (vi', oldfidx) ->
           Kernel.debug ~dkey "Renaming var %s(%d) to %s(%d)"
             vi.vname !currentFidx vi'.vname oldfidx;
-          vi'.vreferenced <- true;
+          self#visit vi';
           ChangeTo vi'
     end
 
@@ -2090,9 +2179,10 @@ class renameInlineVisitorClass = object
         in
         (* Now see if this must be replaced *)
         match PlainMerging.findReplacement true vEq !currentFidx origname with
-          None -> DoChildren
+          None -> self#visit vi; DoChildren
         | Some (vi', _) ->
             (*TODO: visit the spec to change references to formals *)
+            self#visit vi';
             ChangeTo [GFunDecl (spec,vi', l)]
       end
     | _ -> DoChildren
@@ -2462,18 +2552,18 @@ let oneFilePass2 (f: file) =
 
   (* Keep a pointer to the contents of the file so far *)
   let savedTheFile = !theFile in
-
+  let visited = ref Cil_datatype.Varinfo.Set.empty in
+  let visit vi = visited := Cil_datatype.Varinfo.Set.add vi !visited in
   let processOneGlobal (g: global) : unit =
     (* Process a varinfo. Reuse an old one, or rename it if necessary *)
     let processVarinfo (vi: varinfo) (vloc: location) : varinfo =
-      if vi.vreferenced then
-        vi (* Already done *)
+      if Cil_datatype.Varinfo.Set.mem vi !visited then vi
       else begin
         (* Maybe it is static. Rename it then *)
         if vi.vstorage = Static then begin
           let newName, _ =
             Alpha.newAlphaName vtAlpha vi.vname (CurrentLoc.get ())
-	  in
+          in
           let formals_decl =
             try Some (Cil.getFormalsDecl vi)
             with Not_found -> None
@@ -2483,18 +2573,18 @@ let oneFilePass2 (f: file) =
           Kernel.debug ~dkey "renaming %s at %a to %s"
             vi.vname Cil_printer.pp_location vloc newName;
           vi.vname <- newName;
-          vi.vreferenced <- true;
           Cil_const.set_vid vi;
+          visit vi;
           (match formals_decl with
-            | Some formals -> Cil.unsafeSetFormalsDecl vi formals
-            | None -> ());
+           | Some formals -> Cil.unsafeSetFormalsDecl vi formals
+           | None -> ());
 	  vi
         end else begin
           (* Find the representative *)
           match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
-            None -> vi (* This is the representative *)
+            None -> visit vi; vi (* This is the representative *)
           | Some (vi', _) -> (* Reuse some previous one *)
-              vi'.vreferenced <- true; (* Mark it as done already *)
+              visit vi';
               vi'.vaddrof <- vi.vaddrof || vi'.vaddrof;
               vi'.vdefined <- vi.vdefined || vi'.vdefined;
               if Extlib.xor vi'.vghost vi.vghost then
@@ -2733,7 +2823,6 @@ let oneFilePass2 (f: file) =
               (* Clean up the vreferenced bit in the new inline, so that we
                * can rename it. Reset the name to the original one so that
                * we can find the replacement name. *)
-              fdec'.svar.vreferenced <- false;
               fdec'.svar.vname <- origname;
               () (* Drop this definition *)
             with Not_found -> begin
@@ -3140,8 +3229,18 @@ let move_spec globals =
        print_missing to_declare);
   List.rev res
 
+let mark_referenced f =
+  let vis =
+    object
+      inherit Cil.nopCilVisitor
+      method! vvrbl vi = vi.vreferenced <- true; Cil.DoChildren
+    end
+  in
+  Cil.visitCilFileSameGlobals vis f
+
 let merge (files: file list) (newname: string) : file =
   init ();
+  List.iter mark_referenced files;
   Errorloc.clear_errors ();
 
   (* Make the first pass over the files *)

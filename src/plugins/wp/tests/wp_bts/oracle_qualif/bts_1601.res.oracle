@@ -13,7 +13,7 @@
 [wp] [Qed] Goal typed_foo_assert_7 : Valid
 [wp] [Qed] Goal typed_foo_basic_post : Valid
 [wp] Proved goals:    8 / 8
-     Qed:             8
+    Qed:             8
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 foo                  8     -           8       100%

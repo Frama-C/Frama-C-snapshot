@@ -14,8 +14,8 @@
 [wp] [Alt-Ergo] Goal typed_ref_fvpositive_assert_OK : Valid
 [wp] [Qed] Goal typed_ref_fvpositive_assign : Valid
 [wp] Proved goals:    9 / 9
-     Qed:             5 
-     Alt-Ergo:        4
+    Qed:             5 
+    Alt-Ergo:        4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 fsimple              1      1 (11)     2       100%

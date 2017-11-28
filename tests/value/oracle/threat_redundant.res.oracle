@@ -15,7 +15,7 @@
     [9] ∈ {98}
   x ∈ {0}
 [value] computing for function strchr <- main.
-        Called from tests/value/threat_redundant.c:19.
+    Called from tests/value/threat_redundant.c:19.
 tests/value/threat_redundant.c:8:[value] entering loop for the first time
 tests/value/threat_redundant.c:8:[value] warning: out of bounds read. assert \valid_read(s);
 [value] Recording results for strchr
@@ -34,17 +34,17 @@ tests/value/threat_redundant.c:8:[value] warning: out of bounds read. assert \va
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function strchr:
   NON TERMINATING - NO EFFECTS
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function strchr:
-          s
+      s
 [inout] Inputs for function strchr:
-          s1[0..9]
+      s1[0..9]
 [inout] Out (internal) for function main:
-          x
+      x
 [inout] Inputs for function main:
-          s1[0..9]
+      s1[0..9]

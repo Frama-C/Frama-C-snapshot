@@ -13,13 +13,13 @@ tests/float/absorb.c:15:[kernel] warning: Floating-point constant 1e-286 is not 
   min_fl ∈ {0}
   den ∈ {0}
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/float/absorb.c:13.
+    Called from tests/float/absorb.c:13.
 [value] using specification for function Frama_C_interval
 share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/float/absorb.c:16:[value] entering loop for the first time
 tests/float/absorb.c:18:[value] warning: non-finite float value.
-                 assert \is_finite((float)((double)((double)x + 1E-286)));
+    assert \is_finite((float)((double)((double)x + 1E-286)));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -38,7 +38,7 @@ tests/float/absorb.c:18:[value] warning: non-finite float value.
 [from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -53,6 +53,6 @@ tests/float/absorb.c:18:[value] warning: non-finite float value.
   den FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
+      Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
 [inout] Inputs for function main:
-          Frama_C_entropy_source; x; y; min_f
+      Frama_C_entropy_source; x; y; min_f

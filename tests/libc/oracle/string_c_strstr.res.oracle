@@ -10,141 +10,141 @@
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:52.
+    Called from tests/libc/string_c_strstr.c:52.
 share/libc/string.h:177:[value] function strstr: precondition 'valid_string_haystack' got status valid.
 share/libc/string.h:178:[value] function strstr: precondition 'valid_string_needle' got status valid.
 share/libc/string.h:181:[value] function strstr: postcondition got status valid.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:53.
+    Called from tests/libc/string_c_strstr.c:53.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:54.
+    Called from tests/libc/string_c_strstr.c:54.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:55.
+    Called from tests/libc/string_c_strstr.c:55.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:56.
+    Called from tests/libc/string_c_strstr.c:56.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:57.
+    Called from tests/libc/string_c_strstr.c:57.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:58.
+    Called from tests/libc/string_c_strstr.c:58.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:59.
+    Called from tests/libc/string_c_strstr.c:59.
 share/libc/string.c:230:[value] entering loop for the first time
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:60.
+    Called from tests/libc/string_c_strstr.c:60.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:61.
+    Called from tests/libc/string_c_strstr.c:61.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:62.
+    Called from tests/libc/string_c_strstr.c:62.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:64.
+    Called from tests/libc/string_c_strstr.c:64.
 share/libc/string.h:183:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.h:181:[value] warning: function strstr: postcondition got status unknown.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:65.
+    Called from tests/libc/string_c_strstr.c:65.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:66.
+    Called from tests/libc/string_c_strstr.c:66.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:67.
+    Called from tests/libc/string_c_strstr.c:67.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:68.
+    Called from tests/libc/string_c_strstr.c:68.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:69.
+    Called from tests/libc/string_c_strstr.c:69.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:70.
+    Called from tests/libc/string_c_strstr.c:70.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:71.
+    Called from tests/libc/string_c_strstr.c:71.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:72.
+    Called from tests/libc/string_c_strstr.c:72.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:73.
+    Called from tests/libc/string_c_strstr.c:73.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:74.
+    Called from tests/libc/string_c_strstr.c:74.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:75.
+    Called from tests/libc/string_c_strstr.c:75.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:76.
+    Called from tests/libc/string_c_strstr.c:76.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:77.
+    Called from tests/libc/string_c_strstr.c:77.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:78.
+    Called from tests/libc/string_c_strstr.c:78.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:79.
+    Called from tests/libc/string_c_strstr.c:79.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:80.
+    Called from tests/libc/string_c_strstr.c:80.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:81.
+    Called from tests/libc/string_c_strstr.c:81.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:82.
+    Called from tests/libc/string_c_strstr.c:82.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:83.
+    Called from tests/libc/string_c_strstr.c:83.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:84.
+    Called from tests/libc/string_c_strstr.c:84.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] computing for function strstr <- main.
-        Called from tests/libc/string_c_strstr.c:85.
+    Called from tests/libc/string_c_strstr.c:85.
 [value] Recording results for strstr
 [value] Done for function strstr
 [value] Recording results for main

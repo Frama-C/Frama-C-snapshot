@@ -157,7 +157,7 @@ diff tests/value/oracle/alias.6.res.oracle tests/value/oracle_equalities/alias.6
 ---
 >   x ∈ {33}
 diff tests/value/oracle/assigns.res.oracle tests/value/oracle_equalities/assigns.res.oracle
-121a122
+123a124
 > tests/value/assigns.i:104:[kernel] more than 200(4294967296) elements to enumerate. Approximating.
 diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_equalities/backward_add_ptr.res.oracle
 10c10
@@ -165,23 +165,23 @@ diff tests/value/oracle/backward_add_ptr.res.oracle tests/value/oracle_equalitie
 ---
 > tests/value/backward_add_ptr.c:26:[value] Frama_C_show_each_only_a: {0}, {{ &a }}, {0}
 175a176,179
->                    (origin: Arithmetic {tests/value/backward_add_ptr.c:33}) }}
->                  {{ garbled mix of &{a}
->                    (origin: Arithmetic {tests/value/backward_add_ptr.c:33}) }}
->                  {{ garbled mix of &{b}
+>       (origin: Arithmetic {tests/value/backward_add_ptr.c:33}) }}
+>     {{ garbled mix of &{a}
+>       (origin: Arithmetic {tests/value/backward_add_ptr.c:33}) }}
+>     {{ garbled mix of &{b}
 178a183,186
->                  {{ garbled mix of &{b}
->                    (origin: Arithmetic {tests/value/backward_add_ptr.c:39}) }}
->                  {{ garbled mix of &{a}
->                    (origin: Arithmetic {tests/value/backward_add_ptr.c:39}) }}
+>     {{ garbled mix of &{b}
+>       (origin: Arithmetic {tests/value/backward_add_ptr.c:39}) }}
+>     {{ garbled mix of &{a}
+>       (origin: Arithmetic {tests/value/backward_add_ptr.c:39}) }}
 diff tests/value/oracle/bitfield.res.oracle tests/value/oracle_equalities/bitfield.res.oracle
-67a68,69
->         # Equality domain:
->         
-175a178,180
->         # Equality domain:
->         {(unsigned int __attribute__((__FRAMA_C_BITFIELD_SIZE__(2))))i = s.a}
->         {(int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))i = s.c}
+68a69,70
+>     # Equality domain:
+>     
+176a179,181
+>     # Equality domain:
+>     {(unsigned int __attribute__((__FRAMA_C_BITFIELD_SIZE__(2))))i = s.a}
+>     {(int __attribute__((__FRAMA_C_BITFIELD_SIZE__(22))))i = s.c}
 diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_equalities/bitwise_pointer.res.oracle
 54c54
 <   x ∈ [0..9]
@@ -230,26 +230,26 @@ diff tests/value/oracle/modulo.res.oracle tests/value/oracle_equalities/modulo.r
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [-9..-1], [0..8]
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1: [1..10], [1..9], [0..8]
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:41:[value] Frama_C_show_each_1:
->         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 46a59,70
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [1..9], [-8..0]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [-10..-1], [-9..-1], [-8..0]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [1..9], [0..8]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2: [1..10], [-9..-1], [0..8]
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {1; 2; 3; 4; 5; 6; 7; 8}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {1; 2; 3; 4; 5; 6; 7; 8}, {0; 1; 2; 3; 4; 5; 6; 7}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
+>     [-9..-1], {-8; -7; -6; -5; -4; -3; -2; -1}, {-7; -6; -5; -4; -3; -2; -1; 0}
 > tests/value/modulo.i:53:[value] Frama_C_show_each_2:
->         [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
+>     [1..9], {-8; -7; -6; -5; -4; -3; -2; -1}, {0; 1; 2; 3; 4; 5; 6; 7}
 53a78,79
 > tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-10..10], [-9..9], [-8..8]
 > tests/value/modulo.i:64:[value] Frama_C_show_each_3: [-9..9], [-8..8], [-7..7]
@@ -290,7 +290,12 @@ diff tests/value/oracle/nonlin.res.oracle tests/value/oracle_equalities/nonlin.r
 <   q ∈ {{ &x + [-400..400],0%4 }}
 ---
 >   q ∈ {{ &x }}
-diff tests/value/oracle/offsetmap.res.oracle tests/value/oracle_equalities/offsetmap.res.oracle
+diff tests/value/oracle/offsetmap.0.res.oracle tests/value/oracle_equalities/offsetmap.0.res.oracle
+36d35
+< [value] Recording results for g
+37a37
+> [value] Recording results for g
+diff tests/value/oracle/offsetmap.1.res.oracle tests/value/oracle_equalities/offsetmap.1.res.oracle
 36d35
 < [value] Recording results for g
 37a37
@@ -309,7 +314,7 @@ diff tests/value/oracle/origin.0.res.oracle tests/value/oracle_equalities/origin
 diff tests/value/oracle/period.res.oracle tests/value/oracle_equalities/period.res.oracle
 83,85d82
 < tests/value/period.c:53:[value] Assigning imprecise value to p.
-<         The imprecision originates from Arithmetic {tests/value/period.c:53}
+<     The imprecision originates from Arithmetic {tests/value/period.c:53}
 < tests/value/period.c:54:[value] warning: out of bounds read. assert \valid_read(p);
 diff tests/value/oracle/plevel.res.oracle tests/value/oracle_equalities/plevel.res.oracle
 11d10
@@ -376,16 +381,16 @@ diff tests/value/oracle/relation_reduction.res.oracle tests/value/oracle_equalit
 ---
 >   R4 FROM tab[0..5]; x (and SELF)
 50c48
-<           y; t; tab[0..8]
+<       y; t; tab[0..8]
 ---
->           y; t; tab[0..5]
+>       y; t; tab[0..5]
 diff tests/value/oracle/relation_shift.res.oracle tests/value/oracle_equalities/relation_shift.res.oracle
 25,26c25,26
-<         x ∈ [-2147483647..2147483647]
-<         y ∈ [-2147483648..2147483646]
+<     x ∈ [-2147483647..2147483647]
+<     y ∈ [-2147483648..2147483646]
 ---
->         x ∈ [-2147483647..2147483642]
->         y ∈ [-2147483648..2147483645]
+>     x ∈ [-2147483647..2147483642]
+>     y ∈ [-2147483648..2147483645]
 43,44c43,44
 <   x ∈ [-2147483647..2147483647]
 <   y ∈ [-2147483648..2147483646]
@@ -410,9 +415,9 @@ diff tests/value/oracle/relations.res.oracle tests/value/oracle_equalities/relat
 >   R4 ∈ {0; 2}
 diff tests/value/oracle/relations2.res.oracle tests/value/oracle_equalities/relations2.res.oracle
 55c55
-<         n ∈ [0..512]
+<     n ∈ [0..512]
 ---
->         n ∈ [1..512]
+>     n ∈ [1..512]
 123d122
 < tests/value/relations2.i:57:[value] Frama_C_show_each_NO2:
 diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2.res.oracle
@@ -436,6 +441,6 @@ diff tests/value/oracle/struct2.res.oracle tests/value/oracle_equalities/struct2
 >   tab6[0] ∈ {0}
 >       [1] ∈ {2}
 189c191
-<                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
+<              [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
 ---
->                  [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];
+>              [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0];

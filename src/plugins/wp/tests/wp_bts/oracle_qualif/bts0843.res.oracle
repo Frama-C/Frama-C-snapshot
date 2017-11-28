@@ -9,8 +9,8 @@
 [wp] [Alt-Ergo] Goal typed_g3_assign_normal : Valid
 [wp] [Qed] Goal typed_g3_call_f3_pre : Valid
 [wp] Proved goals:    4 / 4
-     Qed:             2 
-     Alt-Ergo:        2
+    Qed:             2 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f3                   1     -           1       100%

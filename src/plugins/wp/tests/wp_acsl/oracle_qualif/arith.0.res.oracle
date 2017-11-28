@@ -29,8 +29,8 @@
 [wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A1 : Valid
 [wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A2 : Valid
 [wp] Proved goals:   24 / 24
-     Qed:            21 
-     Alt-Ergo:        3
+    Qed:            21 
+    Alt-Ergo:        3
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               20      1 (9)     21       100%

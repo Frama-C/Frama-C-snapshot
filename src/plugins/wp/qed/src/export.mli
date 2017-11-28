@@ -90,8 +90,7 @@ sig
       method virtual e_true : cmode -> string
       method virtual e_false : cmode -> string
       method virtual pp_int : amode -> Z.t printer
-      method virtual pp_cst : Numbers.cst printer
-      method pp_real : R.t printer
+      method virtual pp_real : Q.t printer
 
       method virtual is_atomic : term -> bool
       method virtual op_spaced : string -> bool

@@ -6,7 +6,7 @@
   a ∈ {0}
   b ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/value/input.i:7.
+    Called from tests/value/input.i:7.
 tests/value/input.i:7:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
@@ -21,13 +21,13 @@ tests/value/input.i:7:[kernel] warning: Neither code nor specification for funct
 tests/value/input.i:7:[from] warning: variadic call detected. Using only 1 argument(s).
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM x
 [from] Function main:
   \result FROM a
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          tmp
+      tmp
 [inout] Inputs for function main:
-          a; b
+      a; b

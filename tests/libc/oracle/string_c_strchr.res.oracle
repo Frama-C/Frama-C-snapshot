@@ -13,7 +13,7 @@
 [value] Semantic level unrolling superposing up to 200 states
 tests/libc/string_c_strchr.c:59:[value] entering loop for the first time
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:62.
+    Called from tests/libc/string_c_strchr.c:62.
 share/libc/string.h:124:[value] function strchr: precondition 'valid_string_src' got status valid.
 share/libc/string.h:127:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.h:134:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
@@ -27,31 +27,31 @@ share/libc/string.h:137:[value] function strchr, behavior default: postcondition
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:63.
+    Called from tests/libc/string_c_strchr.c:63.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:64.
+    Called from tests/libc/string_c_strchr.c:64.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:65.
+    Called from tests/libc/string_c_strchr.c:65.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:66.
+    Called from tests/libc/string_c_strchr.c:66.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:67.
+    Called from tests/libc/string_c_strchr.c:67.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:68.
+    Called from tests/libc/string_c_strchr.c:68.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:70.
+    Called from tests/libc/string_c_strchr.c:70.
 share/libc/string.h:128:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:129:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:131:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
@@ -59,77 +59,77 @@ share/libc/string.h:135:[value] warning: function strchr, behavior not_found: po
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:71.
+    Called from tests/libc/string_c_strchr.c:71.
 share/libc/string.h:130:[value] function strchr, behavior found: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:72.
+    Called from tests/libc/string_c_strchr.c:72.
 share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:73.
+    Called from tests/libc/string_c_strchr.c:73.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:74.
+    Called from tests/libc/string_c_strchr.c:74.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:75.
+    Called from tests/libc/string_c_strchr.c:75.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:76.
+    Called from tests/libc/string_c_strchr.c:76.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:77.
+    Called from tests/libc/string_c_strchr.c:77.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:78.
+    Called from tests/libc/string_c_strchr.c:78.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:79.
+    Called from tests/libc/string_c_strchr.c:79.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:80.
+    Called from tests/libc/string_c_strchr.c:80.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:81.
+    Called from tests/libc/string_c_strchr.c:81.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:82.
+    Called from tests/libc/string_c_strchr.c:82.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:83.
+    Called from tests/libc/string_c_strchr.c:83.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:84.
+    Called from tests/libc/string_c_strchr.c:84.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:85.
+    Called from tests/libc/string_c_strchr.c:85.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:86.
+    Called from tests/libc/string_c_strchr.c:86.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:87.
+    Called from tests/libc/string_c_strchr.c:87.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_strchr.c:88.
+    Called from tests/libc/string_c_strchr.c:88.
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] Recording results for main

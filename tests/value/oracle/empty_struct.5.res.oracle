@@ -32,7 +32,7 @@ tests/value/empty_struct.c:80:[value] entering loop for the first time
 [from] Done for function free
 [from] Done for function main3
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function free:
   __fc_heap_status FROM __fc_heap_status (and SELF)
 [from] Function malloc:
@@ -45,6 +45,6 @@ tests/value/empty_struct.c:80:[value] entering loop for the first time
   __fc_heap_status FROM __fc_heap_status (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main3:
-          __fc_heap_status; q; r; p; i
+      __fc_heap_status; q; r; p; i
 [inout] Inputs for function main3:
-          __fc_heap_status
+      __fc_heap_status

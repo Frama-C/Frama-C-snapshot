@@ -30,11 +30,11 @@ tests/value/propagate_bottom.i:20:[value] assertion 'Value,division_by_zero' got
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          x1; x2; x3; x4; x5; x6; y1; y2; y3; y4; y5; y6
+      x1; x2; x3; x4; x5; x6; y1; y2; y3; y4; y5; y6
 [inout] Inputs for function main:
-          v
+      v

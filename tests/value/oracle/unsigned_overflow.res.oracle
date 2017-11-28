@@ -17,11 +17,11 @@ tests/value/unsigned_overflow.c:10:[value] Frama_C_show_each_dead:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          v; w; __retres
+      v; w; __retres
 [inout] Inputs for function main:
-          i1; i2
+      i1; i2

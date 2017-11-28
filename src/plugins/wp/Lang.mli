@@ -190,9 +190,7 @@ class virtual idprinting :
 module F :
 sig
 
-  module Z : Arith.Z with type t = Integer.t
-  module QED : Logic.Term with module Z = Z
-                           and module ADT = ADT
+  module QED : Logic.Term with module ADT = ADT
                            and module Field = Field
                            and module Fun = Fun
 
@@ -240,8 +238,7 @@ sig
 
   val e_int64 : int64 -> term
   val e_bigint : Integer.t -> term
-  val e_mthfloat : float -> term
-  val e_hexfloat : float -> term
+  val e_float : float -> term
   val e_setfield : term -> field -> term -> term
   val e_range : term -> term -> term (** e_range a b = b+1-a *)
   val is_zero : term -> bool
@@ -252,7 +249,7 @@ sig
   val e_literal : bool -> term -> term
   val e_int : int -> term
   val e_zint : Z.t -> term
-  val e_real : R.t -> term
+  val e_real : Q.t -> term
   val e_var : var -> term
   val e_opp : term -> term
   val e_times : Z.t -> term -> term

@@ -10,8 +10,8 @@
 [wp] [Alt-Ergo] Goal typed_lemma_P54 : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_Foo : Valid
 [wp] Proved goals:    5 / 6
-     Qed:             0 
-     Alt-Ergo:        5  (unknown: 1)
+    Qed:             0 
+    Alt-Ergo:        5  (unknown: 1)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               -       1 (5)      2      50.0%

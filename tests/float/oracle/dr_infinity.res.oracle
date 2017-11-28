@@ -19,7 +19,7 @@ tests/float/dr_infinity.i:21:[value] warning: non-finite double value. assert \i
 tests/float/dr_infinity.i:26:[value] warning: non-finite double value. assert \is_finite((double)((double)2 / d));
 tests/float/dr_infinity.i:31:[value] warning: non-finite double value. assert \is_finite((double)(d / 0.01));
 tests/float/dr_infinity.i:36:[value] warning: non-finite float value.
-                 assert \is_finite((float)((double)((double)x / 0.001)));
+    assert \is_finite((float)((double)((double)x / 0.001)));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -29,11 +29,11 @@ tests/float/dr_infinity.i:36:[value] warning: non-finite float value.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          x; d
+      x; d
 [inout] Inputs for function main:
-          v
+      v

@@ -23,12 +23,12 @@ tests/value/loop_array.i:12:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T{[0..4]; [6..9999]} FROM \nothing (and SELF)
   U[0..1000] FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          T{[0..4]; [6..9999]}; U[0..1000]; i; j
+      T{[0..4]; [6..9999]}; U[0..1000]; i; j
 [inout] Inputs for function main:
-          \nothing
+      \nothing

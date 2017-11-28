@@ -27,6 +27,20 @@
 module CamlString = String
 module Fc_config = Config
 
+(* NOTE: every new WARNING category that is set by default (and all of its
+         subcategories) must be explictly added here. Whenever a new category
+         is added, include a comment referencing this note:
+         "See note in kernel.ml".
+         Also note that all messages emitted with WARNING message keys should
+         have Result kind. *)
+let () = Plugin.default_msg_keys [
+    "WARNING";
+    "WARNING:link";
+    "WARNING:link:drop-conflicting-unused";
+    "WARNING:typing";
+    "WARNING:typing:implicit-conv-void-ptr";
+  ]
+
 let () = Plugin.register_kernel ()
 
 module P = Plugin.Register
@@ -1358,7 +1372,6 @@ module TypeCheck =
           let option_name = "-typecheck"
           let help = "forces typechecking of the source files"
         end)
-
 
 (*
 Local Variables:

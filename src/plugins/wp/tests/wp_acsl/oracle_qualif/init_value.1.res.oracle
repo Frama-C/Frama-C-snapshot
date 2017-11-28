@@ -11,7 +11,7 @@
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_With_Array_Struct_3 : Unknown
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Simple_Array_1 : Unknown
 [wp] Proved goals:    0 / 6
-     Alt-Ergo:        0  (unknown: 6)
+    Alt-Ergo:        0  (unknown: 6)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                -      -           6       0.0%

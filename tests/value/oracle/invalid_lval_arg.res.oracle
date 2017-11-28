@@ -26,11 +26,11 @@ tests/value/invalid_lval_arg.i:15:[kernel] warning: Neither code nor specificati
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p
+      p
 [inout] Inputs for function main:
-          p
+      p

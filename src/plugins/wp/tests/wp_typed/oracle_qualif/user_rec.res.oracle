@@ -25,8 +25,8 @@
 [wp] [Alt-Ergo] Goal typed_F4_loop_inv_RANGE_established : Valid
 [wp] [Qed] Goal typed_F4_loop_assign : Valid
 [wp] Proved goals:   18 / 20
-     Qed:             3 
-     Alt-Ergo:       15  (interrupted: 2)
+    Qed:             3 
+    Alt-Ergo:       15  (interrupted: 2)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               -      -           2       0.0%

@@ -4,8 +4,8 @@
 [value] Computing initial state
 [value:initial-state] creating variable S_data_0_S_repositories with imprecise size (type struct abstracttype [2])
 tests/value/abstract_struct_1.c:10:[value] warning: during initialization of variable 'repositories', size of
-                 type 'struct abstracttype' cannot be computed
-                 (abstract type 'struct abstracttype')
+    type 'struct abstracttype' cannot be computed
+    (abstract type 'struct abstracttype')
 [value:initial-state] creating variable S_data_1_S_repositories with imprecise size (type struct abstracttype [2])
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
@@ -34,7 +34,7 @@ tests/value/abstract_struct_1.c:13:[value] allocating variable __calloc_main_l13
 [from] Done for function calloc
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function calloc:
   __fc_heap_status FROM __fc_heap_status; nmemb; size (and SELF)
   \result FROM __fc_heap_status; nmemb; size
@@ -43,6 +43,6 @@ tests/value/abstract_struct_1.c:13:[value] allocating variable __calloc_main_l13
   repositories FROM __fc_heap_status
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          __fc_heap_status; repositories
+      __fc_heap_status; repositories
 [inout] Inputs for function main:
-          __fc_heap_status
+      __fc_heap_status

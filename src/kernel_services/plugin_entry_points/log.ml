@@ -272,7 +272,7 @@ type prefix =
   | Indent of int
 
 let next_line = function
-  | Label t -> Indent (String.length t)
+  | Label _ -> Indent 4
   | Prefix _ | Indent _ as p -> p
 
 let blank32 = String.make 32 ' '

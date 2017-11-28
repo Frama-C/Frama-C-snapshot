@@ -26,13 +26,13 @@ tests/value/copy_paste.i:9:[value] assertion 'Value,mem_access' got final status
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[3] FROM c (and SELF)
    [4] FROM c
   G FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          t[3..4]; G; l; i; tmp; j; tmp_0
+      t[3..4]; G; l; i; tmp; j; tmp_0
 [inout] Inputs for function main:
-          \nothing
+      \nothing

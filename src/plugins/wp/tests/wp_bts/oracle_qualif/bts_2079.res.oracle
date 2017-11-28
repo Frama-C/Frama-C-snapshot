@@ -7,7 +7,7 @@
 [wp] [Qed] Goal typed_main_post_Eval_P : Valid
 [wp] [Qed] Goal typed_main_post_Eval_Q : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             2
+    Qed:             2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                 2     -           2       100%

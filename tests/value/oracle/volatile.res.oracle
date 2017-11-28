@@ -52,9 +52,9 @@ tests/value/volatile.c:33:[value] warning: global initialization of volatile zon
   R1 ∈ {0}
   R2 ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/value/volatile.c:161.
+    Called from tests/value/volatile.c:161.
 [value] computing for function fn1 <- main1 <- main.
-        Called from tests/value/volatile.c:39.
+    Called from tests/value/volatile.c:39.
 tests/value/volatile.c:24:[value] Frama_C_show_each_1: [-2147483648..2147483647]
 tests/value/volatile.c:25:[value] Frama_C_show_each_2: [-2147483648..2147483647]
 tests/value/volatile.c:26:[value] warning: signed overflow. assert -2147483648 ≤ x_0 + y_0;
@@ -62,7 +62,7 @@ tests/value/volatile.c:26:[value] warning: signed overflow. assert x_0 + y_0 ≤
 [value] Recording results for fn1
 [value] Done for function fn1
 [value] computing for function fn2 <- main1 <- main.
-        Called from tests/value/volatile.c:40.
+    Called from tests/value/volatile.c:40.
 tests/value/volatile.c:40:[kernel] warning: Neither code nor specification for function fn2, generating default assigns from the prototype
 [value] using specification for function fn2
 [value] Done for function fn2
@@ -82,11 +82,11 @@ tests/value/volatile.c:59:[value] warning: signed overflow. assert m - l ≤ 214
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/volatile.c:162.
+    Called from tests/value/volatile.c:162.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/volatile.c:163.
+    Called from tests/value/volatile.c:163.
 tests/value/volatile.c:117:[value] warning: initialization of volatile variable v ignored
 tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert 0 ≤ v;
 tests/value/volatile.c:118:[value] warning: accessing out of bounds index. assert v < 1;

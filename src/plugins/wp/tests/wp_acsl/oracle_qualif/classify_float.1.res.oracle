@@ -16,8 +16,8 @@ FRAMAC_SHARE/libc/math.h:430:[kernel] warning: No code nor implicit assigns clau
 [wp] [alt-ergo] Goal typed_lemma_InfP_not_finite : Valid
 [wp] [alt-ergo] Goal typed_lemma_NaN_not_finite : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             0 
-     alt-ergo:        3
+    Qed:             0 
+    alt-ergo:        3
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Lemma               -      -           3       100%

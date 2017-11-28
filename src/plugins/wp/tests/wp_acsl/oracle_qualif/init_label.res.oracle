@@ -10,8 +10,8 @@ tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns cla
 [wp] [Alt-Ergo] Goal typed_job_post_OK : Valid
 [wp] [Qed] Goal typed_main_pre_OK : Valid
 [wp] Proved goals:    3 / 4
-     Qed:             2 
-     Alt-Ergo:        1  (unknown: 1)
+    Qed:             2 
+    Alt-Ergo:        1  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                 1     -           1       100%

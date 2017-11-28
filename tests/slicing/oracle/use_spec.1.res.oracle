@@ -12,11 +12,11 @@ tests/slicing/use_spec.i:18:[kernel] warning: Body of function f falls-through. 
   G1 ∈ {0}
   G2 ∈ {0}
 [value] computing for function h <- main2.
-        Called from tests/slicing/use_spec.i:38.
+    Called from tests/slicing/use_spec.i:38.
 [value] using specification for function h
 [value] Done for function h
 [value] computing for function h <- main2.
-        Called from tests/slicing/use_spec.i:40.
+    Called from tests/slicing/use_spec.i:40.
 [value] Done for function h
 tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert -2147483648 ≤ tmp + G2;
 tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert tmp + G2 ≤ 2147483647;
@@ -47,11 +47,11 @@ tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert tmp + G2 �
   G1 ∈ {0}
   G2 ∈ {0}
 [value] computing for function h_slice_2 <- main2.
-        Called from tests/slicing/use_spec.i:38.
+    Called from tests/slicing/use_spec.i:38.
 [value] using specification for function h_slice_2
 [value] Done for function h_slice_2
 [value] computing for function h_slice_1 <- main2.
-        Called from tests/slicing/use_spec.i:40.
+    Called from tests/slicing/use_spec.i:40.
 [value] using specification for function h_slice_1
 [value] Done for function h_slice_1
 tests/slicing/use_spec.i:41:[value] warning: signed overflow. assert -2147483648 ≤ tmp + G2;

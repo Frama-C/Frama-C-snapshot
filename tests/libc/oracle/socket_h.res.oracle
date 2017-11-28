@@ -16,33 +16,33 @@
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
 [value] computing for function socket <- main.
-        Called from tests/libc/socket_h.c:7.
+    Called from tests/libc/socket_h.c:7.
 [value] using specification for function socket
 [value] Done for function socket
 [value] computing for function exit <- main.
-        Called from tests/libc/socket_h.c:8.
+    Called from tests/libc/socket_h.c:8.
 [value] using specification for function exit
 [value] Done for function exit
 [value] computing for function inet_addr <- main.
-        Called from tests/libc/socket_h.c:11.
+    Called from tests/libc/socket_h.c:11.
 [value] using specification for function inet_addr
 share/libc/arpa/inet.h:42:[value] function inet_addr: precondition got status valid.
 [value] Done for function inet_addr
 [value] computing for function htons <- main.
-        Called from tests/libc/socket_h.c:12.
+    Called from tests/libc/socket_h.c:12.
 [value] using specification for function htons
 [value] Done for function htons
 [value] computing for function connect <- main.
-        Called from tests/libc/socket_h.c:13.
+    Called from tests/libc/socket_h.c:13.
 [value] using specification for function connect
 share/libc/sys/socket.h:299:[value] function connect: precondition got status valid.
 share/libc/sys/socket.h:300:[value] function connect: precondition got status valid.
 [value] Done for function connect
 [value] computing for function exit <- main.
-        Called from tests/libc/socket_h.c:14.
+    Called from tests/libc/socket_h.c:14.
 [value] Done for function exit
 [value] computing for function getsockopt <- main.
-        Called from tests/libc/socket_h.c:18.
+    Called from tests/libc/socket_h.c:18.
 [value] using specification for function getsockopt
 share/libc/sys/socket.h:320:[value] function getsockopt: precondition got status valid.
 share/libc/sys/socket.h:321:[value] function getsockopt: precondition got status valid.

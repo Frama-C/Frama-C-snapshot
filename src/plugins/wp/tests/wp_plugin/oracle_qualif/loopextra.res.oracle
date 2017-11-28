@@ -10,7 +10,7 @@ tests/wp_plugin/loopextra.i:3:[wp] warning: Missing assigns clause (assigns 'eve
 [wp] [Qed] Goal typed_f_assert_2 : Valid
 [wp] [Qed] Goal typed_f_assert_3 : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             3
+    Qed:             3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    3     -           3       100%

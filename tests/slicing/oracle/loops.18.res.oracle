@@ -13,7 +13,7 @@ tests/slicing/loops.i:82:[value] entering loop for the first time
 tests/slicing/loops.i:82:[value] warning: signed overflow. assert c + 10 ≤ 2147483647;
 tests/slicing/loops.i:88:[value] warning: assertion got status unknown.
 [value] computing for function stop <- stop_f2.
-        Called from tests/slicing/loops.i:89.
+    Called from tests/slicing/loops.i:89.
 tests/slicing/loops.i:89:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
@@ -24,7 +24,7 @@ tests/slicing/loops.i:89:[kernel] warning: Neither code nor specification for fu
 [from] Done for function stop
 [from] Done for function stop_f2
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function stop:
   NO EFFECTS
 [from] Function stop_f2:

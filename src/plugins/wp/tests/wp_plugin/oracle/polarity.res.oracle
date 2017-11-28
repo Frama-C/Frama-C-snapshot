@@ -4,7 +4,7 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 tests/wp_plugin/polarity.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
-              (\initialized(\at(p,wp:pre)))
+    (\initialized(\at(p,wp:pre)))
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------

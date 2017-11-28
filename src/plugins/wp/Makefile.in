@@ -97,7 +97,6 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/rformat.ml \
    $(PLUGIN_DIR)/driver.ml \
    $(PLUGIN_DIR)/why3_xml.ml \
-   $(PLUGIN_DIR)/qed/src/numbers.ml \
    $(PLUGIN_DIR)/Wp.mli
 PLUGIN_DEPENDENCIES:= rtegen
 PLUGIN_UNDOC+=
@@ -128,7 +127,7 @@ QED_SRC := $(PLUGIN_DIR)/qed/src
 
 include $(QED_SRC)/Makefile.src
 
-QED_FILES = Makefile.src Makefile MakeOcaml ocamldoc.css numbers.mll \
+QED_FILES = Makefile.src Makefile MakeOcaml ocamldoc.css \
   $(addsuffix .mli,$(QED_LIB_ML) $(QED_SRC_ML) $(QED_SRC_MLI)) \
   $(addsuffix .ml, \
 	$(filter-out $(QED_GENERATED), \

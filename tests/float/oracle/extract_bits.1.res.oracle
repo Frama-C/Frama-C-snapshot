@@ -12,7 +12,7 @@ tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370
   fr[0..0x3] ∈ {0}
   dr[0..0x7] ∈ {0}
 [value] user error: type long double wider than 64 bits not supported.
-                    Using double instead for the remainder of the analysis.
+    Using double instead for the remainder of the analysis.
 tests/float/extract_bits.i:25:[value] Frama_C_show_each: [0..0xFF]
 [value] Recording results for main
 [value] done for function main

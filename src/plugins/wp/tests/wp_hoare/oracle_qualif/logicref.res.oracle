@@ -10,8 +10,8 @@
 [wp] [Qed] Goal typed_ref_gcd_post : Valid
 [wp] [Qed] Goal typed_ref_gcd_assign : Valid
 [wp] Proved goals:    5 / 5
-     Qed:             4 
-     Alt-Ergo:        1
+    Qed:             4 
+    Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 fvrange_n            2      1 (83)     3       100%

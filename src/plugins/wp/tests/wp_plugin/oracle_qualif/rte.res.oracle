@@ -7,7 +7,7 @@
 [wp] [Alt-Ergo] Goal typed_job_post : Unknown
 [wp] [Alt-Ergo] Goal typed_job2_post : Unknown
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (unknown: 2)
+    Alt-Ergo:        0  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                 -      -           1       0.0%

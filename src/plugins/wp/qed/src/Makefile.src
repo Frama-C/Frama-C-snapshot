@@ -23,14 +23,12 @@
 # Shared with WP's Makefile in order to facilitate recompilation of Qed
 # from Frama-C
 
-QED_LIB_ML = r bvars numbers hcons cache intmap intset idxset idxmap \
+QED_LIB_ML = bvars hcons cache intmap intset idxset idxmap \
 	 listset listmap mergeset mergemap collection \
 	 partition relation plib topology
 
 QED_SRC_ML = kind pool term pretty subst \
-	 export export_coq export_whycore export_why3 export_altergo \
-	 pattern
+	 export export_coq export_whycore export_why3 export_altergo
 
-QED_SRC_MLI = arith logic engine
+QED_SRC_MLI = logic engine
 
-QED_GENERATED=lexer

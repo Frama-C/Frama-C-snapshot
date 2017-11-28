@@ -9,8 +9,8 @@
 [wp] [Qed] Goal typed_ref_frame_assert_ok_formal : Valid
 [wp] [Qed] Goal typed_ref_frame_assert_ok_global : Valid
 [wp] Proved goals:    4 / 4
-     Qed:             3 
-     Alt-Ergo:        1
+    Qed:             3 
+    Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -       1 (14)     1       100%

@@ -7,34 +7,34 @@
   T[0..4] ∈ {0}
   n ∈ {1}
 [value] computing for function loop <- main.
-        Called from tests/value/reevaluate_alarms.i:34.
+    Called from tests/value/reevaluate_alarms.i:34.
 tests/value/reevaluate_alarms.i:13:[value] entering loop for the first time
 tests/value/reevaluate_alarms.i:14:[value] warning: signed overflow. assert S + i ≤ 2147483647;
 tests/value/reevaluate_alarms.i:14:[value] warning: out of bounds write. assert \valid(tmp);
-                                      (tmp from p++)
+                         (tmp from p++)
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function compute_n <- main.
-        Called from tests/value/reevaluate_alarms.i:36.
+    Called from tests/value/reevaluate_alarms.i:36.
 tests/value/reevaluate_alarms.i:19:[value] entering loop for the first time
 tests/value/reevaluate_alarms.i:20:[value] warning: signed overflow. assert n * i ≤ 2147483647;
 [value] Recording results for compute_n
 [value] Done for function compute_n
 [value] computing for function init_p <- main.
-        Called from tests/value/reevaluate_alarms.i:40.
+    Called from tests/value/reevaluate_alarms.i:40.
 [value] Recording results for init_p
 [value] Done for function init_p
 [value] computing for function initialized_p <- main.
-        Called from tests/value/reevaluate_alarms.i:41.
+    Called from tests/value/reevaluate_alarms.i:41.
 tests/value/reevaluate_alarms.i:30:[value] warning: accessing uninitialized left-value. assert \initialized(p);
 [value] Recording results for initialized_p
 [value] Done for function initialized_p
 [value] computing for function init_p <- main.
-        Called from tests/value/reevaluate_alarms.i:43.
+    Called from tests/value/reevaluate_alarms.i:43.
 [value] Recording results for init_p
 [value] Done for function init_p
 [value] computing for function initialized_p <- main.
-        Called from tests/value/reevaluate_alarms.i:44.
+    Called from tests/value/reevaluate_alarms.i:44.
 [value] Recording results for initialized_p
 [value] Done for function initialized_p
 [value] Recording results for main
@@ -71,7 +71,7 @@ tests/value/reevaluate_alarms.i:30:[value] warning: accessing uninitialized left
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function compute_n:
   n FROM n (and SELF)
 [from] Function init_p:
@@ -90,25 +90,25 @@ tests/value/reevaluate_alarms.i:30:[value] warning: accessing uninitialized left
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function compute_n:
-          n; i
+      n; i
 [inout] Inputs for function compute_n:
-          n
+      n
 [inout] Out (internal) for function init_p:
-          x; y
+      x; y
 [inout] Inputs for function init_p:
-          n
+      n
 [inout] Out (internal) for function initialized_p:
-          x
+      x
 [inout] Inputs for function initialized_p:
-          x; y
+      x; y
 [inout] Out (internal) for function loop:
-          S; T[0..4]; i; p; tmp
+      S; T[0..4]; i; p; tmp
 [inout] Inputs for function loop:
-          S
+      S
 [inout] Out (internal) for function main:
-          S; T[0..4]; n; x; y; __retres
+      S; T[0..4]; n; x; y; __retres
 [inout] Inputs for function main:
-          S; n
+      S; n
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -148,27 +148,27 @@ tests/value/reevaluate_alarms.i:30:[value] warning: accessing uninitialized left
   T[0..4] ∈ {0}
   n ∈ {1}
 [value] computing for function loop <- main.
-        Called from tests/value/reevaluate_alarms.i:34.
+    Called from tests/value/reevaluate_alarms.i:34.
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function compute_n <- main.
-        Called from tests/value/reevaluate_alarms.i:36.
+    Called from tests/value/reevaluate_alarms.i:36.
 [value] Recording results for compute_n
 [value] Done for function compute_n
 [value] computing for function init_p <- main.
-        Called from tests/value/reevaluate_alarms.i:40.
+    Called from tests/value/reevaluate_alarms.i:40.
 [value] Recording results for init_p
 [value] Done for function init_p
 [value] computing for function initialized_p <- main.
-        Called from tests/value/reevaluate_alarms.i:41.
+    Called from tests/value/reevaluate_alarms.i:41.
 [value] Recording results for initialized_p
 [value] Done for function initialized_p
 [value] computing for function init_p <- main.
-        Called from tests/value/reevaluate_alarms.i:43.
+    Called from tests/value/reevaluate_alarms.i:43.
 [value] Recording results for init_p
 [value] Done for function init_p
 [value] computing for function initialized_p <- main.
-        Called from tests/value/reevaluate_alarms.i:44.
+    Called from tests/value/reevaluate_alarms.i:44.
 [value] Recording results for initialized_p
 [value] Done for function initialized_p
 [value] Recording results for main
@@ -217,7 +217,7 @@ tests/value/reevaluate_alarms.i:30:[value] assertion 'Value,initialisation' got 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function compute_n:
   n FROM n (and SELF)
 [from] Function init_p:
@@ -236,25 +236,25 @@ tests/value/reevaluate_alarms.i:30:[value] assertion 'Value,initialisation' got 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function compute_n:
-          n; i
+      n; i
 [inout] Inputs for function compute_n:
-          n
+      n
 [inout] Out (internal) for function init_p:
-          x; y
+      x; y
 [inout] Inputs for function init_p:
-          n
+      n
 [inout] Out (internal) for function initialized_p:
-          x
+      x
 [inout] Inputs for function initialized_p:
-          x; y
+      x; y
 [inout] Out (internal) for function loop:
-          S; T[0..4]; i; p; tmp
+      S; T[0..4]; i; p; tmp
 [inout] Inputs for function loop:
-          S
+      S
 [inout] Out (internal) for function main:
-          S; T[0..4]; n; x; y; __retres
+      S; T[0..4]; n; x; y; __retres
 [inout] Inputs for function main:
-          S; n
+      S; n
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------

@@ -27,7 +27,7 @@ tests/idct/ieee_1180_1990.c:179:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:184:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:185:[value] entering loop for the first time
 [value] computing for function idct <- main.
-        Called from tests/idct/ieee_1180_1990.c:187.
+    Called from tests/idct/ieee_1180_1990.c:187.
 tests/idct/idct.c:87:[value] entering loop for the first time
 tests/idct/idct.c:88:[value] entering loop for the first time
 tests/idct/idct.c:125:[value] entering loop for the first time
@@ -60,47 +60,47 @@ tests/idct/ieee_1180_1990.c:189:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:190:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:191:[value] warning: accessing uninitialized left-value. assert \initialized(&m2[i][j]);
 [value] computing for function printf_va_1 <- main.
-        Called from tests/idct/ieee_1180_1990.c:195.
+    Called from tests/idct/ieee_1180_1990.c:195.
 [value] using specification for function printf_va_1
 tests/idct/ieee_1180_1990.c:195:[value] function printf_va_1: precondition got status valid.
 [value] Done for function printf_va_1
 [value] computing for function printf_va_2 <- main.
-        Called from tests/idct/ieee_1180_1990.c:196.
+    Called from tests/idct/ieee_1180_1990.c:196.
 [value] using specification for function printf_va_2
 tests/idct/ieee_1180_1990.c:196:[value] function printf_va_2: precondition got status valid.
 [value] Done for function printf_va_2
 tests/idct/ieee_1180_1990.c:202:[value] entering loop for the first time
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:211.
+    Called from tests/idct/ieee_1180_1990.c:211.
 tests/idct/ieee_1180_1990.c:83:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:84:[value] entering loop for the first time
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 tests/idct/ieee_1180_1990.c:69:[value] warning: 2's complement assumed for overflow
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -110,7 +110,7 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 [value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:212.
+    Called from tests/idct/ieee_1180_1990.c:212.
 tests/idct/ieee_1180_1990.c:98:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:99:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:104:[value] entering loop for the first time
@@ -127,18 +127,18 @@ tests/idct/ieee_1180_1990.c:119:[value] warning: accessing uninitialized left-va
 tests/idct/ieee_1180_1990.c:121:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:122:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:122:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < tmp2[i][j] + 0.5;
+    assert -2147483649 < tmp2[i][j] + 0.5;
 tests/idct/ieee_1180_1990.c:122:[value] warning: overflow in conversion from floating-point to integer.
-                 assert tmp2[i][j] + 0.5 < 2147483648;
+    assert tmp2[i][j] + 0.5 < 2147483648;
 tests/idct/ieee_1180_1990.c:124:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:124:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < tmp2[i][j] - 0.5;
+    assert -2147483649 < tmp2[i][j] - 0.5;
 tests/idct/ieee_1180_1990.c:124:[value] warning: overflow in conversion from floating-point to integer.
-                 assert tmp2[i][j] - 0.5 < 2147483648;
+    assert tmp2[i][j] - 0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 [value] computing for function IEEE_1180_1990_idctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:213.
+    Called from tests/idct/ieee_1180_1990.c:213.
 tests/idct/ieee_1180_1990.c:138:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:139:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:145:[value] entering loop for the first time
@@ -156,18 +156,18 @@ tests/idct/ieee_1180_1990.c:160:[value] warning: accessing uninitialized left-va
 tests/idct/ieee_1180_1990.c:162:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:163:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:163:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < tmp2[i][j] + 0.5;
+    assert -2147483649 < tmp2[i][j] + 0.5;
 tests/idct/ieee_1180_1990.c:163:[value] warning: overflow in conversion from floating-point to integer.
-                 assert tmp2[i][j] + 0.5 < 2147483648;
+    assert tmp2[i][j] + 0.5 < 2147483648;
 tests/idct/ieee_1180_1990.c:165:[value] warning: accessing uninitialized left-value. assert \initialized(&tmp2[i][j]);
 tests/idct/ieee_1180_1990.c:165:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < tmp2[i][j] - 0.5;
+    assert -2147483649 < tmp2[i][j] - 0.5;
 tests/idct/ieee_1180_1990.c:165:[value] warning: overflow in conversion from floating-point to integer.
-                 assert tmp2[i][j] - 0.5 < 2147483648;
+    assert tmp2[i][j] - 0.5 < 2147483648;
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 [value] computing for function idct <- main.
-        Called from tests/idct/ieee_1180_1990.c:214.
+    Called from tests/idct/ieee_1180_1990.c:214.
 tests/idct/idct.c:129:[value] warning: 2's complement assumed for overflow
 tests/idct/idct.c:129:[value] warning: accessing uninitialized left-value. assert \initialized(&(*(m1 + k))[j]);
 [value] Recording results for idct
@@ -186,15 +186,15 @@ tests/idct/ieee_1180_1990.c:231:[value] warning: 2's complement assumed for over
 tests/idct/ieee_1180_1990.c:233:[value] entering loop for the first time
 tests/idct/ieee_1180_1990.c:234:[value] entering loop for the first time
 [value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:236.
+    Called from tests/idct/ieee_1180_1990.c:236.
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 [value] computing for function IEEE_1180_1990_idctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:237.
+    Called from tests/idct/ieee_1180_1990.c:237.
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 [value] computing for function idct <- main.
-        Called from tests/idct/ieee_1180_1990.c:238.
+    Called from tests/idct/ieee_1180_1990.c:238.
 [value] Recording results for idct
 [value] Done for function idct
 tests/idct/ieee_1180_1990.c:239:[value] entering loop for the first time
@@ -209,9 +209,9 @@ tests/idct/ieee_1180_1990.c:255:[value] warning: accessing uninitialized left-va
 tests/idct/ieee_1180_1990.c:243:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:255:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:257.
+    Called from tests/idct/ieee_1180_1990.c:257.
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -253,9 +253,9 @@ tests/idct/ieee_1180_1990.c:301:[value] warning: accessing uninitialized left-va
 tests/idct/ieee_1180_1990.c:289:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:301:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:303.
+    Called from tests/idct/ieee_1180_1990.c:303.
 [value] computing for function IEEE_1180_1990_rand <- IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:85.
+    Called from tests/idct/ieee_1180_1990.c:85.
 [value] Recording results for IEEE_1180_1990_rand
 [value] Done for function IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -297,7 +297,7 @@ tests/idct/ieee_1180_1990.c:347:[value] warning: accessing uninitialized left-va
 tests/idct/ieee_1180_1990.c:335:[value] warning: 2's complement assumed for overflow
 tests/idct/ieee_1180_1990.c:347:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:211.
+    Called from tests/idct/ieee_1180_1990.c:211.
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -308,23 +308,23 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 [value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:212.
+    Called from tests/idct/ieee_1180_1990.c:212.
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 [value] computing for function IEEE_1180_1990_idctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:213.
+    Called from tests/idct/ieee_1180_1990.c:213.
 [value] Recording results for IEEE_1180_1990_idctf
 [value] Done for function IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:214:[value] Reusing old results for call to idct
 tests/idct/ieee_1180_1990.c:235:[value] warning: 2's complement assumed for overflow
 [value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:236.
+    Called from tests/idct/ieee_1180_1990.c:236.
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 tests/idct/ieee_1180_1990.c:237:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:238:[value] Reusing old results for call to idct
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:257.
+    Called from tests/idct/ieee_1180_1990.c:257.
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -342,7 +342,7 @@ tests/idct/ieee_1180_1990.c:282:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:283:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:284:[value] Reusing old results for call to idct
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:303.
+    Called from tests/idct/ieee_1180_1990.c:303.
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -360,7 +360,7 @@ tests/idct/ieee_1180_1990.c:328:[value] Reusing old results for call to IEEE_118
 tests/idct/ieee_1180_1990.c:329:[value] Reusing old results for call to IEEE_1180_1990_idctf
 tests/idct/ieee_1180_1990.c:330:[value] Reusing old results for call to idct
 [value] computing for function IEEE_1180_1990_mkbk <- main.
-        Called from tests/idct/ieee_1180_1990.c:211.
+    Called from tests/idct/ieee_1180_1990.c:211.
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
 tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180_1990_rand
@@ -371,7 +371,7 @@ tests/idct/ieee_1180_1990.c:85:[value] Reusing old results for call to IEEE_1180
 [value] Recording results for IEEE_1180_1990_mkbk
 [value] Done for function IEEE_1180_1990_mkbk
 [value] computing for function IEEE_1180_1990_dctf <- main.
-        Called from tests/idct/ieee_1180_1990.c:212.
+    Called from tests/idct/ieee_1180_1990.c:212.
 [value] Recording results for IEEE_1180_1990_dctf
 [value] Done for function IEEE_1180_1990_dctf
 tests/idct/ieee_1180_1990.c:213:[value] Reusing old results for call to IEEE_1180_1990_idctf
@@ -592,7 +592,7 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
 [from] Done for function printf_va_2
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function IEEE_1180_1990_rand:
   randx FROM randx
   \result FROM L; H; randx; z
@@ -651,40 +651,40 @@ tests/idct/ieee_1180_1990.c:389:[value] warning: 2's complement assumed for over
                mc2[0..7][0..7]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function IEEE_1180_1990_rand:
-          i; j; x; randx; __retres
+      i; j; x; randx; __retres
 [inout] Inputs for function IEEE_1180_1990_rand:
-          randx; z
+      randx; z
 [inout] Out (internal) for function IEEE_1180_1990_mkbk:
-          i; j; M1[0..7][0..7]; randx
+      i; j; M1[0..7][0..7]; randx
 [inout] Inputs for function IEEE_1180_1990_mkbk:
-          randx; z
+      randx; z
 [inout] Out (internal) for function IEEE_1180_1990_dctf:
-          i; j; k; tmp1[0..7][0..7]; tmp2[0..7][0..7]; tmp; tmp_0; tmp_1;
-          m2[0..7][0..7]; mcos[0..7][0..7]; init
+      i; j; k; tmp1[0..7][0..7]; tmp2[0..7][0..7]; tmp; tmp_0; tmp_1;
+      m2[0..7][0..7]; mcos[0..7][0..7]; init
 [inout] Inputs for function IEEE_1180_1990_dctf:
-          M1[0..7][0..7]; mcos[0..7][0..7]; init
+      M1[0..7][0..7]; mcos[0..7][0..7]; init
 [inout] Out (internal) for function IEEE_1180_1990_idctf:
-          i; j; k; tmp1[0..7][0..7]; tmp2[0..7][0..7]; tmp; tmp_0; tmp_1;
-          m3[0..7][0..7]; mcos_0[0..7][0..7]; init_0
+      i; j; k; tmp1[0..7][0..7]; tmp2[0..7][0..7]; tmp; tmp_0; tmp_1;
+      m3[0..7][0..7]; mcos_0[0..7][0..7]; init_0
 [inout] Inputs for function IEEE_1180_1990_idctf:
-          m2[0..7][0..7]; mcos_0[0..7][0..7]; init_0
+      m2[0..7][0..7]; mcos_0[0..7][0..7]; init_0
 [inout] Out (internal) for function idct:
-          m2[0..7][0..7]; m4[0..7][0..7]; i; j; k; tmp1[0..7][0..7];
-          tmp2[0..7][0..7]; ftmp1; ftmp2; tmp; tmp_0; tmp_1; init_1; mc1[0..7][0..7];
-          mc2[0..7][0..7]
+      m2[0..7][0..7]; m4[0..7][0..7]; i; j; k; tmp1[0..7][0..7];
+      tmp2[0..7][0..7]; ftmp1; ftmp2; tmp; tmp_0; tmp_1; init_1; mc1[0..7][0..7];
+      mc2[0..7][0..7]
 [inout] Inputs for function idct:
-          m2[0..7][0..7]; M1[0..7][0..7]; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]
+      m2[0..7][0..7]; M1[0..7][0..7]; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]
 [inout] Out (internal) for function main:
-          res[0..5]; i; j; k; m2[0..7][0..7]; m3[0..7][0..7]; m4[0..7][0..7]; 
-          succ; omse; ome; err; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; 
-          tmp_6; M1[0..7][0..7]; randx; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
-          init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; __retres;
-          S___fc_stdout[0].__fc_FILE_data
+      res[0..5]; i; j; k; m2[0..7][0..7]; m3[0..7][0..7]; m4[0..7][0..7]; 
+      succ; omse; ome; err; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; 
+      tmp_6; M1[0..7][0..7]; randx; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
+      init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; __retres;
+      S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-          M1[0..7][0..7]; randx; z; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
-          init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; S___fc_stdout[0];
-          "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503];
-           "output.\n"[bits 0 to 71]
+      M1[0..7][0..7]; randx; z; mcos[0..7][0..7]; init; mcos_0[0..7][0..7];
+      init_0; init_1; mc1[0..7][0..7]; mc2[0..7][0..7]; S___fc_stdout[0];
+      "For all-zero input, the proposed IDCT shall generate all-zero "[bits 0 to 503];
+       "output.\n"[bits 0 to 71]
 [report] Computing properties status...
 --------------------------------------------------------------------------------
 --- Global Properties

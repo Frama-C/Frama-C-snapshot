@@ -7,7 +7,7 @@
 [wp] [Qed] Goal typed_g_post_P_startof_qed_ok : Valid
 [wp] [Qed] Goal typed_g_post_P_addr_shift_qed_ok : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             2
+    Qed:             2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 g                    2     -           2       100%

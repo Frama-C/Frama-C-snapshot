@@ -7,7 +7,7 @@
   
 tests/slicing/top.i:27:[value] warning: out of bounds read. assert \valid_read(p_str + i);
 [value] computing for function strlen <- main.
-        Called from tests/slicing/top.i:27.
+    Called from tests/slicing/top.i:27.
 tests/slicing/top.i:21:[value] entering loop for the first time
 tests/slicing/top.i:21:[value] warning: out of bounds read. assert \valid_read(q);
 tests/slicing/top.i:21:[value] warning: signed overflow. assert k + 1 ≤ 2147483647;

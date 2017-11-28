@@ -8,8 +8,8 @@
 [wp] [Alt-Ergo] Goal typed_ref_main_post_I1 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_main_post_I2 : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             1 
-     Alt-Ergo:        2
+    Qed:             1 
+    Alt-Ergo:        2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 main                 1      2 (14)     3       100%

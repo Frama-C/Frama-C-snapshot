@@ -16,18 +16,18 @@ tests/libc/alloca_h.c:31:[value] assertion got status valid.
 tests/libc/alloca_h.c:35:[value] allocating variable __alloca_main_l35
 tests/libc/alloca_h.c:40:[value] assertion got status valid.
 [value] computing for function f <- main.
-        Called from tests/libc/alloca_h.c:41.
+    Called from tests/libc/alloca_h.c:41.
 tests/libc/alloca_h.c:6:[value] allocating variable __alloca_f_l6
 tests/libc/alloca_h.c:7:[value] allocating variable __malloc_f_l7
 tests/libc/alloca_h.c:9:[value] warning: Wrong free: assert(pass a freeable address)
 tests/libc/alloca_h.c:10:[value] warning: accessing left-value that contains escaping addresses.
-                 assert ¬\dangling(&p);
+    assert ¬\dangling(&p);
 [value] Recording results for f
 [value] Done for function f
 tests/libc/alloca_h.c:41:[value] freeing automatic bases: {__alloca_f_l6}
 tests/libc/alloca_h.c:42:[value] assertion got status valid.
 [value] computing for function loop <- main.
-        Called from tests/libc/alloca_h.c:43.
+    Called from tests/libc/alloca_h.c:43.
 tests/libc/alloca_h.c:22:[value] entering loop for the first time
 tests/libc/alloca_h.c:23:[value] allocating variable __alloca_loop_l23
 [value] Recording results for loop
@@ -36,7 +36,7 @@ tests/libc/alloca_h.c:43:[value] freeing automatic bases: {__alloca_w_loop_l23}
 tests/libc/alloca_h.c:44:[value] warning: assertion got status unknown.
 tests/libc/alloca_h.c:45:[value] allocating variable __alloca_main_l45
 [value] computing for function f2 <- main.
-        Called from tests/libc/alloca_h.c:46.
+    Called from tests/libc/alloca_h.c:46.
 tests/libc/alloca_h.c:16:[value] allocating variable __alloca_f2_l16
 [value] Recording results for f2
 [value] Done for function f2

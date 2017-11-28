@@ -4,11 +4,11 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_with_consistent_antecedent_ok : Failed
-     Command './tests/inexistant-prover' not found
+    Command './tests/inexistant-prover' not found
 [wp] [Alt-Ergo] Goal typed_lemma_with_inconsistent_antecedent_ok : Failed
-     Command './tests/inexistant-prover' not found
+    Command './tests/inexistant-prover' not found
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (failed: 2)
+    Alt-Ergo:        0  (failed: 2)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic With_consistent_antecedent  -    -     1  0.0%

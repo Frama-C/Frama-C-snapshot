@@ -5,24 +5,24 @@
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
 [value] computing for function f <- main.
-        Called from tests/value/precond2.c:21.
+    Called from tests/value/precond2.c:21.
 tests/value/precond2.c:9:[value] function f: precondition got status valid.
 tests/value/precond2.c:10:[value] function f: precondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/value/precond2.c:22.
+    Called from tests/value/precond2.c:22.
 tests/value/precond2.c:10:[value] warning: function f: precondition got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/value/precond2.c:24.
+    Called from tests/value/precond2.c:24.
 tests/value/precond2.c:24:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
 [value] using specification for function g
 tests/value/precond2.c:16:[value] function g: precondition got status valid.
 [value] Done for function g
 [value] computing for function g <- main.
-        Called from tests/value/precond2.c:24.
+    Called from tests/value/precond2.c:24.
 [value] Done for function g
 [value] Recording results for main
 [value] done for function main

@@ -48,8 +48,8 @@ tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything
 [wp] [Qed] Goal typed_stmt_contract_label_post_qed_ok : Valid
 [wp] [Qed] Goal typed_stmt_contract_label_stmt_post_qed_ok : Valid
 [wp] Proved goals:   32 / 38
-     Qed:            30 
-     Alt-Ergo:        2  (unknown: 6)
+    Qed:            30 
+    Alt-Ergo:        2  (unknown: 6)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    5     -           5       100%

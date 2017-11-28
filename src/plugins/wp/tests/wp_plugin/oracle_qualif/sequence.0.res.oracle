@@ -44,8 +44,8 @@
 [wp] [Qed] Goal typed_caveat_sequence_g_not_called_post_ok_q2 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q3 : Valid
 [wp] Proved goals:   39 / 39
-     Qed:            25 
-     Alt-Ergo:       14
+    Qed:            25 
+    Alt-Ergo:       14
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 no_calls             5      5 (9)     10       100%

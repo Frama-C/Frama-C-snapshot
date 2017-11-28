@@ -7,4 +7,4 @@
 [value] done for function main
 [cg] warning: using callgraph while option -cg-function-pointers is unset, result may be unsound
 [inout] Out (internal) for function main:
-          \nothing
+      \nothing

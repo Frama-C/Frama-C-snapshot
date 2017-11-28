@@ -377,8 +377,8 @@ let f_truncate = extern_f ~library:"qed" ~result:Logic.Int "truncate"
 let truncate e =
   match F.repr e with
   | Kint _ -> e
-  | Kreal r ->
-      (try F.e_int (int_of_float (float_of_string (Qed.R.to_string r)))
+  | Kreal r -> 
+      (try F.e_int (int_of_float (Transitioning.Q.to_float r))
        with _ -> raise Not_found)
   | _ -> raise Not_found
 

@@ -15,11 +15,11 @@ tests/value/abs.i:9:[value] warning: signed overflow. assert -*p ≤ 2147483647;
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_p[0] FROM p; S_p[0] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          S_p[0]
+      S_p[0]
 [inout] Inputs for function main:
-          S_p[0]
+      S_p[0]

@@ -83,9 +83,9 @@ if test "$ENABLE_WP" != "no"; then
   if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
     AC_CHECK_PROG(WHY3COQC,why3,yes,no)
     if test "$WHY3COQC" = "yes" ; then
-      WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
+      WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([[^ ]]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.86*|0.87*)
+        0.86*|0.87*|0.88*)
           AC_MSG_RESULT(why3 version $WHY3VERSION found)
 	  WHY3LIB=`why3 --print-libdir`
 	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then

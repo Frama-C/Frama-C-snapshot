@@ -30,7 +30,7 @@ tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: inval
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   a FROM \nothing
   b FROM \nothing
@@ -40,6 +40,6 @@ tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: inval
   S_p[0] FROM p; S_p[0] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          a; b; q; r; s; S_p[0]
+      a; b; q; r; s; S_p[0]
 [inout] Inputs for function main:
-          a; q; s; S_p[0]
+      a; q; s; S_p[0]

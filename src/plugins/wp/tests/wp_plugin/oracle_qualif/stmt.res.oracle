@@ -24,7 +24,7 @@
 [wp] [Qed] Goal typed_h_assert : Valid
 [wp] [Qed] Goal typed_h_assert_2 : Valid
 [wp] Proved goals:   10 / 10
-     Qed:            10
+    Qed:            10
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    5     -           5       100%

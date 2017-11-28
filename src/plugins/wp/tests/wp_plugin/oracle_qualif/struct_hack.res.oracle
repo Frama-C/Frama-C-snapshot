@@ -18,8 +18,8 @@ tests/wp_plugin/struct_hack.i:53:[wp] warning: Missing assigns clause (assigns '
 [wp] [Qed] Goal typed_f1_loop_term_decrease : Valid
 [wp] [Qed] Goal typed_f1_loop_term_positive : Valid
 [wp] Proved goals:   10 / 10
-     Qed:             6 
-     Alt-Ergo:        4
+    Qed:             6 
+    Alt-Ergo:        4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f0                   3      2 (24)     5       100%

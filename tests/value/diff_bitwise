@@ -1,10 +1,10 @@
 diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.res.oracle
 78d77
-<         The imprecision originates from Arithmetic {tests/value/addition.i:52}
+<     The imprecision originates from Arithmetic {tests/value/addition.i:52}
 105a105
->                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
+>     {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
 107a108
->                  {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
+>     {{ garbled mix of &{p2} (origin: Misaligned {tests/value/addition.i:56}) }}
 143,146c144,145
 <   p10 ∈
 <      {{ garbled mix of &{p1}
@@ -14,7 +14,7 @@ diff tests/value/oracle/addition.res.oracle tests/value/oracle_bitwise/addition.
 >   p10 ∈ {{ garbled mix of &{p1} }}
 >   p11 ∈ [-2147483648..0],0%4
 324a324
->                  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
+>     {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:52}) }}
 363,366c363,364
 <   p10 ∈
 <      {{ garbled mix of &{p1}
@@ -36,9 +36,9 @@ diff tests/value/oracle/bitwise_or.res.oracle tests/value/oracle_bitwise/bitwise
 >   v2 ∈ [0..0x3FFFE],0%2
 diff tests/value/oracle/bitwise_pointer.res.oracle tests/value/oracle_bitwise/bitwise_pointer.res.oracle
 33d32
-<         The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
+<     The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
 36d34
-<         The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
+<     The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
 diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.oracle
 69c69
 <   G ∈ [0..12]
@@ -50,4 +50,4 @@ diff tests/value/oracle/cast.res.oracle tests/value/oracle_bitwise/cast.res.orac
 >   G ∈ [2..12]
 diff tests/value/oracle/logic_ptr_cast.res.oracle tests/value/oracle_bitwise/logic_ptr_cast.res.oracle
 9d8
-<         The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}
+<     The imprecision originates from Arithmetic {tests/value/logic_ptr_cast.i:8}

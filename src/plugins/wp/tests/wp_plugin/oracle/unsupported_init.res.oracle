@@ -4,7 +4,7 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] warning: Missing RTE guards
 tests/wp_plugin/unsupported_init.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
-              (r1: \initialized(Y + (0 .. 99)))
+    (r1: \initialized(Y + (0 .. 99)))
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------

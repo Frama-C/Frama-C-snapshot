@@ -7,8 +7,8 @@
 [wp] [Alt-Ergo] Goal typed_caveat_f_post_ok : Valid
 [wp] [Qed] Goal typed_caveat_g_post_ok : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             1 
-     Alt-Ergo:        1
+    Qed:             1 
+    Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -       1 (18)     1       100%

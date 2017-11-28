@@ -588,20 +588,7 @@ let name_of_field = function
 module F =
 struct
 
-  module ZInteger =
-  struct
-    include Integer
-    let leq = Integer.le
-    let div = Integer.c_div (* acsl division *)
-    let rem = Integer.c_rem (* acsl remainder *)
-    let div_rem a b = (* acsl division, remainder *)
-      let sa, a = if leq zero a then true, a else false, neg a in
-      let sb, b = if leq zero b then true, b else false, neg b in
-      let d,r = div_rem a b in
-      (if sa == sb then d else neg d), (if sa then r else neg r)
-  end
-
-  module QZERO = Qed.Term.Make(ZInteger)(ADT)(Field)(Fun)
+  module QZERO = Qed.Term.Make(ADT)(Field)(Fun)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Qed Projectified State                                             --- *)
@@ -697,18 +684,13 @@ struct
   let e_zero = QED.constant (e_zint Z.zero)
   let e_one  = QED.constant (e_zint Z.one)
   let e_minus_one = QED.constant (e_zint Z.minus_one)
-  let e_one_real  = QED.constant (e_real (R.of_string "1.0"))
-  let e_zero_real = QED.constant (e_real (R.of_string "0.0"))
-
-  let hex_of_float f =
-    Pretty_utils.to_string (Floating_point.pretty_normal ~use_hex:true) f
+  let e_one_real  = QED.constant (e_real Q.one)
+  let e_zero_real = QED.constant (e_real Q.zero)
 
   let e_int64 z = e_zint (Z.of_string (Int64.to_string z))
   let e_fact k e = e_times (Z.of_int k) e
   let e_bigint z = e_zint (Z.of_string (Integer.to_string z))
   let e_range a b = e_sum [b;e_one;e_opp a]
-  let e_mthfloat f = QED.e_real (R.of_string (string_of_float f))
-  let e_hexfloat f = QED.e_real (R.of_string (hex_of_float f))
 
   let e_setfield r f v =
     (*TODO:NUPW: check for UNIONS *)

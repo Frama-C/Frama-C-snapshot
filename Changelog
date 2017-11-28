@@ -21,6 +21,8 @@ Open Source Release <next-release>
 Open Source Release Sulfur-20171101
 ###################################
 
+-* Eva        [2017/10/27] Fix bugs when evaluating \ìnitialized, \dangling
+              and \separated on addresses of bitfields
 -* Eva        [2017/10/27] Fix bug in the handling of non-explicitly volatile
               fields inside volatile structs or unions
 -  RTE        [2017/10/27] add option -rte-initialized to generate assertions

@@ -18,8 +18,8 @@
 [wp] [Qed] Goal typed_strlen_loop_term_decrease : Valid
 [wp] [Alt-Ergo] Goal typed_strlen_loop_term_positive : Valid
 [wp] Proved goals:   13 / 13
-     Qed:             7 
-     Alt-Ergo:        6
+    Qed:             7 
+    Alt-Ergo:        6
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 strlen               7      6 (209)   13       100%

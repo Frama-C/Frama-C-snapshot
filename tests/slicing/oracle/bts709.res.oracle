@@ -10,39 +10,39 @@ tests/slicing/bts709.i:36:[kernel] warning: Calling undeclared function assert. 
   var2 IN {0}
 tests/slicing/bts709.i:44:[value] entering loop for the first time
 [value] computing for function inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:45.
+    Called from tests/slicing/bts709.i:45.
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:53.
+    Called from tests/slicing/bts709.i:53.
 tests/slicing/bts709.i:53:[kernel] warning: Neither code nor specification for function nondet_int, generating default assigns from the prototype
 [value] using specification for function nondet_int
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:54.
+    Called from tests/slicing/bts709.i:54.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:55.
+    Called from tests/slicing/bts709.i:55.
 [value] Done for function nondet_int
 [value] Recording results for inputsOf_testcase_func
 [value] Done for function inputsOf_testcase_func
 [value] computing for function func <- main.
-        Called from tests/slicing/bts709.i:46.
+    Called from tests/slicing/bts709.i:46.
 [value] computing for function assert <- func <- main.
-        Called from tests/slicing/bts709.i:36.
+    Called from tests/slicing/bts709.i:36.
 tests/slicing/bts709.i:36:[kernel] warning: Neither code nor specification for function assert, generating default assigns from the prototype
 [value] using specification for function assert
 [value] Done for function assert
 [value] Recording results for func
 [value] Done for function func
 [value] computing for function inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:45.
+    Called from tests/slicing/bts709.i:45.
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:53.
+    Called from tests/slicing/bts709.i:53.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:54.
+    Called from tests/slicing/bts709.i:54.
 [value] Done for function nondet_int
 [value] computing for function nondet_int <- inputsOf_testcase_func <- main.
-        Called from tests/slicing/bts709.i:55.
+    Called from tests/slicing/bts709.i:55.
 [value] Done for function nondet_int
 [value] Recording results for inputsOf_testcase_func
 [value] Done for function inputsOf_testcase_func

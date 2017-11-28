@@ -31,13 +31,13 @@ tests/value/loop2.i:8:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   i FROM \nothing
   n FROM \nothing
   G[0..4] FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i; n; G[0..4]
+      i; n; G[0..4]
 [inout] Inputs for function main:
-          i; n
+      i; n

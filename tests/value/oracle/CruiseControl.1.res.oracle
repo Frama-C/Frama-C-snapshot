@@ -14,43 +14,43 @@ tests/value/CruiseControl.c:577:[kernel] warning: Floating-point constant 8.113 
   Ki ∈ {0x1.0000000000000p-1}
   RegThrottleMax ∈ {0x1.6800000000000p5}
 [value] computing for function DetectPedalsPressed <- CruiseControl.
-        Called from tests/value/CruiseControl.c:462.
+    Called from tests/value/CruiseControl.c:462.
 [value] Recording results for DetectPedalsPressed
 [value] Done for function DetectPedalsPressed
 [value] computing for function DetectSpeedLimits <- CruiseControl.
-        Called from tests/value/CruiseControl.c:473.
+    Called from tests/value/CruiseControl.c:473.
 [value] Recording results for DetectSpeedLimits
 [value] Done for function DetectSpeedLimits
 [value] computing for function CruiseStateMgt <- CruiseControl.
-        Called from tests/value/CruiseControl.c:486.
+    Called from tests/value/CruiseControl.c:486.
 [value] Recording results for CruiseStateMgt
 [value] Done for function CruiseStateMgt
 [value] computing for function CruiseSpeedMgt <- CruiseControl.
-        Called from tests/value/CruiseControl.c:508.
+    Called from tests/value/CruiseControl.c:508.
 tests/value/CruiseControl.c:100:[value] warning: non-finite float value.
-                 assert
-                 \is_finite((float)(_C_->_L10_CruiseControl + _C_->_L12_CruiseControl));
+    assert
+    \is_finite((float)(_C_->_L10_CruiseControl + _C_->_L12_CruiseControl));
 tests/value/CruiseControl.c:109:[value] warning: non-finite float value.
-                 assert
-                 \is_finite((float)(_C_->_L10_CruiseControl - _C_->_L11_CruiseControl));
+    assert
+    \is_finite((float)(_C_->_L10_CruiseControl - _C_->_L11_CruiseControl));
 [value] Recording results for CruiseSpeedMgt
 [value] Done for function CruiseSpeedMgt
 [value] computing for function ThrottleCmd <- CruiseControl.
-        Called from tests/value/CruiseControl.c:525.
+    Called from tests/value/CruiseControl.c:525.
 [value] computing for function ThrottleRegulation <- ThrottleCmd <- CruiseControl.
-        Called from tests/value/CruiseControl.c:242.
+    Called from tests/value/CruiseControl.c:242.
 tests/value/CruiseControl.c:172:[value] warning: non-finite float value.
-                 assert \is_finite((float)(_C_->_L1_CruiseControl - _C_->_L2_CruiseControl));
+    assert \is_finite((float)(_C_->_L1_CruiseControl - _C_->_L2_CruiseControl));
 tests/value/CruiseControl.c:175:[value] warning: non-finite float value.
-                 assert \is_finite((float)(_C_->_L3_CruiseControl * _C_->_L6_CruiseControl));
+    assert \is_finite((float)(_C_->_L3_CruiseControl * _C_->_L6_CruiseControl));
 tests/value/CruiseControl.c:194:[value] warning: non-finite float value.
-                 assert
-                 \is_finite((float)(_C_->_L16_CruiseControl + _C_->_L18_CruiseControl));
+    assert
+    \is_finite((float)(_C_->_L16_CruiseControl + _C_->_L18_CruiseControl));
 tests/value/CruiseControl.c:199:[value] warning: non-finite float value.
-                 assert \is_finite((float)(_C_->ProportionnalAction + _C_->IntegralAction));
+    assert \is_finite((float)(_C_->ProportionnalAction + _C_->IntegralAction));
 [value] computing for function SaturateThrottle <- ThrottleRegulation <- 
-                                ThrottleCmd <- CruiseControl.
-        Called from tests/value/CruiseControl.c:202.
+                            ThrottleCmd <- CruiseControl.
+    Called from tests/value/CruiseControl.c:202.
 tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
 [value] Recording results for SaturateThrottle
 [value] Done for function SaturateThrottle
@@ -1813,7 +1813,7 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
 [from] Computing for function CruiseControl
 [from] Done for function CruiseControl
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function CruiseSpeedMgt:
   S__C_{[0]._C0_CruiseSpeedMgt._O0_CruiseSpeed;
         [0]._C0_CruiseSpeedMgt._L7_CruiseControl}
@@ -3292,59 +3292,59 @@ tests/value/CruiseControl.c:162:[value] warning: assertion got status unknown.
                      [0]._C3_CruiseStateMgt._M_init_0_CruiseControl}
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function CruiseSpeedMgt:
-          __retres;
-          S__C_[0]._C0_CruiseSpeedMgt{._O0_CruiseSpeed; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; ._L21_CruiseControl; ._L10_CruiseControl; ._L12_CruiseControl; ._L13_CruiseControl; ._L15_CruiseControl; ._L16_CruiseControl; ._L4_CruiseControl; ._L17_CruiseControl; ._L11_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L18_CruiseControl; ._L5_CruiseControl; ._L20_CruiseControl; ._L9_CruiseControl; ._L8_CruiseControl; ._L7_CruiseControl; ._M_init_0_CruiseControl}
+      __retres;
+      S__C_[0]._C0_CruiseSpeedMgt{._O0_CruiseSpeed; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; ._L21_CruiseControl; ._L10_CruiseControl; ._L12_CruiseControl; ._L13_CruiseControl; ._L15_CruiseControl; ._L16_CruiseControl; ._L4_CruiseControl; ._L17_CruiseControl; ._L11_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L18_CruiseControl; ._L5_CruiseControl; ._L20_CruiseControl; ._L9_CruiseControl; ._L8_CruiseControl; ._L7_CruiseControl; ._M_init_0_CruiseControl}
 [inout] Inputs for function CruiseSpeedMgt:
-          ZeroSpeed; SpeedInc; SpeedMax; SpeedMin;
-          S__C_{[0]._C0_CruiseSpeedMgt{._I0_On; ._I1_Set; ._I2_QuickAccel; ._I3_QuickDecel; ._I4_Speed};
-                [0]._C0_CruiseSpeedMgt{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; ._L21_CruiseControl; ._L10_CruiseControl; ._L12_CruiseControl; ._L13_CruiseControl; ._L15_CruiseControl; ._L16_CruiseControl; ._L4_CruiseControl; ._L17_CruiseControl; ._L11_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L18_CruiseControl; ._L5_CruiseControl; ._L20_CruiseControl; ._L9_CruiseControl; ._L8_CruiseControl; ._L7_CruiseControl; ._M_init_0_CruiseControl}}
+      ZeroSpeed; SpeedInc; SpeedMax; SpeedMin;
+      S__C_{[0]._C0_CruiseSpeedMgt{._I0_On; ._I1_Set; ._I2_QuickAccel; ._I3_QuickDecel; ._I4_Speed};
+            [0]._C0_CruiseSpeedMgt{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; ._L21_CruiseControl; ._L10_CruiseControl; ._L12_CruiseControl; ._L13_CruiseControl; ._L15_CruiseControl; ._L16_CruiseControl; ._L4_CruiseControl; ._L17_CruiseControl; ._L11_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L18_CruiseControl; ._L5_CruiseControl; ._L20_CruiseControl; ._L9_CruiseControl; ._L8_CruiseControl; ._L7_CruiseControl; ._M_init_0_CruiseControl}}
 [inout] Out (internal) for function CruiseStateMgt:
-          __retres;
-          S__C_[0]._C3_CruiseStateMgt{._O0_Regul_ON; ._O1_Regul_OFF; ._O2_Regul_STDBY; ._LE24_CruiseControl; ._LE0_CruiseControl; ._LE4_CruiseControl; ._LE40_CruiseControl; ._LE26_CruiseControl; ._LE28_CruiseControl; ._LE9_CruiseControl; ._LE10_CruiseControl; ._LE11_CruiseControl; ._LE33_CruiseControl; ._LE35_CruiseControl; ._LE38_CruiseControl; ._LE12_CruiseControl; ._LE13_CruiseControl; ._LE14_CruiseControl; ._LE17_CruiseControl; ._LE18_CruiseControl; ._LE3_CruiseControl; ._LE16_CruiseControl; ._LE41_CruiseControl; ._LE19_CruiseControl; ._LE20_CruiseControl; ._LE21_CruiseControl; ._LE1_CruiseControl; ._LE5_CruiseControl; ._LE22_CruiseControl; ._LE23_CruiseControl; ._LE25_CruiseControl; ._LE29_CruiseControl; ._LE2_CruiseControl; ._LE30_CruiseControl; ._LE31_CruiseControl; ._LE32_CruiseControl; ._LE34_CruiseControl; ._LE42_CruiseControl; ._LE6_CruiseControl; ._LE15_CruiseControl; ._LE39_CruiseControl; ._LE43_CruiseControl; ._LE7_CruiseControl; ._LE27_CruiseControl; ._LE36_CruiseControl; ._LE37_CruiseControl; ._LE44_CruiseControl; ._LE8_CruiseControl; ._M_init_0_CruiseControl}
+      __retres;
+      S__C_[0]._C3_CruiseStateMgt{._O0_Regul_ON; ._O1_Regul_OFF; ._O2_Regul_STDBY; ._LE24_CruiseControl; ._LE0_CruiseControl; ._LE4_CruiseControl; ._LE40_CruiseControl; ._LE26_CruiseControl; ._LE28_CruiseControl; ._LE9_CruiseControl; ._LE10_CruiseControl; ._LE11_CruiseControl; ._LE33_CruiseControl; ._LE35_CruiseControl; ._LE38_CruiseControl; ._LE12_CruiseControl; ._LE13_CruiseControl; ._LE14_CruiseControl; ._LE17_CruiseControl; ._LE18_CruiseControl; ._LE3_CruiseControl; ._LE16_CruiseControl; ._LE41_CruiseControl; ._LE19_CruiseControl; ._LE20_CruiseControl; ._LE21_CruiseControl; ._LE1_CruiseControl; ._LE5_CruiseControl; ._LE22_CruiseControl; ._LE23_CruiseControl; ._LE25_CruiseControl; ._LE29_CruiseControl; ._LE2_CruiseControl; ._LE30_CruiseControl; ._LE31_CruiseControl; ._LE32_CruiseControl; ._LE34_CruiseControl; ._LE42_CruiseControl; ._LE6_CruiseControl; ._LE15_CruiseControl; ._LE39_CruiseControl; ._LE43_CruiseControl; ._LE7_CruiseControl; ._LE27_CruiseControl; ._LE36_CruiseControl; ._LE37_CruiseControl; ._LE44_CruiseControl; ._LE8_CruiseControl; ._M_init_0_CruiseControl}
 [inout] Inputs for function CruiseStateMgt:
-          S__C_{[0]._C3_CruiseStateMgt{._I0_BrakePressed; ._I1_AcceleratorPressed; ._I2_Resume; ._I3_On; ._I4_Off; ._I5_SpeedOutOffLimits};
-                [0]._C3_CruiseStateMgt{._LE24_CruiseControl; ._LE0_CruiseControl; ._LE4_CruiseControl; ._LE40_CruiseControl; ._LE26_CruiseControl; ._LE28_CruiseControl; ._LE9_CruiseControl; ._LE10_CruiseControl; ._LE11_CruiseControl; ._LE33_CruiseControl; ._LE35_CruiseControl; ._LE38_CruiseControl; ._LE12_CruiseControl; ._LE13_CruiseControl; ._LE14_CruiseControl; ._LE17_CruiseControl; ._LE18_CruiseControl; ._LE3_CruiseControl; ._LE16_CruiseControl; ._LE41_CruiseControl; ._LE19_CruiseControl; ._LE20_CruiseControl; ._LE21_CruiseControl; ._LE1_CruiseControl; ._LE5_CruiseControl; ._LE22_CruiseControl; ._LE23_CruiseControl; ._LE25_CruiseControl; ._LE29_CruiseControl; ._LE2_CruiseControl; ._LE30_CruiseControl; ._LE31_CruiseControl; ._LE32_CruiseControl; ._LE34_CruiseControl; ._LE42_CruiseControl; ._LE6_CruiseControl; ._LE15_CruiseControl; ._LE39_CruiseControl; ._LE43_CruiseControl; ._LE7_CruiseControl; ._LE27_CruiseControl; ._LE36_CruiseControl; ._LE37_CruiseControl; ._LE44_CruiseControl; ._LE8_CruiseControl; ._M_init_0_CruiseControl}}
+      S__C_{[0]._C3_CruiseStateMgt{._I0_BrakePressed; ._I1_AcceleratorPressed; ._I2_Resume; ._I3_On; ._I4_Off; ._I5_SpeedOutOffLimits};
+            [0]._C3_CruiseStateMgt{._LE24_CruiseControl; ._LE0_CruiseControl; ._LE4_CruiseControl; ._LE40_CruiseControl; ._LE26_CruiseControl; ._LE28_CruiseControl; ._LE9_CruiseControl; ._LE10_CruiseControl; ._LE11_CruiseControl; ._LE33_CruiseControl; ._LE35_CruiseControl; ._LE38_CruiseControl; ._LE12_CruiseControl; ._LE13_CruiseControl; ._LE14_CruiseControl; ._LE17_CruiseControl; ._LE18_CruiseControl; ._LE3_CruiseControl; ._LE16_CruiseControl; ._LE41_CruiseControl; ._LE19_CruiseControl; ._LE20_CruiseControl; ._LE21_CruiseControl; ._LE1_CruiseControl; ._LE5_CruiseControl; ._LE22_CruiseControl; ._LE23_CruiseControl; ._LE25_CruiseControl; ._LE29_CruiseControl; ._LE2_CruiseControl; ._LE30_CruiseControl; ._LE31_CruiseControl; ._LE32_CruiseControl; ._LE34_CruiseControl; ._LE42_CruiseControl; ._LE6_CruiseControl; ._LE15_CruiseControl; ._LE39_CruiseControl; ._LE43_CruiseControl; ._LE7_CruiseControl; ._LE27_CruiseControl; ._LE36_CruiseControl; ._LE37_CruiseControl; ._LE44_CruiseControl; ._LE8_CruiseControl; ._M_init_0_CruiseControl}}
 [inout] Out (internal) for function DetectPedalsPressed:
-          __retres;
-          S__C_[0]._C1_DetectPedalsPressed{._O0_BrakePressed; ._O1_AcceleratorPressed; ._L2_CruiseControl; ._L8_CruiseControl; ._L4_CruiseControl; ._L1_CruiseControl; ._L7_CruiseControl; ._L3_CruiseControl}
+      __retres;
+      S__C_[0]._C1_DetectPedalsPressed{._O0_BrakePressed; ._O1_AcceleratorPressed; ._L2_CruiseControl; ._L8_CruiseControl; ._L4_CruiseControl; ._L1_CruiseControl; ._L7_CruiseControl; ._L3_CruiseControl}
 [inout] Inputs for function DetectPedalsPressed:
-          ZeroPercent;
-          S__C_{[0]._C1_DetectPedalsPressed{._I0_Brake; ._I1_Accelerator};
-                [0]._C1_DetectPedalsPressed{._L2_CruiseControl; ._L8_CruiseControl; ._L4_CruiseControl; ._L1_CruiseControl; ._L7_CruiseControl; ._L3_CruiseControl}}
+      ZeroPercent;
+      S__C_{[0]._C1_DetectPedalsPressed{._I0_Brake; ._I1_Accelerator};
+            [0]._C1_DetectPedalsPressed{._L2_CruiseControl; ._L8_CruiseControl; ._L4_CruiseControl; ._L1_CruiseControl; ._L7_CruiseControl; ._L3_CruiseControl}}
 [inout] Out (internal) for function DetectSpeedLimits:
-          __retres;
-          S__C_[0]._C2_DetectSpeedLimits{._O0_SpeedOutOffLimits; ._L7_CruiseControl; ._L13_CruiseControl; ._L8_CruiseControl; ._L14_CruiseControl; ._L9_CruiseControl; ._L17_CruiseControl}
+      __retres;
+      S__C_[0]._C2_DetectSpeedLimits{._O0_SpeedOutOffLimits; ._L7_CruiseControl; ._L13_CruiseControl; ._L8_CruiseControl; ._L14_CruiseControl; ._L9_CruiseControl; ._L17_CruiseControl}
 [inout] Inputs for function DetectSpeedLimits:
-          SpeedMax; SpeedMin;
-          S__C_{[0]._C2_DetectSpeedLimits._I0_speed;
-                [0]._C2_DetectSpeedLimits{._L7_CruiseControl; ._L13_CruiseControl; ._L8_CruiseControl; ._L14_CruiseControl; ._L9_CruiseControl; ._L17_CruiseControl}}
+      SpeedMax; SpeedMin;
+      S__C_{[0]._C2_DetectSpeedLimits._I0_speed;
+            [0]._C2_DetectSpeedLimits{._L7_CruiseControl; ._L13_CruiseControl; ._L8_CruiseControl; ._L14_CruiseControl; ._L9_CruiseControl; ._L17_CruiseControl}}
 [inout] Out (internal) for function SaturateThrottle:
-          __retres;
-          S__C_[0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._O0_ThrottleOut; ._O1_Saturate; ._L18_CruiseControl; ._L12_CruiseControl; ._L7_CruiseControl; ._L17_CruiseControl; ._L9_CruiseControl; ._L6_CruiseControl; ._L8_CruiseControl; ._L13_CruiseControl}
+      __retres;
+      S__C_[0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._O0_ThrottleOut; ._O1_Saturate; ._L18_CruiseControl; ._L12_CruiseControl; ._L7_CruiseControl; ._L17_CruiseControl; ._L9_CruiseControl; ._L6_CruiseControl; ._L8_CruiseControl; ._L13_CruiseControl}
 [inout] Inputs for function SaturateThrottle:
-          ZeroPercent; RegThrottleMax;
-          S__C_{[0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn;
-                [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._L18_CruiseControl; ._L12_CruiseControl; ._L7_CruiseControl; ._L17_CruiseControl; ._L9_CruiseControl; ._L6_CruiseControl; ._L8_CruiseControl; ._L13_CruiseControl}}
+      ZeroPercent; RegThrottleMax;
+      S__C_{[0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle._I0_ThrottleIn;
+            [0]._C4_ThrottleCmd._C0_ThrottleRegulation._C0_SaturateThrottle{._L18_CruiseControl; ._L12_CruiseControl; ._L7_CruiseControl; ._L17_CruiseControl; ._L9_CruiseControl; ._L6_CruiseControl; ._L8_CruiseControl; ._L13_CruiseControl}}
 [inout] Out (internal) for function ThrottleRegulation:
-          tmp; __retres;
-          S__C_[0]._C4_ThrottleCmd._C0_ThrottleRegulation{._O0_Throttle; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; .ProportionnalAction; ._L22_CruiseControl; .HoldIntegralAction; ._L16_CruiseControl; ._L23_CruiseControl; ._L18_CruiseControl; ._L10_CruiseControl; ._L8_CruiseControl; .IntegralAction; ._L4_CruiseControl; ._L13_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L21_CruiseControl; ._M_init_0_CruiseControl; ._C0_SaturateThrottle}
+      tmp; __retres;
+      S__C_[0]._C4_ThrottleCmd._C0_ThrottleRegulation{._O0_Throttle; ._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; .ProportionnalAction; ._L22_CruiseControl; .HoldIntegralAction; ._L16_CruiseControl; ._L23_CruiseControl; ._L18_CruiseControl; ._L10_CruiseControl; ._L8_CruiseControl; .IntegralAction; ._L4_CruiseControl; ._L13_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L21_CruiseControl; ._M_init_0_CruiseControl; ._C0_SaturateThrottle}
 [inout] Inputs for function ThrottleRegulation:
-          ZeroSpeed; ZeroPercent; Kp; Ki; RegThrottleMax;
-          S__C_{[0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I0_Reset; ._I1_CruiseSpeed; ._I2_VehiculeSpeed};
-                [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; .ProportionnalAction; ._L22_CruiseControl; .HoldIntegralAction; ._L16_CruiseControl; ._L23_CruiseControl; ._L18_CruiseControl; ._L10_CruiseControl; ._L8_CruiseControl; .IntegralAction; ._L4_CruiseControl; ._L13_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L21_CruiseControl; ._M_init_0_CruiseControl; ._C0_SaturateThrottle}}
+      ZeroSpeed; ZeroPercent; Kp; Ki; RegThrottleMax;
+      S__C_{[0]._C4_ThrottleCmd._C0_ThrottleRegulation{._I0_Reset; ._I1_CruiseSpeed; ._I2_VehiculeSpeed};
+            [0]._C4_ThrottleCmd._C0_ThrottleRegulation{._L1_CruiseControl; ._L2_CruiseControl; ._L3_CruiseControl; ._L6_CruiseControl; .ProportionnalAction; ._L22_CruiseControl; .HoldIntegralAction; ._L16_CruiseControl; ._L23_CruiseControl; ._L18_CruiseControl; ._L10_CruiseControl; ._L8_CruiseControl; .IntegralAction; ._L4_CruiseControl; ._L13_CruiseControl; ._L14_CruiseControl; ._L19_CruiseControl; ._L21_CruiseControl; ._M_init_0_CruiseControl; ._C0_SaturateThrottle}}
 [inout] Out (internal) for function ThrottleCmd:
-          tmp; __retres;
-          S__C_[0]._C4_ThrottleCmd{._O0_Throttle; ._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation; ._M_condact_2_CruiseControl}
+      tmp; __retres;
+      S__C_[0]._C4_ThrottleCmd{._O0_Throttle; ._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation; ._M_condact_2_CruiseControl}
 [inout] Inputs for function ThrottleCmd:
-          ZeroSpeed; ZeroPercent; Kp; Ki; RegThrottleMax;
-          S__C_{[0]._C4_ThrottleCmd{._I0_Regul_ON; ._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._I3_Accelerator};
-                [0]._C4_ThrottleCmd{._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation}}
+      ZeroSpeed; ZeroPercent; Kp; Ki; RegThrottleMax;
+      S__C_{[0]._C4_ThrottleCmd{._I0_Regul_ON; ._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._I3_Accelerator};
+            [0]._C4_ThrottleCmd{._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation}}
 [inout] Out (internal) for function CruiseControl:
-          tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres;
-          S__C_[0]{._O0_Cruise_speed; ._O1_Throttle_cmd; ._O2_Regul_ON; ._O3_Regul_OFF; ._O4_Regul_STDBY; ._L73_CruiseControl; ._L59_CruiseControl; ._L62_CruiseControl; .BrakePressed; .AcceleratorPressed; ._L61_CruiseControl; ._L60_CruiseControl; ._L58_CruiseControl; ._L95_CruiseControl; .SpeedOutOffLimits; ._L82_CruiseControl; ._L83_CruiseControl; ._L84_CruiseControl; ._L19_CruiseControl; ._L96_CruiseControl; ._L38_CruiseControl; ._L39_CruiseControl; ._L40_CruiseControl; ._L23_CruiseControl; .CruiseSpeed; ._L26_CruiseControl; ._L22_CruiseControl; ._M_init_CruiseControl; ._C0_CruiseSpeedMgt; ._C1_DetectPedalsPressed; ._C2_DetectSpeedLimits; ._C3_CruiseStateMgt; ._M_condact_0_CruiseControl; ._C4_ThrottleCmd}
+      tmp; tmp_0; tmp_1; tmp_2; tmp_3; __retres;
+      S__C_[0]{._O0_Cruise_speed; ._O1_Throttle_cmd; ._O2_Regul_ON; ._O3_Regul_OFF; ._O4_Regul_STDBY; ._L73_CruiseControl; ._L59_CruiseControl; ._L62_CruiseControl; .BrakePressed; .AcceleratorPressed; ._L61_CruiseControl; ._L60_CruiseControl; ._L58_CruiseControl; ._L95_CruiseControl; .SpeedOutOffLimits; ._L82_CruiseControl; ._L83_CruiseControl; ._L84_CruiseControl; ._L19_CruiseControl; ._L96_CruiseControl; ._L38_CruiseControl; ._L39_CruiseControl; ._L40_CruiseControl; ._L23_CruiseControl; .CruiseSpeed; ._L26_CruiseControl; ._L22_CruiseControl; ._M_init_CruiseControl; ._C0_CruiseSpeedMgt; ._C1_DetectPedalsPressed; ._C2_DetectSpeedLimits; ._C3_CruiseStateMgt; ._M_condact_0_CruiseControl; ._C4_ThrottleCmd}
 [inout] Inputs for function CruiseControl:
-          ZeroSpeed; SpeedInc; SpeedMax; SpeedMin; ZeroPercent; Kp; Ki;
-          RegThrottleMax;
-          S__C_{[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel; ._I6_Accel; ._I7_Brake; ._I8_Speed};
-                [0]{._L73_CruiseControl; ._L59_CruiseControl; ._L62_CruiseControl; .BrakePressed; .AcceleratorPressed; ._L61_CruiseControl; ._L60_CruiseControl; ._L58_CruiseControl; ._L95_CruiseControl; .SpeedOutOffLimits; ._L82_CruiseControl; ._L83_CruiseControl; ._L84_CruiseControl; ._L19_CruiseControl; ._L96_CruiseControl; ._L38_CruiseControl; ._L39_CruiseControl; ._L40_CruiseControl; ._L23_CruiseControl; .CruiseSpeed; ._L26_CruiseControl; ._L22_CruiseControl; ._M_init_CruiseControl; ._C0_CruiseSpeedMgt; ._C1_DetectPedalsPressed; ._C2_DetectSpeedLimits; ._C3_CruiseStateMgt};
-                [0]._C4_ThrottleCmd{._I0_Regul_ON; ._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._I3_Accelerator; ._O0_Throttle; ._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation}}
+      ZeroSpeed; SpeedInc; SpeedMax; SpeedMin; ZeroPercent; Kp; Ki;
+      RegThrottleMax;
+      S__C_{[0]{._I0_On; ._I1_Off; ._I2_Resume; ._I3_Set; ._I4_QuickAccel; ._I5_QuickDecel; ._I6_Accel; ._I7_Brake; ._I8_Speed};
+            [0]{._L73_CruiseControl; ._L59_CruiseControl; ._L62_CruiseControl; .BrakePressed; .AcceleratorPressed; ._L61_CruiseControl; ._L60_CruiseControl; ._L58_CruiseControl; ._L95_CruiseControl; .SpeedOutOffLimits; ._L82_CruiseControl; ._L83_CruiseControl; ._L84_CruiseControl; ._L19_CruiseControl; ._L96_CruiseControl; ._L38_CruiseControl; ._L39_CruiseControl; ._L40_CruiseControl; ._L23_CruiseControl; .CruiseSpeed; ._L26_CruiseControl; ._L22_CruiseControl; ._M_init_CruiseControl; ._C0_CruiseSpeedMgt; ._C1_DetectPedalsPressed; ._C2_DetectSpeedLimits; ._C3_CruiseStateMgt};
+            [0]._C4_ThrottleCmd{._I0_Regul_ON; ._I1_CruiseSpeed; ._I2_VehiculeSpeed; ._I3_Accelerator; ._O0_Throttle; ._L21_CruiseControl; ._L20_CruiseControl; ._L22_CruiseControl; .ONRisingEdge; ._L26_CruiseControl; ._L1_CruiseControl; ._L2_CruiseControl; ._L19_CruiseControl; ._L25_CruiseControl; ._L24_CruiseControl; ._M_init_0_CruiseControl; ._C0_ThrottleRegulation}}

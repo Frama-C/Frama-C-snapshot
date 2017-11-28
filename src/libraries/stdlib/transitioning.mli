@@ -50,3 +50,10 @@ module Char: sig
   val uppercase_ascii: char -> char
   val lowercase_ascii: char -> char
 end
+
+(** {1 Zarith 1.5} *)
+
+(** Function [Q.to_float] was introduced in Zarith 1.5 *)
+module Q: sig
+  val to_float : Q.t -> float
+end

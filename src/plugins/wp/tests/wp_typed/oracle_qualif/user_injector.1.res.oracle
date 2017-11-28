@@ -21,7 +21,7 @@
 [wp] [Qed] Goal typed_ref_job_assign_normal_part5 : Valid
 [wp] [Qed] Goal typed_ref_job_assign_normal_part6 : Valid
 [wp] Proved goals:   16 / 16
-     Qed:            16
+    Qed:            16
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                 16     -          16       100%

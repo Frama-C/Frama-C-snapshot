@@ -7,7 +7,7 @@
 [wp] [Coq] Goal typed_job_assert_qed_ok : Default tactic
 [wp] [Coq] Goal typed_job_assert_qed_ok : Unknown
 [wp] Proved goals:    0 / 1
-     Coq:             0  (unknown: 1)
+    Coq:             0  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 job                 -      -           1       0.0%

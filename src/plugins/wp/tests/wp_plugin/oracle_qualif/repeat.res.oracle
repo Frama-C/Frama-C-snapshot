@@ -53,8 +53,8 @@ tests/wp_plugin/repeat.c:47:[wp] warning: Missing assigns clause (assigns 'every
 [wp] [Qed] Goal typed_unroll_assign_normal_part10 : Valid
 [wp] [Qed] Goal typed_unroll_assign_normal_part11 : Valid
 [wp] Proved goals:   47 / 47
-     Qed:            42 
-     Alt-Ergo:        5
+    Qed:            42 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 master               3     -           3       100%

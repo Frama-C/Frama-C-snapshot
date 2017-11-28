@@ -15,11 +15,11 @@ tests/value/uninit.i:3:[value] assertion 'Value,initialisation' got final status
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i
+      i
 [inout] Inputs for function main:
-          \nothing
+      \nothing

@@ -24,8 +24,8 @@ tests/impact/first.i:17:[value] warning: signed overflow. assert y + f ≤ 21474
 [pdg] computing for function impact
 [pdg] done for function impact
 [impact] impacted statements of stmt(s) 2 are:
-           tests/impact/first.i:12 (sid 5): x = b + c;
-           tests/impact/first.i:13 (sid 6): y = x + e;
-           tests/impact/first.i:17 (sid 9): z = y + f;
-           tests/impact/first.i:18 (sid 10): w = b;
+      tests/impact/first.i:12 (sid 5): x = b + c;
+      tests/impact/first.i:13 (sid 6): y = x + e;
+      tests/impact/first.i:17 (sid 9): z = y + f;
+      tests/impact/first.i:18 (sid 10): w = b;
 [impact] analysis done

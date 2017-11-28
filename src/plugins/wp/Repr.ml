@@ -41,8 +41,8 @@ type repr =
   | Forall of tau * (env -> var * term)
   | Exists of tau * (env -> var * term)
   | Var of var
-  | Int of Integer.t
-  | Real of string
+  | Int of Z.t
+  | Real of Q.t
   | Add of term list
   | Mul of term list
   | Div of term * term
@@ -51,7 +51,7 @@ type repr =
   | Neq of term * term
   | Lt of term * term
   | Leq of term * term
-  | Times of Integer.t * term
+  | Times of Z.t * term
   | Call of lfun * term list
   | Field of term * field
   | Record of (field * term) list
@@ -76,7 +76,7 @@ let term e : repr =
   | L.Bind(L.Forall,t,q) -> Forall(t,disclose t q)
   | L.Bind(L.Exists,t,q) -> Exists(t,disclose t q)
   | L.Kint z -> Int z
-  | L.Kreal r -> Real (Qed.R.to_string r)
+  | L.Kreal r -> Real r
   | L.Add ts -> Add ts
   | L.Mul ts -> Mul ts
   | L.Div(a,b) -> Div(a,b)

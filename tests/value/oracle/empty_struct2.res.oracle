@@ -10,21 +10,21 @@ tests/value/empty_struct2.c:44:[value] Frama_C_show_each_e1: ∅
 tests/value/empty_struct2.c:45:[value] Call to builtin memcpy(({{ (void *)&e2 }},{{ (void const *)&e1 }},{0}))
 tests/value/empty_struct2.c:50:[value] Call to builtin memcpy(({{ (void *)&c2 }},{{ (void const *)&c1 }},{8}))
 tests/value/empty_struct2.c:51:[value] Frama_C_show_each_c2: .a ∈ {42}
-                              .b ∈ {77}
+                          .b ∈ {77}
 tests/value/empty_struct2.c:52:[value] Frama_C_show_each_c2_e: ∅
 [value] computing for function f <- main.
-        Called from tests/value/empty_struct2.c:53.
+    Called from tests/value/empty_struct2.c:53.
 [value] Recording results for f
 [value] Done for function f
 tests/value/empty_struct2.c:55:[value] Frama_C_show_each_res: .a ∈ {87}
-                               .b ∈ {39}
+                           .b ∈ {39}
 tests/value/empty_struct2.c:59:[value] assertion got status valid.
 [value] computing for function ret_empty <- main.
-        Called from tests/value/empty_struct2.c:61.
+    Called from tests/value/empty_struct2.c:61.
 [value] using specification for function ret_empty
 [value] Done for function ret_empty
 [value] computing for function ret_ptr_empty <- main.
-        Called from tests/value/empty_struct2.c:62.
+    Called from tests/value/empty_struct2.c:62.
 tests/value/empty_struct2.c:62:[kernel] warning: No code nor implicit assigns clause for function ret_ptr_empty, generating default assigns from the prototype
 [value] using specification for function ret_ptr_empty
 [value] Done for function ret_ptr_empty
@@ -58,7 +58,7 @@ tests/value/empty_struct2.c:63:[value] warning: out of bounds read. assert \vali
 [from] Done for function ret_ptr_empty
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM s
 [from] Function memcpy:
@@ -72,10 +72,10 @@ tests/value/empty_struct2.c:63:[value] warning: out of bounds read. assert \vali
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          res
+      res
 [inout] Inputs for function f:
-          nondet
+      nondet
 [inout] Out (internal) for function main:
-          c1; c2; res; cb; ce; p; ptr_ret; __retres
+      c1; c2; res; cb; ce; p; ptr_ret; __retres
 [inout] Inputs for function main:
-          nondet
+      nondet

@@ -152,7 +152,7 @@ ENABLE_USERS	                  ?=@ENABLE_USERS@
 ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@
 
 #bytes is part of the stdlib, but is used as a transitional package.
-LIBRARY_NAMES := findlib ocamlgraph num unix str dynlink bytes zarith
+LIBRARY_NAMES := findlib ocamlgraph unix str dynlink bytes zarith
 
 ifeq ($(HAS_LANDMARKS),yes)
 LIBRARY_NAMES += landmarks landmarks.ppx

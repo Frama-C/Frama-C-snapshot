@@ -6,7 +6,7 @@
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 [value] computing for function Frama_C_interval <- main.
-        Called from tests/value/for_loops.c:24.
+    Called from tests/value/for_loops.c:24.
 [value] using specification for function Frama_C_interval
 share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
@@ -31,7 +31,7 @@ tests/value/for_loops.c:27:[value] warning: signed overflow. assert j + 1 ≤ 21
 [from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -39,6 +39,6 @@ tests/value/for_loops.c:27:[value] warning: signed overflow. assert j + 1 ≤ 21
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source; j; nSelectors; w; v
+      Frama_C_entropy_source; j; nSelectors; w; v
 [inout] Inputs for function main:
-          Frama_C_entropy_source
+      Frama_C_entropy_source

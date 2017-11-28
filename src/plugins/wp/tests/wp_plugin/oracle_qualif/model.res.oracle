@@ -42,7 +42,7 @@ logic P_P : int -> prop
 
 [wp] [Alt-Ergo] Goal typed_f_post : Typechecked
 [wp] Proved goals:    0 / 1
-     Alt-Ergo:        0  (unknown: 1)
+    Alt-Ergo:        0  (unknown: 1)
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
 ---------------------------------------------
@@ -100,4 +100,4 @@ goal f_post:
 [wp] [Alt-Ergo] Goal typed_ref_f_post : Typechecked
 [wp] [Alt-Ergo] Goal typed_f_post : Typechecked
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (unknown: 2)
+    Alt-Ergo:        0  (unknown: 2)

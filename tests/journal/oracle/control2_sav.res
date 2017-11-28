@@ -33,11 +33,11 @@ tests/journal/control2.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   x FROM x; c; d (and SELF)
   y FROM y; c; d (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          x; y; i
+      x; y; i
 [kernel] writing journal in file `tests/journal/result/control_journal_next2.ml'.

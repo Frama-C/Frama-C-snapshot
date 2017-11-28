@@ -9,8 +9,8 @@
 [wp] [Alt-Ergo] Goal typed_main_bizarre_KO_assert_FALSE : Unknown
 [wp] [Alt-Ergo] Goal typed_main_normal_KO_assert_FALSE : Unknown
 [wp] Proved goals:    2 / 4
-     Qed:             2 
-     Alt-Ergo:        0  (unknown: 2)
+    Qed:             2 
+    Alt-Ergo:        0  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 compute_bizarre      1     -           1       100%

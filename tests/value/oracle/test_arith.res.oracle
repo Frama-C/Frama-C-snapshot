@@ -35,7 +35,7 @@ tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t{[1]; [5]} FROM \nothing
   j FROM \nothing
@@ -46,6 +46,6 @@ tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 
   qtr FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          t{[1]; [5]}; j; k; ecart; pptr; ptr; qtr; n
+      t{[1]; [5]}; j; k; ecart; pptr; ptr; qtr; n
 [inout] Inputs for function main:
-          t{[1]; [5]}; j; ptr
+      t{[1]; [5]}; j; ptr

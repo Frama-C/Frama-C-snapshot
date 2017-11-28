@@ -15,11 +15,11 @@ tests/value/pure_exp.i:8:[value] assertion 'Value,mem_access' got final status i
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          tmp
+      tmp
 [inout] Inputs for function main:
-          t
+      t

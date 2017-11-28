@@ -7,7 +7,7 @@
 [wp] [Alt-Ergo] Goal typed_f_post_d7_div_0_x_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_f_post_m7_mod_0_x_ko : Unknown
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (unknown: 2)
+    Alt-Ergo:        0  (unknown: 2)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -      -           2       0.0%

@@ -4,18 +4,18 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
 [wp] [Failed] Goal typed_lemma_with_consistent_antecedent_ok
-     alt-ergo: Failed Command './tests/inexistant-prover' not found
-          Coq: Failed Command './tests/inexistant-prover' not found
-     Alt-Ergo: Failed Command './tests/inexistant-prover' not found
+    alt-ergo: Failed Command './tests/inexistant-prover' not found
+         Coq: Failed Command './tests/inexistant-prover' not found
+    Alt-Ergo: Failed Command './tests/inexistant-prover' not found
 [wp] [Coq] Goal typed_lemma_with_inconsistent_antecedent_ok : Default tactic
 [wp] [Failed] Goal typed_lemma_with_inconsistent_antecedent_ok
-     alt-ergo: Failed Command './tests/inexistant-prover' not found
-          Coq: Failed Command './tests/inexistant-prover' not found
-     Alt-Ergo: Failed Command './tests/inexistant-prover' not found
+    alt-ergo: Failed Command './tests/inexistant-prover' not found
+         Coq: Failed Command './tests/inexistant-prover' not found
+    Alt-Ergo: Failed Command './tests/inexistant-prover' not found
 [wp] Proved goals:    0 / 2
-     Alt-Ergo:        0  (failed: 2)
-     Coq:             0  (failed: 2)
-     alt-ergo:        0  (failed: 2)
+    Alt-Ergo:        0  (failed: 2)
+    Coq:             0  (failed: 2)
+    alt-ergo:        0  (failed: 2)
 ----------------------------------------------------------
 Axiomatics          WP   Alt-Ergo    Total   Success
 Axiomatic With_consistent_antecedent  -    -     1  0.0%

@@ -5,12 +5,12 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function malloc <- main.
-        Called from tests/value/automalloc.i:14.
+    Called from tests/value/automalloc.i:14.
 tests/value/automalloc.i:14:[kernel] warning: No code nor implicit assigns clause for function malloc, generating default assigns from the prototype
 [value] using specification for function malloc
 [value] Done for function malloc
 [value] computing for function realloc <- main.
-        Called from tests/value/automalloc.i:15.
+    Called from tests/value/automalloc.i:15.
 tests/value/automalloc.i:15:[kernel] warning: Neither code nor specification for function realloc, generating default assigns from the prototype
 [value] using specification for function realloc
 [value] Done for function realloc
@@ -38,7 +38,7 @@ tests/value/automalloc.i:17:[value] warning: out of bounds write. assert \valid(
 [from] Done for function realloc
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function malloc:
   \result FROM s
 [from] Function realloc:
@@ -49,7 +49,7 @@ tests/value/automalloc.i:17:[value] warning: out of bounds write. assert \valid(
   alloced_return_realloc[bits 8 to 17179869191] FROM test (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          test; buf; alloced_return_malloc[bits 8 to 17179869191];
-          alloced_return_realloc[bits 8 to 17179869191]
+      test; buf; alloced_return_malloc[bits 8 to 17179869191];
+      alloced_return_realloc[bits 8 to 17179869191]
 [inout] Inputs for function main:
-          \nothing
+      \nothing

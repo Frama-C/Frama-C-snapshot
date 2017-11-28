@@ -17,8 +17,8 @@
 [wp] [Qed] Goal typed_wrong_without_ref_post : Valid
 [wp] [Alt-Ergo] Goal typed_wrong_without_ref_call_f_pre : Unknown
 [wp] Proved goals:   11 / 12
-     Qed:            11 
-     Alt-Ergo:        0  (unknown: 1)
+    Qed:            11 
+    Alt-Ergo:        0  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    2     -           2       100%

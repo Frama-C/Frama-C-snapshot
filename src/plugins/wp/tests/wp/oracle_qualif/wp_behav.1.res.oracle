@@ -15,7 +15,7 @@ tests/wp/wp_behav.c:69:[wp] warning: Missing assigns clause (assigns 'everything
 [wp] [Alt-Ergo] Goal typed_stmt_contract_ko_without_asgn_post_qed_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_stmt_contract_assigns_ko_post_qed_ko : Unknown
 [wp] Proved goals:    0 / 8
-     Alt-Ergo:        0  (unknown: 8)
+    Alt-Ergo:        0  (unknown: 8)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -      -           3       0.0%

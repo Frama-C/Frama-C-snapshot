@@ -7,7 +7,7 @@
   d ∈ {0}
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/float/conv.i:105.
+    Called from tests/float/conv.i:105.
 tests/float/conv.i:15:[value] Frama_C_show_each: {0}
 tests/float/conv.i:18:[value] Frama_C_show_each: {1.40129846432e-45}
 tests/float/conv.i:22:[value] Frama_C_show_each: [1.40129846432e-43 .. 2.40330263757e+12]
@@ -28,7 +28,7 @@ tests/float/conv.i:55:[value] Frama_C_show_each: [-3.40282346639e+38 .. 3.402823
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/float/conv.i:106.
+    Called from tests/float/conv.i:106.
 tests/float/conv.i:63:[value] Frama_C_show_each: {0}
 tests/float/conv.i:66:[value] Frama_C_show_each: {4.94065645841e-324}
 tests/float/conv.i:69:[value] Frama_C_show_each: [4.94065645841e-322 .. 9.22442153475e+159]
@@ -67,7 +67,7 @@ tests/float/conv.i:101:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.7976
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   f FROM \nothing
 [from] Function main2:
@@ -77,14 +77,14 @@ tests/float/conv.i:101:[value] Frama_C_show_each: [-1.79769313486e+308 .. 1.7976
   d FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-          f; i; ui
+      f; i; ui
 [inout] Inputs for function main1:
-          f; v
+      f; v
 [inout] Out (internal) for function main2:
-          d; i; ui
+      d; i; ui
 [inout] Inputs for function main2:
-          d; v
+      d; v
 [inout] Out (internal) for function main:
-          f; d
+      f; d
 [inout] Inputs for function main:
-          f; d; v
+      f; d; v

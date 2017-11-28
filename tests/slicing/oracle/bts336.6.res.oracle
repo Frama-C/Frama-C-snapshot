@@ -7,97 +7,97 @@
   x5 ∈ {0}
 tests/slicing/bts336.i:77:[value] entering loop for the first time
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:78.
+    Called from tests/slicing/bts336.i:78.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:79.
+    Called from tests/slicing/bts336.i:79.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:80.
+    Called from tests/slicing/bts336.i:80.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:81.
+    Called from tests/slicing/bts336.i:81.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:82.
+    Called from tests/slicing/bts336.i:82.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:78.
+    Called from tests/slicing/bts336.i:78.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:79.
+    Called from tests/slicing/bts336.i:79.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:80.
+    Called from tests/slicing/bts336.i:80.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:81.
+    Called from tests/slicing/bts336.i:81.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:82.
+    Called from tests/slicing/bts336.i:82.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:78.
+    Called from tests/slicing/bts336.i:78.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:79.
+    Called from tests/slicing/bts336.i:79.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:80.
+    Called from tests/slicing/bts336.i:80.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:81.
+    Called from tests/slicing/bts336.i:81.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:82.
+    Called from tests/slicing/bts336.i:82.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:78.
+    Called from tests/slicing/bts336.i:78.
 tests/slicing/bts336.i:62:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
 tests/slicing/bts336.i:63:[value] warning: signed overflow. assert *q + 1 ≤ 2147483647;
 [value] Recording results for f4
@@ -105,25 +105,25 @@ tests/slicing/bts336.i:63:[value] warning: signed overflow. assert *q + 1 ≤ 21
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:79.
+    Called from tests/slicing/bts336.i:79.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:80.
+    Called from tests/slicing/bts336.i:80.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:81.
+    Called from tests/slicing/bts336.i:81.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4
 [value] Done for function f4
 [value] computing for function f4 <- main4.
-        Called from tests/slicing/bts336.i:82.
+    Called from tests/slicing/bts336.i:82.
 [value] Recording results for f4
 [from] Computing for function f4
 [from] Done for function f4

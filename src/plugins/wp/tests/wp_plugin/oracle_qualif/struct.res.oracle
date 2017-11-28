@@ -23,7 +23,7 @@
 [wp] [Qed] Goal typed_id_post_qed_ok_P1 : Valid
 [wp] [Qed] Goal typed_id_post_qed_ok_P2 : Valid
 [wp] Proved goals:   18 / 18
-     Qed:            18
+    Qed:            18
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 id                   2     -           2       100%

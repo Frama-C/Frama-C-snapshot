@@ -5,11 +5,11 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/value/overflow_cast_float_int.i:16:[value] warning: overflow in conversion from floating-point to integer.
-                 assert vf1 < 2147483648;
+    assert vf1 < 2147483648;
 tests/value/overflow_cast_float_int.i:20:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < -2147483649.5;
+    assert -2147483649 < -2147483649.5;
 tests/value/overflow_cast_float_int.i:24:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < dd;
+    assert -2147483649 < dd;
 [value] Recording results for main
 [value] done for function main
 tests/value/overflow_cast_float_int.i:20:[value] assertion 'Value,float_to_int' got final status invalid.
@@ -26,25 +26,25 @@ tests/value/overflow_cast_float_int.i:24:[value] assertion 'Value,float_to_int' 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          vf1; e; d; c1; c2; dd; tmp; k; __retres
+      vf1; e; d; c1; c2; dd; tmp; k; __retres
 [inout] Inputs for function main:
-          v
+      v
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/value/overflow_cast_float_int.i:16:[value] warning: overflow in conversion from floating-point to integer.
-                 assert vf1 < 2147483648;
+    assert vf1 < 2147483648;
 tests/value/overflow_cast_float_int.i:20:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < -2147483649.5;
+    assert -2147483649 < -2147483649.5;
 tests/value/overflow_cast_float_int.i:24:[value] warning: overflow in conversion from floating-point to integer.
-                 assert -2147483649 < dd;
+    assert -2147483649 < dd;
 [value] Recording results for main
 [value] done for function main
 tests/value/overflow_cast_float_int.i:16:[value] assertion 'Value,float_to_int' got final status invalid.
@@ -60,11 +60,11 @@ tests/value/overflow_cast_float_int.i:16:[value] assertion 'Value,float_to_int' 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          vf1; e; d; c1; c2; dd; tmp; k; __retres
+      vf1; e; d; c1; c2; dd; tmp; k; __retres
 [inout] Inputs for function main:
-          v
+      v

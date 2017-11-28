@@ -10,9 +10,9 @@
 tests/value/bug0245.i:20:[value] warning: locals {u} escaping the scope of a block of main through p
 tests/value/bug0245.i:20:[value] warning: locals {v} escaping the scope of a block of main through q
 tests/value/bug0245.i:23:[value] warning: accessing left-value that contains escaping addresses.
-                 assert ¬\dangling(&p);
+    assert ¬\dangling(&p);
 tests/value/bug0245.i:24:[value] warning: accessing left-value that contains escaping addresses.
-                 assert ¬\dangling(&q);
+    assert ¬\dangling(&q);
 [value] Recording results for main
 [value] done for function main
 tests/value/bug0245.i:23:[value] assertion 'Value,dangling_pointer' got final status invalid.
@@ -28,7 +28,7 @@ tests/value/bug0245.i:24:[value] assertion 'Value,dangling_pointer' got final st
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   R FROM c (and SELF)
   p FROM \nothing
@@ -36,6 +36,6 @@ tests/value/bug0245.i:24:[value] assertion 'Value,dangling_pointer' got final st
   q FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          R; p; S; q; a; i; u; v
+      R; p; S; q; a; i; u; v
 [inout] Inputs for function main:
-          p; q
+      p; q

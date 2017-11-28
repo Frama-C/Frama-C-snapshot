@@ -19,7 +19,7 @@ tests/slicing/loops.i:54:[value] warning: signed overflow. assert x2 + 1 ≤ 214
 [from] Non-terminating function f2 (no dependencies)
 [from] Done for function f2
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f2:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======

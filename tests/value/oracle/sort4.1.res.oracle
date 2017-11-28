@@ -44,13 +44,13 @@ tests/value/sort4.i:26:[value] warning: function sort4_4: postcondition got stat
 [from] Computing for function sort4_4
 [from] Done for function sort4_4
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function sort4_4:
   S_t[0] FROM t; S_t[0..3] (and SELF)
      [1..2] FROM t; S_t[0..3] (and SELF)
      [3] FROM t; S_t[0..3] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function sort4_4:
-          tmp; S_t[0..3]
+      tmp; S_t[0..3]
 [inout] Inputs for function sort4_4:
-          S_t[0..3]
+      S_t[0..3]

@@ -75,8 +75,8 @@ tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Igno
 [wp] [Qed] Goal typed_predicate_bitwise_post_r_precedence_equiv_Pand : Valid
 [wp] [Qed] Goal typed_predicate_bitwise_post_l_precedence_equiv_Pand : Valid
 [wp] Proved goals:   52 / 52
-     Qed:            51 
-     Alt-Ergo:        1
+    Qed:            51 
+    Alt-Ergo:        1
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 predicate           29      1 (9)     30       100%

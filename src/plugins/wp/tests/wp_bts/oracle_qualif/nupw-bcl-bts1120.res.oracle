@@ -19,7 +19,7 @@
 [wp] [Qed] Goal typed_unreachable_smt_with_contract_post_ok : Valid
 [wp] [Qed] Goal typed_unreachable_smt_with_contract_call_f_with_precond_pre_ok_2 : Valid
 [wp] Proved goals:    8 / 8
-     Qed:             8
+    Qed:             8
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 g                    6     -           6       100%

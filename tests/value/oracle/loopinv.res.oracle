@@ -5,9 +5,9 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main1 <- main.
-        Called from tests/value/loopinv.c:63.
+    Called from tests/value/loopinv.c:63.
 [value] computing for function init <- main1 <- main.
-        Called from tests/value/loopinv.c:22.
+    Called from tests/value/loopinv.c:22.
 tests/value/loopinv.c:5:[value] function init: precondition got status valid.
 tests/value/loopinv.c:6:[value] function init: precondition got status valid.
 tests/value/loopinv.c:9:[value] loop invariant got status valid.
@@ -15,20 +15,20 @@ tests/value/loopinv.c:10:[value] entering loop for the first time
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function init <- main1 <- main.
-        Called from tests/value/loopinv.c:25.
+    Called from tests/value/loopinv.c:25.
 [value] Recording results for init
 [value] Done for function init
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/value/loopinv.c:64.
+    Called from tests/value/loopinv.c:64.
 tests/value/loopinv.c:32:[value] loop invariant got status valid.
 tests/value/loopinv.c:33:[value] loop invariant got status valid.
 tests/value/loopinv.c:32:[value] warning: loop invariant got status invalid (stopping propagation).
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/value/loopinv.c:65.
+    Called from tests/value/loopinv.c:65.
 tests/value/loopinv.c:42:[value] loop invariant got status valid.
 tests/value/loopinv.c:43:[value] entering loop for the first time
 tests/value/loopinv.c:46:[value] Frama_C_show_each: {0}, {0}
@@ -50,7 +50,7 @@ tests/value/loopinv.c:46:[value] Frama_C_show_each: [0..99], [0..2147483647]
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/value/loopinv.c:66.
+    Called from tests/value/loopinv.c:66.
 tests/value/loopinv.c:58:[value] loop invariant got status valid.
 tests/value/loopinv.c:59:[value] entering loop for the first time
 tests/value/loopinv.c:58:[value] warning: loop invariant got status unknown.

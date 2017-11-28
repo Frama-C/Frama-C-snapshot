@@ -24,7 +24,7 @@ tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   result1 FROM d (and SELF)
   result3 FROM c; f (and SELF)
@@ -34,6 +34,6 @@ tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
   \result FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          result1; result3; result4; result2; d2; f; __retres
+      result1; result3; result4; result2; d2; f; __retres
 [inout] Inputs for function main:
-          \nothing
+      \nothing

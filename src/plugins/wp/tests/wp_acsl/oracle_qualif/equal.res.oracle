@@ -11,8 +11,8 @@
 [wp] [Alt-Ergo] Goal typed_with_ptr_array_post : Valid
 [wp] [Alt-Ergo] Goal typed_with_ptr_struct_post : Valid
 [wp] Proved goals:    6 / 6
-     Qed:             1 
-     Alt-Ergo:        5
+    Qed:             1 
+    Alt-Ergo:        5
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 simple_struct        1     -           1       100%

@@ -7,12 +7,12 @@
 tests/value/slevelex.i:80:[value] warning: assertion got status unknown.
 tests/value/slevelex.i:82:[value] Frama_C_show_each_xy: {1; 2}, {1; 2}
 [value] computing for function f <- main.
-        Called from tests/value/slevelex.i:83.
+    Called from tests/value/slevelex.i:83.
 [value] Recording results for f
 [value] Done for function f
 tests/value/slevelex.i:84:[value] assertion got status valid.
 [value] computing for function gu <- main.
-        Called from tests/value/slevelex.i:88.
+    Called from tests/value/slevelex.i:88.
 tests/value/slevelex.i:26:[value] assertion got status valid.
 tests/value/slevelex.i:40:[value] Frama_C_show_each_u: {1}
 tests/value/slevelex.i:40:[value] Frama_C_show_each_u: {2}
@@ -37,7 +37,7 @@ tests/value/slevelex.i:40:[value] Frama_C_show_each_u: {20}
 [value] Recording results for gu
 [value] Done for function gu
 [value] computing for function ginc <- main.
-        Called from tests/value/slevelex.i:89.
+    Called from tests/value/slevelex.i:89.
 tests/value/slevelex.i:49:[value] assertion got status valid.
 tests/value/slevelex.i:63:[value] Frama_C_show_each_inc: {4}
 tests/value/slevelex.i:63:[value] Frama_C_show_each_inc: {8}
@@ -85,7 +85,7 @@ tests/value/slevelex.i:63:[value] Frama_C_show_each_inc: {80}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM c
 [from] Function ginc:
@@ -96,18 +96,18 @@ tests/value/slevelex.i:63:[value] Frama_C_show_each_inc: {80}
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          x; y; __retres
+      x; y; __retres
 [inout] Inputs for function f:
-          c
+      c
 [inout] Out (internal) for function ginc:
-          inc
+      inc
 [inout] Inputs for function ginc:
-          \nothing
+      \nothing
 [inout] Out (internal) for function gu:
-          \nothing
+      \nothing
 [inout] Inputs for function gu:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          un; x; y
+      un; x; y
 [inout] Inputs for function main:
-          c
+      c

@@ -6,7 +6,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-        Called from tests/saveload/multi_project.i:14.
+    Called from tests/saveload/multi_project.i:14.
 [value] Recording results for f
 [value] Done for function f
 tests/saveload/multi_project.i:15:[value] assertion got status valid.

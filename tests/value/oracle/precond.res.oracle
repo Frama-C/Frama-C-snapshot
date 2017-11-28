@@ -6,25 +6,25 @@
   x ∈ [--..--]
   pf2 ∈ {{ &f2 }}
 [value] computing for function f <- main.
-        Called from tests/value/precond.c:31.
+    Called from tests/value/precond.c:31.
 tests/value/precond.c:8:[value] function f: precondition got status valid.
 tests/value/precond.c:9:[value] function f: precondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/value/precond.c:32.
+    Called from tests/value/precond.c:32.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-        Called from tests/value/precond.c:34.
+    Called from tests/value/precond.c:34.
 tests/value/precond.c:34:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
 [value] using specification for function g
 tests/value/precond.c:24:[value] warning: function g: precondition got status unknown.
 [value] Done for function g
 [value] computing for function aux <- main.
-        Called from tests/value/precond.c:36.
+    Called from tests/value/precond.c:36.
 [value] computing for function f2 <- aux <- main.
-        Called from tests/value/precond.c:21.
+    Called from tests/value/precond.c:21.
 tests/value/precond.c:21:[kernel] warning: No code nor implicit assigns clause for function f2, generating default assigns from the prototype
 [value] using specification for function f2
 tests/value/precond.c:15:[value] function f2: precondition got status valid.
@@ -32,19 +32,19 @@ tests/value/precond.c:15:[value] function f2: precondition got status valid.
 [value] Recording results for aux
 [value] Done for function aux
 [value] computing for function aux <- main.
-        Called from tests/value/precond.c:37.
+    Called from tests/value/precond.c:37.
 [value] computing for function f2 <- aux <- main.
-        Called from tests/value/precond.c:21.
+    Called from tests/value/precond.c:21.
 tests/value/precond.c:15:[value] warning: function f2: precondition got status unknown.
 [value] Done for function f2
 [value] Recording results for aux
 [value] Done for function aux
 [value] computing for function f <- main.
-        Called from tests/value/precond.c:39.
+    Called from tests/value/precond.c:39.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/value/precond.c:40.
+    Called from tests/value/precond.c:40.
 tests/value/precond.c:9:[value] warning: function f: precondition got status invalid.
 [value] Recording results for f
 [value] Done for function f

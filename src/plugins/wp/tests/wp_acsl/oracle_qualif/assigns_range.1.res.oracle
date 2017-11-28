@@ -11,7 +11,7 @@
 [wp] [Alt-Ergo] Goal typed_call_assigns_t4_assign_exit : Unknown
 [wp] [Alt-Ergo] Goal typed_call_assigns_t4_assign_normal : Unknown
 [wp] Proved goals:    0 / 6
-     Alt-Ergo:        0  (unknown: 6)
+    Alt-Ergo:        0  (unknown: 6)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 call_assigns_t1     -      -           2       0.0%

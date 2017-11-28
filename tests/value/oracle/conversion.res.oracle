@@ -5,79 +5,79 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/value/conversion.i:16:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ {1}
-        y ∈ UNINITIALIZED
-        f ∈ {1.40129846432e-45}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ {1}
+    y ∈ UNINITIALIZED
+    f ∈ {1.40129846432e-45}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:19:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/conversion.i:21:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [0..1120000000]
-        y ∈ UNINITIALIZED
-        f ∈ [0. .. 96.921875]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [0..1120000000]
+    y ∈ UNINITIALIZED
+    f ∈ [0. .. 96.921875]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:24:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/conversion.i:25:[value] warning: non-finite float value. assert \is_finite(*((float *)(&x)));
 tests/value/conversion.i:26:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [-10..10]
-        y ∈ UNINITIALIZED
-        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [-10..10]
+    y ∈ UNINITIALIZED
+    f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:29:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/conversion.i:31:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [-10..10]
-        y ∈ [-10..10]
-        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [-10..10]
+    y ∈ [-10..10]
+    f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:34:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/conversion.i:36:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [1077936128..1084227584]
-        y ∈ [-10..10]
-        f ∈ [3. .. 5.]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [1077936128..1084227584]
+    y ∈ [-10..10]
+    f ∈ [3. .. 5.]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:39:[value] warning: non-finite float value. assert \is_finite(*((float *)(&x)));
 tests/value/conversion.i:40:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ {{ (int)&x }}
-        y ∈ [-10..10]
-        f ∈ {{ (float)&x }}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ {{ (int)&x }}
+    y ∈ [-10..10]
+    f ∈ {{ (float)&x }}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:45:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x[bits 0 to 15] ∈ {1}
-         [bits 16 to 31] ∈ {2}
-        y ∈ [-10..10]
-        f[bits 0 to 15] ∈ {1}
-         [bits 16 to 31] ∈ {2}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x[bits 0 to 15] ∈ {1}
+     [bits 16 to 31] ∈ {2}
+    y ∈ [-10..10]
+    f[bits 0 to 15] ∈ {1}
+     [bits 16 to 31] ∈ {2}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:50:[value] warning: assertion 'ASSUME' got status unknown.
 tests/value/conversion.i:53:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x[bits 0 to 15] ∈ {1}
-         [bits 16 to 31] ∈ {2}
-        y ∈ [-10..10]
-        f ∈ [7.00649232162e-45 .. 2.10194769649e-44] or UNINITIALIZED
-        l ∈ [5..15] or UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x[bits 0 to 15] ∈ {1}
+     [bits 16 to 31] ∈ {2}
+    y ∈ [-10..10]
+    f ∈ [7.00649232162e-45 .. 2.10194769649e-44] or UNINITIALIZED
+    l ∈ [5..15] or UNINITIALIZED
+    ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -90,91 +90,91 @@ tests/value/conversion.i:53:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          x; y; f; l
+      x; y; f; l
 [inout] Inputs for function main:
-          v
+      v
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 tests/value/conversion.i:16:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ {1}
-        y ∈ UNINITIALIZED
-        f ∈ {1.40129846432e-45}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ {1}
+    y ∈ UNINITIALIZED
+    f ∈ {1.40129846432e-45}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:21:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [0..1120000000]
-        y ∈ UNINITIALIZED
-        f ∈ [0. .. 96.921875]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [0..1120000000]
+    y ∈ UNINITIALIZED
+    f ∈ [0. .. 96.921875]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:25:[value] warning: non-finite float value. assert \is_finite(*((float *)(&x)));
 tests/value/conversion.i:26:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [-10..10]
-        y ∈ UNINITIALIZED
-        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [-10..10]
+    y ∈ UNINITIALIZED
+    f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:31:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [-10..10]
-        y ∈ [--..--]
-        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [-10..10]
+    y ∈ [--..--]
+    f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:36:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ [1077936128..1084227584]
-        y ∈ [--..--]
-        f ∈ [3. .. 5.]
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ [1077936128..1084227584]
+    y ∈ [--..--]
+    f ∈ [3. .. 5.]
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:39:[value] warning: non-finite float value. assert \is_finite(*((float *)(&x)));
 tests/value/conversion.i:39:[value] Assigning imprecise value to f.
-        The imprecision originates from Arithmetic {tests/value/conversion.i:39}
+    The imprecision originates from Arithmetic {tests/value/conversion.i:39}
 tests/value/conversion.i:40:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x ∈ {{ (int)&x }}
-        y ∈ [--..--]
-        f ∈
-         {{ garbled mix of &{x} (origin: Arithmetic {tests/value/conversion.i:39}) }}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x ∈ {{ (int)&x }}
+    y ∈ [--..--]
+    f ∈
+     {{ garbled mix of &{x} (origin: Arithmetic {tests/value/conversion.i:39}) }}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:45:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x[bits 0 to 15] ∈ {1}
-         [bits 16 to 31] ∈ {2}
-        y ∈ [--..--]
-        f ∈ {1.83672393614e-40}
-        l ∈ UNINITIALIZED
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x[bits 0 to 15] ∈ {1}
+     [bits 16 to 31] ∈ {2}
+    y ∈ [--..--]
+    f ∈ {1.83672393614e-40}
+    l ∈ UNINITIALIZED
+    ==END OF DUMP==
 tests/value/conversion.i:52:[value] warning: accessing uninitialized left-value. assert \initialized((float *)(&l));
 tests/value/conversion.i:53:[value] Frama_C_dump_each:
-        # Cvalue domain:
-        v ∈ [--..--]
-        x[bits 0 to 15] ∈ {1}
-         [bits 16 to 31] ∈ {2}
-        y ∈ [--..--]
-        f ∈ [7.00649232162e-45 .. 2.10194769649e-44]
-        l ∈ [7.00649232162e-45 .. 2.10194769649e-44]
-        ==END OF DUMP==
+    # Cvalue domain:
+    v ∈ [--..--]
+    x[bits 0 to 15] ∈ {1}
+     [bits 16 to 31] ∈ {2}
+    y ∈ [--..--]
+    f ∈ [7.00649232162e-45 .. 2.10194769649e-44]
+    l ∈ [7.00649232162e-45 .. 2.10194769649e-44]
+    ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -187,11 +187,11 @@ tests/value/conversion.i:53:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          x; y; f; l
+      x; y; f; l
 [inout] Inputs for function main:
-          v
+      v

@@ -7,7 +7,7 @@
                  [4..9999] ∈ {0}
   next_free ∈ {0}
 [value] computing for function LIB_MEM_StaticAlloc <- main3.
-        Called from tests/value/array_array.c:66.
+    Called from tests/value/array_array.c:66.
 tests/value/array_array.c:13:[value] Frama_C_show_each_ALLOCATION_WITH_STATIC_ALLOC: {24}
 [value] Recording results for LIB_MEM_StaticAlloc
 [value] Done for function LIB_MEM_StaticAlloc
@@ -29,7 +29,7 @@ tests/value/array_array.c:69:[value] assertion 'Value,index_bound' got final sta
 [from] Non-terminating function main3 (no dependencies)
 [from] Done for function main3
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function LIB_MEM_StaticAlloc:
   next_free FROM size; next_free
   \result FROM next_free
@@ -37,10 +37,10 @@ tests/value/array_array.c:69:[value] assertion 'Value,index_bound' got final sta
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function LIB_MEM_StaticAlloc:
-          new; tmp; next_free
+      new; tmp; next_free
 [inout] Inputs for function LIB_MEM_StaticAlloc:
-          next_free
+      next_free
 [inout] Out (internal) for function main3:
-          v; i; next_free
+      v; i; next_free
 [inout] Inputs for function main3:
-          next_free
+      next_free

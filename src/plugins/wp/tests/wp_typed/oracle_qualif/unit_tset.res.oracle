@@ -7,7 +7,7 @@
 [wp] [Qed] Goal typed_complex_call_job_pre : Valid
 [wp] [Qed] Goal typed_complex_stmt_assign : Valid
 [wp] Proved goals:    2 / 2
-     Qed:             2
+    Qed:             2
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 complex              2     -           2       100%

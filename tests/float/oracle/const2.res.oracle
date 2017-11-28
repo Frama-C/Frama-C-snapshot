@@ -10,5 +10,5 @@ tests/float/const2.i:2:[value] evaluation of initializer '1e40f' failed
 [value] Value analysis not started because globals initialization is not computable.
 [value] ====== VALUES COMPUTED ======
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] ====== END OF DEPENDENCIES ======

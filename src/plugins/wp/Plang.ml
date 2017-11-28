@@ -97,7 +97,7 @@ class engine =
     method e_true _ = "true"
     method e_false _ = "false"
     method pp_int _ = Integer.pretty ~hexa:false
-    method pp_cst = Qed.Numbers.pretty
+    method pp_real fmt q = Format.fprintf fmt "(%s)" (Q.to_string q)
 
     (* --- Atomicity --- *)
 

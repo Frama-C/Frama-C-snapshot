@@ -12,49 +12,49 @@
 tests/slicing/select_by_annot.i:133:[value] assertion got status valid.
 tests/slicing/select_by_annot.i:137:[value] warning: signed overflow. assert (int)((int)(a + b) + c) + d ≤ 2147483647;
 [value] computing for function modifS <- main.
-        Called from tests/slicing/select_by_annot.i:138.
+    Called from tests/slicing/select_by_annot.i:138.
 tests/slicing/select_by_annot.i:122:[value] warning: signed overflow. assert S.a + a ≤ 2147483647;
 [value] Recording results for modifS
 [value] Done for function modifS
 [value] computing for function new_int <- main.
-        Called from tests/slicing/select_by_annot.i:140.
+    Called from tests/slicing/select_by_annot.i:140.
 tests/slicing/select_by_annot.i:140:[kernel] warning: Neither code nor specification for function new_int, generating default assigns from the prototype
 [value] using specification for function new_int
 [value] Done for function new_int
 [value] computing for function f1 <- main.
-        Called from tests/slicing/select_by_annot.i:141.
+    Called from tests/slicing/select_by_annot.i:141.
 tests/slicing/select_by_annot.i:29:[value] warning: assertion got status unknown.
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-        Called from tests/slicing/select_by_annot.i:142.
+    Called from tests/slicing/select_by_annot.i:142.
 tests/slicing/select_by_annot.i:39:[value] warning: assertion got status unknown.
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-        Called from tests/slicing/select_by_annot.i:143.
+    Called from tests/slicing/select_by_annot.i:143.
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
-        Called from tests/slicing/select_by_annot.i:144.
+    Called from tests/slicing/select_by_annot.i:144.
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
-        Called from tests/slicing/select_by_annot.i:145.
+    Called from tests/slicing/select_by_annot.i:145.
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
-        Called from tests/slicing/select_by_annot.i:146.
+    Called from tests/slicing/select_by_annot.i:146.
 tests/slicing/select_by_annot.i:77:[value] warning: signed overflow. assert Sa + 1 ≤ 2147483647;
 [value] Recording results for f6
 [value] Done for function f6
 [value] computing for function f7 <- main.
-        Called from tests/slicing/select_by_annot.i:147.
+    Called from tests/slicing/select_by_annot.i:147.
 tests/slicing/select_by_annot.i:88:[value] warning: signed overflow. assert Sa + 1 ≤ 2147483647;
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
-        Called from tests/slicing/select_by_annot.i:148.
+    Called from tests/slicing/select_by_annot.i:148.
 tests/slicing/select_by_annot.i:97:[value] warning: loop invariant got status unknown.
 tests/slicing/select_by_annot.i:99:[value] entering loop for the first time
 tests/slicing/select_by_annot.i:100:[value] warning: assertion got status unknown.
@@ -62,7 +62,7 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
 [value] Recording results for f8
 [value] Done for function f8
 [value] computing for function f9 <- main.
-        Called from tests/slicing/select_by_annot.i:149.
+    Called from tests/slicing/select_by_annot.i:149.
 [value] Recording results for f9
 [value] Done for function f9
 [value] Recording results for main
@@ -92,7 +92,7 @@ tests/slicing/select_by_annot.i:104:[value] warning: signed overflow. assert S.a
 [from] Done for function new_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   Sa FROM S.a; cond (and SELF)
   \result FROM S.a; Sa; cond

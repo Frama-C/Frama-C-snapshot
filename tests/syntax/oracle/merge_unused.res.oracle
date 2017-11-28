@@ -1,0 +1,32 @@
+[kernel] Parsing tests/syntax/merge_unused.c (with preprocessing)
+[kernel] Parsing tests/syntax/merge_unused_2.c (with preprocessing)
+[kernel:WARNING:link:drop-conflicting-unused] Incompatible declaration for G1:
+    Definitions of struct s are not isomorphic. Reason follows:
+    incompatible attributes in composite types and/or field i
+    struct s {
+       char c  __attribute__((__aligned__(1)));
+       int i  __attribute__((__aligned__(1)));
+    } __attribute__((__packed__, __aligned__(1)));
+    struct s {
+       char c ;
+       int i ;
+    };
+    
+    First declaration was at tests/syntax/merge_unused.c:11
+    Current declaration is at tests/syntax/merge_unused.h:7
+    Current declaration is unused, silently removing it
+[kernel] user error: Incompatible declaration for G3:
+    Definitions of struct s are not isomorphic. Reason follows:
+    incompatible attributes in composite types and/or field i
+    struct s {
+       char c  __attribute__((__aligned__(1)));
+       int i  __attribute__((__aligned__(1)));
+    } __attribute__((__packed__, __aligned__(1)));
+    struct s {
+       char c ;
+       int i ;
+    };
+    
+    First declaration was at tests/syntax/merge_unused.h:9
+    Current declaration is at tests/syntax/merge_unused.h:9
+[kernel] Frama-C aborted: invalid user input.

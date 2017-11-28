@@ -13,11 +13,11 @@
 [from] Computing for function main2
 [from] Done for function main2
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main2:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main2:
-          ptr_ret
+      ptr_ret
 [inout] Inputs for function main2:
-          \nothing
+      \nothing

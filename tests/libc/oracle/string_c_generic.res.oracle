@@ -10,7 +10,7 @@
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:56.
+    Called from tests/libc/string_c_generic.c:56.
 share/libc/string.h:221:[value] function strcpy: precondition 'valid_string_src' got status valid.
 share/libc/string.h:222:[value] function strcpy: precondition 'room_string' got status valid.
 share/libc/string.h:224:[value] function strcpy: precondition 'separated_strings' got status valid.
@@ -20,7 +20,7 @@ share/libc/string.h:228:[value] function strcpy: postcondition got status valid.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:57.
+    Called from tests/libc/string_c_generic.c:57.
 share/libc/string.h:104:[value] function strcmp: precondition 'valid_string_s1' got status valid.
 share/libc/string.h:105:[value] function strcmp: precondition 'valid_string_s2' got status valid.
 share/libc/string.h:107:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
@@ -28,55 +28,55 @@ share/libc/string.h:107:[value] warning: function strcmp: postcondition got stat
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:58.
+    Called from tests/libc/string_c_generic.c:58.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:59.
+    Called from tests/libc/string_c_generic.c:59.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:60.
+    Called from tests/libc/string_c_generic.c:60.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:61.
+    Called from tests/libc/string_c_generic.c:61.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:62.
+    Called from tests/libc/string_c_generic.c:62.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:63.
+    Called from tests/libc/string_c_generic.c:63.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:65.
+    Called from tests/libc/string_c_generic.c:65.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:66.
+    Called from tests/libc/string_c_generic.c:66.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:67.
+    Called from tests/libc/string_c_generic.c:67.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:68.
+    Called from tests/libc/string_c_generic.c:68.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:69.
+    Called from tests/libc/string_c_generic.c:69.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:70.
+    Called from tests/libc/string_c_generic.c:70.
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function memset <- main.
-        Called from tests/libc/string_c_generic.c:72.
+    Called from tests/libc/string_c_generic.c:72.
 share/libc/string.h:82:[value] function memset: precondition got status valid.
 share/libc/string.c:85:[value] entering loop for the first time
 share/libc/string.h:85:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
@@ -85,7 +85,7 @@ share/libc/string.h:86:[value] function memset: postcondition got status valid.
 [value] Recording results for memset
 [value] Done for function memset
 [value] computing for function strncpy <- main.
-        Called from tests/libc/string_c_generic.c:73.
+    Called from tests/libc/string_c_generic.c:73.
 share/libc/string.h:233:[value] function strncpy: precondition 'valid_string_src' got status valid.
 share/libc/string.h:234:[value] function strncpy: precondition 'room_nstring' got status valid.
 share/libc/string.c:184:[value] entering loop for the first time
@@ -96,7 +96,7 @@ share/libc/string.h:241:[value] warning: function strncpy, behavior complete: po
 [value] Recording results for strncpy
 [value] Done for function strncpy
 [value] computing for function memcmp <- main.
-        Called from tests/libc/string_c_generic.c:74.
+    Called from tests/libc/string_c_generic.c:74.
 share/libc/string.h:36:[value] function memcmp: precondition got status valid.
 share/libc/string.h:37:[value] function memcmp: precondition got status valid.
 share/libc/string.c:116:[value] entering loop for the first time
@@ -105,13 +105,13 @@ share/libc/string.h:39:[value] warning: function memcmp: postcondition got statu
 [value] Recording results for memcmp
 [value] Done for function memcmp
 [value] computing for function strncpy <- main.
-        Called from tests/libc/string_c_generic.c:78.
+    Called from tests/libc/string_c_generic.c:78.
 share/libc/string.h:244:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.h:244:[value] warning: function strncpy, behavior partial: postcondition got status unknown.
 [value] Recording results for strncpy
 [value] Done for function strncpy
 [value] computing for function strncmp <- main.
-        Called from tests/libc/string_c_generic.c:82.
+    Called from tests/libc/string_c_generic.c:82.
 share/libc/string.h:111:[value] function strncmp: precondition 'valid_string_s1' got status valid.
 share/libc/string.h:112:[value] function strncmp: precondition 'valid_string_s2' got status valid.
 share/libc/string.c:102:[value] entering loop for the first time
@@ -120,20 +120,20 @@ share/libc/string.h:114:[value] warning: function strncmp: postcondition got sta
 [value] Recording results for strncmp
 [value] Done for function strncmp
 [value] computing for function strncmp <- main.
-        Called from tests/libc/string_c_generic.c:83.
+    Called from tests/libc/string_c_generic.c:83.
 [value] Recording results for strncmp
 [value] Done for function strncmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:85.
+    Called from tests/libc/string_c_generic.c:85.
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strncat <- main.
-        Called from tests/libc/string_c_generic.c:86.
+    Called from tests/libc/string_c_generic.c:86.
 share/libc/string.h:276:[value] function strncat: precondition 'valid_string_src' got status valid.
 share/libc/string.h:277:[value] function strncat: precondition 'valid_string_dst' got status valid.
 share/libc/string.h:290:[value] function strncat, behavior partial: precondition 'room_string' got status valid.
 [value] computing for function strlen <- strncat <- main.
-        Called from share/libc/string.c:157.
+    Called from share/libc/string.c:157.
 share/libc/string.h:92:[value] function strlen: precondition 'valid_string_src' got status valid.
 share/libc/string.h:94:[value] function strlen: postcondition got status valid.
 [value] Recording results for strlen
@@ -143,17 +143,17 @@ share/libc/string.h:294:[value] function strncat, behavior partial: postconditio
 [value] Recording results for strncat
 [value] Done for function strncat
 [value] computing for function strcmp <- main.
-        Called from tests/libc/string_c_generic.c:88.
+    Called from tests/libc/string_c_generic.c:88.
 share/libc/string.c:94:[value] entering loop for the first time
 [value] Recording results for strcmp
 [value] Done for function strcmp
 [value] computing for function strcpy <- main.
-        Called from tests/libc/string_c_generic.c:90.
+    Called from tests/libc/string_c_generic.c:90.
 share/libc/string.c:171:[value] entering loop for the first time
 [value] Recording results for strcpy
 [value] Done for function strcpy
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_generic.c:91.
+    Called from tests/libc/string_c_generic.c:91.
 share/libc/string.h:124:[value] function strchr: precondition 'valid_string_src' got status valid.
 share/libc/string.h:127:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.h:134:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
@@ -167,7 +167,7 @@ share/libc/string.h:137:[value] function strchr, behavior default: postcondition
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strchr <- main.
-        Called from tests/libc/string_c_generic.c:92.
+    Called from tests/libc/string_c_generic.c:92.
 share/libc/string.c:193:[value] entering loop for the first time
 share/libc/string.h:128:[value] warning: function strchr, behavior found: postcondition got status unknown. (Behavior may be inactive, no reduction performed.)
 share/libc/string.h:129:[value] warning: function strchr, behavior found: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
@@ -177,12 +177,12 @@ share/libc/string.h:135:[value] function strchr, behavior not_found: postconditi
 [value] Recording results for strchr
 [value] Done for function strchr
 [value] computing for function strrchr <- main.
-        Called from tests/libc/string_c_generic.c:93.
+    Called from tests/libc/string_c_generic.c:93.
 share/libc/string.h:141:[value] function strrchr: precondition 'valid_string_src' got status valid.
 share/libc/string.h:144:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 share/libc/string.h:149:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
 [value] computing for function strlen <- strrchr <- main.
-        Called from share/libc/string.c:201.
+    Called from share/libc/string.c:201.
 share/libc/string.c:78:[value] entering loop for the first time
 [value] Recording results for strlen
 [value] Done for function strlen
@@ -194,9 +194,9 @@ share/libc/string.h:152:[value] function strrchr, behavior default: postconditio
 [value] Recording results for strrchr
 [value] Done for function strrchr
 [value] computing for function strrchr <- main.
-        Called from tests/libc/string_c_generic.c:94.
+    Called from tests/libc/string_c_generic.c:94.
 [value] computing for function strlen <- strrchr <- main.
-        Called from share/libc/string.c:201.
+    Called from share/libc/string.c:201.
 [value] Recording results for strlen
 [value] Done for function strlen
 share/libc/string.c:201:[value] entering loop for the first time

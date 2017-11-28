@@ -10,7 +10,7 @@ tests/wp_plugin/loopentry.i:12:[wp] warning: Missing assigns clause (assigns 'ev
 [wp] [Qed] Goal typed_f_loop_inv_2_preserved : Valid
 [wp] [Qed] Goal typed_f_loop_inv_2_established : Valid
 [wp] Proved goals:    4 / 4
-     Qed:             4
+    Qed:             4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    4     -           4       100%

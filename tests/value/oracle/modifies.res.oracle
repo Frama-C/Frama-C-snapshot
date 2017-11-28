@@ -22,7 +22,7 @@ tests/value/modifies.i:11:[value] warning: signed overflow. assert TAB[6] + 1 â‰
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   TAB[1] FROM TAB[1]; G; H; J (and SELF)
      [4] FROM TAB[4]; H (and SELF)
@@ -32,6 +32,6 @@ tests/value/modifies.i:11:[value] warning: signed overflow. assert TAB[6] + 1 â‰
   J FROM H; J (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          TAB{[1]; [4]; [6]}; G; H; J
+      TAB{[1]; [4]; [6]}; G; H; J
 [inout] Inputs for function main:
-          TAB{[1]; [4]; [6]}; G; H; J
+      TAB{[1]; [4]; [6]}; G; H; J

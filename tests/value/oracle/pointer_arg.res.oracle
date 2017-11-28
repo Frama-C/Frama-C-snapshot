@@ -30,7 +30,7 @@ tests/value/pointer_arg.i:7:[value] assertion 'Value,mem_access' got final statu
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_argv[0..1] FROM v; argv (and SELF)
   S_0_S_argv[0] FROM v; argv; S_argv[0]
@@ -38,6 +38,6 @@ tests/value/pointer_arg.i:7:[value] assertion 'Value,mem_access' got final statu
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          __retres; S_argv[0..1]; S_0_S_argv[0]; S_arg[0..1]
+      __retres; S_argv[0..1]; S_0_S_argv[0]; S_arg[0..1]
 [inout] Inputs for function main:
-          v; S_argv[0]
+      v; S_argv[0]

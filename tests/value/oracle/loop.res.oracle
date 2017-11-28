@@ -27,12 +27,12 @@ tests/value/loop.i:9:[value] warning: signed overflow. assert i_0 + r ≤ 214748
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   n FROM \nothing
   r FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          n; r; i_0
+      n; r; i_0
 [inout] Inputs for function main:
-          n; r
+      n; r

@@ -30,15 +30,15 @@ tests/value/volatilestruct.c:34:[value] warning: signed overflow. assert (int)(&
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   s2.f4{.f1; .f2} FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p; s2.f4{.f1; .f2}; q1; q2; i; j; r; s
+      p; s2.f4{.f1; .f2}; q1; q2; i; j; r; s
 [inout] Inputs for function main:
-          p; s2{.f4{.f1; .f2}; .f5}
+      p; s2{.f4{.f1; .f2}; .f5}
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -66,12 +66,12 @@ tests/value/volatilestruct.c:34:[value] warning: 2's complement assumed for over
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   s2.f4{.f1; .f2} FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          p; s2.f4{.f1; .f2}; q1; q2; i; j; r; s
+      p; s2.f4{.f1; .f2}; q1; q2; i; j; r; s
 [inout] Inputs for function main:
-          p; s2{.f4{.f1; .f2}; .f5}
+      p; s2{.f4{.f1; .f2}; .f5}

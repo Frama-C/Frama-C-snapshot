@@ -235,8 +235,4 @@ let popcount = Z.popcount
   let round_down_to_r ~max:m ~r ~modu =
     add (round_down_to_zero (sub m r) modu) r
 
-  let to_num b = 
-    Num.num_of_big_int
-      (Big_int.big_int_of_string (Big_int_Z.string_of_big_int b))
-
   let power_int_positive_int = Big_int_Z.power_int_positive_int

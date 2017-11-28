@@ -7,7 +7,7 @@
   j ∈ {0}
   k ∈ {0}
 [value] computing for function any_int <- main.
-        Called from tests/value/loop3.c:8.
+    Called from tests/value/loop3.c:8.
 [value] using specification for function any_int
 [value] Done for function any_int
 tests/value/loop3.c:11:[value] entering loop for the first time
@@ -26,7 +26,7 @@ tests/value/loop3.c:11:[value] warning: signed overflow. assert k + 8 ≤ 214748
 [from] Done for function any_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:
@@ -35,6 +35,6 @@ tests/value/loop3.c:11:[value] warning: signed overflow. assert k + 8 ≤ 214748
   k FROM k (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          i; j; k; b
+      i; j; k; b
 [inout] Inputs for function main:
-          i; j; k
+      i; j; k

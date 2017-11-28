@@ -10,7 +10,7 @@ tests/wp_bts/bts_1588.i:5:[wp] warning: Missing assigns clause (assigns 'everyth
 [wp] [Qed] Goal typed_f_loop_inv_l1_2_established : Valid
 [wp] [Qed] Goal typed_f_assert_a1 : Valid
 [wp] Proved goals:    3 / 3
-     Qed:             3
+    Qed:             3
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    3     -           3       100%

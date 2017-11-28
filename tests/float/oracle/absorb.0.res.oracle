@@ -4,7 +4,7 @@
 [from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -19,6 +19,6 @@
   den FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
+      Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b; tmp
 [inout] Inputs for function main:
-          Frama_C_entropy_source; x; y; min_f
+      Frama_C_entropy_source; x; y; min_f

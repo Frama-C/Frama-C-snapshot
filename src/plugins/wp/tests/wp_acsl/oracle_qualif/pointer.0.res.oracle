@@ -16,8 +16,8 @@ tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations p_0 and mem:t
 [wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Le_oracle_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Eq_oracle_ko : Unknown
 [wp] Proved goals:    3 / 9
-     Qed:             1 
-     Alt-Ergo:        2  (unknown: 6)
+    Qed:             1 
+    Alt-Ergo:        2  (unknown: 6)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 array                1      2 (4)      3       100%

@@ -13,7 +13,11 @@ s s1;
 #ifndef __FRAMAC__
 #include <stddef.h>
 #include <stdio.h>
-int f2() {
-  printf("f2: offsetof b = %lu\n", offsetof(s, b));
-}
 #endif
+int f2() {
+  char c = s1.a;
+#ifndef __FRAMAC__
+  printf("f2: offsetof b = %lu\n", offsetof(s, b));
+#endif
+  return 0;
+}

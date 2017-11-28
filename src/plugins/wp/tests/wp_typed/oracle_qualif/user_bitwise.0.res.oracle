@@ -17,8 +17,8 @@
 [wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b1 : Valid
 [wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b2 : Valid
 [wp] Proved goals:   12 / 12
-     Qed:             1 
-     Alt-Ergo:       11
+    Qed:             1 
+    Alt-Ergo:       11
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 rl1                  1      1 (58)     2       100%

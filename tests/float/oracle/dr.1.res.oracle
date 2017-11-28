@@ -31,13 +31,13 @@ tests/float/dr.i:26:[value] Frama_C_show_each: {1}, {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   e1 FROM g1; f1
   e2 FROM g2; f2
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          e1; e2; __retres
+      e1; e2; __retres
 [inout] Inputs for function main:
-          g1; f1; g2; f2; e1; e2
+      g1; f1; g2; f2; e1; e2

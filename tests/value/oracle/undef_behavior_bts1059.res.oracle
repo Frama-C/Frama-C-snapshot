@@ -1,22 +1,22 @@
 [kernel] Parsing tests/value/undef_behavior_bts1059.i (no preprocessing)
 tests/value/undef_behavior_bts1059.i:15:[kernel] warning: Unspecified sequence with side effect:
-                  /* a <- 
-                  */
-                  
-                  if (b) tmp = 1;
-                  else {
-                    a ++;
-                    if (a == 2) tmp = 1; else tmp = 0;
-                  }
-                  /* a <-  */
-                  a = tmp;
+    /* a <- 
+    */
+    
+    if (b) tmp = 1;
+    else {
+      a ++;
+      if (a == 2) tmp = 1; else tmp = 0;
+    }
+    /* a <-  */
+    a = tmp;
 tests/value/undef_behavior_bts1059.i:23:[kernel] warning: Unspecified sequence with side effect:
-                  /*  <-  */
-                  tmp_4 = a;
-                  /* a <-  */
-                  a ++;
-                  /* a <- tmp_4 */
-                  a = tmp_4;
+    /*  <-  */
+    tmp_4 = a;
+    /* a <-  */
+    a ++;
+    /* a <- tmp_4 */
+    a = tmp_4;
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -36,11 +36,11 @@ tests/value/undef_behavior_bts1059.i:23:[value] assertion 'Value,separation' got
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          a; b; tmp_0; tmp_1; tmp_2; tmp_3; __retres
+      a; b; tmp_0; tmp_1; tmp_2; tmp_3; __retres
 [inout] Inputs for function main:
-          c
+      c

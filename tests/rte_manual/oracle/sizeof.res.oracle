@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function fsize3 <- main.
-        Called from tests/rte_manual/sizeof.c:9.
+    Called from tests/rte_manual/sizeof.c:9.
 tests/rte_manual/sizeof.c:4:[value] assertion 'alloca_bounds' got status valid.
 tests/rte_manual/sizeof.c:4:[value] allocating variable __malloc_fsize3_l4
 tests/rte_manual/sizeof.c:4:[kernel] warning: Neither code nor specification for function __fc_vla_alloc, generating default assigns from the prototype
@@ -30,7 +30,7 @@ tests/rte_manual/sizeof.c:4:[kernel] warning: Neither code nor specification for
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function __fc_vla_alloc:
   \result FROM \nothing
 [from] Function __fc_vla_free:
@@ -41,10 +41,10 @@ tests/rte_manual/sizeof.c:4:[kernel] warning: Neither code nor specification for
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function fsize3:
-          b; __lengthof_b; __retres
+      b; __lengthof_b; __retres
 [inout] Inputs for function fsize3:
-          \nothing
+      \nothing
 [inout] Out (internal) for function main:
-          tmp; __retres
+      tmp; __retres
 [inout] Inputs for function main:
-          \nothing
+      \nothing

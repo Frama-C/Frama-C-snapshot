@@ -142,124 +142,124 @@ tests/libc/fc_libc.c:148:[value] assertion got status valid.
 [value:final-states] Values at end of function main:
   
 [metrics] Defined functions (65)
-          ======================
-           Frama_C_double_interval (0 call); Frama_C_float_interval (0 call);
-           Frama_C_interval (0 call); Frama_C_nondet (5 calls);
-           Frama_C_nondet_ptr (0 call); __FC_assert (0 call); __finite (0 call);
-           __finitef (0 call); abs (0 call); atoi (0 call); calloc (0 call);
-           char_equal_ignore_case (1 call); fabs (0 call); fabsf (0 call);
-           feholdexcept (0 call); fesetenv (0 call); fetestexcept (0 call);
-           free (0 call); imaxabs (0 call); imaxdiv (0 call); isalnum (0 call);
-           isalpha (0 call); isblank (0 call); iscntrl (0 call); isdigit (3 calls);
-           isgraph (0 call); islower (0 call); isprint (0 call); ispunct (0 call);
-           isspace (1 call); isupper (0 call); isxdigit (0 call); localeconv (0 call);
-           main (0 call); malloc (3 calls); memchr (0 call); memcmp (0 call);
-           memcpy (3 calls); memmove (0 call); memrchr (0 call); memset (0 call);
-           setlocale (0 call); strcasecmp (0 call); strcat (0 call); strchr (0 call);
-           strcmp (0 call); strcpy (0 call); strdup (0 call); strerror (0 call);
-           strlen (4 calls); strncat (0 call); strncmp (0 call); strncpy (0 call);
-           strndup (0 call); strrchr (0 call); strstr (0 call); tolower (0 call);
-           toupper (0 call); wcscat (0 call); wcscpy (0 call); wcslen (2 calls);
-           wcsncat (0 call); wcsncpy (0 call); wmemcpy (0 call); wmemset (0 call); 
-          
-          Undefined functions (247)
-          =========================
-           FD_CLR (0 call); FD_ISSET (0 call); FD_SET (0 call); FD_ZERO (0 call);
-           Frama_C_abort (1 call); Frama_C_char_interval (0 call);
-           Frama_C_int_interval (0 call); Frama_C_long_interval (0 call);
-           Frama_C_long_long_interval (0 call); Frama_C_make_unknown (0 call);
-           Frama_C_short_interval (0 call); Frama_C_size_t_interval (0 call);
-           Frama_C_unsigned_char_interval (0 call);
-           Frama_C_unsigned_int_interval (0 call);
-           Frama_C_unsigned_long_interval (0 call);
-           Frama_C_unsigned_long_long_interval (0 call);
-           Frama_C_unsigned_short_interval (0 call); Frama_C_update_entropy (4 calls);
-           _Exit (0 call); __va_fcntl_flock (0 call); __va_fcntl_int (0 call);
-           __va_fcntl_void (0 call); __va_ioctl_ptr (0 call); __va_ioctl_void (0 call);
-           __va_open_mode_t (0 call); __va_open_void (0 call);
-           __va_openat_mode_t (0 call); __va_openat_void (0 call); abort (0 call);
-           accept (0 call); acos (0 call); acosf (0 call); acosh (0 call);
-           acoshf (0 call); acoshl (0 call); acosl (0 call); alloca (0 call);
-           asin (0 call); asinf (0 call); asinl (0 call); at_quick_exit (0 call);
-           atan2 (0 call); atexit (0 call); atof (0 call); atol (0 call);
-           atoll (0 call); bind (0 call); bsearch (0 call); bzero (0 call);
-           ceil (0 call); ceilf (0 call); clearerr (0 call);
-           clearerr_unlocked (0 call); clock (0 call); close (0 call);
-           closedir (0 call); closelog (0 call); connect (0 call); cos (0 call);
-           creat (0 call); difftime (0 call); div (0 call); execl (0 call);
-           execle (0 call); execlp (0 call); execv (0 call); execve (0 call);
-           execvp (0 call); exit (0 call); exp (0 call); expf (0 call);
-           fclose (0 call); fcntl (0 call); fdopen (0 call); feof (0 call);
-           feof_unlocked (0 call); ferror (0 call); ferror_unlocked (0 call);
-           fflush (0 call); fgetc (0 call); fgetpos (0 call); fgets (0 call);
-           fileno (0 call); fileno_unlocked (0 call); flockfile (0 call);
-           floor (0 call); floorf (0 call); fmod (0 call); fopen (0 call);
-           fputc (0 call); fputs (0 call); fread (0 call); freopen (0 call);
-           fseek (0 call); fsetpos (0 call); ftell (0 call); ftrylockfile (0 call);
-           funlockfile (0 call); fwrite (0 call); getc (0 call);
-           getc_unlocked (0 call); getchar (0 call); getchar_unlocked (0 call);
-           getenv (0 call); getitimer (0 call); getopt (0 call); getopt_long (0 call);
-           getopt_long_only (0 call); getpriority (0 call); getrlimit (0 call);
-           getrusage (0 call); gets (0 call); getsockopt (0 call);
-           gettimeofday (0 call); getuid (0 call); gmtime (0 call); htonl (0 call);
-           htons (0 call); iconv (0 call); iconv_close (0 call); iconv_open (0 call);
-           inet_addr (0 call); inet_ntoa (0 call); inet_ntop (0 call);
-           inet_pton (0 call); isascii (0 call); labs (0 call); ldiv (0 call);
-           listen (0 call); llabs (0 call); lldiv (0 call); localtime (0 call);
-           log (0 call); log10 (0 call); log10f (0 call); logf (0 call);
-           longjmp (0 call); lrand48 (0 call); mblen (0 call); mbstowcs (0 call);
-           mbtowc (0 call); memoverlap (1 call); mktime (0 call); nan (0 call);
-           nanf (0 call); nanl (0 call); ntohl (0 call); ntohs (0 call); open (0 call);
-           openat (0 call); opendir (0 call); openlog (0 call); perror (0 call);
-           poll (0 call); pow (0 call); powf (0 call); putc (0 call);
-           putc_unlocked (0 call); putchar (0 call); putchar_unlocked (0 call);
-           puts (0 call); qsort (0 call); quick_exit (0 call); raise (0 call);
-           rand (0 call); read (0 call); readdir (0 call); readv (0 call);
-           realloc (0 call); recv (0 call); recvmsg (0 call); remove (0 call);
-           rename (0 call); rewind (0 call); round (0 call); roundf (0 call);
-           select (0 call); setbuf (0 call); setitimer (0 call); setjmp (0 call);
-           setlogmask (0 call); setpriority (0 call); setrlimit (0 call);
-           setsockopt (0 call); settimeofday (0 call); setvbuf (0 call);
-           shutdown (0 call); siglongjmp (0 call); signal (0 call); sin (0 call);
-           socket (0 call); socketpair (0 call); sqrt (0 call); sqrtf (0 call);
-           srand (0 call); srand48 (0 call); strcoll (0 call); strcspn (0 call);
-           strnlen (0 call); strpbrk (0 call); strsep (0 call); strspn (0 call);
-           strtod (0 call); strtof (0 call); strtoimax (0 call); strtok (0 call);
-           strtol (0 call); strtold (0 call); strtoll (0 call); strtoul (0 call);
-           strtoull (0 call); strxfrm (0 call); syslog (0 call); system (0 call);
-           tcgetattr (0 call); tcsetattr (0 call); time (0 call); times (0 call);
-           tmpfile (0 call); tmpnam (0 call); trunc (0 call); truncf (0 call);
-           ungetc (0 call); usleep (0 call); utimes (0 call); vfprintf (0 call);
-           vfscanf (0 call); vprintf (0 call); vscanf (0 call); vsnprintf (0 call);
-           vsprintf (0 call); wcschr (0 call); wcscmp (0 call); wcscspn (0 call);
-           wcslcat (0 call); wcslcpy (0 call); wcsncmp (0 call); wcspbrk (0 call);
-           wcsrchr (0 call); wcsspn (0 call); wcsstr (0 call); wcstombs (0 call);
-           wctomb (0 call); wmemchr (0 call); wmemcmp (0 call); wmemmove (0 call);
-           write (0 call); 
-          
-          'Extern' global variables (6)
-          =============================
-           __fc_mblen_state; __fc_mbtowc_state; __fc_wctomb_state; optarg; opterr;
-           optopt
-          
-          Potential entry points (4)
-          ==========================
-           feholdexcept; fesetenv; fetestexcept; main; 
-          
-          Global metrics
-          ============== 
-          Sloc = 613
-          Decision point = 119
-          Global variables = 33
-          If = 117
-          Loop = 30
-          Goto = 38
-          Assignment = 244
-          Exit point = 65
-          Function = 312
-          Function call = 32
-          Pointer dereferencing = 85
-          Cyclomatic complexity = 184
+    ======================
+     Frama_C_double_interval (0 call); Frama_C_float_interval (0 call);
+     Frama_C_interval (0 call); Frama_C_nondet (5 calls);
+     Frama_C_nondet_ptr (0 call); __FC_assert (0 call); __finite (0 call);
+     __finitef (0 call); abs (0 call); atoi (0 call); calloc (0 call);
+     char_equal_ignore_case (1 call); fabs (0 call); fabsf (0 call);
+     feholdexcept (0 call); fesetenv (0 call); fetestexcept (0 call);
+     free (0 call); imaxabs (0 call); imaxdiv (0 call); isalnum (0 call);
+     isalpha (0 call); isblank (0 call); iscntrl (0 call); isdigit (3 calls);
+     isgraph (0 call); islower (0 call); isprint (0 call); ispunct (0 call);
+     isspace (1 call); isupper (0 call); isxdigit (0 call); localeconv (0 call);
+     main (0 call); malloc (3 calls); memchr (0 call); memcmp (0 call);
+     memcpy (3 calls); memmove (0 call); memrchr (0 call); memset (0 call);
+     setlocale (0 call); strcasecmp (0 call); strcat (0 call); strchr (0 call);
+     strcmp (0 call); strcpy (0 call); strdup (0 call); strerror (0 call);
+     strlen (4 calls); strncat (0 call); strncmp (0 call); strncpy (0 call);
+     strndup (0 call); strrchr (0 call); strstr (0 call); tolower (0 call);
+     toupper (0 call); wcscat (0 call); wcscpy (0 call); wcslen (2 calls);
+     wcsncat (0 call); wcsncpy (0 call); wmemcpy (0 call); wmemset (0 call); 
+    
+    Undefined functions (247)
+    =========================
+     FD_CLR (0 call); FD_ISSET (0 call); FD_SET (0 call); FD_ZERO (0 call);
+     Frama_C_abort (1 call); Frama_C_char_interval (0 call);
+     Frama_C_int_interval (0 call); Frama_C_long_interval (0 call);
+     Frama_C_long_long_interval (0 call); Frama_C_make_unknown (0 call);
+     Frama_C_short_interval (0 call); Frama_C_size_t_interval (0 call);
+     Frama_C_unsigned_char_interval (0 call);
+     Frama_C_unsigned_int_interval (0 call);
+     Frama_C_unsigned_long_interval (0 call);
+     Frama_C_unsigned_long_long_interval (0 call);
+     Frama_C_unsigned_short_interval (0 call); Frama_C_update_entropy (4 calls);
+     _Exit (0 call); __va_fcntl_flock (0 call); __va_fcntl_int (0 call);
+     __va_fcntl_void (0 call); __va_ioctl_ptr (0 call); __va_ioctl_void (0 call);
+     __va_open_mode_t (0 call); __va_open_void (0 call);
+     __va_openat_mode_t (0 call); __va_openat_void (0 call); abort (0 call);
+     accept (0 call); acos (0 call); acosf (0 call); acosh (0 call);
+     acoshf (0 call); acoshl (0 call); acosl (0 call); alloca (0 call);
+     asin (0 call); asinf (0 call); asinl (0 call); at_quick_exit (0 call);
+     atan2 (0 call); atexit (0 call); atof (0 call); atol (0 call);
+     atoll (0 call); bind (0 call); bsearch (0 call); bzero (0 call);
+     ceil (0 call); ceilf (0 call); clearerr (0 call);
+     clearerr_unlocked (0 call); clock (0 call); close (0 call);
+     closedir (0 call); closelog (0 call); connect (0 call); cos (0 call);
+     creat (0 call); difftime (0 call); div (0 call); execl (0 call);
+     execle (0 call); execlp (0 call); execv (0 call); execve (0 call);
+     execvp (0 call); exit (0 call); exp (0 call); expf (0 call);
+     fclose (0 call); fcntl (0 call); fdopen (0 call); feof (0 call);
+     feof_unlocked (0 call); ferror (0 call); ferror_unlocked (0 call);
+     fflush (0 call); fgetc (0 call); fgetpos (0 call); fgets (0 call);
+     fileno (0 call); fileno_unlocked (0 call); flockfile (0 call);
+     floor (0 call); floorf (0 call); fmod (0 call); fopen (0 call);
+     fputc (0 call); fputs (0 call); fread (0 call); freopen (0 call);
+     fseek (0 call); fsetpos (0 call); ftell (0 call); ftrylockfile (0 call);
+     funlockfile (0 call); fwrite (0 call); getc (0 call);
+     getc_unlocked (0 call); getchar (0 call); getchar_unlocked (0 call);
+     getenv (0 call); getitimer (0 call); getopt (0 call); getopt_long (0 call);
+     getopt_long_only (0 call); getpriority (0 call); getrlimit (0 call);
+     getrusage (0 call); gets (0 call); getsockopt (0 call);
+     gettimeofday (0 call); getuid (0 call); gmtime (0 call); htonl (0 call);
+     htons (0 call); iconv (0 call); iconv_close (0 call); iconv_open (0 call);
+     inet_addr (0 call); inet_ntoa (0 call); inet_ntop (0 call);
+     inet_pton (0 call); isascii (0 call); labs (0 call); ldiv (0 call);
+     listen (0 call); llabs (0 call); lldiv (0 call); localtime (0 call);
+     log (0 call); log10 (0 call); log10f (0 call); logf (0 call);
+     longjmp (0 call); lrand48 (0 call); mblen (0 call); mbstowcs (0 call);
+     mbtowc (0 call); memoverlap (1 call); mktime (0 call); nan (0 call);
+     nanf (0 call); nanl (0 call); ntohl (0 call); ntohs (0 call); open (0 call);
+     openat (0 call); opendir (0 call); openlog (0 call); perror (0 call);
+     poll (0 call); pow (0 call); powf (0 call); putc (0 call);
+     putc_unlocked (0 call); putchar (0 call); putchar_unlocked (0 call);
+     puts (0 call); qsort (0 call); quick_exit (0 call); raise (0 call);
+     rand (0 call); read (0 call); readdir (0 call); readv (0 call);
+     realloc (0 call); recv (0 call); recvmsg (0 call); remove (0 call);
+     rename (0 call); rewind (0 call); round (0 call); roundf (0 call);
+     select (0 call); setbuf (0 call); setitimer (0 call); setjmp (0 call);
+     setlogmask (0 call); setpriority (0 call); setrlimit (0 call);
+     setsockopt (0 call); settimeofday (0 call); setvbuf (0 call);
+     shutdown (0 call); siglongjmp (0 call); signal (0 call); sin (0 call);
+     socket (0 call); socketpair (0 call); sqrt (0 call); sqrtf (0 call);
+     srand (0 call); srand48 (0 call); strcoll (0 call); strcspn (0 call);
+     strnlen (0 call); strpbrk (0 call); strsep (0 call); strspn (0 call);
+     strtod (0 call); strtof (0 call); strtoimax (0 call); strtok (0 call);
+     strtol (0 call); strtold (0 call); strtoll (0 call); strtoul (0 call);
+     strtoull (0 call); strxfrm (0 call); syslog (0 call); system (0 call);
+     tcgetattr (0 call); tcsetattr (0 call); time (0 call); times (0 call);
+     tmpfile (0 call); tmpnam (0 call); trunc (0 call); truncf (0 call);
+     ungetc (0 call); usleep (0 call); utimes (0 call); vfprintf (0 call);
+     vfscanf (0 call); vprintf (0 call); vscanf (0 call); vsnprintf (0 call);
+     vsprintf (0 call); wcschr (0 call); wcscmp (0 call); wcscspn (0 call);
+     wcslcat (0 call); wcslcpy (0 call); wcsncmp (0 call); wcspbrk (0 call);
+     wcsrchr (0 call); wcsspn (0 call); wcsstr (0 call); wcstombs (0 call);
+     wctomb (0 call); wmemchr (0 call); wmemcmp (0 call); wmemmove (0 call);
+     write (0 call); 
+    
+    'Extern' global variables (6)
+    =============================
+     __fc_mblen_state; __fc_mbtowc_state; __fc_wctomb_state; optarg; opterr;
+     optopt
+    
+    Potential entry points (4)
+    ==========================
+     feholdexcept; fesetenv; fetestexcept; main; 
+    
+    Global metrics
+    ============== 
+    Sloc = 613
+    Decision point = 119
+    Global variables = 33
+    If = 117
+    Loop = 30
+    Goto = 38
+    Assignment = 244
+    Exit point = 65
+    Function = 312
+    Function call = 32
+    Pointer dereferencing = 85
+    Cyclomatic complexity = 184
 /* Generated by Frama-C */
 #include "__fc_builtin.h"
 #include "__fc_define_fd_set_t.h"
@@ -849,33 +849,33 @@ void main(void)
 [value:final-states] Values at end of function main:
   
 [metrics] Defined functions (4)
-          =====================
-           feholdexcept (0 call); fesetenv (0 call); fetestexcept (0 call);
-           main (0 call); 
-          
-          Undefined functions (1)
-          =======================
-           Frama_C_update_entropy (0 call); 
-          
-          'Extern' global variables (0)
-          =============================
-           
-          
-          Potential entry points (4)
-          ==========================
-           feholdexcept; fesetenv; fetestexcept; main; 
-          
-          Global metrics
-          ============== 
-          Sloc = 11
-          Decision point = 0
-          Global variables = 4
-          If = 0
-          Loop = 0
-          Goto = 0
-          Assignment = 4
-          Exit point = 4
-          Function = 5
-          Function call = 0
-          Pointer dereferencing = 2
-          Cyclomatic complexity = 4
+    =====================
+     feholdexcept (0 call); fesetenv (0 call); fetestexcept (0 call);
+     main (0 call); 
+    
+    Undefined functions (1)
+    =======================
+     Frama_C_update_entropy (0 call); 
+    
+    'Extern' global variables (0)
+    =============================
+     
+    
+    Potential entry points (4)
+    ==========================
+     feholdexcept; fesetenv; fetestexcept; main; 
+    
+    Global metrics
+    ============== 
+    Sloc = 11
+    Decision point = 0
+    Global variables = 4
+    If = 0
+    Loop = 0
+    Goto = 0
+    Assignment = 4
+    Exit point = 4
+    Function = 5
+    Function call = 0
+    Pointer dereferencing = 2
+    Cyclomatic complexity = 4

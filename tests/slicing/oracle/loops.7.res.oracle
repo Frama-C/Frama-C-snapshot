@@ -17,7 +17,7 @@ tests/slicing/loops.i:179:[value] warning: signed overflow. assert X + 1 ≤ 214
 [from] Computing for function loop
 [from] Done for function loop
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function loop:
   Z FROM Y
 [from] ====== END OF DEPENDENCIES ======

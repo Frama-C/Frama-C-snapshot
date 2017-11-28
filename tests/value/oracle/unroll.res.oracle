@@ -28,13 +28,13 @@ tests/value/unroll.i:49:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-          c; G; i; MAX; JMAX; j; k; S; tmp; tmp_unroll_3752; tmp_unroll_3760;
-          tmp_unroll_3768; tmp_unroll_3776; tmp_unroll_3784; tmp_unroll_3792;
-          tmp_unroll_3800; tmp_unroll_3808; tmp_unroll_3816; tmp_unroll_3824
+      c; G; i; MAX; JMAX; j; k; S; tmp; tmp_unroll_3752; tmp_unroll_3760;
+      tmp_unroll_3768; tmp_unroll_3776; tmp_unroll_3784; tmp_unroll_3792;
+      tmp_unroll_3800; tmp_unroll_3808; tmp_unroll_3816; tmp_unroll_3824
 [inout] Inputs for function main:
-          \nothing
+      \nothing

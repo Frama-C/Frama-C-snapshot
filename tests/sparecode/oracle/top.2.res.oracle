@@ -7,15 +7,15 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main_top <- main_top_not_used.
-        Called from tests/sparecode/top.i:32.
+    Called from tests/sparecode/top.i:32.
 [value] computing for function f <- main_top <- main_top_not_used.
-        Called from tests/sparecode/top.i:21.
+    Called from tests/sparecode/top.i:21.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top
 [value] Done for function main_top
 [value] computing for function f <- main_top_not_used.
-        Called from tests/sparecode/top.i:33.
+    Called from tests/sparecode/top.i:33.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top_not_used

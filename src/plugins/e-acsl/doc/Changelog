@@ -15,6 +15,10 @@
 #   E-ACSL: the Whole E-ACSL plug-in
 ###############################################################################
 
+#############################
+Plugin E-ACSL Sulfur-20171101
+#############################
+
 -* E-ACSL       [2017/10/25] Fix bug #2303 about unnamed formals in
 	        annotated functions.
 -  E-ACSL       [2017/06/10] Add --free-valid-address option to e-acsl.gcc.sh

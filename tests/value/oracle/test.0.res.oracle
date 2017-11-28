@@ -28,11 +28,11 @@ tests/value/test.i:11:[value] warning: signed overflow. assert j + ecart ≤ 214
 [from] Computing for function inst_F6
 [from] Done for function inst_F6
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function inst_F6:
   S_v[0..1] FROM v; n; S_v[0..1] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function inst_F6:
-          t[1]; i; j; ecart; tmp; i_0; S_v[0..1]
+      t[1]; i; j; ecart; tmp; i_0; S_v[0..1]
 [inout] Inputs for function inst_F6:
-          S_v[0..1]
+      S_v[0..1]

@@ -25,7 +25,7 @@
     required casts. It is based on interval inference of module {!Interval}.
 
     It implement Figure 4 of J. Signoles' JFLA'15 paper "Rester statique pour
-    devenir plus rapide, plus précis et plus mince".
+    devenir plus rapide, plus prÃ©cis et plus mince".
 
     Example: consider a variable [x] of type [int] and a variable [y] of type
     char on a (strange) architecture in which values of type [int] belongs to

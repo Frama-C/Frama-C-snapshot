@@ -20,11 +20,11 @@ tests/value/deps.i:24:[value] warning: signed overflow. assert (int)(w + v2.x) +
 [from] Computing for function fonc1
 [from] Done for function fonc1
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function fonc1:
   \result FROM a; b
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function fonc1:
-          w; v1.x; v2.x; v3.x
+      w; v1.x; v2.x; v3.x
 [inout] Inputs for function fonc1:
-          \nothing
+      \nothing

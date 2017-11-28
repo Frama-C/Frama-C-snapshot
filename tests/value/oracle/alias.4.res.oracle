@@ -84,7 +84,7 @@ tests/value/alias.i:199:[value] warning: signed overflow. assert c + 1 ≤ 21474
 [from] Computing for function main6
 [from] Done for function main6
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main6:
   p[1] FROM c (and SELF)
   q[2] FROM c (and SELF)
@@ -98,6 +98,6 @@ tests/value/alias.i:199:[value] warning: signed overflow. assert c + 1 ≤ 21474
   PTR2 FROM NULL[0..3]; PTR2
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main6:
-          p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
+      p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
 [inout] Inputs for function main6:
-          NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c
+      NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c

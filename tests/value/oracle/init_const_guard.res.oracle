@@ -19,14 +19,14 @@ tests/value/init_const_guard.i:17:[value] function f: postcondition 'Q_NotWrite'
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          __retres
+      __retres
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -91,15 +91,15 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   x FROM v (and SELF)
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-          p
+      p
 [inout] Inputs for function g:
-          p; v
+      p; v
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -154,14 +154,14 @@ tests/value/init_const_guard.i:35:[value] assertion 'Value,mem_access' got final
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-          __retres
+      __retres
 [inout] Inputs for function f:
-          \nothing
+      \nothing
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -226,15 +226,15 @@ tests/value/init_const_guard.i:35:[value] warning: out of bounds write. assert \
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   x FROM v (and SELF)
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-          p
+      p
 [inout] Inputs for function g:
-          p; v
+      p; v
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------

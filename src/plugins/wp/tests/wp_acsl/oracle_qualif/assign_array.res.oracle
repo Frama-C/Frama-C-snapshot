@@ -9,7 +9,7 @@
 [wp] [Qed] Goal typed_jobG_assign_exit : Valid
 [wp] [Qed] Goal typed_jobG_assign_normal : Valid
 [wp] Proved goals:    4 / 4
-     Qed:             4
+    Qed:             4
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 jobA                 2     -           2       100%

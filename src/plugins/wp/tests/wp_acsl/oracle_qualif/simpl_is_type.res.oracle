@@ -21,8 +21,8 @@
 [wp] [Qed] Goal typed_g_loop_inv_2_established : Valid
 [wp] [Qed] Goal typed_g_loop_assign : Valid
 [wp] Proved goals:   16 / 16
-     Qed:             6 
-     Alt-Ergo:       10
+    Qed:             6 
+    Alt-Ergo:       10
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                    3      7 (97)    10       100%

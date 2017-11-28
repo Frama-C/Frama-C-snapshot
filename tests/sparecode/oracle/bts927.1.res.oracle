@@ -7,12 +7,12 @@
   
 tests/sparecode/bts927.i:15:[value] warning: assertion got status unknown.
 [value] computing for function f <- main.
-        Called from tests/sparecode/bts927.i:17.
+    Called from tests/sparecode/bts927.i:17.
 tests/sparecode/bts927.i:10:[value] warning: signed overflow. assert a + 1 ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-        Called from tests/sparecode/bts927.i:19.
+    Called from tests/sparecode/bts927.i:19.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

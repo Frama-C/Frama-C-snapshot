@@ -15,7 +15,7 @@ tests/value/widen_on_non_monotonic.i:58:[kernel] warning: Calling undeclared fun
   j ∈ {0}
   k ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/value/widen_on_non_monotonic.i:71.
+    Called from tests/value/widen_on_non_monotonic.i:71.
 tests/value/widen_on_non_monotonic.i:25:[value] entering loop for the first time
 tests/value/widen_on_non_monotonic.i:23:[value] entering loop for the first time
 tests/value/widen_on_non_monotonic.i:26:[value] entering loop for the first time
@@ -36,17 +36,17 @@ tests/value/widen_on_non_monotonic.i:27:[value] warning: signed overflow. assert
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-       These dependencies hold at termination for the executions that terminate:
+    These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   NON TERMINATING - NO EFFECTS
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-          a; b; c; d
+      a; b; c; d
 [inout] Inputs for function main1:
-          a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d
+      a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d
 [inout] Out (internal) for function main:
-          a; b; c; d
+      a; b; c; d
 [inout] Inputs for function main:
-          a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d
+      a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d
