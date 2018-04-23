@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,12 +27,12 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-/*@ 
-  requires \false;
-  terminates \false; 
+/*@
+  requires nonnull_c: c != 0;
+  terminates c != 0;
   assigns \nothing;
 */
-extern void __FC_assert(const char* file,int line,const char*expr);
+extern void __FC_assert(int c, const char* file, int line, const char*expr);
 
 __END_DECLS
 __POP_FC_STDLIB
@@ -42,5 +42,5 @@ __POP_FC_STDLIB
 #ifdef NDEBUG 
 #define assert(ignore) ((void)0)
 #else
-#define assert(e) ((e)?(void)0:__FC_assert(__FILE__,__LINE__,#e))
+#define assert(e) (__FC_assert((e) != 0,__FILE__,__LINE__,#e))
 #endif

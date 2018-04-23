@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-let dkey = Kernel.register_category "task"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Error Messages                                                     --- *)
@@ -130,6 +128,8 @@ let status = Monad.unit
 let return r = Monad.unit (Result r)
 let raised e = Monad.unit (Failed e)
 let canceled () = Monad.unit Canceled
+(* unit is necessary for generalizing the type *)
+
 let failed text =
   let buffer = Buffer.create 80 in
   Format.kfprintf
@@ -148,18 +148,24 @@ let sequence a k =
       | Canceled -> Monad.unit Canceled)
     
 let nop = return ()
-let later f x = Monad.yield
-    begin function
-      | Coin -> (try f x with e -> raised e)
-      | Kill -> canceled ()
+let nof _ = ()
+
+let later ?(canceled=nof) f x = Monad.yield
+    begin fun coin ->
+      try match coin with
+        | Coin -> f x 
+        | Kill -> canceled x ; Monad.unit Canceled
+      with e -> raised e
     end
-let call f x = Monad.yield
-    begin function
-      | Coin -> (try return (f x) with e -> raised e)
-      | Kill -> canceled ()
+let call ?(canceled=nof) f x = Monad.yield
+    begin fun coin ->
+      try match coin with
+        | Coin -> return (f x)
+        | Kill -> canceled x ; Monad.unit Canceled
+      with e -> raised e
     end
 
-let todo f = later f ()
+let todo ?canceled f = later ?canceled f ()
 let job t = sequence t (fun _ -> nop)
 
 let finally t cb =
@@ -214,7 +220,7 @@ let set_time cmd t = match cmd.chrono with
 
 let start_command ~timeout ?time ?stdout ?stderr cmd args =
   begin
-    Kernel.debug ~dkey "execute task '@[<hov 4>%t'@]"
+    Kernel.debug ~dkey:Kernel.dkey_task "execute task '@[<hov 4>%t'@]"
       (fun fmt ->
          Format.pp_print_string fmt cmd ;
          Array.iter
@@ -246,7 +252,7 @@ let ping_command cmd coin =
           if cmd.timeout > 0 && time_now > cmd.time_stop then
             begin
               set_time cmd (time_now -. cmd.time_start) ;
-              Kernel.debug ~dkey "timeout '%s'" cmd.name ;
+              Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s'" cmd.name ;
               cmd.time_killed <- true ;
               kill () ;
             end ;
@@ -255,22 +261,23 @@ let ping_command cmd coin =
     | Command.Result (Unix.WEXITED s|Unix.WSIGNALED s|Unix.WSTOPPED s)
       when cmd.time_killed ->
         set_chrono cmd ;
-        Kernel.debug ~dkey "timeout '%s' [%d]" cmd.name s ;
+        Kernel.debug ~dkey:Kernel.dkey_task "timeout '%s' [%d]" cmd.name s ;
         Return (Timeout cmd.timeout)
 
     | Command.Result (Unix.WEXITED s) ->
         set_chrono cmd ;
-        Kernel.debug ~dkey "exit '%s' [%d]" cmd.name s ;
+        Kernel.debug ~dkey:Kernel.dkey_task "exit '%s' [%d]" cmd.name s ;
         Return (Result s)
 
     | Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) ->
         set_chrono cmd ;
-        Kernel.debug ~dkey "signal '%s' [%d]" cmd.name s ;
+        Kernel.debug ~dkey:Kernel.dkey_task "signal '%s' [%d]" cmd.name s ;
         Return Canceled
 
   with e ->
     set_chrono cmd ;
-    Kernel.debug ~dkey "failure '%s' [%s]" cmd.name (Printexc.to_string e) ;
+    Kernel.debug ~dkey:Kernel.dkey_task
+      "failure '%s' [%s]" cmd.name (Printexc.to_string e) ;
     Return (Failed e)
 
 let command ?(timeout=0) ?time ?stdout ?stderr cmd args = todo
@@ -347,7 +354,7 @@ type thread = {
 
 let thread task = { task = (task >>= fun _ -> nop) ; lock = false }
 let cancel th = th.task <- Monad.cancel th.task
-let running th =
+let progress th =
   th.lock ||
   begin
     try
@@ -361,7 +368,9 @@ let running th =
       raise e
   end
 
-let run th = !on_idle (fun () -> (running th))
+let is_running th = th.lock || Monad.waiting th.task
+
+let run th = !on_idle (fun () -> (progress th))
 
 (* -------------------------------------------------------------------------- *)
 (* --- Task Pool                                                          --- *)
@@ -371,20 +380,13 @@ type pool = thread list ref
 
 let pool () = ref []
 
-let iter f p =
-  let rec walk f = function
-    | [] -> []
-    | t::ts ->
-        if running t then f t ;
-        let ts = walk f ts in
-        if running t then t :: ts else ts
-  in p := walk f !p
-
 let add p t =
-  let ps = List.filter running !p in
-  p := if running t then t :: ps else ps
+  let ps = List.filter is_running !p in
+  p := if is_running t then t :: ps else ps
 
-let flush p = p := List.filter running !p
+let iter f p = p := List.filter (fun t -> f t ; is_running t) !p
+
+let flush p = p := List.filter is_running !p
 let size p = flush p ; List.length !p
 
 (* -------------------------------------------------------------------------- *)
@@ -457,7 +459,7 @@ let schedule server q =
   try
     while List.length server.running < server.procs do
       let task = Queue.take q in (* queue ++ *)
-      if running task
+      if progress task
       then server.running <- task :: server.running
       (* running++ => invariant holds *)
       else server.terminated <- succ server.terminated
@@ -469,7 +471,7 @@ let rec run_server server () =
   begin
     server.running <- List.filter
         (fun task ->
-           if running task then true
+           if progress task then true
            else
              ( (* running -- ; terminated ++ => invariant preserved *)
                server.terminated <- succ server.terminated ; false )

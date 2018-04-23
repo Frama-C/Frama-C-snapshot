@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@ module Env = Plang.Env
 open F
 
 let dkey_state = Wp_parameters.register_category "state"
-
 type env = Plang.Env.t
 
 let rec alloc_hyp pool f seq =
@@ -159,13 +158,12 @@ class state =
 
     method updates seq = Pcfg.updates env seq domain
 
-    method pp_update lbl fmt = function Memory.Mstore(lv,v) ->
+    method pp_update lbl fmt = function Sigs.Mstore(lv,v) ->
       let stack = context in
       context <- AtLabel lbl ;
       Format.fprintf fmt "@[<hov 2>%a =@ %a;@]"
         self#pp_lval lv self#pp_value v ;
       context <- stack ;
-
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -264,7 +262,6 @@ class engine (lang : #Plang.engine) =
 
     method private sequence ~clause fmt seq =
       Format.pp_print_space fmt () ; self#pp_block ~clause fmt seq
-
     method pp_block ~clause fmt seq =
       if Conditions.is_true seq then
         Format.fprintf fmt "%a {}" self#pp_clause clause
@@ -274,6 +271,7 @@ class engine (lang : #Plang.engine) =
           self#block fmt seq ;
           pp_close_block fmt "}" ;
         end
+
 
     method private dump fmt seq () =
       alloc_seq (Plang.pool ()) (fun x -> ignore (lang#bind x)) seq ;
@@ -309,7 +307,7 @@ class engine (lang : #Plang.engine) =
     (* --- Scope Management --- *)
 
     method mark m s = mark_step m s
-    method name env e = Env.fresh env (F.basename e)
+    method name env e = Env.fresh env ~sanitizer:lang#sanitize (F.basename e) 
 
     method private define env fmt e =
       let name = self#name env e in
@@ -353,13 +351,13 @@ class sequence (lang : #state) =
       | Some lbl ->
           let before = match Pcfg.prev lbl with
             | [ pre ] when (Pcfg.branching pre) ->
-                let seq = Memory.{ pre ; post = lbl } in
+                let seq = Sigs.{ pre ; post = lbl } in
                 let upd = lang#updates seq in
                 Some(pre,upd)
             | _ -> None in
           let after = match Pcfg.next lbl with
             | [ post ] ->
-                let seq = Memory.{ pre = lbl ; post } in
+                let seq = Sigs.{ pre = lbl ; post } in
                 let upd = lang#updates seq in
                 Some(lbl,upd)
             | _ -> None in

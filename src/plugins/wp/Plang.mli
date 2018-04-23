@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,7 @@ val alloc_e : pool -> (var -> unit) -> term -> unit
 val alloc_p : pool -> (var -> unit) -> pred -> unit
 val alloc_xs : pool -> (var -> unit) -> Vars.t -> unit
 val alloc_domain : pool -> Vars.t
+val sanitizer : string -> string
 
 class engine :
   object
@@ -43,6 +44,7 @@ class engine :
     method lookup : term -> scope
     (**/**)
     inherit Lang.idprinting
+    method sanitize : string -> string
     method infoprover : 'a. 'a Lang.infoprover -> 'a
     method op_spaced : string -> bool
     (**/**)

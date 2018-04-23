@@ -1,5 +1,5 @@
 /*run.config
-  STDOPT: #"-machdep gcc_x86_64 -kernel-msg-key cabs2cil:pragma"
+  STDOPT: #"-machdep gcc_x86_64 -kernel-msg-key typing:pragma"
   STDOPT: #"-cpp-command=\"gcc -E -C -I. -m32\" -cpp-frama-c-compliant"
   STDOPT: #"-machdep msvc_x86_64"
  */
@@ -29,7 +29,7 @@
   } __attribute__((__VA_ARGS__))
 
 // test functions are declared here to minimize shifting oracles in case of changes
-void tests1(); void tests2();
+void tests1(void); void tests2(void);
 
 #ifdef __GNUC__
 // This main function is not used when testing MSVC on Visual C++;

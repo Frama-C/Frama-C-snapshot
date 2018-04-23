@@ -6,7 +6,7 @@ int Y, X;
 volatile v;
 
 //@ assigns \result \from \nothing;
-int input();
+int input(void);
 
 void f (void) {
   int l = 0;

@@ -1,4 +1,4 @@
 [kernel] Parsing tests/syntax/lvalvoid.i (no preprocessing)
-tests/syntax/lvalvoid.i:4:[kernel] failure: lvalue of type void: *(src + i)
-[kernel] user error: stopping on file "tests/syntax/lvalvoid.i" that has errors.
+[kernel] tests/syntax/lvalvoid.i:4: Failure: lvalue of type void: *(src + i)
+[kernel] User Error: stopping on file "tests/syntax/lvalvoid.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -916,6 +916,16 @@ module Search_single_offset = struct
 
 end
 
+(* [max_valid_offset_chars] is the maximum possibly valid offset for
+   the base, which is a better upper bound than MAX_INT. *)
+let max_valid_offset_chars base ~cwidth =
+  match Base.valid_range (Base.validity base) with
+  | Base.Invalid_range -> (* should not happen... *) Int.zero
+  | Base.Valid_range opt_itv -> match opt_itv with
+    | None -> Int.(div (Bit_utils.max_byte_address ()) (cwidth_to_bytes cwidth))
+    | Some (_, mx_bits) ->
+      Int.(div mx_bits cwidth) (* possible rounding towards zero *)
+
 (* To efficiently perform a search in an interval of offsets,
    we proceed from right to left, starting at the last offset to be searched. *)
 module Search_ranges = struct
@@ -1137,17 +1147,8 @@ module Search_ranges = struct
       min_bounds, max_bounds
 
   let search_ptr_imprecise ~cwidth charcharmap base offset_ival n_len last_char_to_look =
-    (* [max_valid_offset_chars] is the maximum possibly valid offset for
-       the base, which is a better upper bound than MAX_INT. *)
-    let max_valid_offset_chars =
-      match Base.valid_range (Base.validity base) with
-      | Base.Invalid_range -> (* should not happen... *) Int.zero
-      | Base.Valid_range opt_itv -> match opt_itv with
-        | None -> Int.(div (Bit_utils.max_byte_address ()) (cwidth_to_bytes cwidth))
-        | Some (_, mx_bits) ->
-          Int.(div mx_bits cwidth) (* possible rounding towards zero *)
-    in
     (* TODO: extra precision can be obtained by splitting cases *)
+    let max_valid_offset_chars = max_valid_offset_chars base ~cwidth in
     match Ival.max_int offset_ival with
     | None ->
       let max_res = match n_len with
@@ -1333,6 +1334,14 @@ let search_by_base ~cwidth bs_of_vu_f ~ret_rel_offs base offset_arg ?n_len state
       | Base.Variable var_valid -> var_valid.Base.min_alloc, var_valid.Base.max_alloc
       | Base.Invalid -> assert false
     in
+    (* Normalization of base_end_bit: in case the base size is not a multiple
+       of cwidth (e.g. when a char ptr with a length that is not a multiple of
+       sizeof(wchar_t) has been cast into a wchar_t ptr), we truncate it,
+       since the remaining bytes cannot be properly accessed anyway. *)
+    let base_end_bit =
+      let chars = chars_of_bits ~cwidth ~inexact:true (I.succ base_end_bit) in
+      I.pred (bits_of_chars ~cwidth chars)
+    in
     let base_end_char = chars_of_bits ~cwidth ~inexact:true base_end_bit (*truncated*) in
     (* base_max_sure_char is only used to generate an alarm in case a possibly
        invalid location may be accessed during search *)
@@ -1513,7 +1522,10 @@ let search_char_n ~cwidth bs_of_vu_f ~ret_rel_offs name state ?n ~include_exh st
 
 (* Computes an offset from a list of pairs (base, offset).
    Used by strlen and similar built-ins.
-   Returns a [Cvalue.V.t]. *)
+   Returns a [Cvalue.V.t].
+   Note that, unlike in [pointer_of_base_res_f], here we must _not_ adjust for
+   cwidth, because strlen/wcslen return the number of _characters_, not
+   the offset (in bytes) from the start of the base. *)
 let offset_of_base_res_f (bm : bm_res_t) =
   let computed_offset =
     BaseMap.fold (fun _base base_res acc ->
@@ -1534,7 +1546,7 @@ type exhaustion_status =
    results. In case of definitive exhaustion, then NULL becomes the only
    possible result.
    Returns a [Cvalue.V.t]. *)
-let pointer_of_base_res_f ?n (bm : bm_res_t) =
+let pointer_of_base_res_f ~cwidth ?n (bm : bm_res_t) =
   fpf "pointer_of_base_res_f (n? %a)" (Pretty_utils.pp_opt Cvalue.V.pretty) n;
   let maybe_not_found = ref false in
   let may_return_null = ref false in
@@ -1563,6 +1575,9 @@ let pointer_of_base_res_f ?n (bm : bm_res_t) =
           else if Ival.intersects offs n_ival then Maybe_exhaustion
           else No_exhaustion
   in
+  (* compensate for the fact that offsets were computed using "charcharmaps",
+     adjusting them according to cwidth *)
+  let adjust_abs_offs abs_offs = Ival.scale (cwidth_to_bytes cwidth) abs_offs in
   let res =
     BaseMap.fold (fun base base_res acc ->
         if base_res.BR.maybe_not_found then maybe_not_found := true;
@@ -1585,11 +1600,11 @@ let pointer_of_base_res_f ?n (bm : bm_res_t) =
             fpf "MAYBE exhaustion for base %a, offset_ival %a; adding abs_offs: %a"
               Base.pretty base Ival.pretty offset_ival Ival.pretty base_res.BR.abs_offs;
             may_return_null := true;
-            Cvalue.V.join acc (Cvalue.V.inject base base_res.BR.abs_offs)
+            Cvalue.V.join acc (Cvalue.V.inject base (adjust_abs_offs base_res.BR.abs_offs))
           | No_exhaustion ->
             fpf "NO exhaustion for base %a, offset_ival %a; adding abs_offs: %a"
               Base.pretty base Ival.pretty offset_ival Ival.pretty base_res.BR.abs_offs;
-            Cvalue.V.join acc (Cvalue.V.inject base base_res.BR.abs_offs)
+            Cvalue.V.join acc (Cvalue.V.inject base (adjust_abs_offs base_res.BR.abs_offs))
       ) bm Cvalue.V.bottom
   in
   if !may_return_null || !maybe_not_found then
@@ -1602,7 +1617,7 @@ type str_builtin_type =
   | Search_char_stop_char
   | Search_char_stop_zero
 
-module String_alarms = Datatype.Triple_with_collections(Alarms)(Datatype.String)(Datatype.String)
+module String_alarms = Datatype.Pair_with_collections(Datatype.String)(Datatype.String)
     (struct let module_name = "Builtins_string.String_alarms.t" end)
 
 exception Invalid_nb_of_args of int
@@ -1656,7 +1671,8 @@ let search_char_n_wrapper ~cwidth name nb_args str_builtin_type ~has_n ~is_ret_p
     in
     (* prepare auxiliary function *)
     let res_of_base_res_f =
-      if is_ret_pointer then (pointer_of_base_res_f ?n) else offset_of_base_res_f
+      if is_ret_pointer then pointer_of_base_res_f ~cwidth ?n
+      else offset_of_base_res_f
     in
     let value, problems =
       try
@@ -1701,7 +1717,7 @@ let search_char_n_wrapper ~cwidth name nb_args str_builtin_type ~has_n ~is_ret_p
           let warning_msg = Format.asprintf "@[builtin %s:@ %a@]"
               name Problems.pretty problems
           in
-          String_alarms.Set.singleton (Alarms.Valid_string Cil_datatype.Exp.dummy, s, warning_msg)
+          String_alarms.Set.singleton (s, warning_msg)
         end;
     in
     let res_c_value = if Cvalue.V.is_bottom value then
@@ -1719,10 +1735,9 @@ let search_char_n_wrapper ~cwidth name nb_args str_builtin_type ~has_n ~is_ret_p
     raise (Invalid_nb_of_args nb_args)
 
 let emit_alarms alarms =
-  String_alarms.Set.iter (fun (kind, text, warning_msg) ->
-      if Builtins.emit_alarm ~kind:(Alarms.get_name kind) ~text then
-        Value_util.alarm_report ~source:(fst (Cil_const.CurrentLoc.get()))
-          "%s" warning_msg
+  String_alarms.Set.iter (fun (_text, warning_msg) ->
+      Value_parameters.result ~once:true ~source:(fst (Cil_const.CurrentLoc.get()))
+        "%s" warning_msg
     ) alarms
 
 
@@ -1783,8 +1798,20 @@ let frama_c_wcslen_wrapper () =
   export_and_register "wcslen" 1
     Search_zero_stop_zero ~has_n:false ~is_ret_pointer:false ~cwidth
 
+let frama_c_wcschr_wrapper () =
+  let cwidth = I.of_int (Cil.bitsSizeOf Cil.theMachine.Cil.wcharType) in
+  export_and_register "wcschr" 2
+    Search_char_stop_zero ~has_n:false ~is_ret_pointer:true ~cwidth
+
+let frama_c_wmemchr_wrapper () =
+  let cwidth = I.of_int (Cil.bitsSizeOf Cil.theMachine.Cil.wcharType) in
+  export_and_register "wmemchr" 3
+    Search_char_stop_char ~has_n:true ~is_ret_pointer:true ~cwidth
+
 let () = Db.Main.extend
     (fun () ->
        let _ = frama_c_wcslen_wrapper () in
+       let _ = frama_c_wcschr_wrapper () in
+       let _ = frama_c_wmemchr_wrapper () in
        ()
     )

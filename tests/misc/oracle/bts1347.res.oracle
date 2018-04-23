@@ -4,7 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x);
+[value:alarm] tests/misc/bts1347.i:5: Warning: 
+  out of bounds read. assert \valid_read(x);
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
@@ -12,8 +13,9 @@ tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
-                        (tmp from x++)
+[value:alarm] tests/misc/bts1347.i:6: Warning: 
+  out of bounds read. assert \valid_read(tmp);
+                      (tmp from x++)
 [value] Recording results for g
 [value] done for function g
 [report] Computing properties status...
@@ -53,8 +55,9 @@ tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(t
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:5:[value] warning: out of bounds read. assert \valid_read(x);
-tests/misc/bts1347.i:5:[value] assertion 'emitter' got status valid.
+[value:alarm] tests/misc/bts1347.i:5: Warning: 
+  out of bounds read. assert \valid_read(x);
+[value] tests/misc/bts1347.i:5: assertion 'emitter' got status valid.
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
@@ -62,8 +65,9 @@ tests/misc/bts1347.i:5:[value] assertion 'emitter' got status valid.
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/bts1347.i:6:[value] warning: out of bounds read. assert \valid_read(tmp);
-                        (tmp from x++)
-tests/misc/bts1347.i:6:[value] assertion 'emitter' got status valid.
+[value:alarm] tests/misc/bts1347.i:6: Warning: 
+  out of bounds read. assert \valid_read(tmp);
+                      (tmp from x++)
+[value] tests/misc/bts1347.i:6: assertion 'emitter' got status valid.
 [value] Recording results for g
 [value] done for function g

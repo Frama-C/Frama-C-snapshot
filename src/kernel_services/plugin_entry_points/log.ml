@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,9 @@
 
 type kind = Result | Feedback | Debug | Warning | Error | Failure
 
-let _pretty_kind fmt = function
+[@@@ warning "-32"]
+
+let pretty_kind fmt = function
   | Result -> Format.fprintf fmt "Result"
   | Feedback -> Format.fprintf fmt "Feedback"
   | Debug -> Format.fprintf fmt "Debug"
@@ -30,10 +32,12 @@ let _pretty_kind fmt = function
   | Error -> Format.fprintf fmt "Error"
   | Failure -> Format.fprintf fmt "Failure"
 
+[@@@ warning "+32"]
+
 type event = {
   evt_kind : kind ;
   evt_plugin : string ;
-  evt_dkey : string option;
+  evt_category : string option;
   evt_source : Lexing.position option ;
   evt_message : string ;
 }
@@ -54,14 +58,6 @@ exception AbortFatal of string (* plug-in *)
 (* -------------------------------------------------------------------------- *)
 
 open Format
-
-let null = Format.make_formatter (fun _ _ _ -> ()) (fun _ -> ())
-let with_null k msg = Format.kfprintf (fun _ -> k ()) null msg
-let nullprintf msg = Format.ifprintf null msg
-
-let min_buffer = 128    (* initial size of buffer *)
-let max_buffer = 2097152 (* maximal size of buffer *)
-let tgr_buffer = 3145728 (* elasticity (internal overhead) *)
 
 type lock =
   | Ready
@@ -179,11 +175,11 @@ let delayed_terminal terminal =
   let d_output d text k n =
     match !d with
     | Delayed t ->
-        t.lock <- Locked ;
-        d := Formatter( t.output , t.flush ) ;
-        t.output text k n
+      t.lock <- Locked ;
+      d := Formatter( t.output , t.flush ) ;
+      t.output text k n
     | Formatter(out,_) ->
-        out text k n
+      out text k n
   in
   let d_flush d () =
     match !d with
@@ -198,150 +194,110 @@ let print_delayed job =
   with error -> unlock_terminal stdout fmt ; raise error
 
 (* -------------------------------------------------------------------------- *)
-(* --- Buffering Output                                                   --- *)
+(* --- Echo Line(s)                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
-type buffer = {
-  mutable formatter : Format.formatter ; (* formatter on self (recursive) *)
-  mutable buf : FCBuffer.t ;
-}
-
-let is_blank = function
-  | ' ' | '\t' | '\r' | '\n' -> true
+(* whenever the first line of the event shall be printed along the prefix *)
+let is_prefixed_event = function
+  | { evt_category = None ; evt_source = None } -> true
   | _ -> false
 
-let trim_begin buffer =
-  let rec lookup_fwd text k n =
-    if k < n && is_blank (FCBuffer.nth text k) then lookup_fwd text (succ k) n else k
-  in lookup_fwd buffer.buf 0 (FCBuffer.length buffer.buf)
-
-let trim_end buffer =
-  let rec lookup_bwd text k =
-    if k >= 0 && is_blank (FCBuffer.nth text k) then lookup_bwd text (pred k) else k
-  in lookup_bwd buffer.buf (pred (FCBuffer.length buffer.buf))
-
-let reduce_buffer buffer =
-  if FCBuffer.length buffer.buf > min_buffer then
-    FCBuffer.reset buffer.buf
-
-let truncate_text buffer size =
-  if FCBuffer.length buffer.buf > size then
-    begin
-      let p = trim_begin buffer in
-      let q = trim_end buffer in
-      let n = q+1-p in
-      if n <= 0 then
-        begin
-          reduce_buffer buffer ;
-        end
-      else
-      if n <= size then
-        begin
-          FCBuffer.blit_buffer buffer.buf p buffer.buf 0 n ;
-        end
-      else
-        begin
-          let n_left = size / 2 - 3 in
-          let n_right = size - n_left - 5 in
-          if p > 0 then FCBuffer.blit_buffer buffer.buf p buffer.buf 0 n_left ;
-          FCBuffer.blit_substring "[...]" 0 buffer.buf n_left 5 ;
-          FCBuffer.blit_buffer buffer.buf (q-n_right+1) buffer.buf (n_left + 5) n_right ;
-          FCBuffer.truncate buffer.buf size ;
-        end
-    end
-
-let append buffer text k n =
-  FCBuffer.add_substring buffer.buf text k n;
-  if FCBuffer.length buffer.buf > tgr_buffer then truncate_text buffer max_buffer
-
-let new_buffer () =
-  let buffer = {
-    formatter = null ;
-    buf = FCBuffer.create min_buffer ;
-  } in
-  let fmt = Format.make_formatter (append buffer) (fun () -> ()) in
-  buffer.formatter <- fmt ; buffer
-
-(* -------------------------------------------------------------------------- *)
-(* --- Echo Buffer                                                        --- *)
-(* -------------------------------------------------------------------------- *)
-
-type prefix =
-  | Label of string
-  | Prefix of string
-  | Indent of int
-
-let next_line = function
-  | Label _ -> Indent 4
-  | Prefix _ | Indent _ as p -> p
-
-let blank32 = String.make 32 ' '
-let rec echo_indent output k =
-  if k > 0 then
-    if k <= 32 then output blank32 0 k
-    else ( output blank32 0 32 ; echo_indent output (k-32) )
-
-let echo_line output prefix text k n =
-  match prefix with
-  | Prefix t | Label t -> output t 0 (String.length t) ; output text k n
-  | Indent m -> echo_indent output m ; output text k n
-
-let rec echo_lines output text prefix p q =
-  if p <= q then
-    let t = try String.index_from text p '\n' with Not_found -> (-1) in
-    if t < 0 || t > q then
-      begin
-        (* incomplete, last line *)
-        echo_line output prefix text p (q+1-p) ;
-        output "\n" 0 1 ;
-      end
-    else
-      begin
-        (* complete line *)
-        echo_line output prefix text p (t+1-p) ;
-        echo_lines output text (next_line prefix) (t+1) q ;
-      end
+let is_single_line text =
+  try ignore (String.index_from text 0 '\n') ; false
+  with Not_found -> true 
 
 let echo_firstline output text p q width =
   let t = try String.index_from text p '\n' with Not_found -> succ q in
   let n = min width (t-p) in
   output text p n
 
-let echo_source output = function
-  | None -> ()
-  | Some src ->
-      let s =
-        Printf.sprintf "%s:%d:" 
-          (Filepath.pretty src.Lexing.pos_fname) src.Lexing.pos_lnum
-      in
-      output s 0 (String.length s)
+let echo_newline output =
+  output "\n" 0 1
 
-let do_echo terminal source prefix text p q =
+(* output indentation unless the first line is along the prefix *)
+let echo_line output ~prefix text k n =
+  if not prefix then output "  " 0 2 ; output text k n
+
+let rec echo_lines ?(prefix=false) output text p q =
   if p <= q then
-    if delayed_echo terminal then
+    let t = try String.index_from text p '\n' with Not_found -> (-1) in
+    if t < 0 || t > q then
       begin
-        let s = String.sub text p (q+1-p) in
-        let job t =
-          term_clean t ;
-          echo_source t.output source ;
-          echo_lines t.output s prefix 0 (String.length s - 1) ;
-          t.flush ()
-        in
-        terminal.delayed <- job :: terminal.delayed
+        (* incomplete, last line *)
+        echo_line output ~prefix text p (q+1-p) ;
+        echo_newline output ;
       end
     else
       begin
-        term_clean terminal ;
-        echo_source terminal.output source ;
-        echo_lines terminal.output text prefix p q ;
-        terminal.flush ()
+        (* complete line *)
+        echo_line output ~prefix text p (t+1-p) ;
+        echo_lines output text (t+1) q ;
       end
 
-let do_transient terminal source text p q =
+(* -------------------------------------------------------------------------- *)
+(* --- Echo Event                                                         --- *)
+(* -------------------------------------------------------------------------- *)
+
+let add_source buffer = function
+  | None -> ()
+  | Some src ->
+    begin
+      Buffer.add_string buffer (Filepath.pretty src.Lexing.pos_fname) ;
+      Buffer.add_char buffer ':' ;
+      Buffer.add_string buffer (string_of_int src.Lexing.pos_lnum) ;
+      Buffer.add_string buffer ": " ;
+    end
+
+let add_category buffer = function
+  | None -> ()
+  | Some a -> Buffer.add_char buffer ':' ; Buffer.add_string buffer a
+
+let add_kind buffer = function
+  | Result | Feedback | Debug -> ()
+  | Error -> Buffer.add_string buffer "User Error: "
+  | Warning -> Buffer.add_string buffer "Warning: "
+  | Failure -> Buffer.add_string buffer "Failure: "
+
+let echo_event evt terminal =
+  begin
+    term_clean terminal ;
+    let buffer = Buffer.create 120 in
+    Buffer.add_char buffer '[' ;
+    Buffer.add_string buffer evt.evt_plugin ;
+    add_category buffer evt.evt_category ;
+    Buffer.add_string buffer "] " ;
+    add_source buffer evt.evt_source ;
+    add_kind buffer evt.evt_kind ;
+    let prefix = Buffer.contents buffer in
+    let header = String.length prefix in
+    let text = evt.evt_message in
+    let size = String.length text in
+    let output = terminal.output in
+    output prefix 0 header ;
+    if header + size <= 80 && is_single_line text then
+      begin
+        output text 0 size ;
+        echo_newline output ;
+      end
+    else
+      begin
+        let prefix = is_prefixed_event evt in
+        if not prefix then echo_newline output ;
+        echo_lines output ~prefix text 0 (String.length text - 1) ;
+      end ;
+    terminal.flush () ;
+  end
+
+let do_echo terminal evt =
+  if delayed_echo terminal then
+    terminal.delayed <- echo_event evt :: terminal.delayed
+  else
+    echo_event evt terminal
+
+let do_transient terminal text p q =
   if p <= q && not (delayed_echo terminal) then
     begin
       term_clean terminal ;
-      echo_source terminal.output source ;
       echo_firstline terminal.output text p q 80 ;
       if terminal.isatty
       then terminal.clean <- false
@@ -350,14 +306,25 @@ let do_transient terminal source text p q =
     end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Channels                                                           --- *)
+(* --- Source                                                             --- *)
 (* -------------------------------------------------------------------------- *)
+
+let source ~file ~line =
+  Lexing.{ pos_fname = file ; pos_lnum = line ; pos_bol = 0 ; pos_cnum = 0 }
 
 let current_loc = ref (fun () -> raise Not_found)
 
 let set_current_source fpos = current_loc := fpos
 
 let get_current_source () = !current_loc ()
+
+let get_source current = function
+  | None -> if current then Some (!current_loc ()) else None
+  | Some _ as s -> s
+
+(* -------------------------------------------------------------------------- *)
+(* --- Channels                                                           --- *)
+(* -------------------------------------------------------------------------- *)
 
 type emitter = {
   mutable listeners : (event -> unit) list ;
@@ -374,7 +341,7 @@ type ontty = [
 let tty = ref (fun () -> false)
 
 type channel = {
-  locked_buffer : buffer ; (* already allocated top-level buffer *)
+  locked_buffer : Rich_text.buffer ; (* already allocated top-level buffer *)
   mutable stack : int ;   (* number of 'stacked' buffers *)
   plugin : string ;
   emitters : emitter array ;
@@ -424,7 +391,7 @@ let new_channel plugin =
     let c = {
       plugin = plugin ;
       stack = 0 ;
-      locked_buffer = new_buffer () ;
+      locked_buffer = Rich_text.create () ;
       emitters = emitters ;
       terminal = stdout ;
     } in
@@ -458,15 +425,15 @@ let iter_kind ?kind f ems =
 let iter_plugin ?plugin ?kind f =
   match plugin with
   | None ->
-      Hashtbl.iter
-        (fun _ s ->
-           match s with
-           | Created c -> iter_kind ?kind f c.emitters
-           | NotCreatedYet ems -> iter_kind ?kind f ems)
-        all_channels ;
-      iter_kind ?kind f default_emitters
+    Hashtbl.iter
+      (fun _ s ->
+         match s with
+         | Created c -> iter_kind ?kind f c.emitters
+         | NotCreatedYet ems -> iter_kind ?kind f ems)
+      all_channels ;
+    iter_kind ?kind f default_emitters
   | Some p ->
-      iter_kind ?kind f (get_emitters p)
+    iter_kind ?kind f (get_emitters p)
 
 let add_listener ?plugin ?kind demon =
   iter_plugin ?plugin ?kind (fun em -> em.listeners <- em.listeners @ [demon])
@@ -476,7 +443,7 @@ let set_echo ?plugin ?kind echo =
 
 let notify e =
   let es = get_emitters e.evt_plugin in
-  List.iter (do_fire e) es.(nth_kind e.evt_kind).listeners
+  List.iter (fun f -> f e) es.(nth_kind e.evt_kind).listeners
 
 (* -------------------------------------------------------------------------- *)
 (* --- Generic Log Routine                                                --- *)
@@ -484,7 +451,7 @@ let notify e =
 
 let open_buffer c =
   if c.stack > 0 then
-    ( c.stack <- succ c.stack ; new_buffer () )
+    ( c.stack <- succ c.stack ; Rich_text.create () )
   else
     ( c.stack <- 1 ; c.locked_buffer )
 
@@ -492,82 +459,80 @@ let close_buffer c =
   if c.stack > 1 then
     c.stack <- pred c.stack
   else
-    reduce_buffer c.locked_buffer
+    Rich_text.shrink c.locked_buffer
 
-let fire_listeners emitwith listeners event =
-  match emitwith, listeners with
-  | None , [] -> ()
-  | None , fs -> List.iter (do_fire (Lazy.force event)) fs
-  | Some f , _ -> do_fire (Lazy.force event) f
-
-let logtext c ?(transient=false) ~kind ~once ?dkey ~prefix ~source ~append ~emitwith ~echo text =
-  let buffer = open_buffer c in
-  Format.kfprintf
+let logtransient channel text =
+  let buffer = open_buffer channel in
+  Rich_text.kprintf
     (fun fmt ->
        try
-         (match append with None -> () | Some k -> k fmt) ;
          Format.pp_print_newline fmt () ;
          Format.pp_print_flush fmt () ;
-         truncate_text buffer max_buffer ;
-         let p = trim_begin buffer in
-         let q = trim_end buffer in
-         if p <= q then
-           if transient then
-             do_transient c.terminal source (FCBuffer.contents buffer.buf) p q
-           else
-             begin
-               let event = lazy {
-                 evt_kind = kind ;
-                 evt_plugin = c.plugin ;
-                 evt_dkey = dkey ;
-                 evt_message = FCBuffer.sub buffer.buf p (q+1-p) ;
-                 evt_source = source ;
-               } in
-               if not once || !check_not_yet (Lazy.force event) then
-                 begin
-                   let e = c.emitters.(nth_kind kind) in
-                   if echo && e.echo then
-                     do_echo c.terminal source prefix (FCBuffer.contents buffer.buf) p q ;
-                   fire_listeners emitwith e.listeners event
-                 end
-             end ;
-         close_buffer c
+         let p,q = Rich_text.trim buffer in
+         do_transient channel.terminal (Rich_text.contents buffer) p q ;
+         close_buffer channel
        with e ->
-         close_buffer c ;
+         close_buffer channel ;
          raise e
-    ) buffer.formatter text
+    ) buffer text
 
-let logwith c ~kind ?dkey ~prefix ~source ~append ~echo f text =
-  let buffer = open_buffer c in
-  Format.kfprintf
+let logwith finally channel
+    ?(fire=true)    (* fire channel listeners *)
+    ?emitwith       (* additional emitter *)
+    ?(once=false)   (* log and emit only once *)
+    ?(echo=true)    (* echo on terminal *)
+    ?(current=false) (* use current source as default *)
+    ?source (* source location *)
+    ?(kind=Feedback) (* message kind *)
+    ?category (* message category *)
+    ?append (* additional text *)
+    text =
+  let buffer = open_buffer channel in
+  Format.pp_open_vbox (Rich_text.formatter buffer) 0 ;
+  Rich_text.kprintf
     (fun fmt ->
        try
          (match append with None -> () | Some k -> k fmt) ;
+         Format.pp_close_box fmt () ;
+         Format.pp_print_newline fmt () ;
          Format.pp_print_flush fmt () ;
-         truncate_text buffer max_buffer ;
-         let p = trim_begin buffer in
-         let q = trim_end buffer in
-         let event = lazy {
-           evt_kind = kind ;
-           evt_plugin = c.plugin ;
-           evt_dkey = dkey ;
-           evt_message = if p<=q then FCBuffer.sub buffer.buf p (q+1-p) else "" ;
-           evt_source = source ;
-         } in
-         let e = c.emitters.(nth_kind kind) in
-         if echo && e.echo && p <= q then
-           do_echo c.terminal source prefix (FCBuffer.contents buffer.buf) p q ;
-         List.iter (do_fire (Lazy.force event)) e.listeners ;
-         close_buffer c ;
-         f event
+         let p,q = Rich_text.trim buffer in
+         let output = 
+           if p <= q then
+             let source = get_source current source in
+             let message = Rich_text.range buffer p q in
+             let event = {
+               evt_kind = kind ;
+               evt_plugin = channel.plugin ;
+               evt_category = category ;
+               evt_message = message ;
+               evt_source = source ;
+             } in
+             if not once || !check_not_yet event then
+               begin
+                 let e = channel.emitters.(nth_kind kind) in
+                 if echo && e.echo then
+                   do_echo channel.terminal event ;
+                 Extlib.may (do_fire event) emitwith;
+                 if fire then List.iter (do_fire event) e.listeners ;
+                 Some event
+               end
+             else None
+           else None
+         in
+         close_buffer channel ;
+         finally output
        with e ->
-         close_buffer c ;
+         close_buffer channel ;
          raise e
-    ) buffer.formatter text
+    ) buffer text
 
+let finally_unit _ = ()
 let finally_raise e _ = raise e
 let finally_false _ = false
-let finally_do f e = f (Lazy.force e)
+
+let cmdline_error_occurred = Extlib.mk_fun "Log.cmdline_error_occurred"
+let cmdline_at_error_exit = Extlib.mk_fun "Log.at_error_exit"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Messages Interface                                                 --- *)
@@ -584,51 +549,20 @@ type ('a,'b) pretty_aborter =
   ?append:(Format.formatter -> unit) ->
   ('a,formatter,unit,'b) format4 -> 'a
 
-let get_prefix kind text = function
-  | Some p -> p
-  | None -> Label
-              begin
-                match kind with
-                | Result | Debug | Feedback -> Printf.sprintf "[%s] " text
-                | Warning -> Printf.sprintf "[%s] warning: " text
-                | Error   -> Printf.sprintf "[%s] user error: " text
-                | Failure -> Printf.sprintf "[%s] failure: " text
-              end
-
-let get_source current = function
-  | None -> if current then Some (!current_loc ()) else None
-  | Some _ as s -> s
-
 let log_channel channel
-    ?(kind=Result) ?prefix
-    ?(current=false) ?source
-    ?emitwith ?(echo=true) ?(once=false)
+    ?(kind=Result)
+    ?current ?source
+    ?emitwith ?echo ?once
     ?append
     text =
-  logtext channel ~kind
-    ~prefix:(get_prefix kind channel.plugin prefix)
-    ~source:(get_source current source)
-    ~once ~emitwith ~echo ~append
-    text
-
-let with_log_channel channel f
-    ?(kind=Result) ?prefix
-    ?(current=false) ?source ?(echo=true)
-    ?append
-    text =
-  logwith channel ~kind
-    ~prefix:(get_prefix kind channel.plugin prefix)
-    ~source:(get_source current source)
-    ~echo ~append (finally_do f) text
+  logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+    ~kind ?append text
 
 let echo e =
   try
     match Hashtbl.find all_channels e.evt_plugin with
     | NotCreatedYet _ -> raise Not_found
-    | Created c ->
-        let n = String.length e.evt_message in
-        let prefix = get_prefix e.evt_kind e.evt_plugin None in
-        do_echo c.terminal e.evt_source prefix e.evt_message 0 (n-1)
+    | Created c -> do_echo c.terminal e
   with Not_found ->
     let msg =
       Format.sprintf "[unknown channel %s]:%s"
@@ -639,27 +573,139 @@ let echo e =
 (* --- Plug-in Interface                                                 --- *)
 (* ------------------------------------------------------------------------- *)
 
-type category = string
-module Category_set = FCSet.Make(String)
+module Category_trie =
+struct
+  (* No Datatype at this level for dependencies reasons *)
+  module String_map = Map.Make(String)
+
+  type 'a t =
+    | Node of 'a option * 'a t String_map.t
+
+  let empty = Node (None, String_map.empty)
+
+  let rec add_structure l t =
+    match l with
+    | [] -> t
+    | x :: l ->
+      let Node (info, map) = t in
+      let binding =
+        try String_map.find x map
+        with Not_found -> Node (info, String_map.empty)
+      in
+      let res = add_structure l binding in
+      Node (info, String_map.add x res map)
+
+  let rec add_info l ?merge info (Node (old_info, map)) =
+    match l with
+    | [] ->
+      let rec aux map =
+        String_map.map
+          (function Node(old_info, map) ->
+             let new_info =
+               match old_info, merge with
+               | None, _ | _, None -> Some info
+               | Some old_info, Some merge -> Some (merge old_info info)
+             in
+             Node (new_info, aux map)) map
+      in
+      Node (Some info, aux map)
+    | x :: l ->
+      let binding = String_map.find x map in
+      let res = add_info l info binding in
+      Node (old_info, String_map.add x res map)
+
+  let rec get l (Node(info, map)) =
+    match l with
+    | [] -> info
+    | x :: l ->
+      let binding = String_map.find x map in
+      get l binding
+
+  let fold f map acc =
+    let rec aux suf (Node(info, map)) acc =
+      let acc = f (List.rev suf) info acc in
+      String_map.fold (fun s t acc -> aux (s::suf) t acc) map acc
+    in aux [] map acc
+
+  let suffixes l trie =
+    let rec aux res suf l (Node(_,map)) =
+      match l with
+      | [] ->
+        let res = (List.rev suf) :: res in
+        String_map.fold (fun s t res -> aux res (s::suf) [] t) map res
+      | x::l ->
+        let t = String_map.find x map in
+        aux res (x::suf) l t
+    in
+    (* Provide results in lexicographic order. *)
+    List.rev (aux [] [] l trie)
+end
+
+let split_category s =
+  let s = if s = "*" then "" else s in
+  List.filter (fun s -> s <> "") (Transitioning.String.split_on_char ':' s)
+
+let merge_category l =
+  match l with
+  | [] -> "*"
+  | [ s ] -> s
+  | hd :: tl ->
+    let b = Buffer.create 15 in
+    Buffer.add_string b hd;
+    List.iter (fun s -> Buffer.add_char b ':'; Buffer.add_string b s) tl;
+    Buffer.contents b
+
+type warn_status =
+  | Winactive
+  | Wfeedback_once
+  | Wfeedback
+  | Wonce
+  | Wactive
+  | Werror_once
+  | Werror
+  | Wabort
+
+let pp_warn_status fmt s =
+  let s =
+    match s with
+    | Winactive -> "inactive"
+    | Wfeedback_once -> "feedback,once"
+    | Wfeedback -> "feedback"
+    | Wonce -> "once"
+    | Wactive ->   "active"
+    | Werror_once -> "error,once"
+    | Werror -> "error"
+    | Wabort -> "abort"
+  in
+  Format.pp_print_string fmt s
+
+let merge_status old_status new_status =
+  match old_status, new_status with
+  | Winactive, Wactive -> Wactive
+  | Winactive, Wonce -> Wonce
+  | Winactive, _ -> Winactive
+  | _ -> new_status
 
 module type Messages =
 sig
 
+  type category
+
+  type warn_category
+
   val verbose_atleast: int -> bool
   val debug_atleast: int -> bool
 
-  val printf : ?level:int -> ?dkey:category -> 
+  val printf : ?level:int -> ?dkey:category ->
     ?current:bool -> ?source:Lexing.position ->
     ?append:(Format.formatter -> unit) ->
     ?header:(Format.formatter -> unit) ->
-    ?prefix:string ->
-    ?suffix:string ->
     ('a,formatter,unit) format -> 'a
 
   val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
   val feedback: ?ontty:ontty -> ?level:int -> ?dkey:category -> 'a pretty_printer
   val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
-  val warning : 'a pretty_printer
+  val warning : ?wkey: warn_category -> 'a pretty_printer
   val error   : 'a pretty_printer
   val abort   : ('a,'b) pretty_aborter
   val failure : 'a pretty_printer
@@ -675,23 +721,44 @@ sig
   val with_failure : (event -> 'b) -> ('a,'b) pretty_aborter
 
   val log : ?kind:kind -> ?verbose:int -> ?debug:int -> 'a pretty_printer
-  val with_log : (event -> 'b) -> ?kind:kind -> ('a,'b) pretty_aborter
 
   val register : kind -> (event -> unit) -> unit (** Very local listener. *)
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
 
   val register_category: string -> category
 
-  val get_category: string -> Category_set.t
-  val get_all_categories: unit -> Category_set.t
+  val pp_category: Format.formatter -> category -> unit
 
-  val add_debug_keys: Category_set.t -> unit
-  val del_debug_keys: Category_set.t -> unit
-  val get_debug_keys: unit -> Category_set.t
+  val is_registered_category: string -> bool
+
+  val get_category: string -> category option
+  val get_all_categories: unit -> category list
+
+  val add_debug_keys: category -> unit
+  val del_debug_keys: category -> unit
+  val get_debug_keys: unit -> category list
 
   val is_debug_key_enabled: category -> bool
 
   val get_debug_keyset : unit -> category list
+
+  val register_warn_category: string -> warn_category
+
+  val is_warn_category: string -> bool
+
+  val pp_warn_category: Format.formatter -> warn_category -> unit
+
+  val pp_all_warn_categories_status: unit -> unit
+
+  val get_warn_category: string -> warn_category option
+
+  val get_all_warn_categories: unit -> warn_category list
+
+  val get_all_warn_categories_status: unit -> (warn_category * warn_status) list
+
+  val set_warn_status: warn_category -> warn_status -> unit
+
+  val get_warn_status: warn_category -> warn_status
 
 end
 
@@ -706,69 +773,102 @@ struct
 
   include P
 
-  let categories = Hashtbl.create 3
+  type category = string
 
-  let () =
-    Hashtbl.add
-      categories "" (Category_set.add "" Category_set.empty)
+  type warn_category = string
+
+  let categories = ref Category_trie.empty
 
   let register_category (s:string) =
     let res: category = s in
-    (* empty string is already handled *)
-    if s <> "" then begin
-      let add s =
-        let existing =
-          try Hashtbl.find categories s
-          with Not_found -> Category_set.empty
-        in
-        Hashtbl.replace categories s (Category_set.add res existing)
-      in
-      let rec aux super =
-        add super;
-        if String.contains super ':' then
-          aux (String.sub super 0 (String.rindex super ':'))
-      in 
-      add "";
-      aux s
-    end; 
+    let l = split_category s in
+    categories := Category_trie.add_structure l !categories;
     res
 
+  let pp_category fmt (cat: category) = Format.pp_print_string fmt cat
+
+  let get_all_categories () =
+    List.map merge_category (Category_trie.suffixes [] !categories)
+
+  let is_registered_category s =
+    List.mem (split_category s) (Category_trie.suffixes [] !categories)
+
   let get_category s =
-    let s = if s = "*" then "" else s in
-    try Hashtbl.find categories s 
-    with Not_found -> 
-      (* returning [s] itself is required to get indirect kernel categories
-		 (e.g. project) to work. *)
-      Category_set.singleton s
+    if is_registered_category s then Some s else None
 
-  let get_all_categories () = get_category ""
+  let not_registered s =
+    failwith (s ^ " is not a registered category for " ^ label)
 
-  let debug_keys = ref Category_set.empty
+  let add_debug_keys s =
+    try
+      categories := Category_trie.add_info (split_category s) true !categories
+    with Not_found -> not_registered s
 
-  let add_debug_keys s = debug_keys:= Category_set.union s !debug_keys
-  let del_debug_keys s = debug_keys:= Category_set.diff !debug_keys s
-  let get_debug_keys () = !debug_keys
+  let del_debug_keys s =
+    try
+      categories := Category_trie.add_info (split_category s) false !categories
+    with Not_found -> not_registered s
 
-  let is_debug_key_enabled s = Category_set.mem s !debug_keys
+  let get_debug_keys () =
+    let f cat info acc =
+      match info with
+      | None | Some false -> acc
+      | Some true -> (merge_category cat) :: acc
+    in
+    Category_trie.fold f !categories []
+
+  let is_debug_key_enabled (c:category) =
+    let s = (c:>string) in
+    match Category_trie.get (split_category s) !categories with
+    | None -> false
+    | Some flag -> flag
+    | exception Not_found -> not_registered s
 
   let has_debug_key = function
     | None -> true (* No key means to be displayed each time *)
-    | Some k -> Category_set.mem k !debug_keys
+    | Some c -> is_debug_key_enabled c
+
+  let warn_categories = ref Category_trie.empty
+
+  let register_warn_category s =
+    warn_categories :=
+      Category_trie.add_structure (split_category s) !warn_categories;
+    s
+
+  let get_all_warn_categories () =
+    List.map merge_category (Category_trie.suffixes [] !warn_categories)
+
+  let get_all_warn_categories_status () =
+    List.rev
+      (Category_trie.fold
+         (fun cat status l  ->
+            (merge_category cat, Extlib.opt_conv Wactive status) :: l)
+         !warn_categories [])
+
+  let is_warn_category s =
+    List.mem (split_category s) (Category_trie.suffixes [] !warn_categories)
+
+  let pp_warn_category fmt s = Format.pp_print_string fmt s
+
+  let get_warn_category s = if is_warn_category s then Some s else None
+
+  let wnot_registered s =
+    failwith (s ^ " is not a registered warning category for " ^ label)
+
+  let set_warn_status s status =
+    try
+      warn_categories :=
+        Category_trie.add_info
+          (split_category s) ~merge:merge_status status !warn_categories
+    with Not_found -> wnot_registered s
+
+  let get_warn_status s =
+    match Category_trie.get (split_category s) !warn_categories with
+    | Some s -> s
+    | None -> Wactive
+    | exception Not_found -> wnot_registered s
 
   let channel = new_channel P.channel
-  let prefix_first = Label (Printf.sprintf "[%s] " label)
-  let prefix_error = Label (Printf.sprintf "[%s] user error: " label)
-  let prefix_warning = Label (Printf.sprintf "[%s] warning: " label)
-  let prefix_failure = Label (Printf.sprintf "[%s] failure: " label)
-  let prefix_dkey = function
-    | None -> prefix_first
-    | Some key -> Label (Printf.sprintf "[%s:%s] " label key)
-
-  let prefix_for = function
-    | Result | Feedback | Debug -> prefix_first
-    | Error -> prefix_error
-    | Warning -> prefix_warning
-    | Failure -> prefix_failure
 
   let internal_register_tag_handlers _c (_ope,_close) = ()
   (* BM->LOIC: I need to keep this code around to be able to handle
@@ -808,38 +908,29 @@ struct
 
   let log ?(kind=Result)
       ?(verbose=0) ?(debug=0)
-      ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false)
-      ?append
-      text =
+      ?current ?source
+      ?emitwith ?echo ?once
+      ?append text =
     if to_be_log verbose debug then
-      logtext channel
+      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
         ~kind
-        ~prefix:(prefix_for kind)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text
-    else nullprintf text
+        ?append text
+    else Pretty_utils.nullprintf text
 
   let result
-      ?(level=1) ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
+      ?(level=1) ?dkey ?current ?source
+      ?emitwith ?echo ?once ?append text =
     if verbose_atleast level && has_debug_key dkey then
-      logtext channel
-        ~kind:Result
-        ?dkey
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text
-    else nullprintf text
+      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+        ~kind:Result ?category:dkey ?append text
+    else Pretty_utils.nullprintf text
 
   let transient channel = channel.terminal.isatty && !tty ()
 
   let feedback
       ?(ontty=`Message)
-      ?(level=1) ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
+      ?(level=1) ?dkey ?current ?source
+      ?emitwith ?echo ?once ?append text =
     let mode =
       if verbose_atleast level && has_debug_key dkey
       then
@@ -851,24 +942,10 @@ struct
       else `Silent
     in match mode with
     | `Message ->
-        logtext channel
-          ~kind:Feedback
-          ?dkey
-          ~prefix:(prefix_dkey dkey)
-          ~source:(get_source current source)
-          ~once ~emitwith ~echo ~append
-          text
-    | `Transient ->
-        logtext channel
-          ~transient:true
-          ~kind:Feedback
-          ?dkey
-          ~prefix:prefix_first
-          ~once:false ~echo:true
-          ~source:None ~emitwith:None ~append:None
-          text
-    | `Silent ->
-        nullprintf text
+      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+        ~kind:Feedback ?category:dkey ?append text
+    | `Transient -> logtransient channel text
+    | `Silent -> Pretty_utils.nullprintf text
 
   let should_output_debug level dkey =
     match level, dkey with
@@ -878,120 +955,129 @@ struct
     | Some l, Some _ -> debug_atleast l && has_debug_key dkey
 
   let debug
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
+      ?level ?dkey ?current ?source
+      ?emitwith ?echo ?once ?append text =
     if should_output_debug level dkey then
-      logtext channel
-        ~kind:Debug
-        ?dkey
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text
+      logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+        ~kind:Debug ?category:dkey ?append text
     else
-      nullprintf text
+      Pretty_utils.nullprintf text
 
-  let warning
-      ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel
-      ~kind:Warning
-      ~prefix:(Label (Printf.sprintf "[%s] warning: " label))
-      ~source:(get_source current source)
-      ~once ~emitwith ~echo ~append
-      text
+  exception Warn_as_error
 
+  let warn_event_as_error event =
+    let wkey = match event.evt_category with None -> "" | Some s -> s in
+    !cmdline_error_occurred Warn_as_error;
+    !cmdline_at_error_exit
+      (function
+        | Warn_as_error ->
+          feedback "warning %s treated as error:@\n%s" wkey event.evt_message
+        (* only emit a message if the exit status is caused by ourselves. *)
+        | _ -> ())
+        
   let error
-      ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel
-      ~kind:Error ~prefix:prefix_error
-      ~source:(get_source current source)
-      ~once ~emitwith ~echo ~append
-      text
+      ?current ?source
+      ?emitwith ?echo ?once ?append text =
+    logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      ~kind:Error ?append text
 
-  let abort
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Error ~prefix:prefix_error
-      ~source:(get_source current source)
-      ~echo ~append
-      (finally_raise (AbortError P.channel))
-      text
+  let abort ?current ?source ?echo ?append text =
+    logwith (finally_raise (AbortError P.channel))
+      channel ?echo ?current ?source
+      ~kind:Error ?append text
 
   let failure
-      ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel
-      ~kind:Failure ~prefix:prefix_failure
-      ~source:(get_source current source)
-      ~once ~emitwith ~echo ~append
-      text
+      ?current ?source
+      ?emitwith ?echo ?once ?append text =
+    logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+      ~kind:Failure ?append text
 
   let fatal
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Failure ~prefix:prefix_failure
-      ~source:(get_source current source)
-      ~echo ~append
-      (finally_raise (AbortFatal P.channel))
-      text
+      ?current ?source
+      ?echo ?append text =
+    logwith (finally_raise (AbortFatal P.channel)) channel
+      ?echo ?current ?source
+      ~kind:Failure ?append text
 
   let verify assertion
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
+      ?current ?source
+      ?echo ?append text =
     if assertion then
-      Format.kfprintf (fun _ -> true) null text
+      Format.kfprintf (fun _ -> true) Pretty_utils.null text
     else
-      logwith channel
-        ~kind:Failure ~prefix:prefix_failure
-        ~source:(get_source current source)
-        ~echo ~append finally_false text
+      logwith finally_false channel ?echo ?current ?source
+        ~kind:Failure ?append text
 
-  let with_result f
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Result
-      ~prefix:prefix_first
-      ~source:(get_source current source)
-      ~echo ~append (finally_do f) text
+  let warning
+      ?(wkey="")
+      ?current ?source
+      ?emitwith ?echo ?once ?append text =
+    let status = get_warn_status wkey in
+    if status <> Winactive then
+      begin
+        let action, once_suffix =
+          match status with
+          | Wabort ->
+            Some (fun _ -> abort "warning %s treated as fatal error." wkey), ""
+          | Werror -> Some warn_event_as_error, ""
+          | Werror_once ->
+            Some
+              (fun evt ->
+                 warn_event_as_error evt; set_warn_status wkey Winactive),
+            "warn-error-once"
+          | Wfeedback_once ->
+            Some (fun _ -> set_warn_status wkey Winactive), "warn-feedback-once"
+          | Wonce ->
+            Some (fun _ -> set_warn_status wkey Winactive), "warn-once"
+          | Wactive | Winactive | Wfeedback -> None, ""
+        in
+        let emitwith =
+          match emitwith, action with
+          | None, None -> None
+          | Some e, None | None, Some e -> Some e
+          | Some e1, Some e2 -> Some (fun evt -> e1 evt; e2 evt)
+        in
+        let kind =
+          match status with
+          | Wfeedback | Wfeedback_once -> Feedback
+          | (Wactive | Werror | Wabort | Wonce | Werror_once | Winactive) ->
+            Warning
+        in
+        let category = if wkey = "" then None else Some wkey in
+        let append_once_suffix = (fun fmt ->
+            Format.fprintf fmt
+              "@.(%s: no further messages from category '%s' will be emitted)"
+              once_suffix wkey)
+        in
+        let append = if once_suffix = "" then append
+          else match append with
+            | None -> Some append_once_suffix
+            | Some app ->
+              Some (fun fmt -> app fmt; append_once_suffix fmt)
+        in
+        logwith finally_unit channel ?once ?echo ?emitwith ?current ?source
+          ~kind ?category ?append text
+      end
+    else Pretty_utils.nullprintf text
 
-  let with_warning f
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Warning ~prefix:prefix_warning
-      ~source:(get_source current source)
-      ~echo ~append (finally_do f) text
-
-  let with_error f
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Error ~prefix:prefix_error
-      ~source:(get_source current source)
-      ~echo ~append (finally_do f) text
-
-  let with_failure f
-      ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind:Failure ~prefix:prefix_failure
-      ~source:(get_source current source)
-      ~echo ~append (finally_do f) text
-
-  let with_log f
-      ?(kind=Result) ?(current=false) ?source
-      ?(echo=true) ?append text =
-    logwith channel
-      ~kind
-      ~prefix:(prefix_for kind)
-      ~source:(get_source current source)
-      ~echo ~append (finally_do f) text
-
+  let do_finally kf = function None -> assert false | Some evt -> kf evt
+  
+  let with_result kf ?current ?source ?echo ?append text =
+    logwith (do_finally kf) channel
+      ~kind:Result ?current ?source ?echo ?append text
+    
+  let with_warning kf ?current ?source ?echo ?append text =
+    logwith (do_finally kf) channel
+      ~kind:Warning ?current ?source ?echo ?append text
+    
+  let with_error kf ?current ?source ?echo ?append text =
+    logwith (do_finally kf) channel
+      ~kind:Error ?current ?source ?echo ?append text
+    
+  let with_failure kf ?current ?source ?echo ?append text =
+    logwith (do_finally kf) channel
+      ~kind:Failure ?current ?source ?echo ?append text
+  
   let register kd f =
     let em = channel.emitters.(nth_kind kd) in
     em.listeners <- em.listeners @ [f]
@@ -1013,11 +1099,10 @@ struct
 
   let get_debug_keyset =
     deprecated "Log.get_debug_key_set"
-      ~now:"Log.get_all_categories (which returns a set instead of list)"
-      (fun () -> Category_set.elements (get_debug_keys ()))
+      ~now:"Log.get_all_categories"
+      (fun () -> get_all_categories ())
 
   let noprint _fmt = ()
-  let noemit _event = ()
 
   let spynewline bol output buffer start length =
     begin
@@ -1027,24 +1112,14 @@ struct
       output buffer start length
     end
 
-  let printf ?(level=1) ?dkey ?(current=false) ?source ?(append=noprint)
-      ?header ?prefix ?suffix text =
+  let printf ?(level=1) ?dkey ?current ?source ?(append=noprint)
+      ?header text =
     if verbose_atleast level && has_debug_key dkey then
       begin
         (* Header is a regular message *)
         let header = match header with None -> noprint | Some h -> h in
-        logtext channel ~kind:Result
-          ?dkey ~prefix:(prefix_dkey dkey) ~source:(get_source current source)
-          ~emitwith:(Some noemit) ~echo:true ~append:None ~once:false
-          "%t" header ;
-        let print_line = function
-          | None -> ()
-          | Some line ->
-              stdout.output line 0 (String.length line) ;
-              stdout.output "\n" 0 1 ;
-              stdout.flush () ;
-        in
-        print_line prefix ;
+        logwith finally_unit channel ~kind:Result ~fire:false ?current ?source
+          ?category:dkey "%t" header ;
         let bol = ref true in
         let stdout = { stdout with output = spynewline bol stdout.output } in
         let fmt = delayed_terminal stdout in
@@ -1055,16 +1130,31 @@ struct
               Format.pp_print_flush fmt () ;
               unlock_terminal stdout fmt ;
               if not !bol then Format.pp_print_newline fmt () ;
-              print_line suffix ;
             end
             fmt text
         with error ->
           unlock_terminal stdout fmt ; raise error
       end
     else 
-      nullprintf text
+      Pretty_utils.nullprintf text
+
+  let pp_all_warn_categories_status () =
+    let l = get_all_warn_categories_status () in
+    let max =
+      List.fold_left (fun m (s,_) -> max m (String.length s)) 0 l
+    in
+    let print_one_elt fmt (cat, status) =
+      Format.fprintf fmt "%-*s : %a" max cat pp_warn_status status
+    in
+    feedback "@[<v 2>Warning categories for %s are@;%a@]"
+      label Format.(pp_print_list ~pp_sep:pp_print_cut print_one_elt) l
 
 end
+
+(* Deprecated -- backward compatibity only. *)
+let null = Pretty_utils.null
+let with_null = Pretty_utils.with_null
+let nullprintf = Pretty_utils.nullprintf
 
 (*
 Local Variables:

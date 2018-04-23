@@ -10,21 +10,31 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
-tests/value/lazy.i:11:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/lazy.i:11:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/lazy.i:11:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
-tests/value/lazy.i:11:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/lazy.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/lazy.i:14:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
-tests/value/lazy.i:14:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/lazy.i:19:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/lazy.i:19:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/lazy.i:19:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
-tests/value/lazy.i:19:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:pointer-comparison] tests/value/lazy.i:11: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/lazy.i:11: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:alarm] tests/value/lazy.i:11: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)0, (void *)q);
+[value:pointer-comparison] tests/value/lazy.i:11: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:pointer-comparison] tests/value/lazy.i:14: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/lazy.i:14: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:alarm] tests/value/lazy.i:14: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)0, (void *)s);
+[value:pointer-comparison] tests/value/lazy.i:14: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:pointer-comparison] tests/value/lazy.i:19: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/lazy.i:19: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:alarm] tests/value/lazy.i:19: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)0, (void *)(&a + 2));
+[value:pointer-comparison] tests/value/lazy.i:19: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Recording results for main
-tests/value/lazy.i:14:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
-tests/value/lazy.i:14:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0} because of UPCPA
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -38,7 +48,7 @@ tests/value/lazy.i:14:[value:pointer-comparison] evaluating operator ! to {0; 1}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   a FROM \nothing
   b FROM \nothing
@@ -49,6 +59,6 @@ tests/value/lazy.i:14:[value:pointer-comparison] evaluating operator ! to {0; 1}
   S_p[0] FROM p; S_p[0] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      a; b; q; r; s; t; S_p[0]
+    a; b; q; r; s; t; S_p[0]
 [inout] Inputs for function main:
-      a; q; s; S_p[0]
+    a; q; s; S_p[0]

@@ -2,8 +2,8 @@
 [kernel] Parsing tests/wp_acsl/simpl_is_type.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-[wp] 16 goals scheduled
+[wp] Warning: Missing RTE guards
+[wp] 15 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post : Valid
 [wp] [Alt-Ergo] Goal typed_f_loop_inv_preserved : Valid
 [wp] [Qed] Goal typed_f_loop_inv_established : Valid
@@ -13,18 +13,18 @@
 [wp] [Alt-Ergo] Goal typed_f_loop_inv_3_established : Valid
 [wp] [Qed] Goal typed_f_loop_assign_part1 : Valid
 [wp] [Alt-Ergo] Goal typed_f_loop_assign_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_f_loop_assign_part3 : Valid
 [wp] [Alt-Ergo] Goal typed_g_post : Valid
 [wp] [Alt-Ergo] Goal typed_g_loop_inv_preserved : Valid
 [wp] [Qed] Goal typed_g_loop_inv_established : Valid
 [wp] [Alt-Ergo] Goal typed_g_loop_inv_2_preserved : Valid
 [wp] [Qed] Goal typed_g_loop_inv_2_established : Valid
 [wp] [Qed] Goal typed_g_loop_assign : Valid
-[wp] Proved goals:   16 / 16
-    Qed:             6 
-    Alt-Ergo:       10
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                    3      7 (97)    10       100%
-g                    3      3 (25)     6       100%
-----------------------------------------------------------
+[wp] Proved goals:   15 / 15
+  Qed:             6 
+  Alt-Ergo:        9
+[wp] Report 'tests/wp_acsl/simpl_is_type.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                    3      6 (88..112)      9       100%
+g                    3      3 (32..44)       6       100%
+-------------------------------------------------------------

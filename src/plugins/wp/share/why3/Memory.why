@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,13 +72,17 @@ predicate havoc (m1:Map.map addr 'a) (m2:Map.map addr 'a) (p:addr) (a:int) =
   forall q:addr [(Map.([]) (m1) (p))| (Map.([]) (m2) (q))]. separated q 1 p
   a -> (((Map.([]) (m1) (q))) = ((Map.([]) (m2) (q))))
 
-predicate valid_rd (m:Map.map int int) (p:addr) (n:int) =
-  (Int.(>) (n) (0)) -> (Int.(<=) (0) (offset p)) /\
-  (Int.(<=) ((Int.(+) (offset p) (n))) ((Map.([]) (m) (base p))))
-
 predicate valid_rw (m:Map.map int int) (p:addr) (n:int) =
   (Int.(>) (n) (0)) -> (Int.(<) (0) (base p)) /\ (Int.(<=) (0) (offset p)) /\
   (Int.(<=) ((Int.(+) (offset p) (n))) ((Map.([]) (m) (base p))))
+
+predicate valid_rd (m:Map.map int int) (p:addr) (n:int) =
+  (Int.(>) (n) (0)) -> not ((0) = (base p)) /\ (Int.(<=) (0) (offset p)) /\
+  (Int.(<=) ((Int.(+) (offset p) (n))) ((Map.([]) (m) (base p))))
+
+predicate invalid (m:Map.map int int) (p:addr) (n:int) = (Int.(>) (n) (0)) ->
+  (Int.(<=) ((Map.([]) (m) (base p))) (offset p)) \/
+  (Int.(<=) ((Int.(+) (offset p) (n))) (0))
 
 axiom valid_rw_rd : forall m:Map.map int int. forall p:addr. forall n:int.
   valid_rw m p n -> valid_rd m p n
@@ -127,13 +131,16 @@ axiom eqmem_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
 axiom havoc_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
   addr. forall a:int. havoc m1 m2 p a -> havoc m2 m1 p a
 
-function cast addr : int
+function int_of_addr addr : int
 
-axiom cast_injective : forall p:addr, q:addr [cast p, cast q]. ((cast
-  p) = (cast q)) -> ((p) = (q))
+function addr_of_int int : addr
 
-function hardware int : int
+axiom int_of_addr_bijection : forall a:int. ((int_of_addr (addr_of_int
+  a)) = (a))
 
-axiom hardnull : ((hardware 0) = (0))
+axiom addr_of_int_bijection : forall p:addr. ((addr_of_int (int_of_addr
+  p)) = (p))
+
+axiom addr_of_null : ((int_of_addr null) = (0))
 
 end

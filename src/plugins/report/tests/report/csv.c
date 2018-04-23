@@ -1,6 +1,6 @@
 /* run.config
    LOG: csv.csv
-   OPT: -no-autoload-plugins -load-module from,inout,report,scope,value -val-warn-copy-indeterminate=-main4 -val -val-show-progress -remove-redundant-alarms -no-val-warn-on-alarms -value-msg-key=-alarm -then -report-csv @PTEST_RESULT@/csv.csv -report-no-proven -then -report-csv= -val-warn-on-alarms -slevel 1
+   OPT: -no-autoload-plugins -load-module from,inout,report,scope,value -val-warn-copy-indeterminate=-main4 -val -val-show-progress -remove-redundant-alarms -value-warn-key=-alarm -then -report-csv @PTEST_RESULT@/csv.csv -report-no-proven -then -report-csv= -value-warn-key=alarm -slevel 1
    COMMENT: first, do an analysis without any message, but check that the .csv is complete. Then, redo the analysis with value warnings. slevel 1 is just there to force Value to restart
 */
 volatile v;
@@ -24,13 +24,13 @@ void main2(int x) {
   f(x);
 }
 
-//@ assigns \result \from x, y;
-double Frama_C_pow(double x, double y);
+#include "math.h"
+
 
 void main3() {
   double f1 = v;
   double f2 = v;
-  double r = Frama_C_pow(f1, f2);
+  double r = pow(f1, f2);
 }
 
 /*@ 
@@ -43,7 +43,7 @@ void __FC_assert(const char* file,int line,const char*expr);
 #define assert(e) ((e)?(void)0:__FC_assert(__FILE__,__LINE__,#e))
 
 //@ assigns \result \from \nothing;
-double any_double();
+double any_double(void);
 
 void main4() {
   double d = any_double();

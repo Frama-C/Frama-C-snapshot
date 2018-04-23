@@ -26,13 +26,13 @@
 [from] Computing for function main1
 [from] Done for function main1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   i FROM c
   j FROM c
   x FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      i; j; x
+    i; j; x
 [inout] Inputs for function main1:
-      i; x
+    i; x

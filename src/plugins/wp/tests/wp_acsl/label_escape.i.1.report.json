@@ -1,0 +1,12 @@
+{ "wp:global": { "alt-ergo": { "total": 1, "unknown": 1 },
+                 "wp:main": { "total": 1, "unknown": 1 } },
+  "wp:functions": { "f": { "f_assert_qed_ko_oracle_ko": { "alt-ergo": 
+                                                            { "total": 1,
+                                                              "unknown": 1 },
+                                                          "wp:main": 
+                                                            { "total": 1,
+                                                              "unknown": 1 } },
+                           "wp:section": { "alt-ergo": { "total": 1,
+                                                         "unknown": 1 },
+                                           "wp:main": { "total": 1,
+                                                        "unknown": 1 } } } } }

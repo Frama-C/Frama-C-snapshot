@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-extern-arrays -wp-model Caveat -wp-print-separation
+   OPT: -wp-extern-arrays -wp-model Caveat -wp-warn-separation
  */
 
 /* run.config_qualif
@@ -32,3 +32,18 @@ void f5_pq(int *p,int *q) { *p += *q; }
 //HYP: \separated( p+(..) , &a ) 
 //@ ensures p[k] == a ; 
 void f6_Pa(int *p,int k) { p[k] = a; }
+
+static int c ;
+static int d ;
+
+int * escape_addrof_d(void) { return &d; }
+
+//HYP: \separated( p , q , {&a,&d} ) because of static
+//@ ensures a == \old(a) + *q ;
+void f7_pq_ad(int *p,int *q) { c += *p; d += *q ; a += *q ; }
+
+//@ ghost int g ;
+
+//HYP: \separated( p , q , &a ) because of ghost
+//@ ensures a ==\old(a) + *q ; 
+void f8_pq_a(int *p,int *q) { /*@ghost g += *p; */ a += *q ; }

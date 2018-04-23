@@ -2195,7 +2195,7 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.5*|8.6*|trunk)
+        8.5*|8.6*|8.7*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
@@ -2257,7 +2257,7 @@ fi
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version *\([^ ]*\)$|\1|p' `
       case $WHY3VERSION in
-        0.86*|0.87*|0.88*)
+        0.88*)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
 $as_echo "why3 version $WHY3VERSION found" >&6; }
 	  WHY3LIB=`why3 --print-libdir`

@@ -1,5 +1,3 @@
-open Cil_types
-
 let emitter1 = 
   Emitter.create "Test1" [ Emitter.Property_status ] ~correctness:[] ~tuning:[]
 

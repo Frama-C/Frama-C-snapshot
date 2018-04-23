@@ -6,11 +6,11 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function main1 <- main.
-    Called from tests/constant_propagation/bts117.c:19.
+  Called from tests/constant_propagation/bts117.c:19.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/constant_propagation/bts117.c:20.
+  Called from tests/constant_propagation/bts117.c:20.
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -wp-model +ref -wp-no-let -wp-msg-key var_kind
-   OPT: -wp-model +ref -wp-let    -wp-msg-key var_kind
+   OPT: -wp-model +ref -wp-no-let
+   OPT: -wp-model +ref -wp-let
 */
 
 /* run.config_qualif

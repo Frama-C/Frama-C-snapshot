@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -48,7 +48,7 @@ extern volatile int Frama_C_entropy_source;
 #define POLLWRBAND 0x200
 
 /*@
-  requires \valid(fds+(0 .. nfds-1));
+  requires valid_file_descriptors: \valid(fds+(0 .. nfds-1));
   assigns fds[0 .. nfds-1].revents \from indirect:fds[0 .. nfds-1].fd,
                                        fds[0 .. nfds-1].events,
                                        indirect:nfds, indirect:timeout,
@@ -57,8 +57,9 @@ extern volatile int Frama_C_entropy_source;
                         indirect:fds[0 .. nfds-1].events,
                         indirect:nfds, indirect:timeout,
                         indirect:Frama_C_entropy_source;
-  ensures -1 <= \result <= nfds;
-  ensures \initialized(&fds[0 .. nfds-1].revents);
+  ensures error_timeout_or_bounded:
+     \result == -1 || \result == 0 || 1 <= \result <= nfds;
+  ensures initialization:revents: \initialized(&fds[0 .. nfds-1].revents);
  */
 extern int poll (struct pollfd *fds, nfds_t nfds, int timeout);
 

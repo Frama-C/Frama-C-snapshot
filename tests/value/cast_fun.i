@@ -50,6 +50,8 @@ void main(volatile int c) {
   void (*p2)(struct s1);
   void (*p3)(int, ...);
   void (*p4)();
+  void (*p5) (int);
+  int* y;
   int x;
   struct s1 s = {0};
 
@@ -68,14 +70,19 @@ void main(volatile int c) {
     x = (*p1)(c);
   }
 
+  if (c) {
+    p5 = f3;
+    (*p5)(c);
+  }
+
   if (c){
     p1 = f4;
     x = (*p1)(c);
   }
 
   if (c){
-    p1 = f5;
-    x = (*p1)(c);
+    p4 = f5;
+    (*p4)(c);
   }
 
   if (c){
@@ -99,14 +106,15 @@ void main(volatile int c) {
   }
 
   if (c) {
-    p3 = f10;
-    (*p3)(c,c);
-  }
-
-  if (c) {
-    p4 = f9;
+    p4 = f10;
     (*p4)(c,c);
   }
+
+// Not allowed any more: you can't mix function without prototype and variadic.
+//  if (c) {
+//    p4 = f9;
+//    (*p4)(c,c);
+//  }
 
   if (c) {
     p4 = f10;
@@ -125,6 +133,12 @@ void main(volatile int c) {
 
   if (c) {
     p4 = f1;
+    (*p4)(c);
+  }
+
+  if (c) {
+    y = f1;
+    p4 = y;
     (*p4)(c);
   }
 

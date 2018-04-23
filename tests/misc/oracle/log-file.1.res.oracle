@@ -5,6 +5,6 @@
 [kernel] feedback
 [kernel:foo-category] debug (level 0) with dkey
 [kernel] debug (level 0)
-[kernel] warning: warning
-[kernel] user error: error
-[kernel] failure: failure
+[kernel] Warning: warning
+[kernel] User Error: error
+[kernel] Failure: failure

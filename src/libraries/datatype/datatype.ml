@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -310,7 +310,6 @@ module type Hashtbl = sig
   val make_type: 'a Type.t -> 'a t Type.t
   (** @since Fluorine-20130401 *)
 
-  val memo: 'a t -> key -> (key -> 'a) -> 'a
   module Key: S with type t = key
   module Make(Data: S) : S with type t = Data.t t
 end
@@ -769,7 +768,7 @@ module Pair_arg = struct
     in
     Type.par p Type.Tuple fmt pp
   let mk_pretty f1 f2 fmt p =
-    Format.fprintf fmt "@[(%a)@]"
+    Format.fprintf fmt "@[%a@]" (* Type.par put the parenthesis *)
       (mk_internal_pretty_code (fun _ -> f1) (fun _ -> f2) Type.Basic) p
   let mk_varname = undefined
   let mk_mem_project mem1 mem2 f (x1, x2) = mem1 f x1 && mem2 f x2
@@ -938,18 +937,24 @@ module Polymorphic_gen(P: Polymorphic_input) = struct
         let build mk f =
           if mk == undefined || f == undefined then undefined else mk f
         let compare = build P.mk_compare X.compare
-        let equal = build P.mk_equal X.equal
+        let equal =
+          if P.mk_equal == from_compare then
+            if compare == undefined then undefined else from_compare
+          else build P.mk_equal X.equal
         let hash = build P.mk_hash X.hash
         let copy =
-          let mk f =
-            if P.map == undefined then undefined
-            else
-              (* [JS 2011/05/31] No optimisation for the special case of
-                 identity, since we really want to perform a DEEP copy. *)
-              (*if f == identity then identity else*)
-              fun x -> P.map f x
-          in
-          build mk X.copy
+          (* issue #36: do not use [build] here in order to be able to
+             copy an empty datastructure even if the underlying function is
+             undefined. The potential issue would be to not have the invariant
+             that [copy] is [undefined] as soon as the underlying [copy] is;
+             but the kernel does not rely on this behavior for that particular
+             function (and hopefully it will not change in the future). *)
+          if P.map == undefined then undefined
+          else
+            (* [JS 2011/05/31] No optimisation for the special case of
+               identity, since we really want to perform a DEEP copy. *)
+            (*if f == identity then identity else*)
+            fun x -> P.map X.copy x
         let rehash = R.rehash
 
         let internal_pretty_code =
@@ -1617,13 +1622,6 @@ struct
               let pretty_code = undefined
           end)
     in M.ty
-
-  let memo tbl k f =
-    try find tbl k
-    with Not_found ->
-      let v = f k in
-      add tbl k v;
-      v
 
   module Key = Key
   module Make = P.Make

@@ -6,17 +6,19 @@
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/value/for_loops.c:24.
+  Called from tests/value/for_loops.c:24.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/value/for_loops.c:24: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:27:[value] entering loop for the first time
-tests/value/for_loops.c:29:[value] entering loop for the first time
-tests/value/for_loops.c:30:[value] Frama_C_show_each_F: {0}
-tests/value/for_loops.c:30:[value] Frama_C_show_each_F: {0; 1}
-tests/value/for_loops.c:30:[value] Frama_C_show_each_F: {0; 1; 2}
-tests/value/for_loops.c:30:[value] Frama_C_show_each_F: [0..2147483647]
-tests/value/for_loops.c:27:[value] warning: signed overflow. assert j + 1 ≤ 2147483647;
+[value] tests/value/for_loops.c:27: entering loop for the first time
+[value] tests/value/for_loops.c:29: entering loop for the first time
+[value] tests/value/for_loops.c:30: Frama_C_show_each_F: {0}
+[value] tests/value/for_loops.c:30: Frama_C_show_each_F: {0; 1}
+[value] tests/value/for_loops.c:30: Frama_C_show_each_F: {0; 1; 2}
+[value] tests/value/for_loops.c:30: Frama_C_show_each_F: [0..2147483647]
+[value:alarm] tests/value/for_loops.c:27: Warning: 
+  signed overflow. assert j + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -31,7 +33,7 @@ tests/value/for_loops.c:27:[value] warning: signed overflow. assert j + 1 ≤ 21
 [from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -39,6 +41,6 @@ tests/value/for_loops.c:27:[value] warning: signed overflow. assert j + 1 ≤ 21
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      Frama_C_entropy_source; j; nSelectors; w; v
+    Frama_C_entropy_source; j; nSelectors; w; v
 [inout] Inputs for function main:
-      Frama_C_entropy_source
+    Frama_C_entropy_source

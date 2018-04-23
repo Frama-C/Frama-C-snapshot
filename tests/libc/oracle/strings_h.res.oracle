@@ -1,0 +1,72 @@
+[kernel] Parsing tests/libc/strings_h.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[value] computing for function strcasecmp <- main.
+  Called from tests/libc/strings_h.c:9.
+[value] using specification for function strcasecmp
+[value] tests/libc/strings_h.c:9: 
+  function strcasecmp: precondition 'valid_string_s1' got status valid.
+[value] tests/libc/strings_h.c:9: 
+  function strcasecmp: precondition 'valid_string_s2' got status valid.
+[value] Done for function strcasecmp
+[value] computing for function strcasecmp <- main.
+  Called from tests/libc/strings_h.c:10.
+[value] tests/libc/strings_h.c:10: 
+  function strcasecmp: precondition 'valid_string_s1' got status valid.
+[value] tests/libc/strings_h.c:10: 
+  function strcasecmp: precondition 'valid_string_s2' got status valid.
+[value] Done for function strcasecmp
+[value] computing for function strcasecmp <- main.
+  Called from tests/libc/strings_h.c:11.
+[value] tests/libc/strings_h.c:11: 
+  function strcasecmp: precondition 'valid_string_s1' got status valid.
+[value] tests/libc/strings_h.c:11: 
+  function strcasecmp: precondition 'valid_string_s2' got status valid.
+[value] Done for function strcasecmp
+[value] computing for function strcasecmp <- main.
+  Called from tests/libc/strings_h.c:12.
+[value] tests/libc/strings_h.c:12: 
+  function strcasecmp: precondition 'valid_string_s1' got status valid.
+[value:alarm] tests/libc/strings_h.c:12: Warning: 
+  function strcasecmp: precondition 'valid_string_s2' got status invalid.
+[value] Done for function strcasecmp
+[value] computing for function strncasecmp <- main.
+  Called from tests/libc/strings_h.c:13.
+[value] using specification for function strncasecmp
+[value] tests/libc/strings_h.c:13: 
+  function strncasecmp: precondition 'valid_string_s1' got status valid.
+[value] tests/libc/strings_h.c:13: 
+  function strncasecmp: precondition 'valid_string_s2' got status valid.
+[value] Done for function strncasecmp
+[value] computing for function strncasecmp <- main.
+  Called from tests/libc/strings_h.c:14.
+[value] tests/libc/strings_h.c:14: 
+  function strncasecmp: precondition 'valid_string_s1' got status valid.
+[value:alarm] tests/libc/strings_h.c:14: Warning: 
+  function strncasecmp: precondition 'valid_string_s2' got status invalid.
+[value] Done for function strncasecmp
+[value] computing for function strncasecmp <- main.
+  Called from tests/libc/strings_h.c:15.
+[value] tests/libc/strings_h.c:15: 
+  function strncasecmp: precondition 'valid_string_s1' got status valid.
+[value] tests/libc/strings_h.c:15: 
+  function strncasecmp: precondition 'valid_string_s2' got status valid.
+[value] Done for function strncasecmp
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  s1 ∈ {{ "AbC" }}
+  s2 ∈ {{ "De" }}
+  s3 ∈ {{ "ABc" }}
+  s[0] ∈ {65}
+   [1] ∈ {66}
+   [2] ∈ {99}
+  r1 ∈ [--..--]
+  r2 ∈ [--..--]
+  r3 ∈ [--..--]
+  r4 ∈ [--..--]
+  r5 ∈ [--..--]

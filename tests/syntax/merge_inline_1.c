@@ -8,7 +8,7 @@ int foo(int x); /* Declare it here.  */
 
 inline int foo(int x) { return x; } 
 
-extern getfoo2();
+extern getfoo2(void);
 
 int main() {
   if(getfoo2() != (int)foo) {

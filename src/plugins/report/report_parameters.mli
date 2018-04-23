@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,8 @@
 (**************************************************************************)
 
 include Plugin.General_services
-module Enabled : Parameter_sig.Bool
 
+module Print: Parameter_sig.Bool
 module PrintProperties: Parameter_sig.Bool
 
 module Untried: Parameter_sig.Bool
@@ -30,3 +30,20 @@ module Specialized: Parameter_sig.Bool
 module Proven: Parameter_sig.Bool
 
 module CSVFile: Parameter_sig.String
+module Classify: Parameter_sig.Bool
+module Rules: Parameter_sig.String_list
+module Warning: Parameter_sig.String
+module Error: Parameter_sig.String
+module Status: Parameter_sig.Bool
+module UntriedStatus: Parameter_sig.String
+module UnknownStatus: Parameter_sig.String
+module InvalidStatus: Parameter_sig.String
+
+module Output: Parameter_sig.String
+module OutputReviews: Parameter_sig.String
+module OutputErrors: Parameter_sig.String
+module OutputUnclassified: Parameter_sig.String
+module AbsolutePath: Parameter_sig.Bool
+module Stdout: Parameter_sig.Bool
+module Stderr: Parameter_sig.Bool
+module Exit: Parameter_sig.Bool

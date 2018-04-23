@@ -4,10 +4,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/uninit.i:3:[value] warning: accessing uninitialized left-value. assert \initialized(&i);
+[value:alarm] tests/value/uninit.i:3: Warning: 
+  accessing uninitialized left-value. assert \initialized(&i);
 [value] Recording results for main
 [value] done for function main
-tests/value/uninit.i:3:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/uninit.i:3: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -15,11 +17,11 @@ tests/value/uninit.i:3:[value] assertion 'Value,initialisation' got final status
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i
+    i
 [inout] Inputs for function main:
-      \nothing
+    \nothing

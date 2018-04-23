@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/sequence.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 39 goals scheduled
 [wp] [Qed] Goal typed_caveat_loops_post_ok_first : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_loops_post_ok_last : Valid
@@ -44,11 +44,12 @@
 [wp] [Qed] Goal typed_caveat_sequence_g_not_called_post_ok_q2 : Valid
 [wp] [Alt-Ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q3 : Valid
 [wp] Proved goals:   39 / 39
-    Qed:            25 
-    Alt-Ergo:       14
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-no_calls             5      5 (9)     10       100%
-sequence             8      2 (16)    10       100%
-loops               12      7 (95)    19       100%
-----------------------------------------------------------
+  Qed:            25 
+  Alt-Ergo:       14
+[wp] Report 'tests/wp_plugin/sequence.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+no_calls             5      5 (4..16)       10       100%
+sequence             8      2 (12..24)      10       100%
+loops               12      7 (80..104)     19       100%
+-------------------------------------------------------------

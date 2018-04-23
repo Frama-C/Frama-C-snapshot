@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -35,7 +35,7 @@ struct tms
   clock_t tms_cstime;
 };
 
-/*@ requires \valid(buffer);
+/*@ requires valid_buffer: \valid(buffer);
     assigns \result, *buffer \from __fc_time; */
 extern clock_t times (struct tms *buffer);
 __POP_FC_STDLIB

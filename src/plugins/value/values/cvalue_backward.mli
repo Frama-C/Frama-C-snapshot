@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,10 @@ val backward_unop:
 (** This function tries to reduce the argument of a cast, given the result of
     the cast.
     [src_typ] is the type of [src_val], [dst_typ] the type of the cast
-    and of [dst_val]. *)
+    and of [dst_val]. Returning [None] means that not reduction was possible.
+    Remember that the engine will intersect the result with [src_val], no
+    need to do this ourself.
+*)
 val backward_cast:
   src_typ: typ ->
   dst_typ: typ ->

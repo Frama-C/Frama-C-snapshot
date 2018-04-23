@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function test1 <- main.
-    Called from tests/value/machdep.c:25.
+  Called from tests/value/machdep.c:25.
 [value] Recording results for test1
 [value] Done for function test1
 [value] Recording results for main
@@ -26,7 +26,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function test1 <- main.
-    Called from tests/value/machdep.c:25.
+  Called from tests/value/machdep.c:25.
 [value] Recording results for test1
 [value] Done for function test1
 [value] Recording results for main
@@ -47,7 +47,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function test1 <- main.
-    Called from tests/value/machdep.c:25.
+  Called from tests/value/machdep.c:25.
 [value] Recording results for test1
 [value] Done for function test1
 [value] Recording results for main

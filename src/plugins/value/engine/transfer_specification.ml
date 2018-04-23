@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,7 +123,7 @@ let precise_loc_of_from_clause env out =
     reduce_to_valid_location out loc
   with Eval_terms.LogicEvalError e ->
     Value_util.warning_once_current
-      "cannot interpret assigns %a%a; effects will be ignored"
+      "@[<hov 0>@[<hov 2>cannot interpret assigns %a@]%a;@ effects will be ignored@]"
       Printer.pp_term out pp_eval_error e;
     `Ignored
 
@@ -379,6 +379,19 @@ module Make
         List.iter evaluate_requires behaviors;
         `Value (behaviors, complete_behaviors)
 
+  let warn_allocates kf behaviors =
+    (* TODO: remove the special case 'FC_BUILTIN' when the new warning
+       mechanism will be in place *)
+    List.iter (fun b ->
+        match b.b_allocation with
+        | FreeAllocAny -> ()
+        | _ ->
+          let vi = Kernel_function.get_vi kf in
+          if not (Cil.hasAttribute "FC_BUILTIN" vi.vattr) then
+            Value_parameters.warning ~current:true ~once:true
+              "ignoring unsupported \\allocates clause"
+      ) behaviors
+
   (* Sound over-approximations of the effects of a function can be computed
      through its specification in three different ways:
      - the default behavior is always an over-approximation of the function
@@ -392,6 +405,7 @@ module Make
      interpretation of any true behavior and of any complete set should be
      intersected. *)
   let compute_specification kinstr kf result spec state =
+    warn_allocates kf spec.spec_behavior;
     (* The default behavior, and the list of other behaviors. *)
     let default_bhv, behaviors = extract_default_behavior spec.spec_behavior in
     let find_behavior name = List.find (fun b -> b.b_name = name) behaviors in

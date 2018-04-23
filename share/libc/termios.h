@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -178,19 +178,19 @@ extern int     tcdrain(int);
 extern int     tcflow(int, int);
 extern int     tcflush(int, int);
 
-/*@ requires \valid(termios_p);
+/*@ requires valid_termios_p: \valid(termios_p);
     assigns \result, *termios_p \from indirect:fd,
                                        indirect:Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     behavior ok:
-      assumes Frama_C_entropy_source == 0; // arbitrary condition
-      ensures \initialized(termios_p);
-      ensures \result == 0;
+      assumes nondet: Frama_C_entropy_source == 0; // arbitrary condition
+      ensures initialization:termios_p: \initialized(termios_p);
+      ensures result_ok: \result == 0;
     behavior error:
-      assumes Frama_C_entropy_source != 0; // arbitrary condition
-      ensures \result == -1;
-    disjoint behaviors ok, error;
-    complete behaviors ok, error;
+      assumes nondet: Frama_C_entropy_source != 0; // arbitrary condition
+      ensures result_error: \result == -1;
+    disjoint behaviors;
+    complete behaviors;
  */
 extern int     tcgetattr(int fd, struct termios *termios_p);
 
@@ -198,14 +198,14 @@ extern pid_t   tcgetsid(int);
 extern int     tcsendbreak(int, int);
 
 /*@
-  requires \valid(termios_p);
+  requires valid_termios_p: \valid(termios_p);
   assigns *termios_p \from indirect:fd, indirect:optional_actions,
                       indirect:Frama_C_entropy_source, *termios_p;
   assigns Frama_C_entropy_source \from Frama_C_entropy_source;
   assigns \result \from indirect:fd, indirect:optional_actions,
                         indirect:Frama_C_entropy_source,
                         indirect:*termios_p;
-  ensures \result == 0 || \result == -1;
+  ensures result_ok_or_error: \result == 0 || \result == -1;
  */
 extern int     tcsetattr(int fd, int optional_actions, struct termios *termios_p);
 

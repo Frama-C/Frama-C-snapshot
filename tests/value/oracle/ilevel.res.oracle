@@ -8,11 +8,11 @@
   j ∈ {0}
   k ∈ {0}
   l ∈ {0}
-tests/value/ilevel.i:9:[value] entering loop for the first time
-tests/value/ilevel.i:12:[value] entering loop for the first time
-tests/value/ilevel.i:20:[value] warning: assertion got status unknown.
-tests/value/ilevel.i:22:[value] warning: assertion got status unknown.
-tests/value/ilevel.i:24:[value] Frama_C_show_each: [0..9]
+[value] tests/value/ilevel.i:9: entering loop for the first time
+[value] tests/value/ilevel.i:12: entering loop for the first time
+[value:alarm] tests/value/ilevel.i:20: Warning: assertion got status unknown.
+[value:alarm] tests/value/ilevel.i:22: Warning: assertion got status unknown.
+[value] tests/value/ilevel.i:24: Frama_C_show_each: [0..9]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -48,9 +48,10 @@ tests/value/ilevel.i:24:[value] Frama_C_show_each: [0..9]
   j ∈ {0}
   k ∈ {0}
   l ∈ {0}
-tests/value/ilevel.i:9:[value] entering loop for the first time
-tests/value/ilevel.i:12:[value] entering loop for the first time
-tests/value/ilevel.i:26:[value] warning: signed overflow. assert (int)((int)(i + j) + k) + l ≤ 2147483647;
+[value] tests/value/ilevel.i:9: entering loop for the first time
+[value] tests/value/ilevel.i:12: entering loop for the first time
+[value:alarm] tests/value/ilevel.i:26: Warning: 
+  signed overflow. assert (int)((int)(i + j) + k) + l ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -69,7 +70,7 @@ tests/value/ilevel.i:26:[value] warning: signed overflow. assert (int)((int)(i +
   j ∈ {0}
   k ∈ {0}
   l ∈ {0}
-tests/value/ilevel.i:24:[value] Frama_C_show_each: {0; 1; 2; 3; 4; 6; 7; 8; 9}
+[value] tests/value/ilevel.i:24: Frama_C_show_each: {0; 1; 2; 3; 4; 6; 7; 8; 9}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -88,7 +89,7 @@ tests/value/ilevel.i:24:[value] Frama_C_show_each: {0; 1; 2; 3; 4; 6; 7; 8; 9}
   j ∈ {0}
   k ∈ {0}
   l ∈ {0}
-tests/value/ilevel.i:24:[value] Frama_C_show_each: {0; 1; 2; 3; 4; 6; 7; 8; 9}
+[value] tests/value/ilevel.i:24: Frama_C_show_each: {0; 1; 2; 3; 4; 6; 7; 8; 9}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

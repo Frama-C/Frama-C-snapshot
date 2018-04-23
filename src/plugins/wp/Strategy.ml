@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -147,7 +147,7 @@ let set_arg (tactical : #tactical) =
 let set_args tactical arguments =
   List.iter (set_arg tactical) arguments
 
-let make tactical ?(priority=1.0) selection =
-  { priority ; tactical ; selection ; arguments = [] }
+let make tactical ?(priority=1.0) ?(arguments=[]) selection =
+  { priority ; tactical ; selection ; arguments }
 
 (* -------------------------------------------------------------------------- *)

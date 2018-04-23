@@ -2,8 +2,9 @@
 [kernel] Parsing tests/wp_typed/unit_cast.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_typed/unit_cast.i:4:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_typed/unit_cast.i:4: Warning: 
+  Cast with incompatible pointers types (source: sint32*) (target: sint8*)
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------

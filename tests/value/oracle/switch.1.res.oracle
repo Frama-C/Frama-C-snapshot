@@ -1,5 +1,6 @@
 [kernel] Parsing tests/value/switch.i (no preprocessing)
-tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for switch expression. Nothing to worry.
+[kernel] tests/value/switch.i:52: 
+  Case label 0xFFFFFFFF exceeds range of long for switch expression. Nothing to worry.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -9,7 +10,7 @@ tests/value/switch.i:52:[kernel] Case label 0xFFFFFFFF exceeds range of long for
   result4 ∈ {0}
   result2 ∈ {7}
   d2 ∈ {0}
-tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
+[value] tests/value/switch.i:29: Frama_C_show_each_F: {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -24,7 +25,7 @@ tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   result1 FROM d (and SELF)
   result3 FROM c; f (and SELF)
@@ -34,6 +35,6 @@ tests/value/switch.i:29:[value] Frama_C_show_each_F: {0}
   \result FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      result1; result3; result4; result2; d2; f; __retres
+    result1; result3; result4; result2; d2; f; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

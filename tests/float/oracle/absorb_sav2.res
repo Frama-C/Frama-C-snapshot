@@ -11,11 +11,12 @@
   min_fl ∈ {0}
   den ∈ {0}
 [value] computing for function Frama_C_interval <- main.
-    Called from tests/float/absorb.c:13.
+  Called from tests/float/absorb.c:15.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/float/absorb.c:15: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/float/absorb.c:16:[value] entering loop for the first time
+[value] tests/float/absorb.c:18: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -7,7 +7,7 @@ let emitter =
 class visit prj =
   object(self)
     inherit Visitor.frama_c_copy prj
-    method vbehavior b =
+    method! vbehavior b =
       let kf = Extlib.the self#current_kf in
       if Kernel_function.get_name kf = "main" then begin
         let x = Globals.Vars.find_from_astinfo "X" VGlobal in
@@ -31,6 +31,27 @@ class visit prj =
         in
         ChangeDoChildrenPost(b, post)
       end else DoChildren
+
+    method! vstmt_aux stmt =
+      match stmt.skind with
+      | Return _ ->
+        let kf = Extlib.the self#current_kf in
+        let requires = [ Logic_const.new_predicate (Logic_const.ptrue) ] in
+        let post_cond =
+          [ Normal, Logic_const.new_predicate (Logic_const.pfalse) ]
+        in
+        let s1 = Cil.empty_funspec () in
+        let b1 = Cil.mk_behavior ~requires () in
+        s1.spec_behavior <- [ b1 ];
+        let ca1 = Logic_const.new_code_annotation (AStmtSpec ([], s1)) in
+        Annotations.add_code_annot emitter ~kf stmt ca1;
+        let s2 = Cil.empty_funspec () in
+        let b2 = Cil.mk_behavior ~post_cond () in
+        s2.spec_behavior <- [ b2 ];
+        let ca2 = Logic_const.new_code_annotation (AStmtSpec ([], s2)) in
+        Annotations.add_code_annot emitter ~kf stmt ca2;
+        Cil.DoChildren
+      | _ -> Cil.DoChildren
   end
 
 let show_properties () =

@@ -20,10 +20,10 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM \nothing
   \result FROM a; b; c; d; t[0]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Derefs for function main:
-      a; d
+    a; d

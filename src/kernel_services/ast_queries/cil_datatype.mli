@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,6 +62,9 @@ module Location: sig
 end
 
 module Localisation: Datatype.S with type t = localisation
+
+module Syntactic_scope:
+  Datatype.S_with_collections with type t = syntactic_scope
 
 (**************************************************************************)
 (** {3 Cabs types} *)
@@ -273,7 +276,8 @@ module Identified_predicate:
     Sorted by alphabetic order. *)
 (**************************************************************************)
 
-module Lexpr: S_with_pretty with type t = Logic_ptree.lexpr
+module Lexpr: S with type t = Logic_ptree.lexpr
+(** Beware: no pretty-printer is available. *)
 
 (**/**)
 (* ****************************************************************************)
@@ -284,10 +288,8 @@ module Lexpr: S_with_pretty with type t = Logic_ptree.lexpr
 val drop_non_logic_attributes : (attributes -> attributes) ref
 val constfoldtoint : (exp -> Integer.t option) ref
 val punrollType: (typ -> typ) ref
-(**/**)
 
 val clear_caches: unit -> unit
-
 
 (**/**)
 

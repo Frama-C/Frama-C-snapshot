@@ -1,9 +1,10 @@
 # frama-c -wp -warn-unsigned-overflow [...]
 [kernel] Parsing tests/wp_plugin/cint.i (no preprocessing)
-tests/wp_plugin/cint.i:22:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[kernel] tests/wp_plugin/cint.i:22: Warning: 
+  parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function signed_bitwise
 ------------------------------------------------------------

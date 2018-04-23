@@ -24,17 +24,20 @@
   a2 ∈ {0}
   s[0..9999999] ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/offsetmap.i:75.
-tests/value/offsetmap.i:19:[value] entering loop for the first time
-tests/value/offsetmap.i:29:[value] entering loop for the first time
+  Called from tests/value/offsetmap.i:75.
+[value] tests/value/offsetmap.i:19: entering loop for the first time
+[value] tests/value/offsetmap.i:29: entering loop for the first time
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/offsetmap.i:76.
-tests/value/offsetmap.i:66:[value] warning: accessing out of bounds index. assert 0 ≤ i_0;
-tests/value/offsetmap.i:66:[value] warning: accessing out of bounds index. assert i_0 < 10000000;
+  Called from tests/value/offsetmap.i:76.
+[value:alarm] tests/value/offsetmap.i:66: Warning: 
+  accessing out of bounds index. assert 0 ≤ i_0;
+[value:alarm] tests/value/offsetmap.i:66: Warning: 
+  accessing out of bounds index. assert i_0 < 10000000;
 [value] Recording results for g
-tests/value/offsetmap.i:68:[kernel] more than 200(10000000) elements to enumerate. Approximating.
+[kernel] tests/value/offsetmap.i:68: 
+  more than 200(10000000) elements to enumerate. Approximating.
 [value] Done for function g
 [value] Recording results for main
 [value] done for function main
@@ -129,7 +132,7 @@ tests/value/offsetmap.i:68:[kernel] more than 200(10000000) elements to enumerat
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   TT{[0..8]; [9][bits 0 to 7]} FROM \nothing (and SELF)
   T{{[0][bits 8 to 31]; [1..5]}; {[7..8]; [9][bits 0 to 7]}}
@@ -167,18 +170,18 @@ tests/value/offsetmap.i:68:[kernel] more than 200(10000000) elements to enumerat
   s[0..9999999] FROM i_0 (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      TT{[0..8]; [9][bits 0 to 7]};
-      T{[0][bits 8 to 31]; [1..8]; [9][bits 0 to 7]}; i; a; b; a7; b7;
-      O1{[0][bits 8 to 15]; [1]; [6]; [9]}; O2[0]; p; x2; b2; a2
+    TT{[0..8]; [9][bits 0 to 7]};
+    T{[0][bits 8 to 31]; [1..8]; [9][bits 0 to 7]}; i; a; b; a7; b7;
+    O1{[0][bits 8 to 15]; [1]; [6]; [9]}; O2[0]; p; x2; b2; a2
 [inout] Inputs for function f:
-      i; a; b; a7; p; x2; b2; a2
+    i; a; b; a7; p; x2; b2; a2
 [inout] Out (internal) for function g:
-      s[0..9999999]; p_0; c1; q; c2
+    s[0..9999999]; p_0; c1; q; c2
 [inout] Inputs for function g:
-      s{[0..9999998]; [9999999][bits 0 to 7]}
+    s{[0..9999998]; [9999999][bits 0 to 7]}
 [inout] Out (internal) for function main:
-      TT{[0..8]; [9][bits 0 to 7]};
-      T{[0][bits 8 to 31]; [1..8]; [9][bits 0 to 7]}; i; a; b; a7; b7;
-      O1{[0][bits 8 to 15]; [1]; [6]; [9]}; O2[0]; p; x2; b2; a2; s[0..9999999]
+    TT{[0..8]; [9][bits 0 to 7]};
+    T{[0][bits 8 to 31]; [1..8]; [9][bits 0 to 7]}; i; a; b; a7; b7;
+    O1{[0][bits 8 to 15]; [1]; [6]; [9]}; O2[0]; p; x2; b2; a2; s[0..9999999]
 [inout] Inputs for function main:
-      i; a; b; a7; p; x2; b2; a2; s{[0..9999998]; [9999999][bits 0 to 7]}
+    i; a; b; a7; p; x2; b2; a2; s{[0..9999998]; [9999999][bits 0 to 7]}

@@ -4,7 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   after ∈ [--..--]
-tests/pdg/loops.c:139:[kernel] warning: Non-natural loop detected.
+[kernel] tests/pdg/loops.c:139: Warning: Non-natural loop detected.
 [value] Recording results for non_natural_loop
 [value] done for function non_natural_loop
 [pdg] computing for function non_natural_loop

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,31 +27,63 @@ open Cil_types
 type unhashconsed_exprs = private E of exp | LV of lval
 (** lvalues are never stored under a constructor [E], only [LV] *)
 
-module Datatype_UHCE: Datatype.S with type t = unhashconsed_exprs
+(** Raised when the replacement of an lvalue in an expression is impossible. *)
+exception NonExchangeable
 
-(** Hashconsed {!hash_consed_exprs} *)
-type hashconsed_exprs
+(** Reason of the replacement of an lvalue [lval]: [Modified] means that the
+    value of [lval] has been modified (in which case &lval is unchanged), and
+    [Deleted] means that [lval] is no longer in scope (in which case &lval
+    raises the NonExchangeable error). *)
+type kill_type = Modified | Deleted
 
-(** Datatype + utilities functions for {!hashconsed_exprs}. *)
+module E: Datatype.S with type t = unhashconsed_exprs
+
+(** Datatype + utilities functions for hashconsed exprsessions. *)
 module HCE: sig
-  include Datatype.S_with_collections with type t = hashconsed_exprs
+  include Datatype.S_with_collections
+  val self: State.t
   val pretty_debug: t Pretty_utils.formatter
 
   val id: t -> int
 
+  (** Conversions between type [t] and Cil lvalues and expressions. *)
+
   val of_lval: lval -> t
   val of_exp: exp -> t
 
-  val to_exp: t -> exp
-
   val get: t -> unhashconsed_exprs
+  val to_exp: t -> exp
+  val to_lval: t -> lval option
+  val is_lval: t -> bool
 
-  val self: State.t
+
+  (** Replaces all occurrences of the lvalue [late] by the expression [heir].
+      @raise NonExchangeable if the replacement is not feasible. *)
+  val replace: kill_type -> late:lval -> heir:exp -> t -> t
 end
 
 
 (** Hashconsed sets of symbolic expressions. *)
 module HCESet: Hptset.S with type elt = HCE.t
+
+(* Sets of lvalues that appear in an expression. The [addr] field gathers the
+   lvalues [lv] appearing as addresses &lv, while the [read] field gathers the
+   lvalues whose value is read during the evaluation of the expression.  *)
+type lvalues = {
+  read : HCESet.t;
+  addr : HCESet.t;
+}
+
+(* Empty sets of lvalues. *)
+val empty_lvalues: lvalues
+
+(** [syntactic_lvalues e] returns the set of lvalues that appear in the
+    expression [e]. This is used by the equality domain: the expression [e] will
+    be removed from an equality if a lvalue from [syntactic_lvalues e] is
+    removed. This function only computes the first lvalues of the expression,
+    and does not go through the lvalues (for the expression t[i]+1, only the
+    lvalue t[i] is returned). *)
+val syntactic_lvalues: Cil_types.exp -> lvalues
 
 
 (** Maps from symbolic expressions to their memory dependencies, expressed as a
@@ -69,7 +101,7 @@ module HCEToZone: sig
   val is_included: t -> t -> bool
 
   val find: HCE.t -> t -> Locations.Zone.t
-  (** may raise [Not_found] *)
+  (** @raise Not_found if the symbolic expression is not in the map. *)
 
   val find_default: HCE.t -> t -> Locations.Zone.t
   (** returns the empty set when the key is not bound *)
@@ -90,7 +122,7 @@ module BaseToHCESet: sig
   val inter: t -> t -> t
 
   val find: Base.t -> t -> HCESet.t
-  (** may raise [Not_found] *)
+  (** @raise Not_found if the base is not in the map. *)
 
   val find_default: Base.t -> t -> HCESet.t
   (** returns the empty set when the key is not bound *)

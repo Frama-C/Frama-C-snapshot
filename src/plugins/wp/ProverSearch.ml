@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ let configure (console : #Tactical.feedback) strategy =
 let fork tree anchor strategy =
   let console = new ProofScript.console ~title:strategy.tactical#title in
   try
-    let model = ProofEngine.model anchor in
+    let model = ProofEngine.node_model anchor in
     match Model.with_model model (configure console) strategy with
     | None -> None
     | Some (script,process) ->
@@ -56,7 +56,7 @@ let fork tree anchor strategy =
 
 let rec lookup tree anchor k hs =
   let n = Array.length hs in
-  if n=0 then None,n,hs else
+  if n=0 then None,0,[| |] else
     match fork tree anchor hs.(k) with
     | Some fork -> Some fork,k,hs
     | None ->
@@ -70,17 +70,38 @@ let rec lookup tree anchor k hs =
           else
             lookup tree anchor 0 hs
 
-let first tree ~anchor hs =
-  let fork,index,hs = lookup tree anchor 0 hs in
-  ProofEngine.set_strategies anchor ~index hs ; fork
+let index tree ~anchor ~index =
+  if index < 0 then None else
+    let _,hs = ProofEngine.get_strategies anchor in
+    if index < Array.length hs then
+      fork tree anchor hs.(index)
+    else None
 
-let backtrack tree ~anchor ~loop =
-  let k,hs = ProofEngine.get_strategies anchor in
+let first tree ?anchor strategies =
+  let node = ProofEngine.anchor tree ?node:anchor () in
+  let fork,index,space = lookup tree node 0 strategies in
+  ProofEngine.set_strategies node ~index space ; fork
+
+let search tree ?anchor ?sequent heuristics =
+  let pool = new Strategy.pool in
+  let anchor = ProofEngine.anchor tree ?node:anchor () in
+  let sequent =
+    match sequent with
+    | Some s -> s | None -> snd (Wpo.compute (ProofEngine.goal anchor)) in
+  let lookup h = try h#search pool#add sequent with Not_found -> () in
+  Model.with_model
+    (ProofEngine.node_model anchor)
+    (List.iter lookup) heuristics ;
+  first tree ~anchor pool#sort
+
+let backtrack tree ?anchor ?(loop=false) ?(width = max_int) () =
+  let node = ProofEngine.anchor tree ?node:anchor () in
+  let k,hs = ProofEngine.get_strategies node in
   let n = Array.length hs in
-  if 1<n && (loop || succ k < n) then
+  if 1<n && (loop || succ k < (min n width)) then
     let k = if succ k < n then succ k else 0 in
-    let fork,index,hs = lookup tree anchor k hs in
-    ProofEngine.set_strategies anchor ~index hs ; fork
+    let fork,index,hs = lookup tree node k hs in
+    ProofEngine.set_strategies node ~index hs ; fork
   else None
 
 (* -------------------------------------------------------------------------- *)

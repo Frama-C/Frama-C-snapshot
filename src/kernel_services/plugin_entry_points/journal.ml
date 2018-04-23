@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -131,6 +131,7 @@ let print_header fmt =
     (time.Unix.tm_year + 1900);
   Format.fprintf fmt "@[exception Unreachable@]@;";
   Format.fprintf fmt "@[exception Exception of string@]@;@;";
+  Format.fprintf fmt "@[[@@@@@@ warning \"-26\"]@]@;@;";
   Format.fprintf fmt (* open two boxes for start *)
     "(* Run the user commands *)@;@[<hv 2>let run () =@;@[<hv 0>"
 

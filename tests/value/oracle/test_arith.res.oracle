@@ -15,9 +15,12 @@
   m2 ∈ {0}
   m3 ∈ {0}
   G ∈ {0}
-tests/value/test_arith.c:16:[value] warning: signed overflow. assert n + 1 ≤ 2147483647;
-tests/value/test_arith.c:18:[value] warning: signed overflow. assert -2147483648 ≤ (int)ptr + 1;
-tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 1 ≤ 2147483647;
+[value:alarm] tests/value/test_arith.c:16: Warning: 
+  signed overflow. assert n + 1 ≤ 2147483647;
+[value:alarm] tests/value/test_arith.c:18: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)ptr + 1;
+[value:alarm] tests/value/test_arith.c:18: Warning: 
+  signed overflow. assert (int)ptr + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -35,7 +38,7 @@ tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t{[1]; [5]} FROM \nothing
   j FROM \nothing
@@ -46,6 +49,6 @@ tests/value/test_arith.c:18:[value] warning: signed overflow. assert (int)ptr + 
   qtr FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t{[1]; [5]}; j; k; ecart; pptr; ptr; qtr; n
+    t{[1]; [5]}; j; k; ecart; pptr; ptr; qtr; n
 [inout] Inputs for function main:
-      t{[1]; [5]}; j; ptr
+    t{[1]; [5]}; j; ptr

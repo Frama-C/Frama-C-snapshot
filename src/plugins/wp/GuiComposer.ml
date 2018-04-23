@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -253,53 +253,69 @@ class composer (focused : GuiSequent.focused) =
 (* --- Browser                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rec less ~wanted ~listed =
-  if wanted < listed then wanted else less ~wanted:(wanted-10) ~listed
-
 class browser (focused : GuiSequent.focused) =
   object
-    val mutable wanted = 10
-    val mutable listed = 0
+    val mutable paging = 10   (* number of items per page *)
+    val mutable offset = 0    (* first listed item on page *)
+    val mutable listed = 0    (* number of listed items *)
     val mutable update = (fun () -> ())
+
+    method clear =
+      begin
+        if paging <> 5 || paging <> 10 then paging <- 10 ;
+        offset <- 0 ;
+        listed <- 0 ;
+      end
+      
     method connect f = update <- f
-    method clear = wanted <- 10
+
     method print ( cc : GuiTactic.browser ) ~quit fmt =
       begin
         focused#set_target cc#target ;
-        let clear () = cc#choose None ; quit () in
+        let ptitle = if paging = 10 then "5/page" else "10/page" in
+        let ctitle () = paging <- if paging = 10 then 5 else 10 ; update () in
         Format.fprintf fmt "@{<bf>Selection for %s:@} %t%t@\n@\n"
           cc#title
-          (focused#button ~title:"Clear" ~callback:clear)
+          (focused#button ~title:ptitle ~callback:ctitle)
           (focused#button ~title:"Cancel" ~callback:quit) ;
         let tooltip = cc#descr in
         if tooltip <> "" then Format.fprintf fmt "@{<it>%s@}@\n@\n" tooltip ;
         listed <- 0 ;
         let open Tactical in
-        cc#search (fun item ->
-            listed <- succ listed ;
-            let title = Printf.sprintf "#%02d" listed in
-            let callback () = cc#choose (Some item.vid) ; quit () in
-            Format.fprintf fmt "%t %s@\n"
-              (focused#button ~title ~callback) item.title ;
-            if item.descr <> "" then
-              Format.fprintf fmt "@{<fg:grey>%s@}@\n@\n" item.descr ;
-          ) wanted ;
-        if listed = 0 then
+        let complete =
+          cc#search (fun item ->
+              listed <- succ listed ;
+              if offset < listed then
+                begin
+                  let title = Printf.sprintf "#%02d" listed in
+                  let callback () = cc#choose (Some item.vid) ; quit () in
+                  Format.fprintf fmt "%t %s@\n"
+                    (focused#button ~title ~callback) item.title ;
+                  if item.descr <> "" then
+                    Format.fprintf fmt "@{<fg:grey>%s@}@\n@\n" item.descr ;
+                end
+            ) (offset + paging)
+        in
+        if listed <= offset then
           Format.fprintf fmt "@{<it>No Result@}@\n" ;
         Format.pp_print_newline fmt () ;
-        let less = less ~wanted ~listed in
-        if 0 < less && less < wanted then
-          begin
-            let title = Printf.sprintf "1-%d" less in
-            let callback () = wanted <- less ; update () in
-            focused#button ~title ~callback fmt ;
-          end ;
-        if listed >= wanted then
-          begin
-            let title = Printf.sprintf "1-%d" (wanted+10) in
-            let callback () = wanted <- wanted + 10 ; update () in
-            focused#button ~title ~callback fmt ;
-          end ;
+        let rec pages p =
+          let q = p+paging-1 in
+          if q <= listed then
+            begin
+              let title = Printf.sprintf "%d-%d" p q in
+              let callback () = offset <- pred p ; update () in
+              focused#button ~title ~callback fmt ;
+              pages (succ q) ;
+            end
+          else
+          if not complete then
+            begin
+              let title = Printf.sprintf "%d+" p in
+              let callback () = offset <- pred p ; update () in
+              focused#button ~title ~callback fmt ;
+            end
+        in pages 1 ;
         Format.pp_print_newline fmt () ;
       end
   end

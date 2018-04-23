@@ -8,52 +8,53 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function param <- main.
-    Called from tests/journal/intra.i:81.
+  Called from tests/journal/intra.i:81.
 [value] Recording results for param
 [value] Done for function param
 [value] computing for function tmp <- main.
-    Called from tests/journal/intra.i:82.
-tests/journal/intra.i:20:[value] assertion got status valid.
-tests/journal/intra.i:22:[value] assertion got status valid.
+  Called from tests/journal/intra.i:82.
+[value] tests/journal/intra.i:20: assertion got status valid.
+[value] tests/journal/intra.i:22: assertion got status valid.
 [value] Recording results for tmp
 [value] Done for function tmp
 [value] computing for function spare_called_fct <- main.
-    Called from tests/journal/intra.i:83.
+  Called from tests/journal/intra.i:83.
 [value] Recording results for spare_called_fct
 [value] Done for function spare_called_fct
 [value] computing for function call_two_outputs <- main.
-    Called from tests/journal/intra.i:84.
+  Called from tests/journal/intra.i:84.
 [value] computing for function two_outputs <- call_two_outputs <- main.
-    Called from tests/journal/intra.i:48.
+  Called from tests/journal/intra.i:48.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] computing for function two_outputs <- call_two_outputs <- main.
-    Called from tests/journal/intra.i:52.
+  Called from tests/journal/intra.i:52.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] Recording results for call_two_outputs
 [value] Done for function call_two_outputs
 [value] computing for function loop <- main.
-    Called from tests/journal/intra.i:85.
-tests/journal/intra.i:63:[value] assertion got status valid.
-tests/journal/intra.i:64:[value] loop invariant got status valid.
-tests/journal/intra.i:66:[value] entering loop for the first time
+  Called from tests/journal/intra.i:85.
+[value] tests/journal/intra.i:63: assertion got status valid.
+[value] tests/journal/intra.i:64: loop invariant got status valid.
+[value] tests/journal/intra.i:66: entering loop for the first time
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function assign <- main.
-    Called from tests/journal/intra.i:86.
+  Called from tests/journal/intra.i:86.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function assign <- main.
-    Called from tests/journal/intra.i:87.
+  Called from tests/journal/intra.i:87.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function stop <- main.
-    Called from tests/journal/intra.i:90.
-tests/journal/intra.i:90:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+  Called from tests/journal/intra.i:90.
+[kernel:annot:missing-spec] tests/journal/intra.i:90: Warning: 
+  Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
-tests/journal/intra.i:92:[value] entering loop for the first time
+[value] tests/journal/intra.i:92: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function main
@@ -87,10 +88,10 @@ tests/journal/intra.i:92:[value] entering loop for the first time
 [pdg] computing for function two_outputs
 [pdg] done for function two_outputs
 [pdg] computing for function f10
-[pdg] warning: unreachable entry point (sid:79, function f10)
+[pdg] Warning: unreachable entry point (sid:79, function f10)
 [pdg] Bottom for function f10
 [pdg] computing for function main2
-[pdg] warning: unreachable entry point (sid:87, function main2)
+[pdg] Warning: unreachable entry point (sid:87, function main2)
 [pdg] Bottom for function main2
 [pdg] computing for function spare_called_fct
 [pdg] done for function spare_called_fct
@@ -98,4 +99,4 @@ tests/journal/intra.i:92:[value] entering loop for the first time
 [pdg] done for function stop
 [sparecode] remove unused global declarations...
 [sparecode] result in new project 'default without sparecode'.
-[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[kernel] Warning: ignoring source files specified on the command line while loading a global initial context.

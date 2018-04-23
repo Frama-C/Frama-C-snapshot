@@ -14,116 +14,133 @@
   p ∈ {0}
   TAB[0..9] ∈ {0}
 [value] computing for function get_index <- main.
-    Called from tests/value/postcondition.i:84.
-tests/value/postcondition.i:11:[value] function get_index: precondition got status valid.
-tests/value/postcondition.i:17:[value] Frama_C_show_each_cmd: {1}
-tests/value/postcondition.i:18:[value] entering loop for the first time
+  Called from tests/value/postcondition.i:84.
+[value] tests/value/postcondition.i:84: 
+  function get_index: precondition got status valid.
+[value] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {1}
+[value] tests/value/postcondition.i:18: entering loop for the first time
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
-tests/value/postcondition.i:20:[kernel] warning: No code nor implicit assigns clause for function u, generating default assigns from the prototype
+  Called from tests/value/postcondition.i:20.
+[kernel] tests/value/postcondition.i:20: Warning: 
+  No code nor implicit assigns clause for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
-tests/value/postcondition.i:12:[value] warning: function get_index: postcondition got status unknown.
-tests/value/postcondition.i:12:[value] function get_index: postcondition got status valid.
+[value:alarm] tests/value/postcondition.i:12: Warning: 
+  function get_index: postcondition got status unknown.
+[value] tests/value/postcondition.i:12: 
+  function get_index: postcondition got status valid.
 [value] Recording results for get_index
 [value] Done for function get_index
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:85.
+  Called from tests/value/postcondition.i:85.
 [value] Done for function u
 [value] computing for function bound <- main.
-    Called from tests/value/postcondition.i:86.
-tests/value/postcondition.i:26:[value] warning: function bound: postcondition got status unknown.
+  Called from tests/value/postcondition.i:86.
+[value:alarm] tests/value/postcondition.i:26: Warning: 
+  function bound: postcondition got status unknown.
 [value] Recording results for bound
 [value] Done for function bound
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:87.
+  Called from tests/value/postcondition.i:87.
 [value] Done for function u
 [value] computing for function get_index <- main.
-    Called from tests/value/postcondition.i:87.
-tests/value/postcondition.i:11:[value] warning: function get_index: precondition got status unknown.
-tests/value/postcondition.i:17:[value] Frama_C_show_each_cmd: {4}
+  Called from tests/value/postcondition.i:87.
+[value:alarm] tests/value/postcondition.i:87: Warning: 
+  function get_index: precondition got status unknown.
+[value] tests/value/postcondition.i:17: Frama_C_show_each_cmd: {4}
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
 [value] computing for function u <- get_index <- main.
-    Called from tests/value/postcondition.i:20.
+  Called from tests/value/postcondition.i:20.
 [value] Done for function u
-tests/value/postcondition.i:12:[value] warning: function get_index: postcondition got status invalid.
+[value:alarm] tests/value/postcondition.i:12: Warning: 
+  function get_index: postcondition got status invalid.
 [value] Recording results for get_index
 [value] Done for function get_index
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:88.
+  Called from tests/value/postcondition.i:88.
 [value] Done for function u
 [value] computing for function cap <- main.
-    Called from tests/value/postcondition.i:89.
-tests/value/postcondition.i:89:[kernel] warning: No code nor implicit assigns clause for function cap, generating default assigns from the prototype
+  Called from tests/value/postcondition.i:89.
+[kernel] tests/value/postcondition.i:89: Warning: 
+  No code nor implicit assigns clause for function cap, generating default assigns from the prototype
 [value] using specification for function cap
 [value] Done for function cap
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:90.
+  Called from tests/value/postcondition.i:90.
 [value] Done for function u
 [value] computing for function t0 <- main.
-    Called from tests/value/postcondition.i:90.
-tests/value/postcondition.i:33:[value] function t0: postcondition got status valid.
+  Called from tests/value/postcondition.i:90.
+[value] tests/value/postcondition.i:33: 
+  function t0: postcondition got status valid.
 [value] Recording results for t0
 [value] Done for function t0
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:91.
+  Called from tests/value/postcondition.i:91.
 [value] Done for function u
 [value] computing for function t1 <- main.
-    Called from tests/value/postcondition.i:91.
-tests/value/postcondition.i:38:[value] warning: function t1: postcondition got status invalid.
+  Called from tests/value/postcondition.i:91.
+[value:alarm] tests/value/postcondition.i:38: Warning: 
+  function t1: postcondition got status invalid.
 [value] Recording results for t1
 [value] Done for function t1
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:92.
+  Called from tests/value/postcondition.i:92.
 [value] Done for function u
 [value] computing for function t2 <- main.
-    Called from tests/value/postcondition.i:92.
-tests/value/postcondition.i:45:[value] function t2: postcondition got status valid.
+  Called from tests/value/postcondition.i:92.
+[value] tests/value/postcondition.i:45: 
+  function t2: postcondition got status valid.
 [value] Recording results for t2
 [value] Done for function t2
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:93.
+  Called from tests/value/postcondition.i:93.
 [value] Done for function u
 [value] computing for function t3 <- main.
-    Called from tests/value/postcondition.i:93.
-tests/value/postcondition.i:60:[value] function t3: postcondition got status valid.
+  Called from tests/value/postcondition.i:93.
+[value] tests/value/postcondition.i:60: 
+  function t3: postcondition got status valid.
 [value] Recording results for t3
 [value] Done for function t3
 [value] computing for function t4 <- main.
-    Called from tests/value/postcondition.i:94.
-tests/value/postcondition.i:65:[value] function t4: postcondition got status valid.
+  Called from tests/value/postcondition.i:94.
+[value] tests/value/postcondition.i:65: 
+  function t4: postcondition got status valid.
 [value] Recording results for t4
 [value] Done for function t4
 [value] computing for function u <- main.
-    Called from tests/value/postcondition.i:95.
+  Called from tests/value/postcondition.i:95.
 [value] Done for function u
 [value] computing for function t5 <- main.
-    Called from tests/value/postcondition.i:95.
-tests/value/postcondition.i:71:[value] function t5: postcondition got status valid.
-tests/value/postcondition.i:72:[value] function t5: postcondition got status valid.
+  Called from tests/value/postcondition.i:95.
+[value] tests/value/postcondition.i:71: 
+  function t5: postcondition got status valid.
+[value] tests/value/postcondition.i:72: 
+  function t5: postcondition got status valid.
 [value] Recording results for t5
 [value] Done for function t5
 [value] computing for function f <- main.
-    Called from tests/value/postcondition.i:96.
-tests/value/postcondition.i:78:[value] function f: postcondition got status valid.
-tests/value/postcondition.i:79:[value] warning: function f: postcondition got status invalid.
+  Called from tests/value/postcondition.i:96.
+[value] tests/value/postcondition.i:78: 
+  function f: postcondition got status valid.
+[value:alarm] tests/value/postcondition.i:79: Warning: 
+  function f: postcondition got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -188,7 +205,7 @@ tests/value/postcondition.i:79:[value] warning: function f: postcondition got st
 [from] Done for function cap
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function bound:
   \result FROM \nothing
 [from] Function cap:
@@ -224,43 +241,43 @@ tests/value/postcondition.i:79:[value] warning: function f: postcondition got st
   TAB[0].a FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function bound:
-      cmd; __retres
+    cmd; __retres
 [inout] Inputs for function bound:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function t0:
-      G
+    G
 [inout] Inputs for function t0:
-      \nothing
+    \nothing
 [inout] Out (internal) for function t1:
-      G
+    G
 [inout] Inputs for function t1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function t2:
-      G; p
+    G; p
 [inout] Inputs for function t2:
-      p
+    p
 [inout] Out (internal) for function t3:
-      TAB[0].a
+    TAB[0].a
 [inout] Inputs for function t3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function t4:
-      x; y
+    x; y
 [inout] Inputs for function t4:
-      \nothing
+    \nothing
 [inout] Out (internal) for function t5:
-      x
+    x
 [inout] Inputs for function t5:
-      X
+    X
 [inout] Out (internal) for function get_index:
-      ret; tmp; __retres
+    ret; tmp; __retres
 [inout] Inputs for function get_index:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      G; B; C; D; E; EX; X; p; TAB[0].a; tmp; tmp_0; tmp_1; tmp_2; tmp_3; 
-      tmp_4; tmp_5
+    G; B; C; D; E; EX; X; p; TAB[0].a; tmp; tmp_0; tmp_1; tmp_2; tmp_3; 
+    tmp_4; tmp_5
 [inout] Inputs for function main:
-      B; X; p
+    B; X; p

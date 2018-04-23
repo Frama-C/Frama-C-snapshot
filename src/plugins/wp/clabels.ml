@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,14 +37,27 @@ module LabelSet = Datatype.String.Set
 
 let init = "wp:init"
 let here = "wp:here"
+let next = "wp:next"
 let pre = "wp:pre"
 let post = "wp:post"
+let old = "wp:old"
+let break = "wp:break"
+let continue = "wp:continue"
+let default = "wp:default"
+let at_exit = "wp:exit"
+
+let loopcurrent = "wp:loopcurrent"
+let loopentry = "wp:loopentry"
+
 let formal a = a
 
 let pretty = Format.pp_print_string
 
 let is_here h = (h = here)
 
+let mem l lbl = List.mem l lbl
+
+let case n = "wp:case" ^ Int64.to_string n
 let stmt s = "wp:sid"  ^ string_of_int s.sid
 let loop_entry s = stmt s (* same point *)
 let loop_current s = "wp:head" ^ string_of_int s.sid
@@ -56,10 +69,10 @@ let of_logic = function
   | BuiltinLabel Pre -> pre
   | BuiltinLabel Post -> post
   | FormalLabel name -> name
-  | ( BuiltinLabel (Old|LoopCurrent|LoopEntry) | StmtLabel _) as l -> 
-      let desc = Format.asprintf "Non-normalized label %a"
-          Printer.pp_logic_label l
-      in raise (Wp_error.Error("c-labels",desc))
+  | BuiltinLabel Old -> old
+  | BuiltinLabel LoopCurrent -> loopcurrent
+  | BuiltinLabel LoopEntry -> loopentry
+  | StmtLabel s -> stmt !s
 
 let name = function FormalLabel a -> a | _ -> ""
 

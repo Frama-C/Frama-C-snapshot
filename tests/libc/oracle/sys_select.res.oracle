@@ -3,72 +3,98 @@
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
   __fc_sockfds[0..1023] ∈ {0}
   __fc_socket_counter ∈ [--..--]
   __fc_open_sock_fds ∈ [--..--]
   __fc_time ∈ [--..--]
   __fc_tz ∈ [--..--]
   __fc_fds_state ∈ [--..--]
-  __fc_errno ∈ [--..--]
   in6addr_any ∈ {0}
   in6addr_loopback.s6_addr[0..15] ∈ {255}
+  __fc_inet_ntoa_array[0..15] ∈ [--..--]
+  __fc_inet_ntoa ∈ {{ &__fc_inet_ntoa_array[0] }}
+  __fc_heap_status ∈ [--..--]
+  __fc_strtok_ptr ∈ {0}
   __fc_random_counter ∈ [--..--]
   __fc_rand_max ∈ {32767}
-  __fc_heap_status ∈ [--..--]
   __fc_mblen_state ∈ [--..--]
   __fc_mbtowc_state ∈ [--..--]
   __fc_wctomb_state ∈ [--..--]
 [value] computing for function socket <- main.
-    Called from tests/libc/sys_select.c:9.
+  Called from tests/libc/sys_select.c:9.
 [value] using specification for function socket
 [value] Done for function socket
 [value] computing for function exit <- main.
-    Called from tests/libc/sys_select.c:10.
+  Called from tests/libc/sys_select.c:10.
 [value] using specification for function exit
 [value] Done for function exit
-tests/libc/sys_select.c:16:[value] Call to builtin memset(({{ (void *)&addr }},{0},{8}))
+[value] tests/libc/sys_select.c:16: 
+  function memset: precondition 'valid_s' got status valid.
+[value] tests/libc/sys_select.c:16: 
+  Call to builtin memset(({{ (void *)&addr }},{0},{8}))
 [value] computing for function htonl <- main.
-    Called from tests/libc/sys_select.c:18.
+  Called from tests/libc/sys_select.c:18.
 [value] using specification for function htonl
 [value] Done for function htonl
 [value] computing for function htons <- main.
-    Called from tests/libc/sys_select.c:19.
+  Called from tests/libc/sys_select.c:19.
 [value] using specification for function htons
 [value] Done for function htons
 [value] computing for function bind <- main.
-    Called from tests/libc/sys_select.c:20.
+  Called from tests/libc/sys_select.c:20.
 [value] using specification for function bind
-share/libc/sys/socket.h:288:[value] function bind: precondition got status valid.
-share/libc/sys/socket.h:289:[value] function bind: precondition got status valid.
+[value] tests/libc/sys_select.c:20: 
+  function bind: precondition 'valid_sockfd,sockfd' got status valid.
+[value] tests/libc/sys_select.c:20: 
+  function bind: precondition 'valid_read_addr' got status valid.
 [value] Done for function bind
 [value] computing for function exit <- main.
-    Called from tests/libc/sys_select.c:21.
+  Called from tests/libc/sys_select.c:21.
 [value] Done for function exit
 [value] computing for function FD_ZERO <- main.
-    Called from tests/libc/sys_select.c:22.
+  Called from tests/libc/sys_select.c:22.
 [value] using specification for function FD_ZERO
+[value] tests/libc/sys_select.c:22: 
+  function FD_ZERO: precondition 'valid_fdset' got status valid.
 [value] Done for function FD_ZERO
 [value] computing for function FD_SET <- main.
-    Called from tests/libc/sys_select.c:24.
+  Called from tests/libc/sys_select.c:24.
 [value] using specification for function FD_SET
-share/libc/__fc_define_fd_set_t.h:49:[value] function FD_SET: precondition got status valid.
-share/libc/__fc_define_fd_set_t.h:50:[value] function FD_SET: precondition got status valid.
+[value] tests/libc/sys_select.c:24: 
+  function FD_SET: precondition 'valid_fdset' got status valid.
+[value] tests/libc/sys_select.c:24: 
+  function FD_SET: precondition 'initialization' got status valid.
 [value] Done for function FD_SET
-tests/libc/sys_select.c:30:[value] Call to builtin memcpy(({{ (void *)&fds2 }},{{ (void const *)&fds1 }},{1}))
+[value] tests/libc/sys_select.c:30: 
+  function memcpy: precondition 'valid_dest' got status valid.
+[value] tests/libc/sys_select.c:30: 
+  function memcpy: precondition 'valid_src' got status valid.
+[value] tests/libc/sys_select.c:30: 
+  function memcpy: precondition 'separation' got status valid.
+[value] tests/libc/sys_select.c:30: 
+  Call to builtin memcpy(({{ (void *)&fds2 }},{{ (void const *)&fds1 }},{1}))
 [value] computing for function select <- main.
-    Called from tests/libc/sys_select.c:31.
+  Called from tests/libc/sys_select.c:31.
 [value] using specification for function select
-share/libc/__fc_select.h:48:[value] function select: precondition got status valid.
-share/libc/__fc_select.h:49:[value] function select: precondition got status valid.
-share/libc/__fc_select.h:50:[value] function select: precondition got status valid.
-share/libc/__fc_select.h:51:[value] function select: precondition got status valid.
-share/libc/__fc_select.h:52:[value] function select: precondition got status valid.
+[value] tests/libc/sys_select.c:31: 
+  function select: precondition 'nfds' got status valid.
+[value] tests/libc/sys_select.c:31: 
+  function select: precondition 'readfs' got status valid.
+[value] tests/libc/sys_select.c:31: 
+  function select: precondition 'writefds' got status valid.
+[value] tests/libc/sys_select.c:31: 
+  function select: precondition 'errorfds' got status valid.
+[value] tests/libc/sys_select.c:31: 
+  function select: precondition 'timeout' got status valid.
 [value] Done for function select
 [value] computing for function FD_ISSET <- main.
-    Called from tests/libc/sys_select.c:32.
+  Called from tests/libc/sys_select.c:32.
 [value] using specification for function FD_ISSET
-share/libc/__fc_define_fd_set_t.h:41:[value] function FD_ISSET: precondition got status valid.
-share/libc/__fc_define_fd_set_t.h:42:[value] function FD_ISSET: precondition got status valid.
+[value] tests/libc/sys_select.c:32: 
+  function FD_ISSET: precondition 'valid_fdset' got status valid.
+[value] tests/libc/sys_select.c:32: 
+  function FD_ISSET: precondition 'initialization' got status valid.
 [value] Done for function FD_ISSET
 [value] Recording results for main
 [value] done for function main

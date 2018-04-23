@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,6 +27,7 @@ __PUSH_FC_STDLIB
 __BEGIN_DECLS
 
 #include "../__fc_define_stat.h"
+#include "../__fc_string_axiomatic.h"
 
 extern int    chmod(const char *, mode_t);
 extern int    fchmod(int, mode_t);
@@ -35,7 +36,17 @@ extern int    lstat(const char *, struct stat *);
 extern int    mkdir(const char *, mode_t);
 extern int    mkfifo(const char *, mode_t);
 extern int    mknod(const char *, mode_t, dev_t);
-extern int    stat(const char *, struct stat *);
+
+/*@ //missing: assigns \from 'filesystem'
+  requires valid_pathname: valid_read_string(pathname);
+  requires valid_buf: \valid(buf);
+  assigns \result, *buf \from pathname[0..];
+  ensures result_ok_or_error: \result == 0 || \result == -1;
+  ensures init_on_success:initialization:buf:
+    \result == 0 ==> \initialized(buf);
+*/
+extern int    stat(const char *pathname, struct stat *buf);
+
 extern mode_t umask(mode_t);
 
 __END_DECLS

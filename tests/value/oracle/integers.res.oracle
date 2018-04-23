@@ -7,7 +7,7 @@
   hex ∈ {0}
   oct ∈ {0}
   dec ∈ {0}
-tests/value/integers.i:7:[value] assertion got status valid.
+[value] tests/value/integers.i:7: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -19,7 +19,7 @@ tests/value/integers.i:7:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   bin FROM \nothing
   hex FROM \nothing
@@ -27,6 +27,6 @@ tests/value/integers.i:7:[value] assertion got status valid.
   dec FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      bin; hex; oct; dec
+    bin; hex; oct; dec
 [inout] Inputs for function main:
-      \nothing
+    \nothing

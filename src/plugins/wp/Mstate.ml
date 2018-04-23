@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 open Lang.F
-open Memory
+open Sigs
 
 type (_,_) eq = Equal : 'a -> ('a,'a) eq | NotEqual : ('a,'b) eq
 
@@ -77,7 +77,7 @@ type 'a operations = {
 
 type 'a model = MODEL : 'a operations Ident.t * ('b -> 'a) -> 'b model
 
-let create (type s) (module M : Memory.Model with type Sigma.t = s) =
+let create (type s) (module M : Sigs.Model with type Sigma.t = s) =
   let op = {
     apply = M.apply ;
     lookup = M.lookup ;

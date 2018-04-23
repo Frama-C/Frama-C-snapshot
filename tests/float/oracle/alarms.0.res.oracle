@@ -1,0 +1,145 @@
+[kernel] Parsing tests/float/alarms.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  u1 ∈ {0}
+  u2 ∈ {0}
+  f ∈ {0}
+  d ∈ {0}
+  big ∈ {0}
+  ull ∈ {0}
+  rand ∈ [--..--]
+[value] computing for function main1 <- main.
+  Called from tests/float/alarms.i:70.
+[value:alarm] tests/float/alarms.i:16: Warning: 
+  non-finite float value. assert \is_finite(u1.f);
+[value:alarm] tests/float/alarms.i:18: Warning: 
+  non-finite double value. assert \is_finite(u2.d);
+[value] tests/float/alarms.i:19: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
+    [-3.40282346639e+38 .. 3.40282346639e+38]
+    {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
+  u2{.l; .f[bits 0 to 63]; .d} ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  d ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  big ∈ {0}
+  ull ∈ {0}
+  rand ∈ [--..--]
+  l ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  l ∈ [--..--]
+  ==END OF DUMP==
+[value] computing for function fd <- main1 <- main.
+  Called from tests/float/alarms.i:21.
+[kernel:annot:missing-spec] tests/float/alarms.i:21: Warning: 
+  Neither code nor specification for function fd, generating default assigns from the prototype
+[value] using specification for function fd
+[value] Done for function fd
+[value:alarm] tests/float/alarms.i:21: Warning: 
+  non-finite double value. assert \is_finite(tmp);
+                           (tmp from fd())
+[value:alarm] tests/float/alarms.i:21: Warning: 
+  non-finite float value. assert \is_finite((float)tmp);
+                          (tmp from fd())
+[value] computing for function fd <- main1 <- main.
+  Called from tests/float/alarms.i:22.
+[value] Done for function fd
+[value:alarm] tests/float/alarms.i:23: Warning: 
+  non-finite double value. assert \is_finite(vd);
+[value:alarm] tests/float/alarms.i:23: Warning: 
+  overflow in conversion from floating-point to integer.
+  assert -9223372036854775809 < vd;
+[value:alarm] tests/float/alarms.i:23: Warning: 
+  overflow in conversion from floating-point to integer.
+  assert vd < 9223372036854775808;
+[value:alarm] tests/float/alarms.i:24: Warning: 
+  overflow in conversion from floating-point to integer.
+  assert -9223372036854775809 < vf;
+[value:alarm] tests/float/alarms.i:24: Warning: 
+  overflow in conversion from floating-point to integer.
+  assert vf < 9223372036854775808;
+[value] computing for function fd <- main1 <- main.
+  Called from tests/float/alarms.i:25.
+[value] Done for function fd
+[value:alarm] tests/float/alarms.i:26: Warning: 
+  non-finite double value. assert \is_finite(vd);
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+  Called from tests/float/alarms.i:71.
+[value:alarm] tests/float/alarms.i:38: Warning: 
+  non-finite double value. assert \is_finite((double)(1. / 0.));
+[value:alarm] tests/float/alarms.i:39: Warning: 
+  non-finite double value. assert \is_finite((double)(0. / 0.));
+[value] tests/float/alarms.i:41: assertion got status valid.
+[value] tests/float/alarms.i:42: assertion got status valid.
+[value] tests/float/alarms.i:43: assertion got status valid.
+[value] tests/float/alarms.i:44: assertion got status valid.
+[value:alarm] tests/float/alarms.i:46: Warning: 
+  non-finite double value. assert \is_finite((double)(1. / 0.));
+[value:alarm] tests/float/alarms.i:50: Warning: 
+  non-finite double value. assert \is_finite((double)(0. / 0.));
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+  Called from tests/float/alarms.i:72.
+[value] computing for function fd <- main3 <- main.
+  Called from tests/float/alarms.i:64.
+[value] Done for function fd
+[value:alarm] tests/float/alarms.i:65: Warning: 
+  non-finite double value. assert \is_finite(d_0);
+[value] computing for function fabs <- main3 <- main.
+  Called from tests/float/alarms.i:65.
+[value] Recording results for fabs
+[value] Done for function fabs
+[value] Recording results for main3
+[value] Done for function main3
+[value] Recording results for main
+[value] done for function main
+[value] tests/float/alarms.i:38: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/alarms.i:39: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/alarms.i:46: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] tests/float/alarms.i:50: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function fabs:
+  __retres ∈ [0. .. 1.79769313486e+308]
+[value:final-states] Values at end of function main1:
+  u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
+    [-3.40282346639e+38 .. 3.40282346639e+38]
+    {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
+  u2{.l; .f[bits 0 to 63]; .d} ∈
+    [-1.79769313486e+308 .. 1.79769313486e+308]
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  d ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  big ∈ {1.38350580553e+19}
+  ull ∈ {13835058055282163712}
+  vf ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  vd ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  i ∈ [--..--]
+  j ∈ [--..--]
+  mvd ∈ [-4.49423283716e+307 .. 4.49423283716e+307]
+[value:final-states] Values at end of function main2:
+  f_0 ∈ [-3. .. 17.]
+  f_infinity ∈ [-3. .. 17.]
+  f_nan ∈ [-3. .. 17.]
+  f_infinity_nan ∈ [-3. .. 17.]
+[value:final-states] Values at end of function main3:
+  d_0 ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  r ∈ [0. .. 1.79769313486e+308]
+[value:final-states] Values at end of function main:
+  u1{.l[bits 0 to 31]; .f; .d[bits 0 to 31]} ∈
+    [-3.40282346639e+38 .. 3.40282346639e+38]
+    {.l[bits 32 to 63]; .f[bits 32 to 63]; .d[bits 32 to 63]} ∈ [--..--]
+  u2{.l; .f[bits 0 to 63]; .d} ∈
+    [-1.79769313486e+308 .. 1.79769313486e+308]
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  d ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+  big ∈ {1.38350580553e+19}
+  ull ∈ {13835058055282163712}

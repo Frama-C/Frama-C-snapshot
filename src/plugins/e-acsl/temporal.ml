@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,8 @@
    Temporal Memory Errors" by K. Vorobyov, N. Kosmatov, J Signoles and
    A. Jakobsson. *)
 
+module RTL = Functions.RTL
+module Libc = Functions.Libc
 open Cil_types
 open Cil_datatype
 
@@ -49,38 +51,6 @@ type flow =
 (* ************************************************************************** *)
 (* Miscellaneous {{{ *)
 (* ************************************************************************** *)
-
-(* Generate a function name in the temporal analysis name space, i.e., prefixed
-   by [__e_acsl_temporal_ + function name].
-   NOTE: Further on, all analysis function names are used without prefix *)
-let mk_api_name name = Misc.mk_api_name ("temporal_" ^ name)
-
-let is_alloc_name fn =
-  fn = "malloc" || fn = "free" || fn = "realloc" || fn = "calloc"
-
-let is_memcpy_name fn = fn = "memcpy"
-
-let is_memset_name fn = fn = "memset"
-
-let get_fname = function
-  | { enode = Lval(Var(vi), _) } -> vi.vname
-  | _ -> ""
-
-let is_fn f fname = f (get_fname fname)
-
-let is_alloc fvi = is_fn is_alloc_name fvi
-
-let is_memcpy fvi = is_fn is_memcpy_name fvi
-
-let is_memset fvi = is_fn is_memset_name fvi
-
-(* True if a named function has a definition and false otherwise *)
-let has_fundef fname =
-  let recognize fn =
-    try let _ = Globals.Functions.find_def_by_name fn in true
-    with Not_found -> false
-  in
-  is_fn recognize fname
 
 (* Shortcuts for SA in Mmodel_analysis *)
 let must_model_exp exp env =
@@ -121,8 +91,8 @@ module Mk: sig
   val reset_return_referent: loc:location -> stmt
 
   (* Generate [memcpy(lhs, rhs, size)] function call assuming that [lhs = rhs]
-     represents an assignment of struct to a struct, that is, both sides are left
-     values and we need to use addressof for both sides *)
+     represents an assignment of struct to a struct, that is, both sides are
+     left values and we need to use addressof for both sides *)
   val temporal_memcpy_struct: loc:location -> lval -> exp -> stmt
 end = struct
 
@@ -132,7 +102,8 @@ end = struct
       | Indirect -> "store_nreferent"
       | Copy -> Options.fatal "Copy flow type in store_reference"
     in
-    Misc.mk_call ~loc (mk_api_name fname) [ Cil.mkAddrOf ~loc lhs; rhs ]
+    let fname = RTL.mk_temporal_name fname in
+    Misc.mk_call ~loc fname [ Cil.mkAddrOf ~loc lhs; rhs ]
 
   let save_param ~loc flow lhs pos =
     let infix = match flow with
@@ -141,11 +112,12 @@ end = struct
       | Copy -> "copy"
     in
     let fname = "save_" ^ infix ^ "_parameter" in
-    Misc.mk_call ~loc (mk_api_name fname) [ lhs ; Cil.integer ~loc pos ]
+    let fname = RTL.mk_temporal_name fname in
+    Misc.mk_call ~loc fname [ lhs ; Cil.integer ~loc pos ]
 
   let pull_param ~loc vi pos =
     let exp = Cil.mkAddrOfVi vi in
-    let fname = mk_api_name "pull_parameter" in
+    let fname = RTL.mk_temporal_name "pull_parameter" in
     let sz = Cil.kinteger ~loc IULong (Cil.bytesSizeOf vi.vtype) in
     Misc.mk_call ~loc fname [ exp ; Cil.integer ~loc pos ; sz ]
 
@@ -158,13 +130,13 @@ end = struct
     (match (Cil.typeOf lhs) with
       | TPtr _ -> ()
       | _ -> Error.not_yet "Struct in return");
-    Misc.mk_call ~loc (mk_api_name fname) [ lhs ]
+    Misc.mk_call ~loc (RTL.mk_temporal_name fname) [ lhs ]
 
   let reset_return_referent ~loc =
-    Misc.mk_call ~loc (mk_api_name "reset_return") []
+    Misc.mk_call ~loc (RTL.mk_temporal_name "reset_return") []
 
   let temporal_memcpy_struct ~loc lhs rhs =
-    let fname  = mk_api_name "memcpy" in
+    let fname  = RTL.mk_temporal_name "memcpy" in
     let size = Cil.sizeOf ~loc (Cil.typeOfLval lhs) in
     Misc.mk_call ~loc fname [ Cil.mkAddrOf ~loc lhs; rhs; size ]
 end
@@ -204,7 +176,8 @@ let assign ?(ltype) lhs rhs loc =
       | Const _ | UnOp _ -> base, Direct
       (* Special case for literal strings which E-ACSL rewrites into
          global variables: take the origin number of a string *)
-      | Lval(Var vi, _) when Misc.is_generated_varinfo vi -> base, Direct
+      | Lval(Var vi, _) when RTL.is_generated_name vi.vname ->
+        base, Direct
       (* Lvalue of a pointer type can be a cast of an integral type, for
          instance for the case when address is taken by value (shown via the
          following example).
@@ -344,14 +317,18 @@ end = struct
 
   (* Update local environment with a statement tracking temporal metadata
      associated with memcpy/memset call *)
-  let call_memxxx current_stmt loc args fname env =
-    if is_memcpy fname || is_memset fname then
-      let stmt = Misc.mk_call ~loc (mk_api_name (get_fname fname)) args in
+  let call_memxxx current_stmt loc args fexp env =
+    if Libc.is_memcpy fexp || Libc.is_memset fexp then
+      let name = match fexp.enode with
+        | Lval(Var vi, _) -> vi.vname
+        | _ -> Options.fatal "[Temporal.call_memxxx] not a left-value"
+      in
+      let stmt = Misc.mk_call ~loc (RTL.mk_temporal_name name) args in
       Env.add_stmt ~before:current_stmt ~post:false env stmt
     else
       env
 
-  let instr current_stmt ret fname args loc env =
+  let instr current_stmt ret fexp args loc env =
     (* Add function calls to reset_parameters and reset_return before each
        function call regardless. They are not really required, as if the
        instrumentation is correct then the right parameters will be saved
@@ -359,21 +336,25 @@ end = struct
        it makes sense to make this somewhat-debug-level-call. In production mode
        the implementation of the function should be empty and compiler should
        be able to optimize that code out. *)
-    let stmt = Misc.mk_call ~loc (mk_api_name "reset_parameters") [] in
+    let name = (RTL.mk_temporal_name "reset_parameters") in
+    let stmt = Misc.mk_call ~loc name [] in
     let env = Env.add_stmt ~before:current_stmt ~post:false env stmt in
     let stmt = Mk.reset_return_referent ~loc in
     let env = Env.add_stmt ~before:current_stmt ~post:false env stmt in
     (* Push parameters with either a call to a function pointer or a function
         definition otherwise there is no point. *)
+    let has_def = Functions.has_fundef fexp in
     let env =
-      if Cil.isFunctionType (Cil.typeOf fname) || has_fundef fname then
+      if Cil.isFunctionType (Cil.typeOf fexp) || has_def then
         save_params current_stmt loc args env
       else
         env
     in
     (* Handle special cases of memcpy/memset *)
-    let env = call_memxxx current_stmt loc args fname env in
-    let alloc = is_alloc fname || not (has_fundef fname) in
+    let env = call_memxxx current_stmt loc args fexp env in
+    (* Memory allocating functions have no definitions so below expression
+       should capture them *)
+    let alloc = not has_def in
     Extlib.may_map
       (fun lhs ->
         if must_model_lval lhs env then
@@ -408,10 +389,10 @@ end = struct
       match li with
       | AssignInit init ->
         handle_init current_stmt NoOffset loc vi init env
-      | ConsInit(fname, args, _) ->
+      | ConsInit(fexp, args, _) ->
         let ret = Some (Cil.var vi) in
-        let fname = Cil.evar ~loc fname in
-        Function_call.instr current_stmt ret fname args loc env
+        let fexp = Cil.evar ~loc fexp in
+        Function_call.instr current_stmt ret fexp args loc env
     else env
 end
 (* }}} *)
@@ -468,8 +449,8 @@ let handle_return_stmt loc ret env =
 let handle_instruction current_stmt instr env =
   match instr with
   | Set(lv, exp, loc) -> set_instr current_stmt loc lv exp env
-  | Call(ret, fname, args, loc) ->
-    Function_call.instr current_stmt ret fname args loc env
+  | Call(ret, fexp, args, loc) ->
+    Function_call.instr current_stmt ret fexp args loc env
   | Local_init(vi, li, loc) -> Local_init.instr current_stmt vi li loc env
   | Asm _ -> Options.warning ~once:true ~current:true "@[Analysis is\
 potentially incorrect in presence of assembly code.@]"; env

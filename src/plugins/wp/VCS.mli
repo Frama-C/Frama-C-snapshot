@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -132,6 +132,6 @@ val pp_result_perf : Format.formatter -> result -> unit
 
 val compare : result -> result -> int (* best is minimal *)
 
-val dkey_no_time_info: Log.category
-val dkey_no_step_info: Log.category
-val dkey_no_goals_info: Log.category
+val dkey_no_time_info: Wp_parameters.category
+val dkey_no_step_info: Wp_parameters.category
+val dkey_no_goals_info: Wp_parameters.category

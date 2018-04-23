@@ -5,11 +5,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   X ∈ {1}
-tests/slicing/bts679b.i:11:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
-tests/slicing/bts679b.i:11:[value] warning: assertion got status unknown.
+[value] tests/slicing/bts679b.i:11: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[value:alarm] tests/slicing/bts679b.i:11: Warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
-tests/slicing/bts679b.i:11:[value] assertion got final status valid.
+[value] tests/slicing/bts679b.i:11: assertion got final status valid.
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

@@ -4,11 +4,11 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   foo ∈ [--..--]
-tests/syntax/unroll_labels.i:53:[kernel] warning: Non-natural loop detected.
-tests/syntax/unroll_labels.i:25:[value] entering loop for the first time
-tests/syntax/unroll_labels.i:39:[value] entering loop for the first time
-tests/syntax/unroll_labels.i:33:[value] entering loop for the first time
-tests/syntax/unroll_labels.i:53:[value] entering loop for the first time
+[kernel] tests/syntax/unroll_labels.i:53: Warning: Non-natural loop detected.
+[value] tests/syntax/unroll_labels.i:25: entering loop for the first time
+[value] tests/syntax/unroll_labels.i:39: entering loop for the first time
+[value] tests/syntax/unroll_labels.i:33: entering loop for the first time
+[value] tests/syntax/unroll_labels.i:53: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

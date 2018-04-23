@@ -10,13 +10,13 @@
   G5.M3 ∈ {{ &G2 }}
     .M4 ∈ {{ &G3 }}
 [value] computing for function F2 <- main.
-    Called from tests/pdg/const.i:39.
+  Called from tests/pdg/const.i:39.
 [value] Recording results for F2
 [from] Computing for function F2
 [from] Done for function F2
 [value] Done for function F2
 [value] computing for function F1 <- main.
-    Called from tests/pdg/const.i:41.
+  Called from tests/pdg/const.i:41.
 [value] Recording results for F1
 [from] Computing for function F1
 [from] Done for function F1
@@ -43,7 +43,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function F1:
   G3.M2 FROM G2.M2; f1; G5
 [from] Function F2:
@@ -155,14 +155,14 @@
  {n31}: In(G1.M2)
  {n32}: In(G4)
 [inout] Out (internal) for function F1:
-      G3.M2
+    G3.M2
 [inout] Inputs for function F1:
-      G2.M2; G5
+    G2.M2; G5
 [inout] Out (internal) for function F2:
-      G1.M1; V1
+    G1.M1; V1
 [inout] Inputs for function F2:
-      G4
+    G4
 [inout] Out (internal) for function main:
-      G1.M1; G2; G3.M2; V2
+    G1.M1; G2; G3.M2; V2
 [inout] Inputs for function main:
-      G1; G2.M2; G4; G5
+    G1; G2.M2; G4; G5

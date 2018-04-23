@@ -7,7 +7,7 @@
   S ∈ [--..--]
   P ∈ {{ &X }}
 [value] computing for function f <- g.
-    Called from tests/pdg/globals.c:15.
+  Called from tests/pdg/globals.c:15.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for g
@@ -22,17 +22,17 @@
 [from] Computing for function g
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM X; p
 [from] Function g:
   \result FROM X
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      tmp
+    tmp
 [inout] Inputs for function f:
-      X
+    X
 [inout] Out (internal) for function g:
-      tmp
+    tmp
 [inout] Inputs for function g:
-      X
+    X

@@ -4,7 +4,7 @@
 */
 
 /* run.config_qualif
-   CMD: @frama-c@ -wp-share ./share -wp-msg-key cluster,shell
+   CMD: @frama-c@ -wp-share ./share -wp-msg-key cluster,shell -wp-par 1
    OPT: -wp-model Typed -wp -wp-check -then -wp-model Typed+ref -wp -wp-check
 */
 

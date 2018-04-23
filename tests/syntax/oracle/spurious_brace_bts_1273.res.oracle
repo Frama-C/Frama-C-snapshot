@@ -1,10 +1,12 @@
 [kernel] Parsing tests/syntax/spurious_brace_bts_1273.i (no preprocessing)
-[kernel] syntax error at tests/syntax/spurious_brace_bts_1273.i, between lines 1 and 3, before or at token: }
-    
-    1     void foo() {
-    2     }
-    3     }
-    
-    4     
-    5     void main () {
+[kernel] tests/syntax/spurious_brace_bts_1273.i:1: 
+  syntax error:
+  Location: between lines 1 and 3, before or at token: }
+  
+  1     void foo() {
+  2     }
+  3     }
+  
+  4     
+  5     void main () {
 [kernel] Frama-C aborted: invalid user input.

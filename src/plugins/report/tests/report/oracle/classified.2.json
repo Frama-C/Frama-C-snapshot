@@ -1,0 +1,5 @@
+[
+  { "classid": "wp.unclassified.warning", "action": "ERROR",
+    "title": "Unclassified Warning (Plugin 'wp')",
+    "descr": "Missing RTE guards" }
+]

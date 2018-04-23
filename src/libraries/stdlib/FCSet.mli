@@ -130,15 +130,6 @@ module type S_Basic_Compare =
        the set is empty. Which element is chosen is unspecified,
        but equal elements will be chosen for equal sets. *)
 
-    val split: elt -> t -> t * bool * t
-    (** [split x s] returns a triple [(l, present, r)], where
-          [l] is the set of elements of [s] that are
-          strictly less than [x];
-          [r] is the set of elements of [s] that are
-          strictly greater than [x];
-          [present] is [false] if [s] contains no element equal to [x],
-          or [true] if [s] contains an element equal to [x]. *)
-
     val find: elt -> t -> elt
     (** [find x s] returns the element of [s] equal to [x] (according
         to [Ord.compare]), or raise [Not_found] if no such element
@@ -171,6 +162,14 @@ module type S =
     (** Same as {min_elt}, but returns the largest element of the
        given set. *)
 
+    val split: elt -> t -> t * bool * t
+    (** [split x s] returns a triple [(l, present, r)], where
+          [l] is the set of elements of [s] that are
+          strictly less than [x];
+          [r] is the set of elements of [s] that are
+          strictly greater than [x];
+          [present] is [false] if [s] contains no element equal to [x],
+          or [true] if [s] contains an element equal to [x]. *)
 
     (* Frama-C- additions *)
 

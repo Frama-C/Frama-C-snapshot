@@ -2,12 +2,13 @@
 [kernel] Parsing tests/wp_hoare/isHoare.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] [Qed] Goal typed_ref_cmp_invalid_addr_as_int_post_ok : Valid
 [wp] Proved goals:    1 / 1
-    Qed:             1
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-cmp_invalid_addr_as_int   1   -        1       100%
-----------------------------------------------------------
+  Qed:             1
+[wp] Report 'tests/wp_hoare/isHoare.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+cmp_invalid_addr_as_int   1   -              1       100%
+-------------------------------------------------------------

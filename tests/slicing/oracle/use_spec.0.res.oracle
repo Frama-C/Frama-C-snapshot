@@ -1,5 +1,6 @@
 [kernel] Parsing tests/slicing/use_spec.i (no preprocessing)
-tests/slicing/use_spec.i:18:[kernel] warning: Body of function f falls-through. Adding a return statement
+[kernel] tests/slicing/use_spec.i:18: Warning: 
+  Body of function f falls-through. Adding a return statement
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -12,7 +13,7 @@ tests/slicing/use_spec.i:18:[kernel] warning: Body of function f falls-through. 
   G1 ∈ {0}
   G2 ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/slicing/use_spec.i:25.
+  Called from tests/slicing/use_spec.i:25.
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main

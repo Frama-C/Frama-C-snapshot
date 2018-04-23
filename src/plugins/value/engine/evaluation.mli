@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -113,7 +113,8 @@ module type S = sig
     state -> lval list -> lval list -> unit evaluated
 
   val eval_function_exp:
-    exp -> state -> (Kernel_function.t * Valuation.t) list evaluated
+    exp -> ?args:exp list -> state ->
+    (Kernel_function.t * Valuation.t) list evaluated
     (** Evaluation of the function argument of a [Call] constructor *)
 
 end

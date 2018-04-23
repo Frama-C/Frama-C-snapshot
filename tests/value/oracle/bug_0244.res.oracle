@@ -5,14 +5,18 @@
 [value:initial-state] Values of globals at initialization
   R ∈ {0}
   p ∈ {0}
-tests/value/bug_0244.i:7:[value] entering loop for the first time
-tests/value/bug_0244.i:10:[value] warning: locals {u} escaping the scope of a block of main through p
-tests/value/bug_0244.i:12:[value] warning: accessing left-value that contains escaping addresses.
-    assert ¬\dangling(&p);
-tests/value/bug_0244.i:12:[value] warning: out of bounds read. assert \valid_read(p);
+[value] tests/value/bug_0244.i:7: entering loop for the first time
+[value] tests/value/bug_0244.i:10: Warning: 
+  locals {u} escaping the scope of a block of main through p
+[value:alarm] tests/value/bug_0244.i:12: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&p);
+[value:alarm] tests/value/bug_0244.i:12: Warning: 
+  out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
-tests/value/bug_0244.i:12:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/bug_0244.i:12: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -20,11 +24,11 @@ tests/value/bug_0244.i:12:[value] assertion 'Value,mem_access' got final status 
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      R; p; a; i; u
+    R; p; a; i; u
 [inout] Inputs for function main:
-      p
+    p

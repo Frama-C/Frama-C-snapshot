@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,13 +31,17 @@ module Full_mmodel: Parameter_sig.Bool
 module Project_name: Parameter_sig.String
 module Builtins: Parameter_sig.String_set
 module Temporal_validity: Parameter_sig.Bool
+module Validate_format_strings: Parameter_sig.Bool
+module Replace_libc_functions: Parameter_sig.Bool
+
+val parameter_states: State.t list
 
 val must_visit: unit -> bool
 
-val dkey_analysis: Log.category
-val dkey_dup: Log.category
-val dkey_translation: Log.category
-val dkey_typing: Log.category
+val dkey_analysis: category
+val dkey_dup: category
+val dkey_translation: category
+val dkey_typing: category
 
 (*
 Local Variables:

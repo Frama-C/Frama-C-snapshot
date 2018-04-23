@@ -8,12 +8,15 @@
   S2 ∈ {0}
   T[0..99] ∈ {0}
 [value] computing for function Frama_C_interval <- f.
-    Called from tests/scope/scope.c:26.
+  Called from tests/scope/scope.c:26.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/scope/scope.c:26: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- f.
-    Called from tests/scope/scope.c:32.
+  Called from tests/scope/scope.c:32.
+[value] tests/scope/scope.c:32: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
 [value] Recording results for f
 [value] done for function f

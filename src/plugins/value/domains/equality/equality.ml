@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,201 +20,404 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Type of the keys of the map. *)
-module type Element = sig
-  include Datatype.S_with_collections
-  val id: t -> int (** Identity of a key. Must verify [id k >= 0] and
-                       [equal k1 k2 ==> id k1 = id k2] *)
-  val self : State.t
-  val pretty_debug: t Pretty_utils.formatter
+open Hcexprs
+
+type 'a trivial = Trivial | NonTrivial of 'a
+type 'a tree = Empty | Leaf of 'a | Node of 'a tree * 'a tree
+
+type elt = Hcexprs.HCE.t
+
+(* ------------------------------ Equality ---------------------------------- *)
+
+module Equality = struct
+  include HCESet
+
+  (* cardinality less or equal to 1: not a real equivalence class *)
+  let is_trivial s =
+    try fold (fun _ acc -> if acc = 0 then 1 else raise Exit) s 0 <= 1
+    with Exit -> false
+
+  let return s = if is_trivial s then Trivial else NonTrivial s
+
+  (* TODO: consistency *)
+  let pair e1 e2 =
+    if HCE.equal e1 e2
+    then Trivial
+    else NonTrivial (add e2 (singleton e1))
+
+  let remove e s = return (remove e s)
+
+  let inter s s' = return (inter s s')
+
+  let filter f s = return (filter f s)
+
+  let pretty fmt s =
+    Pretty_utils.pp_iter ~pre:"@[<hov 3>{" ~sep:"@ =@ " ~suf:"}@]"
+      iter (fun fmt a -> HCE.pretty fmt a)
+      fmt s
 end
 
-module Make
-  (Elt : Element)
-  (Set : Hptset.S with type elt = Elt.t)
-  (Functor_info : Datatype.Functor_info)
-  : Equality_sig.S_with_collections with type elt = Elt.t
-= struct
+type equality = Equality.t
 
-  type 'a trivial = 'a Equality_sig.trivial = Trivial | NonTrivial of 'a
+(* --------------------------- Equality Sets -------------------------------- *)
 
-  type 'a tree =
-    'a Equality_sig.tree = Empty | Leaf of 'a | Node of 'a tree * 'a tree
+module Set = struct
 
-  module Equality = struct
-    include Set
+  module Initial_Values = struct let v = [[]] end
+  module Dependencies = struct let l = [ HCE.self ] end
 
-    let name = Functor_info.module_name
+  (* A set of equalities between lvalues and expressions is encoded as a map
+     from each lvalue or expression to:
+     - the equality in which it is involved;
+     - for a lvalue [lv], the set of expressions that contain [lv] in the map.
+     This last information is needed when removing a lvalue, to remove or
+     replace all expressions containing this lvalue. *)
 
-    (* cardinality less or equal to 1: not a real equivalence class *)
-    let is_trivial s =
-      try fold (fun _ acc -> if acc = 0 then 1 else raise Exit) s 0 <= 1
-      with Exit -> false
-
-    let return s = if is_trivial s then Trivial else NonTrivial s
-
-    (* TODO: consistency *)
-    let pair e1 e2 =
-      if Elt.equal e1 e2
-      then Trivial
-      else NonTrivial (add e2 (singleton e1))
-
-    let remove e s = return (remove e s)
-
-    let inter s s' = return (inter s s')
-
-    let filter f s = return (filter f s)
-
-    let pretty fmt s =
-      Pretty_utils.pp_iter ~pre:"@[<hov 3>{" ~sep:"@ =@ " ~suf:"}@]"
-        iter (fun fmt a -> Elt.pretty fmt a)
-        fmt s
-
+  module Data = struct
+    (* For a lvalue [lv], the first set gathers the expressions that depends on
+       the value of [lv], and the second set gathers the expressions that
+       contains [&lv]. *)
+    include Datatype.Triple (Equality) (HCESet) (HCESet)
     let pretty_debug = pretty
+
+    let inter (left_eq, left_set, left_set') (right_eq, right_set, right_set') =
+      let equality = Equality.inter left_eq right_eq
+      and set = HCESet.inter left_set right_set
+      and set' = HCESet.inter left_set' right_set' in
+      match equality with
+      | NonTrivial eq -> Some (eq, set, set')
+      | Trivial ->
+        if HCESet.is_empty set && HCESet.is_empty set'
+        then None
+        else Some (Equality.empty, set, set')
+
+    let union (left_eq, left_set, left_set') (right_eq, right_set, right_set') =
+      Equality.union left_eq right_eq,
+      HCESet.union left_set right_set,
+      HCESet.union left_set' right_set'
   end
 
-  include (Equality : Equality_sig.S with type elt = Elt.t
-                                      and type t = Equality.t)
+  include Hptmap.Make (HCE) (Data)
+      (Hptmap.Comp_unused) (Initial_Values) (Dependencies)
 
-  module Set = struct
+  let find_option elt map =
+    try
+      let equality, _, _ = find elt map in
+      if Equality.is_empty equality then None else Some equality
+    with Not_found -> None
 
-    module Initial_Values = struct let v = [[]] end
-    module Dependencies = struct let l = [ Elt.self ] end
+  let contains = mem
 
-    include Hptmap.Make (Elt) (Equality)
-        (Hptmap.Comp_unused) (Initial_Values) (Dependencies)
+  let mem equality map =
+    let head = Equality.choose equality in
+    match find_option head map with
+    | None -> false
+    | Some eq -> Equality.subset equality eq
 
-    let find_option elt map =
-      try Some (find elt map)
-      with Not_found -> None
+  let subset =
+    binary_predicate
+      (Hptmap_sig.PersistentCache "Equality.Set.subset")
+      UniversalPredicate
+      ~decide_fast:decide_fast_inclusion
+      ~decide_fst:(fun _ (e, _, _) -> Equality.is_empty e)
+      ~decide_snd:(fun _ _ -> true)
+      ~decide_both:(fun _ (e1, _, _) (e2, _, _) -> Equality.subset e1 e2)
 
-    type element = Equality.elt
-    type equality = Equality.t
+  let equal =
+    binary_predicate
+      (Hptmap_sig.PersistentCache "Equality.Set.subset")
+      UniversalPredicate
+      ~decide_fast:(fun s t -> if s == t then PTrue else PUnknown)
+      ~decide_fst:(fun _ (e, _, _) -> Equality.is_empty e)
+      ~decide_snd:(fun _ (e, _, _) -> Equality.is_empty e)
+      ~decide_both:(fun _ (e1, _, _) (e2, _, _) -> Equality.equal e1 e2)
 
-    let contains = mem
+  (* TODO: replace all occurrences of Equality.fold by an heterogeneous
+     iteration on the equality and the set of equalities. *)
 
-    let mem equality map =
-      let head = Equality.choose equality in
-      match find_option head map with
-      | None -> false
-      | Some eq -> Equality.subset equality eq
+  let register lvalues term map =
+    let add_read = function
+      | None -> Some (Equality.empty, HCESet.singleton term, HCESet.empty)
+      | Some (equality, set, set') -> Some (equality, HCESet.add term set, set')
+    and add_addr = function
+      | None -> Some (Equality.empty, HCESet.empty, HCESet.singleton term)
+      | Some (equality, set, set') -> Some (equality, set, HCESet.add term set')
+    in
+    let map = HCESet.fold (replace add_read) lvalues.Hcexprs.read map in
+    HCESet.fold (replace add_addr) lvalues.Hcexprs.addr map
 
-    let subset =
-      binary_predicate
-        (Hptmap_sig.PersistentCache "equality.set.subset")
-        UniversalPredicate
-        ~decide_fast:decide_fast_inclusion
-        ~decide_fst:(fun _ _ -> false)
-        ~decide_snd:(fun _ _ -> true)
-        ~decide_both:(fun _ e1 e2 -> Equality.subset e1 e2)
+  (* Binds each element of [equality] into [equality] in [map], without
+     changing dependances. *)
+  let update_equality equality map =
+    let update = function
+      | Some (_, set, set') -> Some (equality, set, set')
+      | None -> Some (equality, HCESet.empty, HCESet.empty)
+    in
+    Equality.fold (replace update) equality map
 
-    (* TODO: replace all occurrences of Equality.fold by an heterogeneous
-       iteration on the equality and the set of equalities. *)
-
-    let singleton equality =
-      Equality.fold (fun elt map -> add elt equality map) equality empty
-
-    let remove elt map =
-      match find_option elt map with
-      | None -> map
-      | Some eq -> match Equality.remove elt eq with
-        | Trivial -> Equality.fold (fun e map -> remove e map) eq map
-        | NonTrivial eq ->
-          let map = Equality.fold (fun e map -> add e eq map) eq map in
-          remove elt map
-
-    let add equality map =
-      (* Compute the transitive closure of [equality], taking the equalities
+  let unite (a, a_lvalues) (b, b_lvalues) map =
+    match Equality.pair a b with
+    | Trivial -> map
+    | NonTrivial equality ->
+      (* Computes the transitive closure of [equality], taking the equalities
          already in [map] into account. *)
-      let overall_equality =
+      let overall_equality, map =
         Equality.fold
-          (fun elt acc -> match find_option elt map with
-             | None -> acc
-             | Some eq -> Equality.union eq equality)
-          equality equality
+          (fun elt (equality, map) -> match find_option elt map with
+             | None ->
+               let map =
+                 if HCE.equal elt a
+                 then register a_lvalues a map
+                 else register b_lvalues b map
+               in
+               equality, map
+             | Some eq -> Equality.union eq equality, map)
+          equality (equality, map)
       in
-      (* map all the elements in this transitive closure to the closure itself*)
-      Equality.fold
-        (fun elt map -> add elt overall_equality map) overall_equality map
+      (* Binds each element of this transitive closure to the closure itself. *)
+      update_equality overall_equality map
 
-    let unite a b map =
-      match Equality.pair a b with
-      | Trivial -> map
-      | NonTrivial equality -> add equality map
+  (* ----------------------- Remove or replace ---------------------------- *)
 
-    (* The implementation of this function is buggy. Take e.g.
-       [a == b, c == d] and [b == c]. Another function and a fixpoint is
-       needed. However, this may not be critical because this only endangers
-       the transitive closure of the equality. TODO: check. *)
-    let _union =
-      join
-        ~cache:(Hptmap_sig.PersistentCache "equality.set.union")
-        ~symmetric:true
-        ~idempotent:true
-        ~decide:(fun _key left right -> Equality.union left right)
+  (* When replacing a lvalue by an equal term, we pick the lvalue or
+     expression with the smallest height possible. [set] must not be empty. *)
+  let pick_representative set =
+    let choose elt (current, height) =
+      let elt = HCE.to_exp elt in
+      let h = Value_util.height_expr elt in
+      if h < height then (elt, h) else (current, height)
+    in
+    let head = HCESet.choose set in
+    let current = HCE.to_exp head in
+    let height = Value_util.height_expr current in
+    fst (HCESet.fold choose (HCESet.remove head set) (current, height))
 
-    let union a b =
-      if cardinal a > cardinal b
-      then fold (fun _ eq acc -> add eq acc) b a
-      else fold (fun _ eq acc -> add eq acc) a b
-
-    let inter =
-      let decide _key left right =
-        match Equality.inter left right with
-        | Trivial -> None
-        | NonTrivial eq -> Some eq
+  (* Binds the terms of the [equality] to [equality] in the [map].
+     [equality] may be trivial, in which case its element is removed. *)
+  let replace_by_equality equality map =
+    let replace key =
+      let update = function
+        | None -> assert false
+        | Some (_, set, set') ->
+          if Equality.is_trivial equality
+          then
+            (* Do not remove an lvalue that is related to other expressions
+               in the map. *)
+            if HCE.is_lval key && not HCESet.(is_empty set && is_empty set')
+            then Some (Equality.empty, set, set')
+            else None
+          else Some (equality, set, set')
       in
-      inter
-        ~cache:(Hptmap_sig.PersistentCache "equality.set.inter")
-        ~symmetric:true
-        ~idempotent:true
-        ~decide
+      replace update key
+    in
+    Equality.fold replace equality map
 
-    let choose map = snd (min_binding map)
+  (* Removes [elt] from the equalities of the [map], where [elt] is not
+     a lvalue. Does not update the dependencies of [elt] (the lvalues that
+     [elt] contains still link to [elt]). *)
+  let remove_from_equalities elt map =
+    match find_option elt map with
+    | None -> map
+    | Some eq ->
+      let map = replace_by_equality (HCESet.remove elt eq) map in
+      remove elt map
 
-    let elements map = fold (fun _ eq acc -> eq :: acc) map []
+  (* In the expression [elt], replaces [late] by [heir] and updates the map
+     accordingly (the equality involving [elt] and the lvalues pointing to
+     [elt]. *)
+  let replace_in_element kind elt ~late ~heir map =
+    if contains elt map
+    then
+      try
+        (* Replaces [late] by [heir] in [elt]. *)
+        let new_elt = HCE.replace kind ~late ~heir elt in
+        let empty_lvalues = Hcexprs.empty_lvalues in
+        let new_lvalues =
+          if HCE.is_lval new_elt
+          then empty_lvalues
+          else syntactic_lvalues (HCE.to_exp new_elt)
+        in
+        (* Unite [elt] and [new_elt] before removing [elt].*)
+        let map = unite (elt, empty_lvalues) (new_elt, new_lvalues) map in
+        (* Removes [elt] from the new equality and the map.
+           TODO: updates lvals to remove [elt] from their binding? *)
+        let equality, _, _ = find elt map in
+        let equality = HCESet.remove elt equality in
+        let map = remove elt map in
+        (* Updates the new equality in the map. *)
+        replace_by_equality equality map
+      with NonExchangeable -> remove_from_equalities elt map
+    else map
 
-    (* is representative? *)
-    let is_rep elt eq = Elt.equal (Equality.choose eq) elt
-
-    let fold f map acc =
-      fold (fun elt eq acc -> if is_rep elt eq then f eq acc else acc) map acc
-
-    let deep_fold f map acc =
-      fold (fun eq accu -> Equality.fold (f eq) eq accu) map acc
-
-    let iter f map =
-      iter (fun elt eq -> if is_rep elt eq then f eq) map
-    let exists f map =
-      exists (fun elt eq -> if is_rep elt eq then f eq else false) map
-    let for_all f map =
-      for_all (fun elt eq -> if is_rep elt eq then f eq else true) map
-
-
-    let pretty fmt map =
-      Pretty_utils.pp_iter ~pre:"@[" ~sep:"@ " ~suf:"@]"
-        iter (fun fmt eq -> Format.fprintf fmt "@[%a@]" Equality.pretty eq)
-        fmt map
-
-    let keys =
-      let cache_name = "Equalities.Set.keys" in 
-      let temporary = false in
-      let f k _ = Leaf k in
-      let joiner t1 t2 = Node (t1, t2) in
-      let empty = Empty in
-      cached_fold ~cache_name ~temporary ~f ~joiner ~empty
-
-    let elements_only_left =
-      let cache = Hptmap_sig.PersistentCache "Equality.Set.only_left" in
-      let empty_left _ = Empty (* impossible *) in
-      let empty_right t = keys t in
-      let both _ _ _ = Empty in
-      let join t1 t2 = Node (t1, t2) in
-      let empty = Empty in
-      let f = fold2_join_heterogeneous
-          ~cache ~empty_left ~empty_right ~both ~join ~empty
+  (* [remove lval map] removes any occurence of the lvalue [lval] in the [map].
+     When possible, [lval] is replaced by an equal lvalue or expression in any
+     term of [map] that contains [lval]. Otherwise, these terms are simply
+     removed as well. *)
+  let remove kind lval map =
+    let elt = HCE.of_lval lval in
+    try
+      let (equality, deps, addr_deps) = find elt map in
+      (* If [lval] is out of scope, removes all terms that contain &lval. *)
+      let map =
+        if kind = Hcexprs.Deleted
+        then HCESet.fold remove_from_equalities addr_deps map
+        else map
       in
-      fun eqs1 eqs2 -> f eqs1 (shape eqs2)
+      (* Removes [lval] from [equality] and from the [map]. *)
+      let equality = HCESet.remove elt equality in
+      let map = replace_by_equality equality map in
+      let map = remove elt map in
+      (* If possible, replaces [lval] by an equal term (namely a term from
+         [equality] that is not [lval] itself, nor contains [lval]). Otherwise,
+         removes all terms containing [lval]. *)
+      let equality = HCESet.diff equality deps in
+      if HCESet.is_empty equality
+      then HCESet.fold remove_from_equalities deps map
+      else
+        (* Replaces all occurrences of [lval] by [rep]. *)
+        let rep = pick_representative equality in
+        let process elt map =
+          replace_in_element kind elt ~late:lval ~heir:rep map
+        in
+        HCESet.fold process deps map
+    with
+    (* If [lval] is not bound in the [map], nothing to do. *)
+      Not_found -> map
 
-  end
+  let find elt map =
+    let equality, _, _ = find elt map in
+    if Equality.is_empty equality then raise Not_found else equality
+
+
+  (* ---------------------- Merges and iterators -------------------------- *)
+
+  (* The pointwise union of the maps is incomplete: the naive union of [a=b] and
+     [b=c] binds [b] to [a=b=c], but binds [a] to [a=b] and [c] to [b=c].  This
+     function computes properly the join of separated equalities, as well as the
+     connections between lvalues and expressions. It must however be completed
+     by the transitive closure of equalities. *)
+  let naive_union =
+    let decide _key left right = Data.union left right in
+    join
+      ~cache:(Hptmap_sig.PersistentCache "Equality.Set.union")
+      ~symmetric:true
+      ~idempotent:true
+      ~decide
+
+  (* Computes the transitive closure of the equalities from two maps. Ignores
+     the equalities that do not involve a same term in both maps, as they are
+     properly handled by [naive_union]. Thus, this function only considers the
+     keys that belongs to both maps (and their bound equalities). It does not
+     update the connections between lvalues and expressions, as they are
+     properly computed by [naive_union]. *)
+  let transitive_closure =
+    (* The terms present in only one set are ignored. *)
+    let empty_left _ = empty
+    and empty_right _ = empty in
+    (* If the equalities bound to [key] are different and non empty in both
+       maps, join them. The [naive_union] has correctly join the equal
+       equalities.*)
+    let both key (eq, _, _) (eq', _, _) =
+      if Equality.is_empty eq || Equality.is_empty eq' || Equality.equal eq eq'
+      then empty
+      else
+        let join = Equality.union eq eq' in
+        singleton key (join, HCESet.empty, HCESet.empty)
+    in
+    (* The join of two sets computes the transitive closure of their equalities. *)
+    let join set set' =
+      (* Adds an equality to a set. If the equality contains some terms bound to
+         other equalities in the set, then performs the union of all these
+         equalities, and updates these terms with the resulting equality.
+         Does not handle connections between lvalues and expressions. *)
+      let add key equality set =
+        let process elt (list, eq as acc) =
+          match find_option elt set with
+          | None -> acc
+          | Some eq' -> elt :: list, Equality.union eq eq'
+        in
+        (* [keys] are the keys to update with the new [equality]. *)
+        let keys, equality = Equality.fold process equality ([key], equality) in
+        let data = equality, HCESet.empty, HCESet.empty in
+        List.fold_left (fun acc key -> add key data acc) set keys
+      in
+      (* Addition of each equality from the right set to the left set. *)
+      fold (fun elt (eq, _, _) acc -> add elt eq acc) set' set
+    in
+    fold2_join_heterogeneous
+      ~cache:(Hptmap_sig.PersistentCache "Equality.Set.in_both")
+      ~empty_left ~empty_right ~both ~join ~empty
+
+  let union a b =
+    (* Naive pointwise union of maps. *)
+    let r = naive_union a b in
+    (* Computes the equalities that are missing in [r]. *)
+    let missing_equalities = transitive_closure a (shape b) in
+    (* Binds the equalities of [missing_equalities] in [r]. [processed] is
+       the set of the terms that have been already updated. *)
+    let update key (equality, _, _) (map, processed) =
+      if HCESet.mem key processed
+      then map, processed
+      else update_equality equality map, HCESet.union equality processed
+    in
+    fst (fold update missing_equalities (r, HCESet.empty))
+
+  let inter =
+    inter
+      ~cache:(Hptmap_sig.PersistentCache "Equality.Set.inter")
+      ~symmetric:true
+      ~idempotent:true
+      ~decide:(fun _ a b -> Data.inter a b)
+
+  let choose map =
+    let equality, _, _ =  snd (min_binding map) in equality
+
+  (* is representative? *)
+  let is_rep elt eq =
+    if Equality.is_empty eq
+    then false
+    else HCE.equal (Equality.choose eq) elt
+
+  let fold f map acc =
+    fold
+      (fun elt (eq, _, _) acc -> if is_rep elt eq then f eq acc else acc)
+      map acc
+
+  let elements map = fold (fun eq acc -> eq :: acc) map []
+
+  let iter f map =
+    iter (fun elt (eq, _, _) -> if is_rep elt eq then f eq) map
+  let exists f map =
+    exists (fun elt (eq, _, _) -> if is_rep elt eq then f eq else false) map
+  let for_all f map =
+    for_all (fun elt (eq, _, _) -> if is_rep elt eq then f eq else true) map
+
+  let deep_fold f map acc =
+    fold (fun eq accu -> Equality.fold (f eq) eq accu) map acc
+
+  let pretty fmt map =
+    Pretty_utils.pp_iter ~pre:"@[" ~sep:"@ " ~suf:"@]"
+      iter (fun fmt eq -> Format.fprintf fmt "@[%a@]" Equality.pretty eq)
+      fmt map
+
+  let keys =
+    let cache_name = "Equality.Set.keys" in
+    let temporary = false in
+    let f k _ = if HCE.is_lval k then Leaf k else Empty in
+    let joiner t1 t2 = Node (t1, t2) in
+    let empty = Empty in
+    cached_fold ~cache_name ~temporary ~f ~joiner ~empty
+
+  let lvalues_only_left =
+    let cache = Hptmap_sig.PersistentCache "Equality.Set.elements_only_left" in
+    let empty_left _ = Empty in
+    let empty_right t = keys t in
+    let both _ _ _ = Empty in
+    let join t1 t2 = Node (t1, t2) in
+    let empty = Empty in
+    let f = fold2_join_heterogeneous
+        ~cache ~empty_left ~empty_right ~both ~join ~empty
+    in
+    fun eqs1 eqs2 -> f eqs1 (shape eqs2)
+
 end

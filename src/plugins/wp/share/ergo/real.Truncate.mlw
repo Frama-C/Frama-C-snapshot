@@ -1,0 +1,73 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_FromInt_ must be appended to this file*)
+logic truncate : real -> int
+
+axiom Truncate_int : (forall i:int. (truncate(from_int(i)) = i))
+
+axiom Truncate_down_pos :
+  (forall x:real. ((0.0 <= x) -> (from_int(truncate(x)) <= x)))
+
+axiom Truncate_down_pos1 :
+  (forall x:real. ((0.0 <= x) -> (x <  from_int((truncate(x) + 1)))))
+
+axiom Truncate_up_neg :
+  (forall x:real. ((x <= 0.0) -> (from_int((truncate(x) - 1)) <  x)))
+
+axiom Truncate_up_neg1 :
+  (forall x:real. ((x <= 0.0) -> (x <= from_int(truncate(x)))))
+
+axiom Real_of_truncate :
+  (forall x:real. ((x - 1.0) <= from_int(truncate(x))))
+
+axiom Real_of_truncate1 :
+  (forall x:real. (from_int(truncate(x)) <= (x + 1.0)))
+
+axiom Truncate_monotonic :
+  (forall x:real. forall y:real. ((x <= y) -> (truncate(x) <= truncate(y))))
+
+axiom Truncate_monotonic_int1 :
+  (forall x:real. forall i:int. ((x <= from_int(i)) -> (truncate(x) <= i)))
+
+axiom Truncate_monotonic_int2 :
+  (forall x:real. forall i:int. ((from_int(i) <= x) -> (i <= truncate(x))))
+
+logic floor : real -> int
+
+logic ceil : real -> int
+
+axiom Floor_int : (forall i:int. (floor(from_int(i)) = i))
+
+axiom Ceil_int : (forall i:int. (ceil(from_int(i)) = i))
+
+axiom Floor_down : (forall x:real. (from_int(floor(x)) <= x))
+
+axiom Floor_down1 : (forall x:real. (x <  from_int((floor(x) + 1))))
+
+axiom Ceil_up : (forall x:real. (from_int((ceil(x) - 1)) <  x))
+
+axiom Ceil_up1 : (forall x:real. (x <= from_int(ceil(x))))
+
+axiom Floor_monotonic :
+  (forall x:real. forall y:real. ((x <= y) -> (floor(x) <= floor(y))))
+
+axiom Ceil_monotonic :
+  (forall x:real. forall y:real. ((x <= y) -> (ceil(x) <= ceil(y))))
+

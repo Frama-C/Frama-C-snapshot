@@ -6,7 +6,8 @@
   X ∈ {3}
   S ∈ [--..--]
   P ∈ {{ &X }}
-tests/pdg/globals.c:28:[value] warning: signed overflow. assert s2.a2 + s2.b2 ≤ 2147483647;
+[value:alarm] tests/pdg/globals.c:28: Warning: 
+  signed overflow. assert s2.a2 + s2.b2 ≤ 2147483647;
 [value] Recording results for h
 [value] done for function h
 [value] ====== VALUES COMPUTED ======
@@ -18,11 +19,11 @@ tests/pdg/globals.c:28:[value] warning: signed overflow. assert s2.a2 + s2.b2 �
 [from] Computing for function h
 [from] Done for function h
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function h:
   \result FROM X; P; x
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function h:
-      s2{.a2; .b2}; __retres
+    s2{.a2; .b2}; __retres
 [inout] Inputs for function h:
-      X; P
+    X; P

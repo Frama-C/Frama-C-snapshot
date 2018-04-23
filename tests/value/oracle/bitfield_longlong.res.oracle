@@ -9,8 +9,10 @@
      .[bits 10 to 31] ∈ {0}
   u32.z ∈ {4294967295}
   s32.z ∈ {-1}
-tests/value/bitfield_longlong.c:25:[value] Frama_C_show_each: {{ "%zu %zu %zu %zu\n" }}, {8}, {4}, {8}, {4}
-tests/value/bitfield_longlong.c:31:[value] Frama_C_show_each: {{ "%d %d\n" }}, {1}, {0}
+[value] tests/value/bitfield_longlong.c:25: 
+  Frama_C_show_each: {{ "%zu %zu %zu %zu\n" }}, {8}, {4}, {8}, {4}
+[value] tests/value/bitfield_longlong.c:31: 
+  Frama_C_show_each: {{ "%d %d\n" }}, {1}, {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

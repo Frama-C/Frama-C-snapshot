@@ -33,45 +33,61 @@
   t ∈ {0}
   r ∈ {0}
   ff ∈ {0}
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0; 1} because of UPCPA
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
-                                                                [-8589934588..16],0%4 }} because of UPCPA
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/cmp_ptr.i:21:[value] warning: pointer comparison. assert \pointer_comparable((void *)p, (void *)(&T[5]));
-tests/value/cmp_ptr.i:21:[value:pointer-comparison] not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
-                                                                [20..8589934592],0%4 }} because of UPCPA
-tests/value/cmp_ptr.i:21:[value] warning: out of bounds write. assert \valid(p);
-tests/value/cmp_ptr.i:21:[value] warning: out of bounds write. assert \valid(q);
-tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
-tests/value/cmp_ptr.i:22:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0} because of UPCPA
-tests/value/cmp_ptr.i:22:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/cmp_ptr.i:22:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/cmp_ptr.i:22:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&y + 2));
-tests/value/cmp_ptr.i:24:[value:pointer-comparison] invalid pointer negation: invalid pointer(s)
-tests/value/cmp_ptr.i:24:[value:pointer-comparison] evaluating operator ! to {0; 1} instead of {0; 1} because of UPCPA
-tests/value/cmp_ptr.i:24:[value] warning: non-finite float value. assert \is_finite(ff);
-tests/value/cmp_ptr.i:24:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)ff);
-tests/value/cmp_ptr.i:28:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/cmp_ptr.i:28:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/cmp_ptr.i:28:[value] warning: signed overflow.
-    assert -2147483648 ≤ 1 + (int)tmp_0;
-    (tmp_0 from u?& f:& g)
-tests/value/cmp_ptr.i:28:[value] warning: signed overflow. assert 1 + (int)tmp_0 ≤ 2147483647;
-                     (tmp_0 from u?& f:& g)
-tests/value/cmp_ptr.i:28:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)((int)(1 + (int)tmp_0)), (void *)0);
-    (tmp_0 from u?& f:& g)
-tests/value/cmp_ptr.i:30:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/cmp_ptr.i:30:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
-tests/value/cmp_ptr.i:30:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)((int *)T - 1), (void *)0);
-tests/value/cmp_ptr.i:32:[value:pointer-comparison] invalid pointer comparison: invalid pointer(s)
-tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 1} instead of {1} because of UPCPA
-tests/value/cmp_ptr.i:32:[value] warning: pointer comparison.
-    assert \pointer_comparable((void (*)())0, (void (*)())(&f + 3));
-tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  evaluating condition to {0; 1} instead of {0; 1} because of UPCPA
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
+                                                              [-8589934588..16],0%4 }} because of UPCPA
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:alarm] tests/value/cmp_ptr.i:21: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)p, (void *)(&T[5]));
+[value:pointer-comparison] tests/value/cmp_ptr.i:21: 
+  not reducing {{ &T + [-8589934588..8589934592],0%4 }} to {{ &T +
+                                                              [20..8589934592],0%4 }} because of UPCPA
+[value:alarm] tests/value/cmp_ptr.i:21: Warning: 
+  out of bounds write. assert \valid(p);
+[value:alarm] tests/value/cmp_ptr.i:21: Warning: 
+  out of bounds write. assert \valid(q);
+[value:pointer-comparison] tests/value/cmp_ptr.i:22: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/cmp_ptr.i:22: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:alarm] tests/value/cmp_ptr.i:22: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)0, (void *)(&y + 2));
+[value:pointer-comparison] tests/value/cmp_ptr.i:24: 
+  invalid pointer comparison: invalid pointer(s)
+[value:alarm] tests/value/cmp_ptr.i:24: Warning: 
+  non-finite float value. assert \is_finite(ff);
+[value:pointer-comparison] tests/value/cmp_ptr.i:28: 
+  invalid pointer comparison: invalid pointer(s)
+[value:alarm] tests/value/cmp_ptr.i:28: Warning: 
+  signed overflow.
+  assert -2147483648 ≤ 1 + (int)tmp_0;
+  (tmp_0 from u?& f:& g)
+[value:alarm] tests/value/cmp_ptr.i:28: Warning: 
+  signed overflow. assert 1 + (int)tmp_0 ≤ 2147483647;
+                   (tmp_0 from u?& f:& g)
+[value:pointer-comparison] tests/value/cmp_ptr.i:30: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/cmp_ptr.i:30: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
+[value:alarm] tests/value/cmp_ptr.i:30: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)((int *)T - 1), (void *)0);
+[value:pointer-comparison] tests/value/cmp_ptr.i:32: 
+  invalid pointer comparison: invalid pointer(s)
+[value:pointer-comparison] tests/value/cmp_ptr.i:32: 
+  evaluating condition to {0; 1} instead of {1} because of UPCPA
+[value:alarm] tests/value/cmp_ptr.i:32: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void (*)())0, (void (*)())(&f + 3));
+[value:pointer-comparison] tests/value/cmp_ptr.i:32: 
+  evaluating condition to {0; 1} instead of {0} because of UPCPA
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -108,7 +124,7 @@ tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   p FROM top_p
   T[0..9] FROM top_p (and SELF)
@@ -123,6 +139,6 @@ tests/value/cmp_ptr.i:32:[value:pointer-comparison] evaluating condition to {0; 
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p; T[0..9]; C[0..9]; q; x; y; z; t; r; ff; tmp; tmp_0; __retres
+    p; T[0..9]; C[0..9]; q; x; y; z; t; r; ff; tmp; tmp_0; __retres
 [inout] Inputs for function main:
-      p; q; top_p; top_q; ff
+    p; q; top_p; top_q; ff

@@ -4,16 +4,19 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
-tests/pdg/dyn_dpds.c:20:[value] warning: signed overflow. assert -2147483648 ≤ a + b;
-tests/pdg/dyn_dpds.c:20:[value] warning: signed overflow. assert a + b ≤ 2147483647;
-tests/pdg/dyn_dpds.c:23:[value] warning: signed overflow. assert -x ≤ 2147483647;
-tests/pdg/dyn_dpds.c:24:[value] warning: assertion got status unknown.
+[value:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
+  signed overflow. assert -2147483648 ≤ a + b;
+[value:alarm] tests/pdg/dyn_dpds.c:20: Warning: 
+  signed overflow. assert a + b ≤ 2147483647;
+[value:alarm] tests/pdg/dyn_dpds.c:23: Warning: 
+  signed overflow. assert -x ≤ 2147483647;
+[value:alarm] tests/pdg/dyn_dpds.c:24: Warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM a; b; c
 [from] ====== END OF DEPENDENCIES ======

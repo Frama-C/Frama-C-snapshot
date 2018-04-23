@@ -7,131 +7,149 @@
   t[0..9] ∈ {0}
   u[0..9] ∈ [--..--]
 [value] computing for function main2_kill_direct <- main.
-    Called from tests/value/symbolic_locs.i:119.
-tests/value/symbolic_locs.i:29:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:32:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..8] ∈ {0; 4}
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ [0..8]
-    ==END OF DUMP==
-tests/value/symbolic_locs.i:34:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..1] ∈ {0; 4}
-     [2] ∈ {1}
-     [3..8] ∈ {0; 4}
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ [0..8]
-    ==END OF DUMP==
+  Called from tests/value/symbolic_locs.i:119.
+[value:alarm] tests/value/symbolic_locs.i:29: Warning: 
+  assertion got status unknown.
+[value] tests/value/symbolic_locs.i:32: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..8] ∈ {0; 4}
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ [0..8]
+  ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:34: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..1] ∈ {0; 4}
+   [2] ∈ {1}
+   [3..8] ∈ {0; 4}
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ [0..8]
+  ==END OF DUMP==
 [value] Recording results for main2_kill_direct
 [value] Done for function main2_kill_direct
 [value] computing for function main3_kill_indirect <- main.
-    Called from tests/value/symbolic_locs.i:120.
-tests/value/symbolic_locs.i:41:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:44:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..1] ∈ {0; 4}
-     [2] ∈ {0; 1; 4}
-     [3..8] ∈ {0; 4}
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ [0..8]
-    ==END OF DUMP==
-tests/value/symbolic_locs.i:46:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..1] ∈ {0; 4}
-     [2] ∈ {0; 1; 4}
-     [3..8] ∈ {0; 4}
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ {8}
-    ==END OF DUMP==
+  Called from tests/value/symbolic_locs.i:120.
+[value:alarm] tests/value/symbolic_locs.i:41: Warning: 
+  assertion got status unknown.
+[value] tests/value/symbolic_locs.i:44: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..1] ∈ {0; 4}
+   [2] ∈ {0; 1; 4}
+   [3..8] ∈ {0; 4}
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ [0..8]
+  ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:46: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..1] ∈ {0; 4}
+   [2] ∈ {0; 1; 4}
+   [3..8] ∈ {0; 4}
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ {8}
+  ==END OF DUMP==
 [value] Recording results for main3_kill_indirect
 [value] Done for function main3_kill_indirect
 [value] computing for function main4_scope_right <- main.
-    Called from tests/value/symbolic_locs.i:121.
-tests/value/symbolic_locs.i:51:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:55:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..1] ∈ {{ NULL + {0; 4} ; (int)&x }}
-     [2] ∈ {{ NULL + {0; 1; 4} ; (int)&x }}
-     [3..8] ∈ {{ NULL + {0; 4} ; (int)&x }}
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ [0..8]
-    x ∈ UNINITIALIZED
-    ==END OF DUMP==
-tests/value/symbolic_locs.i:55:[value] warning: locals {x} escaping the scope of a block of main4_scope_right through t
-tests/value/symbolic_locs.i:57:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..1] ∈ {0; 4} or ESCAPINGADDR
-     [2] ∈ {0; 1; 4} or ESCAPINGADDR
-     [3..8] ∈ {0; 4} or ESCAPINGADDR
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    i ∈ [0..8]
-    ==END OF DUMP==
+  Called from tests/value/symbolic_locs.i:121.
+[value:alarm] tests/value/symbolic_locs.i:51: Warning: 
+  assertion got status unknown.
+[value] tests/value/symbolic_locs.i:55: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..1] ∈ {{ NULL + {0; 4} ; (int)&x }}
+   [2] ∈ {{ NULL + {0; 1; 4} ; (int)&x }}
+   [3..8] ∈ {{ NULL + {0; 4} ; (int)&x }}
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ [0..8]
+  x ∈ UNINITIALIZED
+  ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:55: Warning: 
+  locals {x} escaping the scope of a block of main4_scope_right through t
+[value] tests/value/symbolic_locs.i:57: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..1] ∈ {0; 4} or ESCAPINGADDR
+   [2] ∈ {0; 1; 4} or ESCAPINGADDR
+   [3..8] ∈ {0; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  i ∈ [0..8]
+  ==END OF DUMP==
 [value] Recording results for main4_scope_right
 [value] Done for function main4_scope_right
 [value] computing for function main5_scope_lv <- main.
-    Called from tests/value/symbolic_locs.i:122.
-tests/value/symbolic_locs.i:63:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:65:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    z ∈ {1}
-    i ∈ [0..8]
-    ==END OF DUMP==
-tests/value/symbolic_locs.i:67:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    z ∈ {1}
-    ==END OF DUMP==
+  Called from tests/value/symbolic_locs.i:122.
+[value:alarm] tests/value/symbolic_locs.i:63: Warning: 
+  assertion got status unknown.
+[value] tests/value/symbolic_locs.i:65: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  z ∈ {1}
+  i ∈ [0..8]
+  ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:67: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  z ∈ {1}
+  ==END OF DUMP==
 [value] Recording results for main5_scope_lv
 [value] Done for function main5_scope_lv
 [value] computing for function main6_ghost_dep <- main.
-    Called from tests/value/symbolic_locs.i:123.
-tests/value/symbolic_locs.i:83:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:86:[value] warning: assertion got status unknown.
-tests/value/symbolic_locs.i:98:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    x ∈ [--..--]
-    ==END OF DUMP==
-tests/value/symbolic_locs.i:93:[value] entering loop for the first time
+  Called from tests/value/symbolic_locs.i:123.
+[value:alarm] tests/value/symbolic_locs.i:83: Warning: 
+  assertion got status unknown.
+[value:alarm] tests/value/symbolic_locs.i:86: Warning: 
+  assertion got status unknown.
+[value] tests/value/symbolic_locs.i:98: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  x ∈ [--..--]
+  ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:93: entering loop for the first time
 [value] Recording results for main6_ghost_dep
 [value] Done for function main6_ghost_dep
 [value] computing for function main7_widening <- main.
-    Called from tests/value/symbolic_locs.i:124.
-tests/value/symbolic_locs.i:110:[value] entering loop for the first time
-tests/value/symbolic_locs.i:111:[value] warning: signed overflow. assert *p + 1 ≤ 2147483647;
-tests/value/symbolic_locs.i:113:[value] Frama_C_show_each: [0..2147483647]
+  Called from tests/value/symbolic_locs.i:124.
+[value] tests/value/symbolic_locs.i:110: entering loop for the first time
+[value:alarm] tests/value/symbolic_locs.i:111: Warning: 
+  signed overflow. assert *p + 1 ≤ 2147483647;
+[value] tests/value/symbolic_locs.i:113: Frama_C_show_each: [0..2147483647]
 [value] Recording results for main7_widening
 [value] Done for function main7_widening
-tests/value/symbolic_locs.i:125:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
-     [9] ∈ {0}
-    u[0..9] ∈ [--..--]
-    ==END OF DUMP==
+[value] tests/value/symbolic_locs.i:125: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  t[0..8] ∈ {0; 1; 4} or ESCAPINGADDR
+   [9] ∈ {0}
+  u[0..9] ∈ [--..--]
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -181,7 +199,7 @@ tests/value/symbolic_locs.i:125:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main2_kill_direct:
   t{[0..1]; [3..8]} FROM v (and SELF)
    [2] FROM \nothing
@@ -199,30 +217,30 @@ tests/value/symbolic_locs.i:125:[value] Frama_C_dump_each:
   t[0..8] FROM v (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main2_kill_direct:
-      t[0..8]; i
+    t[0..8]; i
 [inout] Inputs for function main2_kill_direct:
-      v
+    v
 [inout] Out (internal) for function main3_kill_indirect:
-      t[0..8]; i
+    t[0..8]; i
 [inout] Inputs for function main3_kill_indirect:
-      v
+    v
 [inout] Out (internal) for function main4_scope_right:
-      t[0..8]; i
+    t[0..8]; i
 [inout] Inputs for function main4_scope_right:
-      v
+    v
 [inout] Out (internal) for function main5_scope_lv:
-      t[0..8]; z; i
+    t[0..8]; z; i
 [inout] Inputs for function main5_scope_lv:
-      v
+    v
 [inout] Out (internal) for function main6_ghost_dep:
-      x; y; z; k; p; tmp; tmp_0
+    x; y; z; k; p; tmp; tmp_0
 [inout] Inputs for function main6_ghost_dep:
-      v
+    v
 [inout] Out (internal) for function main7_widening:
-      b; c; p; tmp
+    b; c; p; tmp
 [inout] Inputs for function main7_widening:
-      v
+    v
 [inout] Out (internal) for function main:
-      t[0..8]
+    t[0..8]
 [inout] Inputs for function main:
-      v
+    v

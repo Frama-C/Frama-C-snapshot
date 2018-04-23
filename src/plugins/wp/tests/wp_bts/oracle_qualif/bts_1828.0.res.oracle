@@ -2,17 +2,23 @@
 [kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-[wp] 4 goals scheduled
-[wp] [Alt-Ergo] Goal typed_f_assert_ok : Valid
-[wp] [Alt-Ergo] Goal typed_frame_post_ok_iff_ref : Unknown
-[wp] [Qed] Goal typed_frame_assert_ok_formal : Valid
-[wp] [Qed] Goal typed_frame_assert_ok_global : Valid
-[wp] Proved goals:    3 / 4
-    Qed:             2 
-    Alt-Ergo:        1  (unknown: 1)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                   -       1 (14)     1       100%
-frame                2     -           3      66.7%
-----------------------------------------------------------
+[wp] Warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_global_frame_post_sep_iff_ref : Unknown
+[wp] [Alt-Ergo] Goal typed_global_frame_post_one_iff_ref : Unknown
+[wp] [Qed] Goal typed_global_frame_post_zero_always : Valid
+[wp] [Qed] Goal typed_global_frame_assert_ok : Valid
+[wp] [Qed] Goal typed_global_frame_assert_ok_2 : Valid
+[wp] [Alt-Ergo] Goal typed_local_frame_assert_ok : Valid
+[wp] Proved goals:    4 / 6
+  Qed:             3 
+  Alt-Ergo:        1  (unknown: 2)
+[wp] Report 'tests/wp_bts/bts_1828.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+local_frame         -       1 (1..12)        1       100%
+global_frame         3     -                 5      60.0%
+-------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'global_frame':
+  /*@ behavior typed: requires \separated(&zero,one); */
+  void global_frame(int *one, int arg);

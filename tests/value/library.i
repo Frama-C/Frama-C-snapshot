@@ -4,8 +4,8 @@
 */
 int f_int(int x);
 
-/*@ allocates \result;
-    ensures \fresh(\result,sizeof(int)); */
+int *gpi;
+/*@ assigns \result \from indirect:x, gpi; */
 int *f_star_int(int x);
 
 int ****G; volatile v;
@@ -13,18 +13,18 @@ int G0,*G1;
 
 typedef int (*pfun)(int *p1, const int *p2);
 
-/*@ allocates \result;
-    ensures \fresh(\result,sizeof(pfun)); */
-pfun gen();
+
+
+pfun gen(void);
 extern pfun f;
 
-/*@ allocates \result;
-    ensures \fresh(\result,sizeof(int)); */
-float *i();
+float *gpf;
+/*@ assigns \result \from gpf; */
+float *i(void);
 
-/*@ allocates \result;
-    ensures \fresh(\result,sizeof(double)); */
-double *k();
+double *gpd;
+/*@ assigns \result \from gpd; */
+double *k(void);
 
 void main(pfun g) {
   G0 = f_int(2);

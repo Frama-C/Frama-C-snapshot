@@ -9,7 +9,7 @@
   y ∈ {0}
   z ∈ {0}
 [value] computing for function f <- h.
-    Called from tests/value/pointer2.i:18.
+  Called from tests/value/pointer2.i:18.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for h
@@ -24,17 +24,17 @@
 [from] Computing for function h
 [from] Done for function h
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM r
 [from] Function h:
   q FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      \nothing
+    \nothing
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function h:
-      q
+    q
 [inout] Inputs for function h:
-      \nothing
+    \nothing

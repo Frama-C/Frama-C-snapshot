@@ -6,361 +6,449 @@
   nondet ∈ [--..--]
   T[0..9] ∈ {0}
 [value] computing for function test_none <- main.
-    Called from tests/value/behaviors1.i:638.
+  Called from tests/value/behaviors1.i:638.
 [value] computing for function f_none <- test_none <- main.
-    Called from tests/value/behaviors1.i:328.
+  Called from tests/value/behaviors1.i:328.
 [value] using specification for function f_none
-tests/value/behaviors1.i:328:[value] function f_none, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:328:[value] function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:328:[value] function f_none, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:328: 
+  function f_none, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:328: 
+  function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:328: 
+  function f_none, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_none
 [value] computing for function f_none <- test_none <- main.
-    Called from tests/value/behaviors1.i:329.
-tests/value/behaviors1.i:329:[value] function f_none, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:329:[value] function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:329.
+[value] tests/value/behaviors1.i:329: 
+  function f_none, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:329: 
+  function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_none
 [value] computing for function f_none <- test_none <- main.
-    Called from tests/value/behaviors1.i:330.
-tests/value/behaviors1.i:330:[value] function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:330:[value] function f_none, behavior b5: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:330.
+[value] tests/value/behaviors1.i:330: 
+  function f_none, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:330: 
+  function f_none, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_none
 [value] computing for function f_none <- test_none <- main.
-    Called from tests/value/behaviors1.i:331.
+  Called from tests/value/behaviors1.i:331.
 [value] Done for function f_none
 [value] Recording results for test_none
 [value] Done for function test_none
 [value] computing for function test_comp_disj <- main.
-    Called from tests/value/behaviors1.i:639.
+  Called from tests/value/behaviors1.i:639.
 [value] computing for function f_comp_disj <- test_comp_disj <- main.
-    Called from tests/value/behaviors1.i:342.
+  Called from tests/value/behaviors1.i:342.
 [value] using specification for function f_comp_disj
-tests/value/behaviors1.i:342:[value] function f_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:342:[value] function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:342:[value] function f_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:342: 
+  function f_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:342: 
+  function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:342: 
+  function f_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp_disj
 [value] computing for function f_comp_disj <- test_comp_disj <- main.
-    Called from tests/value/behaviors1.i:350.
-tests/value/behaviors1.i:350:[value] function f_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:350:[value] function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:350.
+[value] tests/value/behaviors1.i:350: 
+  function f_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:350: 
+  function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp_disj
 [value] computing for function f_comp_disj <- test_comp_disj <- main.
-    Called from tests/value/behaviors1.i:358.
-tests/value/behaviors1.i:358:[value] function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:358:[value] function f_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:358.
+[value] tests/value/behaviors1.i:358: 
+  function f_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:358: 
+  function f_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp_disj
 [value] computing for function f_comp_disj <- test_comp_disj <- main.
-    Called from tests/value/behaviors1.i:366.
+  Called from tests/value/behaviors1.i:366.
 [value] Done for function f_comp_disj
 [value] Recording results for test_comp_disj
 [value] Done for function test_comp_disj
 [value] computing for function test_comp <- main.
-    Called from tests/value/behaviors1.i:640.
+  Called from tests/value/behaviors1.i:640.
 [value] computing for function f_comp <- test_comp <- main.
-    Called from tests/value/behaviors1.i:388.
+  Called from tests/value/behaviors1.i:388.
 [value] using specification for function f_comp
-tests/value/behaviors1.i:388:[value] function f_comp, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:388:[value] function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:388:[value] function f_comp, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:388: 
+  function f_comp, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:388: 
+  function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:388: 
+  function f_comp, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp
 [value] computing for function f_comp <- test_comp <- main.
-    Called from tests/value/behaviors1.i:389.
-tests/value/behaviors1.i:389:[value] function f_comp, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:389:[value] function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:389.
+[value] tests/value/behaviors1.i:389: 
+  function f_comp, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:389: 
+  function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp
 [value] computing for function f_comp <- test_comp <- main.
-    Called from tests/value/behaviors1.i:390.
-tests/value/behaviors1.i:390:[value] function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:390:[value] function f_comp, behavior b5: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:390.
+[value] tests/value/behaviors1.i:390: 
+  function f_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:390: 
+  function f_comp, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_comp
 [value] computing for function f_comp <- test_comp <- main.
-    Called from tests/value/behaviors1.i:391.
+  Called from tests/value/behaviors1.i:391.
 [value] Done for function f_comp
 [value] Recording results for test_comp
 [value] Done for function test_comp
 [value] computing for function test_disj <- main.
-    Called from tests/value/behaviors1.i:641.
+  Called from tests/value/behaviors1.i:641.
 [value] computing for function f_disj <- test_disj <- main.
-    Called from tests/value/behaviors1.i:377.
+  Called from tests/value/behaviors1.i:377.
 [value] using specification for function f_disj
-tests/value/behaviors1.i:377:[value] function f_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:377:[value] function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:377:[value] function f_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:377: 
+  function f_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:377: 
+  function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:377: 
+  function f_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_disj
 [value] computing for function f_disj <- test_disj <- main.
-    Called from tests/value/behaviors1.i:378.
-tests/value/behaviors1.i:378:[value] function f_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:378:[value] function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:378.
+[value] tests/value/behaviors1.i:378: 
+  function f_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:378: 
+  function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_disj
 [value] computing for function f_disj <- test_disj <- main.
-    Called from tests/value/behaviors1.i:379.
-tests/value/behaviors1.i:379:[value] function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:379:[value] function f_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:379.
+[value] tests/value/behaviors1.i:379: 
+  function f_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:379: 
+  function f_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_disj
 [value] computing for function f_disj <- test_disj <- main.
-    Called from tests/value/behaviors1.i:380.
+  Called from tests/value/behaviors1.i:380.
 [value] Done for function f_disj
 [value] Recording results for test_disj
 [value] Done for function test_disj
 [value] computing for function test_123_comp_disj <- main.
-    Called from tests/value/behaviors1.i:642.
+  Called from tests/value/behaviors1.i:642.
 [value] computing for function f_123_comp_disj <- test_123_comp_disj <- main.
-    Called from tests/value/behaviors1.i:399.
+  Called from tests/value/behaviors1.i:399.
 [value] using specification for function f_123_comp_disj
-tests/value/behaviors1.i:399:[value] function f_123_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:399:[value] function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:399:[value] function f_123_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:399: 
+  function f_123_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:399: 
+  function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:399: 
+  function f_123_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj
 [value] computing for function f_123_comp_disj <- test_123_comp_disj <- main.
-    Called from tests/value/behaviors1.i:400.
-tests/value/behaviors1.i:400:[value] function f_123_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:400:[value] function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:400.
+[value] tests/value/behaviors1.i:400: 
+  function f_123_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:400: 
+  function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj
 [value] computing for function f_123_comp_disj <- test_123_comp_disj <- main.
-    Called from tests/value/behaviors1.i:401.
-tests/value/behaviors1.i:401:[value] function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:401:[value] function f_123_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+  Called from tests/value/behaviors1.i:401.
+[value] tests/value/behaviors1.i:401: 
+  function f_123_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:401: 
+  function f_123_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj
 [value] computing for function f_123_comp_disj <- test_123_comp_disj <- main.
-    Called from tests/value/behaviors1.i:402.
+  Called from tests/value/behaviors1.i:402.
 [value] Done for function f_123_comp_disj
 [value] Recording results for test_123_comp_disj
 [value] Done for function test_123_comp_disj
 [value] computing for function test_123_comp_disj_2345_disj <- main.
-    Called from tests/value/behaviors1.i:643.
+  Called from tests/value/behaviors1.i:643.
 [value] computing for function f_123_comp_disj_2345_disj <- 
-                            test_123_comp_disj_2345_disj <- main.
-    Called from tests/value/behaviors1.i:410.
+                          test_123_comp_disj_2345_disj <- main.
+  Called from tests/value/behaviors1.i:410.
 [value] using specification for function f_123_comp_disj_2345_disj
-tests/value/behaviors1.i:410:[value] function f_123_comp_disj_2345_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:410:[value] function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:410:[value] function f_123_comp_disj_2345_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:410: 
+  function f_123_comp_disj_2345_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:410: 
+  function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:410: 
+  function f_123_comp_disj_2345_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_disj
 [value] computing for function f_123_comp_disj_2345_disj <- 
-                            test_123_comp_disj_2345_disj <- main.
-    Called from tests/value/behaviors1.i:411.
-tests/value/behaviors1.i:411:[value] function f_123_comp_disj_2345_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:411:[value] function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_disj_2345_disj <- main.
+  Called from tests/value/behaviors1.i:411.
+[value] tests/value/behaviors1.i:411: 
+  function f_123_comp_disj_2345_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:411: 
+  function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_disj
 [value] computing for function f_123_comp_disj_2345_disj <- 
-                            test_123_comp_disj_2345_disj <- main.
-    Called from tests/value/behaviors1.i:412.
-tests/value/behaviors1.i:412:[value] function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:412:[value] function f_123_comp_disj_2345_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_disj_2345_disj <- main.
+  Called from tests/value/behaviors1.i:412.
+[value] tests/value/behaviors1.i:412: 
+  function f_123_comp_disj_2345_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:412: 
+  function f_123_comp_disj_2345_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_disj
 [value] computing for function f_123_comp_disj_2345_disj <- 
-                            test_123_comp_disj_2345_disj <- main.
-    Called from tests/value/behaviors1.i:413.
+                          test_123_comp_disj_2345_disj <- main.
+  Called from tests/value/behaviors1.i:413.
 [value] Done for function f_123_comp_disj_2345_disj
 [value] Recording results for test_123_comp_disj_2345_disj
 [value] Done for function test_123_comp_disj_2345_disj
 [value] computing for function test_123_comp_disj_2345_comp <- main.
-    Called from tests/value/behaviors1.i:644.
+  Called from tests/value/behaviors1.i:644.
 [value] computing for function f_123_comp_disj_2345_comp <- 
-                            test_123_comp_disj_2345_comp <- main.
-    Called from tests/value/behaviors1.i:421.
+                          test_123_comp_disj_2345_comp <- main.
+  Called from tests/value/behaviors1.i:421.
 [value] using specification for function f_123_comp_disj_2345_comp
-tests/value/behaviors1.i:421:[value] function f_123_comp_disj_2345_comp, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:421:[value] function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:421:[value] function f_123_comp_disj_2345_comp, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:421: 
+  function f_123_comp_disj_2345_comp, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:421: 
+  function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:421: 
+  function f_123_comp_disj_2345_comp, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_comp
 [value] computing for function f_123_comp_disj_2345_comp <- 
-                            test_123_comp_disj_2345_comp <- main.
-    Called from tests/value/behaviors1.i:422.
-tests/value/behaviors1.i:422:[value] function f_123_comp_disj_2345_comp, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:422:[value] function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_disj_2345_comp <- main.
+  Called from tests/value/behaviors1.i:422.
+[value] tests/value/behaviors1.i:422: 
+  function f_123_comp_disj_2345_comp, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:422: 
+  function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_comp
 [value] computing for function f_123_comp_disj_2345_comp <- 
-                            test_123_comp_disj_2345_comp <- main.
-    Called from tests/value/behaviors1.i:423.
-tests/value/behaviors1.i:423:[value] function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:423:[value] function f_123_comp_disj_2345_comp, behavior b5: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_disj_2345_comp <- main.
+  Called from tests/value/behaviors1.i:423.
+[value] tests/value/behaviors1.i:423: 
+  function f_123_comp_disj_2345_comp, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:423: 
+  function f_123_comp_disj_2345_comp, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_disj_2345_comp
 [value] computing for function f_123_comp_disj_2345_comp <- 
-                            test_123_comp_disj_2345_comp <- main.
-    Called from tests/value/behaviors1.i:424.
+                          test_123_comp_disj_2345_comp <- main.
+  Called from tests/value/behaviors1.i:424.
 [value] Done for function f_123_comp_disj_2345_comp
 [value] Recording results for test_123_comp_disj_2345_comp
 [value] Done for function test_123_comp_disj_2345_comp
 [value] computing for function test_123_disj_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:645.
+  Called from tests/value/behaviors1.i:645.
 [value] computing for function f_123_disj_2345_comp_disj <- 
-                            test_123_disj_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:432.
+                          test_123_disj_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:432.
 [value] using specification for function f_123_disj_2345_comp_disj
-tests/value/behaviors1.i:432:[value] function f_123_disj_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:432:[value] function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:432:[value] function f_123_disj_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:432: 
+  function f_123_disj_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:432: 
+  function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:432: 
+  function f_123_disj_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_disj_2345_comp_disj
 [value] computing for function f_123_disj_2345_comp_disj <- 
-                            test_123_disj_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:433.
-tests/value/behaviors1.i:433:[value] function f_123_disj_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:433:[value] function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+                          test_123_disj_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:433.
+[value] tests/value/behaviors1.i:433: 
+  function f_123_disj_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:433: 
+  function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_disj_2345_comp_disj
 [value] computing for function f_123_disj_2345_comp_disj <- 
-                            test_123_disj_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:434.
-tests/value/behaviors1.i:434:[value] function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:434:[value] function f_123_disj_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+                          test_123_disj_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:434.
+[value] tests/value/behaviors1.i:434: 
+  function f_123_disj_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:434: 
+  function f_123_disj_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_disj_2345_comp_disj
 [value] computing for function f_123_disj_2345_comp_disj <- 
-                            test_123_disj_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:435.
+                          test_123_disj_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:435.
 [value] Done for function f_123_disj_2345_comp_disj
 [value] Recording results for test_123_disj_2345_comp_disj
 [value] Done for function test_123_disj_2345_comp_disj
 [value] computing for function test_123_comp_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:646.
+  Called from tests/value/behaviors1.i:646.
 [value] computing for function f_123_comp_2345_comp_disj <- 
-                            test_123_comp_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:443.
+                          test_123_comp_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:443.
 [value] using specification for function f_123_comp_2345_comp_disj
-tests/value/behaviors1.i:443:[value] function f_123_comp_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:443:[value] function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:443:[value] function f_123_comp_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:443: 
+  function f_123_comp_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:443: 
+  function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:443: 
+  function f_123_comp_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_2345_comp_disj
 [value] computing for function f_123_comp_2345_comp_disj <- 
-                            test_123_comp_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:444.
-tests/value/behaviors1.i:444:[value] function f_123_comp_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:444:[value] function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:444.
+[value] tests/value/behaviors1.i:444: 
+  function f_123_comp_2345_comp_disj, behavior b2: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:444: 
+  function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_2345_comp_disj
 [value] computing for function f_123_comp_2345_comp_disj <- 
-                            test_123_comp_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:445.
-tests/value/behaviors1.i:445:[value] function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
-tests/value/behaviors1.i:445:[value] function f_123_comp_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
+                          test_123_comp_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:445.
+[value] tests/value/behaviors1.i:445: 
+  function f_123_comp_2345_comp_disj, behavior b3: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:445: 
+  function f_123_comp_2345_comp_disj, behavior b5: assumes got status invalid; behavior not evaluated.
 [value] Done for function f_123_comp_2345_comp_disj
 [value] computing for function f_123_comp_2345_comp_disj <- 
-                            test_123_comp_2345_comp_disj <- main.
-    Called from tests/value/behaviors1.i:446.
+                          test_123_comp_2345_comp_disj <- main.
+  Called from tests/value/behaviors1.i:446.
 [value] Done for function f_123_comp_2345_comp_disj
 [value] Recording results for test_123_comp_2345_comp_disj
 [value] Done for function test_123_comp_2345_comp_disj
 [value] computing for function test_assigns <- main.
-    Called from tests/value/behaviors1.i:647.
+  Called from tests/value/behaviors1.i:647.
 [value] computing for function f <- test_assigns <- main.
-    Called from tests/value/behaviors1.i:473.
+  Called from tests/value/behaviors1.i:473.
 [value] using specification for function f
 [value] Done for function f
-tests/value/behaviors1.i:473:[value] Assigning imprecise value to tmp.
-    The imprecision originates from Library function
-    {tests/value/behaviors1.i:473}
-tests/value/behaviors1.i:473:[value] Assigning imprecise value to p1.
-    The imprecision originates from Library function
-    {tests/value/behaviors1.i:473}
+[value] tests/value/behaviors1.i:473: 
+  Assigning imprecise value to tmp.
+  The imprecision originates from Library function
+  {tests/value/behaviors1.i:473}
+[value] tests/value/behaviors1.i:473: 
+  Assigning imprecise value to p1.
+  The imprecision originates from Library function
+  {tests/value/behaviors1.i:473}
 [value] computing for function f <- test_assigns <- main.
-    Called from tests/value/behaviors1.i:474.
+  Called from tests/value/behaviors1.i:474.
 [value] Done for function f
-tests/value/behaviors1.i:474:[value] Assigning imprecise value to tmp_0.
-    The imprecision originates from Library function
-    {tests/value/behaviors1.i:474}
-tests/value/behaviors1.i:474:[value] Assigning imprecise value to p2.
-    The imprecision originates from Library function
-    {tests/value/behaviors1.i:474}
+[value] tests/value/behaviors1.i:474: 
+  Assigning imprecise value to tmp_0.
+  The imprecision originates from Library function
+  {tests/value/behaviors1.i:474}
+[value] tests/value/behaviors1.i:474: 
+  Assigning imprecise value to p2.
+  The imprecision originates from Library function
+  {tests/value/behaviors1.i:474}
 [value] computing for function f <- test_assigns <- main.
-    Called from tests/value/behaviors1.i:475.
+  Called from tests/value/behaviors1.i:475.
 [value] Done for function f
 [value] Recording results for test_assigns
 [value] Done for function test_assigns
 [value] computing for function test_assigns2 <- main.
-    Called from tests/value/behaviors1.i:648.
+  Called from tests/value/behaviors1.i:648.
 [value] computing for function f2 <- test_assigns2 <- main.
-    Called from tests/value/behaviors1.i:490.
+  Called from tests/value/behaviors1.i:490.
 [value] using specification for function f2
-tests/value/behaviors1.i:480:[value] function f2: precondition got status valid.
+[value] tests/value/behaviors1.i:490: 
+  function f2: precondition got status valid.
 [value] Done for function f2
 [value] Recording results for test_assigns2
 [value] Done for function test_assigns2
 [value] computing for function test_small1 <- main.
-    Called from tests/value/behaviors1.i:649.
+  Called from tests/value/behaviors1.i:649.
 [value] computing for function f3 <- test_small1 <- main.
-    Called from tests/value/behaviors1.i:506.
-tests/value/behaviors1.i:506:[kernel] warning: No code nor implicit assigns clause for function f3, generating default assigns from the prototype
+  Called from tests/value/behaviors1.i:506.
+[kernel] tests/value/behaviors1.i:506: Warning: 
+  No code nor implicit assigns clause for function f3, generating default assigns from the prototype
 [value] using specification for function f3
-tests/value/behaviors1.i:494:[value] warning: function f3: precondition got status unknown.
-tests/value/behaviors1.i:497:[value] warning: function f3, behavior b1: precondition got status invalid.
+[value:alarm] tests/value/behaviors1.i:506: Warning: 
+  function f3: precondition got status unknown.
+[value:alarm] tests/value/behaviors1.i:506: Warning: 
+  function f3, behavior b1: precondition got status invalid.
 [value] Done for function f3
 [value] Recording results for test_small1
 [value] Done for function test_small1
 [value] computing for function test_small2 <- main.
-    Called from tests/value/behaviors1.i:650.
+  Called from tests/value/behaviors1.i:650.
 [value] computing for function f4 <- test_small2 <- main.
-    Called from tests/value/behaviors1.i:521.
-tests/value/behaviors1.i:521:[kernel] warning: No code nor implicit assigns clause for function f4, generating default assigns from the prototype
+  Called from tests/value/behaviors1.i:521.
+[kernel] tests/value/behaviors1.i:521: Warning: 
+  No code nor implicit assigns clause for function f4, generating default assigns from the prototype
 [value] using specification for function f4
-tests/value/behaviors1.i:510:[value] warning: function f4: precondition got status unknown.
-tests/value/behaviors1.i:513:[value] warning: function f4, behavior b1: precondition got status invalid.
-tests/value/behaviors1.i:513:[value] function f4, behavior b1: no state left in which to evaluate precondition, status not computed.
-tests/value/behaviors1.i:521:[value] function f4, behavior b1: requires got status invalid; postconditions not evaluated.
+[value:alarm] tests/value/behaviors1.i:521: Warning: 
+  function f4: precondition got status unknown.
+[value:alarm] tests/value/behaviors1.i:521: Warning: 
+  function f4, behavior b1: precondition x ≡ 0 got status invalid.
+[value] tests/value/behaviors1.i:521: 
+  function f4, behavior b1: no state left, precondition x ≢ 1 got status valid.
+[value] tests/value/behaviors1.i:521: 
+  function f4, behavior b1: requires got status invalid; postconditions not evaluated.
 [value] Done for function f4
 [value] Recording results for test_small2
 [value] Done for function test_small2
 [value] computing for function test_small3 <- main.
-    Called from tests/value/behaviors1.i:651.
+  Called from tests/value/behaviors1.i:651.
 [value] computing for function f5 <- test_small3 <- main.
-    Called from tests/value/behaviors1.i:534.
-tests/value/behaviors1.i:534:[kernel] warning: No code nor implicit assigns clause for function f5, generating default assigns from the prototype
+  Called from tests/value/behaviors1.i:534.
+[kernel] tests/value/behaviors1.i:534: Warning: 
+  No code nor implicit assigns clause for function f5, generating default assigns from the prototype
 [value] using specification for function f5
 [value] Done for function f5
 [value] Recording results for test_small3
 [value] Done for function test_small3
 [value] computing for function test_small4 <- main.
-    Called from tests/value/behaviors1.i:652.
+  Called from tests/value/behaviors1.i:652.
 [value] computing for function f6 <- test_small4 <- main.
-    Called from tests/value/behaviors1.i:548.
-tests/value/behaviors1.i:548:[kernel] warning: No code nor implicit assigns clause for function f6, generating default assigns from the prototype
+  Called from tests/value/behaviors1.i:548.
+[kernel] tests/value/behaviors1.i:548: Warning: 
+  No code nor implicit assigns clause for function f6, generating default assigns from the prototype
 [value] using specification for function f6
 [value] Done for function f6
 [value] Recording results for test_small4
 [value] Done for function test_small4
 [value] computing for function test_small5 <- main.
-    Called from tests/value/behaviors1.i:653.
+  Called from tests/value/behaviors1.i:653.
 [value] computing for function f7 <- test_small5 <- main.
-    Called from tests/value/behaviors1.i:561.
-tests/value/behaviors1.i:561:[kernel] warning: No code nor implicit assigns clause for function f7, generating default assigns from the prototype
+  Called from tests/value/behaviors1.i:561.
+[kernel] tests/value/behaviors1.i:561: Warning: 
+  No code nor implicit assigns clause for function f7, generating default assigns from the prototype
 [value] using specification for function f7
-tests/value/behaviors1.i:552:[value] warning: function f7: precondition got status unknown.
+[value:alarm] tests/value/behaviors1.i:561: Warning: 
+  function f7: precondition got status unknown.
 [value] Done for function f7
 [value] Recording results for test_small5
 [value] Done for function test_small5
 [value] computing for function test_small6 <- main.
-    Called from tests/value/behaviors1.i:654.
+  Called from tests/value/behaviors1.i:654.
 [value] computing for function f8 <- test_small6 <- main.
-    Called from tests/value/behaviors1.i:576.
+  Called from tests/value/behaviors1.i:576.
 [value] using specification for function f8
-tests/value/behaviors1.i:565:[value] function f8: precondition got status valid.
+[value] tests/value/behaviors1.i:576: 
+  function f8: precondition got status valid.
 [value] Done for function f8
 [value] Recording results for test_small6
 [value] Done for function test_small6
 [value] computing for function test_small6_bis <- main.
-    Called from tests/value/behaviors1.i:655.
+  Called from tests/value/behaviors1.i:655.
 [value] computing for function f8_bis <- test_small6_bis <- main.
-    Called from tests/value/behaviors1.i:591.
+  Called from tests/value/behaviors1.i:591.
 [value] using specification for function f8_bis
-tests/value/behaviors1.i:580:[value] function f8_bis: precondition got status valid.
+[value] tests/value/behaviors1.i:591: 
+  function f8_bis: precondition got status valid.
 [value] Done for function f8_bis
 [value] Recording results for test_small6_bis
 [value] Done for function test_small6_bis
 [value] computing for function test_promote <- main.
-    Called from tests/value/behaviors1.i:656.
+  Called from tests/value/behaviors1.i:656.
 [value] computing for function f9 <- test_promote <- main.
-    Called from tests/value/behaviors1.i:609.
+  Called from tests/value/behaviors1.i:609.
 [value] using specification for function f9
-tests/value/behaviors1.i:601:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/value/behaviors1.i:609:[value] function f9, behavior b1: assumes got status invalid; behavior not evaluated.
+[value] tests/value/behaviors1.i:601: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function length
+[value] tests/value/behaviors1.i:609: 
+  function f9, behavior b1: assumes got status invalid; behavior not evaluated.
 [value] Done for function f9
 [value] Recording results for test_promote
 [value] Done for function test_promote
 [value] computing for function test_narrow <- main.
-    Called from tests/value/behaviors1.i:657.
+  Called from tests/value/behaviors1.i:657.
 [value] computing for function f10 <- test_narrow <- main.
-    Called from tests/value/behaviors1.i:634.
+  Called from tests/value/behaviors1.i:634.
 [value] using specification for function f10
-tests/value/behaviors1.i:616:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/value/behaviors1.i:619:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/value/behaviors1.i:622:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/value/behaviors1.i:625:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] tests/value/behaviors1.i:616: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function fl
+[value] tests/value/behaviors1.i:619: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function fl
+[value] tests/value/behaviors1.i:622: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function fl
+[value] tests/value/behaviors1.i:625: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function fl
 [value] Done for function f10
 [value] Recording results for test_narrow
 [value] Done for function test_narrow
@@ -550,7 +638,7 @@ tests/value/behaviors1.i:625:[value] cannot evaluate ACSL term, unsupported ACSL
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM p; q
 [from] Function f10:
@@ -638,86 +726,86 @@ tests/value/behaviors1.i:625:[value] cannot evaluate ACSL term, unsupported ACSL
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function test_123_comp_2345_comp_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_123_comp_2345_comp_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_123_comp_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_123_comp_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_123_comp_disj_2345_comp:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_123_comp_disj_2345_comp:
-      nondet
+    nondet
 [inout] Out (internal) for function test_123_comp_disj_2345_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_123_comp_disj_2345_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_123_disj_2345_comp_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_123_disj_2345_comp_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_assigns:
-      p1; p2; p3; tmp; tmp_0; tmp_1
+    p1; p2; p3; tmp; tmp_0; tmp_1
 [inout] Inputs for function test_assigns:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_assigns2:
-      T[0..4]; p
+    T[0..4]; p
 [inout] Inputs for function test_assigns2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_comp:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_comp:
-      nondet
+    nondet
 [inout] Out (internal) for function test_comp_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_comp_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_disj:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_disj:
-      nondet
+    nondet
 [inout] Out (internal) for function test_narrow:
-      r
+    r
 [inout] Inputs for function test_narrow:
-      nondet
+    nondet
 [inout] Out (internal) for function test_none:
-      a; b; c1; c2; c3; c4
+    a; b; c1; c2; c3; c4
 [inout] Inputs for function test_none:
-      nondet
+    nondet
 [inout] Out (internal) for function test_promote:
-      x; r
+    x; r
 [inout] Inputs for function test_promote:
-      nondet; "a"[bits 0 to 7]
+    nondet; "a"[bits 0 to 7]
 [inout] Out (internal) for function test_small1:
-      x
+    x
 [inout] Inputs for function test_small1:
-      nondet
+    nondet
 [inout] Out (internal) for function test_small2:
-      x
+    x
 [inout] Inputs for function test_small2:
-      nondet
+    nondet
 [inout] Out (internal) for function test_small3:
-      r
+    r
 [inout] Inputs for function test_small3:
-      nondet
+    nondet
 [inout] Out (internal) for function test_small4:
-      r
+    r
 [inout] Inputs for function test_small4:
-      nondet
+    nondet
 [inout] Out (internal) for function test_small5:
-      r
+    r
 [inout] Inputs for function test_small5:
-      nondet
+    nondet
 [inout] Out (internal) for function test_small6:
-      a; p
+    a; p
 [inout] Inputs for function test_small6:
-      \nothing
+    \nothing
 [inout] Out (internal) for function test_small6_bis:
-      a; p
+    a; p
 [inout] Inputs for function test_small6_bis:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      T[0..4]; __retres
+    T[0..4]; __retres
 [inout] Inputs for function main:
-      nondet; "a"[bits 0 to 7]
+    nondet; "a"[bits 0 to 7]

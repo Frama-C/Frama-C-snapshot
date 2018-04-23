@@ -36,7 +36,8 @@ predicate test3(set<int> s1,set<int> s2) =
 \subset(\union({\union (k + 1) | int k ; constraint: 0 <= k < 10},s2),s1);
 @*/
 
-/*@ ensures \subset(\result,\union(x,x+1,x-1)); */
+/*@ ensures \subset(\result, \union(x,x+1,x-1));
+    ensures \result \in \union(x,x+1,x-1); */
 int h(int x, int c) { return c>0 ? x+1 : c<0 ? x-1: x; }
 
 /*@ requires \valid((\union(a,b))[0..1]);*/
@@ -55,7 +56,8 @@ int foo(int **a, int **b) { return 0; }
 /*@ predicate reject_set_of_sets_1(int *a) = {a[0..1]} == {1}; */
 /*@ predicate reject_set_of_sets_2(int *a) = a[0..1] == {\empty}; */
 int A[100];
-/*@ ensures \subset(\result,&A[0..]) ; */
+/*@ ensures \subset(\result, &A[0..]) ;
+    ensures \result \in &A[0..] ; */
 int *AA(void);
 
 //@ logic set<integer> Sempty_1 = \empty ;

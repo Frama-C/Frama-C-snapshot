@@ -1,4 +1,4 @@
 [kernel] Parsing tests/slicing/min_call.i (no preprocessing)
-[kernel] user error: cannot find entry point `g'.
-    Please use option `-main' for specifying a valid entry point.
+[kernel] User Error: cannot find entry point `g'.
+  Please use option `-main' for specifying a valid entry point.
 [kernel] Frama-C aborted: invalid user input.

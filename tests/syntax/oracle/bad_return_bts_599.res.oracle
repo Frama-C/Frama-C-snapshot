@@ -1,5 +1,7 @@
 [kernel] Parsing tests/syntax/bad_return_bts_599.i (no preprocessing)
-tests/syntax/bad_return_bts_599.i:4:[kernel] user error: Return statement without a value in function returning int
-tests/syntax/bad_return_bts_599.i:9:[kernel] user error: Return statement without a value in function returning int
-[kernel] user error: stopping on file "tests/syntax/bad_return_bts_599.i" that has errors.
+[kernel] tests/syntax/bad_return_bts_599.i:4: User Error: 
+  Return statement without a value in function returning int
+[kernel] tests/syntax/bad_return_bts_599.i:9: User Error: 
+  Return statement without a value in function returning int
+[kernel] User Error: stopping on file "tests/syntax/bad_return_bts_599.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

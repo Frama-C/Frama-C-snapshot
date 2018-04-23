@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_plugin/sep.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f1_none
 ------------------------------------------------------------
@@ -51,35 +51,40 @@ Goal Post-condition (file tests/wp_plugin/sep.i, line 33) in 'f6_Pa':
 Prove: true.
 
 ------------------------------------------------------------
-//-------------------------------------------
-//--- Separation Hypotheses
-//-------------------------------------------
-(* behavior typed_caveat: requires \separated(p,&a); *)
-void f2_p_a(int *p);
-//-------------------------------------------
-(*
-behavior typed_caveat:
-requires \separated(p,\union(&a,&b));
-*)
-void f3_p_ab(int *p);
-//-------------------------------------------
-(*
-behavior typed_caveat:
-requires \separated(p,q,\union(&a,&b));
-*)
-void f4_pq_ab(int *p, int *q);
-//-------------------------------------------
-(*
-behavior typed_caveat:
-requires \separated(p,q);
-*)
-void f5_pq(int *p, int *q);
-//-------------------------------------------
-(*
-behavior typed_caveat:
-requires \separated(p+(..),&a);
-*)
-void f6_Pa(int *p, int k);
-//-------------------------------------------
-/* (5 hypotheses) */
-//-------------------------------------------
+------------------------------------------------------------
+  Function f7_pq_ad
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 42) in 'f7_pq_ad':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f8_pq_a
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 48) in 'f8_pq_a':
+Prove: true.
+
+------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'f2_p_a':
+  /*@ behavior typed_caveat: requires \separated(p,&a); */
+  void f2_p_a(int *p);
+[wp] Warning: Separation hypotheses for function 'f3_p_ab':
+  /*@ behavior typed_caveat: requires \separated(p,\union(&a,&b)); */
+  void f3_p_ab(int *p);
+[wp] Warning: Separation hypotheses for function 'f4_pq_ab':
+  /*@ behavior typed_caveat: requires \separated(p,q,\union(&a,&b)); */
+  void f4_pq_ab(int *p, int *q);
+[wp] Warning: Separation hypotheses for function 'f5_pq':
+  /*@ behavior typed_caveat: requires \separated(p,q); */
+  void f5_pq(int *p, int *q);
+[wp] Warning: Separation hypotheses for function 'f6_Pa':
+  /*@ behavior typed_caveat: requires \separated(p+(..),&a); */
+  void f6_Pa(int *p, int k);
+[wp] Warning: Separation hypotheses for function 'f7_pq_ad':
+  /*@ behavior typed_caveat: requires \separated(p,q,\union(&a,&d)); */
+  void f7_pq_ad(int *p, int *q);
+[wp] Warning: Separation hypotheses for function 'f8_pq_a':
+  /*@ behavior typed_caveat: requires \separated(p,q,&a); */
+  void f8_pq_a(int *p, int *q);

@@ -1,0 +1,47 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue_453.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function f1
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/issue_453.i, line 13):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f1 with behavior default_for_stmt_7
+------------------------------------------------------------
+
+Goal Post-condition 'Sincr' at call 'incr' (file tests/wp_bts/issue_453.i, line 19):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/issue_453.i, line 16) at call 'incr' (file tests/wp_bts/issue_453.i, line 19):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/issue_453.i, line 25):
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2 with behavior default_for_stmt_17
+------------------------------------------------------------
+
+Goal Post-condition 'Sincr' at call 'incr' (file tests/wp_bts/issue_453.i, line 32):
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/issue_453.i, line 29) at call 'incr' (file tests/wp_bts/issue_453.i, line 32):
+Prove: true.
+
+------------------------------------------------------------

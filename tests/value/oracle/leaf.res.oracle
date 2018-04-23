@@ -5,6 +5,9 @@
 [value:initial-state] Values of globals at initialization
   T[0] ∈ {1}
    [1..29] ∈ {0}
+  g ∈ [--..--]
+  pg ∈ {{ &g }}
+  ppg ∈ {{ &pg }}
   cv1 ∈ {10}
   cv2 ∈ {20}
   cv3 ∈ {30}
@@ -27,87 +30,97 @@
                .t[1] ∈ {31}
                .t[2] ∈ {32}
 [value] computing for function f_int_int <- main.
-    Called from tests/value/leaf.i:48.
-tests/value/leaf.i:48:[kernel] warning: Neither code nor specification for function f_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:48.
+[kernel:annot:missing-spec] tests/value/leaf.i:48: Warning: 
+  Neither code nor specification for function f_int_int, generating default assigns from the prototype
 [value] using specification for function f_int_int
 [value] Done for function f_int_int
 [value] computing for function f_int_star_int <- main.
-    Called from tests/value/leaf.i:50.
-tests/value/leaf.i:50:[kernel] warning: No code nor implicit assigns clause for function f_int_star_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:50.
 [value] using specification for function f_int_star_int
 [value] Done for function f_int_star_int
-tests/value/leaf.i:51:[value] Frama_C_show_each_F: [-2147483648..2147483647]
-tests/value/leaf.i:52:[value] warning: out of bounds write. assert \valid(p);
-tests/value/leaf.i:53:[value] Frama_C_show_each_F: [-2147483648..2147483647]
+[value] tests/value/leaf.i:50: 
+  Assigning imprecise value to p.
+  The imprecision originates from Library function {tests/value/leaf.i:50}
+[value] tests/value/leaf.i:51: Frama_C_show_each_F: [-2147483648..2147483647]
+[value:alarm] tests/value/leaf.i:52: Warning: 
+  out of bounds write. assert \valid(p);
+[value] tests/value/leaf.i:53: Frama_C_show_each_F: {5}
 [value] computing for function f_int_star_int_star_int <- main.
-    Called from tests/value/leaf.i:55.
-tests/value/leaf.i:55:[kernel] warning: No code nor implicit assigns clause for function f_int_star_int_star_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:55.
 [value] using specification for function f_int_star_int_star_int
 [value] Done for function f_int_star_int_star_int
-tests/value/leaf.i:56:[value] Frama_C_show_each_G:
-    {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-    (origin: Library function {tests/value/leaf.i:55}) }}
-tests/value/leaf.i:57:[value] Frama_C_show_each_F:
-    {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-    (origin: Library function {tests/value/leaf.i:55}) }}
-tests/value/leaf.i:59:[value] Frama_C_show_each_G:
-    {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-    (origin: Library function {tests/value/leaf.i:55}) }}
-tests/value/leaf.i:60:[value] Frama_C_show_each_F:
-    {{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-    (origin: Library function {tests/value/leaf.i:55}) }}
+[value] tests/value/leaf.i:55: 
+  Assigning imprecise value to pp.
+  The imprecision originates from Library function {tests/value/leaf.i:55}
+[value] tests/value/leaf.i:56: Frama_C_show_each_G: {{ &g }}
+[value] tests/value/leaf.i:57: Frama_C_show_each_F: {5}
+[value] tests/value/leaf.i:59: Frama_C_show_each_G: {{ &g }}
+[value] tests/value/leaf.i:60: Frama_C_show_each_F: {5}
 [value] computing for function f_star_int_cint <- main.
-    Called from tests/value/leaf.i:62.
-tests/value/leaf.i:62:[kernel] warning: Neither code nor specification for function f_star_int_cint, generating default assigns from the prototype
+  Called from tests/value/leaf.i:62.
+[kernel:annot:missing-spec] tests/value/leaf.i:62: Warning: 
+  Neither code nor specification for function f_star_int_cint, generating default assigns from the prototype
 [value] using specification for function f_star_int_cint
 [value] Done for function f_star_int_cint
 [value] computing for function f_star_int_int <- main.
-    Called from tests/value/leaf.i:64.
-tests/value/leaf.i:64:[kernel] warning: Neither code nor specification for function f_star_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:64.
+[kernel:annot:missing-spec] tests/value/leaf.i:64: Warning: 
+  Neither code nor specification for function f_star_int_int, generating default assigns from the prototype
 [value] using specification for function f_star_int_int
 [value] Done for function f_star_int_int
 [value] computing for function f_tab3_int_int <- main.
-    Called from tests/value/leaf.i:65.
-tests/value/leaf.i:65:[kernel] warning: Neither code nor specification for function f_tab3_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:65.
+[kernel:annot:missing-spec] tests/value/leaf.i:65: Warning: 
+  Neither code nor specification for function f_tab3_int_int, generating default assigns from the prototype
 [value] using specification for function f_tab3_int_int
 [value] Done for function f_tab3_int_int
 [value] computing for function f_tab_int_int <- main.
-    Called from tests/value/leaf.i:66.
-tests/value/leaf.i:66:[kernel] warning: Neither code nor specification for function f_tab_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:66.
+[kernel:annot:missing-spec] tests/value/leaf.i:66: Warning: 
+  Neither code nor specification for function f_tab_int_int, generating default assigns from the prototype
 [value] using specification for function f_tab_int_int
 [value] Done for function f_tab_int_int
 [value] computing for function f_st_star_cint_st_star_cint <- main.
-    Called from tests/value/leaf.i:68.
-tests/value/leaf.i:68:[kernel] warning: Neither code nor specification for function f_st_star_cint_st_star_cint, generating default assigns from the prototype
+  Called from tests/value/leaf.i:68.
+[kernel:annot:missing-spec] tests/value/leaf.i:68: Warning: 
+  Neither code nor specification for function f_st_star_cint_st_star_cint, generating default assigns from the prototype
 [value] using specification for function f_st_star_cint_st_star_cint
 [value] Done for function f_st_star_cint_st_star_cint
-tests/value/leaf.i:68:[value] Assigning imprecise value to st_star_cint_1.
-    The imprecision originates from Library function {tests/value/leaf.i:68}
+[value] tests/value/leaf.i:68: 
+  Assigning imprecise value to st_star_cint_1.
+  The imprecision originates from Library function {tests/value/leaf.i:68}
 [value] computing for function f_st_star_int_st_star_int <- main.
-    Called from tests/value/leaf.i:69.
-tests/value/leaf.i:69:[kernel] warning: Neither code nor specification for function f_st_star_int_st_star_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:69.
+[kernel:annot:missing-spec] tests/value/leaf.i:69: Warning: 
+  Neither code nor specification for function f_st_star_int_st_star_int, generating default assigns from the prototype
 [value] using specification for function f_st_star_int_st_star_int
 [value] Done for function f_st_star_int_st_star_int
-tests/value/leaf.i:69:[value] Assigning imprecise value to st_star_int_1.
-    The imprecision originates from Library function {tests/value/leaf.i:69}
+[value] tests/value/leaf.i:69: 
+  Assigning imprecise value to st_star_int_1.
+  The imprecision originates from Library function {tests/value/leaf.i:69}
 [value] computing for function f_st_tab3_int_st_tab3_int <- main.
-    Called from tests/value/leaf.i:70.
-tests/value/leaf.i:70:[kernel] warning: Neither code nor specification for function f_st_tab3_int_st_tab3_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:70.
+[kernel:annot:missing-spec] tests/value/leaf.i:70: Warning: 
+  Neither code nor specification for function f_st_tab3_int_st_tab3_int, generating default assigns from the prototype
 [value] using specification for function f_st_tab3_int_st_tab3_int
 [value] Done for function f_st_tab3_int_st_tab3_int
 [value] computing for function f_star_st_star_cint_int <- main.
-    Called from tests/value/leaf.i:72.
-tests/value/leaf.i:72:[kernel] warning: Neither code nor specification for function f_star_st_star_cint_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:72.
+[kernel:annot:missing-spec] tests/value/leaf.i:72: Warning: 
+  Neither code nor specification for function f_star_st_star_cint_int, generating default assigns from the prototype
 [value] using specification for function f_star_st_star_cint_int
 [value] Done for function f_star_st_star_cint_int
 [value] computing for function f_star_st_star_int_int <- main.
-    Called from tests/value/leaf.i:73.
-tests/value/leaf.i:73:[kernel] warning: Neither code nor specification for function f_star_st_star_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:73.
+[kernel:annot:missing-spec] tests/value/leaf.i:73: Warning: 
+  Neither code nor specification for function f_star_st_star_int_int, generating default assigns from the prototype
 [value] using specification for function f_star_st_star_int_int
 [value] Done for function f_star_st_star_int_int
 [value] computing for function f_star_st_tab3_int_int <- main.
-    Called from tests/value/leaf.i:74.
-tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for function f_star_st_tab3_int_int, generating default assigns from the prototype
+  Called from tests/value/leaf.i:74.
+[kernel:annot:missing-spec] tests/value/leaf.i:74: Warning: 
+  Neither code nor specification for function f_star_st_tab3_int_int, generating default assigns from the prototype
 [value] using specification for function f_star_st_tab3_int_int
 [value] Done for function f_star_st_tab3_int_int
 [value] Recording results for main
@@ -124,27 +137,25 @@ tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for funct
    [9] ∈ {0}
    [10] ∈ [--..--]
    [11..29] ∈ {0}
+  g ∈ {5}
   st_star_cint_1 ∈
-                {{ garbled mix of &{cv2;
-                                    alloced_return_f_st_star_cint_st_star_cint}
+                {{ garbled mix of &{cv2}
                  (origin: Library function {tests/value/leaf.i:68}) }}
   st_star_cint_3 ∈
                 {{ garbled mix of &{cv3}
                  (origin: Library function {tests/value/leaf.i:72}) }}
   st_star_int_1 ∈
-               {{ garbled mix of &{v2;
-                                   alloced_return_f_st_star_int_st_star_int}
+               {{ garbled mix of &{v2}
                 (origin: Library function {tests/value/leaf.i:69}) }}
   st_star_int_3 ∈
                {{ garbled mix of &{v3}
                 (origin: Library function {tests/value/leaf.i:73}) }}
   st_tab3_int_1 ∈ [--..--]
   st_tab3_int_3 ∈ [--..--]
-  p ∈ {{ &alloced_return_f_int_star_int + [0..2147483644],0%4 }}
+  p ∈ {{ &g }}
   pp ∈
-    {{ NULL + [--..--] ;
-       &alloced_return_f_int_star_int_star_int + [0..2147483644],0%4 }}
-  alloced_return_f_int_star_int[bits 0 to ..] ∈ [--..--]
+    {{ garbled mix of &{pg}
+     (origin: Library function {tests/value/leaf.i:55}) }}
 [from] Computing for function main
 [from] Computing for function f_int_int <-main
 [from] Done for function f_int_int
@@ -174,13 +185,13 @@ tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for funct
 [from] Done for function f_star_st_tab3_int_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f_int_int:
   \result FROM x
 [from] Function f_int_star_int:
-  \result FROM x
+  \result FROM pg
 [from] Function f_int_star_int_star_int:
-  \result FROM x
+  \result FROM ppg
 [from] Function f_st_star_cint_st_star_cint:
   \result FROM s
 [from] Function f_st_star_int_st_star_int:
@@ -213,21 +224,17 @@ tests/value/leaf.i:74:[kernel] warning: Neither code nor specification for funct
    [4] FROM T[4] (and SELF)
    [6..8] FROM T[6..8] (and SELF)
    [10] FROM T[10] (and SELF)
+  g FROM pg
   st_star_cint_1 FROM st_star_cint_2
   st_star_cint_3 FROM st_star_cint_3 (and SELF)
   st_star_int_1 FROM st_star_int_2
   st_star_int_3 FROM st_star_int_3 (and SELF)
   st_tab3_int_1 FROM st_tab3_int_2
   st_tab3_int_3 FROM st_tab3_int_3 (and SELF)
-  alloced_return_f_int_star_int[bits 0 to 17179869183]
-                               FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T{[0]; [2]; [4]; [6..8]; [10]}; st_star_cint_1; st_star_cint_3;
-      st_star_int_1; st_star_int_3; st_tab3_int_1; st_tab3_int_3; p; pp;
-      alloced_return_f_int_star_int[bits 0 to 17179869183]
+    T{[0]; [2]; [4]; [6..8]; [10]}; g; st_star_cint_1; st_star_cint_3;
+    st_star_int_1; st_star_int_3; st_tab3_int_1; st_tab3_int_3; p; pp
 [inout] Inputs for function main:
-      T{[3..4]; [6..8]; [10]}; st_star_cint_2; st_star_cint_3; st_star_int_2;
-      st_star_int_3; st_tab3_int_2; st_tab3_int_3;
-      alloced_return_f_int_star_int[bits 0 to 17179869183];
-      alloced_return_f_int_star_int_star_int[bits 0 to ..]
+    T{[3..4]; [6..8]; [10]}; g; pg; ppg; st_star_cint_2; st_star_cint_3;
+    st_star_int_2; st_star_int_3; st_tab3_int_2; st_tab3_int_3

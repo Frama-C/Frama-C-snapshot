@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/e_imply.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] Computing [100 goals...]
 [wp] 119 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_p0 : Valid
@@ -48,12 +48,13 @@
 [wp] [Alt-Ergo] Goal typed_f_post_f0 : Valid
 [wp] [Alt-Ergo] Goal typed_f_post_f1 : Valid
 [wp] Proved goals:  119 / 119
-    Qed:             8 
-    Alt-Ergo:      111
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -      77 (13)    77       100%
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                    8     34 (8)     42       100%
-----------------------------------------------------------
+  Qed:             8 
+  Alt-Ergo:      111
+[wp] Report 'tests/wp_acsl/e_imply.i.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               -      77 (8..20)       77       100%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                    8     34 (4..16)       42       100%
+-------------------------------------------------------------

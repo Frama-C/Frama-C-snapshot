@@ -2,37 +2,13 @@
 [kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function strlen
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_typed/user_string.i, line 23) in 'strlen':
-Let x = ss_0.offset.
-Let x_1 = s.offset.
-Let x_2 = x - x_1.
-Let x_3 = s.base.
-Assume {
-  Type: is_sint32(x_2).
-  (* Heap *)
-  Have: (region(x_3) <= 0) /\ linked(Malloc_0) /\ sconst(Mchar_0).
-  (* Pre-condition *)
-  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, i).
-  (* Invariant 'ZERO' *)
-  Have: forall i_1 : Z. ((0 <= i_1) -> (((i_1 + x_1) < x) ->
-      (Mchar_0[shift_sint8(s, i_1)] != 0))).
-  (* Invariant 'RANGE' *)
-  Have: addr_le(s, ss_0) /\
-      addr_le(ss_0, shift_sint8(s, L_Length(Mchar_0, s))).
-  (* Invariant 'BASE' *)
-  Have: ss_0.base = x_3.
-  (* Else *)
-  Have: Mchar_0[ss_0] = 0.
-  (* Assertion 'END' *)
-  Have: P_Length_of_str_is(Malloc_0, Mchar_0, s, x_2).
-}
-Prove: exists i_1 : Z. ((i_1 + x_1) = x) /\
-    P_Length_of_str_is(Malloc_0, Mchar_0, s, i_1).
+Prove: true.
 
 ------------------------------------------------------------
 

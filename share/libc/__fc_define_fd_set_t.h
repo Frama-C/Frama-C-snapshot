@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -28,8 +28,8 @@ __BEGIN_DECLS
 typedef struct {char __fc_fd_set;} fd_set;
 
 /*@
-  requires \valid(fdset);
-  requires \initialized(fdset);
+  requires valid_fdset: \valid(fdset);
+  requires initialization: \initialized(fdset);
   assigns *fdset \from *fdset, indirect:fd;
 */
 extern void FD_CLR(int fd, fd_set *fdset);
@@ -38,24 +38,25 @@ extern void FD_CLR(int fd, fd_set *fdset);
 // Note: the 2nd argument in FD_ISSET is not const in some implementations
 // due to historical and compatibility reasons.
 /*@
-  requires \valid_read(fdset);
-  requires \initialized(fdset);
+  requires valid_fdset: \valid_read(fdset);
+  requires initialization: \initialized(fdset);
   assigns \result \from indirect:*fdset, indirect:fd;
 */
 extern int FD_ISSET(int fd, const fd_set *fdset);
 #define FD_ISSET FD_ISSET
 
 /*@
-  requires \valid(fdset);
-  requires \initialized(fdset);
+  requires valid_fdset: \valid(fdset);
+  requires initialization: \initialized(fdset);
   assigns *fdset \from *fdset, indirect:fd;
 */
 extern void FD_SET(int fd, fd_set *fdset);
 #define FD_SET FD_SET
 
 /*@
+  requires valid_fdset: \valid(fdset);
   assigns *fdset \from \nothing;
-  ensures \initialized(fdset);
+  ensures initialization: \initialized(fdset);
 */
 extern void FD_ZERO(fd_set *fdset);
 #define FD_ZERO FD_ZERO

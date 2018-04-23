@@ -6,7 +6,7 @@
   NULL[rbits 256 to 287] ∈ [--..--]
   G ∈ {0}
 [value] computing for function detect_video <- main.
-    Called from tests/value/video_detect.i:36.
+  Called from tests/value/video_detect.i:36.
 [value] Recording results for detect_video
 [value] Done for function detect_video
 [value] Recording results for main
@@ -26,7 +26,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function detect_video:
   NULL[32..33] FROM NULL[32..33]; video_base
       [34..35] FROM NULL[34..35]; video_base
@@ -37,10 +37,10 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function detect_video:
-      NULL[32..35]; p; saved1; saved2; video_found
+    NULL[32..35]; p; saved1; saved2; video_found
 [inout] Inputs for function detect_video:
-      NULL[32..35]
+    NULL[32..35]
 [inout] Out (internal) for function main:
-      NULL[32..35]; ADDR; tmp
+    NULL[32..35]; ADDR; tmp
 [inout] Inputs for function main:
-      NULL[32..35]
+    NULL[32..35]

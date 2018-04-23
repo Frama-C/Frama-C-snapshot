@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,6 @@ val is_precond_generated : Kernel_function.t -> bool
 (** Invoke RTE to generate missing annotations 
     for the given function and model. *)
 val generate : Kernel_function.t -> Model.t -> unit
-
 
 (** Returns [true] if RTE annotations should be generated for 
     the given function and model (and are not generated yet). *)

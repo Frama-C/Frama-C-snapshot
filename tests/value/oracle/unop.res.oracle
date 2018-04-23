@@ -5,18 +5,20 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/unop.c:22.
-tests/value/unop.c:2:[value] Frama_C_show_each_1: [-2147483648. .. 2147483648.]
-tests/value/unop.c:4:[value] Frama_C_show_each_1_then: [-2147483648. .. -3.]
-tests/value/unop.c:6:[value] Frama_C_show_each_1_else: [-2.99999976158 .. 2147483648.]
+  Called from tests/value/unop.c:22.
+[value] tests/value/unop.c:2: Frama_C_show_each_1: [-2147483648. .. 2147483648.]
+[value] tests/value/unop.c:4: Frama_C_show_each_1_then: [-2147483648. .. -3.]
+[value] tests/value/unop.c:6: 
+  Frama_C_show_each_1_else: [-2.99999976158 .. 2147483648.]
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/unop.c:23.
-tests/value/unop.c:11:[value] Frama_C_show_each_2: [-2147483648..2147483647]
-tests/value/unop.c:12:[value] warning: signed overflow. assert -i ≤ 2147483647;
-tests/value/unop.c:13:[value] Frama_C_show_each_2_then: [-2147483647..-3]
-tests/value/unop.c:15:[value] Frama_C_show_each_2_else: [-2..2147483647]
+  Called from tests/value/unop.c:23.
+[value] tests/value/unop.c:11: Frama_C_show_each_2: [-2147483648..2147483647]
+[value:alarm] tests/value/unop.c:12: Warning: 
+  signed overflow. assert -i ≤ 2147483647;
+[value] tests/value/unop.c:13: Frama_C_show_each_2_then: [-2147483647..-3]
+[value] tests/value/unop.c:15: Frama_C_show_each_2_else: [-2..2147483647]
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main
@@ -35,7 +37,7 @@ tests/value/unop.c:15:[value] Frama_C_show_each_2_else: [-2..2147483647]
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main1:
   NO EFFECTS
 [from] Function main2:
@@ -44,14 +46,14 @@ tests/value/unop.c:15:[value] Frama_C_show_each_2_else: [-2..2147483647]
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main1:
-      \nothing
+    \nothing
 [inout] Inputs for function main1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main2:
-      \nothing
+    \nothing
 [inout] Inputs for function main2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      v
+    v

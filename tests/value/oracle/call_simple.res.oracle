@@ -10,10 +10,11 @@
   w ∈ {0}
   G ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/call_simple.i:14.
+  Called from tests/value/call_simple.i:14.
 [value] Recording results for f
 [value] Done for function f
-tests/value/call_simple.i:15:[value] warning: signed overflow. assert ll + 1 ≤ 2147483647;
+[value:alarm] tests/value/call_simple.i:15: Warning: 
+  signed overflow. assert ll + 1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -35,7 +36,7 @@ tests/value/call_simple.i:15:[value] warning: signed overflow. assert ll + 1 ≤
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   X FROM b; c_0
   u FROM a
@@ -48,10 +49,10 @@ tests/value/call_simple.i:15:[value] warning: signed overflow. assert ll + 1 ≤
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      X; u; a; i
+    X; u; a; i
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      X; c; u; v; w; ll; tmp; __retres
+    X; c; u; v; w; ll; tmp; __retres
 [inout] Inputs for function main:
-      v; w; G
+    v; w; G

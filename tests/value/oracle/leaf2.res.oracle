@@ -7,14 +7,21 @@
   H ∈ {0}
   I ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/leaf2.i:6.
-tests/value/leaf2.i:6:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/leaf2.i:6.
+[kernel:annot:missing-spec] tests/value/leaf2.i:6: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
-tests/value/leaf2.i:6:[value] Assigning imprecise value to G.
-    The imprecision originates from Library function {tests/value/leaf2.i:6}
-tests/value/leaf2.i:7:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)G, (void *)((int)(-1)));
+[value] tests/value/leaf2.i:6: 
+  Assigning imprecise value to G.
+  The imprecision originates from Library function {tests/value/leaf2.i:6}
+[value:alarm] tests/value/leaf2.i:7: Warning: 
+  signed overflow. assert -2147483648 ≤ G + 1;
+[value:alarm] tests/value/leaf2.i:7: Warning: 
+  signed overflow. assert G + 1 ≤ 2147483647;
+[value] tests/value/leaf2.i:7: 
+  Assigning imprecise value to G.
+  The imprecision originates from Library function {tests/value/leaf2.i:6}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -30,7 +37,7 @@ tests/value/leaf2.i:7:[value] warning: pointer comparison.
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   H FROM q; i; H (and SELF)
   \result FROM q; i; H
@@ -39,6 +46,6 @@ tests/value/leaf2.i:7:[value] warning: pointer comparison.
   H FROM H (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; H
+    G; H
 [inout] Inputs for function main:
-      G; H
+    G; H

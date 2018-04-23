@@ -3,13 +3,13 @@ STDOPT: #"-no-collapse-call-cast" +"-print"
 STDOPT: #"-collapse-call-cast" +"-print"
 */
 
-int f1();
-long f2();
-unsigned int f3();
-float f4();
-double f5();
-int *f6();
-void *f7();
+int f1(void);
+long f2(void);
+unsigned int f3(void);
+float f4(void);
+double f5(void);
+int *f6(void);
+void *f7(void);
 
 void main2() {
   long r1 = f1();

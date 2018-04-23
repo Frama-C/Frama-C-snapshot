@@ -10,7 +10,7 @@ int x, y, z, t;
 int G1, G2;
 
 //@ assigns x \from  \nothing;
-void g();
+void g(void);
 
 //@ assigns x \from  \nothing;
 int f() {

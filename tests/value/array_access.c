@@ -9,7 +9,7 @@ char ch[] =
 
 int R;
 //@ assigns \result \from \nothing;
-int any_int();
+int any_int(void);
 
 void main () {
   int i,j=10,k=88,c,*p,LT[10]={1};

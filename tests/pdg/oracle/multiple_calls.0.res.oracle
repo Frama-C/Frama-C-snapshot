@@ -8,16 +8,19 @@
   G3 ∈ [--..--]
   G4 ∈ [--..--]
 [value] computing for function fct2 <- appel_ptr_fct.
-    Called from tests/pdg/multiple_calls.c:23.
+  Called from tests/pdg/multiple_calls.c:23.
 [value] Recording results for fct2
 [value] Done for function fct2
 [value] computing for function fct1 <- appel_ptr_fct.
-    Called from tests/pdg/multiple_calls.c:23.
+  Called from tests/pdg/multiple_calls.c:23.
 [value] Recording results for fct1
 [value] Done for function fct1
-tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert x + G1 ≤ 2147483647;
-tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert -2147483648 ≤ (int)(x + G1) + G2;
-tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x + G1) + G2 ≤ 2147483647;
+[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+  signed overflow. assert x + G1 ≤ 2147483647;
+[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(x + G1) + G2;
+[value:alarm] tests/pdg/multiple_calls.c:24: Warning: 
+  signed overflow. assert (int)(x + G1) + G2 ≤ 2147483647;
 [value] Recording results for appel_ptr_fct
 [value] done for function appel_ptr_fct
 [from] Computing for function fct1
@@ -27,7 +30,7 @@ tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x +
 [from] Computing for function appel_ptr_fct
 [from] Done for function appel_ptr_fct
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function fct1:
   G1 FROM z
   G3 FROM y
@@ -45,26 +48,26 @@ tests/pdg/multiple_calls.c:24:[value] warning: signed overflow. assert (int)(x +
   \result FROM G1; G2; c; d
 [from] ====== END OF DEPENDENCIES ======
 [inout] InOut (internal) for function fct1:
-    Operational inputs:
-      x; y; z
-    Operational inputs on termination:
-      x; y; z
-    Sure outputs:
-      G1; G3; G4
+  Operational inputs:
+    x; y; z
+  Operational inputs on termination:
+    x; y; z
+  Sure outputs:
+    G1; G3; G4
 [inout] InOut (internal) for function fct2:
-    Operational inputs:
-      x; y; z
-    Operational inputs on termination:
-      x; y; z
-    Sure outputs:
-      G2; G3
+  Operational inputs:
+    x; y; z
+  Operational inputs on termination:
+    x; y; z
+  Sure outputs:
+    G2; G3
 [inout] InOut (internal) for function appel_ptr_fct:
-    Operational inputs:
-      G1; G2; c; d
-    Operational inputs on termination:
-      G1; G2; c; d
-    Sure outputs:
-      G3; a; b; pf; tmp; x; tmp_0; __retres
+  Operational inputs:
+    G1; G2; c; d
+  Operational inputs on termination:
+    G1; G2; c; d
+  Sure outputs:
+    G3; a; b; pf; tmp; x; tmp_0; __retres
 [pdg] computing for function appel_ptr_fct
 [pdg] done for function appel_ptr_fct
 [pdg] PDG for appel_ptr_fct

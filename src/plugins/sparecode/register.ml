@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -109,7 +109,7 @@ let journalized_get =
 let get ~select_annot ~select_slice_pragma =
   journalized_get select_annot select_slice_pragma
 
-(** {2 Initialisation of the sparecode plugin } *)
+(** {2 Initialization of the sparecode plugin } *)
 
 let () =
   (* journalization already done. *)

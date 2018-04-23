@@ -4,9 +4,11 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/scope/no-effect.i:10:[value] entering loop for the first time
-tests/scope/no-effect.i:11:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
-tests/scope/no-effect.i:16:[value] warning: out of bounds read. assert \valid_read(&(p1 + 1)->v);
+[value] tests/scope/no-effect.i:10: entering loop for the first time
+[value:alarm] tests/scope/no-effect.i:11: Warning: 
+  out of bounds read. assert \valid_read(&(p1 + 1)->v);
+[value:alarm] tests/scope/no-effect.i:16: Warning: 
+  out of bounds read. assert \valid_read(&(p1 + 1)->v);
 [value] Recording results for main
 [value] done for function main
 [scope:rm_asserts] removing 1 assertion(s)

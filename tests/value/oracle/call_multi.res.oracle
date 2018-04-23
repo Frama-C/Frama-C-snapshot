@@ -5,23 +5,23 @@
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function uppol2 <- main.
-    Called from tests/value/call_multi.i:29.
-tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
+  Called from tests/value/call_multi.i:29.
+[value] tests/value/call_multi.i:23: Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
-    Called from tests/value/call_multi.i:30.
-tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
+  Called from tests/value/call_multi.i:30.
+[value] tests/value/call_multi.i:23: Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
-    Called from tests/value/call_multi.i:31.
-tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {-128}
+  Called from tests/value/call_multi.i:31.
+[value] tests/value/call_multi.i:23: Frama_C_show_each_GOT: {-128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol2 <- main.
-    Called from tests/value/call_multi.i:32.
-tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
+  Called from tests/value/call_multi.i:32.
+[value] tests/value/call_multi.i:23: Frama_C_show_each_GOT: {128}
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] Recording results for main
@@ -38,17 +38,17 @@ tests/value/call_multi.i:23:[value] Frama_C_show_each_GOT: {128}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function uppol2:
   \result FROM al1; al2; plt; plt1; plt2
 [from] Function main:
   G FROM G
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function uppol2:
-      wd2; wd4; apl2
+    wd2; wd4; apl2
 [inout] Inputs for function uppol2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      G; tmp; tmp_0; tmp_1; tmp_2
+    G; tmp; tmp_0; tmp_1; tmp_2
 [inout] Inputs for function main:
-      G
+    G

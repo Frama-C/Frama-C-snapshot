@@ -1,21 +1,27 @@
 [kernel] Parsing tests/float/const4.i (no preprocessing)
-tests/float/const4.i:6:[kernel] warning: Floating-point constant 3.4e38f is not represented exactly. Will use 0x1.ff933c0000000p127
-tests/float/const4.i:7:[kernel] warning: Floating-point constant 3.405e38f is not represented exactly. Will use inf
+[kernel:parser:decimal-float] tests/float/const4.i:6: Warning: 
+  Floating-point constant 3.4e38f is not represented exactly. Will use 0x1.ff933c0000000p127.
+[kernel:parser:decimal-float] tests/float/const4.i:7: Warning: 
+  Floating-point constant 3.405e38f is not represented exactly. Will use inf.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/float/const4.i:7:[value] warning: non-finite float value. assert \is_finite(3.405e38f);
+[value:alarm] tests/float/const4.i:7: Warning: 
+  non-finite float value. assert \is_finite(3.405e38f);
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
   f2 ∈ {3.40282346639e+38}
-tests/float/const4.i:11:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
-    f2 ∈ {3.40282346639e+38}
-    __retres ∈ UNINITIALIZED
-    ==END OF DUMP==
+[value] tests/float/const4.i:11: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  f1 ∈ [3.39999995214e+38 .. 3.40000015497e+38]
+  f2 ∈ {3.40282346639e+38}
+  __retres ∈ UNINITIALIZED
+  ==END OF DUMP==
 [value] Recording results for main
 [value] done for function main
+[value] tests/float/const4.i:7: 
+  assertion 'Value,is_nan_or_infinite' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   d2 ∈ {3.40282346639e+38}
@@ -23,11 +29,11 @@ tests/float/const4.i:11:[value] Frama_C_dump_each:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      d2; __retres
+    d2; __retres
 [inout] Inputs for function main:
-      f2
+    f2

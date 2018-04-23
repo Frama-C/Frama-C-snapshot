@@ -5,13 +5,15 @@
 [value:initial-state] Values of globals at initialization
   t[0..99] ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/pdg/array_struct.i:18.
-tests/pdg/array_struct.i:13:[value] warning: accessing out of bounds index. assert 0 ≤ c;
-tests/pdg/array_struct.i:13:[value] warning: accessing out of bounds index. assert c < 100;
+  Called from tests/pdg/array_struct.i:18.
+[value:alarm] tests/pdg/array_struct.i:13: Warning: 
+  accessing out of bounds index. assert 0 ≤ c;
+[value:alarm] tests/pdg/array_struct.i:13: Warning: 
+  accessing out of bounds index. assert c < 100;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/pdg/array_struct.i:19.
+  Called from tests/pdg/array_struct.i:19.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

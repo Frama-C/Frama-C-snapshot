@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -66,6 +66,12 @@ typedef struct {
   int (*gl_stat) (__const char *__restrict, void *__restrict);
 #endif
 } glob_t;
+
+extern int glob(const char *pattern, int flags,
+                int (*errfunc) (const char *epath, int eerrno),
+                glob_t *pglob);
+
+extern void globfree(glob_t *pglob);
 
 __END_DECLS
 

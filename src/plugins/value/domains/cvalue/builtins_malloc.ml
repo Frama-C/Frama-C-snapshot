@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,11 +80,14 @@ let register_malloced_base ?(stack=call_stack_no_wrappers ()) b =
 let fold_dynamic_bases (f: Base.t -> Value_types.Callstack.t -> 'a -> 'a) init =
   Base_hptmap.fold f (Dynamic_Alloc_Bases.get ()) init
 
-(* only returns true for bases allocated via alloca() *)
 let is_automatically_deallocated base =
   match base with
-  | Base.Allocated (_, Base.Alloca, _) -> true
-  | _ -> false
+  | Base.Allocated (_, (Base.Alloca | Base.VLA), _) -> true
+  | Base.Allocated (_, Base.Malloc, _)
+  | Base.Var _
+  | Base.CLogic_Var _
+  | Base.Null
+  | Base.String _ -> false
 
 (* Extracts the minimum/maximum sizes (in bytes) for malloc/realloc/calloc,
    respecting the bounds of size_t.
@@ -268,7 +271,7 @@ let add_v v state base max_valid_bits =
     try
       let cur = match Model.find_base_or_default base state with
         | `Top -> assert false (* Value never passes Top as state *)
-        | `Bottom -> assert false (* implicitly checked by offsm_with_uninit *)
+        | `Bottom -> assert false (* offsm_with_v never returns Bottom *)
         | `Value m -> m
       in
       V_Offsetmap.join offsm cur
@@ -279,8 +282,16 @@ let add_v v state base max_valid_bits =
 let add_uninitialized = add_v V_Or_Uninitialized.uninitialized
 let add_zeroes = add_v (V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
 
-let wrap_fallible_malloc ?(returns_null=Value_parameters.MallocReturnsNull.get ()) ret_base orig_state state_after_alloc =
-  let ret = V.inject ret_base Ival.zero in
+(* Applies the possibility of failure when allocating/reallocating a base.
+   [ret]: result in case of success (e.g. a new base in case of malloc);
+   [orig_state]: state before any allocation, returned in case of failure;
+   [state_after_alloc]: state in case the allocation is successful;
+   [returns_null]: if given, forces the result to consider/ignore the possibility
+   of failure, despite -val-alloc-returns-null.
+ *)
+let wrap_fallible_alloc ?returns_null ret orig_state state_after_alloc =
+  let default_returns_null = Value_parameters.AllocReturnsNull.get () in
+  let returns_null = Extlib.opt_conv default_returns_null returns_null in
   let success = Eval_op.wrap_ptr ret, state_after_alloc in
   if returns_null
   then
@@ -332,7 +343,8 @@ let alloc_fresh ?(prefix="malloc") weak region state actuals =
     let stack = call_stack_no_wrappers () in
     let base, max_valid = alloc_abstract weak region stack prefix size state in
     let new_state = add_uninitialized state base max_valid in
-    let c_values = wrap_fallible_malloc base state new_state in
+    let ret = V.inject base Ival.zero in
+    let c_values = wrap_fallible_alloc ret state new_state in
     { Value_types.c_values = c_values ;
       c_clobbered = Base.SetLattice.bottom;
       c_cacheable = Value_types.NoCacheCallers;
@@ -378,7 +390,8 @@ let calloc_abstract calloc_f state actuals =
     let base, max_valid = calloc_f stack "calloc" alloc_size state in
     let new_state = add_zeroes state base max_valid in
     let returns_null = if size_ok = Alarmset.Unknown then Some true else None in
-    let c_values = wrap_fallible_malloc ?returns_null base state new_state in
+    let ret = V.inject base Ival.zero in
+    let c_values = wrap_fallible_alloc ?returns_null ret state new_state in
     { Value_types.c_values = c_values ;
       c_clobbered = Base.SetLattice.bottom;
       c_cacheable = Value_types.NoCacheCallers;
@@ -469,7 +482,8 @@ let alloc_by_stack ?(prefix="malloc") region ?returns_null : Db.Value.builtin_si
   in
   let base, max_valid = alloc_by_stack_aux region stack prefix sizev state in
   let new_state = add_uninitialized state base max_valid in
-  let c_values = wrap_fallible_malloc ?returns_null base state new_state in
+  let ret = V.inject base Ival.zero in
+  let c_values = wrap_fallible_alloc ?returns_null ret state new_state in
   { Value_types.c_values = c_values ;
     c_clobbered = Base.SetLattice.bottom;
     c_from = None;
@@ -524,16 +538,28 @@ let free ~exact bases state =
   in
   state, (from_changed, if exact then !changed else Zone.bottom)
 
+let freeable arg =
+  (* Categorizes the bases in arg *)
+  let f base offset (all_ok, one_ok) =
+    if Base_hptmap.mem base (Dynamic_Alloc_Bases.get ()) &&
+       not (is_automatically_deallocated base)
+    then
+      all_ok && Ival.is_zero offset,
+      one_ok || Ival.contains_zero offset
+    else (false, one_ok)
+  in
+  match Cvalue.V.fold_topset_ok f arg (true, false) with
+  | true, true -> True
+  | false, true -> Unknown
+  | false, false -> False
+  | true, false ->
+    assert (V.is_bottom arg); True
+
+
 let resolve_bases_to_free arg =
   (* Categorizes the bases in arg *)
   let f base offset (acc, card, null) =
     let allocated_base = Base_hptmap.mem base (Dynamic_Alloc_Bases.get ()) in
-    (* Does arg contain at least one invalid value? *)
-    if (not allocated_base && not (Base.is_null base))
-      || Ival.contains_non_zero offset
-      || is_automatically_deallocated base
-    then Value_util.warning_once_current
-      "Wrong free: assert(pass a freeable address)";
     (* Collect the bases to remove from the memory state.
        Also count the number of freeable bases (including NULL). *)
     if Ival.contains_zero offset
@@ -736,6 +762,7 @@ let realloc ~multiple state args = match args with
   | [ (_,ptr,_); (_,size,_) ] ->
     let (bases, card_ok, null) = resolve_bases_to_free ptr in
     if card_ok > 0 then
+      let orig_state = state in
       let ret, state =
         if multiple
         then realloc_multiple state size bases null
@@ -747,7 +774,8 @@ let realloc ~multiple state args = match args with
       let strong = card_ok <= 1 && not weak in
       (* free old bases. *)
       let state, changed = free_aux state ~strong bases in
-      { Value_types.c_values = [Eval_op.wrap_ptr ret, state] ;
+      let c_values = wrap_fallible_alloc ret orig_state state in
+      { Value_types.c_values;
         c_clobbered = Builtins.clobbered_set_from_ret state ret;
         c_cacheable = Value_types.NoCacheCallers;
         c_from = Some changed;

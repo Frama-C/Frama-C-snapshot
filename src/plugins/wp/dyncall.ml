@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,7 @@ let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
        let fs = ref [] in
        List.iter
          (function
-           | cmd, Ext_terms ts when cmd = ecmd ->
+           | _,cmd, Ext_terms ts when cmd = ecmd ->
                fs := !fs @ List.map get_call ts
            | _ -> ())
          bhv.Cil_types.b_extended ;

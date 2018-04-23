@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,8 +26,12 @@
 __PUSH_FC_STDLIB
 #include "__fc_machdep.h"
 __BEGIN_DECLS
+// This file may be included by non-POSIX machdeps (e.g. via sys/types.h),
+// so we must check if ssize_t should be defined
+#ifdef __FC_POSIX_VERSION
 typedef __SSIZE_T ssize_t;
+#define SSIZE_MAX __SSIZE_MAX
+#endif
 __END_DECLS
 __POP_FC_STDLIB
 #endif
-

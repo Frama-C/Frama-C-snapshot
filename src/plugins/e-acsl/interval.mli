@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,6 +65,7 @@ val interv_of_typ: Cil_types.typ -> Ival.t
 module Env: sig
   val clear: unit -> unit
   val add: Cil_types.logic_var -> Ival.t -> unit
+  val remove: Cil_types.logic_var -> unit
 end
 
 (* ************************************************************************** *)

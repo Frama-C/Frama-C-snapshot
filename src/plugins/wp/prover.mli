@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,15 +30,16 @@ val prove : Wpo.t ->
   ?config:config ->
   ?mode:mode ->
   ?start:(Wpo.t -> unit) ->
-  ?callin:(Wpo.t -> prover -> unit) ->
-  ?callback:(Wpo.t -> prover -> result -> unit) ->
+  ?progress:(Wpo.t -> string -> unit) ->
+  ?result:(Wpo.t -> prover -> result -> unit) ->
   prover -> bool Task.task
 
 val spawn : Wpo.t ->
+  delayed:bool ->
   ?config:config ->
   ?start:(Wpo.t -> unit) ->
-  ?callin:(Wpo.t -> prover -> unit) ->
-  ?callback:(Wpo.t -> prover -> result -> unit) ->
+  ?progress:(Wpo.t -> string -> unit) ->
+  ?result:(Wpo.t -> prover -> result -> unit) ->
   ?success:(Wpo.t -> prover option -> unit) ->
   ?pool:Task.pool ->
   (mode * prover) list -> unit

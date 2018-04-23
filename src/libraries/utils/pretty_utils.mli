@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,6 +22,22 @@
 
 (** Pretty-printer utilities.
     @plugin development guide *)
+
+(* ********************************************************************** *)
+(** {2 null formatters} *)
+(* ********************************************************************** *)
+
+val null : Format.formatter
+  (** Prints nothing.
+      @since Beryllium-20090901 *)
+
+val nullprintf :  ('a,Format.formatter,unit) format -> 'a
+  (** Discards the message and returns unit.
+      @since Beryllium-20090901 *)
+
+val with_null : (unit -> 'b) -> ('a,Format.formatter,unit,'b) format4 -> 'a
+  (** Discards the message and call the continuation.
+      @since Beryllium-20090901 *)
 
 (* ********************************************************************** *)
 (** {2 pretty-printing to a string} *)

@@ -11,8 +11,8 @@ int X, Y ;
 int f(int a) { y = x; return x; }
 
 /*@ 
-    requires a > 0;
-    requires b > 0;
+    requires a: a > 0;
+    requires b: b > 0;
     assigns \result \from a;
     assigns Y \from b;
 */

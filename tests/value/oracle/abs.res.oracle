@@ -4,8 +4,10 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/abs.i:6:[value] warning: function main: precondition got status unknown.
-tests/value/abs.i:9:[value] warning: signed overflow. assert -*p ≤ 2147483647;
+[value:alarm] tests/value/abs.i:6: Warning: 
+  function main: precondition got status unknown.
+[value:alarm] tests/value/abs.i:9: Warning: 
+  signed overflow. assert -*p ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -15,11 +17,11 @@ tests/value/abs.i:9:[value] warning: signed overflow. assert -*p ≤ 2147483647;
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   S_p[0] FROM p; S_p[0] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      S_p[0]
+    S_p[0]
 [inout] Inputs for function main:
-      S_p[0]
+    S_p[0]

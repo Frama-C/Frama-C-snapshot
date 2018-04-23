@@ -15,11 +15,14 @@
   b ∈ {0}
   p[0..9][0..9][0..9] ∈ {0}
   q ∈ {0}
-tests/value/from_ptr.i:17:[value] warning: out of bounds write. assert \valid((int *)i);
-tests/value/from_ptr.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/from_ptr.i:17: Warning: 
+  out of bounds write. assert \valid((int *)i);
+[kernel] tests/value/from_ptr.i:17: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/value/from_ptr.i:17:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/from_ptr.i:17: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   i ∈ {{ (long)&p[10] }}
@@ -28,13 +31,13 @@ tests/value/from_ptr.i:17:[value] assertion 'Value,mem_access' got final status 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   i FROM \nothing
   d FROM b; c
   q FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      i; d; q
+    i; d; q
 [inout] Inputs for function main:
-      i; a; b; q
+    i; a; b; q

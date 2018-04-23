@@ -1,0 +1,12 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_bts/issue_447.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma foo:
+Prove: (1+x_0)=(L_f x_0)
+
+------------------------------------------------------------

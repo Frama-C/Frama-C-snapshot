@@ -11,594 +11,809 @@
   S___fc_stdin[0..1] ∈ [--..--]
   S___fc_stdout[0..1] ∈ [--..--]
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:9.
+  Called from tests/libc/ctype.c:9.
 [value] using specification for function isascii
-share/libc/ctype.h:218:[value] function isascii: precondition got status valid.
+[value] tests/libc/ctype.c:9: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
-tests/libc/ctype.c:10:[value] assertion got status valid.
+[value] tests/libc/ctype.c:10: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:11.
+  Called from tests/libc/ctype.c:11.
+[value] tests/libc/ctype.c:11: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
-tests/libc/ctype.c:12:[value] assertion got status valid.
+[value] tests/libc/ctype.c:12: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:13.
-[value] Done for function isascii
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:13.
-[value] Done for function isascii
-tests/libc/ctype.c:14:[value] assertion got status valid.
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:15.
+  Called from tests/libc/ctype.c:13.
+[value] tests/libc/ctype.c:13: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:15.
+  Called from tests/libc/ctype.c:13.
 [value] Done for function isascii
-tests/libc/ctype.c:16:[value] assertion got status valid.
+[value] tests/libc/ctype.c:14: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:17.
-[value] Done for function isascii
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:17.
-[value] Done for function isascii
-tests/libc/ctype.c:18:[value] assertion got status valid.
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:19.
+  Called from tests/libc/ctype.c:15.
+[value] tests/libc/ctype.c:15: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:19.
+  Called from tests/libc/ctype.c:15.
 [value] Done for function isascii
-tests/libc/ctype.c:20:[value] assertion got status valid.
+[value] tests/libc/ctype.c:16: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:21.
+  Called from tests/libc/ctype.c:17.
+[value] tests/libc/ctype.c:17: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:21.
+  Called from tests/libc/ctype.c:17.
 [value] Done for function isascii
-tests/libc/ctype.c:22:[value] assertion got status valid.
+[value] tests/libc/ctype.c:18: assertion got status valid.
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:19.
+[value] tests/libc/ctype.c:19: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:19.
+[value] Done for function isascii
+[value] tests/libc/ctype.c:20: assertion got status valid.
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:21.
+[value] tests/libc/ctype.c:21: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:21.
+[value] Done for function isascii
+[value] tests/libc/ctype.c:22: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:23.
+  Called from tests/libc/ctype.c:23.
 [value] using specification for function isalnum
-share/libc/ctype.h:40:[value] function isalnum: precondition got status valid.
+[value] tests/libc/ctype.c:23: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:23.
+  Called from tests/libc/ctype.c:23.
 [value] Done for function isalnum
-tests/libc/ctype.c:24:[value] assertion got status valid.
+[value] tests/libc/ctype.c:24: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:25.
+  Called from tests/libc/ctype.c:25.
+[value] tests/libc/ctype.c:25: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
-tests/libc/ctype.c:26:[value] assertion got status valid.
+[value] tests/libc/ctype.c:26: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:27.
+  Called from tests/libc/ctype.c:27.
+[value] tests/libc/ctype.c:27: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
-tests/libc/ctype.c:28:[value] assertion got status valid.
+[value] tests/libc/ctype.c:28: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:29.
+  Called from tests/libc/ctype.c:29.
+[value] tests/libc/ctype.c:29: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
-tests/libc/ctype.c:30:[value] assertion got status valid.
+[value] tests/libc/ctype.c:30: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:31.
+  Called from tests/libc/ctype.c:31.
+[value] tests/libc/ctype.c:31: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
-tests/libc/ctype.c:32:[value] assertion got status valid.
+[value] tests/libc/ctype.c:32: assertion got status valid.
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:33.
-[value] Done for function isalnum
-[value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:33.
-[value] Done for function isalnum
-tests/libc/ctype.c:34:[value] assertion got status valid.
-[value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:35.
+  Called from tests/libc/ctype.c:33.
+[value] tests/libc/ctype.c:33: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
 [value] Done for function isalnum
 [value] computing for function isalnum <- main.
-    Called from tests/libc/ctype.c:35.
+  Called from tests/libc/ctype.c:33.
 [value] Done for function isalnum
-tests/libc/ctype.c:36:[value] assertion got status valid.
+[value] tests/libc/ctype.c:34: assertion got status valid.
+[value] computing for function isalnum <- main.
+  Called from tests/libc/ctype.c:35.
+[value] tests/libc/ctype.c:35: 
+  function isalnum: precondition 'c_uchar_or_eof_or_EOF' got status valid.
+[value] Done for function isalnum
+[value] computing for function isalnum <- main.
+  Called from tests/libc/ctype.c:35.
+[value] Done for function isalnum
+[value] tests/libc/ctype.c:36: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:37.
+  Called from tests/libc/ctype.c:37.
 [value] using specification for function isalpha
-share/libc/ctype.h:53:[value] function isalpha: precondition got status valid.
+[value] tests/libc/ctype.c:37: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:37.
+  Called from tests/libc/ctype.c:37.
 [value] Done for function isalpha
-tests/libc/ctype.c:38:[value] assertion got status valid.
+[value] tests/libc/ctype.c:38: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:39.
+  Called from tests/libc/ctype.c:39.
+[value] tests/libc/ctype.c:39: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
-tests/libc/ctype.c:40:[value] assertion got status valid.
+[value] tests/libc/ctype.c:40: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:41.
+  Called from tests/libc/ctype.c:41.
+[value] tests/libc/ctype.c:41: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
-tests/libc/ctype.c:42:[value] assertion got status valid.
+[value] tests/libc/ctype.c:42: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:43.
+  Called from tests/libc/ctype.c:43.
+[value] tests/libc/ctype.c:43: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
-tests/libc/ctype.c:44:[value] assertion got status valid.
+[value] tests/libc/ctype.c:44: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:45.
+  Called from tests/libc/ctype.c:45.
+[value] tests/libc/ctype.c:45: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
-tests/libc/ctype.c:46:[value] assertion got status valid.
+[value] tests/libc/ctype.c:46: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:47.
+  Called from tests/libc/ctype.c:47.
+[value] tests/libc/ctype.c:47: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
-tests/libc/ctype.c:48:[value] assertion got status valid.
+[value] tests/libc/ctype.c:48: assertion got status valid.
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:49.
+  Called from tests/libc/ctype.c:49.
+[value] tests/libc/ctype.c:49: 
+  function isalpha: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isalpha
 [value] computing for function isalpha <- main.
-    Called from tests/libc/ctype.c:49.
+  Called from tests/libc/ctype.c:49.
 [value] Done for function isalpha
-tests/libc/ctype.c:50:[value] assertion got status valid.
+[value] tests/libc/ctype.c:50: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:51.
+  Called from tests/libc/ctype.c:51.
+[value] tests/libc/ctype.c:51: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:51.
+  Called from tests/libc/ctype.c:51.
 [value] Done for function isascii
-tests/libc/ctype.c:52:[value] assertion got status valid.
+[value] tests/libc/ctype.c:52: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:53.
+  Called from tests/libc/ctype.c:53.
+[value] tests/libc/ctype.c:53: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
-tests/libc/ctype.c:54:[value] assertion got status valid.
+[value] tests/libc/ctype.c:54: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:55.
-[value] Done for function isascii
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:55.
-[value] Done for function isascii
-tests/libc/ctype.c:56:[value] assertion got status valid.
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:57.
+  Called from tests/libc/ctype.c:55.
+[value] tests/libc/ctype.c:55: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:57.
+  Called from tests/libc/ctype.c:55.
 [value] Done for function isascii
-tests/libc/ctype.c:58:[value] assertion got status valid.
+[value] tests/libc/ctype.c:56: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:59.
-[value] Done for function isascii
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:59.
-[value] Done for function isascii
-tests/libc/ctype.c:60:[value] assertion got status valid.
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:61.
+  Called from tests/libc/ctype.c:57.
+[value] tests/libc/ctype.c:57: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:61.
+  Called from tests/libc/ctype.c:57.
 [value] Done for function isascii
-tests/libc/ctype.c:62:[value] assertion got status valid.
+[value] tests/libc/ctype.c:58: assertion got status valid.
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:63.
-[value] Done for function isascii
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:63.
-[value] Done for function isascii
-tests/libc/ctype.c:64:[value] assertion got status valid.
-[value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:65.
+  Called from tests/libc/ctype.c:59.
+[value] tests/libc/ctype.c:59: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isascii
 [value] computing for function isascii <- main.
-    Called from tests/libc/ctype.c:65.
+  Called from tests/libc/ctype.c:59.
 [value] Done for function isascii
-tests/libc/ctype.c:66:[value] assertion got status valid.
+[value] tests/libc/ctype.c:60: assertion got status valid.
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:61.
+[value] tests/libc/ctype.c:61: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:61.
+[value] Done for function isascii
+[value] tests/libc/ctype.c:62: assertion got status valid.
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:63.
+[value] tests/libc/ctype.c:63: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:63.
+[value] Done for function isascii
+[value] tests/libc/ctype.c:64: assertion got status valid.
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:65.
+[value] tests/libc/ctype.c:65: 
+  function isascii: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isascii
+[value] computing for function isascii <- main.
+  Called from tests/libc/ctype.c:65.
+[value] Done for function isascii
+[value] tests/libc/ctype.c:66: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:67.
+  Called from tests/libc/ctype.c:67.
 [value] using specification for function isblank
-share/libc/ctype.h:65:[value] function isblank: precondition got status valid.
+[value] tests/libc/ctype.c:67: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:68:[value] assertion got status valid.
+[value] tests/libc/ctype.c:68: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:69.
+  Called from tests/libc/ctype.c:69.
+[value] tests/libc/ctype.c:69: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:70:[value] assertion got status valid.
+[value] tests/libc/ctype.c:70: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:71.
+  Called from tests/libc/ctype.c:71.
+[value] tests/libc/ctype.c:71: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:72:[value] assertion got status valid.
+[value] tests/libc/ctype.c:72: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:73.
+  Called from tests/libc/ctype.c:73.
+[value] tests/libc/ctype.c:73: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:74:[value] assertion got status valid.
+[value] tests/libc/ctype.c:74: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:75.
+  Called from tests/libc/ctype.c:75.
+[value] tests/libc/ctype.c:75: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:75.
+  Called from tests/libc/ctype.c:75.
 [value] Done for function isblank
-tests/libc/ctype.c:76:[value] assertion got status valid.
+[value] tests/libc/ctype.c:76: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:77.
+  Called from tests/libc/ctype.c:77.
+[value] tests/libc/ctype.c:77: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:78:[value] assertion got status valid.
+[value] tests/libc/ctype.c:78: assertion got status valid.
 [value] computing for function isblank <- main.
-    Called from tests/libc/ctype.c:79.
+  Called from tests/libc/ctype.c:79.
+[value] tests/libc/ctype.c:79: 
+  function isblank: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isblank
-tests/libc/ctype.c:80:[value] assertion got status valid.
+[value] tests/libc/ctype.c:80: assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:81.
+  Called from tests/libc/ctype.c:81.
 [value] using specification for function iscntrl
-share/libc/ctype.h:78:[value] function iscntrl: precondition got status valid.
+[value] tests/libc/ctype.c:81: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function iscntrl
-tests/libc/ctype.c:82:[value] assertion got status valid.
+[value] tests/libc/ctype.c:82: assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:83.
+  Called from tests/libc/ctype.c:83.
+[value] tests/libc/ctype.c:83: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function iscntrl
-tests/libc/ctype.c:84:[value] assertion got status valid.
+[value] tests/libc/ctype.c:84: assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:85.
-[value] Done for function iscntrl
-[value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:85.
-[value] Done for function iscntrl
-tests/libc/ctype.c:86:[value] assertion got status valid.
-[value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:87.
+  Called from tests/libc/ctype.c:85.
+[value] tests/libc/ctype.c:85: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function iscntrl
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:87.
+  Called from tests/libc/ctype.c:85.
 [value] Done for function iscntrl
-tests/libc/ctype.c:88:[value] assertion got status valid.
+[value] tests/libc/ctype.c:86: assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:89.
+  Called from tests/libc/ctype.c:87.
+[value] tests/libc/ctype.c:87: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function iscntrl
-tests/libc/ctype.c:90:[value] assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:91.
+  Called from tests/libc/ctype.c:87.
 [value] Done for function iscntrl
-tests/libc/ctype.c:92:[value] assertion got status valid.
+[value] tests/libc/ctype.c:88: assertion got status valid.
 [value] computing for function iscntrl <- main.
-    Called from tests/libc/ctype.c:93.
+  Called from tests/libc/ctype.c:89.
+[value] tests/libc/ctype.c:89: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function iscntrl
-tests/libc/ctype.c:94:[value] assertion got status valid.
+[value] tests/libc/ctype.c:90: assertion got status valid.
+[value] computing for function iscntrl <- main.
+  Called from tests/libc/ctype.c:91.
+[value] tests/libc/ctype.c:91: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function iscntrl
+[value] tests/libc/ctype.c:92: assertion got status valid.
+[value] computing for function iscntrl <- main.
+  Called from tests/libc/ctype.c:93.
+[value] tests/libc/ctype.c:93: 
+  function iscntrl: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function iscntrl
+[value] tests/libc/ctype.c:94: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:95.
+  Called from tests/libc/ctype.c:95.
 [value] using specification for function isdigit
-share/libc/ctype.h:90:[value] function isdigit: precondition got status valid.
+[value] tests/libc/ctype.c:95: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:96:[value] assertion got status valid.
+[value] tests/libc/ctype.c:96: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:97.
+  Called from tests/libc/ctype.c:97.
+[value] tests/libc/ctype.c:97: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:98:[value] assertion got status valid.
+[value] tests/libc/ctype.c:98: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:99.
+  Called from tests/libc/ctype.c:99.
+[value] tests/libc/ctype.c:99: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:100:[value] assertion got status valid.
+[value] tests/libc/ctype.c:100: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:101.
+  Called from tests/libc/ctype.c:101.
+[value] tests/libc/ctype.c:101: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:102:[value] assertion got status valid.
+[value] tests/libc/ctype.c:102: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:103.
+  Called from tests/libc/ctype.c:103.
+[value] tests/libc/ctype.c:103: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:104:[value] assertion got status valid.
+[value] tests/libc/ctype.c:104: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:105.
+  Called from tests/libc/ctype.c:105.
+[value] tests/libc/ctype.c:105: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:105.
+  Called from tests/libc/ctype.c:105.
 [value] Done for function isdigit
-tests/libc/ctype.c:106:[value] assertion got status valid.
+[value] tests/libc/ctype.c:106: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:107.
+  Called from tests/libc/ctype.c:107.
+[value] tests/libc/ctype.c:107: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:108:[value] assertion got status valid.
+[value] tests/libc/ctype.c:108: assertion got status valid.
 [value] computing for function isdigit <- main.
-    Called from tests/libc/ctype.c:109.
+  Called from tests/libc/ctype.c:109.
+[value] tests/libc/ctype.c:109: 
+  function isdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isdigit
-tests/libc/ctype.c:110:[value] assertion got status valid.
+[value] tests/libc/ctype.c:110: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:111.
+  Called from tests/libc/ctype.c:111.
 [value] using specification for function isgraph
-share/libc/ctype.h:103:[value] function isgraph: precondition got status valid.
+[value] tests/libc/ctype.c:111: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
-tests/libc/ctype.c:112:[value] assertion got status valid.
+[value] tests/libc/ctype.c:112: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:113.
+  Called from tests/libc/ctype.c:113.
+[value] tests/libc/ctype.c:113: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
-tests/libc/ctype.c:114:[value] assertion got status valid.
+[value] tests/libc/ctype.c:114: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:115.
+  Called from tests/libc/ctype.c:115.
+[value] tests/libc/ctype.c:115: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
-tests/libc/ctype.c:116:[value] assertion got status valid.
+[value] tests/libc/ctype.c:116: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:117.
+  Called from tests/libc/ctype.c:117.
+[value] tests/libc/ctype.c:117: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
-tests/libc/ctype.c:118:[value] assertion got status valid.
+[value] tests/libc/ctype.c:118: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:119.
+  Called from tests/libc/ctype.c:119.
+[value] tests/libc/ctype.c:119: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
-tests/libc/ctype.c:120:[value] assertion got status valid.
+[value] tests/libc/ctype.c:120: assertion got status valid.
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:121.
-[value] Done for function isgraph
-[value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:121.
-[value] Done for function isgraph
-tests/libc/ctype.c:122:[value] assertion got status valid.
-[value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:123.
+  Called from tests/libc/ctype.c:121.
+[value] tests/libc/ctype.c:121: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isgraph
 [value] computing for function isgraph <- main.
-    Called from tests/libc/ctype.c:123.
+  Called from tests/libc/ctype.c:121.
 [value] Done for function isgraph
-tests/libc/ctype.c:124:[value] assertion got status valid.
+[value] tests/libc/ctype.c:122: assertion got status valid.
+[value] computing for function isgraph <- main.
+  Called from tests/libc/ctype.c:123.
+[value] tests/libc/ctype.c:123: 
+  function isgraph: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isgraph
+[value] computing for function isgraph <- main.
+  Called from tests/libc/ctype.c:123.
+[value] Done for function isgraph
+[value] tests/libc/ctype.c:124: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:125.
+  Called from tests/libc/ctype.c:125.
 [value] using specification for function islower
-share/libc/ctype.h:115:[value] function islower: precondition got status valid.
+[value] tests/libc/ctype.c:125: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:125.
+  Called from tests/libc/ctype.c:125.
 [value] Done for function islower
-tests/libc/ctype.c:126:[value] assertion got status valid.
+[value] tests/libc/ctype.c:126: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:127.
+  Called from tests/libc/ctype.c:127.
+[value] tests/libc/ctype.c:127: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:128:[value] assertion got status valid.
+[value] tests/libc/ctype.c:128: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:129.
+  Called from tests/libc/ctype.c:129.
+[value] tests/libc/ctype.c:129: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:130:[value] assertion got status valid.
+[value] tests/libc/ctype.c:130: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:131.
+  Called from tests/libc/ctype.c:131.
+[value] tests/libc/ctype.c:131: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:132:[value] assertion got status valid.
+[value] tests/libc/ctype.c:132: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:133.
+  Called from tests/libc/ctype.c:133.
+[value] tests/libc/ctype.c:133: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:134:[value] assertion got status valid.
+[value] tests/libc/ctype.c:134: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:135.
+  Called from tests/libc/ctype.c:135.
+[value] tests/libc/ctype.c:135: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:136:[value] assertion got status valid.
+[value] tests/libc/ctype.c:136: assertion got status valid.
 [value] computing for function islower <- main.
-    Called from tests/libc/ctype.c:137.
+  Called from tests/libc/ctype.c:137.
+[value] tests/libc/ctype.c:137: 
+  function islower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function islower
-tests/libc/ctype.c:138:[value] assertion got status valid.
+[value] tests/libc/ctype.c:138: assertion got status valid.
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:139.
+  Called from tests/libc/ctype.c:139.
 [value] using specification for function isprint
-share/libc/ctype.h:127:[value] function isprint: precondition got status valid.
+[value] tests/libc/ctype.c:139: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isprint
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:139.
+  Called from tests/libc/ctype.c:139.
 [value] Done for function isprint
-tests/libc/ctype.c:140:[value] assertion got status valid.
+[value] tests/libc/ctype.c:140: assertion got status valid.
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:141.
+  Called from tests/libc/ctype.c:141.
+[value] tests/libc/ctype.c:141: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isprint
-tests/libc/ctype.c:142:[value] assertion got status valid.
+[value] tests/libc/ctype.c:142: assertion got status valid.
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:143.
+  Called from tests/libc/ctype.c:143.
+[value] tests/libc/ctype.c:143: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isprint
-tests/libc/ctype.c:144:[value] assertion got status valid.
+[value] tests/libc/ctype.c:144: assertion got status valid.
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:145.
+  Called from tests/libc/ctype.c:145.
+[value] tests/libc/ctype.c:145: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isprint
-tests/libc/ctype.c:146:[value] assertion got status valid.
+[value] tests/libc/ctype.c:146: assertion got status valid.
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:147.
-[value] Done for function isprint
-[value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:147.
-[value] Done for function isprint
-tests/libc/ctype.c:148:[value] assertion got status valid.
-[value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:149.
-[value] Done for function isprint
-[value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:149.
-[value] Done for function isprint
-tests/libc/ctype.c:150:[value] assertion got status valid.
-[value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:151.
+  Called from tests/libc/ctype.c:147.
+[value] tests/libc/ctype.c:147: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isprint
 [value] computing for function isprint <- main.
-    Called from tests/libc/ctype.c:151.
+  Called from tests/libc/ctype.c:147.
 [value] Done for function isprint
-tests/libc/ctype.c:152:[value] assertion got status valid.
+[value] tests/libc/ctype.c:148: assertion got status valid.
+[value] computing for function isprint <- main.
+  Called from tests/libc/ctype.c:149.
+[value] tests/libc/ctype.c:149: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+  Called from tests/libc/ctype.c:149.
+[value] Done for function isprint
+[value] tests/libc/ctype.c:150: assertion got status valid.
+[value] computing for function isprint <- main.
+  Called from tests/libc/ctype.c:151.
+[value] tests/libc/ctype.c:151: 
+  function isprint: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isprint
+[value] computing for function isprint <- main.
+  Called from tests/libc/ctype.c:151.
+[value] Done for function isprint
+[value] tests/libc/ctype.c:152: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:153.
+  Called from tests/libc/ctype.c:153.
 [value] using specification for function ispunct
-share/libc/ctype.h:139:[value] function ispunct: precondition got status valid.
+[value] tests/libc/ctype.c:153: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:153.
+  Called from tests/libc/ctype.c:153.
 [value] Done for function ispunct
-tests/libc/ctype.c:154:[value] assertion got status valid.
+[value] tests/libc/ctype.c:154: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:155.
+  Called from tests/libc/ctype.c:155.
+[value] tests/libc/ctype.c:155: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:156:[value] assertion got status valid.
+[value] tests/libc/ctype.c:156: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:157.
+  Called from tests/libc/ctype.c:157.
+[value] tests/libc/ctype.c:157: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:158:[value] assertion got status valid.
+[value] tests/libc/ctype.c:158: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:159.
+  Called from tests/libc/ctype.c:159.
+[value] tests/libc/ctype.c:159: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:160:[value] assertion got status valid.
+[value] tests/libc/ctype.c:160: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:161.
+  Called from tests/libc/ctype.c:161.
+[value] tests/libc/ctype.c:161: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:162:[value] assertion got status valid.
+[value] tests/libc/ctype.c:162: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:163.
+  Called from tests/libc/ctype.c:163.
+[value] tests/libc/ctype.c:163: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:164:[value] assertion got status valid.
+[value] tests/libc/ctype.c:164: assertion got status valid.
 [value] computing for function ispunct <- main.
-    Called from tests/libc/ctype.c:165.
+  Called from tests/libc/ctype.c:165.
+[value] tests/libc/ctype.c:165: 
+  function ispunct: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function ispunct
-tests/libc/ctype.c:166:[value] assertion got status valid.
+[value] tests/libc/ctype.c:166: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:167.
+  Called from tests/libc/ctype.c:167.
 [value] using specification for function isspace
-share/libc/ctype.h:152:[value] function isspace: precondition got status valid.
+[value] tests/libc/ctype.c:167: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:168:[value] assertion got status valid.
+[value] tests/libc/ctype.c:168: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:169.
+  Called from tests/libc/ctype.c:169.
+[value] tests/libc/ctype.c:169: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:170:[value] assertion got status valid.
+[value] tests/libc/ctype.c:170: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:171.
+  Called from tests/libc/ctype.c:171.
+[value] tests/libc/ctype.c:171: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:172:[value] assertion got status valid.
+[value] tests/libc/ctype.c:172: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:173.
+  Called from tests/libc/ctype.c:173.
+[value] tests/libc/ctype.c:173: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:174:[value] assertion got status valid.
+[value] tests/libc/ctype.c:174: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:175.
+  Called from tests/libc/ctype.c:175.
+[value] tests/libc/ctype.c:175: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:175.
+  Called from tests/libc/ctype.c:175.
 [value] Done for function isspace
-tests/libc/ctype.c:176:[value] assertion got status valid.
+[value] tests/libc/ctype.c:176: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:177.
+  Called from tests/libc/ctype.c:177.
+[value] tests/libc/ctype.c:177: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:178:[value] assertion got status valid.
+[value] tests/libc/ctype.c:178: assertion got status valid.
 [value] computing for function isspace <- main.
-    Called from tests/libc/ctype.c:179.
+  Called from tests/libc/ctype.c:179.
+[value] tests/libc/ctype.c:179: 
+  function isspace: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isspace
-tests/libc/ctype.c:180:[value] assertion got status valid.
+[value] tests/libc/ctype.c:180: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:181.
+  Called from tests/libc/ctype.c:181.
 [value] using specification for function isupper
-share/libc/ctype.h:164:[value] function isupper: precondition got status valid.
+[value] tests/libc/ctype.c:181: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:182:[value] assertion got status valid.
+[value] tests/libc/ctype.c:182: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:183.
+  Called from tests/libc/ctype.c:183.
+[value] tests/libc/ctype.c:183: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:184:[value] assertion got status valid.
+[value] tests/libc/ctype.c:184: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:185.
+  Called from tests/libc/ctype.c:185.
+[value] tests/libc/ctype.c:185: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:186:[value] assertion got status valid.
+[value] tests/libc/ctype.c:186: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:187.
+  Called from tests/libc/ctype.c:187.
+[value] tests/libc/ctype.c:187: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:188:[value] assertion got status valid.
+[value] tests/libc/ctype.c:188: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:189.
+  Called from tests/libc/ctype.c:189.
+[value] tests/libc/ctype.c:189: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:190:[value] assertion got status valid.
+[value] tests/libc/ctype.c:190: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:191.
+  Called from tests/libc/ctype.c:191.
+[value] tests/libc/ctype.c:191: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
-tests/libc/ctype.c:192:[value] assertion got status valid.
+[value] tests/libc/ctype.c:192: assertion got status valid.
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:193.
+  Called from tests/libc/ctype.c:193.
+[value] tests/libc/ctype.c:193: 
+  function isupper: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isupper
 [value] computing for function isupper <- main.
-    Called from tests/libc/ctype.c:193.
+  Called from tests/libc/ctype.c:193.
 [value] Done for function isupper
-tests/libc/ctype.c:194:[value] assertion got status valid.
+[value] tests/libc/ctype.c:194: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:195.
+  Called from tests/libc/ctype.c:195.
 [value] using specification for function isxdigit
-share/libc/ctype.h:176:[value] function isxdigit: precondition got status valid.
+[value] tests/libc/ctype.c:195: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:196:[value] assertion got status valid.
+[value] tests/libc/ctype.c:196: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:197.
+  Called from tests/libc/ctype.c:197.
+[value] tests/libc/ctype.c:197: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:198:[value] assertion got status valid.
+[value] tests/libc/ctype.c:198: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:199.
+  Called from tests/libc/ctype.c:199.
+[value] tests/libc/ctype.c:199: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:200:[value] assertion got status valid.
+[value] tests/libc/ctype.c:200: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:201.
+  Called from tests/libc/ctype.c:201.
+[value] tests/libc/ctype.c:201: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:202:[value] assertion got status valid.
+[value] tests/libc/ctype.c:202: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:203.
+  Called from tests/libc/ctype.c:203.
+[value] tests/libc/ctype.c:203: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:204:[value] assertion got status valid.
+[value] tests/libc/ctype.c:204: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:205.
-[value] Done for function isxdigit
-[value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:205.
-[value] Done for function isxdigit
-tests/libc/ctype.c:206:[value] assertion got status valid.
-[value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:207.
+  Called from tests/libc/ctype.c:205.
+[value] tests/libc/ctype.c:205: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:207.
+  Called from tests/libc/ctype.c:205.
 [value] Done for function isxdigit
-tests/libc/ctype.c:208:[value] assertion got status valid.
+[value] tests/libc/ctype.c:206: assertion got status valid.
 [value] computing for function isxdigit <- main.
-    Called from tests/libc/ctype.c:209.
+  Called from tests/libc/ctype.c:207.
+[value] tests/libc/ctype.c:207: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function isxdigit
-tests/libc/ctype.c:210:[value] assertion got status valid.
+[value] computing for function isxdigit <- main.
+  Called from tests/libc/ctype.c:207.
+[value] Done for function isxdigit
+[value] tests/libc/ctype.c:208: assertion got status valid.
+[value] computing for function isxdigit <- main.
+  Called from tests/libc/ctype.c:209.
+[value] tests/libc/ctype.c:209: 
+  function isxdigit: precondition 'c_uchar_or_eof' got status valid.
+[value] Done for function isxdigit
+[value] tests/libc/ctype.c:210: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:211.
+  Called from tests/libc/ctype.c:211.
 [value] using specification for function tolower
-share/libc/ctype.h:191:[value] function tolower: precondition got status valid.
+[value] tests/libc/ctype.c:211: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:212:[value] assertion got status valid.
+[value] tests/libc/ctype.c:212: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:213.
+  Called from tests/libc/ctype.c:213.
+[value] tests/libc/ctype.c:213: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:214:[value] assertion got status valid.
+[value] tests/libc/ctype.c:214: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:215.
+  Called from tests/libc/ctype.c:215.
+[value] tests/libc/ctype.c:215: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:216:[value] assertion got status valid.
+[value] tests/libc/ctype.c:216: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:217.
+  Called from tests/libc/ctype.c:217.
+[value] tests/libc/ctype.c:217: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:218:[value] assertion got status valid.
+[value] tests/libc/ctype.c:218: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:219.
+  Called from tests/libc/ctype.c:219.
+[value] tests/libc/ctype.c:219: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:220:[value] assertion got status valid.
+[value] tests/libc/ctype.c:220: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:221.
+  Called from tests/libc/ctype.c:221.
+[value] tests/libc/ctype.c:221: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:222:[value] assertion got status valid.
+[value] tests/libc/ctype.c:222: assertion got status valid.
 [value] computing for function tolower <- main.
-    Called from tests/libc/ctype.c:223.
+  Called from tests/libc/ctype.c:223.
+[value] tests/libc/ctype.c:223: 
+  function tolower: precondition 'c_uchar_or_eof' got status valid.
 [value] Done for function tolower
-tests/libc/ctype.c:224:[value] assertion got status valid.
+[value] tests/libc/ctype.c:224: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:225.
+  Called from tests/libc/ctype.c:225.
 [value] using specification for function toupper
-share/libc/ctype.h:204:[value] function toupper: precondition got status valid.
+[value] tests/libc/ctype.c:225: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:226:[value] assertion got status valid.
+[value] tests/libc/ctype.c:226: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:227.
+  Called from tests/libc/ctype.c:227.
+[value] tests/libc/ctype.c:227: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:228:[value] assertion got status valid.
+[value] tests/libc/ctype.c:228: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:229.
+  Called from tests/libc/ctype.c:229.
+[value] tests/libc/ctype.c:229: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:230:[value] assertion got status valid.
+[value] tests/libc/ctype.c:230: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:231.
+  Called from tests/libc/ctype.c:231.
+[value] tests/libc/ctype.c:231: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:232:[value] assertion got status valid.
+[value] tests/libc/ctype.c:232: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:233.
+  Called from tests/libc/ctype.c:233.
+[value] tests/libc/ctype.c:233: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:234:[value] assertion got status valid.
+[value] tests/libc/ctype.c:234: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:235.
+  Called from tests/libc/ctype.c:235.
+[value] tests/libc/ctype.c:235: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:236:[value] assertion got status valid.
+[value] tests/libc/ctype.c:236: assertion got status valid.
 [value] computing for function toupper <- main.
-    Called from tests/libc/ctype.c:237.
+  Called from tests/libc/ctype.c:237.
+[value] tests/libc/ctype.c:237: 
+  function toupper: precondition 'c_uchar_of_eof' got status valid.
 [value] Done for function toupper
-tests/libc/ctype.c:238:[value] assertion got status valid.
+[value] tests/libc/ctype.c:238: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

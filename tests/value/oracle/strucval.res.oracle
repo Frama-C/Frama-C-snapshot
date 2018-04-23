@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function h <- main.
-    Called from tests/value/strucval.c:27.
+  Called from tests/value/strucval.c:27.
 [value] using specification for function h
 [value] Done for function h
 [value] Recording results for main
@@ -21,13 +21,13 @@
 [from] Done for function h
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function h:
   NO EFFECTS
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      SharedData{{.FunctionCode; .MachineNumber}; .Line}
+    SharedData{{.FunctionCode; .MachineNumber}; .Line}
 [inout] Inputs for function main:
-      \nothing
+    \nothing

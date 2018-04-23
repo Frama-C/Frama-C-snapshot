@@ -2,7 +2,7 @@
 .\"                                                                        
 .\"  This file is part of Frama-C.                                         
 .\"                                                                        
-.\"  Copyright (C) 2007-2017                                               
+.\"  Copyright (C) 2007-2018                                               
 .\"    CEA (Commissariat à l'énergie atomique et aux énergies              
 .\"         alternatives)                                                  
 .\"                                                                        
@@ -48,6 +48,9 @@ By default no compilation is performed.
 .B -D, --rt-debug
 Enable runtime debug features, i.e., compile unoptimized executable
 with assertions and extra checks.
+.TP
+.B --no-trace
+Disable stack trace reporting in debug mode
 .TP
 .B -V, --rt-verbose
 Output extra messages when executing generated code
@@ -108,6 +111,13 @@ is a pointer and \fBi\fP is an integer offset is deemed valid if both addresses
 \fBp\fP and \fB(p+i)\fP belong to the same allocated block. With weak validity
 \fB(p+i)\fP is valid if the memory location which address is given by
 expression \fB(p+i)\fP is allocated.
+.TP
+.B --validate-format-strings
+enable built-in detection of format-string vulnerabilities.
+.TP
+.B --libc-replacements
+replace some of the unsafe LIBC functions (e.g., strcpy, memcpy) with RTL
+alternatives that include internal runtime error checking.
 .TP
 .B -g, --gmp
 always use GMP integers instead of C integral types.

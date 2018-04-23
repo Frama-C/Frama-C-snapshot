@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -290,16 +290,23 @@ let json_of_tactic t js =
       "tactic" , Json.String t.tactic ;
       "params" , t.params ;
       "select" , t.select ;
-      "children" , Json.Array js ;
+      "children" , Json.Assoc js ;
     ])
 
+let children_of_json = function
+  | Json.Array js ->
+      Wp_parameters.warning ~current:false ~once:true
+        "Deprecated script(s) found ; consider using prover 'tip'" ;
+      List.map (fun j -> "",j) js
+  | Json.Assoc fs -> fs
+  | _ -> []
 let tactic_of_json js =
   try
     let header = js >? "header" |> Json.string in
     let tactic = js >? "tactic" |> Json.string in
     let params = try js >? "params" with Not_found -> Json.Null in
     let select = try js >? "select" with Not_found -> Json.Null in
-    let children = try js >? "children" |> Json.list with Not_found -> [] in
+    let children = try js >? "children" |> children_of_json with Not_found -> [] in
     Some( { header ; tactic ; params ; select } , children )
   with _ -> None
 
@@ -352,7 +359,7 @@ let result_of_json js =
 type jscript = alternative list
 and alternative =
   | Prover of VCS.prover * VCS.result
-  | Tactic of int * jtactic * jscript list (* pending goals *)
+  | Tactic of int * jtactic * (string * jscript) list (* pending goals *)
   | Error of string * Json.t
 
 let is_prover = function Prover _ -> true | Tactic _ | Error _ -> false
@@ -365,13 +372,14 @@ let pending = function
 
 let rec status = function
   | [] -> 1
+  | [a] -> pending a
   | a::s ->
       let n = pending a in
       if n = 0 then 0 else min n (status s)
 
 let rec subgoals n = function
   | [] -> n
-  | a::s -> subgoals (n + status a) s
+  | (_,a)::s -> subgoals (n + status a) s
 
 let a_prover p r = Prover(p,r)
 let a_tactic tac children = Tactic(subgoals 0 children,tac,children)
@@ -385,20 +393,25 @@ let rec decode = function
   | Json.Array alts -> List.map alternative alts
   | js -> [Error("Invalid Script",js)]
 
+and subscript (key,js) = key , decode js
+
 and alternative js =
   match prover_of_json js with
   | Some prover -> Prover(prover,result_of_json js)
   | None ->
       match tactic_of_json js with
       | Some(tactic, children) ->
-          a_tactic tactic (List.map decode children)
+          a_tactic tactic (List.map subscript children)
       | None -> Error("Invalid Tactic",js)
 
 let rec encode script = Json.Array (alternatives script)
+
+and subgoal (k,alt) = k , encode alt
+
 and alternatives = function
   | [] -> []
   | Prover(p,r) :: scr -> json_of_result p r :: alternatives scr
-  | Tactic(_,t,s) :: scr -> json_of_tactic t (List.map encode s) :: alternatives scr
+  | Tactic(_,t,s) :: scr -> json_of_tactic t (List.map subgoal s) :: alternatives scr
   | Error _ :: scr -> alternatives scr
 
 let configure jtactic sequent =

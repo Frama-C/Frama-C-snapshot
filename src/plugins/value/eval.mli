@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -240,9 +240,6 @@ type 'state call_action =
       has been cached, it will be used without re-computation. *)
   | Result  of 'state list or_bottom * Value_types.cacheable
   (** Direct computation of the result. *)
-
-exception InvalidCall
-
 
 (*
 Local Variables:

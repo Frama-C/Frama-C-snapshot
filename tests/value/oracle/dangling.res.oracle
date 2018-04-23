@@ -4,19 +4,24 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
-tests/value/dangling.i:9:[value] warning: locals {v_0} escaping the scope of a block of main through x
-tests/value/dangling.i:15:[value] warning: assertion got status unknown.
-tests/value/dangling.i:16:[value] assertion got status valid.
-tests/value/dangling.i:19:[value] warning: accessing left-value that contains escaping addresses.
-    assert ¬\dangling(&x);
-tests/value/dangling.i:23:[value] warning: assertion got status unknown.
-tests/value/dangling.i:24:[value] warning: accessing left-value that contains escaping addresses.
-    assert ¬\dangling(&x);
-tests/value/dangling.i:31:[value] warning: locals {z} escaping the scope of a block of main through p
-tests/value/dangling.i:33:[value] assertion got status valid.
+[value] tests/value/dangling.i:9: Warning: 
+  locals {v_0} escaping the scope of a block of main through x
+[value:alarm] tests/value/dangling.i:15: Warning: assertion got status unknown.
+[value] tests/value/dangling.i:16: assertion got status valid.
+[value:alarm] tests/value/dangling.i:19: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&x);
+[value:alarm] tests/value/dangling.i:23: Warning: assertion got status unknown.
+[value:alarm] tests/value/dangling.i:24: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&x);
+[value] tests/value/dangling.i:31: Warning: 
+  locals {z} escaping the scope of a block of main through p
+[value] tests/value/dangling.i:33: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
-tests/value/dangling.i:24:[value] assertion 'Value,dangling_pointer' got final status invalid.
+[value] tests/value/dangling.i:24: 
+  assertion 'Value,dangling_pointer' got final status invalid.
 [scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -27,11 +32,11 @@ tests/value/dangling.i:24:[value] assertion 'Value,dangling_pointer' got final s
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x; y; i; j; j_0; p[0..1]
+    x; y; i; j; j_0; p[0..1]
 [inout] Inputs for function main:
-      v
+    v

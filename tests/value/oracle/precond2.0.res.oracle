@@ -1,30 +1,34 @@
 [kernel] Parsing tests/value/precond2.c (with preprocessing)
 [rte] annotating function f
 [rte] annotating function main
-tests/value/precond2.c:24:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+[kernel] tests/value/precond2.c:24: Warning: 
+  No code nor implicit assigns clause for function g, generating default assigns from the prototype
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/precond2.c:21.
-tests/value/precond2.c:9:[value] function f: precondition got status valid.
-tests/value/precond2.c:10:[value] function f: precondition got status valid.
+  Called from tests/value/precond2.c:21.
+[value] tests/value/precond2.c:9: 
+  function f: precondition 'i_plus_one' got status valid.
+[value] tests/value/precond2.c:10: 
+  function f: precondition 'i' got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/precond2.c:22.
-tests/value/precond2.c:10:[value] warning: function f: precondition got status invalid.
+  Called from tests/value/precond2.c:22.
+[value:alarm] tests/value/precond2.c:10: Warning: 
+  function f: precondition 'i' got status invalid.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/precond2.c:24.
+  Called from tests/value/precond2.c:24.
 [value] using specification for function g
-tests/value/precond2.c:16:[value] function g: precondition got status valid.
+[value] tests/value/precond2.c:16: function g: precondition got status valid.
 [value] Done for function g
 [value] computing for function g <- main.
-    Called from tests/value/precond2.c:24.
+  Called from tests/value/precond2.c:24.
 [value] Done for function g
 [value] Recording results for main
 [value] done for function main
@@ -39,11 +43,11 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 --- Properties of Function 'f'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Pre-condition (file tests/value/precond2.c, line 9)
-            requires i + 1 ≥ 0
+[  Valid  ] Pre-condition 'i_plus_one'
+            requires i_plus_one: i + 1 ≥ 0
             by Call Preconditions.
-[  Alarm  ] Pre-condition (file tests/value/precond2.c, line 10)
-            requires i ≥ 0
+[  Alarm  ] Pre-condition 'i'
+            requires i: i ≥ 0
             By Call Preconditions, with pending:
              - Unreachable call 'f' (file tests/value/precond2.c, line 22)
 
@@ -65,17 +69,17 @@ tests/value/precond2.c:16:[value] function g: precondition got status valid.
 --- Properties of Function 'main'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Pre-condition for 'pre_f' (file tests/value/precond2.c, line 9) at call 'f' (file tests/value/precond2.c, line 21)
-            requires 1 + 1 ≥ 0
+[  Valid  ] Pre-condition for 'pre_f' 'i_plus_one' at call 'f' (file tests/value/precond2.c, line 21)
+            requires i_plus_one: 1 + 1 ≥ 0
             by Value.
-[  Valid  ] Pre-condition for 'pre_f' (file tests/value/precond2.c, line 10) at call 'f' (file tests/value/precond2.c, line 21)
-            requires 1 ≥ 0
+[  Valid  ] Pre-condition for 'pre_f' 'i' at call 'f' (file tests/value/precond2.c, line 21)
+            requires i: 1 ≥ 0
             by Value.
-[  Valid  ] Pre-condition for 'pre_f_2' (file tests/value/precond2.c, line 9) at call 'f' (file tests/value/precond2.c, line 22)
-            requires (int)(-1) + 1 ≥ 0
+[  Valid  ] Pre-condition for 'pre_f_2' 'i_plus_one' at call 'f' (file tests/value/precond2.c, line 22)
+            requires i_plus_one: (int)(-1) + 1 ≥ 0
             by Value.
-[  Alarm  ] Pre-condition for 'pre_f_2' (file tests/value/precond2.c, line 10) at call 'f' (file tests/value/precond2.c, line 22)
-            requires (int)(-1) ≥ 0
+[  Alarm  ] Pre-condition for 'pre_f_2' 'i' at call 'f' (file tests/value/precond2.c, line 22)
+            requires i: (int)(-1) ≥ 0
             By Value, with pending:
              - Unreachable call 'f' (file tests/value/precond2.c, line 22)
 [  Valid  ] Pre-condition for 'pre_g' (file tests/value/precond2.c, line 16) at call 'g' (file tests/value/precond2.c, line 24)

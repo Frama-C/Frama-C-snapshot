@@ -1,4 +1,4 @@
-[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[kernel] Warning: ignoring source files specified on the command line while loading a global initial context.
 [from] Computing for function f
 [from] Done for function f
 [from] Computing for function main
@@ -14,7 +14,7 @@
 [from] Done for function printf_va_5
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function printf_va_1:
@@ -47,11 +47,11 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      i; j; tmp; __retres
+    i; j; tmp; __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      x; y; S___fc_stdout[0].__fc_FILE_data
+    x; y; S___fc_stdout[0].__fc_FILE_data
 [inout] Inputs for function main:
-      x; y; S___fc_stdout[0]; "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
-      "%d\n"
+    x; y; S___fc_stdout[0]; "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
+    "%d\n"

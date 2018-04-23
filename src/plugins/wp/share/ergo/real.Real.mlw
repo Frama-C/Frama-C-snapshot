@@ -12,7 +12,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is the prelude for Alt-Ergo, any versions *)
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
 (* this is a prelude for Alt-Ergo real arithmetic *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)

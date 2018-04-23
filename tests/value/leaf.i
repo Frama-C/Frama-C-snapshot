@@ -2,13 +2,13 @@ int T[30] = {1};
 
 int   f_int_int(int x);
 
-/*@ allocates \result;
-    ensures \fresh(\result,sizeof(int)); */
+extern int g; int *pg = &g;
+/*@ assigns \result \from pg; */
 int * f_int_star_int(int x);
 
-/*@ allocates \result, *\result;
-    ensures \fresh(*\result,sizeof(int));
-    ensures \fresh(\result,sizeof(int)); */
+int **ppg = &pg;
+
+/*@ assigns \result \from ppg; */
 int **f_int_star_int_star_int(int x);
 
 int f_star_int_cint(const int *x);
@@ -19,7 +19,7 @@ int f_tab_int_int(int x[]);
 int f_tab3_int_int(int x[3]);
 
 int cv1=10, cv2=20, cv3=30 ;
-struct _st_star_cint { const int * const p ; }
+struct _st_star_cint { const int * p ; }
   st_star_cint_1={&cv1},
   st_star_cint_2={&cv2},
   st_star_cint_3={&cv3} ;

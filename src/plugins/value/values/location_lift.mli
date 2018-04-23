@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,7 @@ module type Conversion = sig
   type internal_value
 
   val extend_val : internal_value -> extended_value
+  val replace_val : internal_value -> extended_value -> extended_value
   val restrict_val : extended_value -> internal_value
 end
 

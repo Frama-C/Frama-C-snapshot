@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,14 @@
 
 open Abstract_interp
 
+
+type kind =
+  | Float32 (** 32 bits float (a.k.a 'float' C type) *)
+  | Float64 (** 64 bits float (a.k.a 'double' C type) *)
+  | Real    (** set of real *)
+
+val pretty_kind: Format.formatter -> kind -> unit
+
 module F : sig
   type t
   val packed_descr : Structural_descr.pack
@@ -40,13 +48,16 @@ module F : sig
   val pretty :  Format.formatter -> t -> unit
   val pretty_normal :  use_hex:bool -> Format.formatter -> t -> unit
 
-  val zero : t
+  val plus_zero : t
 
-  val next_float : float -> float
+  val is_finite : t -> bool
+  (** Returns true if the float is a finite number. *)
+
+  val next_float : kind -> float -> float
   (** First double strictly above the argument. Must be called on non-NaN
       floats. Returns +infty on MAX_FLT. Infinities are left unchanged. *)
 
-  val prev_float : float -> float
+  val prev_float : kind -> float -> float
   (** First double strictly below the argument. Must be called on non-NaN
       floats. Returns -infty on -MAX_FLT. Infinities are left unchanged. *)
 end
@@ -54,142 +65,125 @@ end
 type t
 val packed_descr : Structural_descr.pack
 
+val top_finite : kind -> t
 
-(** [Non_finite] is produced when the result of a computation is
-    entirely not-finite, such as [+oo,+oo] (results in [Bottom]). *)
-exception Non_finite
+val round_to_single_precision_float : t -> t
 
-type rounding_mode = Any | Nearest_Even
+val bits_of_float64_list : t -> (Int.t * Int.t) list
+val bits_of_float32_list : t -> (Int.t * Int.t) list
 
-val top_single_precision_float : t
 
-val round_to_single_precision_float : rounding_mode:rounding_mode -> t -> bool * t
+(** [inject_raw b e] creates an abstract float interval.
+    Does not handle NaN.
+    Does not enlarge subnormals to handle flush-to-zero modes.
+    Only checks that [b <= e], but nothing else.
+*)
+(* val inject_raw : F.t -> F.t -> t *)
 
-val bits_of_float64 : signed:bool -> t -> Int.t * Int.t
-val bits_of_float32 : signed:bool -> t -> Int.t * Int.t
+(** [inject] creates an abstract float interval. It handles
+    infinities, flush-to-zero (rounding subnormals if needed) and NaN.
+    Inputs must be compatible with [float_kind]. Raises no exceptions
+    (unless values are not compatible with [float_kind], in which case
+    execution is aborted). The two floating point numbers must be
+    ordered (so not NaN). [~nan] indicates if NaN is present.
+*)
+val inject : ?nan:bool -> kind -> F.t -> F.t -> t
 
-(** [has_finite f] returns true iff [f] contains at least one finite
-    element. *)
-val has_finite : t -> bool
-
-(** Floating-point builtins may produce three kinds of alarms:
-    - [APosInf] when the result may contain +oo;
-    - [ANegInf] when the result may contain -oo;
-    - [ANaN msg] when the result is NaN; an explanation of why the argument
-      is invalid is given.
-    - [AAssume msg] is a variant of ANaN for debugging purposes, mostly for
-      internal use. Ignored when printing alarms.
-    Builtins may sometimes raise [Non_finite] when no part of the result
-    is finite. *)
-type builtin_alarm = APosInf | ANegInf | ANaN of string | AAssume of string
-module Builtin_alarms : (Set.S with type elt = builtin_alarm)
-
-type builtin_res = Builtin_alarms.t * t Bottom.or_bottom
-(** Builtins return structured alarms, in the guise of a set of string
-    explaining the problem. *)
-
-type float_kind =
-  | Float32 (** 32 bits float (a.k.a 'float' C type) *)
-  | Float64 (** 64 bits float (a.k.a 'double' C type) *)
-
-(** Equivalent to the [nextafter/nextafterf] functions in C. *)
-val next_after : float_kind -> F.t -> F.t -> F.t
-
-(** [inject] creates an abstract float interval.
-    Does not handle infinities or NaN.
-    Does not enlarge subnormals to handle flush-to-zero modes *)
-val inject : F.t -> F.t -> t
-
-(** [inject_r_f] creates an abstract float interval. It handles infinities and
-    flush-to-zero (rounding subnormals if needed), but not NaN.
-    The returned booleans are true if the lower/upper bound may be infinite.
-    May raise {!Non_finite} when no part of the result would be finite.
-    Inputs must be compatible with [float_kind]. *)
-val inject_r_f : float_kind -> F.t -> F.t -> bool (*-inf*) * bool (*+inf*) * t
-
-(** Alias for [inject_r_f Float64]. *)
-val inject_r : F.t -> F.t -> bool (* not finite *) * t
-
-(** Equivalent to [inject_r_f], but ignores the boolean [not_finite].
-    The caller must emit appropriate warnings in the presence of
-    non-finite values. *)
-val inject_f : float_kind -> F.t -> F.t -> t
+val nan: t
+(** The NaN singleton *)
 
 val inject_singleton : F.t -> t
 
-val compare_min : t -> t -> int
-val compare_max : t -> t -> int
+(** [has_greater_min_bound f1 f2] returns 1 if the interval [f1] has a better
+    minimum bound (i.e. greater) than the interval [f2]. *)
+val has_greater_min_bound : t -> t -> int
 
-val min_and_max : t -> F.t * F.t
+(** [has_smaller_max_bound f1 f2] returns 1 if the interval [f1] has a better
+    maximum bound (i.e. lower) than the interval [f2]. *)
+val has_smaller_max_bound : t -> t -> int
+
+val min_and_max : t -> (F.t * F.t) option * bool
+(** returns the bounds of the float interval, (or None if the argument is
+    exactly NaN), and a boolean indicating the possibility that the value
+    may be NaN. *)
+
+val is_negative : t -> Comp.result
+(** [is_negative f] returns [True] iff all values in [f] are negative;
+    [False] iff all values are positive; and [Unknown] otherwise.
+    Note that we do not keep sign information for NaN, so if [f] may contain
+    NaN, the result is always [Unknown]. *)
+
 val top : t
-val add : rounding_mode -> t -> t -> bool * t
-val sub : rounding_mode -> t -> t -> bool * t
-val mul : rounding_mode -> t -> t -> bool * t
-val div : rounding_mode -> t -> t -> bool * t
-val is_a_zero : t -> bool
-(** [is_a_zero f] returns true iff f ⊆ [-0.0,+0.0] *)
+val add : kind -> t -> t -> t
+val sub : kind -> t -> t -> t
+val mul : kind -> t -> t -> t
+val div : kind -> t -> t -> t
 
-val contains_zero : t -> bool
 val compare : t -> t -> int
+val equal : t -> t -> bool
 
 val pretty : Format.formatter -> t -> unit
-val pretty_overflow: Format.formatter -> t -> unit
-(** This pretty-printer does not display -FLT_MAX and FLT_MAX as interval
-    bounds. Instead, the special notation [--.] is used. *)
 
 val hash : t -> int
 
-val zero : t
-val minus_zero: t
+val plus_zero : t
+val minus_zero : t
 val zeros: t (** Both positive and negative zero *)
 
-val is_zero : t -> bool
+val pi: t (** Real representation of \pi. *)
+val e: t  (** Real representation of \e. *)
+
+val contains_a_zero : t -> bool
+val contains_plus_zero : t -> bool
+val contains_non_zero : t -> bool
 
 val is_included : t -> t -> bool
 val join : t -> t -> t
 val meet : t -> t -> t Bottom.or_bottom
 val narrow : t -> t -> t Bottom.or_bottom
 
-val contains_a_zero : t -> bool
-
 val is_singleton : t -> bool
+(** Returns [true] on NaN. We expect this function to be e.g. to perform
+    subdivisions/enumerations. The size of the concretization is less
+    interesting to us. (And it is also possible to consider that there is
+    only one NaN value in the concrete anyway.) *)
+
+val is_finite : t -> Comp.result
+val is_not_nan : t -> Comp.result
+val backward_is_finite : kind -> t -> t Bottom.or_bottom
+val backward_is_not_nan: t -> t Bottom.or_bottom
 
 exception Not_Singleton_Float
 
 val project_float: t -> F.t
-(** @raise Not_Singleton_Float when the interval is not a single float. *)
+(** @raise Not_Singleton_Float when the interval is not a single float
+    (NaN is one such case). *)
 
-val minus_one_one : t
-
-val subdiv_float_interval : size:float_kind option -> t -> t * t
+val subdiv_float_interval : kind -> t -> t * t
+(** Raise {!Can_not_subdiv} if it can't be subdivided *)
 
 val neg : t -> t
 
-val cos : t -> t
-val sin : t -> t
+val cos : kind -> t -> t
+val sin : kind -> t -> t
 
-val atan2: t -> t -> builtin_res
-(** Returns atan2(y,x). Does not emit any alarms. *)
+val atan2: kind -> t -> t -> t
+(** Returns atan2(y,x). *)
 
-val pow: t -> t -> builtin_res
+val pow: kind -> t -> t -> t
 (** Returns pow(x,y). *)
 
-val powf : t -> t -> builtin_res
-(** Single-precision version of pow. *)
+val fmod: kind -> t -> t -> t
+(** Returns fmod(x,y). *)
 
-val fmod: t -> t -> builtin_res
-(** Returns fmod(x,y). May return a "division by zero" alarm.
-    Raises [Builtin_invalid_domain] if there is certainly a division by zero.
-*)
+val sqrt : kind -> t -> t
 
-val sqrt : rounding_mode -> t -> builtin_res
-
-(** Discussion regarding -all-rounding-modes and the functions below.
+(** Discussion regarding [kind] and the 3 functions below.
 
     Support for fesetround(FE_UPWARD) and fesetround(FE_DOWNWARD) seems to
     be especially poor, including in not-so-old versions of Glibc
     (https://sourceware.org/bugzilla/show_bug.cgi?id=3976). The code for
-    {!exp}, {!log} and {!log10} is correct wrt. -all-rounding-modes ONLY
+    {!exp}, {!log} and {!log10} is correct wrt. [kind=Reak] ONLY
     if the C implementation of these functions is correct in directed
     rounding modes. Otherwise, anything could happen, including crashes. For
     now, unless the Libc is known to be reliable, these functions should be
@@ -198,49 +192,55 @@ val sqrt : rounding_mode -> t -> builtin_res
     f(FE_DOWNWARD) <= f(FE_TONEAREST) <= f(FE_UPWARD), which implies that
     using different rounding modes to bound the final result does not ensure
     correct bounds. Here's an example where it does not hold (glibc 2.21):
-    log10f(3, FE_TONEAREST) < log10f(3, FE_DOWNWARD). *)
+    log10f(3, FE_TONEAREST) < log10f(3, FE_DOWNWARD).
 
-val exp : rounding_mode -> t -> Builtin_alarms.t * t
-val log: rounding_mode -> t -> builtin_res
-val log10: rounding_mode -> t -> builtin_res
-(** All three functions may raise {!Non_finite}.
-    Can only be called to approximate a computation on double (float64). *)
+    Also, we have observed bugs in [powf], which is called when [kind=Float32].
+ *)
 
-val floor: rounding_mode -> t -> Builtin_alarms.t * t
-val ceil: rounding_mode -> t -> Builtin_alarms.t * t
-val trunc: rounding_mode -> t -> Builtin_alarms.t * t
-val fround: rounding_mode -> t -> Builtin_alarms.t * t
+val exp : kind -> t -> t
+val log: kind -> t -> t
+val log10: kind -> t -> t
 
-val expf : rounding_mode -> t -> Builtin_alarms.t * t
-val logf : rounding_mode -> t -> builtin_res
-val log10f : rounding_mode -> t -> builtin_res
-val sqrtf : rounding_mode -> t -> builtin_res
-val floorf: rounding_mode -> t -> Builtin_alarms.t * t
-val ceilf: rounding_mode -> t -> Builtin_alarms.t * t
-val truncf: rounding_mode -> t -> Builtin_alarms.t * t
-val froundf: rounding_mode -> t -> Builtin_alarms.t * t
-(** Single-precision versions *)
+val floor: kind -> t -> t
+val ceil: kind -> t -> t
+val trunc: kind -> t -> t
+val fround: kind -> t -> t
 
 val widen : t -> t -> t
 
 val forward_comp: Comp.t -> t -> t -> Comp.result
 
-val diff : t -> t -> t Bottom.or_bottom
-
-val backward_comp_left :
-  Comp.t -> bool -> float_kind -> t -> t -> t Bottom.or_bottom
+val backward_comp_left_true :
+  Comp.t -> kind -> t -> t -> t Bottom.or_bottom
 (** [backward_comp op allroundingmodes fkind f1 f2] attempts to reduce
     [f1] into [f1'] so that the relation [f1' op f2] holds. [fkind] is
-    the type of [f1] and [f1'] (not necessarily of [f2]). If
-    [allroundingmodes] is set, all possible rounding modes are taken into
-    account. [op] must be [Eq], [Ne], [Le], [Ge], [Lt] or [Gt] *)
+    the type of [f1] and [f1'] (not necessarily of [f2]).  *)
 
-val cast_float_to_double_inverse: t -> t
-(** [cast_float_to_double_inverse d] return all possible float32 [f] such that
+val backward_comp_left_false :
+  Comp.t -> kind -> t -> t -> t Bottom.or_bottom
+(** [backward_comp op allroundingmodes fkind f1 f2] attempts to reduce
+    [f1] into [f1'] so that the relation [f1' op f2] doesn't holds. [fkind] is
+    the type of [f1] and [f1'] (not necessarily of [f2]). *)
+
+val backward_cast_float_to_double: t -> t Bottom.or_bottom
+(** [backward_cast_float_to_double d] return all possible float32 [f] such that
     [(double)f = d]. The double of [d] that have no float32 equivalent are
     discarded. *)
 
-val enlarge_1ulp: float_kind -> t -> t
-(** enlarge the bounds of the interval by one ulp.
-    @raise Non_finite if the result is not fully finite.
-*)
+val backward_cast_double_to_real: t -> t
+
+val cast_int_to_float: kind -> Int.t option -> Int.t option -> t
+
+val backward_add:
+  kind -> left:t -> right:t -> result:t ->
+  (t * t) Bottom.or_bottom
+
+val backward_sub:
+  kind -> left:t -> right:t -> result:t ->
+  (t * t) Bottom.or_bottom
+
+val kind: Cil_types.fkind -> kind
+(** Classify a [Cil_types.fkind] as either a 32 or 64 floating-point type.
+    Long double are over approximated by Reals *)
+
+

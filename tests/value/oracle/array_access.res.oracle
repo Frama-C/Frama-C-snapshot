@@ -128,25 +128,26 @@
     [106] ∈ {4}
   R ∈ {0}
 [value] computing for function any_int <- main.
-    Called from tests/value/array_access.c:16.
+  Called from tests/value/array_access.c:16.
 [value] using specification for function any_int
 [value] Done for function any_int
 [value] computing for function any_int <- main.
-    Called from tests/value/array_access.c:16.
+  Called from tests/value/array_access.c:16.
 [value] Done for function any_int
-tests/value/array_access.c:18:[value] Frama_C_show_each_I: [0..8]
-tests/value/array_access.c:19:[value] warning: accessing out of bounds index. assert 0 ≤ (int)((int)(-i) - 1);
-tests/value/array_access.c:19:[value] warning: accessing out of bounds index. assert (int)((int)(-i) - 1) < 10;
+[value] tests/value/array_access.c:18: Frama_C_show_each_I: [0..8]
+[value:alarm] tests/value/array_access.c:19: Warning: 
+  accessing out of bounds index. assert 0 ≤ (int)((int)(-i) - 1);
 [value] computing for function any_int <- main.
-    Called from tests/value/array_access.c:21.
+  Called from tests/value/array_access.c:21.
 [value] Done for function any_int
-tests/value/array_access.c:21:[value] warning: out of bounds read.
-    assert \valid_read((int *)((char *)ch) + tmp_0);
-    (tmp_0 from any_int())
+[value:alarm] tests/value/array_access.c:21: Warning: 
+  out of bounds read.
+  assert \valid_read((int *)((char *)ch) + tmp_0);
+  (tmp_0 from any_int())
 [value] Recording results for main
 [value] done for function main
-tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final status valid.
-tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final status invalid.
+[value] tests/value/array_access.c:19: 
+  assertion 'Value,index_bound' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   R ∈ {16777472; 16777473}
@@ -162,13 +163,13 @@ tests/value/array_access.c:19:[value] assertion 'Value,index_bound' got final st
 [from] Done for function any_int
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function any_int:
   \result FROM \nothing
 [from] Function main:
   R FROM ch[0..103]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      R; i; j; k; c; p; LT[0..9]; tmp; tmp_0
+    R; i; j; k; c; p; LT[0..9]; tmp; tmp_0
 [inout] Inputs for function main:
-      t1[0..8]; t2[0..8]; ch[0..103]
+    t1[0..8]; t2[0..8]; ch[0..103]

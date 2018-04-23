@@ -3,7 +3,7 @@ open Cil_types
 class visitor prj =
   object
     inherit Visitor.frama_c_copy prj
-    method vfunc f = f.svar.vname <- "g"; Cil.SkipChildren
+    method! vfunc f = f.svar.vname <- "g"; Cil.SkipChildren
   end
 
 let run () =

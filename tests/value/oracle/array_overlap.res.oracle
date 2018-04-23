@@ -11,15 +11,18 @@
    [3..4] ∈ {2}
    [5] ∈ {3}
    [6..9] ∈ {0}
-tests/value/array_overlap.i:11:[value] warning: partially overlapping lvalue assignment.
-    assert
-    ptr ≡ (struct S *)((char *)T) ∨ \separated(ptr, (struct S *)((char *)T));
-tests/value/array_overlap.i:16:[value] warning: partially overlapping lvalue assignment.
-    assert
-    ptr ≡ (struct S *)((char *)U) ∨ \separated(ptr, (struct S *)((char *)U));
+[value:alarm] tests/value/array_overlap.i:11: Warning: 
+  partially overlapping lvalue assignment.
+  assert
+  ptr ≡ (struct S *)((char *)T) ∨ \separated(ptr, (struct S *)((char *)T));
+[value:alarm] tests/value/array_overlap.i:16: Warning: 
+  partially overlapping lvalue assignment.
+  assert
+  ptr ≡ (struct S *)((char *)U) ∨ \separated(ptr, (struct S *)((char *)U));
 [value] Recording results for main
 [value] done for function main
-tests/value/array_overlap.i:11:[value] assertion 'Value,overlap' got final status invalid.
+[value] tests/value/array_overlap.i:11: 
+  assertion 'Value,overlap' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   T[0..3] ∈ {1}
@@ -36,12 +39,12 @@ tests/value/array_overlap.i:11:[value] assertion 'Value,overlap' got final statu
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   T[1..6] FROM T[0..5]
   U[0..6] FROM U[0..5]; c (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      T[1..6]; U[0..6]; ptr; i
+    T[1..6]; U[0..6]; ptr; i
 [inout] Inputs for function main:
-      T[0..5]; U[0..5]
+    T[0..5]; U[0..5]

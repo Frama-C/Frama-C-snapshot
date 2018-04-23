@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -231,7 +231,7 @@ class propagate project fnames ~cast_intro = object(self)
               let f = Ival.project_float m in
               let f =  Fval.(F.to_float (project_float f)) in
               Cil.kfloat ~loc:expr.eloc fkind f
-            with Fval.Not_Singleton_Float | Ival.Nan_or_infinite ->
+            with Fval.Not_Singleton_Float->
               raise Cannot_expand
           in
           (match typ_e with

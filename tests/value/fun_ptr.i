@@ -66,7 +66,7 @@ void too_much2(int i, int j, int k) {
 
 void test_too_much_benign () {
   int x;
-  void (*p) (int, int) = &too_much;
+  void (*p) () = &too_much;
   (*p)(1, 2); // Accepted (with an alarm)
   if (v) {
     p = &too_much2;

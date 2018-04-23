@@ -1,10 +1,9 @@
 open Cil_types
 open Cil
-open Format
 
 class cF = object(self) inherit Visitor.frama_c_inplace
 
-method vstmt s =
+method! vstmt s =
 let fd = (Extlib.the self#current_func) in
 match s.skind with
 | Instr (Set (lv,e,loc)) ->

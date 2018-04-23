@@ -1,4 +1,4 @@
-###############################################################################
+ ###############################################################################
 # Preliminary notes:                                                          #
 # ------------------                                                          #
 # Mark "-": change with an impact for users (and possibly developers).        #
@@ -19,6 +19,46 @@
 #   <Model>: memory model
 #   <Prover>: prover
 ###############################################################################
+
+###########################
+Plugin WP Chlorine-20180501
+###########################
+
+ - WP         [2018/03/08] Add the missing ACSL math builtins (see manual)
+ - WP         [2018/02/12] Optional support for _Bool range (-wp-bool-range)
+ - WP         [2018/03/12] Better handling of \null and (void *)0L
+ - WP         [2018/02/16] Allow backtracking when using strategies (-wp-auto-backtrack)
+ - WP         [2018/02/16] Filter out some variables from separation
+ - TIP        [2018/02/15] Extend bitwise-eq auto-strategy on hypotheses
+ - TIP        [2018/02/15] Fix wrong reconciliation of sub-scripts during replay
+ - WP         [2018/01/15] Upgrade to Alt-Ergo 2.0.0
+ - WP         [2018/01/15] Upgrade to Coq 8.7.1
+ - WP         [2018/01/15] Upgrade to Why-3 0.88.3
+ - Qed        [2017/12/13] Transforms some quantifications into let constructs
+ - Wp         [2018/01/18] Auto-Search mode, see -wp-auto
+ - TIP        [2018/01/18] Auto-Search mode from the GUI
+ - TIP        [2018/01/18] New Strategies for bitwise and congruence operations
+ - TIP        [2017/12/17] Fix bug that makes the TIP wrongly reuse previous results
+ - Wp         [2017/12/17] Option -wp-print-separation changed into -wp-warn-separation
+ - Wp         [2017/12/17] Option -wp-unfold-assigns for proving assigns of aggregates field by field
+ - TIP        [2017/04/25] New tactical Congruence (divisions and products)
+ - Qed        [2017/10/30] Extends simplifications for lsl,lsr and div
+ - Wp         [2017/10/27] Fix soundness bug when assigning non-valid ranges
+ - Qed        [2017/10/27] New simplifications for validirt and ranges
+ - TIP        [2017/10/27] New tacticals for validity and ranges
+ - TIP        [2017/04/25] Options -wp-time-{extra|margin} for more stability
+ -* Gui       [2017/04/25] Fixed bug when running prover from the TIP
+ - Wp         [2017/04/25] Improved model and simplifications of logical shifts
+ - Wp         [2017/04/25] New simplification logic functions (-wp-reduce)
+ - Wp         [2017/04/25] New simplification of unused variables (-wp-parasite)
+ - Wp         [2017/04/25] New simplification for ground terms (-wp-ground)
+ - Wp         [2017/04/25] Option -wp-prenex to normalize nested binders
+ - Wp         [2017/04/25] Option -wp-overflows to add explicit assumptions
+ - TIP        [2017/04/25] New tactical Overflow (to cope with modulus)
+ - TIP        [2017/04/25] New tactical Bitwised, BitRange and Shift
+ - TIP        [2017/04/25] New tactical Rewrite (two apply equalities)
+ - Wp         [2017/03/12] Reduction of equalities with logic functions
+ - Wp         [2017/03/12] More simplifications wrt integer domains
 
 #########################
 Plugin WP Sulfur-20171101

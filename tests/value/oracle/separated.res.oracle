@@ -6,11 +6,14 @@
   t[0..14] ∈ {0}
   p ∈ {{ &t[0] }}
   x ∈ {0}
-tests/value/separated.i:10:[value] assertion got status valid.
-tests/value/separated.i:13:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/separated.i:16:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/separated.i:19:[value] warning: assertion got status invalid (stopping propagation).
-tests/value/separated.i:22:[value] assertion got status valid.
+[value] tests/value/separated.i:10: assertion got status valid.
+[value:alarm] tests/value/separated.i:13: Warning: 
+  assertion got status invalid (stopping propagation).
+[value:alarm] tests/value/separated.i:16: Warning: 
+  assertion got status invalid (stopping propagation).
+[value:alarm] tests/value/separated.i:19: Warning: 
+  assertion got status invalid (stopping propagation).
+[value] tests/value/separated.i:22: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -20,12 +23,12 @@ tests/value/separated.i:22:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   x FROM c
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x; __retres
+    x; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,8 +22,6 @@
 
 open Cil_types
 open Cil_datatype
-
-let dkey = Kernel.register_category "natural_loops"
 
 module Natural_Loops =
   Kernel_function.Make_Table
@@ -66,7 +64,8 @@ let findNaturalLoops (f: fundec) =
       Stmt.Map.empty
       f.sallstmts
   in
-  Kernel.debug ~dkey "Natural loops:\n%a" pretty_natural_loops loops;
+  Kernel.debug
+    ~dkey:Kernel.dkey_loops "Natural loops:\n%a" pretty_natural_loops loops;
   loops
 
 let get_naturals kf =
@@ -77,10 +76,11 @@ let get_naturals kf =
          | Declaration _ ->
              Stmt.Map.empty
          | Definition (cilfundec,_) ->
-             Kernel.debug ~dkey "Compute natural loops for '%a'"
+             Kernel.debug ~dkey:Kernel.dkey_loops
+               "Compute natural loops for '%a'"
                Kernel_function.pretty kf;
              let naturals = findNaturalLoops cilfundec  in
-             Kernel.debug ~dkey
+             Kernel.debug ~dkey:Kernel.dkey_loops
                "Done computing natural loops for '%a':@.%a"
                Kernel_function.pretty kf
                pretty_natural_loops naturals;
@@ -98,15 +98,19 @@ let back_edges kf stmt =
   try Stmt.Map.find stmt (get_naturals kf)
   with Not_found -> []
 
+let is_back_edge kf s1 s2 =
+  List.exists (Cil_datatype.Stmt.equal s1) (back_edges kf s2)
 
 let get_non_naturals kf =
   let visited = Stmt.Hashtbl.create 17 in
   let current = Stmt.Hashtbl.create 17 in
   let res = ref Stmt.Set.empty in
-  let is_natural = is_natural kf in
-  let rec aux s =
+  let rec aux pred s =
     if Stmt.Hashtbl.mem visited s then begin
-      if Stmt.Hashtbl.mem current s &&  not (is_natural s) then begin
+      (* pred always contains something except when entering the recursion,
+         when visited is empty. *)
+      let pred = Extlib.the pred in
+      if Stmt.Hashtbl.mem current s &&  not (is_back_edge kf pred s) then begin
         res := Stmt.Set.add s !res;
         Kernel.warning ~once:true ~source:(fst (Cil_datatype.Stmt.loc s))
           "Non-natural loop detected."
@@ -115,11 +119,11 @@ let get_non_naturals kf =
     else begin
       Stmt.Hashtbl.add visited s ();
       Stmt.Hashtbl.add current s ();
-      List.iter aux s.Cil_types.succs;
+      List.iter (aux (Some s)) s.Cil_types.succs;
       Stmt.Hashtbl.remove current s;
     end
   in
-  aux (Kernel_function.find_first_stmt kf);
+  aux None (Kernel_function.find_first_stmt kf);
   !res
 
 module Non_Natural_Loops =

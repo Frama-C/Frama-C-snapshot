@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,9 +26,12 @@ let show main_ui =
     "Thibaud Antignac";
     "Gergö Barany";
     "Patrick Baudin";
+    "Lionel Blatter";
     "François Bobot";
     "Richard Bonichon";
+    "Quentin Bouillaguet";
     "David Bühler";
+    "Zakaria Chihani";
     "Loïc Correnson";
     "Julien Crétin";
     "Pascal Cuoq";
@@ -42,6 +45,7 @@ let show main_ui =
     "David Maison";
     "Claude Marché";
     "André Maroneze";
+    "Melody Méaulle";
     "Benjamin Monate";
     "Yannick Moy";
     "Anne Pacalet";

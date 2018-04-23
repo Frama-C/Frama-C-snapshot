@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,6 +123,82 @@ let load_file (host_window: Design.main_window_extension_points) =
        | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
+(** Open the Preferences dialog *)
+let preferences (host_window: Design.main_window_extension_points) =
+  let dialog =
+    GWindow.dialog ~modal:true
+      ~border_width:8 ~title:"Preferences" ~parent:host_window#main_window ()
+  in
+  let main_box = dialog#vbox in
+  main_box#set_spacing 10;
+  let theme_frame = GBin.frame ~label:"Property bullets theme" () in
+  main_box#pack theme_frame#coerce;
+  let theme_box = GPack.vbox ~spacing:2 ~border_width:10 () in
+  theme_frame#add theme_box#coerce;
+  (* Themes are directories in share/theme. *)
+  let themes_path = !Wutil.share ^ "/theme/" in
+  let themes = Array.to_list (Sys.readdir themes_path) in
+  let is_theme_directory name = Sys.is_directory (themes_path ^ name) in
+  let themes = List.filter is_theme_directory themes in
+  (* The current theme is kept in the configuration file. *)
+  let active_theme =
+    Gtk_helper.Configuration.find_string ~default:"default" "theme"
+  in
+  let theme_group = new Widget.group "" in
+  let build_theme_button name =
+    let label = Transitioning.String.capitalize_ascii name in
+    let widget = theme_group#add_radio ~label ~value:name () in
+    theme_box#add widget#coerce
+  in
+  (* Builds the theme buttons, and sets the active theme. *)
+  List.iter build_theme_button themes;
+  theme_group#set active_theme;
+  (* External editor command. *)
+  let default = "emacs +%d %s" in
+  let editor = Gtk_helper.Configuration.find_string ~default "editor" in
+  let editor_frame = GBin.frame ~label:"Editor command" () in
+  main_box#pack editor_frame#coerce;
+  let editor_box = GPack.vbox ~spacing:5 ~border_width:10 () in
+  editor_frame#add editor_box#coerce;
+  let text = "Command to open an external editor \
+              on Ctrl-click in the original source code. \n\
+              Use %s for file name and %d for line number."
+  in
+  let label = GMisc.label ~xalign:0. ~line_wrap:true ~text () in
+  editor_box#pack label#coerce;
+  let editor_input = GEdit.entry ~width_chars:30 ~text:editor () in
+  editor_box#pack editor_input#coerce ~expand:true;
+  (* Save and cancel buttons. *)
+  let hbox_buttons = dialog#action_area in
+  let packing = hbox_buttons#pack ~expand:true ~padding:3 in
+  let wb_ok = GButton.button ~label:"Save" ~packing () in
+  let wb_cancel = GButton.button ~label:"Cancel" ~packing () in
+  wb_ok#grab_default ();
+  let f_ok () =
+    (* retrieve chosen preferences from dialog *)
+    Gui_parameters.debug "saving preferences";
+    Gtk_helper.Configuration.set "theme"
+      (Gtk_helper.Configuration.ConfString theme_group#get);
+    Gtk_helper.Configuration.set "editor"
+      (Gtk_helper.Configuration.ConfString editor_input#text);
+    Gtk_helper.Configuration.save ();
+    dialog#destroy ();
+    (* Reloads the icons from the theme, and resets the icons used as property
+       status bullets.*)
+    Gtk_helper.Icon.clear ();
+    Design.Feedback.declare_markers host_window#source_viewer;
+  in
+  let f_cancel () =
+    Gui_parameters.debug "canceled, preferences not saved";
+    dialog#destroy ()
+  in
+  ignore (wb_ok#connect#clicked f_ok);
+  ignore (wb_cancel#connect#clicked f_cancel);
+  (* the enter key is linked to the ok action *)
+  (* the escape key is linked to the cancel action *)
+  dialog#misc#grab_focus ();
+  dialog#show ()
+
 let insert (host_window: Design.main_window_extension_points) =
   let menu_manager = host_window#menu_manager () in
   let _, filemenu = menu_manager#add_menu "_File" in
@@ -144,8 +220,11 @@ let insert (host_window: Design.main_window_extension_points) =
           (Menu_manager.Unit_callback (fun () -> save_file host_window));
         Menu_manager.menubar ~icon:`SAVE_AS "Save session as"
           (Menu_manager.Unit_callback (fun () -> save_file_as host_window));
+        Menu_manager.menubar ~icon:`PREFERENCES "Preferences"
+          (Menu_manager.Unit_callback (fun () -> preferences host_window));
       ]
   in
+  file_items.(5)#add_accelerator `CONTROL 'p';
   file_items.(3)#add_accelerator `CONTROL 's';
   file_items.(2)#add_accelerator `CONTROL 'l';
   let stock = `QUIT in

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -124,7 +124,7 @@ export LIBOVERLAY_SCROLLBAR=0
 
 .PHONY: clean
 clean::
-	$(RM) -r *.parse *.eva
+	$(RM) -r *.parse *.eva *.loop
 
 clean-backups:
 	find . -regextype posix-extended \
@@ -193,6 +193,7 @@ SHELL        := /bin/bash
 	      -value-log w:$@/warnings.log \
 	      -metrics-log a:$@/metrics.log \
 	      -metrics-value-cover \
+	      -then -nonterm -nonterm-log a:$@/nonterm.log \
 	    || ($(RM) $@/stats.txt && false) # Prevents having error code reporting in stats.txt
 	} 2>&1 |
 	  $(SED_UNBUFFERED) '/\[value\] Values at end of function/,999999d' |

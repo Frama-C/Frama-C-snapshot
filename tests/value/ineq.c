@@ -1,4 +1,4 @@
-int any_int();
+int any_int(void);
 int G[10] ={0};
 int g=0,h=0,i=0,j=0,k=1,l=1,m=-1,n=-1;
 void main () {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,7 +80,7 @@ class printer (text : Wtext.text) =
       match ProofEngine.children node with
       | [] ->
           text#printf "@{<bf>Tactical@}@} %s: @{<green>proved@} (Qed).@\n" header
-      | [child] ->
+      | [_,child] ->
           text#printf "@{<bf>Tactical@} %a: %a.@\n" self#pp_node child self#pp_state child
       | children ->
           begin match ProofEngine.pending node with
@@ -89,8 +89,8 @@ class printer (text : Wtext.text) =
             | n -> text#printf "@{<bf>Tactical@} %s: @{<orange>pending(%d)@}.@\n" header n ;
           end ;
           List.iter
-            (fun child -> text#printf "@{<bf>SubGoal@} %a : %a.@\n"
-                self#pp_node child self#pp_state child)
+            (fun (part,child) -> text#printf "@{<bf>SubGoal@} %s : %a.@\n"
+                part self#pp_state child)
             children
 
     method private alternative g a =
@@ -171,7 +171,7 @@ class printer (text : Wtext.text) =
             | _::_ when not (List.mem node path) ->
                 Format.fprintf fmt ": %a)%a" pp_status node self#backtrack node
 
-            | [child] ->
+            | [_,child] ->
                 Format.fprintf fmt ")%a" self#backtrack node ;
                 self#proofstep ~prefix:direct ~direct ~path ~here fmt child
 
@@ -179,19 +179,25 @@ class printer (text : Wtext.text) =
                 Format.fprintf fmt ": %a)%a" pp_status node self#backtrack node ;
                 let prefix = direct ^ " + " in
                 let direct = direct ^ "   " in
-                List.iter (self#proofstep ~prefix ~direct ~path ~here fmt) children
+                List.iter
+                  (fun (_,node) ->
+                     self#proofstep ~prefix ~direct ~path ~here fmt node)
+                  children
       end
 
     method tree tree =
       match ProofEngine.current tree with
       | `Main ->
           begin
-            match ProofEngine.(get (main tree)) with
+            let wpo = ProofEngine.main tree in
+            match ProofEngine.get wpo with
             | `Proof ->
                 text#printf "@{<it>Existing Script (navigate to explore)@}@."
             | `Script ->
+                text#printf "[File '%s']@." (ProofSession.filename wpo) ;
                 text#printf "@{<it>Existing Script (replay to explore)@}@."
             | `Saved ->
+                text#printf "[File '%s']@." (ProofSession.filename wpo) ;
                 text#printf "@{<it>Saved Script (replay to load)@}@."
             | `None ->
                 text#printf "@{<it>No Script@}@."

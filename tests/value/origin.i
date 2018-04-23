@@ -4,7 +4,7 @@
    OPT: -no-autoload-plugins -load-module from,inout,value @VALUECONFIG@ -val -val-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -journal-disable -then -out -deps
 
 */
-char f();
+char f(void);
 
 int a, b, aa2, *p, *pa1, *pa2, *qa2, *pa3, *q;
 
@@ -28,8 +28,8 @@ void origin_arithmetic_3(void) {
 
 
 int g(void);
-
-/*@ allocates \result; ensures \fresh(\result,sizeof(int)); */
+extern int *gpp;
+/*@ assigns \result \from gpp; */
 int *gp(void);
 
 int l1, l2, l3, *pl;

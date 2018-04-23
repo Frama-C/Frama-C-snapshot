@@ -3,13 +3,14 @@
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
 [wp] 2 goals scheduled
-[wp] [Alt-Ergo] Goal typed_lemma_with_consistent_antecedent_ok : Valid
-[wp] [Alt-Ergo] Goal typed_lemma_with_inconsistent_antecedent_ok : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_ok_because_inconsistent : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_ok_because_consistent : Valid
 [wp] Proved goals:    2 / 2
-    Qed:             0 
-    Alt-Ergo:        2
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic With_consistent_antecedent  -     1 (4)   1  100%
-Axiomatic With_inconsistent_antecedent  -     1 (4)   1  100%
-----------------------------------------------------------
+  Qed:             0 
+  Alt-Ergo:        2
+[wp] Report 'tests/wp_bts/issue_143.i.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic A         -       1 (1..12)        1       100%
+Axiomatic B         -       1 (1..12)        1       100%
+-------------------------------------------------------------

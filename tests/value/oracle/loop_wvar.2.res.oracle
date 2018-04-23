@@ -1,11 +1,12 @@
 [kernel] Parsing tests/value/loop_wvar.i (no preprocessing)
-tests/value/loop_wvar.i:38:[kernel] warning: invalid pragma '12'. Ignoring loop annotation
+[kernel:annot-error] tests/value/loop_wvar.i:38: Warning: 
+  invalid pragma '12'. Ignoring loop annotation
 [value] Analyzing a complete application starting at main_err1
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/loop_wvar.i:27:[value] entering loop for the first time
+[value] tests/value/loop_wvar.i:27: entering loop for the first time
 [value] Recording results for main_err1
 [value] done for function main_err1
 [value] ====== VALUES COMPUTED ======

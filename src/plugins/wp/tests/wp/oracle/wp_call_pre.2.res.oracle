@@ -2,9 +2,11 @@
 [kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
-tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
-[wp] warning: Missing RTE guards
+[kernel] tests/wp/wp_call_pre.c:53: Warning: 
+  No code nor implicit assigns clause for function g, generating default assigns from the prototype
+[kernel] tests/wp/wp_call_pre.c:53: Warning: 
+  No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function double_call
 ------------------------------------------------------------

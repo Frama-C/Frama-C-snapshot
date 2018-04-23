@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -286,29 +286,36 @@ let to_do_on_real_select _menu
     main_ui#annot_window#clear;
   end
 
-(* Returns a pair (varinfo, callback), where [varinfo] is the selected
-   global variable or function call, and [callback] executes a jump to the
+(* Returns a pair (name, callback), where [name] is the name of the selected
+   global variable, function or label, and [callback] executes a jump to the
    definition of [selected], if it is possible. Otherwise, returns [None]. *)
 let go_to_definition selected main_ui =
   match selected with
   | PLval (_kf, _ki, lv) ->
       begin
-        let ty = typeOfLval lv in
         match lv with
-        | Var vi, NoOffset when isFunctionType ty ->
-            (* only simple literal calls can be resolved syntactically *)
-            let kf = Globals.Functions.get vi in
-            let glob = Kernel_function.get_global kf in
-            Some (vi, fun () -> ignore (main_ui#select_or_display_global glob))
-        | Var vi, _ when not (isFunctionType ty) ->
-            (try
-               (* do nothing if the variable is not a global *)
-               ignore (Globals.Vars.find vi);
-               let g = GVarDecl (vi, Location.unknown) in
-               Some (vi, fun () -> ignore (main_ui#select_or_display_global g))
-             with Not_found -> None)
+        | Var vi, _ when vi.vsource && vi.vglob ->
+          let typ = Cil.typeOfLval lv in
+          let glob =
+            if Cil.isFunctionType typ
+            then Kernel_function.get_global (Globals.Functions.get vi)
+            else GVarDecl (vi, Location.unknown)
+          in
+          let name =
+            Pretty_utils.escape_underscores
+              (Format.asprintf "%a" Varinfo.pretty vi)
+          in
+          Some (name, fun () -> ignore (main_ui#select_or_display_global glob))
         | _ -> None (* cannot go to definition *)
       end
+  | PStmt (kf,{skind = Goto (stmt, _)}) ->
+    begin
+      match !stmt.labels with
+      | Label (lbl, _, _) :: _ ->
+        let name = Pretty_utils.escape_underscores lbl in
+        Some (name, fun () -> ignore (main_ui#scroll (PStmt (kf, !stmt))))
+      | _ -> None
+    end
   | _ -> None (* cannot go to definition *)
 
 (* Print the code annotations on the given statement *)
@@ -388,9 +395,27 @@ let to_do_on_select
             "Statement: %d (%a)@.@." s.sid Printer.pp_location loc
         else main_ui#pretty_information "Line %a@.@." Printer.pp_location loc
   in
-  let formal_or_local kf vi =
-    if Kernel_function.is_formal vi kf
-    then "formal parameter" else "local variable"
+  let pp_decl fmt loc =
+    if Cil_datatype.Location.equal loc Cil_datatype.Location.unknown then ()
+    else Format.fprintf fmt " (declared at %a)" Printer.pp_location loc
+  in
+  let formal_or_local vi =
+    if vi.vformal then "formal parameter" else "local variable"
+  in
+  let pp_defining_fun fmt vi =
+    match Kernel_function.find_defining_kf vi with
+    | None -> ()
+    | Some kf -> Format.fprintf fmt " of function %a" Kernel_function.pretty kf
+  in
+  let pp_var_with_decl fmt vi =
+    if vi.vglob then
+      Format.fprintf fmt "%sglobal variable%a"
+        (if vi.vsource then "" else "generated ")
+        pp_decl vi.vdecl
+    else
+      Format.fprintf fmt "%s%s%a%a"
+        (if vi.vsource then "" else "generated ")
+        (formal_or_local vi) pp_defining_fun vi pp_decl vi.vdecl
   in
   if button = 1 then begin
     match selected with
@@ -418,6 +443,11 @@ let to_do_on_select
         main_ui#view_original (Property.location ip)
     | PIP (Property.IPPredicate (Property.PKRequires _,_,_,_) as ip) ->
         main_ui#pretty_information "This is a requires clause.@.%a@."
+          pretty_predicate_status ip;
+        main_ui#view_original (Property.location ip)
+    | PIP (Property.IPExtended(_,_,(_,name,_)) as ip) ->
+        main_ui#pretty_information "This clause is a %s extension.@.%a@."
+          name
           pretty_predicate_status ip;
         main_ui#view_original (Property.location ip)
     | PIP (Property.IPPredicate (Property.PKTerminates,_,_,_) as ip) ->
@@ -486,8 +516,11 @@ let to_do_on_select
     | PIP(Property.IPBehavior _ as ip) ->
         main_ui#pretty_information "This is a behavior.@.";
         main_ui#view_original (Property.location ip)
-    | PIP(Property.IPReachable _ | Property.IPOther _
-         | Property.IPPropertyInstance _) ->
+    | PIP (Property.IPPropertyInstance (_, _, _, ip') as ip) ->
+      main_ui#pretty_information "@[This is an instance of property `%a'.@]@."
+        Property.short_pretty ip';
+        main_ui#view_original (Property.location ip)
+    | PIP(Property.IPReachable _ | Property.IPOther _) ->
         (* these properties are not selectable *)
         assert false
     | PGlobal _g -> main_ui#pretty_information "This is a global.@.";
@@ -508,12 +541,11 @@ let to_do_on_select
           match lv with
           | Var vi,NoOffset ->
               main_ui#pretty_information
-                "Variable %a has type `%a'.@\nIt is a %s.@\n\
+                "Variable %a has type `%a'.@\nIt is a %a.@\n\
                  %tIt is %sreferenced and its address is %staken.@."
                 Varinfo.pretty vi
                 Gui_printers.pp_typ vi.vtype
-                (if vi.vglob then "global variable"
-                 else formal_or_local (Extlib.the kf) vi)
+                pp_var_with_decl vi
                 (fun fmt ->
                    match vi.vdescr with
                    | None -> ()
@@ -556,38 +588,129 @@ let to_do_on_select
         main_ui#view_original (Property.location ip)
 
     | PVDecl (kf,_,vi) ->
-        main_ui#view_original vi.vdecl;
         if vi.vglob
-        then
+        then begin
+          main_ui#view_original (Global.loc (Ast.def_or_last_decl vi));
           main_ui#pretty_information
-            "This is the declaration of %s %a.@\nIt is %sreferenced and \
-             its address is %staken.@."
+            "This is the last declaration or definition of %s %a.@\n\
+             It is %sreferenced and its address is %staken.@."
             (if Cil.isFunctionType vi.vtype
              then "function" else "global variable")
             Varinfo.pretty vi
             (if vi.vreferenced then "" else "not ")
             (if vi.vaddrof then "" else "not ")
-        else
+        end else begin
+          main_ui#view_original vi.vdecl;
           let kf = Extlib.the kf in
           main_ui#pretty_information
             "This is the declaration of %s %a in function %a%t@."
-            (formal_or_local kf vi) Varinfo.pretty vi
+            (formal_or_local vi) Varinfo.pretty vi
             Kernel_function.pretty kf
             (fun fmt -> match vi.vdescr with None -> ()
                                            | Some s ->  Format.fprintf fmt
                                                           "@\nThis is a temporary variable for \"%s\".@." s)
+        end
   end
   else if button = 3 then begin
     match go_to_definition selected main_ui with
     | None -> () (* no menu to show *)
-    | Some (vi, callback) ->
-      if vi.vsource then
-        ignore (menu_factory#add_item
-                  ("Go to definition of " ^
-                   (Pretty_utils.escape_underscores
-                      (Format.asprintf "%a" Varinfo.pretty vi)))
-                  ~callback)
+    | Some (escaped_name, callback) ->
+      ignore (menu_factory#add_item
+                ("Go to definition of " ^ escaped_name)
+                ~callback)
   end
+
+
+module Feedback =
+struct
+
+  module F = Property_status.Feedback
+
+  let category = function
+    | F.Never_tried -> "never_tried"
+    | F.Considered_valid -> "considered_valid"
+    | F.Valid -> "surely_valid"
+    | F.Invalid -> "surely_invalid"
+    | F.Invalid_but_dead -> "invalid_but_dead"
+    | F.Valid_but_dead -> "valid_but_dead"
+    | F.Unknown_but_dead -> "unknown_but_dead"
+    | F.Unknown -> "unknown"
+    | F.Valid_under_hyp -> "valid_under_hyp"
+    | F.Invalid_under_hyp -> "invalid_under_hyp"
+    | F.Inconsistent -> "inconsistent"
+
+  let long_category = function
+    | F.Never_tried -> "Never tried: no status is available for this property"
+    | F.Considered_valid -> "Considered valid: this is a hypothesis that shall be verified outside Frama-C"
+    | F.Valid -> "Surely valid: verified (including all of its dependencies)"
+    | F.Invalid -> "Surely invalid: refuted (and all of its dependencies have been verified)"
+    | F.Invalid_but_dead -> "Invalid but dead: refuted, but unreachable"
+    | F.Valid_but_dead -> "Valid but dead: verified, but unreachable"
+    | F.Unknown_but_dead -> "Unknown but dead: unknown status, and unreachable"
+    | F.Unknown -> "Unknown: a verification has been attempted, but without conclusion"
+    | F.Valid_under_hyp -> "Valid under hypotheses: verified (but has dependencies with Unknown status)"
+    | F.Invalid_under_hyp -> "Invalid under hypotheses: refuted (but has dependencies with Unknown status)"
+    | F.Inconsistent -> "Inconsistent: got both true and false statuses (possibly cyclic dependencies, or an incorrect axiomatization)"
+
+  (* Two extra categories are used to add folding or unfolding icons on call
+     sites with preconditions. *)
+  let fold_category = "fold"
+  let unfold_category = "unfold"
+
+  let declare_markers (source:GSourceView2.source_view) =
+    source#set_mark_category_pixbuf
+      ~category:fold_category (Some Gtk_helper.Icon.(get Fold));
+    source#set_mark_category_pixbuf
+      ~category:unfold_category (Some Gtk_helper.Icon.(get Unfold));
+    (* Sets a high prioriy so that the icon for folding and unfolding are
+       printed on top of the status bullets. *)
+    source#set_mark_category_priority ~category:fold_category 2;
+    source#set_mark_category_priority ~category:unfold_category 2;
+    List.iter
+      (fun v ->
+         source#set_mark_category_pixbuf
+           ~category:(category v)
+           (Some (Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback v))))
+      [ F.Never_tried;
+        F.Considered_valid;
+        F.Valid;
+        F.Invalid;
+        F.Invalid_but_dead;
+        F.Valid_but_dead;
+        F.Unknown;
+        F.Unknown_but_dead;
+        F.Valid_under_hyp;
+        F.Invalid_under_hyp;
+        F.Inconsistent ]
+
+  (* tooltip marks are recreated whenever the buffer changes *)
+  let tooltip_marks : (int, string) Hashtbl.t = Hashtbl.create 8
+
+  (* Binds the line of a callsite to the corresponding statement.
+     Used to fold or unfold preconditions at a call site when the user clicks
+     on the bullet (we need to retrieve the statement from the line clicked). *)
+  let call_sites : (int, stmt) Hashtbl.t = Hashtbl.create 8
+
+  let clear_tables () =
+    Hashtbl.clear tooltip_marks;
+    Hashtbl.clear call_sites
+
+  let mark (source:GSourceView2.source_buffer) ?call_site ~offset validity =
+    let iter = source#get_iter_at_char offset in
+    let category = category validity in
+    source#remove_source_marks iter iter () ;
+    ignore (source#create_source_mark ~category iter) ;
+    Hashtbl.replace tooltip_marks iter#line (long_category validity);
+    match call_site with
+    | None -> ()
+    | Some stmt ->
+      Hashtbl.replace call_sites iter#line stmt;
+      if Pretty_source.are_preconds_unfolded stmt
+      then ignore (source#create_source_mark ~category:fold_category iter)
+      else ignore (source#create_source_mark ~category:unfold_category iter)
+
+end
+
 
 (** Widgets that might result in a localizable being selected:
     - the main ui reactive buffer (pretty-printed source)
@@ -654,6 +777,7 @@ class reactive_buffer_cl (main_ui:main_window_extension_points)
     method redisplay = self#init
 
     method private init =
+      Feedback.clear_tables ();
       let highlighter localizable ~start ~stop =
         List.iter (fun f -> f (self:>reactive_buffer) localizable ~start ~stop) !highlighter
       in
@@ -692,68 +816,6 @@ let reactive_buffer main_ui ?parent_window globs  =
   with Not_found ->
     new reactive_buffer_cl main_ui ?parent_window globs
 
-module Feedback =
-struct
-
-  module F = Property_status.Feedback
-
-  let category = function
-    | F.Never_tried -> "never_tried"
-    | F.Considered_valid -> "considered_valid"
-    | F.Valid -> "surely_valid"
-    | F.Invalid -> "surely_invalid"
-    | F.Invalid_but_dead -> "invalid_but_dead"
-    | F.Valid_but_dead -> "valid_but_dead"
-    | F.Unknown_but_dead -> "unknown_but_dead"
-    | F.Unknown -> "unknown"
-    | F.Valid_under_hyp -> "valid_under_hyp"
-    | F.Invalid_under_hyp -> "invalid_under_hyp"
-    | F.Inconsistent -> "inconsistent"
-
-  let long_category = function
-    | F.Never_tried -> "Never tried: no status is available for this property"
-    | F.Considered_valid -> "Considered valid: this is a hypothesis that shall be verified outside Frama-C"
-    | F.Valid -> "Surely valid: verified (including all of its dependencies)"
-    | F.Invalid -> "Surely invalid: refuted (and all of its dependencies have been verified)"
-    | F.Invalid_but_dead -> "Invalid but dead: refuted, but unreachable"
-    | F.Valid_but_dead -> "Valid but dead: verified, but unreachable"
-    | F.Unknown_but_dead -> "Unknown but dead: unknown status, and unreachable"
-    | F.Unknown -> "Unknown: a verification has been attempted, but without conclusion"
-    | F.Valid_under_hyp -> "Valid under hypotheses: verified (but has dependencies with Unknown status)"
-    | F.Invalid_under_hyp -> "Invalid under hypotheses: refuted (but has dependencies with Unknown status)"
-    | F.Inconsistent -> "Inconsistent: got both true and false statuses (possibly cyclic dependencies, or an incorrect axiomatization)"
-
-  let declare_markers (source:GSourceView2.source_view) =
-    List.iter
-      (fun v ->
-         source#set_mark_category_pixbuf
-           ~category:(category v)
-           (Some (Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback v))))
-      [ F.Never_tried;
-        F.Considered_valid;
-        F.Valid;
-        F.Invalid;
-        F.Invalid_but_dead;
-        F.Valid_but_dead;
-        F.Unknown;
-        F.Unknown_but_dead;
-        F.Valid_under_hyp;
-        F.Invalid_under_hyp;
-        F.Inconsistent ]
-
-  (* tooltip marks are recreated whenever the buffer changes *)
-  let tooltip_marks : (int, string) Hashtbl.t = Hashtbl.create 8
-
-  let mark (source:GSourceView2.source_buffer) ~offset validity =
-    begin
-      let iter = source#get_iter_at_char offset in
-      let category = category validity in
-      source#remove_source_marks iter iter () ;
-      ignore (source#create_source_mark ~category iter) ;
-      Hashtbl.replace tooltip_marks iter#line (long_category validity);
-    end
-
-end
 
 (* Reference to the view used by the stdout console, to enable use of Ctrl+F. *)
 let console_view : GText.view option ref = ref None
@@ -1305,7 +1367,7 @@ class main_window () : main_window_extension_points =
        to be found (e.g. Ctrl+F). Otherwise, uses the last searched
        text (e.g. F3). *)
     method private focused_find_text use_dialog =
-      let find_text_in_viewer (viewer : [`GTextViewer of GText.view |`GSourceViewer of GSourceView2.source_view]) text =
+      let find_text_in_viewer ~where (viewer : [`GTextViewer of GText.view |`GSourceViewer of GSourceView2.source_view]) text =
         let buffer, scroll_to_iter =
           match viewer with
           | `GTextViewer v -> v#buffer,v#scroll_to_iter
@@ -1322,8 +1384,9 @@ class main_window () : main_window_extension_points =
           with
           | Some _ as iters -> iters
           | None ->
+            let title = "Find " ^ where in
               (* try to wrap search if user wishes *)
-              if GToolbox.question_box ~title:"Not found"
+              if GToolbox.question_box ~title
                   (Printf.sprintf "No more occurrences for: %s\n\
                                    Search from beginning?" text)
                   ~buttons:["Yes"; "No"] = 1 (*yes*) then
@@ -1345,8 +1408,8 @@ class main_window () : main_window_extension_points =
                    );
             last_find_text <- text
         | None -> if !notify_not_found then
-              GToolbox.message_box ~title:"Not found"
-                (Printf.sprintf "Not found: %s" text)
+              GToolbox.message_box ~title:("Not found " ^ where)
+                (Printf.sprintf "Not found %s: %s" where text)
       in
       let focused_widget = GtkWindow.Window.get_focus main_window#as_window in
       let focused_name = Gobject.Property.get focused_widget GtkBase.Widget.P.name
@@ -1365,13 +1428,14 @@ class main_window () : main_window_extension_points =
               if use_dialog then
                 Extlib.opt_conv ""
                   (Gtk_helper.input_string
-                     ~title:"Find" ~ok:"Find" ~cancel:"Cancel"
+                     ~parent:main_window
+                     ~title:"Find global" ~ok:"Find" ~cancel:"Cancel"
                      "Find global:" ~text:last_find_text)
               else last_find_text
             in
             if text <> "" then
               match self#file_tree#find_visible_global text with
-              | None -> GToolbox.message_box ~title:"Not found"
+              | None -> GToolbox.message_box ~title:"Global not found"
                           (Printf.sprintf "Global not found: %s" text)
               | Some g ->
                   last_find_text <- text;
@@ -1403,21 +1467,60 @@ class main_window () : main_window_extension_points =
       in
       match opt_where_view with
       | None -> (* no searchable focused element, or already processed *) ()
-      | Some (where_to_find,viewer) ->
+      | Some (where,viewer) ->
           let text =
             if use_dialog then
               Extlib.opt_conv ""
                 (Gtk_helper.input_string
-                   ~title:"Find" ~ok:"Find" ~cancel:"Cancel"
-                   ("Find text (" ^ where_to_find ^ "):") ~text:last_find_text)
+                   ~parent:main_window
+                   ~title:("Find " ^ where) ~ok:"Find" ~cancel:"Cancel"
+                   ("Find text (" ^ where ^ "):") ~text:last_find_text)
             else last_find_text
           in
-          if text <> "" then find_text_in_viewer viewer text else ()
+          if text <> "" then find_text_in_viewer ~where viewer text else ()
 
     initializer
       self#set_reset self#reset;
       let menu_manager = self#menu_manager () (* create the menu_manager *) in
       main_window#add_accel_group menu_manager#factory#accel_group;
+
+      (* When the user clicks on the bullet of a call site, folds or unfolds the
+         preconditions at this call site. The relative position of an event is
+         relative to the innermost widget at the given position, regardless of
+         the widget on which the event is bound. The same coordinate can thus
+         refer to different positions according to the reference widget. So we
+         need to use absolute coordinate to precisely check where the click
+         happened. *)
+      let _ = source_viewer#event#connect#button_release
+          ~callback:(fun ev ->
+              (* Absolute x position of the event on the screen. *)
+              let abs_x = int_of_float (GdkEvent.Button.x_root ev) in
+              (* This function returns the absolute position of the top window,
+                 or the relative position of an intern widget. *)
+              let get_x obj = fst (Gdk.Window.get_position obj#misc#window) in
+              (* Absolute position of the main window on the screen. *)
+              let window_abs_x = get_x main_window in
+              (* Relative position of the source_viewer in the main windows. *)
+              let viewer_rel_x = get_x source_viewer in
+              (* Width of the bullet column in the source viewer. *)
+              if abs_x - (window_abs_x + viewer_rel_x) < 20 then
+                begin
+                  let x, y = GdkEvent.Button.(x ev, y ev) in
+                  let (xbuf, ybuf) = source_viewer#window_to_buffer_coords
+                      ~tag:`WIDGET ~x:(int_of_float x) ~y:(int_of_float y)
+                  in
+                  let iterpos = source_viewer#get_iter_at_location xbuf ybuf in
+                  let line = iterpos#line in
+                  try
+                    let stmt = Hashtbl.find Feedback.call_sites line in
+                    let kf = Kernel_function.find_englobing_kf stmt in
+                    Pretty_source.fold_preconds_at_callsite stmt;
+                    self#reactive_buffer#redisplay;
+                    self#scroll (PStmt (kf, stmt))
+                  with Not_found -> ()
+                end;
+              false)
+      in
 
       let extra_accel_group = GtkData.AccelGroup.create () in
       GtkData.AccelGroup.connect extra_accel_group
@@ -1553,8 +1656,11 @@ class main_window () : main_window_extension_points =
                 let tag = if ci.cstruct then Logic_typing.Struct
                   else Logic_typing.Union
                 in
-                Some (tag, ci.corig_name)
-            | TEnum (ei, _) -> Some (Logic_typing.Enum, ei.eorig_name)
+                let name = if ci.corig_name <> "" then ci.corig_name else ci.cname in
+                Some (tag, name)
+            | TEnum (ei, _) ->
+              let name = if ei.eorig_name <> "" then ei.eorig_name else ei.ename in
+              Some (Logic_typing.Enum, name)
             | _ -> None
           in
           match opt_tag_name with

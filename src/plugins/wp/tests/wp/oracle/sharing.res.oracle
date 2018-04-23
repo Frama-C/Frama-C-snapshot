@@ -2,35 +2,36 @@
 [kernel] Parsing tests/wp/sharing.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp:print-generated] "WPOUT/typed/f_post.ergo"
-    (* ---------------------------------------------------------- *)
-    (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
-    (* ---------------------------------------------------------- *)
-    
-    goal f_post:
-      forall i_1,i : int.
-      forall t : int farray.
-      forall t_1 : (addr,int) farray.
-      forall a : addr.
-      let a_1 = shift_sint32(a, 0) : addr in
-      let a_2 = shift_sint32(a, i) : addr in
-      let m = t_1[a_1 <- t_1[a_2]] : (addr,int) farray in
-      let m_1 = m[shift_sint32(a, 1) <- m[a_2]] : (addr,int) farray in
-      let m_2 = m_1[shift_sint32(a, 2) <- m_1[a_2]] : (addr,int) farray in
-      let m_3 = m_2[shift_sint32(a, 3) <- m_2[a_2]] : (addr,int) farray in
-      (0 <= i) ->
-      (0 <= i_1) ->
-      (region(a.base) <= 0) ->
-      (i <= 9) ->
-      (i_1 <= 9) ->
-      linked(t) ->
-      is_sint32(i) ->
-      valid_rw(t, a_1, 10) ->
-      (forall i_2 : int. (0 <= i_2) -> (i_2 <= 9) ->
-       (0 <= t_1[shift_sint32(a, i_2)])) ->
-      (0 <= m_3[shift_sint32(a, 4) <- m_3[a_2]][shift_sint32(a, i_1)])
+[wp:print-generated] 
+  "WPOUT/typed/f_post.ergo"
+  (* ---------------------------------------------------------- *)
+  (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
+  (* ---------------------------------------------------------- *)
+  
+  goal f_post:
+    forall i_1,i : int.
+    forall t : int farray.
+    forall t_1 : (addr,int) farray.
+    forall a : addr.
+    let a_1 = shift_sint32(a, 0) : addr in
+    let a_2 = shift_sint32(a, i) : addr in
+    let m = t_1[a_1 <- t_1[a_2]] : (addr,int) farray in
+    let m_1 = m[shift_sint32(a, 1) <- m[a_2]] : (addr,int) farray in
+    let m_2 = m_1[shift_sint32(a, 2) <- m_1[a_2]] : (addr,int) farray in
+    let m_3 = m_2[shift_sint32(a, 3) <- m_2[a_2]] : (addr,int) farray in
+    (0 <= i) ->
+    (0 <= i_1) ->
+    (region(a.base) <= 0) ->
+    (i <= 9) ->
+    (i_1 <= 9) ->
+    linked(t) ->
+    is_sint32(i) ->
+    valid_rw(t, a_1, 10) ->
+    (forall i_2 : int. (0 <= i_2) -> (i_2 <= 9) ->
+     (0 <= t_1[shift_sint32(a, i_2)])) ->
+    (0 <= m_3[shift_sint32(a, 4) <- m_3[a_2]][shift_sint32(a, i_1)])
 [wp] 1 goal generated
 ------------------------------------------------------------
   Function f

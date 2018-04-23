@@ -18,7 +18,7 @@ void *nondet_ptr(void *a, void *b) {
 }
 
 //@ ensures \result == 1; assigns \nothing;
-int f();
+int f(void);
 
 void g() {
   char c = f();

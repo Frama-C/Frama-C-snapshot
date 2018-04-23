@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,7 +89,7 @@ let long_plugin_name s =
 let additional_info () =
   if !Config.is_gui then
     "\nReverting to previous state.\n\
-     Look at the console for additional information (if any)."
+     Check the Console tab for additional information."
   else
     ""
 
@@ -161,9 +161,11 @@ let run_normal_exit_hook = NormalExit.apply
 
 module ErrorExit = Hook.Build(struct type t = exn end)
 let at_error_exit = ErrorExit.extend
+let () = Log.cmdline_at_error_exit := at_error_exit
 let run_error_exit_hook = ErrorExit.apply
 let error_occurred_ref = ref None
 let error_occurred exn = error_occurred_ref := Some exn
+let () = Log.cmdline_error_occurred := error_occurred
 
 type exit = unit
 exception Exit

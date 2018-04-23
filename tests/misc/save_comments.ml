@@ -19,7 +19,7 @@ let run () =
   let ast = Ast.get () in
   let vis = object
       inherit Visitor.frama_c_inplace
-      method vglob_aux g = match g with GText s -> Format.printf "got global comment %s@." s; SkipChildren | _ -> DoChildren
+      method! vglob_aux g = match g with GText s -> Format.printf "got global comment %s@." s; SkipChildren | _ -> DoChildren
   end
   in
   ignore (Visitor.visitFramacFile vis ast);

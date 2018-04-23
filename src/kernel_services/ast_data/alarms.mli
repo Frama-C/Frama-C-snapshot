@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,8 +36,6 @@ type bound_kind = Lower_bound | Upper_bound
 type alarm =
   | Division_by_zero of exp
   | Memory_access of lval * access_kind
-  | Logic_memory_access (* temporary? *) of 
-      term * access_kind
   | Index_out_of_bound of
       exp (** index *) 
     * exp option (** None = lower bound is zero; Some up = upper bound *) 
@@ -63,9 +61,11 @@ type alarm =
   | Uninitialized of lval
   | Dangling of lval
   | Is_nan_or_infinite of exp * fkind
-  | Valid_string of exp
-  | Function_pointer of exp (** the type of the pointer is compatible with
-                                the type of the pointed function. *)
+  | Is_nan of exp * fkind
+  | Function_pointer of exp * exp list option
+  (** the type of the pointer is compatible with the type of the pointed
+      function (first argument). The second argument is the list of the
+      arguments of the call. *)
   | Uninitialized_union of lval list
 
 include Datatype.S_with_collections with type t = alarm

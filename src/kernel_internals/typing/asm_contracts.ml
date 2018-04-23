@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,6 @@
 open Cil_types
 
 let category = File.register_code_transformation_category "asm contracts"
-
-let dkey = Kernel.register_category "asm:contracts"
 
 let emitter =
   Emitter.(
@@ -163,7 +161,8 @@ object(self)
           );
           Cil.SkipChildren
       | Asm(_,_,None,_) ->
-        Kernel.feedback ~dkey "Ignoring basic assembly instruction";
+        Kernel.feedback
+          ~dkey:Kernel.dkey_asm_contracts "Ignoring basic assembly instruction";
         Cil.SkipChildren
       | _ -> Cil.SkipChildren
 end

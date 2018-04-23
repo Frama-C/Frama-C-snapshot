@@ -71,17 +71,13 @@ unfold get, set.
 now case why_decidable_eq.
 Qed.
 
-(* Why3 goal *)
-Definition const: forall {a:Type} {a_WT:WhyType a} {b:Type} {b_WT:WhyType b},
-  b -> (map a b).
+(* Unused content named const
 intros a a_WT b b_WT y.
 exact (_map_constr _ _ (fun _ => y)).
 Defined.
-
-(* Why3 goal *)
-Lemma Const : forall {a:Type} {a_WT:WhyType a} {b:Type} {b_WT:WhyType b},
-  forall (b1:b) (a1:a), ((get (const b1: (map a b)) a1) = b1).
+ *)
+(* Unused content named Const
 Proof.
 easy.
 Qed.
-
+ *)

@@ -6,9 +6,9 @@
   x ∈ {0}
   y ∈ {0}
 [value] computing for function g1 <- main1.
-    Called from tests/saveload/callbacks.i:25.
+  Called from tests/saveload/callbacks.i:25.
 [value] computing for function f <- g1 <- main1.
-    Called from tests/saveload/callbacks.i:16.
+  Called from tests/saveload/callbacks.i:16.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -18,9 +18,9 @@
 [from] Done for function g1
 [value] Done for function g1
 [value] computing for function g2 <- main1.
-    Called from tests/saveload/callbacks.i:26.
+  Called from tests/saveload/callbacks.i:26.
 [value] computing for function f <- g2 <- main1.
-    Called from tests/saveload/callbacks.i:21.
+  Called from tests/saveload/callbacks.i:21.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -47,10 +47,10 @@
   y FROM \nothing
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      x; y
+    x; y
 [inout] Out (internal) for function g1:
-      x
+    x
 [inout] Out (internal) for function g2:
-      y
+    y
 [inout] Out (internal) for function main1:
-      x; y
+    x; y

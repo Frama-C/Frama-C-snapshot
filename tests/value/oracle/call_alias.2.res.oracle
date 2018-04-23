@@ -12,7 +12,7 @@
   H ∈ {0}
   I ∈ {0}
 [value] computing for function sum <- main2.
-    Called from tests/value/call_alias.i:33.
+  Called from tests/value/call_alias.i:33.
 [value] Recording results for sum
 [value] Done for function sum
 [value] Recording results for main2
@@ -27,7 +27,7 @@
 [from] Computing for function main2
 [from] Done for function main2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function sum:
   \result FROM a; b
 [from] Function main2:
@@ -35,10 +35,10 @@
   \result FROM G; H
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function sum:
-      __retres
+    __retres
 [inout] Inputs for function sum:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main2:
-      I
+    I
 [inout] Inputs for function main2:
-      G; H; I
+    G; H; I

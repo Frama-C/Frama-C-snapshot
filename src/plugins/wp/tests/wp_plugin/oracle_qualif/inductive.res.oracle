@@ -8,9 +8,10 @@
 [wp] [Coq] Goal typed_lemma_test : Saved script
 [wp] [Coq] Goal typed_lemma_test : Valid
 [wp] Proved goals:    2 / 2
-    Qed:             0 
-    Coq:             2
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -      -           2       100%
-----------------------------------------------------------
+  Qed:             0 
+  Coq:             2
+[wp] Report 'tests/wp_plugin/inductive.c.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               -      -                 2       100%
+-------------------------------------------------------------

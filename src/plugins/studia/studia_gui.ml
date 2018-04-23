@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,9 @@ let show_indirect_tag = ("show_indirect", [`BACKGROUND "#FFdb74"])
 let empty_tag = ("", [])
 
 let ask_for_lval (main_ui:Design.main_window_extension_points) kf =
-  let txt = GToolbox.input_string ~title:"Input lvalue expression" "" in
+  let txt = Gtk_helper.input_string ~parent:main_ui#main_window
+      ~title:"Input lvalue expression" ""
+  in
   match txt with None | Some "" -> None
   | Some txt ->
     try
@@ -253,8 +255,20 @@ let add_item (main_ui:Design.main_window_extension_points) ~uses_value menu name
     let callback () =
       if not uses_value || check_value main_ui then callback arg else ()
     in
+    (* The following code circumvents a bug where submenu items are not properly
+       activated, by also binding the callback to the button_press event.
+       See http://stackoverflow.com/questions/5221326/submenu-item-does-not-call-function-with-working-solution/15309826
+       For mysterious reasons, this bug only happens in the contextual menu of
+       the Information panel, but not in the source panel. So we need to avoid
+       creating two input windows for the source panel menu. *)
+    let only_once = ref true in
+    let callback () =
+      if !only_once
+      then begin only_once := false; callback (); only_once := true end
+    in
+    (* Needed anyway for keyboard selection. *)
     ignore (item#connect#activate ~callback);
-    (* See http://stackoverflow.com/questions/5221326/submenu-item-does-not-call-function-with-working-solution/15309826 *)
+    (* Needed for the menu in the Information panel. *)
     ignore (item#event#connect#button_press
               (fun evt ->
                  if GdkEvent.Button.button evt = 1
@@ -267,9 +281,6 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
   if button = 3 then begin
     let submenu = popup_factory#add_submenu "Studia" in
     let submenu_factory = new GMenu.factory submenu in
-    add_item main_ui ~uses_value:false submenu
-      "Help" (Some()) (fun _ -> help main_ui) ;
-    ignore (submenu_factory#add_separator ());
     let arg = match (Pretty_source.kf_of_localizable localizable,
                      Pretty_source.ki_of_localizable localizable)
       with
@@ -285,7 +296,10 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
     add_menu_item "Reads" (callback `Reads);
     ignore (submenu_factory#add_separator ());
     add_item main_ui ~uses_value:false submenu "Reset All" (Some())
-      (fun _ -> reset () ; main_ui#rehighlight ())
+      (fun _ -> reset () ; main_ui#rehighlight ());
+    ignore (submenu_factory#add_separator ());
+    add_item main_ui ~uses_value:false submenu
+      "Help" (Some()) (fun _ -> help main_ui) ;
   end
 
 let filetree_decorate main_ui = 

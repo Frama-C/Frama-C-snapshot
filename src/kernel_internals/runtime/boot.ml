@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,8 +28,7 @@ let play_analysis () =
     if Kernel.Files.get () <> [] || Kernel.TypeCheck.is_set () then begin
       Ast.compute ();
       (* Printing files before anything else (in debug mode only) *)
-      if Kernel.debug_atleast 1 &&
-        Kernel.Debug_category.exists (fun s -> s = "ast")
+      if Kernel.debug_atleast 1 && Kernel.is_debug_key_enabled Kernel.dkey_ast
       then File.pretty_ast ()
     end
   end;

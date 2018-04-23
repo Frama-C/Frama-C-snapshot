@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,6 +77,7 @@ let compute_ip cc ip =
   | Property.IPOther _
   | Property.IPTypeInvariant _
   | Property.IPGlobalInvariant _
+  | Property.IPExtended _
     ->
       Wp_parameters.result "Nothing to compute for '%a'" Property.pretty ip ;
       Bag.empty

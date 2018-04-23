@@ -11,29 +11,32 @@
    .c2 ∈ {{ NULL ; &S_c2_C[0] }}
   S_c2_C[0..1] ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/struct_call.i:46.
+  Called from tests/value/struct_call.i:46.
 [value] computing for function g <- main1 <- main.
-    Called from tests/value/struct_call.i:33.
-tests/value/struct_call.i:16:[value] Frama_C_show_each_G: {0}
+  Called from tests/value/struct_call.i:33.
+[value] tests/value/struct_call.i:16: Frama_C_show_each_G: {0}
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function create_A <- main1 <- main.
-    Called from tests/value/struct_call.i:34.
-tests/value/struct_call.i:25:[value] Frama_C_show_each_GG: .x ∈ {1}
-                          .y ∈ {0}
+  Called from tests/value/struct_call.i:34.
+[value] tests/value/struct_call.i:25: 
+  Frama_C_show_each_GG: .x ∈ {1}
+                        .y ∈ {0}
 [value] Recording results for create_A
 [value] Done for function create_A
 [value] computing for function g <- main1 <- main.
-    Called from tests/value/struct_call.i:35.
-tests/value/struct_call.i:16:[value] Frama_C_show_each_G: .x ∈ {0}
-                         .y ∈ {77}
+  Called from tests/value/struct_call.i:35.
+[value] tests/value/struct_call.i:16: 
+  Frama_C_show_each_G: .x ∈ {0}
+                       .y ∈ {77}
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function h <- main.
-    Called from tests/value/struct_call.i:47.
-tests/value/struct_call.i:42:[value] Frama_C_show_each: [-32768..32767], {{ NULL ; &S_c2_C }}
+  Called from tests/value/struct_call.i:47.
+[value] tests/value/struct_call.i:42: 
+  Frama_C_show_each: [-32768..32767], {{ NULL ; &S_c2_C }}
 [value] Recording results for h
 [value] Done for function h
 [value] Recording results for main
@@ -70,7 +73,7 @@ tests/value/struct_call.i:42:[value] Frama_C_show_each: [-32768..32767], {{ NULL
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function create_A:
   \result FROM \nothing
 [from] Function g:
@@ -86,22 +89,22 @@ tests/value/struct_call.i:42:[value] Frama_C_show_each: [-32768..32767], {{ NULL
   t[1].y FROM G
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function create_A:
-      r
+    r
 [inout] Inputs for function create_A:
-      \nothing
+    \nothing
 [inout] Out (internal) for function g:
-      __retres
+    __retres
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function h:
-      \nothing
+    \nothing
 [inout] Inputs for function h:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main1:
-      GG; t[1].y; i; init; tmp_0
+    GG; t[1].y; i; init; tmp_0
 [inout] Inputs for function main1:
-      G; t[1]; tt[1]
+    G; t[1]; tt[1]
 [inout] Out (internal) for function main:
-      GG; t[1].y
+    GG; t[1].y
 [inout] Inputs for function main:
-      G; t[1]; tt[1]; C
+    G; t[1]; tt[1]; C

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,11 +92,6 @@ let () =
          raise Cmdline.Exit
        end)
 
-let find_builtin name =
-  let f, _, u = Hashtbl.find table name in
-  if u = Always then f
-  else raise Not_found
-
 let mem_builtin name =
   try
     let _, _, u = Hashtbl.find table name in
@@ -150,75 +145,6 @@ let clobbered_set_from_ret state ret =
   with Abstract_interp.Error_Top -> Base.SetLattice.top
 
 
-(* -------------------------------------------------------------------------- *)
-(* --- "Alarms" emitted by builtins for their preconditions               --- *)
-(* -------------------------------------------------------------------------- *)
-
-module BuiltinWarning =
-  Datatype.Triple_with_collections
-    (Cil_datatype.Stmt)(Datatype.String)(Datatype.String)
-    (struct
-      let module_name = "Value.Builtins.BuiltinWarning"
-    end)
-
-module CodeAnnotOfWarning =
-  State_builder.Hashtbl(BuiltinWarning.Hashtbl)(Cil_datatype.Code_annotation)
-    (struct
-      let dependencies = [Db.Value.self]
-      let name = "Value.Builtins.CodeAnnotOfWarnings"
-      let size = 16
-    end)
-
-module EmittedWarnings =
-  State_builder.Hashtbl(Cil_datatype.Stmt.Hashtbl)(Cil_datatype.Code_annotation.Set)
-    (struct
-      let dependencies = [Db.Value.self]
-      let name = "Value.Builtins.EmittedWarnings"
-      let size = 16
-    end)
-(* TODO: it would be nice to be able to remove the annotations registered
-   here when this state is cleared (i.e. when Db.Value.self changes, but
-   this is not currently possible. *)
-
-let warning_gen stmt ~kind ~text =
-  let loc = Cil_datatype.Stmt.loc stmt in
-  let pred = List.hd (Logic_env.find_all_logic_functions "\\warning") in
-  let s = Logic_const.tstring ~loc text in
-  (* We need a label here, to indicate that [\warning] "accesses" the memory
-     (in its own way). *)
-  let np = Logic_const.(unamed ~loc (Papp (pred, [here_label], [s]))) in
-  let np = { np with pred_name = [kind] } in
-  let ca = Logic_const.new_code_annotation (AAssert([], np)) in
-  ca
-
-
-let warning stmt ~kind ~text =
-  CodeAnnotOfWarning.memo
-    (fun (stmt, kind, text) -> warning_gen stmt ~kind ~text) (stmt, kind, text)
-
-let emit_alarm ~kind ~text =
-  let stack = Value_util.call_stack () in
-  let kf, stmt = match stack with
-    | (kf, Kstmt stmt) :: _ -> kf, stmt
-    | _ -> assert false
-  in
-  let ca = warning stmt ~kind ~text in
-  let to_add, cur =
-    try
-      let s = EmittedWarnings.find stmt in
-      not (Cil_datatype.Code_annotation.Set.mem ca s), s
-    with Not_found -> true, Cil_datatype.Code_annotation.Set.empty
-  in
-  if to_add then begin
-    EmittedWarnings.replace stmt (Cil_datatype.Code_annotation.Set.add ca cur);
-    Annotations.add_code_annot Value_util.emitter stmt ca;
-    let ip = Property.ip_of_code_annot_single kf stmt ca in
-    Property_status.emit ~distinct:true Value_util.emitter ~hyps:[]
-      ip Property_status.Dont_know;
-    true (* new alarm emitted *)
-  end else false (* alarm had already been emitted *)
-
-let fold_emitted_alarms = EmittedWarnings.fold
 
 (*
 Local Variables:

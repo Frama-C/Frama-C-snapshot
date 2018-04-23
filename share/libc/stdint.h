@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -35,24 +35,36 @@ typedef __INT8_T int8_t;
 #endif
 #ifdef __UINT8_T
 typedef __UINT8_T uint8_t;
+#ifndef u_int8_t
+#define u_int8_t uint8_t
+#endif
 #endif
 #ifdef __INT16_T
 typedef __INT16_T int16_t;
 #endif
 #ifdef __UINT16_T
 typedef __UINT16_T uint16_t;
+#ifndef u_int16_t
+#define u_int16_t uint16_t
+#endif
 #endif
 #ifdef __INT32_T
 typedef __INT32_T int32_t;
 #endif
 #ifdef __UINT32_T
 typedef __UINT32_T uint32_t;
+#ifndef u_int32_t
+#define u_int32_t uint32_t
+#endif
 #endif
 #ifdef __INT64_T
 typedef __INT64_T int64_t;
 #endif
 #ifdef __UINT64_T
 typedef __UINT64_T uint64_t;
+#ifndef u_int64_t
+#define u_int64_t uint64_t
+#endif
 #endif
 
 /* ISO C: 7.18.1.2 */
@@ -80,6 +92,7 @@ typedef __UINT_FAST64_T uint_fast64_t;
 
 #ifdef __UINTPTR_T
 typedef __UINTPTR_T uintptr_t;
+#define UINTPTR_MAX __FC_UINTPTR_MAX
 #endif
 
 /* ISO C: 7.18.1.5 */
@@ -100,7 +113,38 @@ typedef __UINT_MAX_T uintmax_t;
 #define INT64_MAX 9223372036854775807LL
 #define UINT64_MAX 18446744073709551615ULL
 
-/* ISO C: 7.18.2.3-4 : TODO */
+/* ISO C: 7.18.2.2 */
+#define INT_LEAST8_MIN __INT_LEAST8_MIN
+#define INT_LEAST8_MAX __INT_LEAST8_MAX
+#define INT_LEAST16_MIN __INT_LEAST16_MIN
+#define INT_LEAST16_MAX __INT_LEAST16_MAX
+#define INT_LEAST32_MIN __INT_LEAST32_MIN
+#define INT_LEAST32_MAX __INT_LEAST32_MAX
+#define INT_LEAST64_MIN __INT_LEAST64_MIN
+#define INT_LEAST64_MAX __INT_LEAST64_MAX
+
+#define UINT_LEAST8_MAX __UINT_LEAST8_MAX
+#define UINT_LEAST16_MAX __UINT_LEAST16_MAX
+#define UINT_LEAST32_MAX __UINT_LEAST32_MAX
+#define UINT_LEAST64_MAX __UINT_LEAST64_MAX
+
+/* ISO C: 7.18.2.3 */
+
+#define INT_FAST8_MIN __INT_FAST8_MIN
+#define INT_FAST8_MAX __INT_FAST8_MAX
+#define INT_FAST16_MIN __INT_FAST16_MIN
+#define INT_FAST16_MAX __INT_FAST16_MAX
+#define INT_FAST32_MIN __INT_FAST32_MIN
+#define INT_FAST32_MAX __INT_FAST32_MAX
+#define INT_FAST64_MIN __INT_FAST64_MIN
+#define INT_FAST64_MAX __INT_FAST64_MAX
+
+#define UINT_FAST8_MAX __UINT_FAST8_MAX
+#define UINT_FAST16_MAX __UINT_FAST16_MAX
+#define UINT_FAST32_MAX __UINT_FAST32_MAX
+#define UINT_FAST64_MAX __UINT_FAST64_MAX
+
+/* ISO C: 7.18.2.4 - Done directly with definition of corresponding types. */
 
 /* ISO C: 7.18.2.5 */
 #define INTMAX_MIN __FC_INTMAX_MIN

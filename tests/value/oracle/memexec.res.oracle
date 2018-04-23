@@ -17,68 +17,74 @@
   g_f5_2 ∈ {0}
   two_fields ∈ {0}
 [value] computing for function f1 <- main.
-    Called from tests/value/memexec.c:154.
+  Called from tests/value/memexec.c:154.
 [value] computing for function f11 <- f1 <- main.
-    Called from tests/value/memexec.c:12.
+  Called from tests/value/memexec.c:12.
 [value] Recording results for f11
 [value] Done for function f11
-tests/value/memexec.c:13:[value] Reusing old results for call to f11
-tests/value/memexec.c:14:[value] Reusing old results for call to f11
-tests/value/memexec.c:16:[value] Reusing old results for call to f11
-tests/value/memexec.c:18:[value] Reusing old results for call to f11
-tests/value/memexec.c:20:[value] Reusing old results for call to f11
-tests/value/memexec.c:21:[value] Reusing old results for call to f11
+[value] tests/value/memexec.c:13: Reusing old results for call to f11
+[value] tests/value/memexec.c:14: Reusing old results for call to f11
+[value] tests/value/memexec.c:16: Reusing old results for call to f11
+[value] tests/value/memexec.c:18: Reusing old results for call to f11
+[value] tests/value/memexec.c:20: Reusing old results for call to f11
+[value] tests/value/memexec.c:21: Reusing old results for call to f11
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-    Called from tests/value/memexec.c:155.
+  Called from tests/value/memexec.c:155.
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/value/memexec.c:156.
+  Called from tests/value/memexec.c:156.
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function bug <- main.
-    Called from tests/value/memexec.c:157.
+  Called from tests/value/memexec.c:157.
 [value] computing for function fbug <- bug <- main.
-    Called from tests/value/memexec.c:40.
-tests/value/memexec.c:33:[value] warning: assertion 'rte,mem_access' got status invalid (stopping propagation).
+  Called from tests/value/memexec.c:40.
+[value:alarm] tests/value/memexec.c:33: Warning: 
+  assertion 'rte,mem_access' got status invalid (stopping propagation).
 [value] Recording results for fbug
 [value] Done for function fbug
 [value] computing for function fbug <- bug <- main.
-    Called from tests/value/memexec.c:42.
-tests/value/memexec.c:33:[value] assertion 'rte,mem_access' got status valid.
+  Called from tests/value/memexec.c:42.
+[value] tests/value/memexec.c:33: assertion 'rte,mem_access' got status valid.
 [value] Recording results for fbug
 [value] Done for function fbug
 [value] Recording results for bug
 [value] Done for function bug
-tests/value/memexec.c:157:[value] warning: locals {x} escaping the scope of bug through p
+[value] tests/value/memexec.c:157: Warning: 
+  locals {x} escaping the scope of bug through p
 [value] computing for function f4 <- main.
-    Called from tests/value/memexec.c:158.
+  Called from tests/value/memexec.c:158.
 [value] computing for function f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:84.
+  Called from tests/value/memexec.c:84.
 [value] computing for function f4_11 <- f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:74.
-tests/value/memexec.c:59:[value] warning: accessing out of bounds index. assert ps->i < 10;
-tests/value/memexec.c:59:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/memexec.c:74.
+[value:alarm] tests/value/memexec.c:59: Warning: 
+  accessing out of bounds index. assert ps->i < 10;
+[kernel] tests/value/memexec.c:59: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for f4_11
 [value] Done for function f4_11
 [value] computing for function f4_12 <- f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:76.
-tests/value/memexec.c:63:[value] warning: accessing out of bounds index. assert i < 10;
-tests/value/memexec.c:63:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+  Called from tests/value/memexec.c:76.
+[value:alarm] tests/value/memexec.c:63: Warning: 
+  accessing out of bounds index. assert i < 10;
+[kernel] tests/value/memexec.c:63: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for f4_12
 [value] Done for function f4_12
 [value] Recording results for f4_2
 [value] Done for function f4_2
 [value] computing for function f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:87.
+  Called from tests/value/memexec.c:87.
 [value] computing for function f4_11 <- f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:74.
+  Called from tests/value/memexec.c:74.
 [value] Recording results for f4_11
 [value] Done for function f4_11
 [value] computing for function f4_12 <- f4_2 <- f4 <- main.
-    Called from tests/value/memexec.c:76.
+  Called from tests/value/memexec.c:76.
 [value] Recording results for f4_12
 [value] Done for function f4_12
 [value] Recording results for f4_2
@@ -86,53 +92,56 @@ tests/value/memexec.c:63:[kernel] warning: all target addresses were invalid. Th
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
-    Called from tests/value/memexec.c:159.
+  Called from tests/value/memexec.c:159.
 [value] computing for function f5_aux <- f5 <- main.
-    Called from tests/value/memexec.c:107.
-tests/value/memexec.c:94:[value] warning: assertion got status unknown.
-tests/value/memexec.c:96:[value] warning: assertion got status unknown.
-tests/value/memexec.c:98:[value] entering loop for the first time
+  Called from tests/value/memexec.c:107.
+[value:alarm] tests/value/memexec.c:94: Warning: assertion got status unknown.
+[value:alarm] tests/value/memexec.c:96: Warning: assertion got status unknown.
+[value] tests/value/memexec.c:98: entering loop for the first time
 [value] Recording results for f5_aux
 [value] Done for function f5_aux
-tests/value/memexec.c:108:[value] Frama_C_show_each_f5: [9..2147483647], [-2147483648..6], [-2147483648..7]
-tests/value/memexec.c:113:[value] Reusing old results for call to f5_aux
-tests/value/memexec.c:114:[value] Frama_C_show_each_f5:
-    [9..2147483647], [-2147483648..2147483647], [-2147483648..7]
+[value] tests/value/memexec.c:108: 
+  Frama_C_show_each_f5: [9..2147483647], [-2147483648..6], [-2147483648..7]
+[value] tests/value/memexec.c:113: Reusing old results for call to f5_aux
+[value] tests/value/memexec.c:114: 
+  Frama_C_show_each_f5:
+  [9..2147483647], [-2147483648..2147483647], [-2147483648..7]
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
-    Called from tests/value/memexec.c:160.
+  Called from tests/value/memexec.c:160.
 [value] computing for function f6_1 <- f6 <- main.
-    Called from tests/value/memexec.c:123.
+  Called from tests/value/memexec.c:123.
 [value] Recording results for f6_1
 [value] Done for function f6_1
 [value] computing for function f6_1 <- f6 <- main.
-    Called from tests/value/memexec.c:126.
+  Called from tests/value/memexec.c:126.
 [value] Recording results for f6_1
 [value] Done for function f6_1
 [value] Recording results for f6
 [value] Done for function f6
 [value] computing for function f7 <- main.
-    Called from tests/value/memexec.c:161.
+  Called from tests/value/memexec.c:161.
 [value] computing for function f7_1 <- f7 <- main.
-    Called from tests/value/memexec.c:136.
+  Called from tests/value/memexec.c:136.
 [value] Recording results for f7_1
 [value] Done for function f7_1
-tests/value/memexec.c:137:[value] Reusing old results for call to f7_1
+[value] tests/value/memexec.c:137: Reusing old results for call to f7_1
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
-    Called from tests/value/memexec.c:162.
+  Called from tests/value/memexec.c:162.
 [value] computing for function f8_1 <- f8 <- main.
-    Called from tests/value/memexec.c:147.
-tests/value/memexec.c:141:[value] warning: accessing uninitialized left-value. assert \initialized(q);
+  Called from tests/value/memexec.c:147.
+[value:alarm] tests/value/memexec.c:141: Warning: 
+  accessing uninitialized left-value. assert \initialized(q);
 [value] Recording results for f8_1
 [value] Done for function f8_1
 [value] computing for function f8_1 <- f8 <- main.
-    Called from tests/value/memexec.c:149.
+  Called from tests/value/memexec.c:149.
 [value] Recording results for f8_1
 [value] Done for function f8_1
-tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
+[value] tests/value/memexec.c:150: Reusing old results for call to f8_1
 [value] Recording results for f8
 [value] Done for function f8
 [value] Recording results for main
@@ -263,7 +272,7 @@ tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f11:
   x1 FROM \nothing
 [from] Function f1:
@@ -319,78 +328,78 @@ tests/value/memexec.c:150:[value] Reusing old results for call to f8_1
   two_fields FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f11:
-      x1
+    x1
 [inout] Inputs for function f11:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f1:
-      x1
+    x1
 [inout] Inputs for function f1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f2:
-      \nothing
+    \nothing
 [inout] Inputs for function f2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f3:
-      \nothing
+    \nothing
 [inout] Inputs for function f3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f4_11:
-      t[6]
+    t[6]
 [inout] Inputs for function f4_11:
-      ps; S[8]
+    ps; S[8]
 [inout] Out (internal) for function f4_12:
-      t{[2]; [5]}
+    t{[2]; [5]}
 [inout] Inputs for function f4_12:
-      i
+    i
 [inout] Out (internal) for function f4_2:
-      i; t{[2]; [5..6]}; ps; S[8]
+    i; t{[2]; [5..6]}; ps; S[8]
 [inout] Inputs for function f4_2:
-      c; i; ps; S[8]; n
+    c; i; ps; S[8]; n
 [inout] Out (internal) for function f4:
-      i; t{[2]; [5..6]}; ps; S[8]; n
+    i; t{[2]; [5..6]}; ps; S[8]; n
 [inout] Inputs for function f4:
-      c; i; ps; S[8]
+    c; i; ps; S[8]
 [inout] Out (internal) for function f5_aux:
-      v
+    v
 [inout] Inputs for function f5_aux:
-      g_f5_2
+    g_f5_2
 [inout] Out (internal) for function f5:
-      g_f5_1; g_f5_2; arg
+    g_f5_1; g_f5_2; arg
 [inout] Inputs for function f5:
-      c; g_f5_1; g_f5_2
+    c; g_f5_1; g_f5_2
 [inout] Out (internal) for function f6_1:
-      two_fields.x
+    two_fields.x
 [inout] Inputs for function f6_1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f6:
-      two_fields
+    two_fields
 [inout] Inputs for function f6:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f7_1:
-      x
+    x
 [inout] Inputs for function f7_1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f7:
-      x
+    x
 [inout] Inputs for function f7:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f8_1:
-      q
+    q
 [inout] Inputs for function f8_1:
-      x
+    x
 [inout] Out (internal) for function f8:
-      x
+    x
 [inout] Inputs for function f8:
-      c
+    c
 [inout] Out (internal) for function fbug:
-      __retres
+    __retres
 [inout] Inputs for function fbug:
-      p; x
+    p; x
 [inout] Out (internal) for function bug:
-      p; x
+    p; x
 [inout] Inputs for function bug:
-      c; p
+    c; p
 [inout] Out (internal) for function main:
-      x1; p; i; t{[2]; [5..6]}; ps; S[8]; g_f5_1; g_f5_2; two_fields
+    x1; p; i; t{[2]; [5..6]}; ps; S[8]; g_f5_1; g_f5_2; two_fields
 [inout] Inputs for function main:
-      c; p; i; ps; S[8]; g_f5_1; g_f5_2
+    c; p; i; ps; S[8]; g_f5_1; g_f5_2

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -83,6 +83,11 @@ PTESTSBEST      ?=@PTESTSBEST@
 
 DEVELOPMENT	?=@DEVELOPMENT@
 
+# Compatibility across OCaml versions
+
+SPLIT_ON_CHAR ?= @SPLIT_ON_CHAR@
+STACK_FOLD ?= @STACK_FOLD@
+
 #############
 # Libraries #
 #############
@@ -97,6 +102,9 @@ HAS_GTKSOURCEVIEW ?=@HAS_GTKSOURCEVIEW@
 
 # lablgnomecanvas
 HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
+
+# yojson
+HAS_YOJSON	?=@HAS_YOJSON@
 
 # apron
 HAS_APRON	?=@HAS_APRON@
@@ -156,6 +164,10 @@ LIBRARY_NAMES := findlib ocamlgraph unix str dynlink bytes zarith
 
 ifeq ($(HAS_LANDMARKS),yes)
 LIBRARY_NAMES += landmarks landmarks.ppx
+endif
+
+ifeq ($(HAS_YOJSON),yes)
+LIBRARY_NAMES += yojson
 endif
 
 ifneq ($(ENABLE_GUI),no)

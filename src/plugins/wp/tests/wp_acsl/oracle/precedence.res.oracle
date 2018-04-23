@@ -1,26 +1,44 @@
 # frama-c -wp [...]
 [kernel] Parsing tests/wp_acsl/precedence.i (no preprocessing)
-tests/wp_acsl/precedence.i:90:[kernel] warning: unexpected token ';'
-tests/wp_acsl/precedence.i:135:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:134:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:133:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:132:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:130:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:129:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:128:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:127:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:125:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:124:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:123:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:122:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:120:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:119:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:118:[kernel] warning: Inconsistent relation chain.
-tests/wp_acsl/precedence.i:175:[kernel] warning: R is not a logic variable. Ignoring code annotation
-tests/wp_acsl/precedence.i:176:[kernel] warning: P is not a logic variable. Ignoring code annotation
+[kernel:annot-error] tests/wp_acsl/precedence.i:90: Warning: 
+  unexpected token ';'
+[kernel:annot-error] tests/wp_acsl/precedence.i:135: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:134: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:133: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:132: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:130: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:129: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:128: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:127: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:125: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:124: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:123: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:122: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:120: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:119: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:118: Warning: 
+  Inconsistent relation chain.
+[kernel:annot-error] tests/wp_acsl/precedence.i:175: Warning: 
+  R is not a logic variable. Ignoring code annotation
+[kernel:annot-error] tests/wp_acsl/precedence.i:176: Warning: 
+  P is not a logic variable. Ignoring code annotation
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function bitwise
 ------------------------------------------------------------

@@ -631,6 +631,8 @@ and print_def fmt def =
 *)
 let printFile fmt ((_fname, defs) : file) = print_defs fmt defs
 
+let () = Cil_datatype.Cabs_file.pretty_ref := printFile
+
 (*
 Local Variables:
 compile-command: "make -C ../../.."

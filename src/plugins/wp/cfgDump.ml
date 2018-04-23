@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ struct
   let knode = ref 0
   let node () = incr knode ; !knode
 
-  let init kf bhv =
+  let create kf bhv =
     begin
       let name =
         match bhv with
@@ -110,18 +110,28 @@ struct
     Format.fprintf !out "  %a -> %a [ style=dotted ] ;@." pretty u pretty k ;
     merge env u k
 
+  let pp_assigns fmt = function
+    | Cil_types.WritesAny -> Format.pp_print_string fmt " \\everything"
+    | Cil_types.Writes [] -> Format.pp_print_string fmt " \\nothing"
+    | Cil_types.Writes froms ->
+        List.iter
+          (fun (t,_) -> Format.fprintf fmt "@ %a" Printer.pp_identified_term t)
+          froms
+
   let add_assigns env (pid,_) k =
     let u = node () in
     Format.fprintf !out "  %a [ color=red , label=\"Assigns %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
     merge env u k
 
-  let use_assigns _env _stmt region _ k =
+  let use_assigns _env _stmt region d k =
     let u = node () in
     begin match region with
       | None ->
           Format.fprintf !out "  %a [ color=orange , label=\"Havoc All\" ] ;@." pretty u
       | Some pid ->
-          Format.fprintf !out "  %a [ color=orange , label=\"Havoc %a\" ] ;@." pretty u WpPropId.pp_propid pid
+          Format.fprintf !out "  %a [ color=orange , label=\"Havoc %a:\n@[<hov 2>assigns%a;@]\" ] ;@."
+            pretty u WpPropId.pp_propid pid
+            pp_assigns d.WpPropId.a_assigns
     end ;
     link u k ; u
 
@@ -135,7 +145,6 @@ struct
             Format.fprintf !out "  %a [ label=\"Label %a (Stmt s%d)\" ] ;@." pretty u Clabels.pretty label s.Cil_types.sid
       ) ;
       link u k ; u
-        
 
   let assign _env _stmt x e k =
     let u = node () in
@@ -166,9 +175,21 @@ struct
     List.iter (fun (_,k) -> link u k) cases ;
     link u def ; u
 
-  let init_value _ _ _ _ k = k
-  let init_range _ _ _ _ _ _ k = k
-  let init_const _ _ k = k
+  let const _ x k =
+    let u = node () in
+    Format.fprintf !out "  %a [ color=orange, label=\"const %a\" ] ;@."
+      pretty u Printer.pp_lval (Cil.var x) ;
+    link u k ; u
+
+  let init _ x init k =
+    let u = node () in
+    let pp_init fmt = function
+      | None -> Format.pp_print_string fmt "<default>"
+      | Some init -> Printer.pp_init fmt init
+    in
+    Format.fprintf !out "  %a [ color=orange, label=\"init %a := %a\" ] ;@."
+      pretty u Printer.pp_lval (Cil.var x) pp_init init ;
+    link u k ; u
 
   let tag s k =
     let u = node () in
@@ -195,15 +216,16 @@ struct
                 Printer.pp_predicate p) pre
       end ;
     ignore pre ; merge env u k
-
+  
   let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
     let u_post = List.fold_right (add_hyp env) post p_post in
     let u_exit = List.fold_right (add_hyp env) pexit p_exit in
     let u = node () in
     link u u_post ; link u u_exit ;
-    Format.fprintf !out "  %a [ color=orange , label=\"Call %a (assigns)\" ] ;@." pretty u
-      Kernel_function.pretty kf ;
-    ignore assigns ; ignore stmt ;
+    Format.fprintf !out
+      "  %a [ color=orange , label=\"Call %a @[<hov 2>(assigns%a)@]\" ] ;@."
+      pretty u Kernel_function.pretty kf pp_assigns assigns ;
+    ignore stmt ;
     List.fold_right (add_hyp env) pre u
 
   let pp_scope sc fmt xs =
@@ -264,7 +286,7 @@ class computer () =
              let cfg = WpStrategy.cfg_of_strategy strategy in
              let kf = Cil2cfg.cfg_kf cfg in
              let bhv = WpStrategy.behavior_name_of_strategy strategy in
-             VC.init kf bhv ;
+             VC.create kf bhv ;
              try ignore (WP.compute cfg strategy) ; VC.flush ()
              with err -> VC.flush () ; raise err
           ) wptasks ;

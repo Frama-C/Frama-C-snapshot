@@ -1,0 +1,12 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/ground_real.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma R:
+Prove: ((2*x_0)<=1/2)=(x_0<=1/4)
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,6 +25,7 @@
 #include "features.h"
 __PUSH_FC_STDLIB
 #include "__fc_define_size_t.h"
+#include "__fc_string_axiomatic.h"
 
 __BEGIN_DECLS
 
@@ -32,15 +33,27 @@ extern int    bcmp(const void *, const void *, size_t);
 extern void   bcopy(const void *, void *, size_t);
 
 
-/*@ requires \valid (((char*) s)+(0 .. n-1));
+/*@ requires valid_memory_area: \valid (((char*) s)+(0 .. n-1));
   assigns ((char*) s)[0 .. n-1] \from \nothing;
-  ensures \subset(((char*) s)[0 .. n-1], {0}); */
+  ensures zero_initialized: \subset(((char*) s)[0 .. n-1], {0}); */
 extern void   bzero(void *s, size_t n);
 extern int    ffs(int);
 extern char   *index(const char *, int);
 extern char   *rindex(const char *, int);
-extern int    strcasecmp(const char *, const char *);
-extern int    strncasecmp(const char *, const char *, size_t);
+
+/*@
+  requires valid_string_s1: valid_read_string(s1);
+  requires valid_string_s2: valid_read_string(s2);
+  assigns \result \from indirect:s1[0..], indirect:s2[0..];
+*/
+extern int    strcasecmp(const char *s1, const char *s2);
+
+/*@
+  requires valid_string_s1: valid_read_nstring(s1, n);
+  requires valid_string_s2: valid_read_nstring(s2, n);
+  assigns \result \from indirect:n, indirect:s1[0..n-1], indirect:s2[0..n-1];
+*/
+extern int    strncasecmp(const char *s1, const char *s2, size_t n);
 
 __END_DECLS
 

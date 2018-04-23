@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -28,6 +28,8 @@
 /* Note: Values for long double are only valid for x86 extended format.
    Some black magic will be needed if some other format (or none) is
    supposed to be provided. */
+
+// *_TRUE_MIN and *_HAS_SUBNORM are C11 constants not present in POSIX-1.2008
 
 #define FLT_RADIX		2
 
@@ -57,17 +59,30 @@
 
 #define FLT_MAX			0x1.fffffep+127
 #define DBL_MAX			0x1.fffffffffffffp+1023
-#define LDBL_MAX		0x1.fffffffffffffffep+16383
+#define LDBL_MAX 0x1.fffffffffffffffep+16383L
 
 #define FLT_EPSILON		0x1p-23
 #define DBL_EPSILON		0x1p-52
-#define LDBL_EPSILON		0x1p-63
+#define LDBL_EPSILON 0x1p-63L
+
+#define FLT_HAS_SUBNORM 1
+#define DBL_HAS_SUBNORM 1
+#define LDBL_HAS_SUBNORM 1
 
 #define FLT_MIN			0x1p-126
+#define FLT_TRUE_MIN 0x1p-149
 #define DBL_MIN			0x1p-1022
-#define LDBL_MIN		0x1p-16382
+#define DBL_TRUE_MIN 0x1p-1074
+#define LDBL_MIN 0x1p-16382L
+#define LDBL_TRUE_MIN 0x1p-16445L
 
-#define FLT_ROUNDS		-1
-#define FLT_EVAL_METHOD		-1
-
+// By default, force IEEE evaluation, but leave
+// the possibility to work at a more abstract level
+#ifdef __FC_INDETERMINABLE_FLOATS
+#define FLT_ROUNDS             -1
+#define FLT_EVAL_METHOD        -1
+#else
+#define FLT_ROUNDS		1
+#define FLT_EVAL_METHOD		0
+#endif
 #endif

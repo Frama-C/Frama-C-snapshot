@@ -6,11 +6,11 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function x <- main.
-    Called from tests/slicing/bts0190.i:15.
-tests/slicing/bts0190.i:8:[value] assertion got status valid.
-tests/slicing/bts0190.i:9:[value] assertion got status valid.
+  Called from tests/slicing/bts0190.i:15.
+[value] tests/slicing/bts0190.i:8: assertion got status valid.
+[value] tests/slicing/bts0190.i:9: assertion got status valid.
 [value] computing for function z1 <- x <- main.
-    Called from tests/slicing/bts0190.i:10.
+  Called from tests/slicing/bts0190.i:10.
 [value] Recording results for z1
 [value] Done for function z1
 [value] Recording results for x
@@ -19,9 +19,9 @@ tests/slicing/bts0190.i:9:[value] assertion got status valid.
 [value] done for function main
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
-[slicing] user error: Unbound variable y. Slicing requests from the command line are ignored.
-[slicing] warning: No internal slicing request from the command line.
-[slicing] warning: Adding an extra request on the entry point of function: main.
+[slicing] User Error: Unbound variable y. Slicing requests from the command line are ignored.
+[slicing] Warning: No internal slicing request from the command line.
+[slicing] Warning: Adding an extra request on the entry point of function: main.
 [pdg] computing for function main
 [from] Computing for function x
 [from] Computing for function z1 <-x

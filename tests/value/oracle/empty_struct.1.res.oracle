@@ -4,6 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   s2 ∈ [--..--]
+  pgs ∈ {{ NULL ; &S_pgs[-1] }}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -12,11 +13,11 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      p
+    p
 [inout] Inputs for function main:
-      \nothing
+    \nothing

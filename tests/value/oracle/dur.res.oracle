@@ -155,7 +155,7 @@
     {.M92[5]{.M2; .M3}; .M93[0..4]} ∈ [--..--]
   G6 ∈ [--..--]
   G7[0..160] ∈ [--..--]
-tests/value/dur.i:167:[value] entering loop for the first time
+[value] tests/value/dur.i:167: entering loop for the first time
 [value] Recording results for F2
 [value] done for function F2
 [value] ====== VALUES COMPUTED ======
@@ -312,7 +312,7 @@ tests/value/dur.i:167:[value] entering loop for the first time
 [from] Computing for function F2
 [from] Done for function F2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function F2:
   G5.M75 FROM G3
     {.M90[0].M4; .M90[1].M4; .M90[2].M4; .M90[3].M4}
@@ -322,7 +322,7 @@ tests/value/dur.i:167:[value] entering loop for the first time
     .M91.M5 FROM G6.M97[0]; V8 (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function F2:
-      G5{.M75; {.M90[0..3]; .M91}}; V5; V6; V7
+    G5{.M75; {.M90[0..3]; .M91}}; V5; V6; V7
 [inout] Inputs for function F2:
-      G1; G2; G3; G5{.M90[0].M4; .M90[1].M4; .M90[2].M4; .M90[3].M4};
-      G6{.M96[0]; .M97[0]}
+    G1; G2; G3; G5{.M90[0].M4; .M90[1].M4; .M90[2].M4; .M90[3].M4};
+    G6{.M96[0]; .M97[0]}

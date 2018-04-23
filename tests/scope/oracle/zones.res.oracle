@@ -13,44 +13,51 @@
   Yf ∈ {0}
   Yg ∈ {0}
 [value] computing for function simple <- main.
-    Called from tests/scope/zones.c:73.
-tests/scope/zones.c:15:[value] warning: signed overflow. assert x + 1 ≤ 2147483647;
-tests/scope/zones.c:16:[value] warning: signed overflow. assert y + z ≤ 2147483647;
+  Called from tests/scope/zones.c:73.
+[value:alarm] tests/scope/zones.c:15: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[value:alarm] tests/scope/zones.c:16: Warning: 
+  signed overflow. assert y + z ≤ 2147483647;
 [value] Recording results for simple
 [value] Done for function simple
 [value] computing for function array1 <- main.
-    Called from tests/scope/zones.c:74.
-tests/scope/zones.c:21:[value] warning: accessing out of bounds index. assert 0 ≤ x;
-tests/scope/zones.c:21:[value] warning: accessing out of bounds index. assert x < 10;
-tests/scope/zones.c:22:[value] warning: signed overflow. assert T[0] + y ≤ 2147483647;
+  Called from tests/scope/zones.c:74.
+[value:alarm] tests/scope/zones.c:21: Warning: 
+  accessing out of bounds index. assert 0 ≤ x;
+[value:alarm] tests/scope/zones.c:21: Warning: 
+  accessing out of bounds index. assert x < 10;
+[value:alarm] tests/scope/zones.c:22: Warning: 
+  signed overflow. assert T[0] + y ≤ 2147483647;
 [value] Recording results for array1
 [value] Done for function array1
 [value] computing for function struct1 <- main.
-    Called from tests/scope/zones.c:75.
+  Called from tests/scope/zones.c:75.
 [value] Recording results for struct1
 [value] Done for function struct1
 [value] computing for function ctrl1 <- main.
-    Called from tests/scope/zones.c:76.
+  Called from tests/scope/zones.c:76.
 [value] Recording results for ctrl1
 [value] Done for function ctrl1
 [value] computing for function caller <- main.
-    Called from tests/scope/zones.c:78.
+  Called from tests/scope/zones.c:78.
 [value] computing for function f <- caller <- main.
-    Called from tests/scope/zones.c:66.
+  Called from tests/scope/zones.c:66.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- caller <- main.
-    Called from tests/scope/zones.c:67.
+  Called from tests/scope/zones.c:67.
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function g <- caller <- main.
-    Called from tests/scope/zones.c:68.
-tests/scope/zones.c:60:[value] warning: signed overflow. assert a + b ≤ 2147483647;
+  Called from tests/scope/zones.c:68.
+[value:alarm] tests/scope/zones.c:60: Warning: 
+  signed overflow. assert a + b ≤ 2147483647;
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function f <- caller <- main.
-    Called from tests/scope/zones.c:68.
-tests/scope/zones.c:54:[value] warning: signed overflow. assert x + y ≤ 2147483647;
+  Called from tests/scope/zones.c:68.
+[value:alarm] tests/scope/zones.c:54: Warning: 
+  signed overflow. assert x + y ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for caller

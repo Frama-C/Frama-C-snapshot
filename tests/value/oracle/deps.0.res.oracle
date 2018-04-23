@@ -4,21 +4,23 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/deps.i:11:[value] warning: accessing uninitialized left-value. assert \initialized(&w);
+[value:alarm] tests/value/deps.i:11: Warning: 
+  accessing uninitialized left-value. assert \initialized(&w);
 [value] Recording results for f
 [value] done for function f
-tests/value/deps.i:11:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/deps.i:11: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   b ∈ [--..--]
 [from] Computing for function f
 [from] Done for function f
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      b
+    b
 [inout] Inputs for function f:
-      \nothing
+    \nothing

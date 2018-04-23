@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2017                                               #
+#  Copyright (C) 2007-2018                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -48,6 +48,7 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
           -e "s|@CURR_DATE@|$$(LC_ALL=C date)|" \
 	  -e "s|@OCAMLC@|$(OCAMLC)|" \
           -e "s|@OCAMLOPT@|$(OCAMLOPT)|" \
+	  -e "s|@WARNINGS@|$(WARNINGS)|" \
           -e "s|@FRAMAC_DATADIR@|$(FRAMAC_DATADIR)|" \
 	  -e "s|@FRAMAC_LIBDIR@|$(FRAMAC_LIBDIR)|" \
 	  -e "s|@FRAMAC_ROOT_SRCDIR@|$(FRAMAC_ROOT_SRCDIR)|" \
@@ -60,6 +61,7 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
           -e "s|@LIBRARY_NAMES@|$(foreach p,$(ALL_LIBRARY_NAMES),\"$p\";)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
+          -e "s|@HAS_YOJSON@|$(if $(filter yes,$(HAS_YOJSON)),true,false)|" \
           -e "s|@EXE@|$(EXE)|" \
           $< > $@.tmp
 	@touch -r $@.tmp $<
@@ -116,7 +118,19 @@ $(MACHDEP_PATH)/local_machdep.ml: \
 
 endif
 
+# transitioning.ml
 
+GENERATED+= src/libraries/utils/json.ml src/libraries/stdlib/transitioning.ml
+
+src/libraries/stdlib/transitioning.ml: \
+  src/libraries/stdlib/transitioning.ml.in \
+  Makefile.generating share/Makefile.config
+	rm -f $@
+	sed \
+         -e 's/@SPLIT_ON_CHAR@/$(SPLIT_ON_CHAR)/g' \
+         -e 's/@STACK_FOLD@/$(STACK_FOLD)/g' \
+        $< > $@
+	$(CHMOD_RO) $@
 
 ##################
 # Frama-C-config #

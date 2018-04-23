@@ -6,6 +6,11 @@
 // In MSVC, "long double" is mapped to "double".
 #include <stdlib.h>
 
+//@ assigns \result \from *(int*)a, *(int*)b;
+int compare_int(const void *a, const void *b) {
+  return (*(int*)a < *(int*)b) ? -1 : (*(int*)a > *(int*)b);
+}
+
 volatile int nondet;
 int main() {
   int base = nondet ? 0 : nondet ? 2 : 36;
@@ -54,5 +59,23 @@ int main() {
   f = strtof(pf, &q);
   f = strtof(q, NULL);
 
+  int ai[4] = {1, -1, 50000, 20};
+  int key = 4;
+  int *p = bsearch(&key, ai, 4, sizeof(int), compare_int);
+  //@ assert p == \null;
+  key = -1;
+  p = bsearch(&key, ai, 4, sizeof(int), compare_int);
+  //@ assert p == &ai[1];
+
+  // tests for *env functions
+  /*{
+    char mutable[12] = "MUTABLE=yes";
+    putenv(mutable);
+    mutable[8] = 'n';
+    mutable[9] = 'o';
+    mutable[10] = 0;
+    char *v = getenv("MUTABLE");
+    if (v[8] != 'n') return 1; // possible only if imprecise
+  }*/
   return 0;
 }

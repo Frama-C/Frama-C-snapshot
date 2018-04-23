@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,7 @@ open Cil_datatype
 module WpLog = Wp_parameters
 
 type c_int =
+  | Bool
   | UInt8
   | SInt8
   | UInt16
@@ -42,16 +43,19 @@ type c_int =
 let compare_c_int : c_int -> c_int -> _ = Extlib.compare_basic
 
 let signed  = function
+  | Bool -> false
   | UInt8 | UInt16 | UInt32 | UInt64 -> false
   | SInt8 | SInt16 | SInt32 | SInt64 -> true
 
 let i_bits = function
+  | Bool -> 1
   | UInt8  | SInt8  -> 8
   | UInt16 | SInt16 -> 16
   | UInt32 | SInt32 -> 32
   | UInt64 | SInt64 -> 64
 
 let i_bytes = function
+  | Bool -> 1
   | UInt8  | SInt8  -> 1
   | UInt16 | SInt16 -> 2
   | UInt32 | SInt32 -> 4
@@ -62,19 +66,19 @@ let make_c_int signed = function
   | 2 -> if signed then SInt16 else UInt16
   | 4 -> if signed then SInt32 else UInt32
   | 8 -> if signed then SInt64 else UInt64
-  | size -> WpLog.not_yet_implemented "%d-bits integers" size
+  | size -> WpLog.not_yet_implemented "%d-bytes integers" size
 
 let is_char = function
   | UInt8 -> Cil.theMachine.Cil.theMachine.char_is_unsigned
   | SInt8 -> not Cil.theMachine.Cil.theMachine.char_is_unsigned
   | UInt16 | SInt16
   | UInt32 | SInt32
-  | UInt64 | SInt64 -> false
-
+  | UInt64 | SInt64 | Bool -> false
+    
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
   match ikind with
-  | IBool -> make_c_int false mach.sizeof_int
+  | IBool -> if Wp_parameters.BoolRange.get () then Bool else UInt8
   | IChar -> if mach.char_is_unsigned then UInt8 else SInt8
   | ISChar -> SInt8
   | IUChar -> UInt8
@@ -90,7 +94,7 @@ let c_int ikind =
 let c_int_all =
   [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
 
-let c_bool () = c_int IInt
+let c_bool () = c_int IBool
 let c_char () = c_int IChar
 let c_ptr () =
   make_c_int false Cil.theMachine.Cil.theMachine.sizeof_ptr
@@ -162,9 +166,10 @@ let idx = function
   | SInt32 -> 5
   | UInt64 -> 6
   | SInt64 -> 7
+  | Bool -> 8
 
 let i_memo f =
-  let m = Array.make 8 None in
+  let m = Array.make 9 None in
   fun i ->
     let k = idx i in
     match m.(k) with
@@ -184,7 +189,7 @@ let f_memo f =
     | None -> let r = f z in m.(k) <- Some r ; r
 
 let i_iter f =
-  List.iter f [UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
+  List.iter f [Bool;UInt8;SInt8;UInt16;SInt16;UInt32;SInt32;UInt64;SInt64]
 
 let f_iter f =
   List.iter f [Float32;Float64]
@@ -207,8 +212,9 @@ let bounds i = i_memo i_bounds i
 (* --- Pretty Printers                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
-let pp_int fmt i = Format.fprintf fmt "%cint%d"
-    (if signed i then 's' else 'u') (i_bits i)
+let pp_int fmt i =
+  if i = Bool then Format.pp_print_string fmt "bool"
+  else Format.fprintf fmt "%cint%d" (if signed i then 's' else 'u') (i_bits i)
 
 let pp_float fmt f = Format.fprintf fmt "float%d" (f_bits f)
 

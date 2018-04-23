@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_typed/user_injector.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 16 goals scheduled
 [wp] [Qed] Goal typed_ref_job_post_SEQ : Valid
 [wp] [Qed] Goal typed_ref_job_post_ID1 : Valid
@@ -21,8 +21,16 @@
 [wp] [Qed] Goal typed_ref_job_assign_normal_part5 : Valid
 [wp] [Qed] Goal typed_ref_job_assign_normal_part6 : Valid
 [wp] Proved goals:   16 / 16
-    Qed:            16
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-job                 16     -          16       100%
-----------------------------------------------------------
+  Qed:            16
+[wp] Report 'tests/wp_typed/user_injector.i.1.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+job                 16     -                16       100%
+-------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'job':
+  /*@
+     behavior typed_ref:
+     requires \separated(error,
+                \union(&seq,&service_cpt,service_id+(..),service_result+(..)));
+     */
+  int job(int a, int b, int *error);

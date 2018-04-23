@@ -7,17 +7,18 @@
   G ∈ {0}
   X ∈ {0}
 [value] computing for function call_test3 <- main3.
-    Called from tests/impact/call.i:55.
+  Called from tests/impact/call.i:55.
 [value] computing for function test3 <- call_test3 <- main3.
-    Called from tests/impact/call.i:49.
+  Called from tests/impact/call.i:49.
 [value] computing for function p3 <- test3 <- call_test3 <- main3.
-    Called from tests/impact/call.i:45.
+  Called from tests/impact/call.i:45.
 [value] using specification for function p3
-tests/impact/call.i:41:[value] warning: no \from part for clause 'assigns G;'
+[value] tests/impact/call.i:41: Warning: no \from part for clause 'assigns G;'
 [value] Done for function p3
 [value] computing for function p2 <- test3 <- call_test3 <- main3.
-    Called from tests/impact/call.i:45.
-tests/impact/call.i:45:[kernel] warning: Neither code nor specification for function p2, generating default assigns from the prototype
+  Called from tests/impact/call.i:45.
+[kernel:annot:missing-spec] tests/impact/call.i:45: Warning: 
+  Neither code nor specification for function p2, generating default assigns from the prototype
 [value] using specification for function p2
 [value] Done for function p2
 [value] Recording results for test3
@@ -43,7 +44,7 @@ tests/impact/call.i:45:[kernel] warning: Neither code nor specification for func
 [pdg] computing for function p3
 [pdg] done for function p3
 [impact] impacted statements of stmt(s) 30 are:
-      tests/impact/call.i:45 (sid 22): p3(1);
-      tests/impact/call.i:49 (sid 26): test3();
-      tests/impact/call.i:55 (sid 31): call_test3();
+    tests/impact/call.i:45 (sid 22): p3(1);
+    tests/impact/call.i:49 (sid 26): test3();
+    tests/impact/call.i:55 (sid 31): call_test3();
 [impact] analysis done

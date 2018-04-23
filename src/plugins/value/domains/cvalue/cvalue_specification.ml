@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -79,11 +79,6 @@ let check_from pre_state asgn assigns_zone from found_froms =
   | true,false -> res_for_unknown "indirect"
 
 
-(* Emits a status and a notification message. Returns the message callback. *)
-let emit_status ppt status =
-  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
-
-
 (* Display the message as result/warning depending on [status] *)
 let msg_status status ?current ?once ?source fmt =
   if status = Alarmset.True then
@@ -91,12 +86,8 @@ let msg_status status ?current ?once ?source fmt =
     then Value_parameters.result ?current ?once ?source fmt
     else Value_parameters.result ?current ?once ?source ~level:2 fmt
   else
-  if Value_parameters.AlarmsWarnings.get () then
-    Value_parameters.warning ?current ?once ?source fmt
-  else
-    Value_parameters.result
-      ?current ?once ?source ~dkey:Value_parameters.dkey_alarm fmt
-
+    Value_parameters.warning
+      ~wkey:Value_parameters.wkey_alarm ?current ?once ?source fmt
 
 let pp_bhv fmt b =
   if not (Cil.is_default_behavior b)
@@ -157,6 +148,10 @@ let check_fct_assigns kf ab ~pre_state found_froms =
            status_txt
            pp_activity activity
            Value_util.pp_callstack;
+         let emit_status ppt status =
+           Property_status.emit
+             ~distinct:true Value_util.emitter ~hyps:[] ppt status
+         in
          emit_status ip status;
          (* Now, checks the individual froms. *)
          let check_from ((asgn,deps) as from) assigns_zone =

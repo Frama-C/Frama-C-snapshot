@@ -13,9 +13,10 @@
     [2][0..1] ∈ {2}
     [2][2..4] ∈ {0}
   G ∈ {99}
-tests/value/inversion2.i:10:[value] entering loop for the first time
-tests/value/inversion2.i:11:[value] entering loop for the first time
-tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] ≢ 0;
+[value] tests/value/inversion2.i:10: entering loop for the first time
+[value] tests/value/inversion2.i:11: entering loop for the first time
+[value:alarm] tests/value/inversion2.i:12: Warning: 
+  division by zero. assert TT[i][j] ≢ 0;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -26,14 +27,14 @@ tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] �
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   G FROM T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]} (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; i; j
+    G; i; j
 [inout] Inputs for function main:
-      T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}
+    T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -48,7 +49,8 @@ tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] �
     [2][0..1] ∈ {2}
     [2][2..4] ∈ {0}
   G ∈ {99}
-tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] ≢ 0;
+[value:alarm] tests/value/inversion2.i:12: Warning: 
+  division by zero. assert TT[i][j] ≢ 0;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -59,11 +61,11 @@ tests/value/inversion2.i:12:[value] warning: division by zero. assert TT[i][j] �
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   G FROM T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]} (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      G; i; j
+    G; i; j
 [inout] Inputs for function main:
-      T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}
+    T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}

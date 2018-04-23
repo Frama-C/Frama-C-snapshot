@@ -6,57 +6,65 @@
   i ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/cast_return.c:63.
+  Called from tests/value/cast_return.c:63.
 [value] computing for function f <- main1 <- main.
-    Called from tests/value/cast_return.c:26.
+  Called from tests/value/cast_return.c:26.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main1 <- main.
-    Called from tests/value/cast_return.c:27.
+  Called from tests/value/cast_return.c:27.
 [value] Recording results for g
 [value] Done for function g
-tests/value/cast_return.c:27:[value] warning: accessing uninitialized left-value.
-    assert \initialized(&tmp_0);
-    (tmp_0 from g())
+[value:alarm] tests/value/cast_return.c:27: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp_0);
+  (tmp_0 from g())
 [value] computing for function h <- main1 <- main.
-    Called from tests/value/cast_return.c:31.
+  Called from tests/value/cast_return.c:31.
 [value] Recording results for h
 [value] Done for function h
-tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid(*p);
-tests/value/cast_return.c:31:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value:alarm] tests/value/cast_return.c:31: Warning: 
+  out of bounds write. assert \valid(*p);
+[kernel] tests/value/cast_return.c:31: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/cast_return.c:64.
+  Called from tests/value/cast_return.c:64.
 [value] computing for function fl1 <- main2 <- main.
-    Called from tests/value/cast_return.c:50.
+  Called from tests/value/cast_return.c:50.
 [value] Recording results for fl1
 [value] Done for function fl1
-tests/value/cast_return.c:50:[value] warning: accessing uninitialized left-value.
-    assert \initialized(&tmp);
-    (tmp from fl1())
+[value:alarm] tests/value/cast_return.c:50: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp);
+  (tmp from fl1())
 [value] computing for function fl2 <- main2 <- main.
-    Called from tests/value/cast_return.c:51.
+  Called from tests/value/cast_return.c:51.
 [value] Recording results for fl2
 [value] Done for function fl2
-tests/value/cast_return.c:51:[value] warning: accessing uninitialized left-value.
-    assert \initialized(&tmp_0);
-    (tmp_0 from fl2())
+[value:alarm] tests/value/cast_return.c:51: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp_0);
+  (tmp_0 from fl2())
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/cast_return.c:65.
+  Called from tests/value/cast_return.c:65.
 [value] computing for function ret_float <- main3 <- main.
-    Called from tests/value/cast_return.c:58.
+  Called from tests/value/cast_return.c:58.
 [value] using specification for function ret_float
 [value] Done for function ret_float
-tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+[value:alarm] tests/value/cast_return.c:59: Warning: 
+  non-finite float value. assert \is_finite(f1);
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
 [value] done for function main
-tests/value/cast_return.c:31:[value] assertion 'Value,mem_access' got final status invalid.
-tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/cast_return.c:31: 
+  assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/cast_return.c:50: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   
@@ -100,7 +108,7 @@ tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM i
 [from] Function fl1:
@@ -123,41 +131,41 @@ tests/value/cast_return.c:50:[value] assertion 'Value,initialisation' got final 
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      \nothing
+    \nothing
 [inout] Inputs for function f:
-      i
+    i
 [inout] Out (internal) for function fl1:
-      v[bits 0 to 7]
+    v[bits 0 to 7]
 [inout] Inputs for function fl1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function fl2:
-      v
+    v
 [inout] Inputs for function fl2:
-      c
+    c
 [inout] Out (internal) for function g:
-      x
+    x
 [inout] Inputs for function g:
-      c
+    c
 [inout] Out (internal) for function h:
-      __retres
+    __retres
 [inout] Inputs for function h:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main1:
-      f_; tmp; v; tmp_0; x; p; tmp_1
+    f_; tmp; v; tmp_0; x; p; tmp_1
 [inout] Inputs for function main1:
-      i; c
+    i; c
 [inout] Out (internal) for function main2:
-      d1; d2; tmp; tmp_0
+    d1; d2; tmp; tmp_0
 [inout] Inputs for function main2:
-      c
+    c
 [inout] Out (internal) for function main3:
-      f1; f2
+    f1; f2
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      i; c
+    i; c
 /* Generated by Frama-C */
 extern int i;
 
@@ -191,7 +199,7 @@ void main1(void)
   if (c) {
     int tmp_0;
     tmp_0 = g();
-    /*@ assert Value: initialisation: \initialized(&tmp_0); */
+    /*@ assert Value: initialization: \initialized(&tmp_0); */
     long long v = (long long)tmp_0;
   }
   if (c) {
@@ -227,18 +235,18 @@ void main2(void)
   if (c) {
     float tmp;
     tmp = fl1();
-    /*@ assert Value: initialisation: \initialized(&tmp); */
+    /*@ assert Value: initialization: \initialized(&tmp); */
     d1 = (double)tmp;
   }
   tmp_0 = fl2();
-  /*@ assert Value: initialisation: \initialized(&tmp_0); */
+  /*@ assert Value: initialization: \initialized(&tmp_0); */
   d2 = (double)tmp_0;
   return;
 }
 
 /*@ assigns \result;
     assigns \result \from \nothing; */
-float ret_float();
+float ret_float(void);
 
 void main3(void)
 {
@@ -264,48 +272,54 @@ void main(void)
   i ∈ [--..--]
   c ∈ [--..--]
 [value] computing for function main1 <- main.
-    Called from tests/value/cast_return.c:63.
+  Called from tests/value/cast_return.c:63.
 [value] computing for function f <- main1 <- main.
-    Called from tests/value/cast_return.c:26.
+  Called from tests/value/cast_return.c:26.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function g <- main1 <- main.
-    Called from tests/value/cast_return.c:27.
-tests/value/cast_return.c:17:[value] warning: accessing uninitialized left-value. assert \initialized(&x);
+  Called from tests/value/cast_return.c:27.
+[value:alarm] tests/value/cast_return.c:17: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
 [value] Recording results for g
 [value] Done for function g
 [value] computing for function h <- main1 <- main.
-    Called from tests/value/cast_return.c:31.
+  Called from tests/value/cast_return.c:31.
 [value] Recording results for h
 [value] Done for function h
-tests/value/cast_return.c:31:[value] warning: out of bounds write. assert \valid(*p);
+[value:alarm] tests/value/cast_return.c:31: Warning: 
+  out of bounds write. assert \valid(*p);
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-    Called from tests/value/cast_return.c:64.
+  Called from tests/value/cast_return.c:64.
 [value] computing for function fl1 <- main2 <- main.
-    Called from tests/value/cast_return.c:50.
-tests/value/cast_return.c:38:[value] warning: accessing uninitialized left-value. assert \initialized(&v);
+  Called from tests/value/cast_return.c:50.
+[value:alarm] tests/value/cast_return.c:38: Warning: 
+  accessing uninitialized left-value. assert \initialized(&v);
 [value] Recording results for fl1
 [value] Done for function fl1
 [value] computing for function fl2 <- main2 <- main.
-    Called from tests/value/cast_return.c:51.
-tests/value/cast_return.c:44:[value] warning: accessing uninitialized left-value. assert \initialized(&v);
+  Called from tests/value/cast_return.c:51.
+[value:alarm] tests/value/cast_return.c:44: Warning: 
+  accessing uninitialized left-value. assert \initialized(&v);
 [value] Recording results for fl2
 [value] Done for function fl2
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-    Called from tests/value/cast_return.c:65.
+  Called from tests/value/cast_return.c:65.
 [value] computing for function ret_float <- main3 <- main.
-    Called from tests/value/cast_return.c:58.
+  Called from tests/value/cast_return.c:58.
 [value] Done for function ret_float
-tests/value/cast_return.c:59:[value] warning: non-finite float value. assert \is_finite(f1);
+[value:alarm] tests/value/cast_return.c:59: Warning: 
+  non-finite float value. assert \is_finite(f1);
 [value] Recording results for main3
 [value] Done for function main3
 [value] Recording results for main
 [value] done for function main
-tests/value/cast_return.c:38:[value] assertion 'Value,initialisation' got final status invalid.
+[value] tests/value/cast_return.c:38: 
+  assertion 'Value,initialization' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function f:
   
@@ -348,7 +362,7 @@ tests/value/cast_return.c:38:[value] assertion 'Value,initialisation' got final 
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM i
 [from] Function fl1:
@@ -371,38 +385,38 @@ tests/value/cast_return.c:38:[value] assertion 'Value,initialisation' got final 
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      \nothing
+    \nothing
 [inout] Inputs for function f:
-      i
+    i
 [inout] Out (internal) for function fl1:
-      v[bits 0 to 7]
+    v[bits 0 to 7]
 [inout] Inputs for function fl1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function fl2:
-      v
+    v
 [inout] Inputs for function fl2:
-      c
+    c
 [inout] Out (internal) for function g:
-      x
+    x
 [inout] Inputs for function g:
-      c
+    c
 [inout] Out (internal) for function h:
-      __retres
+    __retres
 [inout] Inputs for function h:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main1:
-      f_; tmp; v; tmp_0; x; p; tmp_1
+    f_; tmp; v; tmp_0; x; p; tmp_1
 [inout] Inputs for function main1:
-      i; c
+    i; c
 [inout] Out (internal) for function main2:
-      d2; tmp; tmp_0
+    d2; tmp; tmp_0
 [inout] Inputs for function main2:
-      c
+    c
 [inout] Out (internal) for function main3:
-      f1; f2
+    f1; f2
 [inout] Inputs for function main3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      i; c
+    i; c

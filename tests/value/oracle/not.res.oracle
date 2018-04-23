@@ -4,7 +4,6 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
-tests/value/not.i:4:[value] warning: initialization of volatile variable loc ignored
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -14,11 +13,11 @@ tests/value/not.i:4:[value] warning: initialization of volatile variable loc ign
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   x FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      x; loc
+    x; loc
 [inout] Inputs for function main:
-      \nothing
+    \nothing

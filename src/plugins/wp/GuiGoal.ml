@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -237,10 +237,10 @@ class pane (proverpane : GuiConfig.provers) =
       | Proof p ->
           ProofEngine.reset p ;
           ProverScript.spawn
-            ~callback:
+            ~result:
               (fun wpo prv res ->
-                 text#printf "[%a] %s : %a@."
-                   VCS.pp_prover prv Wpo.(wpo.po_name) VCS.pp_result res)
+                 text#printf "[%a] %a : %a@."
+                   VCS.pp_prover prv Wpo.pp_title wpo VCS.pp_result res)
             ~success:
               (fun _ _ ->
                  ProofEngine.forward p ;
@@ -342,8 +342,8 @@ class pane (proverpane : GuiConfig.provers) =
           strategies#connect (Some (self#strategies sequent)) ;
           let select (tactic : GuiTactic.tactic) =
             let process = self#apply in
-            let composer = Model.with_model model self#compose in
-            let browser = Model.with_model model self#browse in
+            let composer = self#compose in
+            let browser = self#browse in
             tactic#select ~process ~composer ~browser sel
           in
           Model.with_model model (List.iter select) tactics ;
@@ -384,7 +384,8 @@ class pane (proverpane : GuiConfig.provers) =
       | Proof proof | Forking(proof,_,_)
       | Composer(proof,_,_) | Browser(proof,_,_) ->
           begin
-            delete#set_enabled true ;
+            let nofork = match state with Forking _ -> false | _ -> true in
+            delete#set_enabled nofork ;
             help#set_enabled
               (match state with Proof _ -> not helpmode | _ -> false) ;
             match ProofEngine.status proof with
@@ -407,12 +408,12 @@ class pane (proverpane : GuiConfig.provers) =
                 next#set_enabled false ;
                 prev#set_enabled false ;
                 forward#set_enabled false ;
-                cancel#set_enabled true ;
+                cancel#set_enabled nofork ;
                 status#set_text "Proof Terminated" ;
             | `Pending n ->
                 icon#set_icon GuiProver.ko_status ;
-                forward#set_enabled true ;
-                cancel#set_enabled true ;
+                forward#set_enabled nofork ;
+                cancel#set_enabled nofork ;
                 match ProofEngine.current proof with
                 | `Main | `Internal _ ->
                     next#set_enabled false ;
@@ -439,7 +440,7 @@ class pane (proverpane : GuiConfig.provers) =
           self#update_tactics None ;
       | Proof proof ->
           let wpo = ProofEngine.head proof in
-          if Wpo.is_trivial wpo then
+          if Wpo.is_proved wpo then
             begin
               self#update_provers None ;
               self#update_tactics None ;
@@ -489,7 +490,9 @@ class pane (proverpane : GuiConfig.provers) =
               state <- Proof proof ;
               printer#restore tgt ;
               self#update in
-            text#printf "%t@." (composer#print cc ~quit) ;
+            let model = ProofEngine.tree_model proof in
+            let print = composer#print cc ~quit in
+            text#printf "%t@." (Model.with_model model print) ;
             text#hrule ;
             text#printf "%t@."
               (printer#goal (ProofEngine.head proof)) ;
@@ -501,7 +504,9 @@ class pane (proverpane : GuiConfig.provers) =
               state <- Proof proof ;
               printer#restore tgt ;
               self#update in
-            text#printf "%t@." (browser#print cc ~quit) ;
+            let model = ProofEngine.tree_model proof in
+            let print = browser#print cc ~quit in
+            text#printf "%t@." (Model.with_model model print) ;
             text#hrule ;
             text#printf "%t@."
               (printer#goal (ProofEngine.head proof)) ;
@@ -527,7 +532,7 @@ class pane (proverpane : GuiConfig.provers) =
           let n = Task.size pool in
           if n = 0 then
             begin
-              ignore (ProofEngine.commit fork) ;
+              ignore (ProofEngine.commit ~resolve:false fork) ;
               ProofEngine.validate proof ;
               ProofEngine.forward proof ;
               state <- Proof proof ;
@@ -536,17 +541,15 @@ class pane (proverpane : GuiConfig.provers) =
             end
 
     method private schedule pool provers goal =
-      if provers = [] then
-        self#commit ()
-      else
-        Prover.spawn goal
-          ~callback:
-            begin fun wpo prv res ->
-              text#printf "[%a] %a : %a@."
-                VCS.pp_prover prv Wpo.pp_title wpo VCS.pp_result res
-            end
-          ~success:(fun _ _ -> Wutil.later self#commit)
-          ~pool provers
+      Prover.spawn goal
+        ~delayed:true
+        ~result:
+          begin fun wpo prv res ->
+            text#printf "[%a] %a : %a@."
+              VCS.pp_prover prv Wpo.pp_title wpo VCS.pp_result res
+          end
+        ~success:(fun _ _ -> Wutil.later self#commit)
+        ~pool provers
 
     method private fork proof fork =
       Wutil.later
@@ -557,6 +560,12 @@ class pane (proverpane : GuiConfig.provers) =
           let server = ProverTask.server () in
           state <- Forking(proof,fork,pool) ;
           Task.launch server ;
+          printer#reset ;
+          text#clear ;
+          text#printf "Tactic %a@." ProofEngine.pretty fork ;
+          text#printf "%d sub-goals generated.@." (Task.size pool) ;
+          text#printf "Computing...@." ;
+          self#update ;
         end
 
     method private apply tactic selection process =
@@ -575,26 +584,46 @@ class pane (proverpane : GuiConfig.provers) =
       | None -> text#printf "No tactic found.@\n"
       | Some fork -> self#fork proof fork
 
-    method private strategies sequent hs =
+    method private strategies sequent ~depth ~width auto =
       match state with
       | Empty | Forking _ | Composer _ | Browser _ -> ()
       | Proof proof ->
           Wutil.later
-          begin fun () ->
-            let anchor = ProofEngine.anchor proof () in
-            let pool = new Strategy.pool in
-            Model.with_model
-              (ProofEngine.model anchor)
-              (List.iter (fun h -> h#search pool#add sequent)) hs ;
-            self#search proof (ProverSearch.first proof ~anchor pool#sort)
-          end
+            begin fun () ->
+              if depth <= 1 then
+                let fork = ProverSearch.search proof ~sequent auto in
+                self#search proof fork
+              else
+                begin
+                  ProverScript.search
+                    ~depth ~width ~auto
+                    ~provers:[ VCS.AltErgo ]
+                    ~result:
+                      (fun wpo prv res ->
+                         text#printf "[%a] %a : %a@."
+                           VCS.pp_prover prv
+                           Wpo.pp_title wpo
+                           VCS.pp_result res)
+                    ~success:
+                      (fun _ _ ->
+                         ProofEngine.forward proof ;
+                         self#update ;
+                         text#printf "Strategies Applied." )
+                    proof (ProofEngine.anchor proof ()) ;
+                  let server = ProverTask.server () in
+                  Task.launch server
+                end
+            end
 
     method private backtrack node =
       match state with
       | Empty | Forking _ | Composer _ | Browser _ -> ()
       | Proof proof ->
-          ProofEngine.goto proof (`Node node) ;
-          let fork = ProverSearch.backtrack proof ~anchor:node ~loop:true in
-          self#search proof fork
-
+          begin
+            ProofEngine.goto proof (`Node node) ;
+            let fork =
+              ProverSearch.backtrack proof ~anchor:node ~loop:true () in
+            self#search proof fork
+          end
+            
   end

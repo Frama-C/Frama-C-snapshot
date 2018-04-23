@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -390,8 +390,8 @@ module type S_with_Structure = sig
   val structure : t structure
 
   (** Category for the messages about the domain.
-      Must be created through {Value_parameters.register_category}. *)
-  val log_category : Log.category
+      Must be created through {!Value_parameters.register_category}. *)
+  val log_category : Value_parameters.category
 end
 
 (** External interface of a domain, with accessors.
@@ -444,6 +444,12 @@ end
 module type Internal = sig
   include S_with_Structure
   module Store: Store with type state := state
+
+  (** This function is called after the analysis. The argument is the state
+      computed at the return statement of the main function. The function can
+      also access all states stored in the Store module during the analysis.
+      If the analysis aborted, this function is not called. *)
+  val post_analysis: t or_bottom -> unit
 end
 
 (** Final interface of domains, as generated and used by EVA, with generic

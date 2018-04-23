@@ -1,13 +1,9 @@
-/* run.config
-DONTRUN: ghost code is not supported
-*/
-
 struct A { int x; };
 
-/*@ ghost struct B { int y; }; */
+/*@ ghost struct B { int y; }; // ghost_type */
 
 
-/*@ ghost struct B b1; */
+/*@ ghost struct B b1; // ghost_data */
 
 /*@ requires b1.y == 0 ; */
 int main() {

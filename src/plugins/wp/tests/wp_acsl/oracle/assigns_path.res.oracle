@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/assigns_path.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function job
 ------------------------------------------------------------
@@ -98,3 +98,6 @@ Effect at line 20
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'job':
+  /*@ behavior typed: requires \separated(&p,b+(..)); */
+  void job(int n, int *b);

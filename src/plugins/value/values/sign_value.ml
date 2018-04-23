@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -99,20 +99,16 @@ let inject_int _ i =
   else if Integer.gt i Integer.zero then pos
   else zero
 
-let constant _ c =
-  match c with
-  | CInt64 (i, _, _) ->
-    (* Integer constants never overflow, because the front-end chooses a
-       suitable type. *)
-    `Value (inject_int () i), Alarmset.none
-  | _ -> `Value top, Alarmset.all
+let constant _ = function
+  | CInt64 (i, _, _) -> inject_int () i
+  | _ -> top
 
 (* Modelisation of a pointer. We cannot be precise *)
 let inject_address _ = top
 
 (* Extracting function pointers from an abstraction. Not implemented
    precisely *)
-let resolve_functions ~typ_pointer:_ _ = `Top, true
+let resolve_functions _ = `Top, true
 
 (** {2 Forward transfer functions} *)
 
@@ -183,24 +179,23 @@ let rewrap_integer range v =
   else if range.Eval_typ.i_signed then top else pos_or_zero
 
 (* Floating-point values are not handled. *)
-let cast_float _ _ _ = `Value top, Alarmset.all
+let restrict_float ~remove_infinite:_ _ _ _ = `Value top, Alarmset.all
 
 (* Casts from type [src_typ] to type [dst_typ]. As downcasting can wrap,
    we only handle upcasts precisely *)
-let do_promotion ~src_typ ~dst_typ _e v =
+let cast ~src_typ ~dst_typ _e v =
   let open Eval_typ in
   let range_src = classify_as_scalar src_typ in
   let range_dst = classify_as_scalar dst_typ in
   match range_src, range_dst with
   | TSInt range_src, TSInt range_dst ->
     if equal v zero then `Value v, Alarmset.none else
-      let included_low, included_up = range_inclusion range_src range_dst in
-      if included_low && included_up then
-        `Value v, Alarmset.none (* upcast *)
-      else if range_dst.i_signed then
-        `Value top, Alarmset.all (*dst_typ is signed, return all possible values*)
-      else
-        `Value pos_or_zero, Alarmset.all (* dst_typ is unsigned *)
+    if range_inclusion range_src range_dst then
+      `Value v, Alarmset.none (* upcast *)
+    else if range_dst.i_signed then
+      `Value top, Alarmset.all (*dst_typ is signed, return all possible values*)
+    else
+      `Value pos_or_zero, Alarmset.all (* dst_typ is unsigned *)
   | _ ->
     (* at least one non-integer type. not handled precisely. *)
     `Value top, Alarmset.all

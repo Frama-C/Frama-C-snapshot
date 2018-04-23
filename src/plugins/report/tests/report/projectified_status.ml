@@ -1,5 +1,3 @@
-open Cil_types
-
 let emitter = 
   Emitter.create
     "Test" 

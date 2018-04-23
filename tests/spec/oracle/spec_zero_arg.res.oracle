@@ -5,7 +5,7 @@ int e;
 void f(void);
 
 /*@ requires e > 0; */
-void g();
+void g(void);
 
 int x;
 void i(int b);

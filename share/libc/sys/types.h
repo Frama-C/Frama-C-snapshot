@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,6 +29,7 @@ __BEGIN_DECLS
 #include "../__fc_machdep.h"
 #include "../__fc_define_id_t.h"
 #include "../__fc_define_pid_t.h"
+#include "../__fc_define_size_t.h"
 #include "../__fc_define_ssize_t.h"
 #include "../__fc_define_uid_and_gid.h"
 #include "../__fc_define_time_t.h"
@@ -43,11 +44,14 @@ __BEGIN_DECLS
 #include "../__fc_define_pthread_types.h"
 #include "../__fc_define_key_t.h"
 
+#ifndef __u_char_defined
 typedef unsigned long u_long;
 typedef unsigned int u_int;
 typedef unsigned short u_short;
 typedef unsigned char u_char;
 extern dev_t makedev(int maj, int min);
+#define __u_char_defined
+#endif
 
 __END_DECLS
 __POP_FC_STDLIB

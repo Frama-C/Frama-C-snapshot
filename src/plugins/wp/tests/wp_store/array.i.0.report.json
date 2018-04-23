@@ -1,0 +1,14 @@
+{ "wp:global": { "qed": { "total": 2, "valid": 2 },
+                 "wp:main": { "total": 2, "valid": 2 } },
+  "wp:functions": { "g": { "g_post_P_addr_shift_qed_ok": { "qed": { "total": 1,
+                                                                    "valid": 1 },
+                                                           "wp:main": 
+                                                             { "total": 1,
+                                                               "valid": 1 } },
+                           "g_post_P_startof_qed_ok": { "qed": { "total": 1,
+                                                                 "valid": 1 },
+                                                        "wp:main": { "total": 1,
+                                                                    "valid": 1 } },
+                           "wp:section": { "qed": { "total": 2, "valid": 2 },
+                                           "wp:main": { "total": 2,
+                                                        "valid": 2 } } } } }

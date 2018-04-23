@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,6 +29,9 @@
 # include "e_acsl_bittree_api.h"
 # include "e_acsl_bittree.h"
 
+static inline int allocated(uintptr_t addr, long size, uintptr_t base_ptr);
+static inline int writeable(uintptr_t addr, long size, uintptr_t base_ptr);
+
 /* Public API {{{ */
 /* Debug */
 #ifdef E_ACSL_DEBUG
@@ -43,18 +46,19 @@
 #define E_ACSL_MMODEL_DESC "patricia trie"
 
 /* Assertions in debug mode */
-#define ALLOCATED(_ptr,_size, _base) \
-  ((allocated(_ptr, _size, _base) == NULL) ? 0 : 1)
-
 #ifdef E_ACSL_DEBUG
-#define DVALIDATE_ALLOCATED(_ptr, _size, _base) \
-  vassert(ALLOCATED(_ptr, _size, _base), \
-  "Not allocated [%a, %a + %lu]", (uintptr_t)_ptr, _size)
+/* Assert that memory block [_addr, _addr + _size] is allocated */
+# define DVALIDATE_ALLOCATED(_addr, _size, _base) \
+  vassert(allocated((uintptr_t)_addr, _size, (uintptr_t)_base), \
+    "Operation on unallocated block [%a + %lu] with base %a\n", \
+    _addr, _size, _base);
 
-#define DVALIDATE_WRITEABLE(_ptr, _size, _base) { \
-  DVALIDATE_ALLOCATED(_ptr, _size, _base); \
-  vassert(!readonly(_ptr), "Location %a is read-only", (uintptr_t)_ptr); \
-}
+/* Assert that memory block [_addr, _addr + _size] is allocated
+ * and can be written to */
+# define DVALIDATE_WRITEABLE(_addr, _size, _base) \
+  vassert(writeable((uintptr_t)_addr, _size, (uintptr_t)_base), \
+    "Operation on unallocated block [%a + %lu] with base %a\n", \
+    _addr, _size, _base);
 #else
 #define DVALIDATE_ALLOCATED(_ptr, _size, _base)
 #define DVALIDATE_WRITEABLE(_ptr, _size, _base)
@@ -80,7 +84,7 @@ static const int nbr_bits_to_1[256] = {
 /* }}} */
 
 /**************************/
-/* DEBUG              {{{ */
+/* LOCATION (DEBUG MODE) {{{ */
 /**************************/
 #ifdef E_ACSL_DEBUG
 /* Notion of current location for debugging purposes  */
@@ -215,7 +219,7 @@ int initialized(void * ptr, size_t size) {
   return 1;
 }
 
-/* return the length (in bytes) of the block containing ptr */
+/** \brief \return the length (in bytes) of the block containing ptr */
 size_t block_length(void* ptr) {
   bt_block * blk = bt_find(ptr);
   /* Hard failure when un-allocated memory is used */
@@ -223,7 +227,11 @@ size_t block_length(void* ptr) {
   return blk->size;
 }
 
-static bt_block* allocated(void* ptr, size_t size, void *ptr_base) {
+/** \brief check whether a memory block containing address given via `ptr`
+    of length `size` and with base address `ptr_base` belongs to tracked
+    allocation and return corresponding `bt_block` if so. Return NULL
+    otherwise. */
+static bt_block* lookup_allocated(void* ptr, size_t size, void *ptr_base) {
   bt_block * blk = bt_find(ptr);
   if (blk == NULL)
     return NULL;
@@ -235,6 +243,14 @@ static bt_block* allocated(void* ptr, size_t size, void *ptr_base) {
   return (blk->size - ((size_t)ptr - blk->ptr) >= size) ? blk : NULL;
 }
 
+/** \brief same as ::lookup_allocated but return either `1` or `0` depending
+    on whether the memory block described by this function's arguments is
+    allocated or not.
+    NOTE: Should have same signature in all models. */
+static inline int allocated(uintptr_t addr, long size, uintptr_t base) {
+  return lookup_allocated((void*)addr, size, (void*)base) == NULL ? 0 : 1;
+}
+
 /** \brief Return 1 if a given memory location is read-only and 0 otherwise */
 static int readonly (void *ptr) {
   bt_block * blk = bt_find(ptr);
@@ -242,9 +258,15 @@ static int readonly (void *ptr) {
   return blk->is_readonly;
 }
 
+/** \brief same as ::allocated but returns `0` if the memory block described
+     by the arguments cannot be written to */
+static inline int writeable(uintptr_t addr, long size, uintptr_t base_ptr) {
+  return allocated(addr, size, base_ptr) && !readonly((void*)addr);
+}
+
 /* return whether the size bytes of ptr are readable/writable */
 int valid(void* ptr, size_t size, void *ptr_base, void *addrof_base) {
-  bt_block * blk = allocated(ptr, size, ptr_base);
+  bt_block * blk = lookup_allocated(ptr, size, ptr_base);
   return blk != NULL && !blk->is_readonly
 #ifdef E_ACSL_TEMPORAL
     && temporal_valid(ptr_base, addrof_base)
@@ -254,7 +276,7 @@ int valid(void* ptr, size_t size, void *ptr_base, void *addrof_base) {
 
 /* return whether the size bytes of ptr are readable */
 int valid_read(void* ptr, size_t size, void *ptr_base, void *addrof_base) {
-  bt_block * blk = allocated(ptr, size, ptr_base);
+  bt_block * blk = lookup_allocated(ptr, size, ptr_base);
   return blk != NULL
 #ifdef E_ACSL_TEMPORAL
     && temporal_valid(ptr_base, addrof_base)
@@ -270,7 +292,7 @@ void* base_addr(void* ptr) {
 }
 
 /* return the offset of `ptr` within its block */
-int offset(void* ptr) {
+size_t offset(void* ptr) {
   bt_block * tmp = bt_find(ptr);
   vassert(tmp != NULL, "\\offset of unallocated memory", NULL);
   return ((uintptr_t)ptr - tmp->ptr);
@@ -284,13 +306,13 @@ int offset(void* ptr) {
 /* STACK ALLOCATION {{{ */
 /* store the block of size bytes starting at ptr, the new block is returned.
  * Warning: the return type is implicitly (bt_block*). */
-void* store_block(void* ptr, size_t size) {
+void* store_block(void *ptr, size_t size) {
 #ifdef E_ACSL_DEBUG
   if (ptr == NULL)
     vabort("Attempt to record NULL block");
   else {
     char *check = (char*)ptr;
-    bt_block * exitsing_block = bt_find(ptr);
+    bt_block *exitsing_block = bt_find(ptr);
     if (exitsing_block) {
       vabort("\nRecording %a [%lu] at %s:%d failed."
         " Overlapping block %a [%lu] found at %s:%d\n",
@@ -307,7 +329,7 @@ void* store_block(void* ptr, size_t size) {
     }
   }
 #endif
-  bt_block * tmp = NULL;
+  bt_block *tmp = NULL;
   if (ptr) {
     tmp = private_malloc(sizeof(bt_block));
     tmp->ptr = (uintptr_t)ptr;
@@ -333,7 +355,7 @@ void* store_block(void* ptr, size_t size) {
 /* Track a heap block. This is a wrapper for all memory allocation functions
   that create new bittree nodes. It applies to all memory allocating functions
   but realloc that modifies nodes rather than create them */
-static void* store_freeable_block(void* ptr, size_t size, int init_bytes) {
+static void *store_freeable_block(void *ptr, size_t size, int init_bytes) {
   bt_block *blk = NULL;
   if (ptr) {
     blk = store_block(ptr, size);
@@ -346,14 +368,14 @@ static void* store_freeable_block(void* ptr, size_t size, int init_bytes) {
 }
 
 /* remove the block starting at ptr */
-void delete_block(void* ptr) {
+void delete_block(void *ptr) {
 #ifdef E_ACSL_DEBUG
   /* Make sure the recorded block is not NULL */
   if (!ptr)
     vabort("Attempt to delete NULL block");
 #endif
   if (ptr != NULL) {
-    bt_block * tmp = bt_lookup(ptr);
+    bt_block *tmp = bt_lookup(ptr);
 #ifdef E_ACSL_DEBUG
     /* Make sure the removed block exists in the tracked allocation */
     if (!tmp)
@@ -415,9 +437,9 @@ void* calloc(size_t nbr_block, size_t size_block) {
 /*! \brief Replacement for `aligned_alloc` with memory tracking */
 void *aligned_alloc(size_t alignment, size_t size) {
   /* Check if:
-   *  - size and alignment are greater than zero
-   *  - alignment is a power of 2
-   *  - size is a multiple of alignment */
+     - size and alignment are greater than zero
+     - alignment is a power of 2
+     - size is a multiple of alignment */
   if (!size || !alignment || !powof2(alignment) || (size%alignment))
     return NULL;
 
@@ -435,7 +457,7 @@ int posix_memalign(void **memptr, size_t alignment, size_t size) {
     return -1;
 
   /* Make sure that the first argument to posix memalign is indeed allocated */
-  DVALIDATE_WRITEABLE((void*)memptr, sizeof(void*), (void*)memptr);
+  DVALIDATE_WRITEABLE(memptr, sizeof(void*), memptr);
 
   int res = public_posix_memalign(memptr, alignment, size);
   if (!res)
@@ -444,7 +466,7 @@ int posix_memalign(void **memptr, size_t alignment, size_t size) {
 }
 
 /*! \brief Replacement for `realloc` with memory tracking */
-void* realloc(void* ptr, size_t size) {
+void* realloc(void *ptr, size_t size) {
   bt_block * tmp;
   void * new_ptr;
   /* ptr is NULL - malloc */
@@ -512,7 +534,7 @@ void* realloc(void* ptr, size_t size) {
 }
 
 /*! \brief Replacement for `free` with memory tracking */
-void free(void* ptr) {
+void free(void *ptr) {
   if (ptr == NULL) {
 /* Fail if instructed to treat NULL input to free as invalid. */
 #ifdef E_ACSL_FREE_VALID_ADDRESS
@@ -520,7 +542,7 @@ void free(void* ptr) {
 #endif
     return;
   }
-  bt_block * res = bt_lookup(ptr);
+  bt_block *res = bt_lookup(ptr);
   if (!res) {
     vabort("Not a start of block (%a) in free\n", ptr);
   } else {
@@ -606,8 +628,11 @@ void memory_init(int *argc_ref, char ***argv_ref, size_t ptr_size) {
 }
 /* }}} */
 
-#ifdef E_ACSL_DEBUG
+/******************************/
+/* DEBUG PRINT {{{ */
+/******************************/
 
+#ifdef E_ACSL_DEBUG
 /* Debug version of store block with location tracking. This function is aimed
  * at manual debugging.  While there is no easy way of traking file/line numbers
  * recorded memory blocks with the use of the following macros placed after the
@@ -650,6 +675,7 @@ void block_info(char *p) {
   }
 }
 #endif
+/* }}} */
 
 /* Local operations on temporal timestamps {{{ */
 /* Remaining functionality (shared between all models) is located in e_acsl_temporal.h */
@@ -660,7 +686,7 @@ static uint32_t origin_timestamp(void *ptr) {
 }
 
 static uintptr_t temporal_referent_shadow(void *ptr) {
-  bt_block * blk = bt_find(ptr);
+  bt_block *blk = bt_find(ptr);
   vassert(blk != NULL,
     "referent timestamp on unallocated memory address %a", (uintptr_t)ptr);
   vassert(blk->temporal_shadow != NULL,

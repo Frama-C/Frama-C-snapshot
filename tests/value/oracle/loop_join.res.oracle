@@ -4,7 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   U[0..9999] ∈ {0}
-tests/value/loop_join.i:5:[value] entering loop for the first time
+[value] tests/value/loop_join.i:5: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -16,11 +16,11 @@ tests/value/loop_join.i:5:[value] entering loop for the first time
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   U[0..1000] FROM \nothing (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      U[0..1000]; i
+    U[0..1000]; i
 [inout] Inputs for function main:
-      \nothing
+    \nothing

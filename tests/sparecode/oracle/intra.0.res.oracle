@@ -9,52 +9,53 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function param <- main.
-    Called from tests/sparecode/intra.i:82.
+  Called from tests/sparecode/intra.i:82.
 [value] Recording results for param
 [value] Done for function param
 [value] computing for function tmp <- main.
-    Called from tests/sparecode/intra.i:83.
-tests/sparecode/intra.i:21:[value] assertion got status valid.
-tests/sparecode/intra.i:23:[value] assertion got status valid.
+  Called from tests/sparecode/intra.i:83.
+[value] tests/sparecode/intra.i:21: assertion got status valid.
+[value] tests/sparecode/intra.i:23: assertion got status valid.
 [value] Recording results for tmp
 [value] Done for function tmp
 [value] computing for function spare_called_fct <- main.
-    Called from tests/sparecode/intra.i:84.
+  Called from tests/sparecode/intra.i:84.
 [value] Recording results for spare_called_fct
 [value] Done for function spare_called_fct
 [value] computing for function call_two_outputs <- main.
-    Called from tests/sparecode/intra.i:85.
+  Called from tests/sparecode/intra.i:85.
 [value] computing for function two_outputs <- call_two_outputs <- main.
-    Called from tests/sparecode/intra.i:49.
+  Called from tests/sparecode/intra.i:49.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] computing for function two_outputs <- call_two_outputs <- main.
-    Called from tests/sparecode/intra.i:53.
+  Called from tests/sparecode/intra.i:53.
 [value] Recording results for two_outputs
 [value] Done for function two_outputs
 [value] Recording results for call_two_outputs
 [value] Done for function call_two_outputs
 [value] computing for function loop <- main.
-    Called from tests/sparecode/intra.i:86.
-tests/sparecode/intra.i:64:[value] assertion got status valid.
-tests/sparecode/intra.i:65:[value] loop invariant got status valid.
-tests/sparecode/intra.i:67:[value] entering loop for the first time
+  Called from tests/sparecode/intra.i:86.
+[value] tests/sparecode/intra.i:64: assertion got status valid.
+[value] tests/sparecode/intra.i:65: loop invariant got status valid.
+[value] tests/sparecode/intra.i:67: entering loop for the first time
 [value] Recording results for loop
 [value] Done for function loop
 [value] computing for function assign <- main.
-    Called from tests/sparecode/intra.i:87.
+  Called from tests/sparecode/intra.i:87.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function assign <- main.
-    Called from tests/sparecode/intra.i:88.
+  Called from tests/sparecode/intra.i:88.
 [value] Recording results for assign
 [value] Done for function assign
 [value] computing for function stop <- main.
-    Called from tests/sparecode/intra.i:91.
-tests/sparecode/intra.i:91:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+  Called from tests/sparecode/intra.i:91.
+[kernel:annot:missing-spec] tests/sparecode/intra.i:91: Warning: 
+  Neither code nor specification for function stop, generating default assigns from the prototype
 [value] using specification for function stop
 [value] Done for function stop
-tests/sparecode/intra.i:93:[value] entering loop for the first time
+[value] tests/sparecode/intra.i:93: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function main
@@ -94,7 +95,7 @@ tests/sparecode/intra.i:93:[value] entering loop for the first time
 [sparecode] look for annotations in function call_two_outputs
 [sparecode] look for annotations in function f10
 [pdg] computing for function f10
-[pdg] warning: unreachable entry point (sid:79, function f10)
+[pdg] Warning: unreachable entry point (sid:79, function f10)
 [pdg] Bottom for function f10
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function loop
@@ -105,7 +106,7 @@ tests/sparecode/intra.i:93:[value] entering loop for the first time
 [sparecode] selecting annotation : assert \false;
 [sparecode] look for annotations in function main2
 [pdg] computing for function main2
-[pdg] warning: unreachable entry point (sid:87, function main2)
+[pdg] Warning: unreachable entry point (sid:87, function main2)
 [pdg] Bottom for function main2
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function param

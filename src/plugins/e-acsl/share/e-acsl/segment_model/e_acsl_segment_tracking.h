@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -383,18 +383,16 @@ static void validate_shadow_layout() {
 
 /* Assert that memory block [_addr, _addr + _size] is allocated */
 # define DVALIDATE_ALLOCATED(_addr, _size, _base) \
-  DVASSERT(allocated((uintptr_t)_addr, _size, (uintptr_t)_base), \
+  vassert(allocated((uintptr_t)_addr, _size, (uintptr_t)_base), \
     "Operation on unallocated block [%a + %lu] with base %a\n", \
-    _addr, _size, _base)
+    _addr, _size, _base);
 
 /* Assert that memory block [_addr, _addr + _size] is allocated
  * and can be written to */
-# define DVALIDATE_WRITEABLE(_addr, _size, _base) { \
-  DVALIDATE_ALLOCATED((uintptr_t)_addr, _size, (uintptr_t)_base); \
-  DVASSERT(!readonly((void*)_addr), \
-    "Unexpected readonly address: %lu\n", _addr); \
-}
-
+# define DVALIDATE_WRITEABLE(_addr, _size, _base) \
+  vassert(writeable((uintptr_t)_addr, _size, (uintptr_t)_base), \
+    "Operation on unallocated block [%a + %lu] with base %a\n", \
+    _addr, _size, _base);
 #else
 /*! \cond exclude from doxygen */
 #  define DVALIDATE_MEMORY_INIT
@@ -428,6 +426,8 @@ static uintptr_t static_info(uintptr_t addr, char type);
 static int heap_allocated(uintptr_t addr, size_t size, uintptr_t base_ptr);
 static int static_allocated(uintptr_t addr, long size, uintptr_t base_ptr);
 static int allocated(uintptr_t addr, long size, uintptr_t base_ptr);
+static int writeable(uintptr_t addr, long size, uintptr_t base_ptr);
+static int readonly (void *ptr);
 
 /*! \brief Quick test to check if a static location belongs to allocation.
  * This macro really belongs where static_allocated is defined, but
@@ -1302,6 +1302,16 @@ static int allocated(uintptr_t addr, long size, uintptr_t base) {
   if (!IS_ON_VALID(addr))
     return 0;
   return 0;
+}
+
+/** \brief Return 1 if a given memory location is read-only and 0 otherwise */
+static inline int readonly (void *ptr) {
+  uintptr_t addr = (uintptr_t)ptr;
+  return IS_ON_GLOBAL(addr) && global_readonly(addr) ? 1 : 0;
+}
+
+static inline int writeable(uintptr_t addr, long size, uintptr_t base_ptr) {
+  return allocated(addr, size, base_ptr) && !readonly((void*)addr);
 }
 /* }}} */
 

@@ -1,5 +1,5 @@
 /* run.config*
-   STDOPT: #"-load-module scope -remove-redundant-alarms" +"-print"
+   STDOPT: +"-print"
 */
 
 int sz_str,sz_typ,align_str,align_typ;
@@ -34,7 +34,10 @@ void main2() {
   p->t[sizeof(s1.t)-i] = 2; 
 }
 
-void main() {
+void f(int sz) {}
+
+void main(int *p, int *q, int j) {
   main1();
   main2();
+  f(sizeof(*p) * j); // must not crash with equality domain
 }

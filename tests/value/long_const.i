@@ -8,8 +8,8 @@ long long int LL_ABS(long long int a) {
 }
 
 /*@
-  requires -9223372036854775807LL <= numerateur <=   9223372036854775807LL;
-  requires -9223372036854775807LL <= denominateur <= 9223372036854775807LL;
+  requires num: -9223372036854775807LL <= numerateur <=   9223372036854775807LL;
+  requires denom: -9223372036854775807LL <= denominateur <= 9223372036854775807LL;
   */
 
 

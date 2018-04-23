@@ -1,0 +1,79 @@
+[kernel] Parsing tests/value/va_list2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  
+[value] computing for function __builtin_va_start <- main.
+  Called from tests/value/va_list2.c:11.
+[kernel:annot:missing-spec] tests/value/va_list2.c:11: Warning: 
+  Neither code nor specification for function __builtin_va_start, generating default assigns from the prototype
+[value] using specification for function __builtin_va_start
+[value] Done for function __builtin_va_start
+[value] tests/value/va_list2.c:12: entering loop for the first time
+[value:alarm] tests/value/va_list2.c:12: Warning: 
+  out of bounds read. assert \valid_read(fmt);
+[value] computing for function __builtin_va_arg <- main.
+  Called from tests/value/va_list2.c:15.
+[kernel:annot:missing-spec] tests/value/va_list2.c:15: Warning: 
+  Neither code nor specification for function __builtin_va_arg, generating default assigns from the prototype
+[value] using specification for function __builtin_va_arg
+[value] Done for function __builtin_va_arg
+[value:alarm] tests/value/va_list2.c:15: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp);
+  (tmp from vararg)
+[value] computing for function __builtin_va_arg <- main.
+  Called from tests/value/va_list2.c:20.
+[value] Done for function __builtin_va_arg
+[value:alarm] tests/value/va_list2.c:20: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&tmp_0);
+  (tmp_0 from vararg)
+[value:alarm] tests/value/va_list2.c:13: Warning: 
+  out of bounds read. assert \valid_read(fmt);
+[value] computing for function __builtin_va_arg <- main.
+  Called from tests/value/va_list2.c:15.
+[value] Done for function __builtin_va_arg
+[value] computing for function __builtin_va_arg <- main.
+  Called from tests/value/va_list2.c:20.
+[value] Done for function __builtin_va_arg
+[value] computing for function __builtin_va_end <- main.
+  Called from tests/value/va_list2.c:28.
+[kernel:annot:missing-spec] tests/value/va_list2.c:28: Warning: 
+  Neither code nor specification for function __builtin_va_end, generating default assigns from the prototype
+[value] using specification for function __builtin_va_end
+[value] Done for function __builtin_va_end
+[value] Recording results for main
+[value] done for function main
+[value] tests/value/va_list2.c:15: 
+  assertion 'Value,initialization' got final status invalid.
+[value] tests/value/va_list2.c:20: 
+  assertion 'Value,initialization' got final status invalid.
+[scope:rm_asserts] removing 1 assertion(s)
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  fmt ∈ {{ &S_fmt{[0], [1]} }}
+[from] Computing for function main
+[from] Computing for function __builtin_va_start <-main
+[from] Done for function __builtin_va_start
+[from] Computing for function __builtin_va_arg <-main
+[from] Done for function __builtin_va_arg
+[from] Computing for function __builtin_va_end <-main
+[from] Done for function __builtin_va_end
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function __builtin_va_arg:
+  NO EFFECTS
+[from] Function __builtin_va_end:
+  NO EFFECTS
+[from] Function __builtin_va_start:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    fmt; i; f
+[inout] Inputs for function main:
+    S_fmt[0..1]

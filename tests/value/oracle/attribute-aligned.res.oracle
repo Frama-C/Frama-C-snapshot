@@ -7,31 +7,31 @@
   A ∈ {0}
   B ∈ {0}
 [value] computing for function ct <- main.
-    Called from tests/value/attribute-aligned.c:94.
+  Called from tests/value/attribute-aligned.c:94.
 [value] Recording results for ct
 [value] Done for function ct
 [value] computing for function dt <- main.
-    Called from tests/value/attribute-aligned.c:95.
+  Called from tests/value/attribute-aligned.c:95.
 [value] Recording results for dt
 [value] Done for function dt
 [value] computing for function pt <- main.
-    Called from tests/value/attribute-aligned.c:96.
+  Called from tests/value/attribute-aligned.c:96.
 [value] Recording results for pt
 [value] Done for function pt
 [value] computing for function qt <- main.
-    Called from tests/value/attribute-aligned.c:97.
+  Called from tests/value/attribute-aligned.c:97.
 [value] Recording results for qt
 [value] Done for function qt
 [value] computing for function rt <- main.
-    Called from tests/value/attribute-aligned.c:98.
+  Called from tests/value/attribute-aligned.c:98.
 [value] Recording results for rt
 [value] Done for function rt
 [value] computing for function st <- main.
-    Called from tests/value/attribute-aligned.c:99.
+  Called from tests/value/attribute-aligned.c:99.
 [value] Recording results for st
 [value] Done for function st
 [value] computing for function tt <- main.
-    Called from tests/value/attribute-aligned.c:100.
+  Called from tests/value/attribute-aligned.c:100.
 [value] Recording results for tt
 [value] Done for function tt
 [value] Recording results for main
@@ -84,7 +84,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function ct:
   S FROM \nothing
   A FROM \nothing
@@ -117,34 +117,34 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function ct:
-      S; A
+    S; A
 [inout] Inputs for function ct:
-      \nothing
+    \nothing
 [inout] Out (internal) for function dt:
-      S; A
+    S; A
 [inout] Inputs for function dt:
-      \nothing
+    \nothing
 [inout] Out (internal) for function pt:
-      S; A
+    S; A
 [inout] Inputs for function pt:
-      \nothing
+    \nothing
 [inout] Out (internal) for function qt:
-      S; A; B
+    S; A; B
 [inout] Inputs for function qt:
-      \nothing
+    \nothing
 [inout] Out (internal) for function rt:
-      S; A; B
+    S; A; B
 [inout] Inputs for function rt:
-      \nothing
+    \nothing
 [inout] Out (internal) for function st:
-      S; A; B
+    S; A; B
 [inout] Inputs for function st:
-      \nothing
+    \nothing
 [inout] Out (internal) for function tt:
-      S; A; B
+    S; A; B
 [inout] Inputs for function tt:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      S; A; B; __retres
+    S; A; B; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

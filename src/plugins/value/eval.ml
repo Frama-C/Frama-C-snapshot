@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,7 +45,7 @@ type 't evaluated = 't or_bottom with_alarms
    alarms returned during the evaluation. *)
 let (>>=) (t, a) f = match t with
   | `Bottom  -> `Bottom, a
-  | `Value t -> let t', a' = f t in t', Alarmset.union a a'
+  | `Value t -> let t', a' = f t in t', Alarmset.combine a a'
 
 (* Use this monad if the following function returns a simple value. *)
 let (>>=:) (t, a) f = match t with
@@ -263,9 +263,6 @@ type 'value call = {
 type 'state call_action =
   | Compute of 'state
   | Result  of 'state list or_bottom * Value_types.cacheable
-
-exception InvalidCall
-
 
 (*
 Local Variables:

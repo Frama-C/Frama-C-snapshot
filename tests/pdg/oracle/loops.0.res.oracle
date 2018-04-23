@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   after ∈ [--..--]
-tests/pdg/loops.c:41:[value] entering loop for the first time
-tests/pdg/loops.c:42:[value] warning: signed overflow. assert s + 2 ≤ 2147483647;
+[value] tests/pdg/loops.c:41: entering loop for the first time
+[value:alarm] tests/pdg/loops.c:42: Warning: 
+  signed overflow. assert s + 2 ≤ 2147483647;
 [value] Recording results for simple
 [value] done for function simple
 [pdg] computing for function simple

@@ -1,13 +1,15 @@
 [kernel] Parsing tests/value/pb.i (no preprocessing)
-tests/value/pb.i:2:[kernel] warning: Calling undeclared function f. Old style K&R code?
+[kernel:typing:implicit-function-declaration] tests/value/pb.i:2: Warning: 
+  Calling undeclared function f. Old style K&R code?
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/pb.i:2.
-tests/value/pb.i:2:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+  Called from tests/value/pb.i:2.
+[kernel:annot:missing-spec] tests/value/pb.i:2: Warning: 
+  Neither code nor specification for function f, generating default assigns from the prototype
 [value] using specification for function f
 [value] Done for function f
 [value] Recording results for main
@@ -20,13 +22,13 @@ tests/value/pb.i:2:[kernel] warning: Neither code nor specification for function
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing

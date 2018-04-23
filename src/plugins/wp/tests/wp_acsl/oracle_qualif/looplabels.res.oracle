@@ -2,8 +2,8 @@
 [kernel] Parsing tests/wp_acsl/looplabels.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-[wp] 9 goals scheduled
+[wp] Warning: Missing RTE guards
+[wp] 8 goals scheduled
 [wp] [Qed] Goal typed_copy_post : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_preserved : Valid
 [wp] [Qed] Goal typed_copy_loop_inv_established : Valid
@@ -11,12 +11,12 @@
 [wp] [Alt-Ergo] Goal typed_copy_loop_inv_2_established : Valid
 [wp] [Qed] Goal typed_copy_loop_assign_part1 : Valid
 [wp] [Alt-Ergo] Goal typed_copy_loop_assign_part2 : Valid
-[wp] [Alt-Ergo] Goal typed_copy_loop_assign_part3 : Valid
-[wp] [Alt-Ergo] Goal typed_copy_assign : Valid
-[wp] Proved goals:    9 / 9
-    Qed:             3 
-    Alt-Ergo:        6
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-copy                 3      6 (735)    9       100%
-----------------------------------------------------------
+[wp] [Qed] Goal typed_copy_assign : Valid
+[wp] Proved goals:    8 / 8
+  Qed:             4 
+  Alt-Ergo:        4
+[wp] Report 'tests/wp_acsl/looplabels.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+copy                 4      4 (736..832)     8       100%
+-------------------------------------------------------------

@@ -11,7 +11,7 @@
 [slicing] interpreting slicing requests from the command line...
 [slicing] Nothing to select for an unreachable stmt of x
 [pdg] computing for function x
-[pdg] warning: unreachable entry point (sid:1, function x)
+[pdg] Warning: unreachable entry point (sid:1, function x)
 [pdg] Bottom for function x
 [slicing] bottom PDG for function 'x': ignore selection
 [slicing] applying all slicing requests...

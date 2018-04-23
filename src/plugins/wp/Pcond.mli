@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,6 @@ val alloc_seq : Plang.pool -> (var -> unit) -> sequent -> unit
     - ["wp:comment"] for descriptions
     - ["wp:warning"] for warnings
     - ["wp:property"] for properties
-    - ["wp:"]
 *)
 
 class engine : #Plang.engine ->
@@ -65,23 +64,26 @@ class engine : #Plang.engine ->
     method pp_condition : step:step -> condition printer
     method pp_block : clause:string -> sequence printer
     method pp_goal : pred printer
-
+        
     method pp_step : step printer
     (** Assumes an "<hv>" box is opened. *)
-
+        
+    method pp_block : clause:string -> sequence printer
+    (** Assumes an "<hv>" box is opened and all variables are named. *)
+        
     method pp_sequence : clause:string -> sequence printer
-    (** Assumes an "<hv>" box is opened {i and} all variables are declared.
+    (** Assumes an "<hv>" box is opened {i and} all variables are declared. 
         (recursively used) *)
 
     method pp_sequent : sequent printer
     (** Print the sequent in global environment. *)
-
+    
     method pp_esequent : env -> sequent printer
     (** Print the sequent in the given environment.
         The environment is enriched with the shared terms. *)
-
+        
   end
-
+    
 (* -------------------------------------------------------------------------- *)
 (* --- State-Aware Printers                                               --- *)
 (* -------------------------------------------------------------------------- *)
@@ -95,9 +97,9 @@ class state :
     method set_domain : Vars.t -> unit (** Default is sequence's domain *)
     method domain : Vars.t
     method label_at : id:int -> Pcfg.label
-    method updates : Pcfg.label Memory.sequence -> Memory.update Bag.t
+    method updates : Pcfg.label Sigs.sequence -> Sigs.update Bag.t
     method pp_at : Format.formatter -> Pcfg.label -> unit
-    method pp_update : Pcfg.label -> Format.formatter -> Memory.update -> unit
+    method pp_update : Pcfg.label -> Format.formatter -> Sigs.update -> unit
     method pp_value : Format.formatter -> term -> unit
   end
 

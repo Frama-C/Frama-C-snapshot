@@ -6,36 +6,40 @@
   Frama_C_entropy_source ∈ [--..--]
   x ∈ {0}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:13.
+  Called from tests/value/for_loops.c:13.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:52:[value] function Frama_C_interval: precondition got status valid.
+[value] tests/value/for_loops.c:13: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:16:[value] entering loop for the first time
+[value] tests/value/for_loops.c:16: entering loop for the first time
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
+[value] tests/value/for_loops.c:16: 
+  function Frama_C_interval: precondition 'order' got status valid.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1}
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2}
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3}
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3; 4}
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: {0; 1; 2; 3; 4; 5}
 [value] computing for function Frama_C_interval <- main_2.
-    Called from tests/value/for_loops.c:16.
+  Called from tests/value/for_loops.c:16.
 [value] Done for function Frama_C_interval
-tests/value/for_loops.c:16:[value] warning: signed overflow. assert w + 1 ≤ 2147483647;
-tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..2147483647]
+[value:alarm] tests/value/for_loops.c:16: Warning: 
+  signed overflow. assert w + 1 ≤ 2147483647;
+[value] tests/value/for_loops.c:17: Frama_C_show_each_F: [0..2147483647]
 [value] Recording results for main_2
 [value] done for function main_2
 [value] ====== VALUES COMPUTED ======
@@ -50,7 +54,7 @@ tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..2147483647]
 [from] Done for function Frama_C_interval
 [from] Done for function main_2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -58,6 +62,6 @@ tests/value/for_loops.c:17:[value] Frama_C_show_each_F: [0..2147483647]
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main_2:
-      Frama_C_entropy_source; j; nSelectors; w; v; tmp_0
+    Frama_C_entropy_source; j; nSelectors; w; v; tmp_0
 [inout] Inputs for function main_2:
-      Frama_C_entropy_source
+    Frama_C_entropy_source

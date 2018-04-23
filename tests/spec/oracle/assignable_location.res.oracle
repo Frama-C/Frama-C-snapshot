@@ -1,12 +1,23 @@
 [kernel] Parsing tests/spec/assignable_location.i (no preprocessing)
-tests/spec/assignable_location.i:36:[kernel] warning: unexpected token ';'
-tests/spec/assignable_location.i:28:[kernel] warning: not an addressable left value: \result. Ignoring logic specification of function annotations_to_reject
-tests/spec/assignable_location.i:30:[kernel] warning: not an assignable left value: *t. Ignoring code annotation
-tests/spec/assignable_location.i:31:[kernel] warning: not an assignable left value: *(t + 0). Ignoring code annotation
-tests/spec/assignable_location.i:32:[kernel] warning: not an assignable left value: *(t + (0 .. 0)). Ignoring code annotation
-tests/spec/assignable_location.i:33:[kernel] warning: not an assignable left value: (int)x. Ignoring code annotation
-tests/spec/assignable_location.i:34:[kernel] warning: not an assignable left value: (char)x. Ignoring code annotation
-tests/spec/assignable_location.i:35:[kernel] warning: not an addressable left value: (char)x. Ignoring code annotation
-tests/spec/assignable_location.i:37:[kernel] warning: not an addressable left value: \empty. Ignoring code annotation
-tests/spec/assignable_location.i:38:[kernel] warning: not an assignable left value: lx. Ignoring code annotation
-tests/spec/assignable_location.i:39:[kernel] warning: not an assignable left value: lx. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:36: Warning: 
+  unexpected token ';'
+[kernel:annot-error] tests/spec/assignable_location.i:28: Warning: 
+  not an addressable left value: \result. Ignoring logic specification of function annotations_to_reject
+[kernel:annot-error] tests/spec/assignable_location.i:30: Warning: 
+  not an assignable left value: *t. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:31: Warning: 
+  not an assignable left value: *(t + 0). Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:32: Warning: 
+  not an assignable left value: *(t + (0 .. 0)). Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:33: Warning: 
+  not an assignable left value: (int)x. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:34: Warning: 
+  not an assignable left value: (char)x. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:35: Warning: 
+  not an addressable left value: (char)x. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:37: Warning: 
+  not an addressable left value: \empty. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:38: Warning: 
+  not an assignable left value: lx. Ignoring code annotation
+[kernel:annot-error] tests/spec/assignable_location.i:39: Warning: 
+  not an assignable left value: lx. Ignoring code annotation

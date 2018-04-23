@@ -5,37 +5,37 @@
 [value:initial-state] Values of globals at initialization
   a ∈ {7}
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
+  Called from tests/value/loopfun.i:14.
 [value] Recording results for test
 [value] Done for function test
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
+  Called from tests/value/loopfun.i:14.
 [value] Recording results for test
 [value] Done for function test
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:16.
+  Called from tests/value/loopfun.i:16.
 [value] Recording results for test
 [value] Done for function test
-tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {5}
+[value] tests/value/loopfun.i:16: Frama_C_show_each_t: {5}
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
-[value] Recording results for test
-[value] Done for function test
-[value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
+  Called from tests/value/loopfun.i:14.
 [value] Recording results for test
 [value] Done for function test
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:16.
-[value] Recording results for test
-[value] Done for function test
-tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {2}
-[value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
+  Called from tests/value/loopfun.i:14.
 [value] Recording results for test
 [value] Done for function test
 [value] computing for function test <- main.
-    Called from tests/value/loopfun.i:14.
+  Called from tests/value/loopfun.i:16.
+[value] Recording results for test
+[value] Done for function test
+[value] tests/value/loopfun.i:16: Frama_C_show_each_t: {2}
+[value] computing for function test <- main.
+  Called from tests/value/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+  Called from tests/value/loopfun.i:14.
 [value] Recording results for test
 [value] Done for function test
 [value] Recording results for main
@@ -46,7 +46,7 @@ tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {2}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function test:
   FROMTOP
   \result FROM ANYTHING(origin:Unknown)
@@ -55,10 +55,10 @@ tests/value/loopfun.i:16:[value] Frama_C_show_each_t: {2}
   \result FROM ANYTHING(origin:Unknown)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function test:
-      tmp; a
+    tmp; a
 [inout] Inputs for function test:
-      a
+    a
 [inout] Out (internal) for function main:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Inputs for function main:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)

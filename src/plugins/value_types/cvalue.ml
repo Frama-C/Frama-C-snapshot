@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,6 +80,9 @@ module V = struct
   let project_ival_bottom m =
     if is_bottom m then Ival.bottom else project_ival m
 
+  let project_float v =
+    Ival.project_float (project_ival v)
+
   let is_imprecise v =
     match v with
       | Top _ -> true
@@ -113,6 +116,9 @@ module V = struct
 
   let inject_int (v:Int.t) =
     inject_ival (Ival.inject_singleton v)
+
+  let inject_float f =
+    inject_ival (Ival.inject_float f)
 
   let interp_boolean ~contains_zero ~contains_non_zero =
     match contains_zero, contains_non_zero with
@@ -254,21 +260,6 @@ module V = struct
 
   (** Comparisons *)
 
-  let compare_bound ival_compare_bound l1 l2 =
-    if l1 == l2 then 0
-    else if is_bottom l2 then -1
-    else if is_bottom l1 then 1
-    else try
-	let f1 = project_ival l1 in
-	let f2 = project_ival l2 in
-	ival_compare_bound f1 f2
-    with Not_based_on_null -> assert false
-
-  let compare_min_float = compare_bound Ival.compare_min_float
-  let compare_max_float = compare_bound Ival.compare_max_float
-  let compare_min_int = compare_bound Ival.compare_min_int
-  let compare_max_int = compare_bound Ival.compare_max_int
-
   open Bottom.Type
 
   let backward_mult_int_left ~right ~result =
@@ -348,11 +339,18 @@ module V = struct
     | Eq -> narrow l r
     | Le | Lt | Ge | Gt -> backward_rel_int_left op l r
 
-  let backward_comp_float_left op allmodes fkind l r =
+  let backward_comp_float_left_true op fkind l r =
     try
       let vl = project_ival l in
       let vr = project_ival r in
-      inject_ival (Ival.backward_comp_float_left op allmodes fkind vl vr)
+      inject_ival (Ival.backward_comp_float_left_true op fkind vl vr)
+    with Not_based_on_null -> l
+
+  let backward_comp_float_left_false op fkind l r =
+    try
+      let vl = project_ival l in
+      let vr = project_ival r in
+      inject_ival (Ival.backward_comp_float_left_false op fkind vl vr)
     with Not_based_on_null -> l
 
   let inject_comp_result = function
@@ -397,39 +395,37 @@ module V = struct
     let open Abstract_interp.Comp in
     match op with
       | Eq -> forward_eq_int v1 v2
-      | Ne -> inv_result (forward_eq_int v1 v2)
+      | Ne -> inv_truth (forward_eq_int v1 v2)
       | Le | Ge | Lt | Gt -> forward_rel_int ~signed op v1 v2
 
 
-  (** Casts *)
+  (** Casts and reinterpretation *)
 
-  let cast_float ~rounding_mode v =
+  let reinterpret_as_float fkind v =
     try
       let i = project_ival v in
-      let b, i = Ival.force_float FFloat i in
-      let b', i = Ival.cast_float ~rounding_mode i in
-      false, b || b', inject_ival i
-    with
-      Not_based_on_null ->
-	if is_bottom v
-	then false, false, bottom
-	else true, true, topify_arith_origin v
+      let i = Ival.reinterpret_as_float fkind i in
+      inject_ival i
+    with Not_based_on_null ->
+      if is_bottom v
+      then bottom
+      else topify_arith_origin v
 
-  let cast_double v =
+  let cast_float_to_float fkind v =
     try
       let i = project_ival v in
-      let b, i = Ival.force_float FDouble i in
-      let b', i = Ival.cast_double i in
-      false, b || b', inject_ival i
-    with
-      Not_based_on_null ->
-	if is_bottom v
-	then false, false, bottom
-	else true, true, topify_arith_origin v
+      let i = Ival.cast_float_to_float fkind i in
+      inject_ival i
+    with Not_based_on_null ->
+      if is_bottom v
+      then bottom
+      else topify_arith_origin v
 
-  let cast ~size ~signed v =
+  (* Auxiliary functions for cast and reinterpration to an integer type.
+     [on_null] is the function to apply on the numerical part. *)
+  let to_int on_null ~size ~signed v =
     let integer_part, pointer_part = split Base.null v in
-    let integer_part' = Ival.cast ~size ~signed ~value:integer_part in
+    let integer_part'= on_null ~size ~signed integer_part in
     (* ok_garbled indicates that we do _not_ create a (new) garbled mix *)
     let pointer_part', ok_garbled =
       if Int.ge size (Int.of_int (Bit_utils.sizeofpointer ())) ||
@@ -442,18 +438,24 @@ module V = struct
     else
       join (inject_ival integer_part') pointer_part', false
 
- let cast_float_to_int ~signed ~size v =
+  let cast_int_to_int ~size ~signed v =
+    to_int Ival.cast_int_to_int ~size ~signed v
+  
+  let reinterpret_as_int ~signed ~size v =
+    fst (to_int Ival.reinterpret_as_int ~size ~signed v)
+
+  let cast_float_to_int ~signed ~size v =
    try
      let v1 = project_ival v in
      let alarm_use_as_float, alarm_overflow, r =
        Ival.cast_float_to_int ~signed ~size v1
      in
-     false, alarm_use_as_float, alarm_overflow, inject_ival r
+     alarm_use_as_float, alarm_overflow, inject_ival r
    with Not_based_on_null ->
      if is_bottom v then
-       false, false, (false, false), v
+       NoAlarm, (NoAlarm, NoAlarm), v
      else
-       (not (is_bottom v)), true, (true, true), topify_arith_origin v
+       Alarm, (Alarm, Alarm), topify_arith_origin v
 
  let cast_float_to_int_inverse ~single_precision i =
    try
@@ -462,12 +464,15 @@ module V = struct
      Some (inject_ival r)
    with Not_based_on_null -> None
 
- let cast_int_to_float rounding_mode v =
+ let cast_int_to_float kind v =
    try
      let i = project_ival v in
-     let ok, r = Ival.cast_int_to_float rounding_mode i in
-     inject_ival r, ok
-   with Not_based_on_null -> v, false
+     let r = Ival.cast_int_to_float kind i in
+     inject_ival r
+   with Not_based_on_null ->
+     if is_bottom v
+     then bottom
+     else topify_arith_origin v
 
  let cast_int_to_float_inverse ~single_precision vf =
    try
@@ -649,33 +654,11 @@ module V = struct
     then inject_ival (Ival.create_all_values ~signed:false ~size)
     else value
 
-  let big_endian_merge_bits ~topify ~conflate_bottom ~total_length ~length ~value ~offset acc =
-    if is_bottom acc || is_bottom value
-    then begin
-        if conflate_bottom
-        then
-          bottom
-        else
-          join
-            (topify_with_origin_kind topify acc)
-            (topify_with_origin_kind topify value)
-      end
-    else
-      let total_length_i = Int.of_int total_length in
-      let factor = Int.sub (Int.sub total_length_i offset) length in
-      let value = restrict_topint_to_size value (Integer.to_int length) in
-      let value' = shift_left_by_integer ~topify factor value in
-      let result = add_untyped ~topify ~factor:Int_Base.one value' acc in
-(*    Format.printf "big_endian_merge_bits : total_length:%d length:%a value:%a offset:%a acc:%a GOT:%a@."
-      total_length
-      Int.pretty length
-      pretty value
-      Int.pretty offset
-      pretty acc
-      pretty result; *)
-    result
+  let shift_bits ~topify ~offset ~size v =
+    let v = restrict_topint_to_size v (Integer.to_int size) in
+    shift_left_by_integer ~topify offset v
 
-  let little_endian_merge_bits ~topify ~conflate_bottom ~length ~value ~offset acc =
+  let merge_distinct_bits ~topify ~conflate_bottom value acc =
     if is_bottom acc || is_bottom value
     then begin
         if conflate_bottom
@@ -687,12 +670,7 @@ module V = struct
             (topify_with_origin_kind topify value)
       end
     else
-      let value = restrict_topint_to_size value (Integer.to_int length) in
-      let value' = shift_left_by_integer ~topify offset value in
-      let result = add_untyped ~topify ~factor:Int_Base.one value' acc in
-    (*Format.printf "le merge_bits : total_length:%d value:%a offset:%a acc:%a GOT:%a@."
-      total_length pretty value Int.pretty offset pretty acc pretty result;*)
-    result
+      add_untyped ~topify ~factor:Int_Base.one value acc
 
   (* neutral value for foo_endian_merge_bits *)
   let merge_neutral_element = singleton_zero
@@ -712,13 +690,16 @@ module V = struct
   let create_all_values ~signed ~size =
     inject_ival (Ival.create_all_values ~signed ~size)
 
-  let cardinal_estimate lb size = match lb with
+  let cardinal_estimate lb ~size = match lb with
     | Top _ -> Int.two_power size (* TODO: this could be very slow when [size]
                                      is big *)
     | Map m ->
-      M.fold (fun _ v card ->
-        Int.add card (Ival.cardinal_estimate v size)
-      ) m Int.zero
+      let card =
+        M.fold (fun _ v card ->
+            Int.add card (Ival.cardinal_estimate v size)
+          ) m Int.zero
+      in
+      Int.min card (Int.two_power size)
 
   let add_untyped ~factor v1 v2 =
     add_untyped ~topify:Origin.K_Arith ~factor v1 v2
@@ -907,21 +888,15 @@ module V_Or_Uninitialized = struct
     inform_extract_pointer_bits,
     create (get_flags t) v
 
-  let little_endian_merge_bits ~topify ~conflate_bottom ~length ~value ~offset t =
+  let shift_bits ~topify ~offset ~size t =
     create
-      ((get_flags t) land (get_flags value))
-      (V.little_endian_merge_bits ~topify ~conflate_bottom
-          ~length ~value:(get_v value) ~offset
-          (get_v t))
+      (get_flags t)
+      (V.shift_bits ~topify ~offset ~size (get_v t))
 
-  let big_endian_merge_bits ~topify ~conflate_bottom ~total_length ~length ~value ~offset t =
+  let merge_distinct_bits ~topify ~conflate_bottom value t =
     create
       ((get_flags t) land (get_flags value))
-      (V.big_endian_merge_bits ~topify ~conflate_bottom
-          ~total_length ~length
-          ~value:(get_v value)
-          ~offset
-          (get_v t))
+      (V.merge_distinct_bits ~topify ~conflate_bottom (get_v value) (get_v t))
 
   let topify_with_origin o t =
     create
@@ -966,8 +941,8 @@ module V_Or_Uninitialized = struct
     | C_init_noesc _ as v -> v
     | (C_uninit_noesc v | C_uninit_esc v | C_init_esc v) -> C_init_noesc v
 
-  let cardinal_estimate v size =
-    let vcard v = V.cardinal_estimate v size in
+  let cardinal_estimate v ~size =
+    let vcard v = V.cardinal_estimate v ~size in
     match v with
     | C_init_noesc(v) -> vcard v
     | C_uninit_noesc(v) | C_init_esc(v) -> Integer.add Integer.one (vcard v)
@@ -1008,7 +983,7 @@ module V_Offsetmap = struct
      belongs to {-1,0,1}. *)
   let cardinal_estimate offsetmap =
     let f (start,stop) (value, size, _) accu =
-      let cardinal = V_Or_Uninitialized.cardinal_estimate value size in
+      let cardinal = V_Or_Uninitialized.cardinal_estimate value ~size in
       (* There are some bottom values bound to offsetmaps, for
          instance before the minimum of absolute valid range, that
          have a cardinal of zero; we ignore them. *)

@@ -61,9 +61,16 @@ module type S =
     val choose: 'a t -> (key * 'a)
     val split: key -> 'a t -> 'a t * 'a option * 'a t
     val find: key -> 'a t -> 'a
+    val find_opt: key -> 'a t -> 'a option
     val map: ('a -> 'b) -> 'a t -> 'b t
     val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
   end
 
 
-module Make = Map.Make
+module Make(X: Map.OrderedType) = struct
+  include Map.Make(X)
+  let find_opt k m =
+    match find k m with
+    | exception Not_found -> None
+    | v -> Some v
+end

@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 6 goals scheduled
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_eq_ko : Unknown
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_t : Unknown
@@ -11,8 +11,9 @@
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_With_Array_Struct_3 : Unknown
 [wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Simple_Array_1 : Unknown
 [wp] Proved goals:    0 / 6
-    Alt-Ergo:        0  (unknown: 6)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-main                -      -           6       0.0%
-----------------------------------------------------------
+  Alt-Ergo:        0  (unknown: 6)
+[wp] Report 'tests/wp_acsl/init_value.i.1.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+main                -      -                 6       0.0%
+-------------------------------------------------------------

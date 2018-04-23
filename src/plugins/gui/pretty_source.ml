@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -262,6 +262,19 @@ struct
 
 end
 
+(* Set of callsite statements where preconditions must be unfolded. *)
+let unfold_preconds = Cil_datatype.Stmt.Hashtbl.create 8
+
+(* Fold or unfold the preconditions at callsite [stmt]. *)
+let fold_preconds_at_callsite stmt =
+  if Cil_datatype.Stmt.Hashtbl.mem unfold_preconds stmt
+  then Cil_datatype.Stmt.Hashtbl.remove unfold_preconds stmt
+  else Cil_datatype.Stmt.Hashtbl.replace unfold_preconds stmt ()
+
+let are_preconds_unfolded stmt =
+  Cil_datatype.Stmt.Hashtbl.mem unfold_preconds stmt
+
+
 module Tag = struct
   exception Wrong_decoder
   let make_modem charcode =
@@ -340,8 +353,6 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
       | None -> None
       | Some fd -> Some (Globals.Functions.get fd)
 
-    val mutable localize_predicate = true (* wrap all identified predicates *)
-
     val mutable current_ca = None
 
     val mutable active_behaviors = []
@@ -353,7 +364,55 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
         Property.Id_contract (active ,Extlib.the self#current_behavior)
       | Some ca -> Property.Id_loop ca
 
+    (* When [stmt] is a call, this method "inlines" the preconditions of the
+       functions that may be called here, with some context. This way,
+       bullets are more precise, etc. *)
+    method private preconditions_at_call fmt stmt =
+      match stmt.skind with
+      | Instr (Call _)
+      | Instr (Local_init (_, ConsInit _, _)) ->
+        let extract_instance_predicate = function
+          | Property.IPPropertyInstance (_kf, _stmt, pred, _prop) -> pred
+          | _ -> assert false
+        in
+        let extract_predicate = function
+          | Property.IPPredicate (_, _, _, p) -> p
+          | _ -> assert false
+        in
+        (* Functons called at this point *)
+        let called = Statuses_by_call.all_functions_with_preconditions stmt in
+        let warn_missing = false in
+        let add_by_kf kf acc =
+          let ips =
+            Statuses_by_call.all_call_preconditions_at ~warn_missing kf stmt
+          in
+          if ips = [] then acc else (kf, ips) :: acc
+        in
+        let ips_all_kfs = Kernel_function.Hptset.fold add_by_kf called [] in
+        let pp_one fmt (original_p, p) =
+          match extract_instance_predicate p with
+          | Some pred -> Format.fprintf fmt "@[%a@]" self#requires_aux (p, pred)
+          | None ->
+            let pred = extract_predicate original_p in
+            (* Makes the original predicate non clickable, as it may involve
+               the formal parameters which are not in scope at the call site. *)
+            Format.fprintf fmt "@[Non transposable: %s@]"
+              (Format.asprintf "@[%a@]" self#requires_aux (original_p, pred))
+        in
+        let pp_by_kf fmt (kf, ips) =
+          Format.fprintf fmt "@[preconditions of %a:@]@ %a"
+            Kernel_function.pretty kf
+            (Pretty_utils.pp_list ~pre:"" ~sep:"@ " ~suf:"" pp_one) ips
+        in
+        if ips_all_kfs <> [] then
+          Pretty_utils.pp_list ~pre:"@[<v 3>/* " ~sep:"@ " ~suf:" */@]@ "
+            pp_by_kf fmt ips_all_kfs
+      | _ -> ()
+
+
     method! next_stmt next fmt current =
+      if Cil_datatype.Stmt.Hashtbl.mem unfold_preconds current
+      then self#preconditions_at_call fmt current;
       Format.fprintf fmt "@{<%s>%a@}"
         (Tag.create (PStmt (Extlib.the self#current_kf,current)))
         (super#next_stmt next) current
@@ -432,11 +491,9 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
               (Extlib.the self#current_stmt)
               ca
           in
-          localize_predicate <- false;
           Format.fprintf fmt "@{<%s>%a@}"
             (self#tag_property ip)
             super#code_annotation ca;
-          localize_predicate <- true
       | AStmtSpec (active,_) | AExtended(active,_) ->
           (* tags will be set in the inner nodes. *)
           active_behaviors <- active;
@@ -459,15 +516,25 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
             super#global
             g
 
-    method! requires fmt p =
-      localize_predicate <- false;
-      let b = Extlib.the self#current_behavior in
+    method! extended fmt (id,name, ext) =
       Format.fprintf fmt "@{<%s>%a@}"
         (self#tag_property
-           (Property.ip_of_requires
-              (Extlib.the self#current_kf) self#current_kinstr b p))
+           (Property.ip_of_extended
+              (Extlib.the self#current_kf) self#current_kinstr (id,name,ext)))
+        super#extended (id,name,ext);
+
+    method private requires_aux fmt (ip, p) =
+      Format.fprintf fmt "@{<%s>%a@}"
+        (self#tag_property ip)
         super#requires p;
-      localize_predicate <- true
+
+    method! requires fmt p =
+      let b = Extlib.the self#current_behavior in
+      let ip =
+        Property.ip_of_requires
+          (Extlib.the self#current_kf) self#current_kinstr b p
+      in
+      self#requires_aux fmt (ip, p)
 
     method! behavior fmt b =
       Format.fprintf fmt "@{<%s>%a@}"
@@ -479,22 +546,18 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
         super#behavior b
 
     method! decreases fmt t =
-      localize_predicate <- false;
       Format.fprintf fmt "@{<%s>%a@}"
         (self#tag_property
            (Property.ip_of_decreases
               (Extlib.the self#current_kf) self#current_kinstr t))
         super#decreases t;
-      localize_predicate <- true
 
     method! terminates fmt t =
-      localize_predicate <- false;
       Format.fprintf fmt "@{<%s>%a@}"
         (self#tag_property
            (Property.ip_of_terminates
               (Extlib.the self#current_kf) self#current_kinstr t))
         super#terminates t;
-      localize_predicate <- true
 
     method! complete_behaviors fmt t =
       Format.fprintf fmt "@{<%s>%a@}"
@@ -517,24 +580,20 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
         super#disjoint_behaviors t
 
     method! assumes fmt p =
-      localize_predicate <- false;
       let b = Extlib.the self#current_behavior in
       Format.fprintf fmt "@{<%s>%a@}"
         (self#tag_property
            (Property.ip_of_assumes
               (Extlib.the self#current_kf) self#current_kinstr b p))
         super#assumes p;
-      localize_predicate <- true
 
     method! post_cond fmt pc =
-      localize_predicate <- false;
       let b = Extlib.the self#current_behavior in
       Format.fprintf fmt "@{<%s>%a@}"
         (self#tag_property
            (Property.ip_of_ensures
               (Extlib.the self#current_kf) self#current_kinstr b pc))
         super#post_cond pc;
-      localize_predicate <- true
 
     method! assigns s fmt a =
       match
@@ -573,10 +632,8 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
       with
         None -> super#allocation ~isloop fmt a
       | Some ip ->
-          localize_predicate <- true;
           Format.fprintf fmt "@{<%s>%a@}"
             (Tag.create (PIP ip)) (super#allocation ~isloop) a;
-          localize_predicate <- false;
 
     method! stmtkind next fmt sk =
       (* Special tag denoting the start of the statement, WITHOUT any ACSL
@@ -586,17 +643,6 @@ module TagPrinterClassDeferred (X: Printer.PrinterClass) = struct
 
     initializer force_brace <- true
 
-    (* Not used anymore: all identified predicates are selectable somewhere up
-        - assert and loop invariants are PCodeAnnot
-        - contracts members have a dedicated tag.
-    *)
-    (* method pIdentified_predicate fmt ip =
-       if localize_predicate then
-         Format.fprintf fmt "@{<%s>%a@}"
-           (Tag.create (PPredicate (self#current_kf,self#current_kinstr,ip)))
-           super#identified_predicate ip
-       else super#identified_predicate fmt ip
-    *)
   end
 end
 
@@ -610,8 +656,8 @@ let equal_or_same_loc loc1 loc2 =
   match loc1, loc2 with
   | PIP (Property.IPReachable (_, Kstmt s, _)), PStmt (_, s')
   | PStmt (_, s'), PIP (Property.IPReachable (_, Kstmt s, _))
-  | PIP (Property.IPPropertyInstance (_, Kstmt s, _)), PStmt (_, s')
-  | PStmt (_, s'), PIP (Property.IPPropertyInstance (_, Kstmt s, _))
+  | PIP (Property.IPPropertyInstance (_, s, _, _)), PStmt (_, s')
+  | PStmt (_, s'), PIP (Property.IPPropertyInstance (_, s, _, _))
     when
       Cil_datatype.Stmt.equal s s' -> true
   | PIP (Property.IPReachable (Some kf, Kglobal, _)),

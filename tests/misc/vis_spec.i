@@ -3,7 +3,7 @@
 */
 
 //@ assigns \nothing;
-void g () ;
+void g (void) ;
 
 //@ assigns \nothing;
 void f () { g(); }

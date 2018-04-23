@@ -2,10 +2,13 @@
 [kernel] Parsing tests/wp_bts/bts_1382.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
-tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
-tests/wp_bts/bts_1382.i:17:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_bts/bts_1382.i:18: Warning: 
+  Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+[wp] tests/wp_bts/bts_1382.i:18: Warning: 
+  Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+[wp] tests/wp_bts/bts_1382.i:17: Warning: 
+  Cast with incompatible pointers types (source: sint32*) (target: uint8*)
 ------------------------------------------------------------
   Function loop
 ------------------------------------------------------------
@@ -32,7 +35,7 @@ tests/wp_bts/bts_1382.i:17: warning from Typed Model:
 Assume {
   Type: is_sint32(i).
   (* Goal *)
-  When: valid_rd(Malloc_0, w, 1).
+  When: !invalid(Malloc_0, w, 1).
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Then *)
@@ -59,7 +62,7 @@ Let a = shift_sint8(w, 0).
 Assume {
   Type: is_sint32(i).
   (* Goal *)
-  When: valid_rd(Malloc_0, a, 4).
+  When: !invalid(Malloc_0, a, 4).
   (* Heap *)
   Have: linked(Malloc_0) /\ sconst(Mchar_0).
   (* Then *)

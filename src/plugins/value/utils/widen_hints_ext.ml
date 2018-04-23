@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 open Cil_types
 
-let dkey = Kernel.register_category "widen-hints"
+let dkey = Value_parameters.register_category "widen-hints"
 
 let error ?msg loc typing_context =
   typing_context.Logic_typing.error loc
@@ -126,12 +126,12 @@ let widen_hint_terms_of_terms terms =
           in
           Some (hint_lval, hint_thresholds)
         | _ ->
-          Kernel.debug ~source:(fst lval_term.term_loc) ~dkey
+          Value_parameters.debug ~source:(fst lval_term.term_loc) ~dkey
             "invalid var_term: %a@." Printer.pp_term lval_term;
           raise Invalid_hint
       end
     | _ ->
-      Kernel.debug ~dkey "invalid terms: %a@."
+      Value_parameters.debug ~dkey "invalid terms: %a@."
         (Pretty_utils.pp_list ~sep:", " Printer.pp_term) terms;
       raise Invalid_hint
   with
@@ -168,15 +168,15 @@ let get_widen_hints_annots stmt =
        match annot with
        | {annot_content = AStmtSpec (_, { spec_behavior = [{b_extended}]})} ->
          acc @ Extlib.filter_map
-           (fun (name, _) -> name = "widen_hints")
-           (fun (_, ext) ->
+           (fun (_,name, _) -> name = "widen_hints")
+           (fun (_,_, ext) ->
               match ext with
               | Ext_id _ -> assert false
               | Ext_preds _ -> assert false
               | Ext_terms terms -> terms)
            b_extended
        | {annot_content =
-            AExtended (_, ("widen_hints", Ext_terms terms))} ->
+            AExtended (_, (_,"widen_hints", Ext_terms terms))} ->
          (* loop widen_hints *)
          acc @ [terms]
        | _ -> acc

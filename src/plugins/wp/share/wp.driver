@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of WP plug-in of Frama-C.                           */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat a l'energie atomique et aux energies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -40,6 +40,11 @@ altergo.file += "ergo/real.Real.mlw";
 altergo.file += "ergo/real.RealInfix.mlw";
 altergo.file += "ergo/real.FromInt.mlw";
 altergo.file += "ergo/Qed.mlw";
+
+library const:
+coq.file += "coqwp:map/Const.v";
+why3.import += "map.Const";
+altergo.file += "ergo/map.Const.mlw";
 
 library bool:
 coq.file += "coqwp:bool/Bool.v";
@@ -81,10 +86,8 @@ why3.file += "why3/Cbits.why";
 
 library cfloat: cmath
 coq.file += "coqwp/Cfloat.v";
-why3.import += "real.Abs:RAbs";
 why3.file += "why3/Cfloat.why";
 altergo.file += "ergo/real.Square.mlw";
-altergo.file += "ergo/real.Abs.mlw";
 altergo.file += "ergo/Cfloat.mlw";
 type "rounding_mode"   = "rounding_mode";
 ctor "Up"()            = "Up";
@@ -121,9 +124,52 @@ coq.file := "coqwp/Memory.v";
 why3.file := "why3/Memory.why";
 altergo.file := "ergo/Memory.mlw";
 
+library sqrt: cmath
+why3.import += "real.Square";
+coq.file += "coqwp:real/Square.v";
+coq.file += "coqwp/Square.v";
+why3.file += "why3/Square.why";
+altergo.file += "ergo/real.Square.mlw";
+altergo.file += "ergo/Square.mlw";
+
+library exponential: qed
+why3.import += "real.ExpLog" ;
+why3.file += "why3/ExpLog.why" ;
+coq.file += "coqwp:real/ExpLog.v" ;
+coq.file += "coqwp/Exp.v" ;
+altergo.file += "ergo/real.ExpLog.mlw" ;
+altergo.file += "ergo/ExpLog.mlw" ;
+
+library power: exponential sqrt
+why3.import += "real.PowerReal" ;
+coq.file += "coqwp:real/PowerReal.v" ;
+altergo.file += "ergo/real.PowerReal.mlw" ;
+
+library truncate: qed
+why3.import += "real.Truncate" ;
+altergo.file += "ergo/real.Truncate.mlw" ;
+
 library cmath: qed
-coq.file := "coqwp/Cmath.v";
-coq.file := "coqwp:real/Square.v";
-why3.file := "why3/Cmath.why";
-altergo.file := "ergo/real.Square.mlw";
+why3.import += "real.Abs:RAbs" ;
+why3.file += "why3/Cmath.why";
+coq.file += "coqwp/Cmath.v";
+altergo.file += "ergo/real.Abs.mlw" ;
 altergo.file += "ergo/Cmath.mlw";
+
+library trigonometry: sqrt cmath
+why3.import += "real.Trigonometry";
+coq.file += "coqwp:real/Trigonometry.v";
+altergo.file += "ergo/real.Trigonometry.mlw";
+
+library arctrigo: trigonometry
+why3.file += "why3/ArcTrigo.why";
+coq.file += "coqwp/ArcTrigo.v";
+altergo.file += "ergo/ArcTrigo.mlw";
+
+library hyperbolic: sqrt exponential
+why3.import += "real.Hyperbolic";
+altergo.file += "ergo/real.Hyperbolic.mlw";
+
+library polar: sqrt trigonometry
+why3.import += "real.Polar";
+altergo.file += "ergo/real.Polar.mlw";

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,20 +24,9 @@ theory Cmath
 use int.Int as Int
 use int.Abs as Abs
 use real.Real as Real
-use real.Square as Square
 
 axiom abs_def : forall x:int [Abs.abs x].
   if (Int.(>=) (x) (0)) then ((Abs.abs x) = (x)) else ((Abs.abs
   x) = ((Int.(-_) (x))))
-
-axiom sqrt_lin1 : forall x:real [Square.sqrt x]. (Real.(<) (1.) (x)) ->
-  (Real.(<) (Square.sqrt x) (x))
-
-axiom sqrt_lin0 : forall x:real [Square.sqrt x]. (Real.(<) (0.) (x)) /\
-  (Real.(<) (x) (1.)) -> (Real.(<) (x) (Square.sqrt x))
-
-axiom sqrt_0 : ((Square.sqrt 0.) = (0.))
-
-axiom sqrt_1 : ((Square.sqrt 1.) = (1.))
 
 end

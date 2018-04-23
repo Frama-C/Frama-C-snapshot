@@ -6,9 +6,11 @@
   t[0..49] ∈ {0}
   u[0..49] ∈ {0}
   x ∈ {0}
-tests/value/inout_diff.i:11:[value] entering loop for the first time
-tests/value/inout_diff.i:18:[value] warning: accessing out of bounds index. assert c < 50;
-tests/value/inout_diff.i:20:[value] warning: accessing out of bounds index. assert (int)(c + 1) < 50;
+[value] tests/value/inout_diff.i:11: entering loop for the first time
+[value:alarm] tests/value/inout_diff.i:18: Warning: 
+  accessing out of bounds index. assert c < 50;
+[value:alarm] tests/value/inout_diff.i:20: Warning: 
+  accessing out of bounds index. assert (int)(c + 1) < 50;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -60,7 +62,7 @@ tests/value/inout_diff.i:20:[value] warning: accessing out of bounds index. asse
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t{[0..1]; [5..6]; [10..11]; [15..16]; [20..21]; [25..26]; [30..31];
     [35..36]; [40..41]; [45..46]}
@@ -72,23 +74,23 @@ tests/value/inout_diff.i:20:[value] warning: accessing out of bounds index. asse
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t{[0..1]; [5..6]; [10..11]; [15..16]; [20..21]; [25..26]; [30..31];
-        [35..36]; [40..41]; [45..46]};
-      u{[0]; [5]; [10]; [15]; [20]; [25]; [30]; [35]; [40]; [45]}; x; c; 
-      i; __retres
+    t{[0..1]; [5..6]; [10..11]; [15..16]; [20..21]; [25..26]; [30..31];
+      [35..36]; [40..41]; [45..46]};
+    u{[0]; [5]; [10]; [15]; [20]; [25]; [30]; [35]; [40]; [45]}; x; c; 
+    i; __retres
 [inout] Inputs for function main:
-      t{[0]; [7]; [14]; [21]; [28]; [35]; [42]; [49]};
-      u{[0..1]; [7..8]; [14..15]; [21..22]; [28..29]; [35..36]; [42..43]; [49]};
-      x
+    t{[0]; [7]; [14]; [21]; [28]; [35]; [42]; [49]};
+    u{[0..1]; [7..8]; [14..15]; [21..22]; [28..29]; [35..36]; [42..43]; [49]};
+    x
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      t{[7]; [14]; [28]; [42]; [49]};
-      u{[1]; [7..8]; [14]; [21..22]; [28..29]; [36]; [42..43]; [49]}; c
-    Operational inputs on termination:
-      t{[7]; [14]; [28]; [42]; [49]};
-      u{[1]; [7..8]; [14]; [21..22]; [28..29]; [36]; [42..43]; [49]}; c
-    Sure outputs:
-      t{[0..1]; [5..6]; [10..11]; [15..16]; [20..21]; [25..26]; [30..31];
-        [35..36]; [40..41]; [45..46]};
-      u{[0]; [5]; [10]; [15]; [20]; [25]; [30]; [35]; [40]; [45]}; x; c; 
-      i; __retres
+  Operational inputs:
+    t{[7]; [14]; [28]; [42]; [49]};
+    u{[1]; [7..8]; [14]; [21..22]; [28..29]; [36]; [42..43]; [49]}; c
+  Operational inputs on termination:
+    t{[7]; [14]; [28]; [42]; [49]};
+    u{[1]; [7..8]; [14]; [21..22]; [28..29]; [36]; [42..43]; [49]}; c
+  Sure outputs:
+    t{[0..1]; [5..6]; [10..11]; [15..16]; [20..21]; [25..26]; [30..31];
+      [35..36]; [40..41]; [45..46]};
+    u{[0]; [5]; [10]; [15]; [20]; [25]; [30]; [35]; [40]; [45]}; x; c; 
+    i; __retres

@@ -56,7 +56,8 @@ digraph f {
  N095 -> N094 ;
   N096 [ color=green , label="Assume f_stmt_post" ] ;
  N096 -> N095 ;
-  N097 [ color=orange , label="Havoc f_stmt_assign" ] ;
+  N097 [ color=orange , label="Havoc f_stmt_assign:
+assigns __retres;" ] ;
  N097 -> N096 ;
   N098 [ color=lightblue , label="B-in { }" ] ;
  N098 -> N000 [ style=dotted ];

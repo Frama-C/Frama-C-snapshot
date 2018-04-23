@@ -1,4 +1,5 @@
 [kernel] Parsing tests/misc/function_ptr_lvalue_1.i (no preprocessing)
-tests/misc/function_ptr_lvalue_1.i:7:[kernel] failure: cannot cast from int to void (void)
-[kernel] user error: stopping on file "tests/misc/function_ptr_lvalue_1.i" that has errors.
+[kernel] tests/misc/function_ptr_lvalue_1.i:7: User Error: 
+  Cannot assign to non-modifiable lval *p
+[kernel] User Error: stopping on file "tests/misc/function_ptr_lvalue_1.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

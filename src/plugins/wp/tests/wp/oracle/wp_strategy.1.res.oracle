@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp/wp_strategy.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function default_behaviors with behavior default_for_stmt_54
 ------------------------------------------------------------

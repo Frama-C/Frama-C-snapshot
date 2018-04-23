@@ -24,39 +24,56 @@
    [2] ∈ {3}
    [3..4] ∈ {0}
   p ∈ {0}
-tests/value/div.i:13:[value] warning: initialization of volatile variable c ignored
-tests/value/div.i:14:[value] entering loop for the first time
-tests/value/div.i:14:[value] warning: signed overflow. assert c + 1 ≤ 2147483647;
-tests/value/div.i:17:[value] warning: signed overflow. assert c + 2 ≤ 2147483647;
-tests/value/div.i:17:[value] warning: signed overflow. assert -2147483648 ≤ X - 1;
-tests/value/div.i:16:[value] warning: signed overflow. assert X + 1 ≤ 2147483647;
-tests/value/div.i:32:[value] warning: division by zero. assert Z2 ≢ 0;
-tests/value/div.i:33:[value] warning: division by zero. assert Z2 ≢ 0;
-tests/value/div.i:33:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&Z2) / Z2;
-tests/value/div.i:33:[value] warning: signed overflow. assert (int)(&Z2) / Z2 ≤ 2147483647;
-tests/value/div.i:33:[value] Assigning imprecise value to b.
-    The imprecision originates from Arithmetic {tests/value/div.i:33}
-tests/value/div.i:34:[value] warning: division by zero. assert (int)(&X + 2) ≢ 0;
-tests/value/div.i:34:[value] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)(&X + 2));
-tests/value/div.i:34:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 2);
-tests/value/div.i:34:[value] warning: signed overflow. assert 100 / (int)(&X + 2) ≤ 2147483647;
-tests/value/div.i:34:[value] Assigning imprecise value to d2.
-    The imprecision originates from Arithmetic {tests/value/div.i:34}
-tests/value/div.i:35:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 1);
-tests/value/div.i:35:[value] warning: signed overflow. assert 100 / (int)(&X + 1) ≤ 2147483647;
-tests/value/div.i:35:[value] Assigning imprecise value to d1.
-    The imprecision originates from Arithmetic {tests/value/div.i:35}
-tests/value/div.i:36:[value] warning: signed overflow. assert -2147483648 ≤ 100 / (int)(&X);
-tests/value/div.i:36:[value] warning: signed overflow. assert 100 / (int)(&X) ≤ 2147483647;
-tests/value/div.i:36:[value] Assigning imprecise value to d0.
-    The imprecision originates from Arithmetic {tests/value/div.i:36}
-tests/value/div.i:37:[value] warning: signed overflow. assert -2147483648 ≤ -((int)(&X));
-tests/value/div.i:37:[value] warning: signed overflow. assert -((int)(&X)) ≤ 2147483647;
-tests/value/div.i:37:[value] Assigning imprecise value to e.
-    The imprecision originates from Arithmetic {tests/value/div.i:37}
+[value] tests/value/div.i:14: entering loop for the first time
+[value:alarm] tests/value/div.i:14: Warning: 
+  signed overflow. assert c + 1 ≤ 2147483647;
+[value:alarm] tests/value/div.i:17: Warning: 
+  signed overflow. assert c + 2 ≤ 2147483647;
+[value:alarm] tests/value/div.i:17: Warning: 
+  signed overflow. assert -2147483648 ≤ X - 1;
+[value:alarm] tests/value/div.i:16: Warning: 
+  signed overflow. assert X + 1 ≤ 2147483647;
+[value:alarm] tests/value/div.i:32: Warning: division by zero. assert Z2 ≢ 0;
+[value:alarm] tests/value/div.i:33: Warning: division by zero. assert Z2 ≢ 0;
+[value:alarm] tests/value/div.i:33: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(&Z2) / Z2;
+[value:alarm] tests/value/div.i:33: Warning: 
+  signed overflow. assert (int)(&Z2) / Z2 ≤ 2147483647;
+[value] tests/value/div.i:33: 
+  Assigning imprecise value to b.
+  The imprecision originates from Arithmetic {tests/value/div.i:33}
+[value:alarm] tests/value/div.i:34: Warning: 
+  division by zero. assert (int)(&X + 2) ≢ 0;
+[value:alarm] tests/value/div.i:34: Warning: 
+  signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 2);
+[value:alarm] tests/value/div.i:34: Warning: 
+  signed overflow. assert 100 / (int)(&X + 2) ≤ 2147483647;
+[value] tests/value/div.i:34: 
+  Assigning imprecise value to d2.
+  The imprecision originates from Arithmetic {tests/value/div.i:34}
+[value:alarm] tests/value/div.i:35: Warning: 
+  signed overflow. assert -2147483648 ≤ 100 / (int)(&X + 1);
+[value:alarm] tests/value/div.i:35: Warning: 
+  signed overflow. assert 100 / (int)(&X + 1) ≤ 2147483647;
+[value] tests/value/div.i:35: 
+  Assigning imprecise value to d1.
+  The imprecision originates from Arithmetic {tests/value/div.i:35}
+[value:alarm] tests/value/div.i:36: Warning: 
+  signed overflow. assert -2147483648 ≤ 100 / (int)(&X);
+[value:alarm] tests/value/div.i:36: Warning: 
+  signed overflow. assert 100 / (int)(&X) ≤ 2147483647;
+[value] tests/value/div.i:36: 
+  Assigning imprecise value to d0.
+  The imprecision originates from Arithmetic {tests/value/div.i:36}
+[value:alarm] tests/value/div.i:37: Warning: 
+  signed overflow. assert -2147483648 ≤ -((int)(&X));
+[value:alarm] tests/value/div.i:37: Warning: 
+  signed overflow. assert -((int)(&X)) ≤ 2147483647;
+[value] tests/value/div.i:37: 
+  Assigning imprecise value to e.
+  The imprecision originates from Arithmetic {tests/value/div.i:37}
 [value] Recording results for main
 [value] done for function main
-tests/value/div.i:34:[value] assertion 'Value,division_by_zero' got final status valid.
 [scope:rm_asserts] removing 1 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -85,7 +102,7 @@ tests/value/div.i:34:[value] assertion 'Value,division_by_zero' got final status
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   X FROM X (and SELF)
   Y FROM X
@@ -106,6 +123,6 @@ tests/value/div.i:34:[value] assertion 'Value,division_by_zero' got final status
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      X; Y; Z1; Z2; T; U1; U2; V; W1; W2; a; b; d1; d2; d0; e; p; c
+    X; Y; Z1; Z2; T; U1; U2; V; W1; W2; a; b; d1; d2; d0; e; p; c
 [inout] Inputs for function main:
-      X; Y; Z2; T; V
+    X; Y; Z2; T; V

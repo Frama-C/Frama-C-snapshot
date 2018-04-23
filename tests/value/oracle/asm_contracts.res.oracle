@@ -5,22 +5,26 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f1 <- main.
-    Called from tests/value/asm_contracts.c:38.
-tests/value/asm_contracts.c:15:[value] assertion 'OK' got status valid.
-tests/value/asm_contracts.c:16:[value] warning: assertion 'UNKNOWN1' got status unknown.
-tests/value/asm_contracts.c:17:[value] warning: assertion 'UNKNOWN2' got status unknown.
+  Called from tests/value/asm_contracts.c:38.
+[value] tests/value/asm_contracts.c:15: assertion 'OK' got status valid.
+[value:alarm] tests/value/asm_contracts.c:16: Warning: 
+  assertion 'UNKNOWN1' got status unknown.
+[value:alarm] tests/value/asm_contracts.c:17: Warning: 
+  assertion 'UNKNOWN2' got status unknown.
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
-    Called from tests/value/asm_contracts.c:39.
-tests/value/asm_contracts.c:27:[value] assertion 'OK' got status valid.
-tests/value/asm_contracts.c:28:[value] warning: assertion 'UNKNOWN1' got status unknown.
+  Called from tests/value/asm_contracts.c:39.
+[value] tests/value/asm_contracts.c:27: assertion 'OK' got status valid.
+[value:alarm] tests/value/asm_contracts.c:28: Warning: 
+  assertion 'UNKNOWN1' got status unknown.
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
-    Called from tests/value/asm_contracts.c:40.
-tests/value/asm_contracts.c:33:[value] warning: assuming assembly code has no effects in function f3
-tests/value/asm_contracts.c:34:[value] assertion 'UNKNOWN' got status valid.
+  Called from tests/value/asm_contracts.c:40.
+[value] tests/value/asm_contracts.c:33: Warning: 
+  assuming assembly code has no effects in function f3
+[value] tests/value/asm_contracts.c:34: assertion 'UNKNOWN' got status valid.
 [value] Recording results for f3
 [value] Done for function f3
 [value] Recording results for main
@@ -44,7 +48,7 @@ tests/value/asm_contracts.c:34:[value] assertion 'UNKNOWN' got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
   NO EFFECTS
 [from] Function f2:
@@ -55,18 +59,18 @@ tests/value/asm_contracts.c:34:[value] assertion 'UNKNOWN' got status valid.
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f1:
-      src; dst
+    src; dst
 [inout] Inputs for function f1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f2:
-      dwSomeValue
+    dwSomeValue
 [inout] Inputs for function f2:
-      \nothing
+    \nothing
 [inout] Out (internal) for function f3:
-      x
+    x
 [inout] Inputs for function f3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      __retres
+    __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

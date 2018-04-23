@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ val job : unit -> job
 
 (** {2 Model Selection} *)
 
-val has_dkey : Log.category -> bool
+val has_dkey : category -> bool
 
 module Model : Parameter_sig.String_list
 module ByValue : Parameter_sig.String_set
@@ -56,6 +56,7 @@ module ExtEqual : Parameter_sig.Bool
 module Overflows : Parameter_sig.Bool
 module Literals : Parameter_sig.Bool
 module Volatile : Parameter_sig.Bool
+module BoolRange : Parameter_sig.Bool
 
 (** {2 Computation Strategies} *)
 
@@ -76,6 +77,7 @@ module Bits: Parameter_sig.Bool
 module Ground: Parameter_sig.Bool
 module Reduce: Parameter_sig.Bool
 module QedChecks : Parameter_sig.String_set
+module UnfoldAssigns : Parameter_sig.Bool
 module Split: Parameter_sig.Bool
 module SplitDepth: Parameter_sig.Int
 module DynCall : Parameter_sig.Bool
@@ -116,11 +118,17 @@ module AltGrErgo: Parameter_sig.String
 module AltErgoLibs: Parameter_sig.String_list
 module AltErgoFlags: Parameter_sig.String_list
 
+module Auto: Parameter_sig.String_list
+module AutoDepth: Parameter_sig.Int
+module AutoWidth: Parameter_sig.Int
+module BackTrack: Parameter_sig.Int
+
 (** {2 Proof Obligations} *)
 
 module TruncPropIdFileName: Parameter_sig.Int
 module Print: Parameter_sig.Bool
 module Report: Parameter_sig.String_list
+module ReportJson: Parameter_sig.String
 module ReportName: Parameter_sig.String
 module Separation: Parameter_sig.Bool
 module Check: Parameter_sig.Bool

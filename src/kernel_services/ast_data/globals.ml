@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,13 +24,13 @@ open Cil_types
 open Cil_datatype
 open Cil
 
-let dkey = Kernel.register_category "globals"
-
 (* ************************************************************************* *)
 (** {2 Global variables} *)
 (* ************************************************************************* *)
 
-(* redefinition from Kernel_function.ml *)
+(* redefinition from Kernel_function.ml
+   TODO: this should move to Ast_info
+ *)
 let get_formals f = match f.fundec with
   | Definition(d, _) -> d.sformals
   | Declaration(_, _, None, _) -> []
@@ -40,9 +40,18 @@ let get_locals f = match f.fundec with
   | Definition(d, _) -> d.slocals
   | Declaration(_, _, _, _) -> []
 
+let get_location kf = match kf.fundec with
+  | Definition (_, loc) -> loc
+  | Declaration (_,vi,_, _) -> vi.vdecl
+
 let find_first_stmt = Extlib.mk_fun "Globals.find_first_stmt"
 
 let find_enclosing_block = Extlib.mk_fun "Globals.find_enclosing_block"
+
+let find_all_enclosing_blocks =
+  Extlib.mk_fun "Globals.find_all_enclosing_blocks"
+
+let find_englobing_kf = Extlib.mk_fun "Globals.find_englobing_kf"
 
 module Vars = struct
 
@@ -174,6 +183,28 @@ module Functions = struct
       Datatype.String.Map.fold (fun _ v acc -> f v acc) (State.get ()) acc
   end
 
+  module From_orig_name =
+    State_builder.Hashtbl
+      (Datatype.String.Hashtbl)
+      (Cil_datatype.Kf.Set)
+      (struct
+        let name = "Globals.Functions.From_orig_name"
+        let dependencies = [ State.self ]
+        let size = 17
+      end)
+
+  let get_from_orig_name s =
+    try From_orig_name.find s with Not_found -> Cil_datatype.Kf.Set.empty
+
+  let () =
+    Parameter_customize.add_function_name_transformation get_from_orig_name
+
+  let update_orig_name kf =
+    let orig_name = (Ast_info.Function.get_vi kf.fundec).vorig_name in
+    let set = get_from_orig_name orig_name in
+    let set = Cil_datatype.Kf.Set.add kf set in
+    From_orig_name.replace orig_name set
+
   let init_kernel_function f spec =
     { fundec = f; spec = spec }
 
@@ -192,7 +223,11 @@ module Functions = struct
     action (fun v -> init_kernel_function (fundec_of_decl spec v l) spec) v
 
   let add_declaration =
-    register_declaration (fun f v -> Iterator.add v; State.memo f v)
+    register_declaration
+      (fun f v ->
+         Iterator.add v;
+         let kf = State.memo f v in
+         update_orig_name kf; kf)
 
   let update_kf kf fundec spec =
     (match kf.fundec, fundec with
@@ -218,27 +253,34 @@ module Functions = struct
       update_kf kf fundec s
     end else
       register_declaration
-        (fun f v -> Iterator.add v; State.replace v (f v)) s v l
+        (fun f v ->
+           Iterator.add v;
+           let res = f v in State.replace v res;
+           update_orig_name res)
+        s v l
 
   let replace_by_definition spec f l =
 (*    Kernel.feedback "replacing %a" Cil_datatype.Varinfo.pretty f.svar;*)
     Iterator.add f.svar;
     if State.mem f.svar then
       update_kf (State.find f.svar) (Definition (f,l)) spec
-    else
-      State.replace f.svar (init_kernel_function (Definition (f, l)) spec);
+    else begin
+      let kf = init_kernel_function (Definition (f, l)) spec in
+      State.replace f.svar  kf;
+      update_orig_name kf;
+    end;
     try ignore (Cil.getFormalsDecl f.svar)
     with Not_found -> Cil.unsafeSetFormalsDecl f.svar f.sformals
 
   let add f =
     match f with
     | Definition (n, l) ->
-      Kernel.debug ~dkey
+      Kernel.debug ~dkey:Kernel.dkey_globals
 	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
         Varinfo.pretty n.svar Cil_printer.pp_funspec n.sspec ;
       replace_by_definition n.sspec n l;
     | Declaration (spec, v,_,l) ->
-      Kernel.debug ~dkey
+      Kernel.debug ~dkey:Kernel.dkey_globals
 	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
         Varinfo.pretty v Cil_printer.pp_funspec spec;
       replace_by_declaration spec v l
@@ -442,7 +484,7 @@ module FileIndex = struct
         (Ast.get ())
         (fun glob ->
           let f = (fst (Global.loc glob)).Lexing.pos_fname in
-          Kernel.debug ~dkey "Indexing global in file %s@."
+          Kernel.debug ~dkey:Kernel.dkey_globals "Indexing global in file %s@."
             (Filepath.pretty f);
           ignore
              (S.memo
@@ -558,6 +600,66 @@ module FileIndex = struct
 
 end
 
+module Syntactic_search = struct
+
+  module Key =
+    Datatype.Pair_with_collections
+      (Datatype.String)(Cil_datatype.Syntactic_scope)
+      (struct let module_name = "Globals.Datatype.Key" end)
+
+  module Scope_info =
+    State_builder.Hashtbl
+      (Key.Hashtbl)(Datatype.Option(Cil_datatype.Varinfo))
+      (struct
+        let size = 137
+        let dependencies = [ Ast.self; Vars.self; FileIndex.self ]
+        let name = "Globals.Syntactic_search.Scope_info"
+      end)
+
+  let self = Scope_info.self
+
+  let () = Ast.add_monotonic_state self
+
+  let rec find_var (x,scope) =
+    let has_name v = v.vorig_name = x in
+    let global_has_name v =
+      has_name v && v.vglob
+      && not (Cil.hasAttribute Cabs2cil.fc_local_static v.vattr)
+    in
+    let module M = struct exception Found of varinfo end in
+    match scope with
+    | Program ->
+      (try
+         Vars.iter (fun v _ -> if global_has_name v then raise (M.Found v));
+         None
+       with M.Found v -> Some v)
+    | Translation_unit file ->
+      let symbols = FileIndex.get_globals file in
+      (try Some (fst (List.find (fun x -> (global_has_name (fst x))) symbols))
+       with Not_found -> find_in_scope x Program)
+    | Block_scope stmt ->
+      let blocks = !find_all_enclosing_blocks stmt in
+      let find_in_block b =
+        if List.exists has_name b.blocals then
+          raise (M.Found (List.find has_name b.blocals))
+        else if List.exists has_name b.bstatics then
+          raise (M.Found (List.find has_name b.bstatics))
+      in
+      try
+        List.iter find_in_block blocks;
+        let kf = !find_englobing_kf stmt in
+        let filename = (fst ( get_location kf)).Lexing.pos_fname in
+        let formals = get_formals kf in
+        if List.exists has_name formals then
+          Some (List.find has_name formals)
+        else
+          find_in_scope x (Translation_unit filename)
+      with M.Found v -> Some v
+
+  and find_in_scope x scope = Scope_info.memo find_var (x,scope)
+
+end
+
 (* ************************************************************************* *)
 (** {2 Types} *)
 (* ************************************************************************* *)
@@ -586,7 +688,7 @@ module Types = struct
       (struct
         let size = 137
         let dependencies = [Ast.self]
-        let name = "Logic_interp.Types"
+        let name = "Globals.Types.Types"
        end)
 
   (* Maps a typename (with its namespace) to its corresponding global. *)

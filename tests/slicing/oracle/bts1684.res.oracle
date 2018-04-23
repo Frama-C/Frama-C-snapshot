@@ -11,7 +11,7 @@
   x2 ∈ {0}
   x3 ∈ {0}
 [value] computing for function main2 <- main.
-    Called from tests/slicing/bts1684.i:14.
+  Called from tests/slicing/bts1684.i:14.
 [value] Recording results for main2
 [value] Done for function main2
 [value] Recording results for main

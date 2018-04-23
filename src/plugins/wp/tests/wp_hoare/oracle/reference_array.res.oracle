@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_hoare/reference_array.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function add_1_5
 ------------------------------------------------------------
@@ -391,3 +391,12 @@ Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 9) 
 Prove: true.
 
 ------------------------------------------------------------
+[wp] Warning: Separation hypotheses for function 'load_1_5':
+  /*@ behavior typed_ref: requires \separated(reg_load+(..),lp+(..)); */
+  void load_1_5(int (*lp)[5]);
+[wp] Warning: Separation hypotheses for function 'add_1_5':
+  /*@
+     behavior typed_ref:
+     requires \separated(\union(reg_load+(..),reg_add+(..)),ap+(..));
+     */
+  void add_1_5(int (*ap)[5]);

@@ -1,0 +1,373 @@
+[kernel] Parsing tests/libc/math_h.c (with preprocessing)
+[kernel:parser:decimal-float] tests/libc/math_h.c:3: Warning: 
+  Floating-point constant 3.14159265358979323846264338327950288 is not represented exactly. Will use 0x1.921fb54442d18p1.
+  (warn-once: no further messages from category 'parser:decimal-float' will be emitted)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  __fc_errno ∈ [--..--]
+  pi ∈ {3.14159265359}
+  half_pi ∈ {1.57079632679}
+  e ∈ {2.71828182846}
+  top ∈ [--..--]
+  f_pi ∈ {3.14159274101}
+  f_half_pi ∈ {1.57079637051}
+  f_e ∈ {2.71828174591}
+  f_top ∈ [--..--]
+  ld_pi ∈ [3.14159265359 .. 3.14159265359]
+  ld_half_pi ∈ [1.57079632679 .. 1.57079632679]
+  ld_e ∈ {2.71828182846}
+  ld_top ∈ [--..--]
+  zero ∈ {0}
+  minus_zero ∈ {-0.}
+  one ∈ {1.}
+  minus_one ∈ {-1.}
+  large ∈ {1e+38}
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] using specification for function atan
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value:alarm] tests/libc/math_h.c:35: Warning: 
+  non-finite double value. assert \is_finite(top);
+[value] computing for function atan <- main.
+  Called from tests/libc/math_h.c:35.
+[value] tests/libc/math_h.c:35: 
+  function atan: precondition 'finite_arg' got status valid.
+[value] Done for function atan
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] using specification for function atanf
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value:alarm] tests/libc/math_h.c:36: Warning: 
+  non-finite float value. assert \is_finite(f_top);
+[value] computing for function atanf <- main.
+  Called from tests/libc/math_h.c:36.
+[value] tests/libc/math_h.c:36: 
+  function atanf: precondition 'finite_arg' got status valid.
+[value] Done for function atanf
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] using specification for function atanl
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value] tests/libc/math_h.c:37: 
+  function atanl: precondition 'finite_arg' got status valid.
+[value] Done for function atanl
+[value:alarm] tests/libc/math_h.c:37: Warning: 
+  non-finite long double value. assert \is_finite(ld_top);
+[value] computing for function atanl <- main.
+  Called from tests/libc/math_h.c:37.
+[value:alarm] tests/libc/math_h.c:37: Warning: 
+  function atanl: precondition 'finite_arg' got status unknown.
+[value] Done for function atanl
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] using specification for function fabs
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value:alarm] tests/libc/math_h.c:38: Warning: 
+  non-finite double value. assert \is_finite(top);
+[value] computing for function fabs <- main.
+  Called from tests/libc/math_h.c:38.
+[value] tests/libc/math_h.c:38: 
+  function fabs: precondition 'finite_arg' got status valid.
+[value] Done for function fabs
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] using specification for function fabsf
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value:alarm] tests/libc/math_h.c:39: Warning: 
+  non-finite float value. assert \is_finite(f_top);
+[value] computing for function fabsf <- main.
+  Called from tests/libc/math_h.c:39.
+[value] tests/libc/math_h.c:39: 
+  function fabsf: precondition 'finite_arg' got status valid.
+[value] Done for function fabsf
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] using specification for function fabsl
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value] tests/libc/math_h.c:40: 
+  function fabsl: precondition 'finite_arg' got status valid.
+[value] Done for function fabsl
+[value:alarm] tests/libc/math_h.c:40: Warning: 
+  non-finite long double value. assert \is_finite(ld_top);
+[value] computing for function fabsl <- main.
+  Called from tests/libc/math_h.c:40.
+[value:alarm] tests/libc/math_h.c:40: Warning: 
+  function fabsl: precondition 'finite_arg' got status unknown.
+[value] Done for function fabsl
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main:
+  atan_pi ∈ [-1.571 .. 1.571]
+  atan_half_pi ∈ [-1.571 .. 1.571]
+  atan_e ∈ [-1.571 .. 1.571]
+  atan_zero ∈ [-1.571 .. 1.571]
+  atan_minus_zero ∈ [-1.571 .. 1.571]
+  atan_one ∈ [-1.571 .. 1.571]
+  atan_minus_one ∈ [-1.571 .. 1.571]
+  atan_large ∈ [-1.571 .. 1.571]
+  atan_top ∈ [-1.571 .. 1.571]
+  atanf_f_pi ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_f_half_pi ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_f_e ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_zero ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_minus_zero ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_one ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_minus_one ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_large ∈ [-1.57099997997 .. 1.57099997997]
+  atanf_f_top ∈ [-1.57099997997 .. 1.57099997997]
+  atanl_ld_pi ∈ [-inf .. inf]
+  atanl_ld_half_pi ∈ [-inf .. inf]
+  atanl_ld_e ∈ [-inf .. inf]
+  atanl_zero ∈ [-inf .. inf]
+  atanl_minus_zero ∈ [-inf .. inf]
+  atanl_one ∈ [-inf .. inf]
+  atanl_minus_one ∈ [-inf .. inf]
+  atanl_large ∈ [-inf .. inf]
+  atanl_ld_top ∈ [-inf .. inf]
+  fabs_pi ∈ {3.14159265359}
+  fabs_half_pi ∈ {1.57079632679}
+  fabs_e ∈ {2.71828182846}
+  fabs_zero ∈ [-0. .. 0.]
+  fabs_minus_zero ∈ [-0. .. 0.]
+  fabs_one ∈ {1.}
+  fabs_minus_one ∈ {1.}
+  fabs_large ∈ {1e+38}
+  fabs_top ∈ [-0. .. 1.79769313486e+308]
+  fabsf_f_pi ∈ {3.14159274101}
+  fabsf_f_half_pi ∈ {1.57079637051}
+  fabsf_f_e ∈ {2.71828174591}
+  fabsf_zero ∈ [-0. .. 0.]
+  fabsf_minus_zero ∈ [-0. .. 0.]
+  fabsf_one ∈ {1.}
+  fabsf_minus_one ∈ {1.}
+  fabsf_large ∈ {9.99999968029e+37}
+  fabsf_f_top ∈ [-0. .. 3.40282346639e+38]
+  fabsl_ld_pi ∈ [-inf .. inf]
+  fabsl_ld_half_pi ∈ [-inf .. inf]
+  fabsl_ld_e ∈ [-inf .. inf]
+  fabsl_zero ∈ [-inf .. inf]
+  fabsl_minus_zero ∈ [-inf .. inf]
+  fabsl_one ∈ [-inf .. inf]
+  fabsl_minus_one ∈ [-inf .. inf]
+  fabsl_large ∈ [-inf .. inf]
+  fabsl_ld_top ∈ [-inf .. inf]
+  __retres ∈ {0}

@@ -8,8 +8,8 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function f10 <- main2.
-    Called from tests/sparecode/intra.i:115.
-tests/sparecode/intra.i:109:[value] assertion got status valid.
+  Called from tests/sparecode/intra.i:115.
+[value] tests/sparecode/intra.i:109: assertion got status valid.
 [value] Recording results for f10
 [value] Done for function f10
 [value] Recording results for main2

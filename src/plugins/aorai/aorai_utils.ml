@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -420,7 +420,11 @@ let crosscond_to_pred cross curr_f curr_status =
     | TCastE (ty, t) -> new_exp loc (CastE (ty, term_to_exp t res))
     | TAddrOf tlval -> new_exp loc (AddrOf (tlval_to_lval tlval res))
     | TStartOf tlval -> new_exp loc (StartOf (tlval_to_lval tlval res))
-    | _ -> Aorai_option.fatal "Term cannot be transformed into exp."
+    | TLogic_coerce (_,t) -> term_to_exp t res
+    | _ ->
+      Aorai_option.fatal
+        "Term %a cannot be transformed into exp."
+        Printer.pp_term t
 
 and tlval_to_lval (tlhost, toffset) res =
   let rec t_to_loffset t_offset = match t_offset with

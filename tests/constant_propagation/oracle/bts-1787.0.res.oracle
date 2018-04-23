@@ -10,7 +10,7 @@
   G2{.p1; .p2} ∈ {{ (? *)&G1 }}
     .p3 ∈ {{ &G1.c3 }}
 [value] computing for function g <- main.
-    Called from tests/constant_propagation/bts-1787.i:39.
+  Called from tests/constant_propagation/bts-1787.i:39.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main

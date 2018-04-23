@@ -10,14 +10,10 @@
   pg ∈ {{ NULL ; &S_pg[0] }}
   S_pg[0..1] ∈ [--..--]
 [value] computing for function ff <- main.
-    Called from tests/value/recursion.i:67.
-tests/value/recursion.i:8:[value] warning: detected recursive call (ff <- ff :: tests/value/recursion.i:67 <- main)
-    Use -val-ignore-recursive-calls to ignore (beware this will make the analysis
-    unsound)
-[value] user error: Degeneration occurred:
-    results are not correct for lines of code that can be reached from the degeneration point.
-[value] ====== VALUES COMPUTED ======
-[value:final-states] Values at end of function ff:
-  NON TERMINATING FUNCTION
-[value:final-states] Values at end of function main:
-  NON TERMINATING FUNCTION
+  Called from tests/value/recursion.i:67.
+[value] tests/value/recursion.i:8: Warning: 
+  detected recursive call (ff <- ff :: tests/value/recursion.i:67 <- main)
+  Use -val-ignore-recursive-calls to ignore (beware this will make the analysis
+  unsound)
+[value] User Error: Degeneration occurred:
+  results are not correct for lines of code that can be reached from the degeneration point.

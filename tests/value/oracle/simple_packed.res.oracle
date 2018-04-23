@@ -5,7 +5,7 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/simple_packed.c:19.
+  Called from tests/value/simple_packed.c:19.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -22,17 +22,17 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM foo
 [from] Function main:
   \result FROM foo
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      bar
+    bar
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing

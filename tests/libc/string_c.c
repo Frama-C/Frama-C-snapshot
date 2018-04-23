@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-no-val-builtins-auto -slevel 1000 -val-builtin memcpy:Frama_C_memcpy"
+   STDOPT: #"-no-val-builtins-auto -slevel 1000 -no-val-skip-stdlib-specs"
 */ // slevel is used to unroll loops
 
 #include "string.c"
@@ -20,9 +20,6 @@ void test_memcpy()
   p = memcpy(NULL, NULL, 0);
   //@assert p == \null;
   int x = 0x12093841;
-  memcpy(dest, NULL, 0);
-  p = memcpy(NULL, NULL, 0);
-  //@assert p == \null;
   memcpy(dest, &x, 4);
   //@assert dest[0] == 0x41;
   //@assert dest[3] == 0x12;
@@ -54,6 +51,11 @@ void test_memmove()
             buf[3] == 6 && buf[4] == 5 && buf[5] == 6; */
   memmove(buf, buf, 4);
   //@assert buf[0] == 3 && buf[1] == 4 && buf[2] == 5 && buf[3] == 6;
+  d = buf + 3;
+  s = buf;
+  memmove(d, s, 3);
+  /*@assert buf[0] == 3 && buf[1] == 4 && buf[2] == 5 &&
+            buf[3] == 3 && buf[4] == 4 && buf[5] == 5; */
 }
 
 void test_strlen()
@@ -64,6 +66,23 @@ void test_strlen()
   n = strlen("ab\0c");
   //@assert n == 2;
   n = strlen("");
+  //@assert n == 0;
+}
+
+void test_strnlen()
+{
+  char *s = "hello";
+  size_t n = strnlen(s, 5);
+  //@assert n == 5;
+  n = strnlen(s, 6);
+  //@assert n == 5;
+  n = strnlen(s, 4);
+  //@assert n == 4;
+  n = strnlen("ab\0c", 4);
+  //@assert n == 2;
+  n = strnlen("", 1);
+  //@assert n == 0;
+  n = strnlen("", 0);
   //@assert n == 0;
 }
 
@@ -262,6 +281,7 @@ int main(int argc, char **argv)
   test_memcpy();
   test_memmove();
   test_strlen();
+  test_strnlen();
   test_memset();
   test_strcmp();
   test_strncmp();

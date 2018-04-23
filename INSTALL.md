@@ -8,19 +8,19 @@
         - [Installing OPAM](#installing-opam)
         - [Installing Frama-C from OPAM](#installing-frama-c-from-opam)
         - [Installing Custom Versions of Frama-C via OPAM](#installing-custom-versions-of-frama-c-via-opam)
-        - [Installing Frama-C on Windows (via Cygwin + OPAM)](#installing-frama-c-on-windows-via-cygwin-opam)
+        - [Installing Frama-C on Windows (via Cygwin + OPAM)](#installing-frama-c-on-windows-via-cygwin--opam)
         - [Installing Frama-C on Mac OS X](#installing-frama-c-on-mac-os-x)
     - [Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)](#installing-frama-c-via-your-linux-distribution-debianubuntufedora)
     - [Compiling from source](#compiling-from-source)
         - [Quick Start](#quick-start)
         - [Full Compilation Guide](#full-compilation-guide)
     - [Available resources](#available-resources)
-        - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-installdirbin)
-        - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-installdirshareframa-c-and-subdirectories)
-        - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-installdirshareframa-cdoc)
-        - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-installdirlibframa-c)
-        - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-installdirlibframa-cplugins)
-        - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-installdirmanman1)
+        - [Executables: (in `/INSTALL_DIR/bin`)](#executables-in-install_dirbin)
+        - [Shared files: (in `/INSTALL_DIR/share/frama-c` and subdirectories)](#shared-files-in-install_dirshareframa-c-and-subdirectories)
+        - [Documentation files: (in `/INSTALL_DIR/share/frama-c/doc`)](#documentation-files-in-install_dirshareframa-cdoc)
+        - [Object files: (in `/INSTALL_DIR/lib/frama-c`)](#object-files-in-install_dirlibframa-c)
+        - [Plugin files: (in `/INSTALL_DIR/lib/frama-c/plugins`)](#plugin-files-in-install_dirlibframa-cplugins)
+        - [Man files: (in `/INSTALL_DIR/man/man1`)](#man-files-in-install_dirmanman1)
     - [Installing Additional Plugins](#installing-additional-plugins)
     - [HAVE FUN WITH FRAMA-C!](#have-fun-with-frama-c)
 
@@ -134,29 +134,35 @@ https://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:compiling_from_sourc
 We recommend to rely on it for the installation of Frama-C.
 
 1. Install *required* general macOS tools for OCaml:
+
     ```shell
     brew install autoconf opam
     ```
-  Do not forget to `opam init` and ``eval `opam config env``` for
-  a proper OPAM installation (if not already done before on your machine).
+
+   Do not forget to `opam init` and ``eval `opam config env` `` for a proper
+   OPAM installation (if not already done before on your machine).
 
 2. Install *required* dependencies for Frama-C:
+
     ```shell
     brew install gmp gtk+ gtksourceview libgnomecanvas
     ```
 
 3. Install *recommended* dependencies for Frama-C:
+
     ```shell
     brew install graphviz
     opam install altgr-ergo why3
     ```
 
 4. Install *optional* dependencies for Frama-C/WP:
+
     ```shell
     opam install coq coqide
     ```
 
 5. Install Frama-C:
+
     ```shell
     opam install frama-c
     ```

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,7 +26,10 @@
 __PUSH_FC_STDLIB
 #include "__fc_machdep.h"
 __BEGIN_DECLS
+#ifndef __time_t_defined
 typedef __FC_TIME_T time_t;
+#define __time_t_defined
+#endif
 __END_DECLS
 __POP_FC_STDLIB
 #endif

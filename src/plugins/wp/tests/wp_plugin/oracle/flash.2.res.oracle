@@ -1,0 +1,38 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/flash.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'Events' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'A_reads' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B_reads' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B_writes' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ReadValues' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'WriteValues' in 'job':
+Prove: true.
+
+------------------------------------------------------------

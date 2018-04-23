@@ -9,7 +9,7 @@
   D ∈ {0}
   E ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/from_global.i:13.
+  Called from tests/value/from_global.i:13.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -28,7 +28,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   B FROM A
   C FROM x
@@ -40,10 +40,10 @@
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      B; C
+    B; C
 [inout] Inputs for function f:
-      A; C
+    A; C
 [inout] Out (internal) for function main:
-      A; B; C; __retres
+    A; B; C; __retres
 [inout] Inputs for function main:
-      A; C; D; E
+    A; C; D; E

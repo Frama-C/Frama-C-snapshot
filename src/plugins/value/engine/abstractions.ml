@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,7 @@ type config = {
   polka_equalities : bool;
   inout: bool;
   signs: bool;
+  printer: bool;
 }
 
 let configure () = {
@@ -50,6 +51,7 @@ let configure () = {
   polka_equalities = Value_parameters.PolkaEqualities.get ();
   inout = Value_parameters.InoutDomain.get ();
   signs = Value_parameters.SignDomain.get ();
+  printer = Value_parameters.PrinterDomain.get ();
 }
 
 let default_config = configure ()
@@ -67,6 +69,7 @@ let legacy_config = {
   polka_equalities = false;
   inout = false;
   signs = false;
+  printer = false;
 }
 
 module type Value = sig
@@ -155,6 +158,8 @@ module Convert
   let extend_val =
     let set = Value.set K.key in
     fun v -> set v Value.top
+
+  let replace_val = Value.set K.key
 
   let restrict_val = match Value.get K.key with
     | None -> assert false
@@ -375,6 +380,13 @@ let add_signs abstract =
 
 
 (* -------------------------------------------------------------------------- *)
+(*                                 Printer                                    *)
+(* -------------------------------------------------------------------------- *)
+
+let add_printer =
+  add_standard_domain (module Printer_domain)
+
+(* -------------------------------------------------------------------------- *)
 (*                            Build Abstractions                              *)
 (* -------------------------------------------------------------------------- *)
 
@@ -442,6 +454,11 @@ let build_abstractions config =
   let abstractions =
     if config.signs
     then add_signs abstractions
+    else abstractions
+  in
+  let abstractions =
+    if config.printer
+    then add_printer abstractions
     else abstractions
   in
   let abstractions = add_dynamic_abstractions abstractions in

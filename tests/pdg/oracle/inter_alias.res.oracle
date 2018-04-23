@@ -5,13 +5,13 @@
 [value:initial-state] Values of globals at initialization
   G ∈ {0}
 [value] computing for function f1 <- main.
-    Called from tests/pdg/inter_alias.c:15.
+  Called from tests/pdg/inter_alias.c:15.
 [value] Recording results for f1
 [from] Computing for function f1
 [from] Done for function f1
 [value] Done for function f1
 [value] computing for function f1 <- main.
-    Called from tests/pdg/inter_alias.c:16.
+  Called from tests/pdg/inter_alias.c:16.
 [value] Recording results for f1
 [from] Computing for function f1
 [from] Done for function f1
@@ -40,13 +40,13 @@
   \result FROM G
 [from] ====== END OF CALLWISE DEPENDENCIES ======
 [inout] Out (internal) for function f1:
-      a; b; __retres
+    a; b; __retres
 [inout] Inputs for function f1:
-      G; a; b
+    G; a; b
 [inout] Out (internal) for function main:
-      a; b; __retres
+    a; b; __retres
 [inout] Inputs for function main:
-      G
+    G
 [pdg] computing for function f1
 [pdg] done for function f1
 [pdg] computing for function main

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -169,8 +169,8 @@ let eval_assigns kf state assigns =
   in
   match assigns with
     | WritesAny ->
-       Inout_parameters.warning "no assigns clauses@ for function %a.@ \
-                                 Results@ will be@ imprecise."
+       Inout_parameters.warning "@[no assigns clauses for@ function %a.@]@ \
+                                 Results will be imprecise."
                                 Kernel_function.pretty kf;
        top
     | Writes l  ->

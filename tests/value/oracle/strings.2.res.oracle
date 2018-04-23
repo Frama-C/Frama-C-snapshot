@@ -37,10 +37,13 @@
   s4 ∈ {{ "tutu" }}
   s7 ∈ {{ "hello\000 world" }}
   s8 ∈ {{ "hello" }}
-tests/value/strings.i:101:[value] warning: out of bounds write. assert \valid(tmp);
-                         (tmp from f?s5 + 2:& c)
-tests/value/strings.i:103:[value] warning: out of bounds write. assert \valid(s5);
-tests/value/strings.i:105:[value] warning: out of bounds write. assert \valid(s6);
+[value:alarm] tests/value/strings.i:101: Warning: 
+  out of bounds write. assert \valid(tmp);
+                       (tmp from f?s5 + 2:& c)
+[value:alarm] tests/value/strings.i:103: Warning: 
+  out of bounds write. assert \valid(s5);
+[value:alarm] tests/value/strings.i:105: Warning: 
+  out of bounds write. assert \valid(s6);
 [value] Recording results for main7
 [value] done for function main7
 [value] ====== VALUES COMPUTED ======
@@ -53,7 +56,7 @@ tests/value/strings.i:105:[value] warning: out of bounds write. assert \valid(s6
 [from] Computing for function main7
 [from] Done for function main7
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main7:
   s5 FROM s3; d
   s6 FROM s3; e
@@ -61,6 +64,6 @@ tests/value/strings.i:105:[value] warning: out of bounds write. assert \valid(s6
   \result FROM s4; "tutu"[bits 0 to 7]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main7:
-      s5; s6; R; c; tmp; __retres
+    s5; s6; R; c; tmp; __retres
 [inout] Inputs for function main7:
-      s5; s6; cc; s3; s4; "tutu"[bits 0 to 7]
+    s5; s6; cc; s3; s4; "tutu"[bits 0 to 7]

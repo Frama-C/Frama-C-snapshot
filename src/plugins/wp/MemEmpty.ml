@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 (* -------------------------------------------------------------------------- *)
 
 open Lang.F
-open Memory
+open Sigs
 
 module Logic = Qed.Logic
 
@@ -57,6 +57,7 @@ module Sigma = Sigma.Make(Chunk)(Heap)
 type loc = unit
 type chunk = Chunk.t
 type sigma = Sigma.t
+type domain = Sigma.domain
 type segment = loc rloc
 type state = unit
 let state _ = ()
@@ -84,7 +85,7 @@ let cast _ _l = ()
 let loc_of_int _ _ = ()
 let int_of_loc _ () = e_zero
 
-let domain _obj _l = Heap.Set.empty
+let domain _obj _l = Sigma.Chunk.Set.empty
 
 let source = "Empty Model"
 
@@ -102,8 +103,11 @@ let loc_leq _ _ = no_pointer ()
 let loc_neq _ _ = no_pointer ()
 let loc_diff _ _ _ = no_pointer ()
 
-let valid _sigma _l = Warning.error ~source "No validity"
-let scope sigma _s _xs = sigma , []
+let frame _sigma = []
+let alloc sigma _xs = sigma
+let scope _seq _s _xs = []
+let valid _sigma _acs _l = Warning.error ~source "No validity"
+let invalid _sigma _l = Warning.error ~source "No validity"
 let global _sigma _p = p_true
 
 let included _s1 _s2 = no_pointer ()

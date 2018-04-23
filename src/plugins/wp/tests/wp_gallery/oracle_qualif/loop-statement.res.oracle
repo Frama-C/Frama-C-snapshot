@@ -1,0 +1,32 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_gallery/loop-statement.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+[wp] 15 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_Lb : Valid
+[wp] [Qed] Goal typed_loop_statement_post_Scond : Valid
+[wp] [Qed] Goal typed_loop_statement_post_Sloop : Valid
+[wp] [Alt-Ergo] Goal typed_loop_statement_loop_inv_Iloop_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_loop_statement_loop_inv_Iloop_established : Valid
+[wp] [Qed] Goal typed_loop_statement_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_loop_statement_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_loop_statement_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_loop_statement_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_loop_statement_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_loop_statement_assign_normal_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_loop_statement_stmt_pre_Rinv : Valid
+[wp] [Qed] Goal typed_loop_statement_stmt_pre_Scond : Valid
+[wp] [Qed] Goal typed_loop_statement_stmt_post_Sbody : Valid
+[wp] [Qed] Goal typed_loop_statement_stmt_assign : Valid
+[wp] Proved goals:   15 / 15
+  Qed:            11 
+  Alt-Ergo:        4
+[wp] Report 'tests/wp_gallery/loop-statement.c.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic Ploop     -       1 (176..200)     1       100%
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+loop_statement      11      3 (88..112)     14       100%
+-------------------------------------------------------------

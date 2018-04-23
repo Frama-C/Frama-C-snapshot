@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open Conditions
 module L = Qed.Logic
 
 (* -------------------------------------------------------------------------- *)
-(* --- Cut Tactical                                                       --- *)
+(* --- Havoc                                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
 let field,parameter =
@@ -83,6 +83,10 @@ class havoc =
       | _ -> Not_applicable
   end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Separated                                                          --- *)
+(* -------------------------------------------------------------------------- *)
+
 let separated ?at property =
   match F.e_expr property with
   | L.Fun( f , [p;n;q;m] ) when f == MemTyped.p_separated ->
@@ -120,6 +124,94 @@ class separated =
       | _ -> Not_applicable
   end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Included, Validity, Invalidity                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
+let invalid m p n =
+  let base = MemTyped.a_base p in
+  let offset = MemTyped.a_offset p in
+  let malloc = F.e_get m base in
+  "Invalid",
+  F.p_imply
+    (F.p_lt F.e_zero n)
+    (F.p_or
+       (F.p_leq malloc offset)
+       (F.p_leq (F.e_add offset n) F.e_zero))
+
+let valid_rd m p n =
+  let base = MemTyped.a_base p in
+  let offset = MemTyped.a_offset p in
+  let malloc = F.e_get m base in
+  "Valid (Read)",
+  F.p_imply
+    (F.p_lt F.e_zero n)
+    (F.p_and
+       (F.p_leq F.e_zero offset)
+       (F.p_leq (F.e_add offset n) malloc))
+
+let valid_rw m p n =
+  let base = MemTyped.a_base p in
+  let offset = MemTyped.a_offset p in
+  let malloc = F.e_get m base in
+  "Valid (Read & Write)",
+  F.p_imply
+    (F.p_lt F.e_zero n)
+    (F.p_conj [
+        F.p_lt F.e_zero base ;
+        F.p_leq F.e_zero offset ;
+        F.p_leq (F.e_add offset n) malloc ;
+      ])
+
+let included p a q b =
+  let p_base = MemTyped.a_base p in
+  let q_base = MemTyped.a_base q in
+  let p_offset = MemTyped.a_offset p in
+  let q_offset = MemTyped.a_offset q in
+  "Included",
+  F.p_imply
+    (F.p_lt F.e_zero a)
+    (F.p_imply
+       (F.p_leq F.e_zero b)
+       (F.p_conj [
+           F.p_equal p_base q_base ;
+           F.p_leq q_offset p_offset ;
+           F.p_leq (F.e_add p_offset a) (F.e_add q_offset b) ;
+         ]))
+
+let lookup f = function
+  | [p;a;q;b] when f == MemTyped.p_included -> included p a q b
+  | [m;p;n] when f == MemTyped.p_invalid -> invalid m p n
+  | [m;p;n] when f == MemTyped.p_valid_rd -> valid_rd m p n
+  | [m;p;n] when f == MemTyped.p_valid_rw -> valid_rw m p n
+  | _ -> raise Not_found
+
+let unfold ?at e f es =
+  let descr,q = lookup f es in
+  Applicable (Tactical.rewrite ?at [descr,F.p_true,e,F.e_prop q])
+
+class validity =
+  object
+    
+    inherit Tactical.make ~id:"Wp.valid"
+        ~title:"Validity Range"
+        ~descr:"Unfold validity and range definitions"
+        ~params:[]
+
+    method select _feedback (s : Tactical.selection) =
+      let at = Tactical.at s in
+      let e = Tactical.selected s in
+      match F.repr e with
+      | Qed.Logic.Fun(f,es) -> unfold ?at e f es
+      | _ -> Not_applicable
+    
+  end
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Exported API                                                       --- *)
+(* -------------------------------------------------------------------------- *)
+
 module Havoc =
 struct
   let field = field
@@ -136,5 +228,13 @@ end
 module Separated =
 struct
   let tactical = Tactical.export (new separated)
-  let strategy = Strategy.make tactical
+  let strategy = Strategy.make tactical ~arguments:[]
 end
+
+module Validity =
+struct
+  let tactical = Tactical.export (new validity)
+  let strategy = Strategy.make tactical ~arguments:[]
+end
+
+(* -------------------------------------------------------------------------- *)

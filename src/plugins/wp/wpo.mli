@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -114,12 +114,11 @@ type formula =
   | GoalAnnot of VC_Annot.t
   | GoalCheck of VC_Check.t
 
-(** Dynamically exported as ["Wpo.po"] *)
 type po = t and t = {
-    po_gid   : string ;  (* goal identifier *)
-    po_sid   : string ;  (* goal short identifier (without model) *)
-    po_name  : string ;  (* goal informal name *)
-    po_idx   : index ;   (* goal index *)
+    po_gid   : string ;  (** goal identifier *)
+    po_sid   : string ;  (** goal short identifier (without model) *)
+    po_name  : string ;  (** goal informal name *)
+    po_idx   : index ;   (** goal index *)
     po_model : Model.t ;
     po_pid   : WpPropId.prop_id ; (* goal target property *)
     po_formula : formula ; (* proof obligation *)
@@ -167,8 +166,8 @@ val has_verdict : t -> prover -> bool
 val get_result : t -> prover -> result
 val get_results : t -> (prover * result) list
 val get_proof : t -> bool * Property.t
-val is_trivial : t -> bool
-val is_proved : t -> bool
+val is_trivial : t -> bool (** do not tries simplification, do not check prover results *)
+val is_proved : t -> bool (** do not tries simplification, check prover results *)
 val is_unknown : t -> bool
 val warnings : t -> Warning.t list
 

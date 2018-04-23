@@ -6,10 +6,15 @@
   __fc_time ∈ [--..--]
   __fc_time_tm ∈ {0}
   __fc_p_time_tm ∈ {{ &__fc_time_tm }}
+  tzname[0] ∈ {{ NULL ; &S_0_tzname[0] }}
+        [1] ∈ {{ NULL ; &S_1_tzname[0] }}
+  S_0_tzname[0..1] ∈ [--..--]
+  S_1_tzname[0..1] ∈ [--..--]
 [value] computing for function times <- main.
-    Called from tests/libc/sys_times.c:6.
+  Called from tests/libc/sys_times.c:6.
 [value] using specification for function times
-share/libc/sys/times.h:38:[value] function times: precondition got status valid.
+[value] tests/libc/sys_times.c:6: 
+  function times: precondition 'valid_buffer' got status valid.
 [value] Done for function times
 [value] Recording results for main
 [value] done for function main

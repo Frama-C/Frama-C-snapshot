@@ -1,3 +1,5 @@
 [kernel] Parsing tests/misc/bts0452.i (no preprocessing)
-tests/misc/bts0452.i:13:[kernel] warning: Body of function f falls-through. Adding a return statement
-tests/misc/bts0452.i:27:[kernel] warning: Body of function h falls-through. Adding a return statement
+[kernel] tests/misc/bts0452.i:13: Warning: 
+  Body of function f falls-through. Adding a return statement
+[kernel] tests/misc/bts0452.i:27: Warning: 
+  Body of function h falls-through. Adding a return statement

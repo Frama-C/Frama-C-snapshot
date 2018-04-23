@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,8 +22,6 @@
 
 open Cil
 open Cil_types
-
-let dkey = Kernel.register_category "exn_flow"
 
 (* all exceptions that can be raised somewhere in the AST. 
    Used to handle function pointers without exn specification
@@ -440,7 +438,7 @@ object(self)
   method private update_union_bindings union exns =
     let update_one_binding t =
       let s = get_type_tag t in
-      Kernel.debug ~dkey
+      Kernel.debug ~dkey:Kernel.dkey_exn_flow
         "Registering %a as possible exn type" Cil_datatype.Typ.pretty t;
       let fi = List.find (fun fi -> fi.fname = s) union.cfields in
       Cil_datatype.Typ.Hashtbl.add exn_union t fi
@@ -475,7 +473,7 @@ object(self)
     self#exn_field_term exn_uncaught_name
 
   method private exn_obj_kind_field t =
-    Kernel.debug ~dkey
+    Kernel.debug ~dkey:Kernel.dkey_exn_flow
       "Searching for %a as possible exn type" Cil_datatype.Typ.pretty t; 
     Cil_datatype.Typ.Hashtbl.find exn_union t
 
@@ -843,7 +841,9 @@ let remove_exn f =
     Visitor.visitFramacFileSameGlobals (new exn_visit) f;
     let vis = new erase_exn in
     Visitor.visitFramacFile (vis :> Visitor.frama_c_visitor) f;
-    Cil_datatype.Fundec.Set.iter prepare_file vis#modified_funcs
+    let funs = vis#modified_funcs in
+    if not (Cil_datatype.Fundec.Set.is_empty funs) then Ast.mark_as_changed ();
+    Cil_datatype.Fundec.Set.iter prepare_file funs
   end
 
 let transform_category = File.register_code_transformation_category "remove_exn"

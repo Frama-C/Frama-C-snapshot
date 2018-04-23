@@ -5,38 +5,39 @@
 [value:initial-state] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main_and_or_rel <- main.
-    Called from tests/value/bitwise.i:64.
-tests/value/bitwise.i:13:[value] warning: assertion got status unknown.
+  Called from tests/value/bitwise.i:64.
+[value:alarm] tests/value/bitwise.i:13: Warning: assertion got status unknown.
 [value] Recording results for main_and_or_rel
 [value] Done for function main_and_or_rel
 [value] computing for function main_bitwise <- main.
-    Called from tests/value/bitwise.i:65.
+  Called from tests/value/bitwise.i:65.
 [value] Recording results for main_bitwise
 [value] Done for function main_bitwise
 [value] computing for function main_bug1 <- main.
-    Called from tests/value/bitwise.i:66.
+  Called from tests/value/bitwise.i:66.
 [value] Recording results for main_bug1
 [value] Done for function main_bug1
 [value] computing for function main_bug2 <- main.
-    Called from tests/value/bitwise.i:67.
-tests/value/bitwise.i:40:[value] Frama_C_show_each_then:
-tests/value/bitwise.i:40:[value] Frama_C_show_each_else:
+  Called from tests/value/bitwise.i:67.
+[value] tests/value/bitwise.i:40: Frama_C_show_each_then:
+[value] tests/value/bitwise.i:40: Frama_C_show_each_else:
 [value] Recording results for main_bug2
 [value] Done for function main_bug2
 [value] computing for function main_bug3 <- main.
-    Called from tests/value/bitwise.i:68.
-tests/value/bitwise.i:47:[value] Frama_C_dump_each:
-    # Cvalue domain:
-    v ∈ [--..--]
-    l_1180 ∈ {69166447}
-    foo ∈ {4225800849}
-    ==END OF DUMP==
+  Called from tests/value/bitwise.i:68.
+[value] tests/value/bitwise.i:47: 
+  Frama_C_dump_each:
+  # Cvalue domain:
+  v ∈ [--..--]
+  l_1180 ∈ {69166447}
+  foo ∈ {4225800849}
+  ==END OF DUMP==
 [value] Recording results for main_bug3
 [value] Done for function main_bug3
 [value] computing for function main_bug4 <- main.
-    Called from tests/value/bitwise.i:69.
-tests/value/bitwise.i:57:[value] Frama_C_show_each_then:
-tests/value/bitwise.i:59:[value] Frama_C_show_each_else:
+  Called from tests/value/bitwise.i:69.
+[value] tests/value/bitwise.i:57: Frama_C_show_each_then:
+[value] tests/value/bitwise.i:59: Frama_C_show_each_else:
 [value] Recording results for main_bug4
 [value] Done for function main_bug4
 [value] Recording results for main
@@ -82,7 +83,7 @@ tests/value/bitwise.i:59:[value] Frama_C_show_each_else:
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main_and_or_rel:
   NO EFFECTS
 [from] Function main_bitwise:
@@ -99,30 +100,30 @@ tests/value/bitwise.i:59:[value] Frama_C_show_each_else:
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main_and_or_rel:
-      x; r1; r2; r3
+    x; r1; r2; r3
 [inout] Inputs for function main_and_or_rel:
-      v
+    v
 [inout] Out (internal) for function main_bitwise:
-      i; j; k
+    i; j; k
 [inout] Inputs for function main_bitwise:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main_bug1:
-      msb; lsb; par; p1; p2
+    msb; lsb; par; p1; p2
 [inout] Inputs for function main_bug1:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main_bug2:
-      t; tmp
+    t; tmp
 [inout] Inputs for function main_bug2:
-      v
+    v
 [inout] Out (internal) for function main_bug3:
-      l_1180; foo
+    l_1180; foo
 [inout] Inputs for function main_bug3:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main_bug4:
-      g_2; tmp; tmp_0
+    g_2; tmp; tmp_0
 [inout] Inputs for function main_bug4:
-      v
+    v
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      v
+    v

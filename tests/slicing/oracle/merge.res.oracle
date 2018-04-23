@@ -7,19 +7,25 @@
   G2 ∈ {0}
   G3 ∈ {0}
 [value] computing for function g <- main.
-    Called from tests/slicing/merge.i:26.
+  Called from tests/slicing/merge.i:26.
 [value] computing for function init <- g <- main.
-    Called from tests/slicing/merge.i:21.
+  Called from tests/slicing/merge.i:21.
 [value] Recording results for init
 [value] Done for function init
 [value] computing for function add <- g <- main.
-    Called from tests/slicing/merge.i:22.
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G1 + a1;
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert G1 + a1 ≤ 2147483647;
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G2 + a2;
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert G2 + a2 ≤ 2147483647;
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert -2147483648 ≤ G3 + a3;
-tests/slicing/merge.i:17:[value] warning: signed overflow. assert G3 + a3 ≤ 2147483647;
+  Called from tests/slicing/merge.i:22.
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert -2147483648 ≤ G1 + a1;
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert G1 + a1 ≤ 2147483647;
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert -2147483648 ≤ G2 + a2;
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert G2 + a2 ≤ 2147483647;
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert -2147483648 ≤ G3 + a3;
+[value:alarm] tests/slicing/merge.i:17: Warning: 
+  signed overflow. assert G3 + a3 ≤ 2147483647;
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for g
@@ -35,7 +41,7 @@ tests/slicing/merge.i:17:[value] warning: signed overflow. assert G3 + a3 ≤ 21
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function add:
   G1 FROM G1; a1
   G2 FROM G2; a2

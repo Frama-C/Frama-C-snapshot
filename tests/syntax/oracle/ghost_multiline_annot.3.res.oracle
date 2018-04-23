@@ -1,0 +1,11 @@
+[kernel] Parsing tests/syntax/ghost_multiline_annot.c (with preprocessing)
+[kernel] tests/syntax/ghost_multiline_annot.c:57: 
+  Invalid symbol:
+  Location: line 57, between columns 2 and 19, before or at token: @
+  55    int main()
+  56    {
+  57      assert (2 == 2); @/
+        ^^^^^^^^^^^^^^^^^^^^^
+  58      return 0;
+  59    }
+[kernel] Frama-C aborted: invalid user input.

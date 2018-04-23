@@ -52,61 +52,83 @@
   tt[0..4] ∈ {0}
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
-tests/value/addition.i:34:[value] warning: signed overflow. assert -2147483648 ≤ &p2 - &p3;
-tests/value/addition.i:34:[value] warning: signed overflow. assert &p2 - &p3 ≤ 2147483647;
-tests/value/addition.i:34:[value] Assigning imprecise value to p1.
-    The imprecision originates from Arithmetic {tests/value/addition.i:34}
-tests/value/addition.i:36:[value] Assigning imprecise value to p2.
-    The imprecision originates from Arithmetic {tests/value/addition.i:36}
-tests/value/addition.i:38:[value] Assigning imprecise value to p3.
-    The imprecision originates from Arithmetic {tests/value/addition.i:38}
-tests/value/addition.i:40:[value] Assigning imprecise value to p4.
-    The imprecision originates from Arithmetic {tests/value/addition.i:40}
-tests/value/addition.i:42:[value] Assigning imprecise value to p5.
-    The imprecision originates from Arithmetic {tests/value/addition.i:42}
-tests/value/addition.i:44:[value] Assigning imprecise value to p6.
-    The imprecision originates from Arithmetic {tests/value/addition.i:44}
-tests/value/addition.i:46:[value] Assigning imprecise value to p7.
-    The imprecision originates from Arithmetic {tests/value/addition.i:46}
-tests/value/addition.i:48:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
-tests/value/addition.i:50:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
-tests/value/addition.i:50:[value] warning: signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
-tests/value/addition.i:50:[value] Assigning imprecise value to p9.
-    The imprecision originates from Arithmetic {tests/value/addition.i:50}
-tests/value/addition.i:52:[value] Assigning imprecise value to p10.
-    The imprecision originates from Arithmetic {tests/value/addition.i:52}
-tests/value/addition.i:56:[value] Assigning imprecise value to p12.
-    The imprecision originates from Arithmetic {tests/value/addition.i:56}
-tests/value/addition.i:59:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-tests/value/addition.i:59:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-tests/value/addition.i:59:[value] Assigning imprecise value to p13.
-    The imprecision originates from Misaligned {tests/value/addition.i:59}
-tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-tests/value/addition.i:61:[value] Assigning imprecise value to p14.
-    The imprecision originates from Misaligned {tests/value/addition.i:61}
-tests/value/addition.i:66:[value] warning: out of bounds read. assert \valid_read(*((int **)45));
-tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
-tests/value/addition.i:88:[value] assertion got status valid.
+[value:alarm] tests/value/addition.i:34: Warning: 
+  signed overflow. assert -2147483648 ≤ &p2 - &p3;
+[value:alarm] tests/value/addition.i:34: Warning: 
+  signed overflow. assert &p2 - &p3 ≤ 2147483647;
+[value] tests/value/addition.i:34: 
+  Assigning imprecise value to p1.
+  The imprecision originates from Arithmetic {tests/value/addition.i:34}
+[value] tests/value/addition.i:36: 
+  Assigning imprecise value to p2.
+  The imprecision originates from Arithmetic {tests/value/addition.i:36}
+[value] tests/value/addition.i:38: 
+  Assigning imprecise value to p3.
+  The imprecision originates from Arithmetic {tests/value/addition.i:38}
+[value] tests/value/addition.i:40: 
+  Assigning imprecise value to p4.
+  The imprecision originates from Arithmetic {tests/value/addition.i:40}
+[value] tests/value/addition.i:42: 
+  Assigning imprecise value to p5.
+  The imprecision originates from Arithmetic {tests/value/addition.i:42}
+[value] tests/value/addition.i:44: 
+  Assigning imprecise value to p6.
+  The imprecision originates from Arithmetic {tests/value/addition.i:44}
+[value] tests/value/addition.i:46: 
+  Assigning imprecise value to p7.
+  The imprecision originates from Arithmetic {tests/value/addition.i:46}
+[value:alarm] tests/value/addition.i:48: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
+[value:alarm] tests/value/addition.i:50: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
+[value:alarm] tests/value/addition.i:50: Warning: 
+  signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
+[value] tests/value/addition.i:50: 
+  Assigning imprecise value to p9.
+  The imprecision originates from Arithmetic {tests/value/addition.i:50}
+[value] tests/value/addition.i:52: 
+  Assigning imprecise value to p10.
+  The imprecision originates from Arithmetic {tests/value/addition.i:52}
+[value] tests/value/addition.i:56: 
+  Assigning imprecise value to p12.
+  The imprecision originates from Arithmetic {tests/value/addition.i:56}
+[value:alarm] tests/value/addition.i:59: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+[value:alarm] tests/value/addition.i:59: Warning: 
+  signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+[value] tests/value/addition.i:59: 
+  Assigning imprecise value to p13.
+  The imprecision originates from Misaligned {tests/value/addition.i:59}
+[value:alarm] tests/value/addition.i:61: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+[value:alarm] tests/value/addition.i:61: Warning: 
+  signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+[value] tests/value/addition.i:61: 
+  Assigning imprecise value to p14.
+  The imprecision originates from Misaligned {tests/value/addition.i:61}
+[value:alarm] tests/value/addition.i:66: Warning: 
+  out of bounds read. assert \valid_read(*((int **)45));
+[value] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
+[value] tests/value/addition.i:88: assertion got status valid.
 [value] Recording results for main
 [value] done for function main
-[value] warning: Garbled mix generated during analysis:
-    {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:38}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:40}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:42}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:42}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:44}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:46}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:50}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:52}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:56}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
-    {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
-    {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
+[value] Warning: Garbled mix generated during analysis:
+  {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:38}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:40}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:42}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:42}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:44}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:46}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:50}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:52}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:56}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
+  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
+  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
 [scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -187,7 +209,7 @@ tests/value/addition.i:88:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[1] FROM NULL[45..48]
    [2] FROM \nothing
@@ -236,13 +258,13 @@ tests/value/addition.i:88:[value] assertion got status valid.
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
-      p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
-      rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
-      tt[0].b; square; u2; s; t_0; __retres
+    t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
+    p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
+    rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
+    tt[0].b; square; u2; s; t_0; __retres
 [inout] Inputs for function main:
-      NULL[45..48]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
-      q1[bits 0 to 7]; ll1; ll2; tt[0].b
+    NULL[45..48]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
+    q1[bits 0 to 7]; ll1; ll2; tt[0].b
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -296,36 +318,46 @@ tests/value/addition.i:88:[value] assertion got status valid.
   tt[0..4] ∈ {0}
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
-tests/value/addition.i:34:[value] warning: signed overflow. assert -2147483648 ≤ &p2 - &p3;
-tests/value/addition.i:34:[value] warning: signed overflow. assert &p2 - &p3 ≤ 2147483647;
-tests/value/addition.i:48:[value] warning: pointer comparison.
-    assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
-tests/value/addition.i:50:[value] warning: signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
-tests/value/addition.i:50:[value] warning: signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
-tests/value/addition.i:59:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-tests/value/addition.i:59:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-tests/value/addition.i:61:[value] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
-tests/value/addition.i:61:[value] warning: signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
-tests/value/addition.i:66:[value] warning: out of bounds read. assert \valid_read(*((int **)45));
-tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
+[value:alarm] tests/value/addition.i:34: Warning: 
+  signed overflow. assert -2147483648 ≤ &p2 - &p3;
+[value:alarm] tests/value/addition.i:34: Warning: 
+  signed overflow. assert &p2 - &p3 ≤ 2147483647;
+[value:alarm] tests/value/addition.i:48: Warning: 
+  pointer comparison.
+  assert \pointer_comparable((void *)(&p1 + 1), (void *)(&p2));
+[value:alarm] tests/value/addition.i:50: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)(&p1) / 2;
+[value:alarm] tests/value/addition.i:50: Warning: 
+  signed overflow. assert (int)(&p1) / 2 ≤ 2147483647;
+[value:alarm] tests/value/addition.i:59: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+[value:alarm] tests/value/addition.i:59: Warning: 
+  signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+[value:alarm] tests/value/addition.i:61: Warning: 
+  signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1)) + 2;
+[value:alarm] tests/value/addition.i:61: Warning: 
+  signed overflow. assert (int)*((char *)(&q1)) + 2 ≤ 2147483647;
+[value:alarm] tests/value/addition.i:66: Warning: 
+  out of bounds read. assert \valid_read(*((int **)45));
+[value] tests/value/addition.i:87: Frama_C_show_each_1: [-10..15]
 [value] Recording results for main
 [value] done for function main
-[value] warning: Garbled mix generated during analysis:
-    {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:38}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:40}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:42}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:42}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:44}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:46}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:50}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:52}) }}
-    {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:56}) }}
-    {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
-    {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
-    {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
+[value] Warning: Garbled mix generated during analysis:
+  {{ garbled mix of &{p3} (origin: Arithmetic {tests/value/addition.i:34}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:34}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:36}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:38}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:40}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:42}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:42}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:44}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:46}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:50}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:52}) }}
+  {{ garbled mix of &{p2} (origin: Arithmetic {tests/value/addition.i:56}) }}
+  {{ garbled mix of &{p1} (origin: Arithmetic {tests/value/addition.i:56}) }}
+  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:59}) }}
+  {{ garbled mix of &{p1} (origin: Misaligned {tests/value/addition.i:61}) }}
 [scope:rm_asserts] removing 2 assertion(s)
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
@@ -407,7 +439,7 @@ tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[1] FROM NULL[45..49]
    [2] FROM \nothing
@@ -456,10 +488,10 @@ tests/value/addition.i:87:[value] Frama_C_show_each_1: [-10..15]
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
-      p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
-      rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
-      tt[0].b; square; u2; s; t_0; __retres
+    t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
+    p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
+    rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
+    tt[0].b; square; u2; s; t_0; __retres
 [inout] Inputs for function main:
-      NULL[45..49]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
-      q1[bits 0 to 7]; ll1; ll2; tt[0].b
+    NULL[45..49]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
+    q1[bits 0 to 7]; ll1; ll2; tt[0].b

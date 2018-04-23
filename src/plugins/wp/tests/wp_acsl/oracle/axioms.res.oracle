@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/axioms.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
@@ -136,30 +136,7 @@ Prove: true.
 
 Goal Loop assigns (file tests/wp_acsl/axioms.i, line 32) (2/3):
 Effect at line 34
-Let a_1 = shift_sint32(t, a).
-Let x = -a.
-Let x_1 = i - a.
-Assume {
-  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
-  (* Goal *)
-  When: valid_rd(Malloc_0, a_1, x_1).
-  (* Heap *)
-  Have: (region(t.base) <= 0) /\ linked(Malloc_0).
-  (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
-  (* Pre-condition *)
-  Have: a <= b.
-  (* Loop assigns ... *)
-  Have: havoc(Mint_0, Mint_1, a_1, x_1).
-  (* Invariant 'Positive' *)
-  Have: forall i_1 : Z. ((a <= i_1) -> ((i_1 < i) ->
-      (0 < Mint_1[shift_sint32(t, i_1)]))).
-  (* Invariant 'Index' *)
-  Have: (a <= i) /\ (i <= (1 + b)).
-  (* Then *)
-  Have: i <= b.
-}
-Prove: included(a_1, x_1, a_1, 1 + i - a).
+Prove: true.
 
 ------------------------------------------------------------
 
@@ -171,7 +148,7 @@ Let a_2 = shift_sint32(t, i).
 Assume {
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: valid_rd(Malloc_0, a_2, 1).
+  When: !invalid(Malloc_0, a_2, 1).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
@@ -197,19 +174,19 @@ Effect at line 34
 Let a_1 = shift_sint32(t, a).
 Let x = -a.
 Let x_1 = i - a.
-Let x_2 = 1 + b - a.
 Assume {
-  Have: valid_rd(Malloc_0, a_1, x_1).
+  Have: a < i.
+  Have: !invalid(Malloc_0, a_1, x_1).
   Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
   Have: (region(t.base) <= 0) /\ linked(Malloc_0).
   (* Pre-condition *)
-  Have: valid_rw(Malloc_0, a_1, x_2).
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
   (* Pre-condition *)
   Have: a <= b.
   (* Loop assigns ... *)
   Have: havoc(Mint_0, Mint_1, a_1, x_1).
 }
-Prove: included(a_1, x_1, a_1, x_2).
+Prove: i <= (1 + b).
 
 ------------------------------------------------------------

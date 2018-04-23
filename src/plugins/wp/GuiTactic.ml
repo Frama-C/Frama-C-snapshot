@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ class type browser =
     method title : string
     method descr : string
     method target : selection
-    method search : (unit named -> unit) -> int -> unit
+    method search : (unit named -> unit) -> int -> bool
     method choose : string option -> unit
   end
 
@@ -207,7 +207,7 @@ class mkcomposer
 
 exception StopLookup
 
-class ['a] search
+class ['a] mksearch
     (tac : Tactical.t) (form : Wpane.form) (field : 'a named option field)
     (browser : 'a Tactical.browser)
   =
@@ -238,6 +238,7 @@ class ['a] search
 
     (* --- Browser API --- *)
     method browser = (self :> browser)
+
     method choose item =
       let value = match item with
         | Some id ->
@@ -247,18 +248,20 @@ class ['a] search
       tac#set_field field value ;
       self#updated ;
       List.iter (fun f -> f ()) demon
+
     method search f n =
       let count = ref n in
       Hashtbl.clear items ;
       try
         browser
           (fun item ->
+             if !count <= 0 then raise StopLookup ;
              Hashtbl.add items item.vid item ;
              f { item with value = () } ;
              decr count ;
-             if !count <= 0 then raise StopLookup ;
-          ) target
-      with StopLookup -> ()
+          ) target ; true
+      with StopLookup ->
+        false
 
     method! browse_with f = edit#connect (fun () -> f self#browser)
 
@@ -328,9 +331,9 @@ class ['a] selector
 let wfield tac form pp = function
   | Checkbox fd -> (new checkbox tac form fd)#wfield
   | Spinner(fd,r) -> (new spinner tac form fd r)#wfield
-  | Composer(fd,f) -> (new mkcomposer tac form fd f pp)#wfield
   | Selector(fd,opt,eq) -> (new selector tac form fd opt eq)#wfield
-  | Search(fd,browser,_) -> (new search tac form fd browser)#wfield
+  | Composer(fd,f) -> (new mkcomposer tac form fd f pp)#wfield
+  | Search(fd,browser,_) -> (new mksearch tac form fd browser)#wfield
 
 (* -------------------------------------------------------------------------- *)
 (* --- Tactic Widget                                                      --- *)
@@ -447,14 +450,15 @@ class tactic
 
     method targeted = match edited with None -> false | Some _ -> true
 
+    method private status target =
+      List.iter (fun fd -> fd#select target) wfields ;
+      try tac#select (self :> feedback) target
+      with Not_found | Exit -> Not_applicable
+    
     method select ~process ~browser ~composer (target : selection) =
       begin
         self#reset_dongle ;
-        List.iter (fun fd -> fd#select target) wfields ;
-        let status =
-          try tac#select (self :> feedback) target
-          with Not_found | Exit -> Not_applicable
-        in
+        let status = self#status target in
         match status , error with
         | Not_applicable , _ ->
             self#set_visible false ;
@@ -479,6 +483,8 @@ class tactic
 (* --- Strategies                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
+module User = Gtk_helper.Configuration
+
 type hform = {
   search : Strategy.heuristic ;
   widget : Widget.checkbox ;
@@ -486,24 +492,38 @@ type hform = {
 
 let compare f g = String.compare f.search#title g.search#title
 
+let spinner ~(form:Wpane.form) ~default ~label ~tooltip =
+  let config = "wp.strategies." ^ label in
+  let value = User.find_int ~default config in
+  let spinner = new Widget.spinner ~min:1 ~value ~tooltip () in
+  spinner#connect (User.set_int config) ;
+  form#add_field ~label spinner#coerce ;
+  spinner
+
+type callback = depth:int -> width:int -> Strategy.heuristic list -> unit
+
 class strategies () =
   let form = new Wpane.form () in
+  let depth = spinner ~form ~default:1 ~label:"Depth"
+      ~tooltip:"Limit the number of nested strategies" in
+  let width = spinner ~form ~default:16 ~label:"Width"
+      ~tooltip:"Limit the number of pending goals" in
   object(self)
     inherit Wpalette.tool
         ~content:form#widget
         ~label:"Strategies"
         ~tooltip:"Apply Custom Strategies" ()
     val mutable hforms : hform list = []
-    val mutable demon : (Strategy.heuristic list -> unit) option = None
+    val mutable demon : callback option = None
 
     method register (search : Strategy.heuristic) =
       begin
         let widget = new Widget.checkbox
           ~label:search#title ~tooltip:search#descr () in
         let config = "wp.strategies." ^ search#id in
-        let default = Gtk_helper.Configuration.find_bool ~default:true config in
+        let default = User.find_bool ~default:true config in
         widget#set default ;
-        widget#connect (Gtk_helper.Configuration.set_bool config) ;
+        widget#connect (User.set_bool config) ;
         widget#on_event self#update ;
         form#add_row widget#coerce ;
         let hform = { search ; widget } in
@@ -534,7 +554,7 @@ class strategies () =
             List.fold_right
               (fun h hs -> if h.widget#get then h.search :: hs else hs)
               hforms [] in
-          f hs
+          f ~depth:depth#get ~width:width#get hs
       | None -> ()
 
     method connect f = demon <- f ; self#update ()

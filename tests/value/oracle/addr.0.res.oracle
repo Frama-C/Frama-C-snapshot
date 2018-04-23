@@ -8,7 +8,7 @@
   p ∈ {0}
   q ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/addr.i:20.
+  Called from tests/value/addr.i:20.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -26,7 +26,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   p FROM i
 [from] Function main:
@@ -34,10 +34,10 @@
   p FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      p
+    p
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      t[2]; p
+    t[2]; p
 [inout] Inputs for function main:
-      \nothing
+    \nothing

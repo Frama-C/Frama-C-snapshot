@@ -4,7 +4,7 @@ OPT: -load-script tests/syntax/vdescr_bts1387.ml
 int f(int);
 int g(int);
 
-int (*fptr)(int, int);
+int (*fptr)(int);
 
 int main(int j, int k)
 {
@@ -25,7 +25,7 @@ int main(int j, int k)
   d = 100 / j;
 
   fptr = f;
-  if (d & 1) (*fptr)(1, 2);
+  if (d & 1) (*fptr)(1);
 
   if (d & 2) t[0] = t[1] + 1;
 

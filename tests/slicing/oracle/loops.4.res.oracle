@@ -9,13 +9,13 @@
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-tests/slicing/loops.i:108:[value] entering loop for the first time
+[value] tests/slicing/loops.i:108: entering loop for the first time
 [value] Recording results for test_infinite_loop_3
 [value] done for function test_infinite_loop_3
 [from] Computing for function test_infinite_loop_3
 [from] Done for function test_infinite_loop_3
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function test_infinite_loop_3:
   G FROM ctrl1; ctrl2; data1; data2
 [from] ====== END OF DEPENDENCIES ======

@@ -9,22 +9,30 @@
   X ∈ {0}
   Y ∈ {0}
   Z ∈ {0}
-tests/slicing/loops.i:149:[value] entering loop for the first time
-tests/slicing/loops.i:165:[value] warning: signed overflow. assert -2147483648 ≤ G + data2;
-tests/slicing/loops.i:165:[value] warning: signed overflow. assert G + data2 ≤ 2147483647;
-tests/slicing/loops.i:150:[value] warning: signed overflow. assert -2147483648 ≤ G + data1;
-tests/slicing/loops.i:150:[value] warning: signed overflow. assert G + data1 ≤ 2147483647;
-tests/slicing/loops.i:154:[value] warning: signed overflow. assert -2147483648 ≤ G + no_data;
-tests/slicing/loops.i:154:[value] warning: signed overflow. assert G + no_data ≤ 2147483647;
-tests/slicing/loops.i:155:[value] entering loop for the first time
-tests/slicing/loops.i:156:[value] warning: signed overflow. assert -2147483648 ≤ G + no_data;
-tests/slicing/loops.i:156:[value] warning: signed overflow. assert G + no_data ≤ 2147483647;
+[value] tests/slicing/loops.i:149: entering loop for the first time
+[value:alarm] tests/slicing/loops.i:165: Warning: 
+  signed overflow. assert -2147483648 ≤ G + data2;
+[value:alarm] tests/slicing/loops.i:165: Warning: 
+  signed overflow. assert G + data2 ≤ 2147483647;
+[value:alarm] tests/slicing/loops.i:150: Warning: 
+  signed overflow. assert -2147483648 ≤ G + data1;
+[value:alarm] tests/slicing/loops.i:150: Warning: 
+  signed overflow. assert G + data1 ≤ 2147483647;
+[value:alarm] tests/slicing/loops.i:154: Warning: 
+  signed overflow. assert -2147483648 ≤ G + no_data;
+[value:alarm] tests/slicing/loops.i:154: Warning: 
+  signed overflow. assert G + no_data ≤ 2147483647;
+[value] tests/slicing/loops.i:155: entering loop for the first time
+[value:alarm] tests/slicing/loops.i:156: Warning: 
+  signed overflow. assert -2147483648 ≤ G + no_data;
+[value:alarm] tests/slicing/loops.i:156: Warning: 
+  signed overflow. assert G + no_data ≤ 2147483647;
 [value] Recording results for test_infinite_loop_5
 [value] done for function test_infinite_loop_5
 [from] Computing for function test_infinite_loop_5
 [from] Done for function test_infinite_loop_5
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function test_infinite_loop_5:
   G FROM ctrl1; ctrl2; data1; data2
 [from] ====== END OF DEPENDENCIES ======

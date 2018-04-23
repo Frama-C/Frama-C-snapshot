@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -96,6 +96,8 @@ let f_lsl = Lang.extern_f ~library ~result "lsl"
 let f_lsr = Lang.extern_f ~library ~result "lsr"
 let f_bit = Lang.extern_p ~library ~bool:"bit_testb" ~prop:"bit_test" ()
 
+let f_bitwised = [ f_lnot ; f_lor ; f_land ; f_lxor ; f_lsl ; f_lsr ]
+
 let () = let open LogicBuiltins in add_builtin "\\bit_test" [Z;Z] f_bit
 
 (* -------------------------------------------------------------------------- *)
@@ -103,13 +105,6 @@ let () = let open LogicBuiltins in add_builtin "\\bit_test" [Z;Z] f_bit
 (* -------------------------------------------------------------------------- *)
 
 let is_leq a b = F.is_true (F.e_leq a b)
-
-(* let is_to_cint conv = try ignore (to_cint conv) ; true
-   with Not_found -> false *) (* unused for now *)
-
-(* let is_positive_to_cint conv =
-   try let iota = to_cint conv in not (Ctypes.signed iota)
-   with Not_found -> false *) (* unused for now *)
 
 let match_integer t =
   match F.repr t with
@@ -149,10 +144,14 @@ and is_negative e = match F.repr e with
         | Logic.No | Logic.Maybe -> false
 and xor_sign es = try
     Some (List.fold_left (fun acc e -> 
-        if is_positive_or_null e then acc (* as previous *)
-        else if is_negative e then (not acc) (* opposite sign *)
-        else raise Not_found) true es)
+           if is_positive_or_null e then acc (* as previous *)
+           else if is_negative e then (not acc) (* opposite sign *)
+           else raise Not_found) true es)
   with Not_found -> None
+
+let match_positive_or_null e =
+  if not (is_positive_or_null e) then raise Not_found;
+  e
 
 let match_power2, match_power2_minus1 =
   let highest_bit_number =
@@ -197,17 +196,17 @@ let match_ufun uop t =
   | Logic.Fun( f , e::[] ) when Fun.equal f uop -> e
   | _ -> raise Not_found
 
-let match_positive_integer t =
+let match_positive_or_null_integer t =
   match F.repr t with
   | Logic.Kint c when Integer.le Integer.zero c -> c
   | _ -> raise Not_found
 
 let match_binop_arg1 match_f = function (* for binop *)
-  | e1::[e2] -> (match_f e1),e2
+  | [e1;e2] -> (match_f e1),e2
   | _ -> raise Not_found
 
 let match_binop_arg2 match_f = function (* for binop *)
-  | e1::[e2] -> e1,(match_f  e2)
+  | [e1;e2] -> e1,(match_f  e2)
   | _ -> raise Not_found
 
 let match_list_head match_f = function
@@ -226,7 +225,9 @@ let match_list_extraction match_f =
 
 let match_integer_arg1 = match_binop_arg1 match_integer
 
-let match_positive_integer_arg2 = match_binop_arg2 match_positive_integer
+let match_positive_or_null_arg2 = match_binop_arg2 match_positive_or_null
+let match_positive_or_null_integer_arg2 =
+  match_binop_arg2 match_positive_or_null_integer
 
 let match_integer_extraction = match_list_head match_integer
 
@@ -372,18 +373,6 @@ let configure_is_int iota =
   F.set_builtin f simplify;
   is_cint_map := FunMap.add f iota !is_cint_map
 
-let f_truncate = extern_f ~library:"qed" ~result:Logic.Int "truncate"
-
-let truncate e =
-  match F.repr e with
-  | Kint _ -> e
-  | Kreal r -> 
-      (try F.e_int (int_of_float (Transitioning.Q.to_float r))
-       with _ -> raise Not_found)
-  | _ -> raise Not_found
-
-let () = Context.register (fun () -> F.set_builtin_1 f_truncate truncate)
-
 let convert i a = e_fun (f_to_int i) [a]
 
 (* -------------------------------------------------------------------------- *)
@@ -403,11 +392,9 @@ let model = Context.create "Cint.model"
 let current () = Context.get model
 let configure = Context.set model
 
-let of_real i a = convert i (e_fun f_truncate [a])
-
-let integer_of_real a = e_fun f_truncate [a]
 let to_integer a = a
 let of_integer i a = convert i a
+let of_real i a = convert i (Cmath.int_of_real a)
 
 let range i a =
   match Context.get model with
@@ -497,43 +484,43 @@ let smp_bitk_positive = function
       begin
         try e_eq (match_power2 a) k
         with Not_found ->
-        match F.repr a with
-        | Logic.Kint za ->
-            let zk = match_integer k (* simplifies constants *)
-            in if Integer.is_zero (Integer.logand za
-                                     (Integer.shift_left Integer.one zk))
-            then e_false else e_true
-        | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsr && is_positive_or_null n ->
-            bitk_positive (e_add k n) e
-        | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsl && is_positive_or_null n ->
-            begin match is_leq n k with
-              | Logic.Yes -> bitk_positive (e_sub k n) e
-              | Logic.No  -> e_false
-              | Logic.Maybe -> raise Not_found
-            end
-        | Logic.Fun( f , es ) when Fun.equal f f_land ->
-            F.e_and (List.map (bitk_positive k) es)
-        | Logic.Fun( f , es ) when Fun.equal f f_lor ->
-            F.e_or (List.map (bitk_positive k) es)
-        | Logic.Fun( f , [a;b] ) when Fun.equal f f_lxor ->
-            F.e_neq (bitk_positive k a) (bitk_positive k b)
-        | Logic.Fun( f , [a] ) when Fun.equal f f_lnot ->
-            F.e_not (bitk_positive k a)
-        | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
-            let iota = to_cint conv in
-            let size = Ctypes.i_bits iota in
-            let signed = Ctypes.signed iota in
-            if signed then
-              begin match is_leq k (e_int (size-2)) with
-                | Logic.Yes -> bitk_positive k a
-                | Logic.No | Logic.Maybe -> raise Not_found
+          match F.repr a with
+          | Logic.Kint za ->
+              let zk = match_integer k (* simplifies constants *)
+              in if Integer.is_zero (Integer.logand za
+                                       (Integer.shift_left Integer.one zk))
+              then e_false else e_true
+          | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsr && is_positive_or_null n ->
+              bitk_positive (e_add k n) e
+          | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsl && is_positive_or_null n ->
+              begin match is_leq n k with
+                | Logic.Yes -> bitk_positive (e_sub k n) e
+                | Logic.No  -> e_false
+                | Logic.Maybe -> raise Not_found
               end
-            else begin match is_leq (e_int size) k with
-              | Logic.Yes -> e_false
-              | Logic.No -> bitk_positive k a
-              | Logic.Maybe -> raise Not_found
-            end
-        | _ -> raise Not_found
+         | Logic.Fun( f , es ) when Fun.equal f f_land ->
+              F.e_and (List.map (bitk_positive k) es)
+          | Logic.Fun( f , es ) when Fun.equal f f_lor ->
+              F.e_or (List.map (bitk_positive k) es)
+          | Logic.Fun( f , [a;b] ) when Fun.equal f f_lxor ->
+              F.e_neq (bitk_positive k a) (bitk_positive k b)
+          | Logic.Fun( f , [a] ) when Fun.equal f f_lnot ->
+              F.e_not (bitk_positive k a)
+          | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
+              let iota = to_cint conv in
+              let size = Ctypes.i_bits iota in
+              let signed = Ctypes.signed iota in
+              if signed then (* beware of sign-bit *)
+                begin match is_leq k (e_int (size-2)) with
+                  | Logic.Yes -> bitk_positive k a
+                  | Logic.No | Logic.Maybe -> raise Not_found
+                end
+              else begin match is_leq (e_int size) k with
+                | Logic.Yes -> e_false
+                | Logic.No -> bitk_positive k a
+                | Logic.Maybe -> raise Not_found
+              end
+          | _ -> raise Not_found
       end
   | _ -> raise Not_found
 
@@ -586,7 +573,7 @@ let smp_shift zf = (* f(e1,0)~>e1, c2>0==>f(c1,c2)~>zf(c1,c2), c2>0==>f(0,c2)~>0
 
 let smp_leq_with_land a b =
   let es = match_fun f_land a in
-  let a1,_ = match_list_head match_positive_integer es in
+  let a1,_ = match_list_head match_positive_or_null_integer es in
   if F.decide (F.e_leq (e_zint a1) b)
   then e_true
   else raise Not_found
@@ -643,33 +630,134 @@ let smp_eq_with_lnot a b = (* b1==~e <==> ~b1==e *)
   let k1 = Integer.lognot b1 in
   e_eq (e_zint k1) e
 
-let two_power_k_minus1 k = try Integer.pred (Integer.two_power k)
+let two_power_k_minus1 k =
+  try Integer.pred (Integer.two_power k)
   with Integer.Too_big -> raise Not_found
 
-let smp_eq_with_lsl a b =
-  let b1 = match_integer b in
-  let es = match_fun f_lsl a in
-  try
-    let e,a2= match_positive_integer_arg2 es in
+let smp_eq_with_lsl_cst a0 b0 =
+  let b1 = match_integer b0 in
+  let es = match_fun f_lsl a0 in
+  try (* looks at the sd arg of a0 *)
+    let e,a2= match_positive_or_null_integer_arg2 es in
     if not (Integer.is_zero (Integer.logand b1 (two_power_k_minus1 a2)))
-    then e_false
-    else e_eq e (e_zint (Integer.shift_right b1 a2))
-  with Not_found -> let a1,e= match_integer_arg1 es in
+    then
+      (* a2>=0 && 0!=(b1 & ((2**a2)-1)) ==> ( (e<<a2)==b1 <==> false ) *)
+      e_false 
+    else
+      (* a2>=0 && 0==(b1 & ((2**a2)-1)) ==> ( (e<<a2)==b1 <==> e==(b1>>a2) ) *)
+      e_eq e (e_zint (Integer.shift_right b1 a2))
+  with Not_found -> (* looks at the fistt arg of a0 *)
+    let a1,e= match_integer_arg1 es in
     if is_negative e then raise Not_found ;
     (* [PB] can be generalized to any term for a1 *)
-    if Integer.le Integer.zero a1 && Integer.lt b1 a1 then e_false
-    else if Integer.ge Integer.zero a1  && Integer.gt b1 a1 then e_false
+    if Integer.le Integer.zero a1 && Integer.lt b1 a1 then
+      (* e>=0 && 0<=a1 && b1<a1 ==> ( (a1<<e)==b1 <==> false ) *)
+      e_false
+    else if Integer.ge Integer.zero a1 && Integer.gt b1 a1 then
+      (* e>=0 && 0>=a1 && b1>a1 ==> ( (a1<<e)==b1 <==> false ) *)
+      e_false
     else raise Not_found
 
-let smp_eq_with_lsr a b =
-  let b1 = match_integer b in
-  let es = match_fun f_lsr a in
-  let e,a2= match_positive_integer_arg2 es in
-  e_eq (e_zint (Integer.shift_left b1 a2))
-    (e_fun f_land [e_zint (Integer.lognot (two_power_k_minus1 a2));e])
+let smp_cmp_with_lsl cmp a0 b0 =
+  if a0 == e_zero then
+    let b,_ = match_fun f_lsl b0 |> match_positive_or_null_arg2 in
+    cmp e_zero b (* q>=0 ==> ( (0 cmp(b<<q)) <==> (0 cmp b) ) *)
+  else if b0 == e_zero then
+    let a,_ = match_fun f_lsl a0 |> match_positive_or_null_arg2 in
+    cmp a e_zero (* p>=0 ==> ( ((a<<p) cmp 0) <==> (a cmp 0) ) *)
+  else
+    let a,p = match_fun f_lsl a0 |> match_positive_or_null_arg2 in
+    let b,q = match_fun f_lsl b0 |> match_positive_or_null_arg2 in
+    if p == q then
+      (* p>=0 && q>=0 && p==q ==> ( ((a<<p)cmp(b<<q)) <==> (a cmp b) ) *)
+      cmp a b
+    else if a == b && (cmp==e_eq || is_positive_or_null a) then
+      (* p>=0 && q>=0 && a==b && a>=0 ==> ( ((a<<p)cmp(b<<q)) <==> (p cmp q) ) *)
+      cmp p q
+    else if a == b && is_negative a then
+      (* p>=0 && q>=0 && a==b && a<0 ==> ( ((a<<p)<=(b<<q)) <==> (q cmp p) ) *)
+      cmp q p
+    else
+      let p = match_integer p in
+      let q = match_integer q in
+      if Z.lt p q then
+        (* p>=0 && q>=0 && p>q ==> ( ((a<<p)cmp(b<<q)) <==> (a cmp(b<<(q-p))) ) *)
+        cmp a (e_fun f_lsl [b;e_zint (Z.sub q p)])
+      else if Z.lt q p then
+        (* p>=0 && q>=0 && p<q ==> ( ((a<<p)cmp(b<<q)) <==> ((a<<(p-q)) cmp b) ) *)
+        cmp (e_fun f_lsl [a;e_zint (Z.sub p q)]) b
+      else
+        (* p>=0 && q>=0 && p==q ==> ( ((a<<p)cmp(b<<q)) <==> (a cmp b) ) *)
+        cmp a b
+
+let smp_eq_with_lsl a b =
+  try smp_eq_with_lsl_cst a b
+  with Not_found -> smp_cmp_with_lsl e_eq a b
+
+let smp_leq_with_lsl a0 b0 = smp_cmp_with_lsl e_leq a0 b0
+
+let mk_cmp_with_lsr_cst cmp e x2 x1 =
+  (* build (e&~((2**x2)-1)) cmp (x1<<x2) *)
+  cmp
+    (e_zint (Integer.shift_left x1 x2))
+    (e_fun f_land [e_zint (Integer.lognot (two_power_k_minus1 x2));e])
+
+let smp_cmp_with_lsr cmp a0 b0 =
+  try
+    let b1 = match_integer b0 in
+    let e,a2 = match_fun f_lsr a0 |> match_positive_or_null_integer_arg2 in
+    (* (e>>a2) cmp b1 <==> (e&~((2**a2)-1)) cmp (b1<<a2)
+       That rule is similar to
+       e/A2 cmp b2 <==> (e/A2)*A2 cmp b2*A2) with A2==2**a2
+       So, A2>0 and (e/A2)*A2 == e&~((2**a2)-1)
+    *)
+    mk_cmp_with_lsr_cst e_eq e a2 b1
+  with Not_found ->
+    (* This rule takes into acount several cases.
+       One of them is
+       (a>>p) cmp (b>>(n+p)) <==> (a&~((2**p)-1)) cmp (b>>n)&~((2**p)-1)
+       That rule is similar to
+       (a/P)cmp(b/(N*P)) <==> (a/P)*P cmp ((b/N)/P)*P
+       with P==2**p, N=2**n, q=p+n.
+       So, (a/P)*P==a&~((2**p)-1), b/N==b>>n,  ((b/N)/P)*P==(b>>n)&~((2**p)-1)  *)
+    let a,p = match_fun f_lsr a0 |> match_positive_or_null_integer_arg2 in
+    let b,q = match_fun f_lsr b0 |> match_positive_or_null_integer_arg2 in
+    let n = Integer.min p q in
+    let a = if Integer.lt n p then e_fun f_lsr [a;e_zint (Z.sub p n)] else a in
+    let b = if Integer.lt n q then e_fun f_lsr [b;e_zint (Z.sub q n)] else b in
+    let m = F.e_zint (Integer.lognot (two_power_k_minus1 n)) in
+    cmp (e_fun f_land [a;m]) (e_fun f_land [b;m])
+
+let smp_eq_with_lsr a0 b0 =
+    smp_cmp_with_lsr e_eq a0 b0
+
+let smp_leq_with_lsr a0 b0 =
+  try
+    let bs = match_fun f_lsr b0 in
+    if a0 == e_zero then
+      let e,_ = match_positive_or_null_arg2 bs in
+      (* b2>= 0 ==> (0<=(e>>b2) <==> 0<=e) (note: invalid for `e_eq`) *)
+      e_leq e_zero e
+    else
+      let a1 = match_integer a0 in
+      let e,b2 = match_positive_or_null_integer_arg2 bs in
+      (* a1 <= (e>>b2) <==> (e&~((2**b2)-1)) >= (a1<<b2) *)
+      mk_cmp_with_lsr_cst (fun a b -> e_leq b a) e b2 a1
+  with Not_found ->
+    if b0 == e_zero then
+      let e,_ = match_fun f_lsr a0 |> match_positive_or_null_arg2 in
+      (* a2>= 0 ==> ((e>>a2)<=0 <==> e<=0) (note: invalid for `e_eq`) *)
+      e_leq e e_zero
+    else
+      smp_cmp_with_lsr e_leq a0 b0
 
 (* ACSL Semantics *)
-type l_builtin = { f: lfun ; eq: (term -> term -> term) option ; leq: (term -> term -> term) option ; smp: term list -> term}
+type l_builtin = {
+  f: lfun ;
+  eq: (term -> term -> term) option ;
+  leq: (term -> term -> term) option ;
+  smp: term list -> term ;
+}
 
 let () =
   Context.register
@@ -687,9 +775,9 @@ let () =
               (smp2 f_lor  Integer.logor) in
           let bi_land = mk_builtin "f_land" f_land ~eq:smp_eq_with_land ~leq:smp_leq_with_land
               smp_land in
-          let bi_lsl  = mk_builtin "f_lsl" f_lsl ~eq:smp_eq_with_lsl
+          let bi_lsl  = mk_builtin "f_lsl" f_lsl ~eq:smp_eq_with_lsl ~leq:smp_leq_with_lsl
               (smp_shift Integer.shift_left) in
-          let bi_lsr  = mk_builtin "f_lsr" f_lsr ~eq:smp_eq_with_lsr
+          let bi_lsr  = mk_builtin "f_lsr" f_lsr ~eq:smp_eq_with_lsr ~leq:smp_leq_with_lsr
               (smp_shift Integer.shift_right) in
 
           List.iter
@@ -958,16 +1046,5 @@ let mask_simplifier =
         F.p_subst self#rewrite p
     
   end
-
-
-
-
-
-
-
-
-
-
-
 
 (* -------------------------------------------------------------------------- *)

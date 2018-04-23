@@ -2,7 +2,7 @@
 [kernel] Parsing tests/wp_acsl/record.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 11 goals scheduled
 [wp] [Alt-Ergo] Goal typed_f_post_M1_qed_ok : Valid
 [wp] [Qed] Goal typed_f_post_M2_qed_ok : Valid
@@ -16,9 +16,10 @@
 [wp] [Qed] Goal typed_f_post_P4_qed_ok : Valid
 [wp] [Qed] Goal typed_f_post_P5_qed_ok : Valid
 [wp] Proved goals:   11 / 11
-    Qed:             9 
-    Alt-Ergo:        2
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                    9      2 (11)    11       100%
-----------------------------------------------------------
+  Qed:             9 
+  Alt-Ergo:        2
+[wp] Report 'tests/wp_acsl/record.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                    9      2 (8..20)       11       100%
+-------------------------------------------------------------

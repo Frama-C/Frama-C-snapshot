@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -346,5 +346,17 @@ Proof.
   omega.
 Qed.
 
+(* -------------------------------------------------------------------------- *)
+(* --- Missing Definitions                                                --- *)
+(* -------------------------------------------------------------------------- *)
 
+Variable truncate : R -> Z.
+Variable ceil : R -> Z.
+Variable floor : R -> Z.
+Variable sinh : R -> R.
+Variable cosh : R -> R.
+Variable tanh : R -> R.
+Variable atan2 : R -> R -> R.
+Variable hypot : R -> R -> R.
 
+(* -------------------------------------------------------------------------- *)

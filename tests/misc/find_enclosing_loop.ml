@@ -5,7 +5,7 @@ class check =
 object(self)
   inherit Visitor.frama_c_inplace
   val current_loop = Stack.create ()
-  method vstmt_aux s =
+  method! vstmt_aux s =
     let res =
       match s.skind with
         | Loop _ -> Stack.push s current_loop; 

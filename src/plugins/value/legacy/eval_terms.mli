@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open Locations
 open Cvalue
 
 (** Evaluating a predicate. [Unknown] is the Top of the lattice *)
-type predicate_status = True | False | Unknown
+type predicate_status = Abstract_interp.Comp.result = True | False | Unknown
 val pretty_predicate_status : Format.formatter -> predicate_status -> unit
 
 val join_predicate_status :

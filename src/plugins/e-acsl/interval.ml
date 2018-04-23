@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,6 +60,7 @@ module Env = struct
   let tbl: Ival.t Logic_var.Hashtbl.t = Logic_var.Hashtbl.create 7
   let clear () = Logic_var.Hashtbl.clear tbl
   let add = Logic_var.Hashtbl.add tbl
+  let remove = Logic_var.Hashtbl.remove tbl
   let find = Logic_var.Hashtbl.find tbl
 end
 
@@ -145,7 +146,7 @@ let rec infer t =
             consider that one eventually gets an integral type even if it is
             not sure. *)
          Options.warning
-           ~once:true "possibly unsafe cast from term '%a' to typ '%a'."
+           ~once:true "possibly unsafe cast from term '%a' to type '%a'."
            Printer.pp_term t
            Printer.pp_typ ty;
          interv_of_typ ty
@@ -190,8 +191,15 @@ let rec infer t =
   | Tinter _ -> Error.not_yet "tset intersection"
   | Tcomprehension (_,_,_) -> Error.not_yet "tset comprehension"
   | Trange (_,_) -> Error.not_yet "trange"
-  | Tlet (_,_) -> Error.not_yet "let binding"
 
+  | Tlet (li,t) ->
+    let li_t = Misc.term_of_li li in
+    let li_v = li.l_var_info in
+    let i = infer li_t in
+    Env.add li_v i;
+    let i = infer t in
+    Env.remove li_v;
+    i
   | TConst (LStr _ | LWStr _ | LReal _)
   | TBinOp (PlusPI,_,_)
   | TBinOp (IndexPI,_,_)

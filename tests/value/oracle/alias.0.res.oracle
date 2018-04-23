@@ -56,21 +56,20 @@
   U ∈ {0}
   char1 ∈ {0}
   ll1 ∈ {0}
-tests/value/alias.i:40:[value] warning: initialization of volatile variable vol ignored
 [value] computing for function f <- main.
-    Called from tests/value/alias.i:45.
+  Called from tests/value/alias.i:45.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/alias.i:46.
+  Called from tests/value/alias.i:46.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/alias.i:47.
+  Called from tests/value/alias.i:47.
 [value] Recording results for f
 [value] Done for function f
-tests/value/alias.i:82:[value] Frama_C_show_each_d0: [-2147483648..2147483647]
-tests/value/alias.i:84:[value] Frama_C_show_each_d2: [-2147483648..2147483647]
+[value] tests/value/alias.i:82: Frama_C_show_each_d0: [-2147483648..2147483647]
+[value] tests/value/alias.i:84: Frama_C_show_each_d2: [-2147483648..2147483647]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -140,17 +139,17 @@ Cannot filter: dumping raw memory (including unchanged variables)
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   FROMTOP
 [from] Function main:
   FROMTOP
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Inputs for function f:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Out (internal) for function main:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)
 [inout] Inputs for function main:
-      ANYTHING(origin:Unknown)
+    ANYTHING(origin:Unknown)

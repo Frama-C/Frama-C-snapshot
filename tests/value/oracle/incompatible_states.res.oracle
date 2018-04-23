@@ -1,0 +1,110 @@
+[kernel] Parsing tests/value/incompatible_states.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  Frama_C_entropy_source ∈ [--..--]
+[value] computing for function main1 <- main.
+  Called from tests/value/incompatible_states.c:60.
+[value] computing for function Frama_C_interval <- main1 <- main.
+  Called from tests/value/incompatible_states.c:19.
+[value] using specification for function Frama_C_interval
+[value] tests/value/incompatible_states.c:19: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+  Called from tests/value/incompatible_states.c:61.
+[value] computing for function Frama_C_interval <- main2 <- main.
+  Called from tests/value/incompatible_states.c:36.
+[value] tests/value/incompatible_states.c:36: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value:alarm] tests/value/incompatible_states.c:38: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[(2 * i) / 2]);
+[value:alarm] tests/value/incompatible_states.c:41: Warning: 
+  accessing uninitialized left-value. assert \initialized(&t[(2 * i) / 2]);
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+  Called from tests/value/incompatible_states.c:62.
+[value] computing for function Frama_C_interval <- main3 <- main.
+  Called from tests/value/incompatible_states.c:51.
+[value] tests/value/incompatible_states.c:51: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[value] Done for function Frama_C_interval
+[value:alarm] tests/value/incompatible_states.c:52: Warning: 
+  division by zero. assert t[i] ≢ 0;
+[value:alarm] tests/value/incompatible_states.c:53: Warning: 
+  division by zero. assert t[i] ≢ 0;
+[value] Recording results for main3
+[value] Done for function main3
+[value] Recording results for main
+[value] done for function main
+[value] tests/value/incompatible_states.c:41: 
+  assertion 'Value,initialization' got final status invalid.
+[scope:rm_asserts] removing 2 assertion(s)
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main1:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..10]
+  y ∈ [0..100]
+  z ∈ [-3..100]
+[value:final-states] Values at end of function main2:
+  Frama_C_entropy_source ∈ [--..--]
+  t[0] ∈ {0; 1}
+   [1] ∈ UNINITIALIZED
+  i ∈ {0}
+  x ∈ {0; 1}
+  y ∈ {-1}
+[value:final-states] Values at end of function main3:
+  Frama_C_entropy_source ∈ [--..--]
+  t[0] ∈ {0}
+   [1] ∈ {2}
+  i ∈ {0; 1}
+  x ∈ {0}
+  y ∈ {0}
+[value:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+[from] Computing for function main1
+[from] Computing for function Frama_C_interval <-main1
+[from] Done for function Frama_C_interval
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function main1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main2:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] Function main3:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+    Frama_C_entropy_source; x; y; z
+[inout] Inputs for function main1:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main2:
+    Frama_C_entropy_source; t[0]; i; x; y
+[inout] Inputs for function main2:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main3:
+    Frama_C_entropy_source; t[0..1]; i; x; y
+[inout] Inputs for function main3:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source
+[inout] Inputs for function main:
+    Frama_C_entropy_source

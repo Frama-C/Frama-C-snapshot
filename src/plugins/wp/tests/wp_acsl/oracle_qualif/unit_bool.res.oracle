@@ -5,9 +5,10 @@
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_lemma_f_1 : Valid
 [wp] Proved goals:    1 / 1
-    Qed:             0 
-    Alt-Ergo:        1
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Axiomatic Foo       -       1 (4)      1       100%
-----------------------------------------------------------
+  Qed:             0 
+  Alt-Ergo:        1
+[wp] Report 'tests/wp_acsl/unit_bool.i.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Axiomatic Foo       -       1 (1..12)        1       100%
+-------------------------------------------------------------

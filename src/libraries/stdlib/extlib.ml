@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -232,6 +232,8 @@ let opt_conv default = function
   | None -> default
   | Some x -> x
 
+let opt_if b v = if b then None else Some v
+
 let opt_fold f o b =
   match o with
     | None -> b
@@ -432,6 +434,17 @@ let make_unique_name mem ?(sep=" ") ?(start=2) from =
     if mem fullname then build base (succ id) else id,fullname
   in
   if mem from then build from start else (0,from)
+
+let html_escape s =
+  let buf = Buffer.create (String.length s) in
+  String.iter
+    (function
+      | '<' -> Buffer.add_string buf "&lt;"
+      | '>' -> Buffer.add_string buf "&gt;"
+      | '&' -> Buffer.add_string buf "&amp;"
+      | c -> Buffer.add_char buf c
+    ) s ;
+  Buffer.contents buf
 
 (* ************************************************************************* *)
 (** Comparison functions *)

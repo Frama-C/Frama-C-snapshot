@@ -1,0 +1,31 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, version >= 0.95.2 *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_Abs_ must be appended to this file*)
+(** The theory real_Square_ must be appended to this file*)
+(** The theory real_Trigonometry_ must be appended to this file*)
+function hypot(x: real, y: real) : real = sqrt((sqr(x) + sqr(y)))
+
+logic atan2 : real, real -> real
+
+axiom X_from_polar :
+  (forall x:real. forall y:real. (x = (hypot(x, y) * cos(atan2(y, x)))))
+
+axiom Y_from_polar :
+  (forall x:real. forall y:real. (y = (hypot(x, y) * sin(atan2(y, x)))))
+

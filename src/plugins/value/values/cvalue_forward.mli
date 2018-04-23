@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,14 +33,7 @@ val forward_binop_int:
   typ: typ ->
   V.t -> binop -> V.t -> V.t * Alarmset.t
 
-val forward_binop_float:
-  Fval.rounding_mode -> V.t -> binop -> V.t -> V.t * bool
-
-val forward_binop_float_alarm:
-  context: Eval.binop_context ->
-  Fval.rounding_mode ->
-  fkind ->
-  V.t -> binop -> V.t -> V.t * Alarmset.t
+val forward_binop_float: Fval.kind -> V.t -> binop -> V.t -> V.t
 
 val forward_unop:
   context: Eval.unop_context ->
@@ -48,23 +41,26 @@ val forward_unop:
 
 val truncate_integer: exp -> Eval_typ.integer_range -> V.t -> V.t * Alarmset.t
 val rewrap_integer: Eval_typ.integer_range -> V.t -> V.t
-val cast_float: exp -> fkind -> V.t -> V.t * Alarmset.t
 
-val reinterpret: exp -> typ -> V.t -> V.t * Alarmset.t
-val unsafe_reinterpret: typ -> V.t -> V.t
+val reinterpret: typ -> V.t -> V.t
 
-val do_promotion:
-  rounding_mode: Fval.rounding_mode ->
-  src_typ: typ ->
-  dst_typ: typ ->
-  exp -> V.t -> V.t * Alarmset.t
+val cast_float_to_int_alarms:
+  Eval_typ.integer_range -> (unit -> exp) -> V.t -> V.t * Alarmset.t
+(* Cast from floating-point to integer. The function given in argument
+   returns the expression being cast, used to build the alarms. *)
+
+val cast: src_typ: typ -> dst_typ: typ -> exp -> V.t -> V.t * Alarmset.t
 
 (** [make_volatile ?typ v] makes the value [v] more general (to account for
     external modifications), whenever [typ] is [None] or when it has type
     qualifier [volatile]. *)
 val make_volatile: ?typ:typ -> V.t -> V.t
 
-val eval_float_constant: exp -> float -> fkind -> string option -> V.t Eval.evaluated
+val eval_float_constant: float -> fkind -> string option -> V.t
+
+val restrict_float:
+  remove_infinite:bool -> fkind -> exp -> V.t -> V.t * Alarmset.t
+
 
 
 (*

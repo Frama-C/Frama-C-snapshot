@@ -3,8 +3,8 @@
    OPT: -no-autoload-plugins -load-module report -load-script tests/report/several_hyps.ml
 */
 
-void f();
-void f2();
+void f(void);
+void f2(void);
 
 void g() {
   /*@ assert \true; */

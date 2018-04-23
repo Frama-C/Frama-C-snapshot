@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -128,11 +128,12 @@ extern char ** environ;
 /*! \brief Set a new soft stack limit
  * \param size - new stack size in bytes */
 static size_t increase_stack_limit(const size_t size) {
-  const rlim_t stacksz = (rlim_t)size;
+  rlim_t stacksz = (rlim_t)size;
   struct rlimit rl;
   int result = getrlimit(RLIMIT_STACK, &rl);
   if (result == 0) {
     if (rl.rlim_cur < stacksz) {
+      if (stacksz>rl.rlim_max) stacksz = rl.rlim_max;
       rl.rlim_cur = stacksz;
       result = setrlimit(RLIMIT_STACK, &rl);
       if (result != 0) {
@@ -142,7 +143,7 @@ static size_t increase_stack_limit(const size_t size) {
   } else {
     vabort("getrlimit: %s \n", strerror(errno));
   }
-  return size;
+  return (size_t)stacksz;
 }
 
 /*! \brief Return byte-size of a program's stack. The return value is the soft

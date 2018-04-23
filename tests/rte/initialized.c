@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-initialized -warn-signed-overflow -print -machdep x86_32 -then -unsafe-arrays
+   OPT: -rte -rte-initialized -warn-signed-overflow -print
 */
 
 struct R {

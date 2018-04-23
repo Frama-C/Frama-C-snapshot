@@ -9,17 +9,19 @@
   X ∈ [--..--]
   Y ∈ [--..--]
   Z ∈ [--..--]
-tests/slicing/loops.i:50:[value] entering loop for the first time
-tests/slicing/loops.i:56:[value] warning: assertion got status unknown.
-tests/slicing/loops.i:52:[value] warning: signed overflow. assert x1 + 1 ≤ 2147483647;
-tests/slicing/loops.i:54:[value] warning: signed overflow. assert x2 + 1 ≤ 2147483647;
+[value] tests/slicing/loops.i:50: entering loop for the first time
+[value:alarm] tests/slicing/loops.i:56: Warning: assertion got status unknown.
+[value:alarm] tests/slicing/loops.i:52: Warning: 
+  signed overflow. assert x1 + 1 ≤ 2147483647;
+[value:alarm] tests/slicing/loops.i:54: Warning: 
+  signed overflow. assert x2 + 1 ≤ 2147483647;
 [value] Recording results for f2
 [value] done for function f2
 [from] Computing for function f2
 [from] Non-terminating function f2 (no dependencies)
 [from] Done for function f2
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f2:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
@@ -27,7 +29,7 @@ tests/slicing/loops.i:54:[value] warning: signed overflow. assert x2 + 1 ≤ 214
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function f2
-tests/slicing/loops.i:50:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/slicing/loops.i:50: Warning: no final state. Probably unreachable...
 [pdg] done for function f2
 [slicing] applying all slicing requests...
 [slicing] applying 0 actions...

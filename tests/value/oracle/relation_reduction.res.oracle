@@ -19,9 +19,12 @@
      [6] ∈ {103}
      [7] ∈ {102}
      [8] ∈ {101}
-tests/value/relation_reduction.i:9:[value] warning: signed overflow. assert y + 10 ≤ 2147483647;
-tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert 0 ≤ y;
-tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds index. assert y < 9;
+[value:alarm] tests/value/relation_reduction.i:9: Warning: 
+  signed overflow. assert y + 10 ≤ 2147483647;
+[value:alarm] tests/value/relation_reduction.i:20: Warning: 
+  accessing out of bounds index. assert 0 ≤ y;
+[value:alarm] tests/value/relation_reduction.i:20: Warning: 
+  accessing out of bounds index. assert y < 9;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -35,7 +38,7 @@ tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds ind
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   y FROM x
   t FROM x
@@ -45,6 +48,6 @@ tests/value/relation_reduction.i:20:[value] warning: accessing out of bounds ind
   R4 FROM tab[0..8]; x (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      y; t; R1; R2; R3; R4
+    y; t; R1; R2; R3; R4
 [inout] Inputs for function main:
-      y; t; tab[0..8]
+    y; t; tab[0..8]

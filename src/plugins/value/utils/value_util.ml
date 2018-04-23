@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,13 +56,6 @@ let pp_callstack fmt =
       Value_types.Callstack.pretty (call_stack())
 ;;
 
-(* Misc *)
-
-let get_rounding_mode () =
-  if Value_parameters.AllRoundingModes.get ()
-  then Fval.Any
-  else Fval.Nearest_Even
-
 (* Assertions emitted during the analysis *)
 
 let emitter = 
@@ -89,13 +82,9 @@ let warning_once_current fmt =
   Value_parameters.warning ~current:true ~once:true fmt
 
 (* Emit alarms in "non-warning" mode *)
-let alarm_report ?(level=1) ?current ?source ?emitwith ?echo ?once ?append =
-  if Value_parameters.AlarmsWarnings.get () then
-    Value_parameters.warning ?current ?source ?emitwith ?echo ?once ?append
-  else
-    Value_parameters.result ~dkey:Value_parameters.dkey_alarm
-      ?current ?source ?emitwith ?echo ?once ?append ~level
-
+let alarm_report ?current ?source ?emitwith ?echo ?once ?append =
+  Value_parameters.warning ~wkey:Value_parameters.wkey_alarm
+    ?current ?source ?emitwith ?echo ?once ?append
 
 module DegenerationPoints =
   Cil_state_builder.Stmt_hashtbl
@@ -119,16 +108,6 @@ let create_new_var name typ =
 
 let is_const_write_invalid typ =
   Kernel.ConstReadonly.get () && Cil.typeHasQualifier "const" typ
-
-let float_kind = function
-  | FFloat -> Fval.Float32
-  | FDouble -> Fval.Float64
-  | FLongDouble ->
-    if Cil.theMachine.Cil.theMachine.sizeof_longdouble <> 8 then
-      Value_parameters.error ~once:true
-        "type long double wider than 64 bits not supported.@ \
-         Using double instead for the remainder of the analysis.";
-    Fval.Float64
 
 (* Find if a postcondition contains [\result] *)
 class postconditions_mention_result = object
@@ -182,13 +161,15 @@ let loc_dummy_value =
 
 let zero e =
   let loc = loc_dummy_value in
-  match Cil.unrollType (Cil.typeOf e) with
+  let typ = Cil.unrollType (Cil.typeOf e) in
+  match typ with
   | TFloat (fk, _) -> Cil.new_exp ~loc (Const (CReal (0., fk, None)))
   | TEnum ({ekind = ik },_)
   | TInt (ik, _) -> Cil.new_exp ~loc (Const (CInt64 (Integer.zero, ik, None)))
   | TPtr _ ->
     let ik = Cil.(theMachine.upointKind) in
-    Cil.new_exp ~loc (Const (CInt64 (Integer.zero, ik, None)))
+    let zero = Cil.new_exp ~loc (Const (CInt64 (Integer.zero, ik, None))) in
+    Cil.mkCast ~force:true ~e:zero ~newt:typ
   | typ -> Value_parameters.fatal ~current:true "non-scalar type %a"
              Printer.pp_typ typ
 
@@ -311,6 +292,32 @@ and zone_of_offset find_loc = function
   | Index (e, o) ->
     Locations.Zone.join
       (zone_of_expr find_loc e) (zone_of_offset find_loc o)
+
+let rec height_expr expr =
+  match expr.enode with
+  | Const _ | SizeOf _ | SizeOfStr _ | AlignOf _ -> 0
+  | Lval lv | AddrOf lv | StartOf lv  -> height_lval lv + 1
+  | UnOp (_,e,_) | CastE (_, e) | Info (e,_) | SizeOfE e | AlignOfE e
+    -> height_expr e + 1
+  | BinOp (_,e1,e2,_) -> max (height_expr e1) (height_expr e2) + 1
+
+and height_lval (host, offset) =
+  let h1 = match host with
+    | Var _ -> 0
+    | Mem e -> height_expr e + 1
+  in
+  max h1 (height_offset offset) + 1
+
+and height_offset = function
+  | NoOffset  -> 0
+  | Field (_,r) -> height_offset r + 1
+  | Index (e,r) -> max (height_expr e) (height_offset r) + 1
+
+
+let skip_specifications kf =
+  Value_parameters.SkipLibcSpecs.get () &&
+  Kernel_function.is_definition kf &&
+  Cil.hasAttribute "fc_stdlib" (Kernel_function.get_vi kf).vattr
 
 (*
 Local Variables:

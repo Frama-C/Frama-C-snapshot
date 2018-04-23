@@ -4,7 +4,8 @@
 [wp] Loading driver 'share/wp.driver'
 [rte] annotating function f
 [rte] annotating function main
-tests/wp_bts/issue_141.i:18:[wp] warning: calculus failed on strategy
-    for 'main', behavior 'default!', all properties, both assigns or not because
-    unsupported strange loop(s). (abort)
+[wp] tests/wp_bts/issue_141.i:18: Warning: 
+  calculus failed on strategy
+  for 'main', behavior 'default!', all properties, both assigns or not because
+  unsupported strange loop(s). (abort)
 [wp] No proof obligations

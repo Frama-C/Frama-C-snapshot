@@ -2,13 +2,14 @@
 [kernel] Parsing tests/wp_plugin/mask.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 2 goals scheduled
 [wp] [Qed] Goal typed_compute_post_A : Valid
 [wp] [Qed] Goal typed_compute_post_B : Valid
 [wp] Proved goals:    2 / 2
-    Qed:             2
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-compute              2     -           2       100%
-----------------------------------------------------------
+  Qed:             2
+[wp] Report 'tests/wp_plugin/mask.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+compute              2     -                 2       100%
+-------------------------------------------------------------

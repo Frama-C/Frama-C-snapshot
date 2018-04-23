@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -135,17 +135,16 @@ extern struct lconv* __frama_c_locale;
 extern char*__frama_c_locale_names[];
 
 /*@ 
-  requires locale == \null || valid_read_string(locale);
+  requires locale_null_or_valid_string: locale == \null || valid_read_string(locale);
   assigns __frama_c_locale \from category, locale[..];
   assigns \result \from __frama_c_locale,category, locale[..];
-  ensures \result==\null
-   || (\valid(\result) 
+  ensures result_null_or_locale_name: \result==\null || (\valid(\result) 
       && \exists ℤ i ; \result == __frama_c_locale_names[i]) ;
 */
 extern char *setlocale(int category, const char *locale);
 
 /*@ assigns \nothing;
-  ensures \result == __frama_c_locale;
+  ensures result_current_locale: \result == __frama_c_locale;
  */
 extern struct lconv *localeconv(void);
 

@@ -1,55 +1,60 @@
-[kernel] computing the AST
-[kernel] parsing
 [kernel] Parsing tests/value/behavior_statuses.i (no preprocessing)
-[kernel] Parsing tests/value/behavior_statuses.i to Cabs
-[kernel] Parsing tests/value/behavior_statuses.i
-[kernel] Converting tests/value/behavior_statuses.i from Cabs to CIL
-[kernel] symbolic link
-[kernel] Pre-merging (0) tests/value/behavior_statuses.i
-[kernel] Final merging phase: tests/value/behavior_statuses.i
-[kernel] preparing the AST
-[kernel] First check done
-[kernel] cleaning unused parts
-[kernel] register globals done
-[kernel:property_status] Frama-C kernel emits status unknown for property default behavior
-    under 2 hypothesis
-[kernel:property_status] Frama-C kernel emits status unknown for property behavior t_null
-    under 0 hypothesis
-[kernel:property_status] Frama-C kernel emits status unknown for property behavior t_not_null
-    under 0 hypothesis
+[kernel:prop-status:emit] 
+  Frama-C kernel emits status unknown for property default behavior
+  under 2 hypothesis
+[kernel:prop-status:emit] 
+  Frama-C kernel emits status unknown for property behavior t_null
+  under 0 hypothesis
+[kernel:prop-status:emit] 
+  Frama-C kernel emits status unknown for property behavior t_not_null
+  under 0 hypothesis
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   nondet ∈ [--..--]
 [value] computing for function f <- main.
-    Called from tests/value/behavior_statuses.i:26.
-[kernel:property_status] Call Preconditions emits status unknown for property requires
-    \valid_read(filename) under 2 hypothesis
-tests/value/behavior_statuses.i:10:[value] function f: precondition got status valid.
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(filename)' of f at stmt 4 under 0 hypothesis
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(filename)' of f at stmt 4 under 0 hypothesis
-[kernel:property_status] Call Preconditions emits status unknown for property requires \valid_read(t)
-    under 2 hypothesis
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(t)' of f at stmt 4 under 0 hypothesis
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(t)' of f at stmt 4 under 0 hypothesis
+  Called from tests/value/behavior_statuses.i:26.
+[kernel:prop-status:emit] 
+  Call Preconditions emits status unknown for property requires
+  \valid_read(filename) under 2 hypothesis
+[value] tests/value/behavior_statuses.i:26: 
+  function f: precondition got status valid.
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(filename)' of f at stmt 4 under 0 hypothesis
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(filename)' of f at stmt 4 under 0 hypothesis
+[kernel:prop-status:emit] 
+  Call Preconditions emits status unknown for property requires \valid_read(t)
+  under 2 hypothesis
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(t)' of f at stmt 4 under 0 hypothesis
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(t)' of f at stmt 4 under 0 hypothesis
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/behavior_statuses.i:27.
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(filename)' of f at stmt 5 under 0 hypothesis
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(filename)' of f at stmt 5 under 0 hypothesis
-tests/value/behavior_statuses.i:16:[value] function f, behavior t_not_null: precondition got status valid.
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(t)' of f at stmt 5 under 0 hypothesis
-[kernel:property_status] Value emits status VALID for property status of 'requires
-    \valid_read(t)' of f at stmt 5 under 0 hypothesis
+  Called from tests/value/behavior_statuses.i:27.
+[value] tests/value/behavior_statuses.i:27: 
+  function f: precondition got status valid.
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(filename)' of f at stmt 5 under 0 hypothesis
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(filename)' of f at stmt 5 under 0 hypothesis
+[value] tests/value/behavior_statuses.i:27: 
+  function f, behavior t_not_null: precondition got status valid.
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(t)' of f at stmt 5 under 0 hypothesis
+[kernel:prop-status:emit] 
+  Value emits status VALID for property status of 'requires
+  \valid_read(t)' of f at stmt 5 under 0 hypothesis
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -67,17 +72,17 @@ tests/value/behavior_statuses.i:16:[value] function f, behavior t_not_null: prec
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   \result FROM \nothing
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      __retres
+    __retres
 [inout] Inputs for function f:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      t; r1; r2; __retres
+    t; r1; r2; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

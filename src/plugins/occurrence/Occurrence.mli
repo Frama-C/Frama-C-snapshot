@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,9 +21,21 @@
 (**************************************************************************)
 
 (** Occurrence plug-in. *)
+open Cil_types
 
-(** No function is directly exported: they are registered in
-    {!Db.Occurrence}. *)
+(** Interface for the occurrence plugin.
+    @see <../occurrence/index.html> internal documentation. *)
+module Register: sig
+  val self: State.t
+  val get_last_result:
+    unit -> ((kernel_function option * kinstr * lval) list * varinfo) option
+  val get: (varinfo -> (kernel_function option * kinstr * lval) list)
+    (** Return the occurrences of the given varinfo.
+        An occurrence [ki, lv] is a left-value [lv] which uses the location of
+        [vi] at the position [ki]. *)
+  val print_all: (unit -> unit)
+    (** Print all the occurrence of each variable declarations. *)
+end
 
 (*
 Local Variables:

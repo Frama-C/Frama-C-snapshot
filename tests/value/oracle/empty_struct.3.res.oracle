@@ -1,6 +1,7 @@
 [kernel] Parsing tests/value/empty_struct.c (with preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
-tests/value/empty_struct.c:21:[value] user error: empty structs are unsupported (type 'struct s', location s)
-    in C99 (only allowed as GCC/MSVC extension). Aborting.
+[value] tests/value/empty_struct.c:22: User Error: 
+  empty structs are unsupported (type 'struct s', location s)
+  in C99 (only allowed as GCC/MSVC extension). Aborting.
 [kernel] Plug-in value aborted: invalid user input.

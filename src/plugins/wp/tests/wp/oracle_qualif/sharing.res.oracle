@@ -2,13 +2,14 @@
 [kernel] Parsing tests/wp/sharing.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] [Alt-Ergo] Goal typed_f_post : Valid
 [wp] Proved goals:    1 / 1
-    Qed:             0 
-    Alt-Ergo:        1
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                   -       1 (43)     1       100%
-----------------------------------------------------------
+  Qed:             0 
+  Alt-Ergo:        1
+[wp] Report 'tests/wp/sharing.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                   -       1 (44..56)       1       100%
+-------------------------------------------------------------

@@ -11,11 +11,11 @@
   sy ∈ {0}
   s ∈ {0}
 [value] computing for function f <- main.
-    Called from tests/value/from1.i:23.
+  Called from tests/value/from1.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function sf <- main.
-    Called from tests/value/from1.i:25.
+  Called from tests/value/from1.i:25.
 [value] Recording results for sf
 [value] Done for function sf
 [value] Recording results for main
@@ -37,7 +37,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   cy FROM cx
 [from] Function sf:
@@ -49,14 +49,14 @@
   \result FROM sx
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      cy
+    cy
 [inout] Inputs for function f:
-      cx
+    cx
 [inout] Out (internal) for function sf:
-      __retres
+    __retres
 [inout] Inputs for function sf:
-      s_0.a
+    s_0.a
 [inout] Out (internal) for function main:
-      G; cx; cy; s_0; tmp
+    G; cx; cy; s_0; tmp
 [inout] Inputs for function main:
-      cx; cz; sx; sy
+    cx; cz; sx; sy

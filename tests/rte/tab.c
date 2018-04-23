@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -warn-signed-overflow -print
+   OPT: -rte -warn-signed-overflow -warn-special-float none -print
 */
 
 typedef double typetab[2];

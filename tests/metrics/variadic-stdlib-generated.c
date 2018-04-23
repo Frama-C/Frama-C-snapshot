@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: #"-load-module variadic"
+   STDOPT:
 */
 
 #include <stdio.h>

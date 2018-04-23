@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,8 +31,9 @@ type call_init_state =
   | ISEmpty (** completely empty state, without impact on Memexec. *)
 
 
-module type S = sig
-  include Abstract_domain.Internal
+module Make (Value : Abstract_value.External) : sig
+  include Abstract_domain.Internal with type value = Value.t
+                                    and type location = Precise_locs.precise_location
   val key : t Abstract_domain.key
 
   val pretty_debug : Format.formatter -> t -> unit
@@ -40,16 +41,3 @@ module type S = sig
   type equalities
   val project : t -> equalities
 end
-
-
-module MakeInternal
-    (Equality : Equality_sig.S_with_collections
-     with type elt = Hcexprs.hashconsed_exprs)
-    (Value : Abstract_value.External)
-  : S with type value = Value.t
-       and type location = Precise_locs.precise_location
-       and type equalities := Equality.Set.t
-
-module Make (Value : Abstract_value.External)
-  : S with type value = Value.t
-       and type location = Precise_locs.precise_location

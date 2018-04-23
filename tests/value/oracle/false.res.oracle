@@ -5,17 +5,21 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/value/false.i:18.
-tests/value/false.i:18:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+  Called from tests/value/false.i:18.
+[kernel] tests/value/false.i:18: Warning: 
+  No code nor implicit assigns clause for function f, generating default assigns from the prototype
 [value] using specification for function f
-tests/value/false.i:5:[value] warning: function f: precondition got status invalid.
-tests/value/false.i:6:[value] function f: no state left in which to evaluate precondition, status not computed.
-tests/value/false.i:7:[value] function f: no state left in which to evaluate precondition, status not computed.
+[value:alarm] tests/value/false.i:18: Warning: 
+  function f: precondition i ≡ 1 got status invalid.
+[value] tests/value/false.i:18: 
+  function f: no state left, precondition i ≡ 1 got status valid.
 [value] Done for function f
 [value] computing for function g <- main.
-    Called from tests/value/false.i:19.
-tests/value/false.i:10:[value] warning: function g: postcondition got status invalid.
-tests/value/false.i:11:[value] function g: no state left in which to evaluate postcondition, status not computed.
+  Called from tests/value/false.i:19.
+[value:alarm] tests/value/false.i:10: Warning: 
+  function g: postcondition got status invalid.
+[value] tests/value/false.i:11: 
+  function g: no state left, postcondition got status valid.
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
@@ -32,7 +36,7 @@ tests/value/false.i:11:[value] function g: no state left in which to evaluate po
 [from] Done for function f
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   NO EFFECTS
 [from] Function g:
@@ -41,10 +45,10 @@ tests/value/false.i:11:[value] function g: no state left in which to evaluate po
   NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function g:
-      \nothing
+    \nothing
 [inout] Inputs for function g:
-      \nothing
+    \nothing
 [inout] Out (internal) for function main:
-      i
+    i
 [inout] Inputs for function main:
-      \nothing
+    \nothing

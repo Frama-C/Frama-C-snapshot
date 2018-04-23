@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2017                                               */
+/*  Copyright (C) 2007-2018                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -108,6 +108,36 @@ value c_sqrtf(value d)
 {
   float f = Double_val(d);
   volatile float res = sqrtf(f); // see remarks above
+  return caml_copy_double(res);
+}
+
+value c_fmodf(value x, value y)
+{
+  float fx = Double_val(x);
+  float fy = Double_val(y);
+  volatile float res = fmodf(fx, fy); // see remarks above
+  return caml_copy_double(res);
+}
+
+value c_cosf(value x)
+{
+  float f = Double_val(x);
+  volatile float res = cosf(f); // see remarks above
+  return caml_copy_double(res);
+}
+
+value c_sinf(value x)
+{
+  float f = Double_val(x);
+  volatile float res = sinf(f); // see remarks above
+  return caml_copy_double(res);
+}
+
+value c_atan2f(value x, value y)
+{
+  float fx = Double_val(x);
+  float fy = Double_val(y);
+  volatile float res = atan2f(fx, fy); // see remarks above
   return caml_copy_double(res);
 }
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -104,9 +104,9 @@ let rec lookup step push goal e =
       
 class auto_rewrite =
   object
-    method id = "WP.autorewrite"
-    method title = "Auto Rewrite"
-    method descr = "Lookup for Equalities to Rewrite with"
+    method id = "wp:replace"
+    method title = "Auto Replace"
+    method descr = "Lookup for equalities to Rewrite"
     method search (push : Strategy.strategy -> unit) (hyps,goal) =
       Conditions.iter
         (fun s ->

@@ -29,12 +29,16 @@
     [10..99] ∈ {0}
   p1 ∈ {0}
   x1 ∈ {0}
-tests/value/bitwise_pointer.i:18:[value] Assigning imprecise value to p.
-    The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
-tests/value/bitwise_pointer.i:19:[value] warning: out of bounds write. assert \valid(p);
-tests/value/bitwise_pointer.i:22:[value] Assigning imprecise value to p1.
-    The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
-tests/value/bitwise_pointer.i:23:[value] warning: out of bounds write. assert \valid(p1);
+[value] tests/value/bitwise_pointer.i:18: 
+  Assigning imprecise value to p.
+  The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:18}
+[value:alarm] tests/value/bitwise_pointer.i:19: Warning: 
+  out of bounds write. assert \valid(p);
+[value] tests/value/bitwise_pointer.i:22: 
+  Assigning imprecise value to p1.
+  The imprecision originates from Arithmetic {tests/value/bitwise_pointer.i:22}
+[value:alarm] tests/value/bitwise_pointer.i:23: Warning: 
+  out of bounds write. assert \valid(p1);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -69,7 +73,7 @@ tests/value/bitwise_pointer.i:23:[value] warning: out of bounds write. assert \v
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   t[0..99] FROM \nothing (and SELF)
   p FROM \nothing
@@ -79,13 +83,13 @@ tests/value/bitwise_pointer.i:23:[value] warning: out of bounds write. assert \v
   x1 FROM t1[0..99]
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      t[0..99]; p; x; t1[0..99]; p1; x1; mask
+    t[0..99]; p; x; t1[0..99]; p1; x1; mask
 [inout] Inputs for function main:
-      t[0..99]; p; t1[0..99]; p1
+    t[0..99]; p; t1[0..99]; p1
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      t[0..99]; t1[0..99]
-    Operational inputs on termination:
-      t[0..99]; t1[0..99]
-    Sure outputs:
-      p; x; p1; x1; mask
+  Operational inputs:
+    t[0..99]; t1[0..99]
+  Operational inputs on termination:
+    t[0..99]; t1[0..99]
+  Sure outputs:
+    p; x; p1; x1; mask

@@ -2,12 +2,17 @@
 [kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp/wp_behav.c:172:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
-[wp] warning: Missing RTE guards
-tests/wp/wp_behav.c:176:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:154:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:69:[wp] warning: Missing assigns clause (assigns 'everything' instead)
-tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:172: Warning: 
+  Ignored specification 'for b1' (generalize to all behavior)
+[wp] Warning: Missing RTE guards
+[wp] tests/wp/wp_behav.c:176: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:154: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:69: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
+[wp] tests/wp/wp_behav.c:81: Warning: 
+  Missing assigns clause (assigns 'everything' instead)
 [wp] 38 goals scheduled
 [wp] [Alt-Ergo] Goal typed_assert_needed_assert_ko : Unknown
 [wp] [Qed] Goal typed_assert_needed_assert_qed_ok_ok_with_hyp : Valid
@@ -48,21 +53,22 @@ tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything
 [wp] [Qed] Goal typed_stmt_contract_label_post_qed_ok : Valid
 [wp] [Qed] Goal typed_stmt_contract_label_stmt_post_qed_ok : Valid
 [wp] Proved goals:   32 / 38
-    Qed:            30 
-    Alt-Ergo:        2  (unknown: 6)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-f                    5     -           5       100%
-min                  4     -           4       100%
-bhv                  2      1 (5)      3       100%
-stmt_contract        3     -           3       100%
-stmt_contract_label   2    -           2       100%
-stmt_contract_assigns   5   -          5       100%
-local_named_behavior   2   -           2       100%
-assert_needed        1     -           2      50.0%
-bts0513             -      -           2       0.0%
-stmt_assigns         1     -           2      50.0%
-razT                 1      1 (13)     3      66.7%
-more_stmt_assigns    3     -           3       100%
-part_stmt_bhv        1     -           2      50.0%
-----------------------------------------------------------
+  Qed:            30 
+  Alt-Ergo:        2  (unknown: 6)
+[wp] Report 'tests/wp/wp_behav.c.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+f                    5     -                 5       100%
+min                  4     -                 4       100%
+bhv                  2      1 (1..12)        3       100%
+stmt_contract        3     -                 3       100%
+stmt_contract_label   2    -                 2       100%
+stmt_contract_assigns   5   -                5       100%
+local_named_behavior   2   -                 2       100%
+assert_needed        1     -                 2      50.0%
+bts0513             -      -                 2       0.0%
+stmt_assigns         1     -                 2      50.0%
+razT                 1      1 (8..20)        3      66.7%
+more_stmt_assigns    3     -                 3       100%
+part_stmt_bhv        1     -                 2      50.0%
+-------------------------------------------------------------

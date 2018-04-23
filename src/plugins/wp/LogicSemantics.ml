@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,19 +34,19 @@ open Ctypes
 open Lang
 open Lang.F
 open Definitions
-open Memory
+open Sigs
 
-type polarity = [ `Positive | `Negative | `NoPolarity ]
-
-module Make(M : Memory.Model) =
+module Make(M : Sigs.Model) =
 struct
 
+  module M = M
   open M
 
   type loc = M.loc
-  type value = loc Memory.value
-  type logic = loc Memory.logic
-  type region = loc sloc list
+  type value = loc Sigs.value
+  type logic = loc Sigs.logic
+  type result = loc Sigs.result
+  type region = loc Sigs.region
   type sigma = Sigma.t
 
   module L = Cvalues.Logic(M)
@@ -60,10 +60,14 @@ struct
   type frame = C.frame
   let pp_frame = C.pp_frame
   let get_frame = C.get_frame
+  let mk_frame = C.mk_frame
   let in_frame = C.in_frame
   let mem_frame = C.mem_frame
   let mem_at_frame = C.mem_at_frame
+  let set_at_frame = C.set_at_frame
   let mem_at = C.mem_at
+  let env_at = C.env_at
+  let local = C.local
   let frame = C.frame
   let call = C.call
   let call_pre = C.call_pre
@@ -94,17 +98,16 @@ struct
                           M.pretty l F.pp_pred (F.p_forall xs p)
 
   let pp_region fmt sloc =
-    List.iter (fun s -> Format.fprintf fmt "@ %a" pp_sloc s) sloc
+    List.iter (fun (_,s) -> Format.fprintf fmt "@ %a" pp_sloc s) sloc
 
   (* -------------------------------------------------------------------------- *)
   (* --- Translation Environment & Recursion                                --- *)
   (* -------------------------------------------------------------------------- *)
 
   type env = C.env
-  let new_env = C.new_env
-  let move = C.move
-  let sigma = C.sigma
-  let call_env s = C.move (C.new_env []) s
+  let mk_env = C.mk_env
+  let move_at = C.move_at
+  let current = C.current
 
   let logic_of_value = function
     | Val e -> Vexp e
@@ -212,17 +215,21 @@ struct
 
   let load_loc env typ loc loffset =
     let te,lp = logic_offset env typ (Vloc loc) loffset in
-    L.load (C.sigma env) (Ctypes.object_of te) lp
+    L.load (C.current env) (Ctypes.object_of te) lp
 
   let term_lval env (lhost,loffset) =
     match lhost with
-    | TResult _ ->
-        let r = C.result () in
-        access_offset env (Vexp (e_var r)) loffset
+    | TResult ty ->
+        begin match C.result () with
+          | Sigs.R_var x ->
+              access_offset env (Vexp (e_var x)) loffset
+          | Sigs.R_loc l ->
+              load_loc env ty l loffset
+        end
     | TMem e ->
         let te = Logic_typing.ctype_of_pointed e.term_type in
         let te , lp = logic_offset env te (C.logic env e) loffset in
-        L.load (C.sigma env) (Ctypes.object_of te) lp
+        L.load (C.current env) (Ctypes.object_of te) lp
     | TVar{lv_name="\\exit_status"} ->
         assert (loffset = TNoOffset) ; (* int ! *)
         Vexp (e_var (C.status ()))
@@ -237,12 +244,18 @@ struct
   (* --- Address of L-Values                                                --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let addr_lval env (lhost,loffset) =
+  let logic_lval env (lhost,loffset) =
     match lhost with
-    | TResult _ -> Wp_parameters.abort ~current:true "Address of \\result"
+    | TResult ty ->
+        begin match C.result () with
+          | R_loc l ->
+              logic_offset env ty (Vloc l) loffset
+          | R_var _ ->
+              Wp_parameters.abort ~current:true "Address of \\result"
+        end
     | TMem e ->
         let te = Logic_typing.ctype_of_pointed e.term_type in
-        snd (logic_offset env te (C.logic env e) loffset)
+        logic_offset env te (C.logic env e) loffset
     | TVar lv ->
         begin
           match logic_var env lv with
@@ -250,8 +263,19 @@ struct
               Wp_parameters.abort ~current:true
                 "Address of logic value (%a)@." pp_logic v
           | VAR x ->
-              snd (logic_offset env x.vtype (Vloc (M.cvar x)) loffset)
+              logic_offset env x.vtype (Vloc (M.cvar x)) loffset
         end
+
+  let addr_lval env lv = snd (logic_lval env lv)
+
+  let lval env lv =
+    let te,ve = logic_lval env lv in
+    match ve with
+    | Vexp e -> te , M.pointer_loc e
+    | Vloc l -> te , l
+    | _ ->
+        Wp_parameters.abort ~current:true "Unexpected set (%a)"
+          Printer.pp_term_lval lv
 
   (* -------------------------------------------------------------------------- *)
   (* --- Unary Operators                                                    --- *)
@@ -370,7 +394,7 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let toreal t v =
-    if t then L.map Cfloat.real_of_int v else v
+    if t then L.map Cmath.real_of_int v else v
 
   let arith env fint freal a b =
     let va = C.logic env a in
@@ -461,9 +485,9 @@ struct
   let term_logic_cast env typ t =
     match cvsort_of_type typ , cvsort_of_type t.term_type with
     | L_integer, L_real ->
-        L.map Cint.integer_of_real (C.logic env t)
+        L.map Cmath.int_of_real (C.logic env t)
     | L_real, L_integer ->
-        L.map Cfloat.real_of_int (C.logic env t)
+        L.map Cmath.real_of_int (C.logic env t)
     | L_cfloat f, L_real ->
         L.map (Cfloat.float_of_real f) (C.logic env t)
     | L_real, L_cfloat f ->
@@ -471,7 +495,7 @@ struct
     | L_cint i, L_real ->
         L.map (Cint.of_real i) (C.logic env t)
     | L_real, L_cint _ ->
-        L.map (fun x -> Cfloat.real_of_int (Cint.to_integer x)) (C.logic env t)
+        L.map (fun x -> Cmath.real_of_int (Cint.to_integer x)) (C.logic env t)
     | L_integer, L_cint _ ->
         L.map Cint.to_integer (C.logic env t)
     | L_cint i, L_integer ->
@@ -567,15 +591,12 @@ struct
     | TCastE(ty,t) -> term_cast env ty t
 
     | Tapp(f,ls,ts) ->
-        begin
-          match LogicBuiltins.logic f with
-          | ACSLDEF ->
-              let es = List.map (val_of_term env) ts in
-              Vexp( C.call_fun env f ls es )
-          | LFUN phi ->
               let vs = List.map (val_of_term env) ts in
-              Vexp( e_fun phi vs )
-        end
+        let r = match LogicBuiltins.logic f with
+          | ACSLDEF -> C.call_fun env f ls vs
+          | HACK phi -> phi vs
+          | LFUN f -> e_fun f vs
+        in Vexp r
 
     | Tlambda _ ->
         Warning.error "Lambda-functions not yet implemented"
@@ -585,11 +606,11 @@ struct
 
     | TDataCons(c,ts) ->
         let es = List.map (val_of_term env) ts in
-        begin
-          match LogicBuiltins.ctor c with
-          | ACSLDEF -> Vexp( e_fun (CTOR c) es )
-          | LFUN phi -> Vexp( e_fun phi es )
-        end
+        let r = match LogicBuiltins.ctor c with
+          | ACSLDEF -> e_fun (CTOR c) es
+          | HACK phi -> phi es
+          | LFUN f -> e_fun f es
+        in Vexp r
 
     | Tif( cond , a , b ) ->
         let c = val_of_term env cond in
@@ -673,7 +694,7 @@ struct
           (fun t ->
              let te = Logic_typing.ctype_of_pointed t.term_type in
              let obj = Ctypes.object_of te in
-             obj , L.sloc (C.logic env t)
+             L.region obj (C.logic env t)
           ) ts
       end
 
@@ -698,7 +719,7 @@ struct
     let te = Logic_typing.ctype_of_pointed t.term_type in
     let sigma = C.mem_at env (Clabels.of_logic label) in
     let addrs = C.logic env t in
-    L.valid sigma acs (Ctypes.object_of te) (L.sloc addrs)
+    p_all (L.valid sigma acs) (L.region (Ctypes.object_of te) addrs)
 
   let predicate polarity env p =
     match p.pred_content with
@@ -733,16 +754,16 @@ struct
                 Warning.error "Unexpected parameters for named predicate '%a'"
                   Logic_info.pretty f ; p
           | None ->
-              match LogicBuiltins.logic f with
-              | ACSLDEF ->
-                  let es = List.map (val_of_term env) ts in
-                  C.call_pred env f ls es
-              | LFUN phi ->
+              let empty ls =
                   if ls <> [] then
                     Warning.error "Unexpected labels for purely logic '%a'"
                       Logic_info.pretty f ;
-                  let vs = List.map (val_of_term env) ts in
-                  p_call phi vs
+              in
+              let es = List.map (val_of_term env) ts in
+              match LogicBuiltins.logic f with
+              | ACSLDEF -> C.call_pred env f ls es
+              | HACK phi -> empty ls ; F.p_bool (phi es)
+              | LFUN p -> empty ls ; p_call p es
         end
 
     | Plet( { l_var_info=v ; l_body=LBterm a } , p ) ->
@@ -791,18 +812,38 @@ struct
   (* --- Set of locations for a term representing a set of l-values         --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let assignable_lval env lv =
+  let rec compound_offsets = function
+    | C_comp comp when comp.cstruct ->
+        List.fold_left
+          (fun offsets fd ->
+             List.fold_left
+               (fun offsets (obj,ofs) ->
+                  (obj , TField(fd,ofs)) :: offsets
+               ) offsets (compound_offsets (Ctypes.object_of fd.ftype))
+          ) [] comp.cfields
+    | obj -> [obj , TNoOffset]
+  
+  let assignable_lval env ~unfold lv =
     match fst lv with
     | TResult _ -> [] (* special case ! *)
-    | _ -> L.sloc (addr_lval env lv)
+    | _ ->
+        let offsets = 
+          let obj = Ctypes.object_of_logic_type (Cil.typeOfTermLval lv) in
+          if unfold then compound_offsets obj else [obj , TNoOffset]
+        in
+        List.concat
+          (List.map
+             (fun (obj,offset) ->
+                let lv = Logic_const.addTermOffsetLval offset lv in
+                L.region obj (addr_lval env lv))
+             offsets)
 
-  let assignable env t =
+  let assignable env ~unfold t =
     match t.term_node with
     | Tempty_set -> []
-    | TLval lv -> assignable_lval env lv
-    | Tunion ts -> List.concat (List.map (C.region env) ts)
+    | TLval lv -> assignable_lval env ~unfold lv
+    | Tunion ts -> List.concat (List.map (C.region env ~unfold) ts)
     | Tinter _ -> Warning.error "Intersection in assigns not implemented yet"
-
     | Tcomprehension(t,qs,cond) ->
         begin
           let xs,env,domain = bind_quantifiers env qs in
@@ -811,26 +852,27 @@ struct
             | Some p -> C.pred `NoPolarity env p :: domain
           in
           List.map
-            (function
+            (function (obj,sloc) ->
+               obj , match sloc with
               | Sloc l -> Sdescr(xs,l,p_conj conditions)
               | (Sarray _ | Srange _ | Sdescr _) as sloc ->
                   let ys,l,extend = L.rdescr sloc in
                   Sdescr(xs@ys,l,p_conj (extend :: conditions))
-            ) (C.region env t)
+            ) (C.region env ~unfold t)
         end
 
     | Tat(t,label) ->
-        C.region (C.env_at env (Clabels.of_logic label)) t
+        C.region ~unfold (C.env_at env (Clabels.of_logic label)) t
 
     | Tlet( { l_var_info=v ; l_body=LBterm a } , b ) ->
         let va = C.logic env a in
-        C.region (C.env_let env v va) b
+        C.region ~unfold (C.env_let env v va) b
 
     | Tlet _ ->
         Warning.error "Complex let-binding not implemented yet (%a)"
           Printer.pp_term t
 
-    | TLogic_coerce(_,t) -> C.region env t
+    | TLogic_coerce(_,t) -> C.region env ~unfold t
 
     | TBinOp _ | TUnOp _ | Trange _ | TUpdate _ | Tapp _ | Tif _
     | TConst _ | Tnull | TDataCons _ | Tlambda _
@@ -897,8 +939,8 @@ struct
   let logic env t =
     Context.with_current_loc t.term_loc (term_trigger env) t
 
-  let region env t =
-    Context.with_current_loc t.term_loc (assignable env) t
+  let region env ~unfold t =
+    Context.with_current_loc t.term_loc (assignable env ~unfold) t
 
   let () = C.bootstrap_pred pred
   let () = C.bootstrap_term term
@@ -911,20 +953,14 @@ struct
   (* --- Regions                                                            --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let assigns_from env froms =
-    List.map
-      (fun ({it_content=wr},_deps) ->
-         object_of_logic_type wr.term_type ,
-         region env wr)
-      froms
+  let assigned_of_froms env ~unfold froms =
+    List.concat
+      (List.map
+         (fun ({it_content=wr},_deps) -> region env ~unfold wr) froms)
 
-  let assigns env = function
+  let assigned_of_assigns env ~unfold = function
     | WritesAny -> None
-    | Writes froms -> Some (assigns_from env froms)
-
-  let valid = L.valid
-  let included = L.included
-  let separated = L.separated
+    | Writes froms -> Some (assigned_of_froms env ~unfold froms)
 
   let occurs_opt x = function None -> false | Some t -> F.occurs x t
 
@@ -936,7 +972,7 @@ struct
         if List.exists (Var.equal x) xs then false
         else (M.occurs x l || F.occursp x p)
 
-  let occurs x = List.exists (occurs_sloc x)
+  let occurs x region = List.exists (fun (_,s) -> occurs_sloc x s) region
 
   let vars_opt = function None -> Vars.empty | Some t -> F.vars t
 
@@ -951,7 +987,20 @@ struct
           (fun xs x -> Vars.remove x xs)
           (Vars.union (M.vars l) (F.varsp p)) xs
 
-  let vars sloc = List.fold_left
-      (fun xs s -> Vars.union xs (vars_sloc s)) Vars.empty sloc
+  let vars region =
+    List.fold_left
+      (fun xs (_,s) -> Vars.union xs (vars_sloc s)) Vars.empty region
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- CheckAssigns                                                       --- *)
+  (* -------------------------------------------------------------------------- *)
+  
+  let check_assigns sigma ~written ~assignable =
+    p_all
+      (fun seg ->
+         p_imply
+           (p_not (L.invalid sigma seg))
+           (p_any (L.included seg) assignable)
+      ) (written : region)
 
 end

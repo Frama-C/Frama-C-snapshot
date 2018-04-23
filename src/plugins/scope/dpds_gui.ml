@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,10 @@ let pretty_zone fmt z =
   Format.fprintf fmt "@[<h 1>%a@]" Locations.Zone.pretty z
 
 let ask_for_lval (main_ui:Design.main_window_extension_points) kf =
-  let txt = Gtk_helper.input_string ~title:"Input lvalue expression" "" in
+  let txt =
+    Gtk_helper.input_string
+      ~parent:main_ui#main_window ~title:"Input lvalue expression" ""
+  in
     match txt with None | Some "" -> None
       | Some txt ->
           try
@@ -510,9 +513,6 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
     begin
       let submenu = popup_factory#add_submenu "Dependencies" in
       let submenu_factory = new GMenu.factory submenu in
-      add_item main_ui ~use_values:false submenu_factory
-        "Help" (Some()) (fun _ -> help main_ui) ;
-      ignore (submenu_factory#add_separator ());
       let arg = match (Pretty_source.kf_of_localizable localizable,
                        Pretty_source.ki_of_localizable localizable)
         with
@@ -533,7 +533,10 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
 
       ignore (submenu_factory#add_separator ());
       add_item main_ui ~use_values:false submenu_factory "Reset All" (Some())
-        (fun _ -> reset () ; main_ui#rehighlight ())
+        (fun _ -> reset () ; main_ui#rehighlight ());
+      ignore (submenu_factory#add_separator ());
+      add_item main_ui ~use_values:false submenu_factory
+        "Help" (Some()) (fun _ -> help main_ui) ;
     end
 
 let filetree_decorate main_ui =

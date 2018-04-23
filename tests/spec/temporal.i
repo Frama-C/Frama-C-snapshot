@@ -2,7 +2,7 @@
 extern int g_calls ;
 int g(int x ) ;
 void h(void) ;
-extern int random() ;
+extern int random(void) ;
 extern int NB ;
 extern int G_i ;
 enum aorai_States {

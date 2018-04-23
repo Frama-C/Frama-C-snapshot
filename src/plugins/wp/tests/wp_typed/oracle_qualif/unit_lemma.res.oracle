@@ -10,12 +10,13 @@
 [wp] [Alt-Ergo] Goal typed_lemma_P54 : Valid
 [wp] [Alt-Ergo] Goal typed_lemma_Foo : Valid
 [wp] Proved goals:    5 / 6
-    Qed:             0 
-    Alt-Ergo:        5  (unknown: 1)
-----------------------------------------------------------
-Axiomatics          WP   Alt-Ergo    Total   Success
-Lemma               -       1 (5)      2      50.0%
-Axiomatic G1        -       2 (8)      2       100%
-Axiomatic G2        -       1 (10)     1       100%
-Axiomatic Poluted   -       1 (5)      1       100%
-----------------------------------------------------------
+  Qed:             0 
+  Alt-Ergo:        5  (unknown: 1)
+[wp] Report 'tests/wp_typed/unit_lemma.i.0.report.json'
+-------------------------------------------------------------
+Axiomatics          WP     Alt-Ergo        Total   Success
+Lemma               -       1 (1..12)        2      50.0%
+Axiomatic G1        -       2 (1..12)        2       100%
+Axiomatic G2        -       1 (1..12)        1       100%
+Axiomatic Poluted   -       1 (1..12)        1       100%
+-------------------------------------------------------------

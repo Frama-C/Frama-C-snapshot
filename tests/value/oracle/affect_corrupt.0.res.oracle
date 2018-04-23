@@ -5,10 +5,12 @@
 [value:initial-state] Values of globals at initialization
   p ∈ {0}
   r ∈ {77}
-tests/value/affect_corrupt.i:8:[value] warning: out of bounds read. assert \valid_read(p);
+[value:alarm] tests/value/affect_corrupt.i:8: Warning: 
+  out of bounds read. assert \valid_read(p);
 [value] Recording results for main
 [value] done for function main
-tests/value/affect_corrupt.i:8:[value] assertion 'Value,mem_access' got final status invalid.
+[value] tests/value/affect_corrupt.i:8: 
+  assertion 'Value,mem_access' got final status invalid.
 [value] ====== VALUES COMPUTED ======
 [value:final-states] Values at end of function main:
   NON TERMINATING FUNCTION
@@ -16,11 +18,11 @@ tests/value/affect_corrupt.i:8:[value] assertion 'Value,mem_access' got final st
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      r
+    r
 [inout] Inputs for function main:
-      p
+    p

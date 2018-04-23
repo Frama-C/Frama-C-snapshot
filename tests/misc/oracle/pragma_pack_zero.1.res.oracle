@@ -1,5 +1,6 @@
 [kernel] Parsing tests/misc/pragma_pack_zero.c (with preprocessing)
-tests/misc/pragma_pack_zero.c:35:[kernel] warning: ignoring invalid packing alignment (0)
+[kernel] tests/misc/pragma_pack_zero.c:35: Warning: 
+  ignoring invalid packing alignment (0)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -21,11 +22,11 @@ tests/misc/pragma_pack_zero.c:35:[kernel] warning: ignoring invalid packing alig
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      z1; o1; z2; o2; z3; o3; z4; o4; __retres
+    z1; o1; z2; o2; z3; o3; z4; o4; __retres
 [inout] Inputs for function main:
-      \nothing
+    \nothing

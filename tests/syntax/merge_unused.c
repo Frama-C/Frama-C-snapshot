@@ -6,7 +6,7 @@ OPT: -cpp-extra-args="-I@PTEST_DIR@" @PTEST_DIR@/@PTEST_NAME@_2.c -print
 
 #include "merge_unused.h"
 
-extern void f();
+extern void f(void);
 
 struct s G1;
 

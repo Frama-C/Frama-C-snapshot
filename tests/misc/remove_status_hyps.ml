@@ -51,7 +51,7 @@ let main () =
   report "initial statuses" l;
   (* exactly four annotations in the tested program *)
   match l with
-  | (a1, s1, p1) :: ([ a2, s2, p2; a3, s3, p3; a4, s4, p4 ] as l') ->
+  | (a1, s1, _p1) :: ([ _a2, _s2, p2; _a3, _s3, _p3; _a4, _s4, p4 ] as l') ->
     Property_status.(emit emitter ~hyps:[ p2 ] p4 True);
     report "P4 only depends on P2" l;
     Annotations.remove_code_annot Emitter.end_user ~kf s1 a1;

@@ -4,7 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   A ∈ {0}
-tests/value/statement_contract.i:5:[value] function main, behavior test: postcondition got status valid.
+[value] tests/value/statement_contract.i:5: 
+  function main, behavior test: postcondition got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -13,11 +14,11 @@ tests/value/statement_contract.i:5:[value] function main, behavior test: postcon
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      d
+    d
 [inout] Inputs for function main:
-      \nothing
+    \nothing

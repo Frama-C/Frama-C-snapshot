@@ -1,0 +1,248 @@
+# frama-c -wp [...]
+[kernel] Parsing tests/wp_plugin/flash.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'Events' in 'job':
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'A_reads' in 'job':
+Let x = 1 + OBSERVER_time_0.
+Let a = global(G_a_60).
+Let a_1 = C_RdAt_int(a).
+Let a_2 = global(G_b_61).
+Let a_3 = C_RdAt_int(a_2).
+Let a_4 = C_WrAt_int(a_2).
+Let a_5 = L_RD_update(L_INDEX_init, a).
+Let a_6 = L_RD_update(a_5, a_2).
+Let a_7 = L_RD_update(a_6, a).
+Let x_1 = 1 + RD_time_0.
+Let x_2 = 1 + WR_time_0.
+Let x_3 = OBSERVER_time_0 - 1.
+Let x_4 = RD_time_0 - 1.
+Let a_8 = L_RD_current(x_4).
+Let x_5 = OBSERVER_time_0 - 2.
+Let x_6 = RD_time_0 - 2.
+Let x_7 = OBSERVER_time_0 - 3.
+Assume {
+  Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_5) /\
+      is_sint32(x_6) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
+      is_sint32(x_1) /\ is_sint32(x_2).
+  (* Pre-condition *)
+  Have: L_OBSERVER(x_7) = nil.
+  (* Pre-condition *)
+  Have: L_RD_current(x_6) = L_INDEX_init.
+  (* Pre-condition *)
+  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  (* Call 'RD' *)
+  Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
+      ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
+        + L_RD_value(a_2, L_RD_access(a_8, a_2)))
+         = L_WR_value(a_2, L_WR_access(L_INDEX_init, a_2))).
+  (* Call 'RD' *)
+  Have: (a_6 = L_RD_current(RD_time_0)) /\ (L_OBSERVER(x_3) = [ a_1, a_3 ]).
+  (* Call 'WR' *)
+  Have: (L_WR_update(L_INDEX_init, a_2) = L_WR_current(x_2)) /\
+      (L_OBSERVER(OBSERVER_time_0) = [ a_1, a_3, a_4 ]).
+  (* Call 'RD' *)
+  Have: (L_OBSERVER(x) = [ a_1, a_3, a_4, a_1 ]) /\
+      (a_7 = L_RD_current(x_1)).
+}
+Prove: L_RD_access(a_7, a) = 2.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B_reads' in 'job':
+Let x = 1 + OBSERVER_time_0.
+Let a = global(G_a_60).
+Let a_1 = C_RdAt_int(a).
+Let a_2 = global(G_b_61).
+Let a_3 = C_RdAt_int(a_2).
+Let a_4 = C_WrAt_int(a_2).
+Let a_5 = L_RD_update(L_INDEX_init, a).
+Let a_6 = L_RD_update(a_5, a_2).
+Let a_7 = L_RD_update(a_6, a).
+Let x_1 = 1 + RD_time_0.
+Let x_2 = 1 + WR_time_0.
+Let x_3 = OBSERVER_time_0 - 1.
+Let x_4 = RD_time_0 - 1.
+Let a_8 = L_RD_current(x_4).
+Let x_5 = OBSERVER_time_0 - 2.
+Let x_6 = RD_time_0 - 2.
+Let x_7 = OBSERVER_time_0 - 3.
+Assume {
+  Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_5) /\
+      is_sint32(x_6) /\ is_sint32(x_3) /\ is_sint32(x_4) /\ is_sint32(x) /\
+      is_sint32(x_1) /\ is_sint32(x_2).
+  (* Pre-condition *)
+  Have: L_OBSERVER(x_7) = nil.
+  (* Pre-condition *)
+  Have: L_RD_current(x_6) = L_INDEX_init.
+  (* Pre-condition *)
+  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  (* Call 'RD' *)
+  Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
+      ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
+        + L_RD_value(a_2, L_RD_access(a_8, a_2)))
+         = L_WR_value(a_2, L_WR_access(L_INDEX_init, a_2))).
+  (* Call 'RD' *)
+  Have: (a_6 = L_RD_current(RD_time_0)) /\ (L_OBSERVER(x_3) = [ a_1, a_3 ]).
+  (* Call 'WR' *)
+  Have: (L_WR_update(L_INDEX_init, a_2) = L_WR_current(x_2)) /\
+      (L_OBSERVER(OBSERVER_time_0) = [ a_1, a_3, a_4 ]).
+  (* Call 'RD' *)
+  Have: (L_OBSERVER(x) = [ a_1, a_3, a_4, a_1 ]) /\
+      (a_7 = L_RD_current(x_1)).
+}
+Prove: L_RD_access(a_7, a_2) = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B_writes' in 'job':
+Let x = 1 + OBSERVER_time_0.
+Let a = global(G_a_60).
+Let a_1 = C_RdAt_int(a).
+Let a_2 = global(G_b_61).
+Let a_3 = C_RdAt_int(a_2).
+Let a_4 = C_WrAt_int(a_2).
+Let a_5 = L_RD_update(L_INDEX_init, a).
+Let a_6 = L_RD_update(a_5, a_2).
+Let a_7 = L_WR_update(L_INDEX_init, a_2).
+Let x_1 = 1 + WR_time_0.
+Let x_2 = RD_time_0 - 1.
+Let x_3 = OBSERVER_time_0 - 1.
+Let x_4 = RD_time_0 - 2.
+Let a_8 = L_RD_current(x_4).
+Let x_5 = OBSERVER_time_0 - 2.
+Let x_6 = RD_time_0 - 3.
+Let x_7 = OBSERVER_time_0 - 3.
+Assume {
+  Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_6) /\
+      is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
+      is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: L_OBSERVER(x_7) = nil.
+  (* Pre-condition *)
+  Have: L_RD_current(x_6) = L_INDEX_init.
+  (* Pre-condition *)
+  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  (* Call 'RD' *)
+  Have: (a_5 = a_8) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
+      ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
+        + L_RD_value(a_2, L_RD_access(a_8, a_2)))
+         = L_WR_value(a_2, L_WR_access(L_INDEX_init, a_2))).
+  (* Call 'RD' *)
+  Have: (a_6 = L_RD_current(x_2)) /\ (L_OBSERVER(x_3) = [ a_1, a_3 ]).
+  (* Call 'WR' *)
+  Have: (a_7 = L_WR_current(x_1)) /\
+      (L_OBSERVER(OBSERVER_time_0) = [ a_1, a_3, a_4 ]).
+  (* Call 'RD' *)
+  Have: (L_OBSERVER(x) = [ a_1, a_3, a_4, a_1 ]) /\
+      (L_RD_update(a_6, a) = L_RD_current(RD_time_0)).
+}
+Prove: L_WR_access(a_7, a_2) = 1.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ReadValues' in 'job':
+Let x = 1 + OBSERVER_time_0.
+Let a = global(G_a_60).
+Let a_1 = C_RdAt_int(a).
+Let a_2 = global(G_b_61).
+Let a_3 = C_RdAt_int(a_2).
+Let a_4 = C_WrAt_int(a_2).
+Let a_5 = L_RD_update(L_INDEX_init, a).
+Let a_6 = L_RD_update(a_5, a_2).
+Let x_1 = 1 + WR_time_0.
+Let x_2 = RD_time_0 - 1.
+Let x_3 = OBSERVER_time_0 - 1.
+Let x_4 = RD_time_0 - 2.
+Let a_7 = L_RD_current(x_4).
+Let x_5 = OBSERVER_time_0 - 2.
+Let x_6 = L_RD_value(a, L_RD_access(L_INDEX_init, a)).
+Let x_7 = RD_time_0 - 3.
+Let x_8 = OBSERVER_time_0 - 3.
+Assume {
+  Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_8) /\ is_sint32(x_7) /\
+      is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
+      is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: L_OBSERVER(x_8) = nil.
+  (* Pre-condition *)
+  Have: L_RD_current(x_7) = L_INDEX_init.
+  (* Pre-condition *)
+  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  (* Call 'RD' *)
+  Have: (a_5 = a_7) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
+      ((x_6 + L_RD_value(a_2, L_RD_access(a_7, a_2)))
+         = L_WR_value(a_2, L_WR_access(L_INDEX_init, a_2))).
+  (* Call 'RD' *)
+  Have: (a_6 = L_RD_current(x_2)) /\ (L_OBSERVER(x_3) = [ a_1, a_3 ]).
+  (* Call 'WR' *)
+  Have: (L_WR_update(L_INDEX_init, a_2) = L_WR_current(x_1)) /\
+      (L_OBSERVER(OBSERVER_time_0) = [ a_1, a_3, a_4 ]).
+  (* Call 'RD' *)
+  Have: (L_OBSERVER(x) = [ a_1, a_3, a_4, a_1 ]) /\
+      (L_RD_update(a_6, a) = L_RD_current(RD_time_0)).
+}
+Prove: (x_6 + L_RD_value(a_2, L_RD_access(a_5, a_2))
+        + L_RD_value(a, L_RD_access(a_6, a)))
+         = (L_RD_value(a, 0) + L_RD_value(a, 1) + L_RD_value(a_2, 0)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'WriteValues' in 'job':
+Let x = 1 + OBSERVER_time_0.
+Let a = global(G_a_60).
+Let a_1 = C_RdAt_int(a).
+Let a_2 = global(G_b_61).
+Let a_3 = C_RdAt_int(a_2).
+Let a_4 = C_WrAt_int(a_2).
+Let a_5 = L_RD_update(L_INDEX_init, a).
+Let a_6 = L_RD_update(a_5, a_2).
+Let x_1 = 1 + WR_time_0.
+Let x_2 = RD_time_0 - 1.
+Let x_3 = OBSERVER_time_0 - 1.
+Let x_4 = RD_time_0 - 2.
+Let a_7 = L_RD_current(x_4).
+Let x_5 = OBSERVER_time_0 - 2.
+Let x_6 = RD_time_0 - 3.
+Let x_7 = OBSERVER_time_0 - 3.
+Assume {
+  Type: is_sint32(OBSERVER_time_0) /\ is_sint32(RD_time_0) /\
+      is_sint32(WR_time_0) /\ is_sint32(x_7) /\ is_sint32(x_6) /\
+      is_sint32(x_5) /\ is_sint32(x_4) /\ is_sint32(x_3) /\ is_sint32(x_2) /\
+      is_sint32(x) /\ is_sint32(x_1).
+  (* Pre-condition *)
+  Have: L_OBSERVER(x_7) = nil.
+  (* Pre-condition *)
+  Have: L_RD_current(x_6) = L_INDEX_init.
+  (* Pre-condition *)
+  Have: L_WR_current(WR_time_0) = L_INDEX_init.
+  (* Call 'RD' *)
+  Have: (a_5 = a_7) /\ (L_OBSERVER(x_5) = [ a_1 ]) /\
+      ((L_RD_value(a, L_RD_access(L_INDEX_init, a))
+        + L_RD_value(a_2, L_RD_access(a_7, a_2)))
+         = L_WR_value(a_2, L_WR_access(L_INDEX_init, a_2))).
+  (* Call 'RD' *)
+  Have: (a_6 = L_RD_current(x_2)) /\ (L_OBSERVER(x_3) = [ a_1, a_3 ]).
+  (* Call 'WR' *)
+  Have: (L_WR_update(L_INDEX_init, a_2) = L_WR_current(x_1)) /\
+      (L_OBSERVER(OBSERVER_time_0) = [ a_1, a_3, a_4 ]).
+  (* Call 'RD' *)
+  Have: (L_OBSERVER(x) = [ a_1, a_3, a_4, a_1 ]) /\
+      (L_RD_update(a_6, a) = L_RD_current(RD_time_0)).
+}
+Prove: (L_RD_value(a, 0) + L_RD_value(a_2, 0)) = L_WR_value(a_2, 0).
+
+------------------------------------------------------------

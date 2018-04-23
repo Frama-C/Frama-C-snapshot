@@ -4,7 +4,7 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/value/loop_no_var.i:3:[value] entering loop for the first time
+[value] tests/value/loop_no_var.i:3: entering loop for the first time
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -14,11 +14,11 @@ tests/value/loop_no_var.i:3:[value] entering loop for the first time
 [from] Non-terminating function main (no dependencies)
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-      \nothing
+    \nothing
 [inout] Inputs for function main:
-      \nothing
+    \nothing

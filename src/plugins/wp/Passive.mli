@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,10 +27,16 @@ open Lang.F
 type t
 
 val empty : t
+val is_empty : t -> bool
 val union : t -> t -> t
 val bind : fresh:var -> bound:var -> t -> t
 val join : var -> var -> t -> t
 val conditions : t -> (var -> bool) -> pred list
 val apply : t -> pred -> pred
 
+type binding =
+  | Bind of var * var (* fresh , bound *)
+  | Join of var * var (* left, right *)
+
+val iter : (binding -> unit) -> t -> unit
 val pretty : Format.formatter -> t -> unit

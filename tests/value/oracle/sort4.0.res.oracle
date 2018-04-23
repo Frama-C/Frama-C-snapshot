@@ -1,5 +1,6 @@
 [kernel] Parsing tests/value/sort4.i (no preprocessing)
-tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[kernel] tests/value/sort4.i:25: Warning: 
+  parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [value] Analyzing an incomplete application starting at sort4_1
 [value] Computing initial state
 [value] Initial state computed
@@ -8,7 +9,7 @@ tests/value/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid
   b ∈ [--..--]
   c ∈ [--..--]
   d ∈ [--..--]
-tests/value/sort4.i:20:[value] warning: assertion got status unknown.
+[value:alarm] tests/value/sort4.i:20: Warning: assertion got status unknown.
 [value] Recording results for sort4_1
 [value] done for function sort4_1
 [value] ====== VALUES COMPUTED ======
@@ -21,7 +22,7 @@ tests/value/sort4.i:20:[value] warning: assertion got status unknown.
 [from] Computing for function sort4_1
 [from] Done for function sort4_1
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function sort4_1:
   a FROM a; b; c; d (and SELF)
   b FROM a; b; c; d (and SELF)
@@ -29,6 +30,6 @@ tests/value/sort4.i:20:[value] warning: assertion got status unknown.
   d FROM a; b; c; d (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function sort4_1:
-      a; b; c; d; tmp
+    a; b; c; d; tmp
 [inout] Inputs for function sort4_1:
-      a; b; c; d
+    a; b; c; d

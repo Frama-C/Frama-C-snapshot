@@ -2,8 +2,9 @@
 [kernel] Parsing tests/wp_typed/avar.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-tests/wp_typed/avar.i:4:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
-[wp] warning: Missing RTE guards
+[kernel] tests/wp_typed/avar.i:4: Warning: 
+  No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function g
 ------------------------------------------------------------

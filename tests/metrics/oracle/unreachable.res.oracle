@@ -1,34 +1,34 @@
 [kernel] Parsing tests/metrics/unreachable.c (with preprocessing)
 [metrics] Defined functions (2)
-    =====================
-     foo (1 call); main (0 call); 
-    
-    Undefined functions (0)
-    =======================
-     
-    
-    'Extern' global variables (0)
-    =============================
-     
-    
-    Potential entry points (1)
-    ==========================
-     main; 
-    
-    Global metrics
-    ============== 
-    Sloc = 12
-    Decision point = 1
-    Global variables = 0
-    If = 1
-    Loop = 0
-    Goto = 2
-    Assignment = 4
-    Exit point = 2
-    Function = 2
-    Function call = 1
-    Pointer dereferencing = 0
-    Cyclomatic complexity = 3
+  =====================
+   foo (1 call); main (0 call); 
+  
+  Undefined functions (0)
+  =======================
+   
+  
+  'Extern' global variables (0)
+  =============================
+   
+  
+  Potential entry points (1)
+  ==========================
+   main; 
+  
+  Global metrics
+  ============== 
+  Sloc = 12
+  Decision point = 1
+  Global variables = 0
+  If = 1
+  Loop = 0
+  Goto = 2
+  Assignment = 4
+  Exit point = 2
+  Function = 2
+  Function call = 1
+  Pointer dereferencing = 0
+  Cyclomatic complexity = 3
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -36,20 +36,20 @@
   
 [value] done for function main
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 2 (out of 2)
-    Semantically reached functions = 1
-    Coverage estimation = 50.0% 
-    
-    Unreached functions (1) =
-      <tests/metrics/unreachable.c>: foo;
+  =========================
+  Syntactically reachable functions = 2 (out of 2)
+  Semantically reached functions = 1
+  Coverage estimation = 50.0% 
+  
+  Unreached functions (1) =
+    <tests/metrics/unreachable.c>: foo;
 [metrics] References to non-analyzed functions
-    ------------------------------------
-    Function main calls foo (at tests/metrics/unreachable.c:16)
+  ------------------------------------
+  Function main calls foo (at tests/metrics/unreachable.c:16)
 [metrics] Statements analyzed by Value
-    ----------------------------
-    10 stmts in analyzed functions, 6 stmts analyzed (60.0%)
-    main: 6 stmts out of 10 (60.0%)
+  ----------------------------
+  10 stmts in analyzed functions, 6 stmts analyzed (60.0%)
+  main: 6 stmts out of 10 (60.0%)
 [value] Analyzing a complete application starting at foo
 [value] Computing initial state
 [value] Initial state computed
@@ -57,11 +57,11 @@
   
 [value] done for function foo
 [metrics] Value coverage statistics
-    =========================
-    Syntactically reachable functions = 1 (out of 2)
-    Semantically reached functions = 1
-    Coverage estimation = 100.0%
+  =========================
+  Syntactically reachable functions = 1 (out of 2)
+  Semantically reached functions = 1
+  Coverage estimation = 100.0%
 [metrics] Statements analyzed by Value
-    ----------------------------
-    2 stmts in analyzed functions, 2 stmts analyzed (100.0%)
-    foo: 2 stmts out of 2 (100.0%)
+  ----------------------------
+  2 stmts in analyzed functions, 2 stmts analyzed (100.0%)
+  foo: 2 stmts out of 2 (100.0%)

@@ -5,17 +5,17 @@
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/slicing/combine.i:24.
+  Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-    Called from tests/slicing/combine.i:17.
+  Called from tests/slicing/combine.i:17.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/slicing/combine.i:26.
+  Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f <- main.
-    Called from tests/slicing/combine.i:17.
+  Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
@@ -28,7 +28,7 @@
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function g:
   \result FROM x
 [from] Function f:
@@ -120,18 +120,19 @@ int main(int x)
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/slicing/combine.i:24.
+  Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-    Called from tests/slicing/combine.i:17.
-tests/slicing/combine.i:17:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+  Called from tests/slicing/combine.i:17.
+[kernel:annot:missing-spec] tests/slicing/combine.i:17: Warning: 
+  Neither code nor specification for function g, generating default assigns from the prototype
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f_s_2 <- main.
-    Called from tests/slicing/combine.i:26.
+  Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f_s_2 <- main.
-    Called from tests/slicing/combine.i:17.
+  Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f_s_2
 [value] Done for function f_s_2
@@ -180,17 +181,17 @@ int main(int x)
 [value:initial-state] Values of globals at initialization
   
 [value] computing for function f <- main.
-    Called from tests/slicing/combine.i:24.
+  Called from tests/slicing/combine.i:24.
 [value] computing for function g <- f <- main.
-    Called from tests/slicing/combine.i:17.
+  Called from tests/slicing/combine.i:17.
 [value] using specification for function g
 [value] Done for function g
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f_s_2 <- main.
-    Called from tests/slicing/combine.i:26.
+  Called from tests/slicing/combine.i:26.
 [value] computing for function g <- f_s_2 <- main.
-    Called from tests/slicing/combine.i:17.
+  Called from tests/slicing/combine.i:17.
 [value] Done for function g
 [value] Recording results for f_s_2
 [value] Done for function f_s_2

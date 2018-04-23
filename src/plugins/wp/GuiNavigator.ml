@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,7 +123,7 @@ class behavior
     method reload () =
       begin
         list#reload ;
-        let to_prove g = not (Wpo.is_trivial g || Wpo.is_proved g) in
+        let to_prove g = not (Wpo.is_proved g || Wpo.resolve g) in
         let has_proof g =
           match ProofEngine.get g with
           | `None -> false
@@ -226,11 +226,8 @@ class behavior
           match card#get with
           | `List -> list#update w
           | `Goal -> goal#update in
-        let callback w prover result =
-          Wpo.set_result w prover result ; refresh w in
-        let success w = function
-          | None -> callback w prover VCS.no_result
-          | Some _ -> refresh w in
+        let result w _prv _res = refresh w in
+        let success w _res = refresh w in
         let schedule task =
           let thread = Task.thread task in
           let kill () =
@@ -244,25 +241,24 @@ class behavior
         match prover with
         | VCS.Why3ide ->
             let iter f = Wpo.iter ~on_goal:f () in
-            schedule (ProverWhy3ide.prove ~callback ~iter)
+            schedule (ProverWhy3ide.prove ~callback:result ~iter)
         | VCS.Tactical ->
             begin
               match mode , ProverScript.get w with
               | (None | Some VCS.BatchMode) , `Script ->
-                  schedule (ProverScript.prove ~callback ~success w)
+                  schedule (ProverScript.prove ~success w)
               | _ ->
                   card#set `Goal ;
                   clear#set_enabled false ;
                   self#navigator true (Some w) ;
             end
         | _ ->
-            let open VCS in
             let mode = match mode , prover with
               | Some m , _ -> m
-              | None , Coq -> EditMode
-              | None , AltErgo -> FixMode
-              | _ -> BatchMode in
-            schedule (Prover.prove w ~mode ~callback prover)
+              | None , VCS.Coq -> VCS.EditMode
+              | None , VCS.AltErgo -> VCS.FixMode
+              | _ -> VCS.BatchMode in
+            schedule (Prover.prove w ~mode ~result prover)
       end
 
     method private clear () =

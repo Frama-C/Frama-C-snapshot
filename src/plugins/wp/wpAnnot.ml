@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,6 +88,9 @@ let set_unreachable pid =
         let active = Datatype.String.Set.elements active in
         (Property.ip_post_cond_of_behavior kf kinstr active bhv) @
         (Property.ip_requires_of_behavior kf kinstr bhv)
+    | Property.IPExtended _ -> []
+      (* Extended clauses might concern anything. Don't validate them
+         unless we know exactly what is going on. *)
     | p ->
         Wp_parameters.result "[CFG] Goal %a : Valid (Unreachable)"
           WpPropId.pp_propid pid ; [p]
@@ -456,7 +459,7 @@ type test_behav_res =
 (** (see [test_behav_res] above).
  * If the annotation doesn't have "for" names, it is a bit complicated because
  * we have to know if the statement [s] is inside a stmt behavior or not. *)
-let is_annot_for_config config node s_annot bhv_name_list =
+let is_annot_for_config config ?(loopassigns=false) node s_annot bhv_name_list =
   let edges_before = Cil2cfg.pred_e config.cfg node in
   debug "[is_annot_for_config] at sid:%d for %a ? @."
     s_annot.sid (Wp_error.pp_string_list ~sep:" " ~empty:"<default>")
@@ -466,7 +469,7 @@ let is_annot_for_config config node s_annot bhv_name_list =
       | [] -> None
       | e::_ -> Cil2cfg.get_edge_next_stmt config.cfg e
     in match s_post with
-    | Some s_post when s_post.sid = s_annot.sid ->  TBRno
+    | Some s_post when s_post.sid = s_annot.sid && not loopassigns -> TBRno
     | _ -> TBRhyp
   in
   let res = match bhv_name_list with
@@ -851,7 +854,7 @@ let get_loop_annots config vloop s =
                 "At most one loop assigns can be associated to a behavior"
         in
         let assigns =
-          match is_annot_for_config config vloop s b_list with
+          match is_annot_for_config config ~loopassigns:true vloop s b_list with
           | TBRok | TBRpart ->
               check_assigns h_assigns (a,w),
               check_assigns g_assigns (a,w)

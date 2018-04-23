@@ -2,15 +2,16 @@
 [kernel] Parsing tests/wp_typed/unit_matrix.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 [wp] 3 goals scheduled
 [wp] [Alt-Ergo] Goal typed_make_post_OK1 : Valid
 [wp] [Qed] Goal typed_make_post_OK2 : Valid
 [wp] [Alt-Ergo] Goal typed_make_post_KO : Unknown
 [wp] Proved goals:    2 / 3
-    Qed:             1 
-    Alt-Ergo:        1  (unknown: 1)
-----------------------------------------------------------
-Functions           WP   Alt-Ergo    Total   Success
-make                 1      1 (11)     3      66.7%
-----------------------------------------------------------
+  Qed:             1 
+  Alt-Ergo:        1  (unknown: 1)
+[wp] Report 'tests/wp_typed/unit_matrix.i.0.report.json'
+-------------------------------------------------------------
+Functions           WP     Alt-Ergo        Total   Success
+make                 1      1 (8..20)        3      66.7%
+-------------------------------------------------------------

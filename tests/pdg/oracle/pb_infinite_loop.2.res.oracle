@@ -5,8 +5,9 @@
 [value:initial-state] Values of globals at initialization
   G ∈ [--..--]
 [value] computing for function exit <- test_exit.
-    Called from tests/pdg/pb_infinite_loop.c:48.
-tests/pdg/pb_infinite_loop.c:48:[kernel] warning: Neither code nor specification for function exit, generating default assigns from the prototype
+  Called from tests/pdg/pb_infinite_loop.c:48.
+[kernel:annot:missing-spec] tests/pdg/pb_infinite_loop.c:48: Warning: 
+  Neither code nor specification for function exit, generating default assigns from the prototype
 [value] using specification for function exit
 [value] Done for function exit
 [value] Recording results for test_exit

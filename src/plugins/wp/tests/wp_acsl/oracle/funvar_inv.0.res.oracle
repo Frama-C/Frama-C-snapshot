@@ -2,13 +2,19 @@
 [kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
-tests/wp_acsl/funvar_inv.i:24:[wp] warning: Can not compare pointers in Empty model
-tests/wp_acsl/funvar_inv.i:23:[wp] warning: Can not compare pointers in Empty model
-tests/wp_acsl/funvar_inv.i:38:[wp] warning: Can not compare pointers in Empty model
-tests/wp_acsl/funvar_inv.i:37:[wp] warning: Can not compare pointers in Empty model
-tests/wp_acsl/funvar_inv.i:53:[wp] warning: Can not compare pointers in Empty model
-tests/wp_acsl/funvar_inv.i:52:[wp] warning: Can not compare pointers in Empty model
+[wp] Warning: Missing RTE guards
+[wp] tests/wp_acsl/funvar_inv.i:24: Warning: 
+  Can not compare pointers in Empty model
+[wp] tests/wp_acsl/funvar_inv.i:23: Warning: 
+  Can not compare pointers in Empty model
+[wp] tests/wp_acsl/funvar_inv.i:38: Warning: 
+  Can not compare pointers in Empty model
+[wp] tests/wp_acsl/funvar_inv.i:37: Warning: 
+  Can not compare pointers in Empty model
+[wp] tests/wp_acsl/funvar_inv.i:53: Warning: 
+  Can not compare pointers in Empty model
+[wp] tests/wp_acsl/funvar_inv.i:52: Warning: 
+  Can not compare pointers in Empty model
 ------------------------------------------------------------
   Function f
 ------------------------------------------------------------
@@ -58,7 +64,7 @@ tests/wp_acsl/funvar_inv.i:37: warning from Empty Model:
 Let x = G[0].
 Assume {
   Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]).
-  If (4 * i) <= 15
+  If i <= 3
   Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: x != 0.
@@ -74,7 +80,7 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(x).
   (* Goal *)
   When: (x != 0) /\ (G[1] = 0).
-  If (4 * i) <= 15
+  If i <= 3
   Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: false.
@@ -96,7 +102,7 @@ tests/wp_acsl/funvar_inv.i:52: warning from Empty Model:
 Let x = G[0].
 Assume {
   Type: is_sint32(i) /\ is_sint32(x) /\ is_sint32(G[1]).
-  If (16 * i) <= 63
+  If i <= 3
   Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: x != 0.
@@ -112,7 +118,7 @@ Assume {
   Type: is_sint32(i) /\ is_sint32(x).
   (* Goal *)
   When: (x != 0) /\ (G[1] = 0).
-  If (16 * i) <= 63
+  If i <= 3
   Then { (* Else *) Have: G[i] = 0. }
 }
 Prove: false.

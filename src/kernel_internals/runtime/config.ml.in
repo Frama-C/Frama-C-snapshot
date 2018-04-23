@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,6 +28,7 @@ let is_gui = ref false
 
 let ocamlc = "@OCAMLC@"
 let ocamlopt = "@OCAMLOPT@"
+let ocaml_wflags = "@WARNINGS@"
 
 let datadir = try Sys.getenv "FRAMAC_SHARE" with Not_found -> "@FRAMAC_DATADIR@"
 let () = Filepath.add_symbolic_dir "FRAMAC_SHARE" datadir
@@ -76,5 +77,7 @@ let preprocessor_keep_comments =
 
 let compilation_unit_names = [@COMPILATION_UNITS@]
 let library_names = [@LIBRARY_NAMES@]
+
+let has_yojson = @HAS_YOJSON@
 
 let dot = @OPTDOT@

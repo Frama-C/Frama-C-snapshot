@@ -4,7 +4,7 @@
 [wp] Computing dynamic calls.
 [wp] Dynamic call(s): 1.
 [wp] Loading driver 'share/wp.driver'
-[wp] warning: Missing RTE guards
+[wp] Warning: Missing RTE guards
 ------------------------------------------------------------
   Function call
 ------------------------------------------------------------

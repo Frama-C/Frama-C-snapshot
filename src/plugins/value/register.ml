@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,6 @@
 open Cil_types
 open Locations
 
-let dkey_card = Value_parameters.register_category "cardinal"
-
 let compute () =
   (* Nothing to recompute when Value has already been computed. This boolean
      is automatically cleared when an option of Value changes, because they
@@ -34,76 +32,11 @@ let compute () =
 let _self =
   Db.register_compute "Value.compute" [ Db.Value.self ] Db.Value.compute compute
 
-
-let display ?fmt kf =
-  (* Do not pretty Cil-generated variables or out-of scope local variables *)
-  let filter_generated_and_locals base =
-    match base with
-      | Base.Var (v, _) ->
-        if v.vtemp then v.vname = "__retres"
-        else
-          ((not (Kernel_function.is_local v kf))
-          (* only locals of outermost block *)
-           || List.exists (fun x -> x.vid = v.vid)
-             (Kernel_function.get_definition kf).sbody.blocals )
-      | _ -> true
-  in
-  try
-    let values = Db.Value.get_stmt_state (Kernel_function.find_return kf) in
-    let fst_values =
-      Db.Value.get_stmt_state (Kernel_function.find_first_stmt kf)
-    in
-    if Cvalue.Model.is_reachable fst_values
-      && not (Cvalue.Model.is_top fst_values)
-    then begin
-      let print_cardinal = Value_parameters.is_debug_key_enabled dkey_card in
-      let estimate =
-        if print_cardinal
-        then Cvalue.Model.cardinal_estimate values
-        else Cvalue.CardinalEstimate.one
-      in
-      let outs = !Db.Outputs.get_internal kf in
-      let outs = Zone.filter_base filter_generated_and_locals outs in
-      let header fmt =
-        Format.fprintf fmt "Values at end of function %a:%t"
-          Kernel_function.pretty kf
-          (fun fmt ->
-            if print_cardinal then
-              Format.fprintf fmt " (~%a states)"
-                Cvalue.CardinalEstimate.pretty estimate)
-      in
-      let body fmt =
-        Format.fprintf fmt "@[%t@]@[  %t@]"
-          (fun fmt ->
-            match outs with
-            | Zone.Top (Base.SetLattice.Top, _) ->
-              Format.fprintf fmt "@[Cannot filter: dumping raw memory \
-                  (including unchanged variables)@]@\n"
-            | _ -> ())
-          (fun fmt -> Cvalue.Model.pretty_filter fmt values outs) in
-      match fmt with
-      | None -> Value_parameters.printf
-                  ~dkey:Value_parameters.dkey_final_states ~header "%t" body
-      | Some fmt -> Format.fprintf fmt "%t@.%t@," header body
-    end
-  with Kernel_function.No_Statement -> ()
-
-let display_results () =
-  if Db.Value.is_computed () && Value_parameters.verbose_atleast 1
- then begin
-    Value_parameters.result "====== VALUES COMPUTED ======";
-    Callgraph.Uses.iter_in_rev_order display;
-    Value_parameters.result "%t" Value_perf.display
-  end
-
 let () = Value_parameters.ForceValues.set_output_dependencies [Db.Value.self]
 
 let main () =
   (* Value computations *)
-  if Value_parameters.ForceValues.get () then begin
-    !Db.Value.compute ();
-    Value_parameters.ForceValues.output display_results;
-  end
+  if Value_parameters.ForceValues.get () then !Db.Value.compute ()
 
 let () = Db.Main.extend main
 
@@ -217,7 +150,6 @@ let eval_predicate ~pre ~here p =
 
 let () =
 (* Pretty-printing *)
-  Db.Value.display := (fun fmt kf -> display ~fmt kf);
   Db.Value.use_spec_instead_of_definition := use_spec_instead_of_definition;
   Db.Value.assigns_outputs_to_zone := assigns_outputs_to_zone;
   Db.Value.assigns_outputs_to_locations := assigns_outputs_to_locations;

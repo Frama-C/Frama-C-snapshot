@@ -100,7 +100,7 @@
 [from] Computing for function main8
 [from] Done for function main8
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function main8:
   A FROM c1
   B FROM c1
@@ -129,8 +129,8 @@
   tz FROM c
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main8:
-      A; B; C; D; p[2..3]; q[3..4]; q2[1..2]; t; u; v; w; x; y; z; PTR1; 
-      PTR2; PTR3; PTR4; PTR5; tz1; tz2; tz3; tx; ty; tz
+    A; B; C; D; p[2..3]; q[3..4]; q2[1..2]; t; u; v; w; x; y; z; PTR1; 
+    PTR2; PTR3; PTR4; PTR5; tz1; tz2; tz3; tx; ty; tz
 [inout] Inputs for function main8:
-      A; B; p[2..3]; q[3..4]; q2[1..2]; PTR1; PTR2; PTR3; PTR4; PTR5; c; 
-      c1; c2; c3; tx; ty; tz
+    A; B; p[2..3]; q[3..4]; q2[1..2]; PTR1; PTR2; PTR3; PTR4; PTR5; c; 
+    c1; c2; c3; tx; ty; tz

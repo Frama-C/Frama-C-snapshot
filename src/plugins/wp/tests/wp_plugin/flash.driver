@@ -1,0 +1,13 @@
+library INDEX: memory
+type index = "(addr,int)farray" ;
+logic integer INDEX_access( index , addr ) = "(%1)[%2]" ;
+logic index   INDEX_update( index , addr ) = "((%1)[(%2) <- (%1)[%2]+1])" ;
+logic index   INDEX_init := "INDEX_init" ;
+
+library RD: INDEX
+logic integer RD_access( index , addr ) := "INDEX_access" ;
+logic index   RD_update( index , addr ) := "INDEX_update" ;
+
+library WR: INDEX
+logic integer WR_access( index , addr ) := "INDEX_access" ;
+logic index   WR_update( index , addr ) := "INDEX_update" ;

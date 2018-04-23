@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ type node = {
 and script =
   | Opened
   | Script of ProofScript.jscript (* to replay *)
-  | Tactic of ProofScript.jtactic * node list (* played *)
+  | Tactic of ProofScript.jtactic * (string * node) list (* played *)
 
 type tree = {
   main : Wpo.t ; (* Main goal to be proved. *)
@@ -69,6 +69,8 @@ let get wpo =
     | Some { script = Tactic _ } -> if proof.saved then `Saved else `Proof
   with Not_found ->
     if ProofSession.exists wpo then `Script else `None
+let iter_all f ns = List.iter (fun (_,n) -> f n) ns
+let map_all f ns = List.map (fun (k,n) -> k,f n) ns
 
 (* -------------------------------------------------------------------------- *)
 (* --- Constructors                                                       --- *)
@@ -79,10 +81,11 @@ let proof ~main =
   PROOFS.get main
 
 let rec reset_node n =
+  Wpo.clear_results n.goal ;
   if Wpo.is_tactic n.goal then Wpo.remove n.goal ;
   match n.script with
   | Opened | Script _ -> ()
-  | Tactic(_,children) -> List.iter reset_node children
+  | Tactic(_,children) -> iter_all reset_node children
 
 let reset_root = function None -> () | Some n -> reset_node n
 
@@ -108,12 +111,16 @@ let set_saved t s = t.saved <- s
 let rec walk f node =
   if not (Wpo.is_proved node.goal) then
     match node.script with
-    | Tactic (_,children) -> List.iter (walk f) children
+    | Tactic (_,children) -> iter_all (walk f) children
     | Opened | Script _ -> f node
 
 let pending n =
   let k = ref 0 in
   walk (fun _ -> incr k) n ; !k
+
+let has_pending n =
+  try walk (fun _ -> raise Exit) n ; false
+  with Exit -> true
 
 let iteri f tree =
   match tree.root with
@@ -122,15 +129,15 @@ let iteri f tree =
       let k = ref 0 in
       walk (fun node -> f !k node ; incr k) r
 
-let validate tree =
+let validate ?(unknown=false) tree =
   match tree.root with
   | None -> ()
   | Some r ->
       if not (Wpo.is_proved tree.main) then
-        let pending = ref false in
-        walk (fun _ -> pending := true) r ;
-        if not !pending then
+        if not (has_pending r) then
           Wpo.set_result tree.main VCS.Tactical VCS.valid
+        else if unknown then
+          Wpo.set_result tree.main VCS.Tactical VCS.unknown
 
 (* -------------------------------------------------------------------------- *)
 (* --- Accessors                                                          --- *)
@@ -141,7 +148,8 @@ let head t = match t.head with
   | None -> t.main
   | Some n -> n.goal
 let goal n = n.goal
-let model n = n.goal.Wpo.po_model
+let tree_model t = t.main.Wpo.po_model
+let node_model n = n.goal.Wpo.po_model
 let parent n = n.parent
 let title n = n.goal.Wpo.po_name
 let tactical n =
@@ -169,6 +177,7 @@ let status t : status =
       if Wpo.is_proved t.main then `Proved else `Main
   | Some root ->
       `Pending (pending root)
+      
 
 let proved n = Wpo.is_proved n.goal
 let opened n = not (Wpo.is_proved n.goal)
@@ -213,7 +222,9 @@ let goto t = function
       iteri (fun i n -> if i = k then t.head <- Some n) t
 
 let fetch t node =
-  try walk (fun n -> t.head <- Some n ; raise Exit) node ; false
+  try
+    t.head <- t.root ;
+    walk (fun n -> t.head <- Some n ; raise Exit) node ; false
   with Exit -> true
 
 let rec forward t =
@@ -231,13 +242,13 @@ let cancel t =
   | None -> ()
   | Some node ->
       begin
+        Wpo.clear_results node.goal ;
         match node.script with
         | Opened ->
             t.head <- node.parent ;
             if t.head = None then t.root <- None ;
         | Tactic _ | Script _ ->
             (*TODO: save the current script *)
-            Wpo.clear_results node.goal ;
             node.script <- Opened ;
       end
 
@@ -308,7 +319,7 @@ struct
     tree : tree ;
     anchor : node ;
     tactic : ProofScript.jtactic ;
-    goals : Wpo.t list ;
+    goals : (string * Wpo.t) list ;
   }
 
   let create tree ~anchor tactic process =
@@ -316,11 +327,15 @@ struct
     let dseqs = process sequent in
     let title = tactic.ProofScript.header in
     let goals = List.map
-        (fun (part,s) -> mk_goal tree ~title ~part ~axioms s) dseqs
+        (fun (part,s) -> part , mk_goal tree ~title ~part ~axioms s) dseqs
     in { tree ; tactic ; anchor ; goals }
 
-  let iter f w = List.iter f w.goals
+  let iter f w = iter_all f w.goals
+
+  let header frk = frk.tactic.ProofScript.header
 end
+
+let pretty fmt frk = Format.pp_print_string fmt (Fork.header frk)
 
 type fork = Fork.t
 
@@ -338,13 +353,14 @@ let anchor tree ?node () =
           | Some n -> n
           | None -> mk_root tree
 
-let non_trivial wpo = not (Wpo.resolve wpo)
-
-let commit fork =
-  let residual = List.filter non_trivial fork.Fork.goals in
+let commit ~resolve fork =
+  let resolved (_,wp) =
+    Wpo.is_proved wp || ( resolve && Wpo.resolve wp ) in
+  let resolved , residual = List.partition resolved fork.Fork.goals in
+  iter_all Wpo.remove resolved ;
   let tree = fork.Fork.tree in
   let anchor = fork.Fork.anchor in
-  let children = List.map (mk_tree_node ~tree ~anchor) residual in
+  let children = map_all (mk_tree_node ~tree ~anchor) residual in
   tree.saved <- false ;
   anchor.script <- Tactic( fork.Fork.tactic , children ) ;
   anchor , children
@@ -362,10 +378,12 @@ let rec script_node (node : node) =
     match node.script with
     | Script s -> List.filter ProofScript.is_tactic s
     | Tactic( tactic , children ) ->
-        [ ProofScript.a_tactic tactic (List.map script_node children) ]
+        [ ProofScript.a_tactic tactic (List.map subscript_node children) ]
     | Opened -> []
   in
   provers @ scripts
+
+and subscript_node (key,node) = key , script_node node
 
 let script tree =
   match tree.root with

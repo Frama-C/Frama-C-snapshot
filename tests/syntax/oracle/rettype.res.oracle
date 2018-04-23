@@ -1,6 +1,7 @@
 [kernel] Parsing tests/syntax/rettype.i (no preprocessing)
-tests/syntax/rettype.i:8:[kernel] user error: Declaration of foo does not match previous declaration from tests/syntax/rettype.i:5 (different integer types:
-    'int' and 'unsigned short').
-tests/syntax/rettype.i:4:[kernel] warning: found two contracts. Merging them
-[kernel] user error: stopping on file "tests/syntax/rettype.i" that has errors.
+[kernel] tests/syntax/rettype.i:8: User Error: 
+  Declaration of foo does not match previous declaration from tests/syntax/rettype.i:5 (different integer types:
+  'int' and 'unsigned short').
+[kernel] tests/syntax/rettype.i:4: Warning: found two contracts. Merging them
+[kernel] User Error: stopping on file "tests/syntax/rettype.i" that has errors.
 [kernel] Frama-C aborted: invalid user input.

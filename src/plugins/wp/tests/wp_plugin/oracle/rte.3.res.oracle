@@ -5,9 +5,9 @@
 [wp:rte] function job: generate rte for memory access
 [wp:rte] function job: generate rte for division by zero
 [wp:rte] function job: generate rte for signed overflow
-[wp] warning: -wp-rte and model nat require kernel to warn against unsigned overflow
-[wp] warning: -wp-rte and model nat require kernel to warn against signed downcast
-[wp] warning: -wp-rte and model nat require kernel to warn against unsigned downcast
+[wp] Warning: -wp-rte and model nat require kernel to warn against unsigned overflow
+[wp] Warning: -wp-rte and model nat require kernel to warn against signed downcast
+[wp] Warning: -wp-rte and model nat require kernel to warn against unsigned downcast
 [rte] annotating function job
 [wp:rte] function job2: generate rte for memory access
 [wp:rte] function job2: generate rte for division by zero

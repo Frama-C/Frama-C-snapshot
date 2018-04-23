@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,15 +26,11 @@
 
 open Cil_types
 
-type param = NotUsed | ByValue | ByRef | InContext | InArray | InHeap
-
-val pp_param : Format.formatter -> param -> unit
-
 module type VarUsage =
 sig
   val datatype : string
-  val param : varinfo -> param
+  val param : varinfo -> Separation.param
   val separation : unit -> Separation.clause
 end
 
-module Make(V : VarUsage)(M : Memory.Model) : Memory.Model
+module Make(V : VarUsage)(M : Sigs.Model) : Sigs.Model

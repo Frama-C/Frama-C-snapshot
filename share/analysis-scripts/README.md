@@ -37,16 +37,22 @@ repository: https://github.com/Frama-C/open-source-case-studies
 (If you have access to Frama-C's development repositories, you can also use
 the examples in `analysis-scripts/examples`.)
 
-Including fcscripts
+Including analysis-scripts
 -------------------
 
 This folder contains several shell scripts and, most importantly,
 the `frama-c.mk` file. This file is intended to be included at the top of your
-`Makefile`:
+`GNUmakefile`:
 
 ````
-include fcscripts/frama-c.mk
+include $(shell frama-c -print-share-path)/analysis-scripts/frama-c.mk
 ````
+
+The file is named `GNUmakefile` instead of `Makefile` for pragmatic reasons:
+in GNU Make, the file `GNUmakefile`, if it exists, takes precedence over a
+`Makefile`, which avoid having to rename existing Makefiles and having to
+manually specify the Makefile to use when running make (e.g. via `-f`).
+The analysis-scripts Makefile relies on GNU-specific features anyway.
 
 By default, the scripts use the frama-c binaries located in your `$PATH`
 environment variable. You may want to specify different binaries, but, if you
@@ -152,7 +158,7 @@ example.eva:   EVAFLAGS += -slevel 500
 Full example
 ------------
 
-### `Makefile`
+### `GNUmakefile`
 
 ````
 # optional include, in case frama-c-path.mk does not exist (frama-c in the PATH)

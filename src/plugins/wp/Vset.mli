@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,6 +50,7 @@ val ordered : limit:bool -> strict:bool -> term option -> term option -> pred
 (** - [limit]: result when either parameter is [None]
     - [strict]: if [true], comparison is [<] instead of [<=] *)
 
+val is_empty : set -> pred
 val equal : set -> set -> pred
 val subset : set -> set -> pred
 val disjoint : set -> set -> pred

@@ -4,30 +4,31 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/pdg/postdom.c:20:[value] entering loop for the first time
+[value] tests/pdg/postdom.c:20: entering loop for the first time
 [value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
+  Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
 [value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
+  Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
 [value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
+  Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
-tests/pdg/postdom.c:21:[value] warning: signed overflow. assert sn + 2 ≤ 2147483647;
+[value:alarm] tests/pdg/postdom.c:21: Warning: 
+  signed overflow. assert sn + 2 ≤ 2147483647;
 [value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
+  Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
 [value] computing for function __VERIFIER_assert <- main.
-    Called from tests/pdg/postdom.c:23.
+  Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+  Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
 [value] Recording results for main
@@ -37,7 +38,7 @@ tests/pdg/postdom.c:21:[value] warning: signed overflow. assert sn + 2 ≤ 21474
 [pdg] computing for function main
 [from] Computing for function __VERIFIER_assert
 [from] Done for function __VERIFIER_assert
-tests/pdg/postdom.c:20:[pdg] warning: no final state. Probably unreachable...
+[pdg] tests/pdg/postdom.c:20: Warning: no final state. Probably unreachable...
 [pdg] done for function main
 [pdg] ====== PDG GRAPH COMPUTED ======
 [pdg] PDG for __VERIFIER_assert

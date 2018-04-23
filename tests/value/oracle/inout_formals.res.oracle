@@ -5,23 +5,24 @@
 [value:initial-state] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-tests/value/inout_formals.i:7:[value] warning: out of bounds write. assert \valid(i);
-tests/value/inout_formals.i:8:[value] Frama_C_show_each: {{ &S_i }}
+[value:alarm] tests/value/inout_formals.i:7: Warning: 
+  out of bounds write. assert \valid(i);
+[value] tests/value/inout_formals.i:8: Frama_C_show_each: {{ &S_i }}
 [value] Recording results for main
 [value] done for function main
 [inout] InOut (internal) for function main:
-    Operational inputs:
-      x; y; i
-    Operational inputs on termination:
-      x; y; i
-    Sure outputs:
-      S_i[0]
+  Operational inputs:
+    x; y; i
+  Operational inputs on termination:
+    x; y; i
+  Sure outputs:
+    S_i[0]
 [inout] InOut (with formals) for function main:
-    Operational inputs:
-      x; y; i
-    Operational inputs on termination:
-      x; y; i
-    Sure outputs:
-      S_i[0]
+  Operational inputs:
+    x; y; i
+  Operational inputs on termination:
+    x; y; i
+  Sure outputs:
+    S_i[0]
 [inout] Inputs (with formals) for function main:
-      x; y; i; S_i[0]
+    x; y; i; S_i[0]

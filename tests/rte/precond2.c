@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/rte/compute_annot/compute_annot.ml -journal-disable
+   OPT: -warn-special-float none -load-script tests/rte/compute_annot/compute_annot.ml -journal-disable
 */
 
 int global = 15;

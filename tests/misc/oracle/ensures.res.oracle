@@ -4,8 +4,9 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-tests/misc/ensures.i:4:[value] warning: function main: postcondition got status invalid.
+[value:alarm] tests/misc/ensures.i:4: Warning: 
+  function main: postcondition got status invalid.
 [value] done for function main
 [kernel] main: behavior default!
-    **NOT** VALID according to Frama-C kernel (under hypotheses)
+  **NOT** VALID according to Frama-C kernel (under hypotheses)
 [kernel] main: behavior default! **NOT** VALID according to Value (under hypotheses)

@@ -9,16 +9,16 @@
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
-tests/value/jacques.i:21:[value] Frama_C_show_each_f: {{ NULL ; &S_pp }}
-tests/value/jacques.i:23:[value] warning: assertion got status unknown.
-tests/value/jacques.i:25:[value] Frama_C_show_each_f: {{ &S_pp }}
-tests/value/jacques.i:29:[value] assertion got status valid.
+[value] tests/value/jacques.i:21: Frama_C_show_each_f: {{ NULL ; &S_pp }}
+[value:alarm] tests/value/jacques.i:23: Warning: assertion got status unknown.
+[value] tests/value/jacques.i:25: Frama_C_show_each_f: {{ &S_pp }}
+[value] tests/value/jacques.i:29: assertion got status valid.
 [value] computing for function f <- main.
-    Called from tests/value/jacques.i:36.
+  Called from tests/value/jacques.i:36.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.
-    Called from tests/value/jacques.i:40.
+  Called from tests/value/jacques.i:40.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main
@@ -39,7 +39,7 @@ tests/value/jacques.i:29:[value] assertion got status valid.
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function f:
   A FROM p; q
   B FROM q (and SELF)
@@ -51,10 +51,10 @@ tests/value/jacques.i:29:[value] assertion got status valid.
   S_pp[0] FROM pp
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f:
-      A; B
+    A; B
 [inout] Inputs for function f:
-      p; q
+    p; q
 [inout] Out (internal) for function main:
-      p; q; A; B; S_pp[0]
+    p; q; A; B; S_pp[0]
 [inout] Inputs for function main:
-      p; q
+    p; q

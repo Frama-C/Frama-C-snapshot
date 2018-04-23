@@ -4,7 +4,8 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-:0:[kernel] warning: Neither code nor specification for function main, generating default assigns from the prototype
+[kernel:annot:missing-spec] :0: Warning: 
+  Neither code nor specification for function main, generating default assigns from the prototype
 [value] using specification for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

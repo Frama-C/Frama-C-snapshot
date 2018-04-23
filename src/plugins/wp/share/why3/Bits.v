@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -160,7 +160,7 @@ Qed.
 						    
 (** {@trailing:} *)
 (** * Eventually constant functions *)
-(** The bits representation of [Z] integers are eventually constant 
+(** The bits representation of [Z] integers are eventually constant
     [nat -> bool] functions. Positive integers finally ends with an infinite 
     sequence of 0-bits, while negative inetegers ends with 1-bits. 
 

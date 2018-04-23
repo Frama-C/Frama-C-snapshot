@@ -1,0 +1,47 @@
+[kernel] Parsing tests/value/empty_struct.c (with preprocessing)
+[value] Analyzing a complete application starting at main4
+[value] Computing initial state
+[value] Initial state computed
+[value:initial-state] Values of globals at initialization
+  s2 ∈ {0}
+  pgs ∈ {{ &gs }}
+[value] computing for function f <- main4.
+  Called from tests/value/empty_struct.c:99.
+[value] using specification for function f
+[value] Done for function f
+[value] tests/value/empty_struct.c:99: 
+  Assigning imprecise value to r.
+  The imprecision originates from Library function
+  {tests/value/empty_struct.c:99}
+[value] computing for function g <- main4.
+  Called from tests/value/empty_struct.c:100.
+[kernel:annot:missing-spec] tests/value/empty_struct.c:100: Warning: 
+  Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] Recording results for main4
+[value] done for function main4
+[value] ====== VALUES COMPUTED ======
+[value:final-states] Values at end of function main4:
+  r ∈
+   {{ garbled mix of &{gs}
+    (origin: Library function {tests/value/empty_struct.c:99}) }}
+[from] Computing for function main4
+[from] Computing for function f <-main4
+[from] Done for function f
+[from] Computing for function g <-main4
+[from] Done for function g
+[from] Done for function main4
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM pgs
+[from] Function g:
+  NO EFFECTS
+[from] Function main4:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main4:
+    r
+[inout] Inputs for function main4:
+    pgs

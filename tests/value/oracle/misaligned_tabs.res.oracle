@@ -17,25 +17,25 @@
     {.c1; .c2} ∈ {17}
     {.i3; .i4} ∈ {4369}
 [value] computing for function misaligned_struct <- main.
-    Called from tests/value/misaligned_tabs.i:58.
-tests/value/misaligned_tabs.i:10:[value] Frama_C_show_each_1: {1}
-tests/value/misaligned_tabs.i:13:[value] Frama_C_show_each_2: {1}
-tests/value/misaligned_tabs.i:14:[value] Frama_C_show_each_3: {1}
-tests/value/misaligned_tabs.i:15:[value] Frama_C_show_each_4: {1}
-tests/value/misaligned_tabs.i:19:[value] Frama_C_show_each_5: {1}
-tests/value/misaligned_tabs.i:20:[value] Frama_C_show_each_6: {1}
-tests/value/misaligned_tabs.i:21:[value] Frama_C_show_each_7: {1}
-tests/value/misaligned_tabs.i:22:[value] Frama_C_show_each_8: {1}
-tests/value/misaligned_tabs.i:41:[value] Frama_C_show_each_9: {1}
-tests/value/misaligned_tabs.i:42:[value] Frama_C_show_each_a: {1}
-tests/value/misaligned_tabs.i:43:[value] Frama_C_show_each_b: {1}
-tests/value/misaligned_tabs.i:44:[value] Frama_C_show_each_c: {1}
-tests/value/misaligned_tabs.i:45:[value] Frama_C_show_each_d: {1}
-tests/value/misaligned_tabs.i:46:[value] Frama_C_show_each_e: {1}
-tests/value/misaligned_tabs.i:47:[value] Frama_C_show_each_f: {1}
+  Called from tests/value/misaligned_tabs.i:58.
+[value] tests/value/misaligned_tabs.i:10: Frama_C_show_each_1: {1}
+[value] tests/value/misaligned_tabs.i:13: Frama_C_show_each_2: {1}
+[value] tests/value/misaligned_tabs.i:14: Frama_C_show_each_3: {1}
+[value] tests/value/misaligned_tabs.i:15: Frama_C_show_each_4: {1}
+[value] tests/value/misaligned_tabs.i:19: Frama_C_show_each_5: {1}
+[value] tests/value/misaligned_tabs.i:20: Frama_C_show_each_6: {1}
+[value] tests/value/misaligned_tabs.i:21: Frama_C_show_each_7: {1}
+[value] tests/value/misaligned_tabs.i:22: Frama_C_show_each_8: {1}
+[value] tests/value/misaligned_tabs.i:41: Frama_C_show_each_9: {1}
+[value] tests/value/misaligned_tabs.i:42: Frama_C_show_each_a: {1}
+[value] tests/value/misaligned_tabs.i:43: Frama_C_show_each_b: {1}
+[value] tests/value/misaligned_tabs.i:44: Frama_C_show_each_c: {1}
+[value] tests/value/misaligned_tabs.i:45: Frama_C_show_each_d: {1}
+[value] tests/value/misaligned_tabs.i:46: Frama_C_show_each_e: {1}
+[value] tests/value/misaligned_tabs.i:47: Frama_C_show_each_f: {1}
 [value] Recording results for misaligned_struct
 [value] Done for function misaligned_struct
-tests/value/misaligned_tabs.i:64:[value] Frama_C_show_each_g: {1}
+[value] tests/value/misaligned_tabs.i:64: Frama_C_show_each_g: {1}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -80,7 +80,7 @@ tests/value/misaligned_tabs.i:64:[value] Frama_C_show_each_g: {1}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
-    These dependencies hold at termination for the executions that terminate:
+  These dependencies hold at termination for the executions that terminate:
 [from] Function misaligned_struct:
   S1.i1[bits 0 to 7] FROM \nothing
   S2.i1 FROM \nothing
@@ -95,14 +95,14 @@ tests/value/misaligned_tabs.i:64:[value] Frama_C_show_each_g: {1}
   S4 FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function misaligned_struct:
-      S1.i1[bits 0 to 7]; S2.i1;
-      S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
+    S1.i1[bits 0 to 7]; S2.i1;
+    S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
 [inout] Inputs for function misaligned_struct:
-      S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2}; S3{{.i1; .i2; .c1}; .i3};
-      S4{.i1; .i2; .c1; .c2; .i3}
+    S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2}; S3{{.i1; .i2; .c1}; .i3};
+    S4{.i1; .i2; .c1; .c2; .i3}
 [inout] Out (internal) for function main:
-      T[0..11]; S1.i1[bits 0 to 7]; S2.i1;
-      S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
+    T[0..11]; S1.i1[bits 0 to 7]; S2.i1;
+    S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
 [inout] Inputs for function main:
-      T[4..7]; S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2};
-      S3{{.i1; .i2; .c1}; .i3}; S4{.i1; .i2; .c1; .c2; .i3}
+    T[4..7]; S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2};
+    S3{{.i1; .i2; .c1}; .i3}; S4{.i1; .i2; .c1; .c2; .i3}

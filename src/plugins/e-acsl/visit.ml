@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Libc = Functions.Libc
+module RTL = Functions.RTL
 module E_acsl_label = Label
 open Cil_types
 open Cil_datatype
@@ -231,7 +233,7 @@ class e_acsl_visitor prj generate = object (self)
               let blk = Cil.mkBlock stmts in
               (* Create [__e_acsl_globals_init] function with definition
                for initialization of global variables *)
-              let fname = (Misc.mk_api_name "globals_init") in
+              let fname = (RTL.mk_api_name "globals_init") in
               let vi =
                 Cil.makeGlobalVar ~source:true
                   fname
@@ -330,7 +332,8 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
               in
               let ptr_size = Cil.sizeOf loc Cil.voidPtrType in
               let args = args @ [ ptr_size ] in
-              let init = Misc.mk_call loc (Misc.mk_api_name "memory_init") args in
+              let name = RTL.mk_api_name "memory_init" in
+              let init = Misc.mk_call loc name args in
               main.sbody.bstmts <- init :: main.sbody.bstmts
             in
             Extlib.may handle_main main_fct
@@ -370,8 +373,9 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         vi.vghost <- false;
         Builtins.update vi.vname vi;
         (* remember that we have to remove the main later (see method
-           [vfile]) *)
-        if vi.vorig_name = Kernel.MainFunction.get () then
+           [vfile]); do not use the [vorig_name] since both [main] and
+           [__e_acsl_main] have the same [vorig_name]. *)
+        if vi.vname = Kernel.MainFunction.get () then
           main_fct <- Some fundec
       | GVarDecl(vi, _) | GFunDecl(_, vi, _) ->
         (* do not convert extern ghost variables, because they can't be linked,
@@ -552,10 +556,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
             env
         in
         (* translate the precondition of the function *)
-        if Dup_functions.is_generated (Extlib.the self#current_kf) then
-          Project.on prj (Translate.translate_pre_spec kf Kglobal env) !funspec
-        else
-          env
+        Project.on prj (Translate.translate_pre_spec kf env) !funspec
       else
         env
     in
@@ -569,10 +570,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
             Cil.visitCilCodeAnnotation (self :> Cil.cilVisitor) old_a
           in
           let env =
-            Project.on
-              prj
-              (Translate.translate_pre_code_annotation kf stmt env)
-              a
+            Project.on prj (Translate.translate_pre_code_annotation kf env) a
           in
           env, a :: new_annots)
         (Cil.get_original_stmt self#behavior stmt)
@@ -619,8 +617,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         Project.on
           prj
           (List.fold_right
-             (fun a env ->
-               Translate.translate_post_code_annotation kf stmt env a)
+             (fun a env -> Translate.translate_post_code_annotation kf env a)
              new_annots)
           env
       in
@@ -640,13 +637,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
           let env = mk_post_env env in
           (* also handle the postcondition of the function and clear the env *)
           let env =
-            if Dup_functions.is_generated (Extlib.the self#current_kf) then
-              Project.on
-                prj
-                (Translate.translate_post_spec kf Kglobal env)
-                !funspec
-            else
-              env
+            Project.on prj (Translate.translate_post_spec kf env) !funspec
           in
           (* de-allocating memory previously allocating by the kf *)
           (* JS: should be done in the new project? *)
@@ -663,6 +654,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
             if is_main && Mmodel_analysis.use_model () then begin
               let stmts = b.bstmts in
               let l = List.rev stmts in
+              let mclean = (RTL.mk_api_name "memory_clean") in
               match l with
               | [] -> assert false (* at least the 'return' stmt *)
               | ret :: l ->
@@ -681,8 +673,7 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                       else
                         acc)
                     global_vars
-                    [ Misc.mk_call ~loc (Misc.mk_api_name "memory_clean") [];
-                      ret ]
+                    [ Misc.mk_call ~loc mclean []; ret ]
                 in
                 b.bstmts <- List.rev l @ delete_stmts
             end;
@@ -714,7 +705,10 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
                 ~global_clear:false
                 Env.Before
             in
-            let post_block = Cil.transient_block post_block in
+            let post_block =
+              if post_block.blocals = [] then Cil.transient_block post_block
+              else post_block
+            in
             Misc.mk_block prj new_stmt post_block, env
           end else
             stmt, env
@@ -734,7 +728,8 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
         | Var vi, NoOffset -> vi.vglob || vi.vformal
         | _ -> false
       in
-      if not (may_safely_ignore lv) && Mmodel_analysis.must_model_lval ~stmt ~kf lv then
+      let must_model = Mmodel_analysis.must_model_lval ~stmt ~kf lv in
+      if not (may_safely_ignore lv) && must_model then
         let before = Cil.memo_stmt self#behavior stmt in
         let new_stmt = Project.on prj (Misc.mk_initialize ~loc) lv in
         let new_stmt = Cil.memo_stmt self#behavior new_stmt in
@@ -750,15 +745,75 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
       else
         env
     in
+    let check_formats = Options.Validate_format_strings.get () in
+    let replace_libc_fn = Options.Replace_libc_functions.get () in
     match stmt.skind with
     | Instr(Set(lv, _, loc)) -> add_initializer loc lv stmt env kf
-    | Instr(Local_init(vi, _, loc)) ->
-      let lv = (Var(vi), NoOffset) in
-      add_initializer loc ~vi lv ~post:true stmt env kf
-    | Instr(Call (Some lv, _, _, loc)) ->
-      if not (Misc.is_generated_kf kf) then
-        add_initializer loc lv ~post:false stmt env kf
-      else env
+    | Instr(Local_init(vi, init, loc)) ->
+      let lv = (Var vi, NoOffset) in
+      let env = add_initializer loc ~vi lv ~post:true stmt env kf in
+      (* Handle variable-length array allocation via [__fc_vla_alloc].
+         Here each instance of [__fc_vla_alloc] is rewritten to [alloca]
+         (that is used to implement VLA) and further a custom call to
+         [store_block] tracking VLA allocation is issued. *)
+      (* KV: Do not add handling [alloca] allocation here (or anywhere else for
+         that matter). Handling of [alloca] should be implemented in Frama-C
+         (eventually). This is such that each call to [alloca] becomes
+         [__fc_vla_alloc]. It is already handled using the code below. *)
+      (match init with
+      | ConsInit (fvi, sz :: _, _) when Libc.is_vla_alloc_name fvi.vname ->
+        fvi.vname <- Libc.actual_alloca;
+        (* Since we need to pass [vi] by value cannot use [Misc.mk_store_stmt]
+           here. Do it manually. *)
+        let sname = RTL.mk_api_name "store_block" in
+        let store = Misc.mk_call ~loc sname [ Cil.evar vi ; sz ] in
+        Env.add_stmt ~post:true env store
+      (* Rewrite format functions (e.g., [printf]). See some comments below *)
+      | ConsInit (fvi, args, knd) when check_formats
+          && Libc.is_printf_name fvi.vname ->
+        let name = RTL.get_rtl_replacement_name fvi.vname in
+        let new_vi = Misc.get_lib_fun_vi name in
+        let fmt = Libc.get_printf_argument_str ~loc fvi.vname args in
+        stmt.skind <-
+          Instr(Local_init(vi, ConsInit(new_vi, fmt :: args, knd), loc));
+        env
+      (* Rewrite names of functions for which we have alternative
+        definitions in the RTL. *)
+      | ConsInit (fvi, _, _) when replace_libc_fn &&
+        RTL.has_rtl_replacement fvi.vname ->
+        fvi.vname <- RTL.get_rtl_replacement_name fvi.vname;
+        env
+      | _ -> env)
+    | Instr(Call (result, exp, args, loc)) ->
+      (* Rewrite names of functions for which we have alternative
+         definitions in the RTL. *)
+      (match exp.enode with
+      | Lval(Var vi, _) when replace_libc_fn &&
+          RTL.has_rtl_replacement vi.vname ->
+        vi.vname <- RTL.get_rtl_replacement_name vi.vname
+      | Lval(Var vi , _) when Libc.is_vla_free_name vi.vname ->
+        (* Handle variable-length array allocation via [__fc_vla_free].
+           Rewrite its name to [delete_block]. The rest is in place. *)
+        vi.vname <- RTL.mk_api_name "delete_block"
+      | Lval(Var vi, _) when check_formats && Libc.is_printf_name vi.vname ->
+        (* Rewrite names of format functions (such as printf). This case
+           differs from the above because argument list of format functions is
+           extended with an argument describing actual variadic arguments *)
+        (* Replacement name, e.g., [printf] -> [__e_acsl_builtin_printf] *)
+        let name = RTL.get_rtl_replacement_name vi.vname in
+        (* Variadic arguments descriptor *)
+        let fmt = Libc.get_printf_argument_str ~loc vi.vname args in
+        (* get the name of the library function we need. Cannot just rewrite
+           the name as AST check will then fail *)
+        let vi = Misc.get_lib_fun_vi name in
+        stmt.skind <- Instr(Call (result, Cil.evar vi, fmt :: args, loc))
+      | _ -> ());
+      (* Add statement tracking initialization of return values of function
+         calls *)
+      (match result with
+        | Some lv when not (RTL.is_generated_kf kf) ->
+          add_initializer loc lv ~post:false stmt env kf
+        | _ -> env)
     | _ -> env
 
   method !vblock blk =
@@ -848,8 +903,10 @@ you must call function `%s' and `__e_acsl_memory_clean by yourself.@]"
   initializer
     Misc.reset ();
     Literal_strings.reset ();
+    Keep_status.before_translation ();
     self#reset_env ();
     Translate.set_original_project (Project.current ())
+
 end
 
 let do_visit ?(prj=Project.current ()) generate =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,6 @@
 
 open Cil_types
 open Eval
-
 
 (* The forward evaluation of an expression [e] gives a value to each subterm
    of [e], from its variables to the root expression [e]. It also computes the
@@ -165,7 +164,7 @@ module type S = sig
   val check_non_overlapping:
     state -> lval list -> lval list -> unit evaluated
   val eval_function_exp:
-    exp -> state -> (Kernel_function.t * Valuation.t) list evaluated
+    exp -> ?args:exp list -> state -> (Kernel_function.t * Valuation.t) list evaluated
 end
 
 let return t = `Value t, Alarmset.none
@@ -174,21 +173,14 @@ let return t = `Value t, Alarmset.none
    the left-value [lval] of type [typ].
    Useful if the abstract domain returns a non-closed AllBut alarmset for
    some lvalues. *)
-let close_dereference_alarms lval typ alarms =
+let close_dereference_alarms lval alarms =
   let init_alarm = Alarms.Uninitialized lval
   and escap_alarm = Alarms.Dangling lval in
   let init_status = Alarmset.find init_alarm alarms
   and escap_status = Alarmset.find escap_alarm alarms in
-  let reduced = init_status <> Alarmset.True || escap_status <> Alarmset.True in
   let closed_alarms = Alarmset.set init_alarm init_status Alarmset.none in
   let closed_alarms = Alarmset.set escap_alarm escap_status closed_alarms in
-  match typ with
-  | TFloat (fkind, _) ->
-    let expr = Value_util.lval_to_exp lval in
-    let nan_inf_alarm = Alarms.Is_nan_or_infinite (expr, fkind) in
-    let nan_inf_status = Alarmset.find nan_inf_alarm alarms in
-    Alarmset.set nan_inf_alarm nan_inf_status closed_alarms, reduced
-  | _ -> closed_alarms, reduced
+  closed_alarms
 
 let define_value value =
   { v = `Value value; initialized = true; escaping = false }
@@ -347,6 +339,13 @@ module Make
     then eval >>= Value.truncate_integer expr range
     else eval >>=: Value.rewrap_integer range
 
+  let restrict_float expr fk value =
+    match Kernel.SpecialFloat.get () with
+    | "none"       -> return value
+    | "nan"        -> Value.restrict_float ~remove_infinite:false expr fk value
+    | "non-finite" -> Value.restrict_float ~remove_infinite:true expr fk value
+    | _            -> assert false
+
   let handle_overflow ~may_overflow expr typ eval =
     match Eval_typ.classify_as_scalar typ with
     | Eval_typ.TSInt range ->
@@ -358,10 +357,19 @@ module Make
       if not may_overflow
       then eval >>=. fun v -> fst (Value.truncate_integer expr range v)
       else handle_integer_overflow expr range eval
-    | Eval_typ.TSFloat fk ->
-      eval >>= Value.cast_float expr fk
+    | Eval_typ.TSFloat fk -> eval >>= restrict_float expr fk
     | Eval_typ.TSPtr _
     | Eval_typ.TSNotScalar -> eval
+
+  (* Removes NaN and infinite floats from the value read from a lvalue. *)
+  let restrict_float_lvalue lval typ res =
+    match typ with
+    | TFloat (fkind, _) ->
+      res >>= fun (value, origin) ->
+      let expr = Value_util.lval_to_exp lval in
+      restrict_float expr fkind value >>=: fun new_value ->
+      new_value, origin
+    | _ -> res
 
   (* Makes the oracle for the domain queries, called by the forward evaluation.
      Defined below, after applying the subdivided_evaluation to the forward
@@ -427,8 +435,9 @@ module Make
            and "complete" for the evaluation of [expr]. *)
         match Alarmset.inter alarms alarms' with
         | `Inconsistent ->
-          Value_parameters.abort ~current:true ~once:true
-            "Inconsistent status of alarms: unsound states."
+          (* May happen for a product of states with no concretization. Such
+             cases are reported to the user by transfer_stmt. *)
+          `Bottom, Alarmset.none
         | `Value alarms ->
           let v =
             intern_value >>- fun (intern_value, reduction, volatile) ->
@@ -466,14 +475,7 @@ module Make
     in
     match expr.enode with
     | Info (e, _) -> internal_forward_eval fuel state e
-
-    | Const c ->
-      begin match c with
-        | CEnum {eival = e} ->
-          forward_eval fuel state e >>=: fun value -> value, Neither, false
-        | _ -> Value.constant expr c >>=: fun value -> value, Neither, false
-      end
-
+    | Const constant -> internal_forward_eval_constant fuel state expr constant
     | Lval _lval -> assert false
 
     | AddrOf v | StartOf v ->
@@ -505,13 +507,37 @@ module Make
     | CastE (dst_typ, e) ->
       root_forward_eval fuel state e >>= fun (value, volatile) ->
       let src_typ = Cil.typeOf e in
-      let v = Value.do_promotion ~src_typ ~dst_typ e value in
+      let arg = match Cil.unrollType src_typ with
+        | TFloat (fkind, _) ->
+          if Cil.isFloatingType dst_typ
+          then return value
+          else Value.restrict_float ~remove_infinite:true e fkind value
+        | _ -> return value
+      in
+      arg >>= fun value ->
+      let v = Value.cast ~src_typ ~dst_typ e value in
+      let v = match Cil.unrollType dst_typ with
+        | TFloat (fkind, _) -> v >>= restrict_float expr fkind
+        | _ -> v
+      in
       compute_reduction v volatile
 
     | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ ->
       match Cil.constFoldToInt expr with
       | Some v -> return (Value.inject_int (Cil.typeOf expr) v, Neither, false)
       | _      -> return (Value.top_int, Neither, false)
+
+  and internal_forward_eval_constant fuel state expr constant =
+    let eval = match constant with
+      | CEnum {eival = e} -> forward_eval fuel state e
+      | CReal (_f, fkind, _fstring) ->
+        let value = Value.constant expr constant in
+        restrict_float expr fkind value
+      (* Integer constants never overflow, because the front-end chooses a
+         suitable type. *)
+      | _ -> return (Value.constant expr constant)
+    in
+    eval >>=: fun value -> value, Neither, false
 
 
   (* ------------------------------------------------------------------------
@@ -578,7 +604,8 @@ module Make
     if for_writing && Value_util.is_const_write_invalid typ_offs
     then
       `Bottom,
-      Alarmset.singleton (Alarms.Memory_access (lval, Alarms.For_writing))
+      Alarmset.singleton ~status:Alarmset.False
+        (Alarms.Memory_access (lval, Alarms.For_writing))
     else
       eval_host fuel state typ_offs offs host >>=: fun (loc, host_volatile) ->
       loc, typ_offs, offset_volatile || host_volatile
@@ -644,6 +671,7 @@ module Make
     (* Computes the location of [lval]. *)
     lval_to_loc fuel ~for_writing:false ~reduction:true state lval
     >>= fun (loc, typ_lv, volatile_expr) ->
+    let typ_lv = Cil.unrollType typ_lv in
     (* the lvalue is volatile:
        - if it has qualifier volatile (lval_to_loc propagates qualifiers
          in the proper way through offsets)
@@ -653,17 +681,19 @@ module Make
     (* Find the value of the location, if not bottom. *)
     let oracle = !make_oracle fuel state in
     let v, alarms = Domain.extract_lval oracle state lval typ_lv loc in
-    let alarms, reduced = close_dereference_alarms lval typ_lv alarms in
+    let alarms = close_dereference_alarms lval alarms in
     if indeterminate
     then
       let record, alarms = indeterminate_copy lval v alarms in
       `Value (record, Neither, volatile), alarms
     else
-      let reduction = if Alarmset.is_empty alarms then Neither else Forward in
+      let v, alarms = restrict_float_lvalue lval typ_lv (v, alarms) in
       (v, alarms) >>=: fun (value, origin) ->
       let value = define_value value
       and origin = Some origin
-      and reductness = if reduced then Reduced else Unreduced in
+      and reductness, reduction =
+        if Alarmset.is_empty alarms then Unreduced, Neither else Reduced, Forward
+      in
       (* The proper alarms will be set in the record by forward_eval. *)
       {value; origin; reductness; val_alarms = Alarmset.all},
       reduction, volatile
@@ -1133,54 +1163,58 @@ module Make
                                       Misc
      ------------------------------------------------------------------------ *)
 
-  let eval_function_exp funcexp state =
+  (* Aborts the analysis when a function pointer is completely imprecise. *)
+  let top_function_pointer funcexp =
+    if Mark_noresults.no_memoization_enabled () then
+      Value_parameters.abort ~current:true
+        "Function pointer evaluates to anything. Try deactivating \
+         option(s) -no-results, -no-results-function and -obviously-terminates."
+    else
+      Value_parameters.fatal ~current:true
+        "Function pointer evaluates to anything. function %a"
+        Printer.pp_exp funcexp
+
+  (* For pointer calls, we retro-propagate which function is being called
+     in the abstract state. This may be useful:
+     - inside the call for languages with OO (think 'self')
+     - everywhere, because we may remove invalid values for the pointer
+     - after if enough slevel is available, as states obtained in
+       different functions are not merged by default. *)
+  let backward_function_pointer valuation state expr kf =
+    (* Builds the expression [exp_f != &f], and assumes it is false. *)
+    let vi_f = Kernel_function.get_vi kf in
+    let addr = Cil.mkAddrOfVi vi_f in
+    let expr = Cil.mkBinOp ~loc:expr.eloc Ne expr addr in
+    fst (reduce ~valuation state expr false)
+
+  let eval_function_exp funcexp ?args state =
     match funcexp.enode with
     | Lval (Var vinfo, NoOffset) ->
       `Value [Globals.Functions.get vinfo, Valuation.empty],
       Alarmset.none
     | Lval (Mem v, NoOffset) ->
-      evaluate state v >>= fun (valuation, value) ->
-      let typ_pointer = Cil.typeOf funcexp in
-      let kfs, alarm = Value.resolve_functions ~typ_pointer value in
-      let alarm =
-        Alarmset.(if alarm then singleton (Alarms.Function_pointer v) else none)
-      in
-      (* For pointer calls, we retro-propagate which function is being called
-         in the abstract state. This may be useful:
-         - inside the call for languages with OO (think 'self')
-         - everywhere, because we may remove invalid values for the pointer
-         - after if enough slevel is available, as states obtained in
-           different functions are not merged by default. *)
-      let reduce kf =
-        cache := valuation;
-        let vi_f = Kernel_function.get_vi kf in
-        let value = Value.inject_address vi_f in
-        backward_eval 0 state v (Some value) >>- fun () ->
-        try second_forward_eval state v >>-: fun () -> !cache
-        with Not_Exact_Reduction ->
-          (* Build the expression [exp_f == &f] and reduce accordingly *)
-          let addr = Cil.mkAddrOfVi vi_f in
-          let expr = Cil.mkBinOp ~loc:v.eloc Eq v addr in
-          let valuation = !cache in
-          Subdivided_Evaluation.reduce_by_enumeration valuation state expr true
-      in
-      let process kf acc =
-        let res = reduce kf >>-: fun valuation -> kf, valuation in
-        Bottom.add_to_list res acc
-      in
-      begin match kfs with
+      begin
+        evaluate state v >>= fun (valuation, value) ->
+        let kfs, alarm = Value.resolve_functions value in
+        match kfs with
+        | `Top -> top_function_pointer funcexp
         | `Value kfs ->
-          Bottom.bot_of_list (Kernel_function.Hptset.fold process kfs []), alarm
-        | `Top ->
-          if Mark_noresults.no_memoization_enabled () then
-            Value_parameters.abort ~current:true
-              "Function pointer evaluates to anything. Try deactivating \
-               option(s) -no-results, -no-results-function and \
-               -obviously-terminates@."
-          else
-            Value_parameters.fatal ~current:true
-              "Function pointer evaluates to anything. function %a"
-              Printer.pp_exp funcexp
+          let typ = Cil.typeOf funcexp in
+          let kfs, alarm' = Eval_typ.compatible_functions typ ?args kfs in
+          let reduce = backward_function_pointer valuation state v in
+          let process acc kf =
+            let res = reduce kf >>-: fun valuation -> kf, valuation in
+            Bottom.add_to_list res acc
+          in
+          let list = List.fold_left process [] kfs in
+          let status =
+            if kfs = [] then Alarmset.False
+            else if alarm || alarm' then Alarmset.Unknown
+            else Alarmset.True
+          in
+          let alarm = Alarms.Function_pointer (v, args) in
+          let alarms = Alarmset.singleton ~status alarm in
+          Bottom.bot_of_list list, alarms
       end
     | _ -> assert false
 

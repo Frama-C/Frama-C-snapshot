@@ -48,7 +48,7 @@ float my_ratio(float f);
 void test_is_finite(void) {
 
   /*@ assert \is_finite((float)0.1); */
-  /*@ assert \is_finite((float)(0.1/0.0)); */
+  /* assert \is_finite((float)(0.1/0.0)); */ // false because the computation is done in real (result undefined)
 
   extern int undet;
   extern volatile int top_int;
@@ -56,7 +56,7 @@ void test_is_finite(void) {
   /* Reduces f1 from top_ival to top_float. */
   float f1;
   * (int *) (&f1) = top_int;
-  /*@ assert \is_finite(f1); */
+  /*@ assert \is_finite(f1); */ // false, but we want to test the reduction
 
   /* Should not reduce the fs. */
   float f2, f3;
@@ -64,7 +64,7 @@ void test_is_finite(void) {
   * (int *) (&f3) = top_int;
   float *p;
   if (undet) p = &f2; else p = &f3;
-  /*@ assert \is_finite(*p); */
+  /*@ assert \is_finite(*p); */ // false, but we cannot learn anything by reduction (in the Cvalue domain
 
   /* Returns the exact value from the spec. */
   float g1 = my_fabs(-3.3);

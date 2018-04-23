@@ -18,12 +18,12 @@ const int t[10] = {1, 2, 3, 4, 5, 6};
 void const_formal(int const i)
 {
   Frama_C_show_each(i);
-  if (v) i = 0;
+  if (v) *((int *)&i) = 0;
 }
 
 void pointer_to_const(const int *p) {
   Frama_C_show_each(*p);
-  *p = 0; // Invalid access through the formal itself
+  *((int *)p) = 0; // Invalid access through the formal itself
   Frama_C_show_each_dead();
 }
 
@@ -77,7 +77,7 @@ void constrain_G () {
 // Validity in the logic must correspond to the C part: check that the l-value
 // is not const
 void pointer_to_const_logic(const int *p) {
-  if (v) *p = 12;
+  if (v) *((int *)p) = 12;
 }
 
 

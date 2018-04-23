@@ -6,10 +6,12 @@
 [value] Initial state computed
 [value:initial-state] Values of globals at initialization
   
-[value:initial-state] creating variable S_0_S___va_params with imprecise size (type void)
-[value:initial-state] creating variable S_1_S___va_params with imprecise size (type void)
+[value:initial-state] 
+  creating variable S_0_S___va_params with imprecise size (type void)
+[value:initial-state] 
+  creating variable S_1_S___va_params with imprecise size (type void)
 [value] computing for function f <- main_top.
-    Called from tests/sparecode/top.i:21.
+  Called from tests/sparecode/top.i:21.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top
@@ -26,24 +28,25 @@
 [pdg] done for function f
 [sparecode] look for annotations in function main_call_top
 [pdg] computing for function main_call_top
-[pdg] warning: unreachable entry point (sid:23, function main_call_top)
+[pdg] Warning: unreachable entry point (sid:23, function main_call_top)
 [pdg] Bottom for function main_call_top
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function main_top
 [sparecode] look for annotations in function main_top_not_used
 [pdg] computing for function main_top_not_used
-[pdg] warning: unreachable entry point (sid:28, function main_top_not_used)
+[pdg] Warning: unreachable entry point (sid:28, function main_top_not_used)
 [pdg] Bottom for function main_top_not_used
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function not_used_in_main_top
 [pdg] computing for function not_used_in_main_top
-[pdg] warning: unreachable entry point (sid:1, function not_used_in_main_top)
+[pdg] Warning: unreachable entry point (sid:1, function not_used_in_main_top)
 [pdg] Bottom for function not_used_in_main_top
 [sparecode] pdg bottom: skip annotations
 [sparecode] look for annotations in function print
 [pdg] computing for function print
 [from] Computing for function print
-tests/sparecode/top.i:16:[kernel] warning: Neither code nor specification for function print, generating default assigns from the prototype
+[kernel:annot:missing-spec] tests/sparecode/top.i:16: Warning: 
+  Neither code nor specification for function print, generating default assigns from the prototype
 [from] Done for function print
 [pdg] done for function print
 [sparecode] finalize call input propagation

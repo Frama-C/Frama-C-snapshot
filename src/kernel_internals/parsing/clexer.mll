@@ -63,6 +63,11 @@ let is_ghost_code () = !ghost_code
 let enter_ghost_code () = ghost_code := true
 let exit_ghost_code () = ghost_code := false
 
+let ghost_annot = ref false
+let is_ghost_annot () = !ghost_annot
+let enter_ghost_annot () = ghost_annot := true
+let exit_ghost_annot () = ghost_annot := false
+
 let addComment c = Cabshelper.Comments.add (currentLoc()) c
 
 (* Some debugging support for line numbers *)
@@ -326,9 +331,9 @@ let lex_unescaped remainder lexbuf =
   prefix :: remainder lexbuf
 
 let lex_comment remainder buffer lexbuf =
-  let ch = Lexing.lexeme_char lexbuf 0 in
-  if ch = '\n' then E.newline() ;
-  (match buffer with None -> () | Some b -> Buffer.add_char b ch) ;
+  let s = Lexing.lexeme lexbuf in
+  if s = "\n" then E.newline() ;
+  (match buffer with None -> () | Some b -> Buffer.add_string b s) ;
   remainder buffer lexbuf
 
 let do_lex_comment ?(first_string="") remainder lexbuf =
@@ -380,8 +385,6 @@ let () =
     (fun _ x ->
       (* prevent the C lexer interpretation of comments *)
       annot_char := if x then '@' else '\000')
-(* ;
-  Kernel.CustomAnnot.add_set_hook (fun _ s -> annot_char:=s.[0]) *)
 
 let annot_start_pos = ref Cabshelper.cabslu
 let buf = Buffer.create 1024
@@ -389,24 +392,37 @@ let buf = Buffer.create 1024
 let save_current_pos () =
   annot_start_pos := currentLoc ()
 
-let make_annot ~one_line lexbuf s =
+let annot_lex initial rule lexbuf =
+  try
+    save_current_pos ();
+    Buffer.clear buf;
+    rule lexbuf
+  with Parsing.Parse_error ->
+    let source = Lexing.lexeme_start_p lexbuf in
+    Kernel.warning ~wkey:Kernel.wkey_annot_error ~source "skipping annotation";
+    initial lexbuf
+
+let make_annot ~one_line default lexbuf s =
   let start = snd !annot_start_pos in
-  let stop, token = Logic_lexer.annot (start, s) in
-  lexbuf.Lexing.lex_curr_p <- stop; 
-  (* The filename has already been normalized, so we must reuse it "as is". *)
-  E.setCurrentFile ~normalize:false stop.Lexing.pos_fname;
-  E.setCurrentLine stop.Lexing.pos_lnum;
-  if one_line then E.newline ();
-  match token with
-    | Logic_ptree.Adecl d -> DECL d
-    | Logic_ptree.Aspec -> SPEC (start,s)
-        (* At this point, we only have identified a function spec. Complete
+  match Logic_lexer.annot (start, s) with
+  | Some (stop, token) ->
+    lexbuf.Lexing.lex_curr_p <- stop;
+    (* The filename has already been normalized, so we must reuse it "as is". *)
+    E.setCurrentFile ~normalize:false stop.Lexing.pos_fname;
+    E.setCurrentLine stop.Lexing.pos_lnum;
+    if one_line then E.newline ();
+    (match token with
+     | Logic_ptree.Adecl d -> DECL d
+     | Logic_ptree.Aspec -> SPEC (start,s)
+     (* At this point, we only have identified a function spec. Complete
            parsing of the annotation will only occur in the cparser.mly rule.
-         *)
-    | Logic_ptree.Acode_annot (loc,a) -> CODE_ANNOT (a, loc)
-    | Logic_ptree.Aloop_annot (loc,a) -> LOOP_ANNOT (a,loc)
-    | Logic_ptree.Aattribute_annot (loc,a) -> ATTRIBUTE_ANNOT (a, loc)
-    | Logic_ptree.Acustom(loc,id, a) -> CUSTOM_ANNOT(a, id, loc)
+     *)
+     | Logic_ptree.Acode_annot (loc,a) -> CODE_ANNOT (a, loc)
+     | Logic_ptree.Aloop_annot (loc,a) -> LOOP_ANNOT (a,loc)
+     | Logic_ptree.Aattribute_annot (loc,a) -> ATTRIBUTE_ANNOT (a, loc)
+     | Logic_ptree.Acustom(loc,id, a) -> CUSTOM_ANNOT(a, id, loc))
+  | None -> (* error occured and annotation is discarded. Find a normal token. *)
+    default lexbuf
 
 }
 
@@ -475,14 +491,7 @@ rule initial = parse
 
 | "/*" ([^ '*' '\n'] as c)
     { if c = !annot_char then begin
-      try
-        save_current_pos ();
-	Buffer.clear buf;
-	annot_first_token lexbuf
-      with Parsing.Parse_error when Kernel.ContinueOnAnnotError.get () ->
-        let source = Lexing.lexeme_start_p lexbuf in
-        Kernel.debug ~source "skipping annotation";
-	initial lexbuf
+        annot_lex initial annot_first_token lexbuf
       end else
 	begin
 	  do_lex_comment ~first_string:(String.make 1 c) comment lexbuf ;
@@ -504,14 +513,7 @@ rule initial = parse
 
 | "//" ([^ '\n'] as c)
     { if c = !annot_char then begin
-      try
-        save_current_pos ();
-	Buffer.clear buf;
-	annot_one_line lexbuf
-      with Parsing.Parse_error when Kernel.ContinueOnAnnotError.get () ->
-        let source = Lexing.lexeme_start_p lexbuf in
-        Kernel.debug ~source "skipping annotation";
-        initial lexbuf
+        annot_lex initial annot_one_line lexbuf
       end else
 	begin
 	  do_lex_comment ~first_string:(String.make 1 c) onelinecomment lexbuf;
@@ -608,7 +610,18 @@ rule initial = parse
                     { if is_ghost_code () then might_end_ghost lexbuf
                       else
                         STAR (currentLoc ())}
-|		'/'			{SLASH}
+| "/" ([^ '\n'] as c)
+   { if c = !annot_char then
+       if is_ghost_code () || is_oneline_ghost () then begin
+         enter_ghost_annot();
+         annot_lex initial annot_first_token lexbuf
+       end else
+         E.parse_error "This kind of annotation is valid only inside ghost code"
+     else begin
+       lexbuf.Lexing.lex_curr_pos <- lexbuf.Lexing.lex_curr_pos - 1;
+       SLASH
+     end }
+|               '/'                     {SLASH}
 |		'%'			{PERCENT}
 |		'!'			{EXCLAM (currentLoc ())}
 |		"&&"			{AND_AND (currentLoc ())}
@@ -650,15 +663,17 @@ rule initial = parse
 (* __extension__ is a black. The parser runs into some conflicts if we let it
  * pass *)
 |               "__extension__"         {initial lexbuf }
-|		ident			{scan_ident (Lexing.lexeme lexbuf)}
-|		eof
+|               ident                   {scan_ident (Lexing.lexeme lexbuf)}
+|               eof
   { if is_oneline_ghost() then begin
       exit_oneline_ghost (); RGHOST
     end
     else EOF
   }
-|		_			{E.parse_error "Invalid symbol"}
-
+|               _ as c
+  { if is_ghost_code() && c = '@' then initial lexbuf
+    else E.parse_error "Invalid symbol"
+  }
 and might_end_ghost = parse
   | '/' { exit_ghost_code(); RGHOST }
   | "" { STAR (currentLoc()) }
@@ -669,6 +684,13 @@ and comment buffer = parse
   | _           { lex_comment comment buffer lexbuf }
 
 and onelinecomment buffer = parse
+  | "*/"        { if is_ghost_code () then
+                      (* end of multiline comment *)
+                      lexbuf.Lexing.lex_curr_pos <-
+                          lexbuf.Lexing.lex_curr_pos - 2
+                  else
+                      lex_comment onelinecomment buffer lexbuf
+                }
   | '\n'|eof    {  }
   | _           { lex_comment onelinecomment buffer lexbuf }
 
@@ -784,12 +806,20 @@ and annot_first_token = parse
   | '\n' { E.newline(); Buffer.add_char buf '\n'; annot_first_token lexbuf }
   | "" { annot_token lexbuf }
 and annot_token = parse
-  | "*/" { let s = Buffer.contents buf in
-           make_annot ~one_line:false lexbuf s }
+  | "*/" { if is_ghost_annot () then
+             E.parse_error "Ghost multi-line annotation not terminated";
+           let s = Buffer.contents buf in
+           make_annot ~one_line:false initial lexbuf s }
   | eof  { E.parse_error "Unterminated annotation" }
   | '\n' {E.newline(); Buffer.add_char buf '\n'; annot_token lexbuf }
-  | _ as c { Buffer.add_char buf c; annot_token lexbuf }
-
+  | _ as c { if is_ghost_annot () && c = !annot_char then
+               might_end_ghost_annot lexbuf
+             else (Buffer.add_char buf c; annot_token lexbuf) }
+and might_end_ghost_annot = parse
+  | '/' { exit_ghost_annot ();
+          let s = Buffer.contents buf in
+          make_annot ~one_line:false initial lexbuf s }
+  | "" { Buffer.add_char buf !annot_char; annot_token lexbuf }
 and annot_one_line = parse
   | "ghost" {
       if is_oneline_ghost () then E.parse_error "nested ghost code";
@@ -798,7 +828,7 @@ and annot_one_line = parse
   | ' '|'@'|'\t'|'\r' as c { Buffer.add_char buf c; annot_one_line lexbuf }
   | "" { annot_one_line_logic lexbuf }
 and annot_one_line_logic = parse
-  | '\n' { make_annot ~one_line:true lexbuf (Buffer.contents buf) }
+  | '\n' { make_annot ~one_line:true initial lexbuf (Buffer.contents buf) }
   | _ as c { Buffer.add_char buf c; annot_one_line_logic lexbuf }
 
 {

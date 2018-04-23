@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -29,7 +29,6 @@ let add = Logic_env.add_builtin_logic_function_gen
 
 let float_type = Ctype Cil.floatType
 let double_type = Ctype Cil.doubleType
-let string_type = Ctype Cil.charConstPtrType
 let long_double_type = Ctype Cil.longDoubleType
 let object_ptr = Ctype Cil.voidPtrType
 let fun_ptr = Ctype (TPtr(TFun(Cil.voidType,None,false,[]),[]))
@@ -164,7 +163,6 @@ let init =
             "\\pointer_comparable", [], [], [("p1", object_ptr);
                                          ("p2", fun_ptr)];
             "\\points_to_valid_string", [], [], ["p", object_ptr];
-            "\\warning", [], [FormalLabel "L"], [("str", string_type)];
           ];
         (* functions *)
         List.iter
@@ -183,7 +181,6 @@ let init =
             "\\fabs", [], ["x",Lreal], Lreal ;
 
             "\\sqrt", [], ["x",Lreal], Lreal ;
-            "\\pow", [], ["x",Lreal;"y",Lreal], Lreal ;
 
             "\\ceil", [], ["x",Lreal], Linteger ;
             "\\floor", [], ["x",Lreal], Linteger ;
@@ -193,11 +190,12 @@ let init =
             "\\log", [], ["x",Lreal], Lreal ;
             "\\log10", [], ["x",Lreal], Lreal ;
 
+            "\\e", [], [], Lreal ; (* \log(\e) == 1 *)
+            "\\pi", [], [], Lreal ;
+
             "\\cos", [], ["x",Lreal], Lreal ;
             "\\sin", [], ["x",Lreal], Lreal ;
             "\\tan", [], ["x",Lreal], Lreal ;
-
-            "\\pi", [], [], Lreal ;
 
             "\\cosh", [], ["x",Lreal], Lreal ;
             "\\sinh", [], ["x",Lreal], Lreal ;
@@ -207,11 +205,21 @@ let init =
             "\\asin", [], ["x",Lreal], Lreal ;
             "\\atan", [], ["x",Lreal], Lreal ;
 
-            "\\atan2", [], ["x",Lreal;"y",Lreal], Lreal ;
             "\\hypot", [], ["x",Lreal;"y",Lreal], Lreal ;
+            "\\atan2", [], ["x",Lreal;"y",Lreal], Lreal ;
+            "\\pow", [], ["x",Lreal;"y",Lreal], Lreal ;
+            "\\fmod", [], ["x",Lreal;"y",Lreal], Lreal ;
+
+            "atan2", [], ["x",double_type;"y",double_type], double_type ;
+            "pow", [], ["x",double_type;"y",double_type], double_type ;
+            "fmod", [], ["x",double_type;"y",double_type], double_type ;
+
+            "atan2f", [], ["x",float_type;"y",float_type], float_type ;
+            "powf", [], ["x",float_type;"y",float_type], float_type ;
+            "fmodf", [], ["x",float_type;"y",float_type], float_type ;
 
             (* TODO ?
-             * div() fmod() frexp() ldexp()
+             * div() frexp() ldexp()
              * ldiv() modf() modf()
              *)
 

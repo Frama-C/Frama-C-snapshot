@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,19 +24,23 @@
 (* --- C-Code Translation                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
+open Cil_datatype
 open Cil_types
 open Ctypes
 open Qed
-open Memory
+open Sigs
 open Lang
 open Lang.F
 
-module Make(M : Memory.Model) =
+module Make(M : Sigs.Model) =
 struct
 
+  module M = M
+
   type loc = M.loc
-  type value = M.loc Memory.value
+  type value = M.loc Sigs.value
   type sigma = M.Sigma.t
+  type result = loc Sigs.result
 
   let pp_value fmt = function
     | Val e -> Format.fprintf fmt "Val:%a" F.pp_term e
@@ -224,10 +228,14 @@ struct
 
     | C_float fr , C_float fe ->
         let v = cval ve in
-        Val( if Ctypes.equal_float fe fr then v else Cfloat.float_of_real fr (Cfloat.real_of_float fe v) )
+        Val( if Ctypes.equal_float fe fr then v else
+               Cfloat.float_of_real fr (Cfloat.real_of_float fe v) )
 
-    | C_int ir , C_float fr -> Val(Cint.of_real ir (Cfloat.real_of_float fr (cval ve)))
-    | C_float fr , C_int _ -> Val(Cfloat.float_of_real fr (Cfloat.real_of_int (cval ve)))
+    | C_int ir , C_float fr ->
+        Val(Cint.of_real ir (Cfloat.real_of_float fr (cval ve)))
+          
+    | C_float fr , C_int _ ->
+        Val(Cfloat.float_of_real fr (Cmath.real_of_int (cval ve)))
 
     | C_pointer tr , C_pointer te ->
         let obj_r = Ctypes.object_of tr in
@@ -315,23 +323,28 @@ struct
   (* --- Condition-Node                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let equal_typ t v1 v2 =
+  let eq_t is_ptr t v1 v2 =
     match v1 , v2 with
     | Loc p , Loc q -> M.loc_eq p q
     | Val a , Val b -> p_equal a b
     | _ ->
-        if Cil.isPointerType t
+        if is_ptr t
         then M.loc_eq (cloc v1) (cloc v2)
         else p_equal (cval v1) (cval v2)
 
-  let equal_obj t v1 v2 =
+  let neq_t is_ptr t v1 v2 =
     match v1 , v2 with
-    | Loc p , Loc q -> M.loc_eq p q
-    | Val a , Val b -> p_equal a b
+    | Loc p , Loc q -> M.loc_neq p q
+    | Val a , Val b -> p_neq a b
     | _ ->
-        if Ctypes.is_pointer t
-        then M.loc_eq (cloc v1) (cloc v2)
-        else p_equal (cval v1) (cval v2)
+        if is_ptr t
+        then M.loc_neq (cloc v1) (cloc v2)
+        else p_neq (cval v1) (cval v2)
+  
+  let equal_typ t v1 v2 = eq_t Cil.isPointerType t v1 v2
+  let equal_obj obj v1 v2 = eq_t Ctypes.is_pointer obj v1 v2
+  let not_equal_typ t v1 v2 = neq_t Cil.isPointerType t v1 v2
+  let not_equal_obj obj v1 v2 = neq_t Ctypes.is_pointer obj v1 v2
 
   let compare env vop lop fop e1 e2 =
     let t1 = Ctypes.object_of (Cil.typeOf e1) in
@@ -373,6 +386,9 @@ struct
   let exp env e = Context.with_current_loc e.eloc (exp_protected env) e
   let cond env e = Context.with_current_loc e.eloc (cond_node env) e
   let call env e = Context.with_current_loc e.eloc (call_node env) e
+  let result env tr = function
+    | R_var x -> F.e_var x
+    | R_loc l -> cval (M.load env (Ctypes.object_of tr) l)
   let return env tr e = cval (cast tr (Cil.typeOf e) (exp env e))
 
   let () = s_exp := exp
@@ -380,5 +396,137 @@ struct
 
   let instance_of floc kf =
     M.loc_eq floc (M.cvar (Kernel_function.get_vi kf))
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Initializers                                                       --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let unchanged sa sb v =
+    let obj = Ctypes.object_of v.vtype in
+    let loc = M.cvar v in
+    let va = M.load sa obj loc in
+    let vb = M.load sb obj loc in
+    equal_obj obj va vb
+
+  let init_value ~sigma lv typ init =
+    let obj = Ctypes.object_of typ in
+    let outcome = Warning.catch
+        ~severe:false ~effect:"Skip initializer"
+        (fun () ->
+           let l = lval sigma lv in
+           match init with
+           | Some e ->
+               let v = M.load sigma obj l in
+               p_equal (val_of_exp sigma e) (cval v)
+           | None -> is_zero sigma obj l
+        ) () in
+    match outcome with
+      | Warning.Failed warn -> warn , F.p_true
+      | Warning.Result(warn , hyp) -> warn , hyp
+
+  let init_range ~sigma lv typ a b value =
+    let obj = Ctypes.object_of typ in
+    let outcome = Warning.catch
+        ~severe:false ~effect:"Skip initializer"
+        (fun () ->
+           let l = lval sigma lv in
+           let e = Extlib.opt_map (exp sigma) value in
+           is_exp_range sigma l obj (e_bigint a) (e_bigint b) e
+        ) () in
+    match outcome with
+      | Warning.Failed warn -> warn , F.p_true
+      | Warning.Result(warn , hyp) -> warn , hyp
+
+
+  type warned_hyp = Warning.Set.t * Lang.F.pred
+
+  (* Hypothesis for initialization of one variable *)
+  let rec init_variable ~sigma lv init acc =
+    match init with
+
+    | SingleInit exp ->
+        init_value ~sigma lv (Cil.typeOfLval lv) (Some exp) :: acc
+
+    | CompoundInit ( ct , initl ) ->
+
+        let len = List.length initl in
+        let acc =
+          match ct with
+          | TArray (ty,Some {enode = (Const CInt64 (size,_,_))},_,_)
+            when Integer.lt (Integer.of_int len) size  ->
+              init_range ~sigma lv ty (Integer.of_int len) size None :: acc
+                
+          | TComp (cp,_,_) when len < (List.length cp.cfields) ->
+
+              List.fold_left
+                (fun acc f ->
+                   if List.exists
+                       (function
+                         | Field(g,_),_ -> Fieldinfo.equal f g
+                         | _ -> false)
+                       initl
+                   then acc
+                   else
+                     let init = 
+                       init_value ~sigma
+                         (Cil.addOffsetLval (Field(f, NoOffset)) lv)
+                         f.ftype None in
+                     init :: acc)
+                acc (List.rev cp.cfields)
+                
+          | _ -> acc
+        in
+        match ct with
+        | TArray (ty,_,_,_)
+          when Wp_parameters.InitWithForall.get () ->
+            (* delayed: the last consecutive index have the same value
+               and are not yet initialized.
+                (i0,pred,il) =def \forall x. x \in [il;i0] t[x] == pred
+            *)
+            let make_quant acc = function
+              | None -> acc
+              | Some (Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),exp,il)
+                when Integer.lt il i0 ->
+                  let i2 = Integer.succ i0 in
+                  init_range ~sigma lv ty il i2 (Some exp) :: acc
+              | Some (off,exp,_) ->
+                  let lv = Cil.addOffsetLval off lv in
+                  init_value ~sigma lv ty (Some exp) :: acc
+            in
+            let acc, delayed =
+              List.fold_left
+                (fun (acc,delayed) (off,init) ->
+                   match delayed, off, init with
+                   | None, Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),
+                     SingleInit curr ->
+                       (acc,Some(off,curr,i0))
+                   | Some (i0,prev,ip), Index({enode=Const (CInt64 (i,_,_))}, NoOffset),
+                     SingleInit curr
+                     when ExpStructEq.equal prev curr
+                       && Integer.equal (Integer.pred ip) i ->
+                       (acc,Some(i0,prev,i))
+                   | _, _,_ ->
+                       let acc = make_quant acc delayed in
+                       begin match off, init with
+                         | Index({enode=Const (CInt64 (i0,_,_))}, NoOffset),
+                           SingleInit curr ->
+                             acc, Some (off,curr,i0)
+                         | _ ->
+                             let lv = Cil.addOffsetLval off lv in
+                             init_variable ~sigma lv init acc, None
+                       end)
+                (acc,None)
+                (List.rev initl) in
+            (make_quant acc delayed)
+        | _ ->
+            List.fold_left
+              (fun acc (off,init) ->
+                 let lv = Cil.addOffsetLval off lv in
+                 init_variable ~sigma lv init acc)
+              acc (List.rev initl)
+
+  let init ~sigma v = function
+    | None -> [init_value ~sigma (Cil.var v) v.vtype None]
+    | Some init -> List.rev (init_variable ~sigma (Cil.var v) init [])
 
 end

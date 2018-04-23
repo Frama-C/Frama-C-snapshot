@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -78,6 +78,7 @@ let head e =
   | Mod _ -> "%"
   | If _ -> "?"
   | Aget _ -> "[]"
+  | Acst _ -> "[.]"
   | Aset _ -> "[=]"
   | Rget(_,fd) -> Pretty_utils.sfprintf ".%a" Lang.Field.pretty fd
   | Rdef fds -> Pretty_utils.sfprintf "{%s}" (head_fields fds)

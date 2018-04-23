@@ -9,8 +9,8 @@
 [value] done for function f
 [slicing] initializing slicing ...
 [slicing] interpreting slicing requests from the command line...
-[slicing] warning: No internal slicing request from the command line.
-[slicing] warning: Adding an extra request on the entry point of function: f.
+[slicing] Warning: No internal slicing request from the command line.
+[slicing] Warning: Adding an extra request on the entry point of function: f.
 [pdg] computing for function f
 [pdg] done for function f
 [slicing] applying all slicing requests...

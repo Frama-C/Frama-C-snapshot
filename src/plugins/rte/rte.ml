@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2017                                               *)
+(*  Copyright (C) 2007-2018                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,10 @@ let valid_index ~remove_trivial ~on_alarm e size =
       | Lower_bound -> None
       | Upper_bound -> Some size
     in
-    on_alarm ?status:None (Alarms.Index_out_of_bound(e, b))
+    (* Do not create upper-bound check on GNU zero-length arrays *)
+    if not (bk == Upper_bound && Cil.isZero size) then begin
+      on_alarm ?status:None (Alarms.Index_out_of_bound(e, b))
+    end
   in
   if remove_trivial then begin
     (* See if the two assertions do not trivially hold. In this
@@ -103,7 +106,7 @@ let lval_assertion ~read_only ~remove_trivial ~on_alarm lv =
     if not (Cil.isFunctionType (Cil.typeOfLval lv)) then
       check_array_access true off (Cil.typeOfLhost lh) false
 
-(* assertion for lvalue initialisation *)
+(* assertion for lvalue initialization *)
 let lval_initialized_assertion ~remove_trivial:_ ~on_alarm lv =
   let rec check_array_initialized default off typ in_struct l = 
     match off with
@@ -483,11 +486,16 @@ let float_to_int_assertion ~remove_trivial ~on_alarm (ty, exp) =
 
 (* assertion for checking only finite float are used *)
 let finite_float_assertion ~remove_trivial:_ ~on_alarm (fkind, exp) =
-  on_alarm ?status:None (Alarms.Is_nan_or_infinite(exp,fkind))
+  let status = None in
+  match Kernel.SpecialFloat.get () with
+  | "none"       -> ()
+  | "nan"        -> on_alarm ?status (Alarms.Is_nan (exp, fkind))
+  | "non-finite" -> on_alarm ?status (Alarms.Is_nan_or_infinite (exp, fkind))
+  | _            -> assert false
 
-(* assertion for a pointer call [( *e )(...)]. *)
-let pointer_call ~remove_trivial:_ ~on_alarm e =
-  on_alarm ?status:None (Alarms.Function_pointer e)
+(* assertion for a pointer call [( *e )(args)]. *)
+let pointer_call ~remove_trivial:_ ~on_alarm (e, args) =
+  on_alarm ?status:None (Alarms.Function_pointer (e, Some args))
 
 (*
 Local Variables:
